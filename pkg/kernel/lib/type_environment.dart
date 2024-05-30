@@ -160,16 +160,12 @@ abstract class TypeEnvironment extends Types {
   ///     getUnionFreeType(int?) = int
   ///     getUnionFreeType(FutureOr<int>) = int
   ///     getUnionFreeType(FutureOr<int?>?) = int
-  DartType getUnionFreeType(DartType type,
-      {required bool isNonNullableByDefault}) {
+  DartType getUnionFreeType(DartType type) {
     if (isNullableTypeConstructorApplication(type)) {
-      return getUnionFreeType(
-          computeTypeWithoutNullabilityMarker(type,
-              isNonNullableByDefault: isNonNullableByDefault),
-          isNonNullableByDefault: isNonNullableByDefault);
+      return getUnionFreeType(computeTypeWithoutNullabilityMarker(type,
+          isNonNullableByDefault: true));
     } else if (type is FutureOrType) {
-      return getUnionFreeType(type.typeArgument,
-          isNonNullableByDefault: isNonNullableByDefault);
+      return getUnionFreeType(type.typeArgument);
     } else {
       return type;
     }
@@ -177,46 +173,30 @@ abstract class TypeEnvironment extends Types {
 
   /// True if [member] is a binary operator whose return type is defined by
   /// the both operand types.
-  bool isSpecialCasedBinaryOperator(Procedure member,
-      {bool isNonNullableByDefault = false}) {
-    if (isNonNullableByDefault) {
-      Class? class_ = member.enclosingClass;
-      // TODO(johnniwinther): Do we need to recognize backend implementation
-      //  methods?
-      if (class_ == coreTypes.intClass ||
-          class_ == coreTypes.numClass ||
-          class_ == coreTypes.doubleClass) {
-        String name = member.name.text;
-        return name == '+' ||
-            name == '-' ||
-            name == '*' ||
-            name == 'remainder' ||
-            name == '%';
-      }
-    } else {
-      Class? class_ = member.enclosingClass;
-      if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name.text;
-        return name == '+' ||
-            name == '-' ||
-            name == '*' ||
-            name == 'remainder' ||
-            name == '%';
-      }
+  bool isSpecialCasedBinaryOperator(Procedure member) {
+    Class? class_ = member.enclosingClass;
+    // TODO(johnniwinther): Do we need to recognize backend implementation
+    //  methods?
+    if (class_ == coreTypes.intClass ||
+        class_ == coreTypes.numClass ||
+        class_ == coreTypes.doubleClass) {
+      String name = member.name.text;
+      return name == '+' ||
+          name == '-' ||
+          name == '*' ||
+          name == 'remainder' ||
+          name == '%';
     }
     return false;
   }
 
   /// True if [member] is a ternary operator whose return type is defined by
   /// the least upper bound of the operand types.
-  bool isSpecialCasedTernaryOperator(Procedure member,
-      {bool isNonNullableByDefault = false}) {
-    if (isNonNullableByDefault) {
-      Class? class_ = member.enclosingClass;
-      if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name.text;
-        return name == 'clamp';
-      }
+  bool isSpecialCasedTernaryOperator(Procedure member) {
+    Class? class_ = member.enclosingClass;
+    if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
+      String name = member.name.text;
+      return name == 'clamp';
     }
     return false;
   }
@@ -224,64 +204,44 @@ abstract class TypeEnvironment extends Types {
   /// Returns the static return type of a special cased binary operator
   /// (see [isSpecialCasedBinaryOperator]) given the static type of the
   /// operands.
-  DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
-      {bool isNonNullableByDefault = false}) {
-    if (isNonNullableByDefault) {
-      // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
-      // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
-      // type T and T <: num, and where the static type of e2 is S and S is
-      // assignable to num. Then:
-      if (type1 is! NeverType &&
-              isSubtypeOf(type1, coreTypes.numNonNullableRawType,
-                  SubtypeCheckMode.withNullabilities) &&
-              type2 is DynamicType ||
-          isSubtypeOf(type2, coreTypes.numNonNullableRawType,
-              SubtypeCheckMode.withNullabilities)) {
-        if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-            SubtypeCheckMode.withNullabilities)) {
-          // If T <: double then the static type of e is double. This includes S
-          // being dynamic or Never.
-          return coreTypes.doubleNonNullableRawType;
-        } else if (type2 is! NeverType &&
-            isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If S <: double and not S <:Never, then the static type of e is
-          // double.
-          return coreTypes.doubleNonNullableRawType;
-        } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+  DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2) {
+    // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
+    // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
+    // type T and T <: num, and where the static type of e2 is S and S is
+    // assignable to num. Then:
+    if (type1 is! NeverType &&
+            isSubtypeOf(type1, coreTypes.numNonNullableRawType,
                 SubtypeCheckMode.withNullabilities) &&
-            type2 is! NeverType &&
-            isSubtypeOf(type2, coreTypes.intNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If T <: int , S <: int and not S <: Never, then the static type of
-          // e is int.
-          return coreTypes.intNonNullableRawType;
-        } else if (type2 is! NeverType &&
-            isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-          // Otherwise the static type of e is num.
-          return coreTypes.numNonNullableRawType;
-        }
+            type2 is DynamicType ||
+        isSubtypeOf(type2, coreTypes.numNonNullableRawType,
+            SubtypeCheckMode.withNullabilities)) {
+      if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+          SubtypeCheckMode.withNullabilities)) {
+        // If T <: double then the static type of e is double. This includes S
+        // being dynamic or Never.
+        return coreTypes.doubleNonNullableRawType;
+      } else if (type2 is! NeverType &&
+          isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If S <: double and not S <:Never, then the static type of e is
+        // double.
+        return coreTypes.doubleNonNullableRawType;
+      } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          type2 is! NeverType &&
+          isSubtypeOf(type2, coreTypes.intNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If T <: int , S <: int and not S <: Never, then the static type of
+        // e is int.
+        return coreTypes.intNonNullableRawType;
+      } else if (type2 is! NeverType &&
+          isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+        // Otherwise the static type of e is num.
+        return coreTypes.numNonNullableRawType;
       }
-      // Otherwise the static type of e is num.
-      return coreTypes.numNonNullableRawType;
-    } else {
-      type1 = type1.nonTypeVariableBound;
-      type2 = type2.nonTypeVariableBound;
-
-      if (type1 == type2) return type1;
-
-      if (type1 is InterfaceType && type2 is InterfaceType) {
-        if (type1.classNode == type2.classNode) {
-          return type1;
-        }
-        if (type1.classNode == coreTypes.doubleClass ||
-            type2.classNode == coreTypes.doubleClass) {
-          return coreTypes.doubleRawType(type1.nullability);
-        }
-      }
-
-      return coreTypes.numRawType(type1.nullability);
     }
+    // Otherwise the static type of e is num.
+    return coreTypes.numNonNullableRawType;
   }
 
   DartType getTypeOfSpecialCasedTernaryOperator(

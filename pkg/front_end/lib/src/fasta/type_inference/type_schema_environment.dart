@@ -86,104 +86,74 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   List<DartType> choosePreliminaryTypes(
           TypeConstraintGatherer gatherer,
           List<StructuralParameter> typeParametersToInfer,
-          List<DartType>? previouslyInferredTypes,
-          {required bool isNonNullableByDefault}) =>
+          List<DartType>? previouslyInferredTypes) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          isNonNullableByDefault: isNonNullableByDefault, preliminary: true);
-
-  @override
-  DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
-      {bool isNonNullableByDefault = false}) {
-    if (isNonNullableByDefault) {
-      return super.getTypeOfSpecialCasedBinaryOperator(type1, type2,
-          isNonNullableByDefault: isNonNullableByDefault);
-    } else {
-      // TODO(paulberry): this matches what is defined in the spec.  It would be
-      // nice if we could change kernel to match the spec and not have to
-      // override.
-      if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
-        if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-          return type2.withDeclaredNullability(type1.nullability);
-        }
-        if (type2 is InterfaceType &&
-            type2.classNode == coreTypes.doubleClass) {
-          return type2.withDeclaredNullability(type1.nullability);
-        }
-      }
-      return coreTypes.numRawType(type1.nullability);
-    }
-  }
+          preliminary: true);
 
   DartType getContextTypeOfSpecialCasedBinaryOperator(
-      DartType contextType, DartType type1, DartType type2,
-      {bool isNonNullableByDefault = false}) {
-    if (isNonNullableByDefault) {
-      if (contextType is! NeverType &&
-          type1 is! NeverType &&
-          isSubtypeOf(type1, coreTypes.numNonNullableRawType,
+      DartType contextType, DartType type1, DartType type2) {
+    if (contextType is! NeverType &&
+        type1 is! NeverType &&
+        isSubtypeOf(type1, coreTypes.numNonNullableRawType,
+            SubtypeCheckMode.withNullabilities)) {
+      // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2
+      // or e1.remainder(e2), where C is the context type of e and T is the
+      // static type of e1, and where T is a non-Never subtype of num, then:
+      if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type1, coreTypes.intNonNullableRawType,
               SubtypeCheckMode.withNullabilities)) {
-        // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2
-        // or e1.remainder(e2), where C is the context type of e and T is the
-        // static type of e1, and where T is a non-Never subtype of num, then:
-        if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(type1, coreTypes.intNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If int <: C, not num <: C, and T <: int, then the context type of
-          // e2 is int.
-          return coreTypes.intNonNullableRawType;
-        } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            !isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If double <: C, not num <: C, and not T <: double, then the context
-          // type of e2 is double.
-          return coreTypes.doubleNonNullableRawType;
-        } else {
-          // Otherwise, the context type of e2 is num.
-          return coreTypes.numNonNullableRawType;
-        }
+        // If int <: C, not num <: C, and T <: int, then the context type of
+        // e2 is int.
+        return coreTypes.intNonNullableRawType;
+      } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          !isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If double <: C, not num <: C, and not T <: double, then the context
+        // type of e2 is double.
+        return coreTypes.doubleNonNullableRawType;
+      } else {
+        // Otherwise, the context type of e2 is num.
+        return coreTypes.numNonNullableRawType;
       }
     }
     return type2;
   }
 
   DartType getContextTypeOfSpecialCasedTernaryOperator(
-      DartType contextType, DartType receiverType, DartType operandType,
-      {bool isNonNullableByDefault = false}) {
-    if (isNonNullableByDefault) {
-      if (receiverType is! NeverType &&
-          isSubtypeOf(receiverType, coreTypes.numNonNullableRawType,
+      DartType contextType, DartType receiverType, DartType operandType) {
+    if (receiverType is! NeverType &&
+        isSubtypeOf(receiverType, coreTypes.numNonNullableRawType,
+            SubtypeCheckMode.withNullabilities)) {
+      // If e is an expression of the form e1.clamp(e2, e3) where C is the
+      // context type of e and T is the static type of e1 where T is a
+      // non-Never subtype of num, then:
+      if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(receiverType, coreTypes.intNonNullableRawType,
               SubtypeCheckMode.withNullabilities)) {
-        // If e is an expression of the form e1.clamp(e2, e3) where C is the
-        // context type of e and T is the static type of e1 where T is a
-        // non-Never subtype of num, then:
-        if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(receiverType, coreTypes.intNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If int <: C, not num <: C, and T <: int, then the context type of
-          // e2 and e3 is int.
-          return coreTypes.intNonNullableRawType;
-        } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
-                SubtypeCheckMode.withNullabilities) &&
-            isSubtypeOf(receiverType, coreTypes.doubleNonNullableRawType,
-                SubtypeCheckMode.withNullabilities)) {
-          // If double <: C, not num <: C, and T <: double, then the context
-          // type of e2 and e3 is double.
-          return coreTypes.doubleNonNullableRawType;
-        } else {
-          // Otherwise the context type of e2 an e3 is num
-          return coreTypes.numNonNullableRawType;
-        }
+        // If int <: C, not num <: C, and T <: int, then the context type of
+        // e2 and e3 is int.
+        return coreTypes.intNonNullableRawType;
+      } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(receiverType, coreTypes.doubleNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If double <: C, not num <: C, and T <: double, then the context
+        // type of e2 and e3 is double.
+        return coreTypes.doubleNonNullableRawType;
+      } else {
+        // Otherwise the context type of e2 an e3 is num
+        return coreTypes.numNonNullableRawType;
       }
     }
     return operandType;
@@ -221,8 +191,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       Map<StructuralParameter, MergedTypeConstraint> constraints,
       List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
-      {required bool isNonNullableByDefault,
-      bool preliminary = false,
+      {bool preliminary = false,
       required OperationsCfe operations}) {
     List<DartType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
@@ -243,13 +212,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (preliminary) {
         inferredTypes[i] = _inferTypeParameterFromContext(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
-            isNonNullableByDefault: isNonNullableByDefault,
             isLegacyCovariant: typeParam.isLegacyCovariant,
             operations: operations);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
             previouslyInferredTypes?[i], constraint, extendsConstraint,
-            isNonNullableByDefault: isNonNullableByDefault,
             isContravariant:
                 typeParam.variance == shared.Variance.contravariant,
             isLegacyCovariant: typeParam.isLegacyCovariant,
@@ -285,7 +252,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
       List<DartType> instantiatedTypes = calculateBounds(
           helperTypeParameters, coreTypes.objectClass,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: true);
       for (int i = 0; i < instantiatedTypes.length; ++i) {
         if (inferredTypes[i] is UnknownType) {
           inferredTypes[i] = instantiatedTypes[i];
@@ -331,20 +298,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// This is a case of type-based overloading, which in Dart is only supported
   /// by giving special treatment to certain arithmetic operators.
   bool isSpecialCasesBinaryForReceiverType(
-      Procedure member, DartType receiverType,
-      {required bool isNonNullableByDefault}) {
-    if (!isNonNullableByDefault) {
-      // TODO(paulberry): this matches what is defined in the spec.  It would be
-      // nice if we could change kernel to match the spec and not have to
-      // override.
-      if (member.name.text == 'remainder') return false;
-      if (!(receiverType is InterfaceType &&
-          identical(receiverType.classNode, coreTypes.intClass))) {
-        return false;
-      }
-    }
-    return isSpecialCasedBinaryOperator(member,
-        isNonNullableByDefault: isNonNullableByDefault);
+      Procedure member, DartType receiverType) {
+    return isSpecialCasedBinaryOperator(member);
   }
 
   @override
@@ -363,8 +318,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType? declaredReturnType,
       List<StructuralParameter> typeParametersToInfer,
       DartType? returnContextType,
-      {required bool isNonNullableByDefault,
-      bool isConst = false,
+      {bool isConst = false,
       required OperationsCfe typeOperations,
       required TypeInferenceResultForTesting? inferenceResultForTesting,
       required TreeNode? treeNodeForTesting}) {
@@ -376,23 +330,16 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // are implied by this.
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
         this, typeParametersToInfer,
-        isNonNullableByDefault: isNonNullableByDefault,
         typeOperations: typeOperations,
         inferenceResultForTesting: inferenceResultForTesting);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        if (isNonNullableByDefault) {
-          returnContextType = new NullabilityAwareFreeTypeVariableEliminator(
-                  bottomType: const NeverType.nonNullable(),
-                  topType: objectNullableRawType,
-                  topFunctionType: functionRawType(Nullability.nonNullable))
-              .eliminateToLeast(returnContextType!);
-        } else {
-          returnContextType =
-              new TypeVariableEliminator(const NullType(), objectLegacyRawType)
-                  .substituteType(returnContextType!);
-        }
+        returnContextType = new NullabilityAwareFreeTypeVariableEliminator(
+                bottomType: const NeverType.nonNullable(),
+                topType: objectNullableRawType,
+                topFunctionType: functionRawType(Nullability.nonNullable))
+            .eliminateToLeast(returnContextType!);
       }
       gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,
           treeNodeForTesting: treeNodeForTesting);
@@ -467,10 +414,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   List<DartType> chooseFinalTypes(
           TypeConstraintGatherer gatherer,
           List<StructuralParameter> typeParametersToInfer,
-          List<DartType>? previouslyInferredTypes,
-          {required bool isNonNullableByDefault}) =>
+          List<DartType>? previouslyInferredTypes) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
-          isNonNullableByDefault: isNonNullableByDefault, preliminary: false);
+          preliminary: false);
 
   /// Computes (or recomputes) a set of [inferredTypes] based on the constraints
   /// that have been recorded so far.
@@ -478,28 +424,23 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraintGatherer gatherer,
       List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
-      {required bool isNonNullableByDefault,
-      required bool preliminary}) {
+      {required bool preliminary}) {
     List<DartType> inferredTypes = inferTypeFromConstraints(
-        gatherer.computeConstraints(
-            isNonNullableByDefault: isNonNullableByDefault),
+        gatherer.computeConstraints(),
         typeParametersToInfer,
         previouslyInferredTypes,
-        isNonNullableByDefault: isNonNullableByDefault,
         preliminary: preliminary,
         operations: gatherer.typeOperations);
 
     for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i],
-          isNonNullableByDefault: isNonNullableByDefault);
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
     }
     return inferredTypes;
   }
 
   DartType _inferTypeParameterFromAll(DartType? typeFromPreviousInference,
       MergedTypeConstraint constraint, DartType? extendsConstraint,
-      {required bool isNonNullableByDefault,
-      bool isContravariant = false,
+      {bool isContravariant = false,
       bool isLegacyCovariant = true,
       required OperationsCfe operations}) {
     // See if we already fixed this type in a previous inference step.
@@ -516,23 +457,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       constraint.mergeInTypeSchemaUpper(extendsConstraint, operations);
     }
 
-    return solveTypeConstraint(
-        constraint,
-        isNonNullableByDefault
-            ? coreTypes.objectNullableRawType
-            : const DynamicType(),
-        isNonNullableByDefault
-            ? const NeverType.nonNullable()
-            : const NullType(),
-        grounded: true,
-        isContravariant: isContravariant);
+    return solveTypeConstraint(constraint, coreTypes.objectNullableRawType,
+        const NeverType.nonNullable(),
+        grounded: true, isContravariant: isContravariant);
   }
 
   DartType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
       MergedTypeConstraint constraint, DartType? extendsConstraint,
-      {required bool isNonNullableByDefault,
-      bool isLegacyCovariant = true,
-      required OperationsCfe operations}) {
+      {bool isLegacyCovariant = true, required OperationsCfe operations}) {
     // See if we already fixed this type in a previous inference step.
     // If so, then we aren't allowed to change it unless [isLegacyCovariant] is
     // false.
@@ -542,14 +474,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       return typeFromPreviousInference;
     }
 
-    DartType t = solveTypeConstraint(
-        constraint,
-        isNonNullableByDefault
-            ? coreTypes.objectNullableRawType
-            : const DynamicType(),
-        isNonNullableByDefault
-            ? const NeverType.nonNullable()
-            : const NullType());
+    DartType t = solveTypeConstraint(constraint,
+        coreTypes.objectNullableRawType, const NeverType.nonNullable());
     if (!isKnown(t)) {
       return t;
     }
@@ -564,14 +490,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (extendsConstraint != null) {
       constraint = constraint.clone();
       constraint.mergeInTypeSchemaUpper(extendsConstraint, operations);
-      return solveTypeConstraint(
-          constraint,
-          isNonNullableByDefault
-              ? coreTypes.objectNullableRawType
-              : const DynamicType(),
-          isNonNullableByDefault
-              ? const NeverType.nonNullable()
-              : const NullType());
+      return solveTypeConstraint(constraint, coreTypes.objectNullableRawType,
+          const NeverType.nonNullable());
     }
     return t;
   }

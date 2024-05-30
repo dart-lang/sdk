@@ -508,17 +508,15 @@ class InstanceAccessTarget extends ObjectAccessTarget {
   @override
   bool isSpecialCasedBinaryOperator(InferenceVisitorBase base) {
     return member is Procedure &&
-        base.typeSchemaEnvironment.isSpecialCasesBinaryForReceiverType(
-            member as Procedure, receiverType,
-            isNonNullableByDefault: true);
+        base.typeSchemaEnvironment
+            .isSpecialCasedBinaryOperator(member as Procedure);
   }
 
   @override
   bool isSpecialCasedTernaryOperator(InferenceVisitorBase base) {
     return member is Procedure &&
-        base.typeSchemaEnvironment.isSpecialCasedTernaryOperator(
-            member as Procedure,
-            isNonNullableByDefault: true);
+        base.typeSchemaEnvironment
+            .isSpecialCasedTernaryOperator(member as Procedure);
   }
 
   @override

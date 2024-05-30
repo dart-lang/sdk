@@ -174,7 +174,6 @@ abstract class TypeSchemaEnvironmentTestBase {
               declaredReturnTypeNode,
               typeParameterNodesToInfer,
               returnContextTypeNode,
-              isNonNullableByDefault: true,
               typeOperations: new OperationsCfe(typeSchemaEnvironment,
                   fieldNonPromotabilityInfo: new FieldNonPromotabilityInfo(
                       fieldNameInfo: {}, individualPropertyReasons: {}),
@@ -185,14 +184,12 @@ abstract class TypeSchemaEnvironmentTestBase {
               treeNodeForTesting: null);
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
-            gatherer, typeParameterNodesToInfer, inferredTypeNodes,
-            isNonNullableByDefault: true);
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes);
       } else {
         gatherer.constrainArguments(formalTypeNodes, actualTypeNodes!,
             treeNodeForTesting: null);
         inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParameterNodesToInfer, inferredTypeNodes!,
-            isNonNullableByDefault: true);
+            gatherer, typeParameterNodesToInfer, inferredTypeNodes!);
       }
 
       assert(
@@ -228,7 +225,6 @@ abstract class TypeSchemaEnvironmentTestBase {
           {typeParameterNode: typeConstraint},
           [typeParameterNode],
           inferredTypeNodes,
-          isNonNullableByDefault: true,
           preliminary: downwardsInferPhase,
           operations: _operations);
 

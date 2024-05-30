@@ -32,8 +32,6 @@ class TypeConstraintGatherer {
 
   final List<StructuralParameter> _parametersToConstrain;
 
-  final bool _isNonNullableByDefault;
-
   final OperationsCfe typeOperations;
 
   final TypeSchemaEnvironment _environment;
@@ -42,11 +40,9 @@ class TypeConstraintGatherer {
 
   TypeConstraintGatherer(
       this._environment, Iterable<StructuralParameter> typeParameters,
-      {required bool isNonNullableByDefault,
-      required OperationsCfe typeOperations,
+      {required OperationsCfe typeOperations,
       required TypeInferenceResultForTesting? inferenceResultForTesting})
       : typeOperations = typeOperations,
-        _isNonNullableByDefault = isNonNullableByDefault,
         _parametersToConstrain =
             new List<StructuralParameter>.of(typeParameters),
         _inferenceResultForTesting = inferenceResultForTesting;
@@ -76,8 +72,7 @@ class TypeConstraintGatherer {
   }
 
   /// Returns the set of type constraints that was gathered.
-  Map<StructuralParameter, MergedTypeConstraint> computeConstraints(
-      {required bool isNonNullableByDefault}) {
+  Map<StructuralParameter, MergedTypeConstraint> computeConstraints() {
     Map<StructuralParameter, MergedTypeConstraint> result = {};
     for (StructuralParameter parameter in _parametersToConstrain) {
       result[parameter] = new MergedTypeConstraint(
@@ -98,13 +93,8 @@ class TypeConstraintGatherer {
   /// a subtype of [type] under any set of constraints.
   bool tryConstrainLower(DartType type, DartType bound,
       {required TreeNode? treeNodeForTesting}) {
-    if (_isNonNullableByDefault) {
-      return _tryNullabilityAwareSubtypeMatch(bound, type,
-          constrainSupertype: true, treeNodeForTesting: treeNodeForTesting);
-    } else {
-      return _tryNullabilityObliviousSubtypeMatch(bound, type,
-          treeNodeForTesting: treeNodeForTesting);
-    }
+    return _tryNullabilityAwareSubtypeMatch(bound, type,
+        constrainSupertype: true, treeNodeForTesting: treeNodeForTesting);
   }
 
   /// Tries to constrain type parameters in [type], so that [type] <: [bound].
@@ -113,13 +103,8 @@ class TypeConstraintGatherer {
   /// a subtype of [bound] under any set of constraints.
   bool tryConstrainUpper(DartType type, DartType bound,
       {required TreeNode? treeNodeForTesting}) {
-    if (_isNonNullableByDefault) {
-      return _tryNullabilityAwareSubtypeMatch(type, bound,
-          constrainSupertype: false, treeNodeForTesting: treeNodeForTesting);
-    } else {
-      return _tryNullabilityObliviousSubtypeMatch(type, bound,
-          treeNodeForTesting: treeNodeForTesting);
-    }
+    return _tryNullabilityAwareSubtypeMatch(type, bound,
+        constrainSupertype: false, treeNodeForTesting: treeNodeForTesting);
   }
 
   /// Tries to match [subtype] against [supertype].

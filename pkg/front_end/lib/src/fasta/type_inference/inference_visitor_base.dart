@@ -947,15 +947,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new List<DartType>.filled(typeParameters.length, const UnknownType());
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
         .setupGenericTypeInference(null, typeParameters, null,
-            isNonNullableByDefault: true,
             typeOperations: cfeOperations,
             inferenceResultForTesting: dataForTesting?.typeInferenceResult,
             treeNodeForTesting: treeNodeForTesting);
     gatherer.constrainArguments([onType], [receiverType],
         treeNodeForTesting: treeNodeForTesting);
     inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParameters, inferredTypes,
-        isNonNullableByDefault: true);
+        gatherer, typeParameters, inferredTypes);
     return inferredTypes;
   }
 
@@ -1391,7 +1389,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // not spec'ed anywhere.
       return const DynamicType();
     } else {
-      return demoteTypeInLibrary(initializerType, isNonNullableByDefault: true);
+      return demoteTypeInLibrary(initializerType);
     }
   }
 
@@ -1622,13 +1620,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           calleeType.returnType, calleeTypeParameters, typeContext,
-          isNonNullableByDefault: true,
           typeOperations: cfeOperations,
           inferenceResultForTesting: dataForTesting?.typeInferenceResult,
           treeNodeForTesting: arguments);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, calleeTypeParameters, null,
-          isNonNullableByDefault: true);
+          gatherer, calleeTypeParameters, null);
       instantiator = new FunctionTypeInstantiator.fromIterables(
           calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -1696,13 +1692,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (isSpecialCasedBinaryOperator) {
           inferredFormalType =
               typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
-                  typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: true);
+                  typeContext, receiverType!, inferredFormalType);
         } else if (isSpecialCasedTernaryOperator) {
           inferredFormalType =
               typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
-                  typeContext, receiverType!, inferredFormalType,
-                  isNonNullableByDefault: true);
+                  typeContext, receiverType!, inferredFormalType);
         }
       }
       return visitor.inferExpression(argumentExpression, inferredFormalType);
@@ -1801,8 +1795,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           .planReconciliationStages()) {
         if (gatherer != null && !isFirstStage) {
           inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-              gatherer, calleeTypeParameters, inferredTypes,
-              isNonNullableByDefault: true);
+              gatherer, calleeTypeParameters, inferredTypes);
           instantiator = new FunctionTypeInstantiator.fromIterables(
               calleeTypeParameters, inferredTypes);
         }
@@ -1863,8 +1856,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeType = replaceReturnType(
             calleeType,
             typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-                receiverType!, actualTypes[0],
-                isNonNullableByDefault: true));
+                receiverType!, actualTypes[0]));
       } else if (isSpecialCasedTernaryOperator) {
         calleeType = replaceReturnType(
             calleeType,
@@ -1905,8 +1897,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (inferenceNeeded) {
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer!, calleeTypeParameters, inferredTypes!,
-          isNonNullableByDefault: true);
+          gatherer!, calleeTypeParameters, inferredTypes!);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -2114,8 +2105,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         }
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
-        formal.type =
-            demoteTypeInLibrary(inferredType, isNonNullableByDefault: true);
+        formal.type = demoteTypeInLibrary(inferredType);
         if (dataForTesting != null) {
           dataForTesting!.typeInferenceResult.inferredVariableTypes[formal] =
               formal.type;
@@ -3451,13 +3441,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
                 instantiatedType, typeParameters, context,
-                isNonNullableByDefault: true,
                 typeOperations: cfeOperations,
                 inferenceResultForTesting: dataForTesting?.typeInferenceResult,
                 treeNodeForTesting: treeNodeForTesting);
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParameters, inferredTypes,
-            isNonNullableByDefault: true);
+            gatherer, typeParameters, inferredTypes);
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 typeParameters, inferredTypes);

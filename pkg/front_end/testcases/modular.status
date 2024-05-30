@@ -41,7 +41,6 @@ general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
-general/invocations: TypeCheckError
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
@@ -66,7 +65,9 @@ inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
+late_lowering/definitely_unassigned: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
+nnbd/definitely_unassigned: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
 no_such_method_forwarders/mixin_nsm: TypeCheckError

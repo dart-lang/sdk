@@ -2664,14 +2664,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           listType, typeParametersToInfer, typeContext,
-          isNonNullableByDefault: true,
           isConst: node.isConst,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null,
-          isNonNullableByDefault: true);
+          gatherer, typeParametersToInfer, null);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -2689,8 +2687,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!,
-          isNonNullableByDefault: true);
+          gatherer, typeParametersToInfer, inferredTypes!);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
@@ -4637,14 +4634,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           mapType, typeParametersToInfer, typeContext,
-          isNonNullableByDefault: true,
           isConst: node.isConst,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null,
-          isNonNullableByDefault: true);
+          gatherer, typeParametersToInfer, null);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
     } else {
@@ -4715,19 +4710,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
                 setType, typeParametersToInfer, typeContext,
-                isNonNullableByDefault: true,
                 isConst: node.isConst,
                 typeOperations: operations,
                 inferenceResultForTesting: dataForTesting?.typeInferenceResult,
                 treeNodeForTesting: node);
         List<DartType> inferredTypesForSet = typeSchemaEnvironment
-            .choosePreliminaryTypes(gatherer, typeParametersToInfer, null,
-                isNonNullableByDefault: true);
+            .choosePreliminaryTypes(gatherer, typeParametersToInfer, null);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet,
             treeNodeForTesting: node);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, typeParametersToInfer, inferredTypesForSet,
-            isNonNullableByDefault: true);
+            gatherer, typeParametersToInfer, inferredTypesForSet);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         instrumentation?.record(
             uriForInstrumentation,
@@ -4767,8 +4759,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!,
-          isNonNullableByDefault: true);
+          gatherer, typeParametersToInfer, inferredTypes!);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
@@ -6160,8 +6151,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (isSpecialCasedBinaryOperator) {
       rightContextType =
           typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
-              contextType, leftType, rightType,
-              isNonNullableByDefault: true);
+              contextType, leftType, rightType);
     }
 
     ExpressionInferenceResult rightResult =
@@ -6172,8 +6162,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (isSpecialCasedBinaryOperator) {
       binaryType = typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-          leftType, rightResult.inferredType,
-          isNonNullableByDefault: true);
+          leftType, rightResult.inferredType);
     }
 
     Expression binary;
@@ -7945,14 +7934,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           setType, typeParametersToInfer, typeContext,
-          isNonNullableByDefault: true,
           isConst: node.isConst,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, typeParametersToInfer, null,
-          isNonNullableByDefault: true);
+          gatherer, typeParametersToInfer, null);
       inferredTypeArgument = inferredTypes[0];
     } else {
       inferredTypeArgument = node.typeArgument;
@@ -7971,8 +7958,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer!.constrainArguments(formalTypes, actualTypes,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, typeParametersToInfer, inferredTypes!,
-          isNonNullableByDefault: true);
+          gatherer, typeParametersToInfer, inferredTypes!);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
@@ -10226,8 +10212,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.minusType = replaceReturnType(
         minusTarget.getFunctionType(this),
         typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-            lengthType, coreTypes.intNonNullableRawType,
-            isNonNullableByDefault: true));
+            lengthType, coreTypes.intNonNullableRawType));
 
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
         lookupType, indexGetName, node.fileOffset,
@@ -10926,13 +10911,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer =
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
-            isNonNullableByDefault: true,
             typeOperations: operations,
             inferenceResultForTesting: dataForTesting?.typeInferenceResult,
             treeNodeForTesting: treeNodeForTesting);
     return typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParametersToInfer, null,
-        isNonNullableByDefault: true);
+        gatherer, typeParametersToInfer, null);
   }
 
   @override
