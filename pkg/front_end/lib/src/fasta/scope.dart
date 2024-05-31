@@ -968,9 +968,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   Iterable<Member> get exportedMembers => const [];
 
   @override
-  bool get isNative => false;
-
-  @override
   bool get isAssignable => false;
 
   @override

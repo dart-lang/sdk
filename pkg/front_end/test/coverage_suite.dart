@@ -116,7 +116,7 @@ const Map<String, double> _expect = {
       95.42483660130719,
   "package:front_end/src/fasta/dill/dill_extension_type_member_builder.dart":
       83.76623376623377,
-  "package:front_end/src/fasta/dill/dill_library_builder.dart": 78.134110787172,
+  "package:front_end/src/fasta/dill/dill_library_builder.dart": 77.0,
   "package:front_end/src/fasta/dill/dill_loader.dart": 76.58536585365854,
   "package:front_end/src/fasta/dill/dill_member_builder.dart":
       86.52173913043478,

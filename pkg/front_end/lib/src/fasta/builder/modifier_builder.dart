@@ -8,15 +8,10 @@ import '../modifier.dart';
 
 import 'builder.dart';
 
-abstract class ModifierBuilder implements Builder {
-  String? get name;
-
-  bool get isNative;
-}
-
-abstract class ModifierBuilderImpl extends BuilderImpl
-    implements ModifierBuilder {
+abstract class ModifierBuilderImpl extends BuilderImpl {
   int get modifiers;
+
+  String? get name;
 
   String get debugName;
 
@@ -39,9 +34,6 @@ abstract class ModifierBuilderImpl extends BuilderImpl
 
   @override
   bool get isAugment => (modifiers & augmentMask) != 0;
-
-  @override
-  bool get isNative => false;
 
   StringBuffer printOn(StringBuffer buffer) {
     return buffer..write(name);

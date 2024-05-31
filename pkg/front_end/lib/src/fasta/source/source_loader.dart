@@ -1263,7 +1263,6 @@ severity: $severity
     BodyBuilder listener = dietListener.createListener(
         new ExpressionCompilerProcedureBodyBuildContext(dietListener, builder,
             isDeclarationInstanceMember: isClassInstanceMember),
-        builder,
         dietListener.memberScope,
         thisVariable: extensionThis);
     builder.procedure.function = parameters..parent = builder.procedure;

@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
         LocatedMessage,
+        messageDartFfiLibraryInDart2Wasm,
         messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
@@ -134,7 +135,8 @@ class JsInteropChecks extends RecursiveVisitor {
     'package:js/js.dart',
     'package:js/js_util.dart',
     'dart:js_util',
-    'dart:js'
+    'dart:js',
+    'dart:ffi',
   ];
 
   /// Libraries that use `external` to exclude from checks on external.
@@ -550,12 +552,12 @@ class JsInteropChecks extends RecursiveVisitor {
             _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns
                 .any((pattern) => uri.path.contains(pattern));
         if (allowedToImport) return;
-        _reporter.report(
-            templateJsInteropDisallowedInteropLibraryInDart2Wasm
-                .withArguments(dependencyUriString),
-            dependency.fileOffset,
-            dependencyUriString.length,
-            node.fileUri);
+        final message = dependencyUriString == 'dart:ffi'
+            ? messageDartFfiLibraryInDart2Wasm
+            : templateJsInteropDisallowedInteropLibraryInDart2Wasm
+                .withArguments(dependencyUriString);
+        _reporter.report(message, dependency.fileOffset,
+            dependencyUriString.length, node.fileUri);
       }
     }
   }

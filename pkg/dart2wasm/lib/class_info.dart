@@ -159,9 +159,6 @@ class ClassInfo {
 
   ClassInfo? _repr;
 
-  /// All classes which implement this class. This is used to compute `repr`.
-  final List<ClassInfo> implementedBy = [];
-
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
 
@@ -175,9 +172,7 @@ class ClassInfo {
   ClassInfo(this.cls, this.classId, this.depth, this.struct, this.superInfo,
       {this.typeParameterMatch = const {}})
       : nullableType = w.RefType.def(struct, nullable: true),
-        nonNullableType = w.RefType.def(struct, nullable: false) {
-    implementedBy.add(this);
-  }
+        nonNullableType = w.RefType.def(struct, nullable: false);
 
   void _addField(w.FieldType fieldType, [int? expectedIndex]) {
     assert(expectedIndex == null || expectedIndex == struct.fields.length);
@@ -294,7 +289,6 @@ class ClassInfoCollector {
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
       // type of Object to be Top.
-      info.implementedBy.add(topInfo);
     } else {
       // Recursively initialize all supertypes before initializing this class.
       _createStructForClass(classIds, superclass);
@@ -339,16 +333,6 @@ class ClassInfoCollector {
           m.types.defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
-
-      // Mark all interfaces as being implemented by this class. This is
-      // needed to calculate representation types.
-      for (Supertype interface in cls.implementedTypes) {
-        ClassInfo? interfaceInfo = translator.classInfo[interface.classNode];
-        while (interfaceInfo != null) {
-          interfaceInfo.implementedBy.add(info);
-          interfaceInfo = interfaceInfo.superInfo;
-        }
-      }
     }
     translator.classesSupersFirst.add(info);
     translator.classes[classId] = info;
@@ -498,7 +482,7 @@ class ClassInfoCollector {
       }
       final classId = classIdNumbering.classIds[cls]!;
       final info = translator.classes[classId];
-      info._repr = representation ?? translator.classes[classId];
+      info._repr = representation ?? info;
     }
 
     // Now that the representation types for all classes have been computed,

@@ -7356,3 +7356,6 @@ ExperimentExpiredEnabled:
 
 ExperimentExpiredDisabled:
   problemMessage: "The experiment '#name' has expired and can't be disabled."
+
+DartFfiLibraryInDart2Wasm:
+  problemMessage: "'dart:ffi' can't be imported when compiling to Wasm."

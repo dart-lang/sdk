@@ -650,7 +650,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   ConstructorReferenceBuilder addConstructorReference(TypeName name,
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
-        name, typeArguments, suffix, this, charOffset);
+        name, typeArguments, suffix, fileUri, charOffset);
     constructorReferences.add(ref);
     return ref;
   }

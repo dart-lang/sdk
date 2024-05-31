@@ -13,7 +13,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/modifier_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../codes/fasta_codes.dart'
@@ -340,8 +339,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       String name;
       if (sourceBuildersMap?.containsKey(reference) == true) {
         declaration = sourceBuildersMap![reference]!;
-        if (declaration is ModifierBuilder) {
-          name = declaration.name!;
+        if (declaration is TypeDeclarationBuilder) {
+          name = declaration.name;
+        } else if (declaration is MemberBuilder) {
+          name = declaration.name;
         } else {
           throw new StateError(
               "Unexpected: $declaration (${declaration.runtimeType}");

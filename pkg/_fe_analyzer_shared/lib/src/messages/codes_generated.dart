@@ -2743,6 +2743,16 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDartFfiLibraryInDart2Wasm =
+    messageDartFfiLibraryInDart2Wasm;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDartFfiLibraryInDart2Wasm = const MessageCode(
+  "DartFfiLibraryInDart2Wasm",
+  problemMessage: r"""'dart:ffi' can't be imported when compiling to Wasm.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
     templateDebugTrace =
     const Template<Message Function(String name, String string)>(
