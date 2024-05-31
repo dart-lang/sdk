@@ -17,6 +17,25 @@
 [#55418]: https://github.com/dart-lang/sdk/issues/55418
 [#55436]: https://github.com/dart-lang/sdk/issues/55436
 
+### Libraries
+
+#### `dart:core`
+
+- **Breaking Change** [#44876][]: `DateTime` on the web platform now stores
+  microseconds. The web imlementation is now practically compatible with the
+  native implementation, where it is possible to round-trip a timestamp in
+  microseconds through a `DateTime` value without rounding the lower
+  digits. This change might be breaking for apps that rely in some way on the
+  `.microsecond` component always being zero, for example, expecting only three
+  fractional second digits in the `toString()` representation. Small
+  discrepancies in arithmetic due to rounding of web integers may still occur
+  for extreme values, (1) `microsecondsSinceEpoch` outside the safe range,
+  corresponding to dates with a year outside of 1685..2255, and (2) arithmetic
+  (`add`, `subtract`, `difference`) where the `Duration` argument or result
+  exceeds 570 years.
+
+[#44876]: https://github.com/dart-lang/sdk/issues/44876
+
 ### Tools
 
 #### Linter
