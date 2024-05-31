@@ -17642,6 +17642,17 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWasmImportOrExportInUserCode =
+    messageWasmImportOrExportInUserCode;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWasmImportOrExportInUserCode = const MessageCode(
+  "WasmImportOrExportInUserCode",
+  problemMessage:
+      r"""Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWeakReferenceMismatchReturnAndArgumentTypes =
     messageWeakReferenceMismatchReturnAndArgumentTypes;
 
