@@ -137,6 +137,11 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
         arg.applyToOptions(compilerOptions, results[arg.name]);
       }
     }
+    if ((compilerOptions.librariesSpecPath == null) ==
+        (compilerOptions.platformPath == null)) {
+      print('Either --libraries-spec or --platform has to be supplied.');
+      usage();
+    }
     return compilerOptions;
   } catch (e, s) {
     print(s);
