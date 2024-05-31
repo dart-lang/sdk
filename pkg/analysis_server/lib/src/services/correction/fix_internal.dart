@@ -1415,6 +1415,9 @@ final _builtInNonLintProducers = {
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA: [
     AddTrailingComma.new,
   ],
+  ParserErrorCode.SEALED_MIXIN: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.SEALED_MIXIN_CLASS: [
     RemoveExtraModifier.new,
   ],
