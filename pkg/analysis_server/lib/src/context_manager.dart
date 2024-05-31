@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
@@ -376,7 +377,7 @@ class ContextManagerImpl implements ContextManager {
       var sdkVersionConstraint =
           (package is PubPackage) ? package.sdkVersionConstraint : null;
       var errors = analyzeAnalysisOptions(
-        file.createSource(),
+        FileSource(file),
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
@@ -399,7 +400,8 @@ class ContextManagerImpl implements ContextManager {
     try {
       var file = resourceProvider.getFile(path);
       var content = file.readAsStringSync();
-      var validator = ManifestValidator(file.createSource());
+      var source = FileSource(file);
+      var validator = ManifestValidator(source);
       var lineInfo = LineInfo.fromContent(content);
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var errors =
@@ -439,7 +441,7 @@ class ContextManagerImpl implements ContextManager {
       var errorListener = RecordingErrorListener();
       var errorReporter = ErrorReporter(
         errorListener,
-        file.createSource(),
+        FileSource(file),
       );
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
@@ -468,7 +470,7 @@ class ContextManagerImpl implements ContextManager {
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var errors = validatePubspec(
         contents: node,
-        source: resourceProvider.getFile(path).createSource(),
+        source: FileSource(file),
         provider: resourceProvider,
         analysisOptions: analysisOptions,
       );

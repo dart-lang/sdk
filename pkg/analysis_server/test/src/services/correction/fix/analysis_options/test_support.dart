@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/state.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -44,7 +45,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var optionsFile = newFile('/analysis_options.yaml', content);
     var sourceFactory = SourceFactory([]);
     var errors = analyzeAnalysisOptions(
-      optionsFile.createSource(),
+      FileSource(optionsFile),
       content,
       sourceFactory,
       '/',

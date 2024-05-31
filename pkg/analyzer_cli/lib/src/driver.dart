@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/path_filter.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
@@ -255,7 +256,7 @@ class Driver implements CommandLineStarter {
           var sdkVersionConstraint =
               (package is PubPackage) ? package.sdkVersionConstraint : null;
           var errors = analyzeAnalysisOptions(
-            file.createSource(),
+            FileSource(file),
             content,
             analysisDriver.sourceFactory,
             contextRoot.root.path,
@@ -296,7 +297,7 @@ class Driver implements CommandLineStarter {
             if (node is YamlMap) {
               errors.addAll(validatePubspec(
                 contents: node,
-                source: file.createSource(),
+                source: FileSource(file),
                 provider: resourceProvider,
                 analysisOptions: analysisOptions,
               ));
@@ -333,7 +334,8 @@ class Driver implements CommandLineStarter {
             var analysisOptions =
                 analysisDriver.getAnalysisOptionsForFile(file);
             var content = file.readAsStringSync();
-            var validator = ManifestValidator(file.createSource());
+            var source = FileSource(file);
+            var validator = ManifestValidator(source);
             var lineInfo = LineInfo.fromContent(content);
             var errors = validator.validate(
                 content, analysisOptions.chromeOsManifestChecks);

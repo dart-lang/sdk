@@ -25,6 +25,7 @@ import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/file_paths.dart';
@@ -118,7 +119,7 @@ class EditGetFixesHandler extends LegacyHandler
     var sdkVersionConstraint =
         (package is PubPackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
-      optionsFile.createSource(),
+      FileSource(optionsFile),
       content,
       sourceFactory,
       analysisContext.contextRoot.root.path,
@@ -252,7 +253,7 @@ error.errorCode: ${error.errorCode}
     var analysisOptions = fileResult.analysisOptions;
     var errors = validatePubspec(
       contents: node,
-      source: pubspecFile.createSource(),
+      source: FileSource(pubspecFile),
       provider: resourceProvider,
       analysisOptions: analysisOptions,
     );

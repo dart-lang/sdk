@@ -13,6 +13,7 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
@@ -490,9 +491,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     var pubspecAst = Pubspec.parse(content,
         sourceUrl: sourceUri, resourceProvider: resourceProvider);
     var listener = RecordingErrorListener();
+    var file = resourceProvider.getFile(path);
     var reporter = ErrorReporter(
       listener,
-      resourceProvider.getFile(path).createSource(sourceUri),
+      FileSource(file, sourceUri),
     );
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;

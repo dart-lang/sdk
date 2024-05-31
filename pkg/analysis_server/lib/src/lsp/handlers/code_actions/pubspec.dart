@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_acti
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:yaml/yaml.dart';
 
 /// Produces [CodeAction]s from Pubspec fixes.
@@ -53,7 +54,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     }
     var errors = validatePubspec(
       contents: node,
-      source: pubspecFile.createSource(),
+      source: FileSource(pubspecFile),
       provider: resourceProvider,
       analysisOptions: analysisOptions,
     );
