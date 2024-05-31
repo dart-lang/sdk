@@ -1,3 +1,7 @@
+## 6.6.0-dev
+* Stop exporting `src/file_system/file_system.dart`
+  from `file_system/file_system.dart`.
+
 ## 6.5.2
 * Updated constraints `macros: '>=0.1.2-0 <0.1.3'`.
 
