@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ChangeToStaticAccess extends ResolvedCorrectionProducer {
   String _className = '';
 
+  ChangeToStaticAccess({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

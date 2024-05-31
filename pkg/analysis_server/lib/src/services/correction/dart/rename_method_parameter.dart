@@ -16,6 +16,8 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
   String _oldName = '';
   String _newName = '';
 
+  RenameMethodParameter({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

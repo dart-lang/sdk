@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveConst extends _RemoveConst {
+  RemoveConst({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.
@@ -23,6 +25,8 @@ class RemoveConst extends _RemoveConst {
 }
 
 class RemoveUnnecessaryConst extends _RemoveConst {
+  RemoveUnnecessaryConst({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
@@ -34,7 +38,9 @@ class RemoveUnnecessaryConst extends _RemoveConst {
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONST_MULTI;
 }
 
-abstract class _RemoveConst extends ParsedCorrectionProducer {
+abstract class _RemoveConst extends ResolvedCorrectionProducer {
+  _RemoveConst({required super.context});
+
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var expression = node;

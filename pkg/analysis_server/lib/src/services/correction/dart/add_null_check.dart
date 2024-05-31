@@ -32,11 +32,11 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   @override
   List<String>? fixArguments;
 
-  AddNullCheck()
+  AddNullCheck({required super.context})
       : skipAssignabilityCheck = false,
         applicability = CorrectionApplicability.singleLocation;
 
-  AddNullCheck.withoutAssignabilityCheck()
+  AddNullCheck.withoutAssignabilityCheck({required super.context})
       : skipAssignabilityCheck = true,
         applicability = CorrectionApplicability.automaticallyButOncePerFile;
 

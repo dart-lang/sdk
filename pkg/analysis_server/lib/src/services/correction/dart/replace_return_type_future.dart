@@ -12,6 +12,8 @@ class ReplaceReturnTypeFuture extends ResolvedCorrectionProducer {
   /// The text for the type argument to 'Future'.
   String _typeArgument = '';
 
+  ReplaceReturnTypeFuture({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

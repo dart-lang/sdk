@@ -15,6 +15,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
+  AddDiagnosticPropertyReference({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

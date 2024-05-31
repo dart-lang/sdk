@@ -9,7 +9,9 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class RemoveUnnecessaryStringEscape extends ParsedCorrectionProducer {
+class RemoveUnnecessaryStringEscape extends ResolvedCorrectionProducer {
+  RemoveUnnecessaryStringEscape({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

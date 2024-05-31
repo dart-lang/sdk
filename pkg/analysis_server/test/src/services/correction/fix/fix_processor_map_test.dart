@@ -38,12 +38,14 @@ class FixProcessorMapTest {
   }
 
   void test_registerFixForLint() {
-    ResolvedCorrectionProducer producer() => MockCorrectionProducer();
+    ResolvedCorrectionProducer generator(
+            {required CorrectionProducerContext context}) =>
+        MockCorrectionProducer();
 
     var lintName = 'not_a_lint';
     expect(FixProcessor.lintProducerMap[lintName], null);
-    FixProcessor.registerFixForLint(lintName, producer);
-    expect(FixProcessor.lintProducerMap[lintName], contains(producer));
+    FixProcessor.registerFixForLint(lintName, generator);
+    expect(FixProcessor.lintProducerMap[lintName], contains(generator));
     // Restore the map to it's original state so as to not impact other tests.
     FixProcessor.lintProducerMap.remove(lintName);
   }
@@ -54,7 +56,8 @@ class FixProcessorMapTest {
     for (var MapEntry(:key, value: generators) in producerMap.entries) {
       var bulkCount = 0;
       for (var generator in generators) {
-        var producer = generator();
+        var producer =
+            generator(context: StubCorrectionProducerContext.instance);
         _assertValidProducer(producer);
         if (producer.canBeAppliedAcrossFiles) {
           bulkCount++;

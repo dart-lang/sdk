@@ -13,9 +13,11 @@ class AddAwait extends ResolvedCorrectionProducer {
   /// The kind of correction to be made.
   final _CorrectionKind _correctionKind;
 
-  AddAwait.nonBool() : _correctionKind = _CorrectionKind.nonBool;
+  AddAwait.nonBool({required super.context})
+      : _correctionKind = _CorrectionKind.nonBool;
 
-  AddAwait.unawaited() : _correctionKind = _CorrectionKind.unawaited;
+  AddAwait.unawaited({required super.context})
+      : _correctionKind = _CorrectionKind.unawaited;
 
   @override
   CorrectionApplicability get applicability =>

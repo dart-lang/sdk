@@ -13,6 +13,8 @@ class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
   static final Uri _foundationUri =
       Uri.parse('package:flutter/foundation.dart');
 
+  MakeConditionalOnDebugMode({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // This fix isn't enabled for fix-all or bulk fix because it doesn't

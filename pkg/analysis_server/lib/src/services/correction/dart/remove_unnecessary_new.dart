@@ -10,11 +10,15 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveNew extends _RemoveNew {
+  RemoveNew({required super.context});
+
   @override
   FixKind get fixKind => DartFixKind.REMOVE_NEW;
 }
 
 class RemoveUnnecessaryNew extends _RemoveNew {
+  RemoveUnnecessaryNew({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
@@ -26,7 +30,9 @@ class RemoveUnnecessaryNew extends _RemoveNew {
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_NEW_MULTI;
 }
 
-class _RemoveNew extends ParsedCorrectionProducer {
+class _RemoveNew extends ResolvedCorrectionProducer {
+  _RemoveNew({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

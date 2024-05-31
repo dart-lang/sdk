@@ -16,6 +16,8 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
 
   String _newAnnotation = '';
 
+  ChangeTypeAnnotation({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

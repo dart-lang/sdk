@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class AddCallSuper extends ResolvedCorrectionProducer {
   var _addition = '';
 
+  AddCallSuper({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Adding as the first statement is not predictably the correct action.

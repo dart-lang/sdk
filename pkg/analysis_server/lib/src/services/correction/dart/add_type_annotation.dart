@@ -21,12 +21,13 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   @override
   final CorrectionApplicability applicability;
 
-  /// Initialize a newly created instance that can't apply bulk and in-file
+  /// Initializes a newly created instance that can't apply bulk and in-file
   /// fixes.
-  AddTypeAnnotation() : applicability = CorrectionApplicability.singleLocation;
+  AddTypeAnnotation({required super.context})
+      : applicability = CorrectionApplicability.singleLocation;
 
-  /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  AddTypeAnnotation.bulkFixable()
+  /// Initializes a newly created instance that can apply bulk and in-file fixes.
+  AddTypeAnnotation.bulkFixable({required super.context})
       : applicability = CorrectionApplicability.automatically;
 
   @override

@@ -11,6 +11,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class MakeClassAbstract extends ResolvedCorrectionProducer {
   String _className = '';
 
+  MakeClassAbstract({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

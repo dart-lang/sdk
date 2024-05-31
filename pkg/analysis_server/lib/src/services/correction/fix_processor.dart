@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -16,10 +17,12 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// A function that can be executed to create a multi-correction producer.
-typedef MultiProducerGenerator = MultiCorrectionProducer Function();
+typedef MultiProducerGenerator = MultiCorrectionProducer Function(
+    {required CorrectionProducerContext context});
 
 /// A function that can be executed to create a correction producer.
-typedef ProducerGenerator = CorrectionProducer Function();
+typedef ProducerGenerator = CorrectionProducer<ParsedUnitResult> Function(
+    {required CorrectionProducerContext context});
 
 /// The computer for Dart fixes.
 class FixProcessor {
@@ -36,7 +39,7 @@ class FixProcessor {
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
   ///
   /// The keys of the map are the unique names of the lint codes without the
-  /// `LintCode.` prefix. Generally the unique name is the same as the name of
+  /// 'LintCode.' prefix. Generally the unique name is the same as the name of
   /// the lint, so most of the keys are constants defined by [LintNames]. But
   /// when a lint produces multiple codes, each with a different unique name,
   /// the unique name must be used here.
@@ -99,12 +102,8 @@ class FixProcessor {
       selectionOffset: _fixContext.error.offset,
       selectionLength: _fixContext.error.length,
     );
-    if (context == null) {
-      return;
-    }
 
     Future<void> compute(CorrectionProducer producer) async {
-      producer.configure(context);
       var builder =
           ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
       try {
@@ -138,13 +137,12 @@ class FixProcessor {
 
     if (generators != null) {
       for (var generator in generators) {
-        await compute(generator());
+        await compute(generator(context: context));
       }
     }
     if (multiGenerators != null) {
       for (var multiGenerator in multiGenerators) {
-        var multiProducer = multiGenerator();
-        multiProducer.configure(context);
+        var multiProducer = multiGenerator(context: context);
         for (var producer in await multiProducer.producers) {
           await compute(producer);
         }
@@ -160,16 +158,18 @@ class FixProcessor {
         IgnoreDiagnosticInAnalysisOptionsFile.new,
       ];
       for (var generator in generators) {
-        await compute(generator());
+        await compute(generator(context: context));
       }
     }
   }
 
   /// Returns whether [errorCode] is an error that can be fixed in bulk.
   static bool canBulkFix(ErrorCode errorCode) {
-    bool hasBulkFixProducers(List<ProducerGenerator>? producers) {
-      return producers != null &&
-          producers.any((producer) => producer().canBeAppliedAcrossFiles);
+    bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
+      return generators != null &&
+          generators.any((generator) =>
+              generator(context: StubCorrectionProducerContext.instance)
+                  .canBeAppliedAcrossFiles);
     }
 
     return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {

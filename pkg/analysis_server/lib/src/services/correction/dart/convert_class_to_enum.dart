@@ -22,6 +22,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 class ConvertClassToEnum extends ResolvedCorrectionProducer {
+  ConvertClassToEnum({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

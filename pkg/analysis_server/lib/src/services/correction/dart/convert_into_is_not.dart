@@ -15,6 +15,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoIsNot extends ResolvedCorrectionProducer {
+  ConvertIntoIsNot({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

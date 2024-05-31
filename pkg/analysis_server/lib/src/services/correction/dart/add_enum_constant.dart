@@ -12,6 +12,8 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   /// The name of the constant to be created.
   String _constantName = '';
 
+  AddEnumConstant({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.

@@ -16,6 +16,8 @@ class ConvertQuotes extends _ConvertQuotes {
   @override
   late bool _fromDouble;
 
+  ConvertQuotes({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
@@ -58,6 +60,8 @@ class ConvertQuotes extends _ConvertQuotes {
 }
 
 class ConvertToDoubleQuotes extends _ConvertQuotes {
+  ConvertToDoubleQuotes({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
@@ -76,6 +80,8 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
 }
 
 class ConvertToSingleQuotes extends _ConvertQuotes {
+  ConvertToSingleQuotes({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
@@ -94,6 +100,8 @@ class ConvertToSingleQuotes extends _ConvertQuotes {
 }
 
 abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
+  _ConvertQuotes({required super.context});
+
   /// Return `true` if this producer is converting from double quotes to single
   /// quotes, or `false` if it's converting from single quotes to double quotes.
   bool get _fromDouble;

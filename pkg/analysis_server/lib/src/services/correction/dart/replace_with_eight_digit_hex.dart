@@ -13,6 +13,8 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
   /// The replacement text, used as an argument to the fix message.
   String _replacement = '';
 
+  ReplaceWithEightDigitHex({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

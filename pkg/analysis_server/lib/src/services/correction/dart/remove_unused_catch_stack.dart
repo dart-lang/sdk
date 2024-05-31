@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedCatchStack extends ResolvedCorrectionProducer {
+  RemoveUnusedCatchStack({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // May not be appropriate while actively coding.

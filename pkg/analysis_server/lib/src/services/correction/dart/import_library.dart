@@ -23,29 +23,33 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   /// Initialize a newly created instance that will add an import of
   /// `dart:async`.
-  ImportLibrary.dartAsync() : _importKind = _ImportKind.dartAsync;
+  ImportLibrary.dartAsync({required super.context})
+      : _importKind = _ImportKind.dartAsync;
 
   /// Initialize a newly created instance that will add an import for an
   /// extension.
-  ImportLibrary.forExtension() : _importKind = _ImportKind.forExtension;
+  ImportLibrary.forExtension({required super.context})
+      : _importKind = _ImportKind.forExtension;
 
   /// Initialize a newly created instance that will add an import for a member
   /// of an extension.
-  ImportLibrary.forExtensionMember()
+  ImportLibrary.forExtensionMember({required super.context})
       : _importKind = _ImportKind.forExtensionMember;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level function.
-  ImportLibrary.forFunction() : _importKind = _ImportKind.forFunction;
+  ImportLibrary.forFunction({required super.context})
+      : _importKind = _ImportKind.forFunction;
 
   /// Initialize a newly created instance that will add an import for a
   /// top-level variable.
-  ImportLibrary.forTopLevelVariable()
+  ImportLibrary.forTopLevelVariable({required super.context})
       : _importKind = _ImportKind.forTopLevelVariable;
 
   /// Initialize a newly created instance that will add an import for a type
   /// (class or mixin).
-  ImportLibrary.forType() : _importKind = _ImportKind.forType;
+  ImportLibrary.forType({required super.context})
+      : _importKind = _ImportKind.forType;
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -195,9 +199,11 @@ class ImportLibrary extends MultiCorrectionProducer {
             //  hide combinator.
           } else if (combinator is ShowElementCombinator) {
             producers.add(_ImportLibraryShow(
-                libraryToImport.source.uri.toString(),
-                combinator,
-                instantiatedExtension.extension.name!));
+              libraryToImport.source.uri.toString(),
+              combinator,
+              instantiatedExtension.extension.name!,
+              context: context,
+            ));
           }
         }
       }
@@ -208,7 +214,11 @@ class ImportLibrary extends MultiCorrectionProducer {
     // result of analyzing the library.
     if (!foundImport) {
       producers.add(_ImportLibraryContainingExtension(
-          libraryToImport, targetType, memberName));
+        libraryToImport,
+        targetType,
+        memberName,
+        context: context,
+      ));
     }
   }
 
@@ -226,13 +236,13 @@ class ImportLibrary extends MultiCorrectionProducer {
     bool includeRelativeFix = false,
   }) {
     if (!includeRelativeFix) {
-      producers.add(_ImportAbsoluteLibrary(fixKind, library));
+      producers.add(_ImportAbsoluteLibrary(fixKind, library, context: context));
     } else if (getCodeStyleOptions(unitResult.file).useRelativeUris) {
-      producers.add(_ImportRelativeLibrary(fixKind, library));
-      producers.add(_ImportAbsoluteLibrary(fixKind, library));
+      producers.add(_ImportRelativeLibrary(fixKind, library, context: context));
+      producers.add(_ImportAbsoluteLibrary(fixKind, library, context: context));
     } else {
-      producers.add(_ImportAbsoluteLibrary(fixKind, library));
-      producers.add(_ImportRelativeLibrary(fixKind, library));
+      producers.add(_ImportAbsoluteLibrary(fixKind, library, context: context));
+      producers.add(_ImportRelativeLibrary(fixKind, library, context: context));
     }
   }
 
@@ -270,7 +280,8 @@ class ImportLibrary extends MultiCorrectionProducer {
       // may be apply prefix
       var prefix = imp.prefix?.element;
       if (prefix != null) {
-        producers.add(_ImportLibraryPrefix(libraryElement, prefix));
+        producers.add(
+            _ImportLibraryPrefix(libraryElement, prefix, context: context));
         continue;
       }
       // may be update "show" directive
@@ -289,7 +300,8 @@ class ImportLibrary extends MultiCorrectionProducer {
           }
           // don't add this library again
           alreadyImportedWithPrefix.add(libraryElement);
-          producers.add(_ImportLibraryShow(libraryName, combinator, name));
+          producers.add(_ImportLibraryShow(libraryName, combinator, name,
+              context: context));
         }
       }
     }
@@ -401,7 +413,8 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
 
   String _uriText = '';
 
-  _ImportAbsoluteLibrary(this._fixKind, this._library);
+  _ImportAbsoluteLibrary(this._fixKind, this._library,
+      {required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -451,8 +464,9 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   _ImportLibraryContainingExtension(
     this.library,
     this.targetType,
-    this.memberName,
-  );
+    this.memberName, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -484,7 +498,11 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   final LibraryElement _importedLibrary;
   final PrefixElement _importPrefix;
 
-  _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
+  _ImportLibraryPrefix(
+    this._importedLibrary,
+    this._importPrefix, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -525,7 +543,12 @@ class _ImportLibraryShow extends ResolvedCorrectionProducer {
 
   final String _addedName;
 
-  _ImportLibraryShow(this._libraryName, this._showCombinator, this._addedName);
+  _ImportLibraryShow(
+    this._libraryName,
+    this._showCombinator,
+    this._addedName, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -561,7 +584,11 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
 
   String _uriText = '';
 
-  _ImportRelativeLibrary(this._fixKind, this._library);
+  _ImportRelativeLibrary(
+    this._fixKind,
+    this._library, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>

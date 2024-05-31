@@ -13,6 +13,8 @@ class ChangeToNearestPreciseValue extends ResolvedCorrectionProducer {
   /// The value to which the code will be changed.
   String _correction = '';
 
+  ChangeToNearestPreciseValue({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

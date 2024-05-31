@@ -11,6 +11,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveCharacter extends ResolvedCorrectionProducer {
   String _codePoint = '';
 
+  RemoveCharacter({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.

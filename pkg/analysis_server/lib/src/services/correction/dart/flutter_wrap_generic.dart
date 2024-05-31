@@ -11,6 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrapGeneric extends ResolvedCorrectionProducer {
+  FlutterWrapGeneric({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

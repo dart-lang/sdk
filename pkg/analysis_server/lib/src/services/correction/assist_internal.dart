@@ -191,12 +191,8 @@ class AssistProcessor {
       selectionLength: _assistContext.selectionLength,
       resolvedResult: _assistContext.resolveResult,
     );
-    if (context == null) {
-      return;
-    }
 
     Future<void> compute(CorrectionProducer producer) async {
-      producer.configure(context);
       var builder =
           ChangeBuilder(workspace: _assistContext.workspace, eol: producer.eol);
       try {
@@ -219,13 +215,12 @@ class AssistProcessor {
         generator,
         _assistContext.producerGeneratorsForLintRules[generator] ?? {},
       )) {
-        var producer = generator();
+        var producer = generator(context: context);
         await compute(producer);
       }
     }
     for (var multiGenerator in _multiGenerators) {
-      var multiProducer = multiGenerator();
-      multiProducer.configure(context);
+      var multiProducer = multiGenerator(context: context);
       for (var producer in await multiProducer.producers) {
         await compute(producer);
       }

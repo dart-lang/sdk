@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDeadCode extends ResolvedCorrectionProducer {
+  RemoveDeadCode({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.

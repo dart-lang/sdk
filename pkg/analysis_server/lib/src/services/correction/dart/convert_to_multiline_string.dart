@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ConvertToMultilineString extends ResolvedCorrectionProducer {
+  ConvertToMultilineString({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

@@ -17,6 +17,8 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   /// The name of the parameter that was missing.
   String _missingParameterName = '';
 
+  AddMissingRequiredArgument({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not a stand-alone fix; requires follow-up actions.

@@ -27,6 +27,8 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Function reference used in argument switch expression generation.
   FunctionElement? functionElement;
 
+  ConvertToSwitchExpression({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.

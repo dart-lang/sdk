@@ -21,6 +21,8 @@ class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
     TokenType.QUESTION_PERIOD_PERIOD: '?.',
   };
 
+  ReplaceCascadeWithDot({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

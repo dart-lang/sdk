@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,9 +18,49 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
   /// A flag indicating whether the change that was built is one that inlines
   /// the elements of another list into the target list.
-  bool _isInlineInvocation = false;
+  final bool _isInlineInvocation;
 
-  MethodInvocation? _invocation;
+  final MethodInvocation? _invocation;
+
+  factory ConvertAddAllToSpread({required CorrectionProducerContext context}) {
+    if (context is StubCorrectionProducerContext) {
+      return ConvertAddAllToSpread._(
+          context: context, invocation: null, isInlineInvocation: false);
+    }
+
+    var name = context.node;
+    MethodInvocation? invocation;
+    var isInlineInvocation = false;
+    if (name case SimpleIdentifier(parent: MethodInvocation parent)) {
+      invocation = parent;
+
+      if (name != invocation.methodName ||
+          name.name != 'addAll' ||
+          !invocation.isCascaded ||
+          invocation.argumentList.arguments.length != 1) {
+        return ConvertAddAllToSpread._(
+            context: context, invocation: null, isInlineInvocation: false);
+      }
+
+      var argument = invocation.argumentList.arguments[0];
+      if (argument is ListLiteral) {
+        isInlineInvocation = true;
+      }
+    }
+
+    return ConvertAddAllToSpread._(
+      context: context,
+      invocation: invocation,
+      isInlineInvocation: isInlineInvocation,
+    );
+  }
+
+  ConvertAddAllToSpread._({
+    required super.context,
+    required MethodInvocation? invocation,
+    required bool isInlineInvocation,
+  })  : _invocation = invocation,
+        _isInlineInvocation = isInlineInvocation;
 
   @override
   CorrectionApplicability get applicability =>
@@ -124,34 +163,5 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       }
       builder.addDeletion(range.node(invocation));
     });
-  }
-
-  @override
-  void configure(CorrectionProducerContext<ResolvedUnitResult> context) {
-    super.configure(context);
-
-    var name = node;
-    if (name is! SimpleIdentifier) {
-      return;
-    }
-
-    var invocation = name.parent;
-    if (invocation is! MethodInvocation) {
-      return;
-    }
-
-    if (name != invocation.methodName ||
-        name.name != 'addAll' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
-      return;
-    }
-
-    var argument = invocation.argumentList.arguments[0];
-    if (argument is ListLiteral) {
-      _isInlineInvocation = true;
-    }
-
-    _invocation = invocation;
   }
 }

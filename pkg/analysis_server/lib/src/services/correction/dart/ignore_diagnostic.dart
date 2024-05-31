@@ -16,6 +16,8 @@ import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
 class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
+  IgnoreDiagnosticInAnalysisOptionsFile({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
@@ -102,6 +104,8 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 }
 
 class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
+  IgnoreDiagnosticInFile({required super.context});
+
   @override
   String get commentPrefix => 'ignore_for_file';
 
@@ -166,6 +170,8 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
 }
 
 class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
+  IgnoreDiagnosticOnLine({required super.context});
+
   @override
   String get commentPrefix => 'ignore';
 
@@ -203,6 +209,8 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
 }
 
 abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
+  _BaseIgnoreDiagnostic({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
@@ -237,6 +245,8 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
 }
 
 abstract class _DartIgnoreDiagnostic extends _BaseIgnoreDiagnostic {
+  _DartIgnoreDiagnostic({required super.context});
+
   /// The ignore-comment prefix (either 'ignore' or 'ignore_for_file').
   String get commentPrefix;
 

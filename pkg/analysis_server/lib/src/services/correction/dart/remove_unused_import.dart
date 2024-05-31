@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedImport extends ResolvedCorrectionProducer {
+  RemoveUnusedImport({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Bulk application is supported by a distinct import cleanup fix phase.

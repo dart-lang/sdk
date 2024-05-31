@@ -20,6 +20,8 @@ import 'package:meta/meta.dart';
 class CreateExtensionGetter extends ResolvedCorrectionProducer {
   String _getterName = '';
 
+  CreateExtensionGetter({required super.context});
+
   @override
   CorrectionApplicability get applicability {
     // Not predictably the correct action.
@@ -130,6 +132,8 @@ class CreateExtensionGetter extends ResolvedCorrectionProducer {
 /// Shared implementation that identifies what getter should be added,
 /// but delegates to the subtypes to produce the fix code.
 abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
+  CreateFieldOrGetter({required super.context});
+
   /// Adds the declaration that makes a [fieldName] available.
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,
@@ -202,6 +206,8 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 
 class CreateGetter extends CreateFieldOrGetter {
   String _getterName = '';
+
+  CreateGetter({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

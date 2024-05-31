@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class CreateParameter extends ResolvedCorrectionProducer {
   String _parameterName = '';
 
+  CreateParameter({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.singleLocation;

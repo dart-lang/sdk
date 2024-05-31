@@ -11,9 +11,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddClassModifier extends ResolvedCorrectionProducer {
   final String _modifier;
 
-  AddClassModifier.base() : this._('base');
+  AddClassModifier.base({required CorrectionProducerContext context})
+      : this._('base', context: context);
 
-  AddClassModifier._(this._modifier);
+  AddClassModifier._(this._modifier, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

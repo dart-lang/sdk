@@ -15,10 +15,11 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveInitializer() : applicability = CorrectionApplicability.singleLocation;
+  RemoveInitializer({required super.context})
+      : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  RemoveInitializer.bulkFixable()
+  RemoveInitializer.bulkFixable({required super.context})
       : applicability = CorrectionApplicability.automatically;
 
   @override

@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDeadIfNull extends ResolvedCorrectionProducer {
+  RemoveDeadIfNull({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // This fix removes the right operand of an if-null which is not

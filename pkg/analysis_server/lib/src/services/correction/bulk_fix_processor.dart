@@ -308,7 +308,6 @@ class BulkFixProcessor {
 
   Future<void> _applyProducer(
       CorrectionProducerContext context, CorrectionProducer producer) async {
-    producer.configure(context);
     try {
       var localBuilder = builder.copy() as ChangeBuilderImpl;
 
@@ -334,7 +333,7 @@ class BulkFixProcessor {
   Future<void> _bulkApply(List<ProducerGenerator> generators, String codeName,
       CorrectionProducerContext context) async {
     for (var generator in generators) {
-      var producer = generator();
+      var producer = generator(context: context);
       var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
           ? producer.canBeAppliedAutomatically
           : producer.canBeAppliedAcrossFiles;
@@ -611,8 +610,7 @@ class BulkFixProcessor {
       );
     }
 
-    CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
-        AnalysisError diagnostic) {
+    CorrectionProducerContext correctionContext(AnalysisError diagnostic) {
       var context = fixContext(diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
@@ -663,22 +661,18 @@ class BulkFixProcessor {
       // `OrganizeImports` will also remove some of the unused imports, so we
       // apply it first.
       var context = correctionContext(directivesOrderingError);
-      if (context != null) {
-        await _generateFix(
-            context, OrganizeImports(), directivesOrderingError.errorCode.name);
-        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-          return;
-        }
+      await _generateFix(context, OrganizeImports(context: context),
+          directivesOrderingError.errorCode.name);
+      if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+        return;
       }
     } else {
       for (var error in unusedImportErrors) {
         var context = correctionContext(error);
-        if (context != null) {
-          await _generateFix(
-              context, RemoveUnusedImport(), error.errorCode.name);
-          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-            return;
-          }
+        await _generateFix(context, RemoveUnusedImport(context: context),
+            error.errorCode.name);
+        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+          return;
         }
       }
     }
@@ -715,9 +709,6 @@ class BulkFixProcessor {
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
     );
-    if (context == null) {
-      return;
-    }
 
     var errorCode = diagnostic.errorCode;
     var codeName = errorCode.name;
@@ -731,8 +722,7 @@ class BulkFixProcessor {
         var multiGenerators = FixProcessor.lintMultiProducerMap[codeName];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
-            var multiProducer = multiGenerator();
-            multiProducer.configure(context);
+            var multiProducer = multiGenerator(context: context);
             for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
             }
@@ -747,8 +737,7 @@ class BulkFixProcessor {
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
-            var multiProducer = multiGenerator();
-            multiProducer.configure(context);
+            var multiProducer = multiGenerator(context: context);
             for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
               if (isCancelled) {
