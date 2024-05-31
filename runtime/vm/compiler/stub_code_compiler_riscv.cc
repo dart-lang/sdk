@@ -1826,8 +1826,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
           Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ beqz(TMP2, &remember_card_slow);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ sub(A6, A6, TMP);                               // Offset in page.
     __ srli(A6, A6, target::Page::kBytesPerCardLog2);  // Card index.
     __ li(TMP, 1);
@@ -1835,9 +1834,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ srli(A6, A6, target::kBitsPerWordLog2);
     __ slli(A6, A6, target::kWordSizeLog2);
     __ add(TMP2, TMP2, A6);  // Card word address.
-    __ lx(A6, Address(TMP2, 0));
-    __ or_(A6, A6, TMP);
-    __ sx(A6, Address(TMP2, 0));
+#if XLEN == 32
+    __ amoorw(ZR, TMP, Address(TMP2, 0));
+#else
+    __ amoord(ZR, TMP, Address(TMP2, 0));
+#endif
     __ ret();
 
     // Card table not yet allocated.

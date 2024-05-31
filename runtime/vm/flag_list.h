@@ -127,8 +127,8 @@ constexpr bool FLAG_support_il_printer = false;
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
   P(scavenger_tasks, int, 2,                                                   \
-    "The number of tasks to spawn during scavenging (0 means "                 \
-    "perform all marking on main thread).")                                    \
+    "The number of tasks to spawn during scavenging and incremental "          \
+    "compaction (0 means perform all work on the main thread).")               \
   P(mark_when_idle, bool, false,                                               \
     "The Dart thread will assist in concurrent marking during idle time and "  \
     "is counted as one marker task")                                           \
@@ -216,6 +216,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
+  P(use_incremental_compactor, bool, true,                                     \
+    "Compact the heap during old-space GC.")                                   \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, true, "Use field guards and track field types")    \

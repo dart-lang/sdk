@@ -806,16 +806,16 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
   if (is_load) {
     const bool is_load_acquire = !is_exclusive && is_ordered;
     if (is_load_acquire) {
-      Format(instr, "ldar'sz 'rt, 'rn");
+      Format(instr, "ldar'sz 'rt, ['rn]");
     } else {
-      Format(instr, "ldxr'sz 'rt, 'rn");
+      Format(instr, "ldxr'sz 'rt, ['rn]");
     }
   } else {
     const bool is_store_release = !is_exclusive && is_ordered;
     if (is_store_release) {
-      Format(instr, "stlr'sz 'rt, 'rn");
+      Format(instr, "stlr'sz 'rt, ['rn]");
     } else {
-      Format(instr, "stxr'sz 'rs, 'rt, 'rn");
+      Format(instr, "stxr'sz 'rs, 'rt, ['rn]");
     }
   }
 }

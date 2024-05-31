@@ -1066,6 +1066,8 @@ class Assembler : public AssemblerBase {
     // rs = status (1 = failure, 0 = success)
     // rt = value
     // rn = address
+    ASSERT(rs != rt);
+    ASSERT((rs != rn) || (rs == ZR));
     EmitLoadStoreExclusive(STXR, rs, rn, rt, size);
   }
   void clrex() {

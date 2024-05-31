@@ -522,11 +522,9 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
-  if (value->BindsToConstant()) {
-    emit_store_barrier = kNoStoreBarrier;
-  }
+  Value* instance = Pop();
   StoreFieldInstr* store = new (Z)
-      StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+      StoreFieldInstr(slot, instance, value, emit_store_barrier,
                       stores_inner_pointer, InstructionSource(position), kind);
   return Fragment(store);
 }

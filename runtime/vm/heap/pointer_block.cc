@@ -266,6 +266,9 @@ void BlockStack<BlockSize>::TrimGlobalEmpty() {
   }
 }
 
+template class PointerBlock<kStoreBufferBlockSize>;
+template class PointerBlock<kMarkingStackBlockSize>;
+
 template class BlockStack<kStoreBufferBlockSize>;
 template class BlockStack<kMarkingStackBlockSize>;
 

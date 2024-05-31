@@ -2032,7 +2032,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ ret();
   }
   if (cards) {
-    Label remember_card_slow;
+    Label remember_card_slow, retry;
 
     // Get card table.
     __ Bind(&remember_card);
@@ -2041,17 +2041,25 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
            Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ cbz(&remember_card_slow, TMP2);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ sub(R25, R25, Operand(TMP));  // Offset in page.
     __ LsrImmediate(R25, R25, target::Page::kBytesPerCardLog2);  // Index.
     __ LoadImmediate(TMP, 1);
     __ lslv(TMP, TMP, R25);  // Bit mask. (Shift amount is mod 64.)
     __ LsrImmediate(R25, R25, target::kBitsPerWordLog2);  // Word index.
     __ add(TMP2, TMP2, Operand(R25, LSL, target::kWordSizeLog2));  // Word addr.
-    __ ldr(R25, Address(TMP2, 0));
-    __ orr(R25, R25, Operand(TMP));
-    __ str(R25, Address(TMP2, 0));
+
+    if (TargetCPUFeatures::atomic_memory_supported()) {
+      __ ldset(TMP, ZR, TMP2);
+    } else {
+      __ PushRegister(R0);
+      __ Bind(&retry);
+      __ ldxr(R25, TMP2);
+      __ orr(R25, R25, Operand(TMP));
+      __ stxr(R0, R25, TMP2);
+      __ cbnz(&retry, R0);
+      __ PopRegister(R0);
+    }
     __ ret();
 
     // Card table not yet allocated.

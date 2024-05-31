@@ -220,8 +220,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
   }
 
   void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
+#if !defined(TARGET_ARCH_IA32)
+    // Pointers embedded in Instructions are not aligned.
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
+#endif
     for (ObjectPtr* current = first; current <= last; current++) {
       ScavengePointer(current);
     }
@@ -379,8 +382,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // ScavengePointer cannot be called recursively.
     ObjectPtr obj = *p;
 
-    if (obj->IsImmediateOrOldObject()) {
+    if (obj->IsImmediateObject()) {
       return false;
+    }
+    if (obj->IsOldObject()) {
+      return obj->untag()->IsEvacuationCandidate();
     }
 
     ObjectPtr new_obj = ScavengeObject(obj);
@@ -408,9 +414,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     // ScavengePointer cannot be called recursively.
     ObjectPtr obj = p->Decompress(heap_base);
 
-    // Could be tested without decompression.
-    if (obj->IsImmediateOrOldObject()) {
+    if (obj->IsImmediateObject()) {
       return false;
+    }
+    if (obj->IsOldObject()) {
+      return obj->untag()->IsEvacuationCandidate();
     }
 
     ObjectPtr new_obj = ScavengeObject(obj);
@@ -483,7 +491,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
         // Promoted: update age/barrier tags.
         uword tags = static_cast<uword>(header);
         tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
-        tags = UntaggedObject::NewBit::update(false, tags);
+        tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
         new_obj->untag()->tags_.store(tags, std::memory_order_relaxed);
       }
 
@@ -506,6 +514,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
         if (new_obj->IsOldObject()) {
           // Abandon as a free list element.
           FreeListElement::AsElement(new_addr, size);
+          Page::Of(new_addr)->sub_live_bytes(size);
           bytes_promoted_ -= size;
         } else {
           // Undo to-space allocation.
@@ -862,9 +871,9 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
   return old_size_in_words;
 }
 
-class CollectStoreBufferVisitor : public ObjectPointerVisitor {
+class CollectStoreBufferScavengeVisitor : public ObjectPointerVisitor {
  public:
-  CollectStoreBufferVisitor(ObjectSet* in_store_buffer, const char* msg)
+  CollectStoreBufferScavengeVisitor(ObjectSet* in_store_buffer, const char* msg)
       : ObjectPointerVisitor(IsolateGroup::Current()),
         in_store_buffer_(in_store_buffer),
         msg_(msg) {}
@@ -897,14 +906,16 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
  private:
   ObjectSet* const in_store_buffer_;
   const char* msg_;
+
+  DISALLOW_COPY_AND_ASSIGN(CollectStoreBufferScavengeVisitor);
 };
 
-class CheckStoreBufferVisitor : public ObjectVisitor,
-                                public ObjectPointerVisitor {
+class CheckStoreBufferScavengeVisitor : public ObjectVisitor,
+                                        public ObjectPointerVisitor {
  public:
-  CheckStoreBufferVisitor(ObjectSet* in_store_buffer,
-                          const SemiSpace* to,
-                          const char* msg)
+  CheckStoreBufferScavengeVisitor(ObjectSet* in_store_buffer,
+                                  const SemiSpace* to,
+                                  const char* msg)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
         in_store_buffer_(in_store_buffer),
@@ -915,8 +926,11 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     if (obj->IsPseudoObject()) return;
     RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
-    RELEASE_ASSERT_WITH_MSG(
-        obj->untag()->IsRemembered() == in_store_buffer_->Contains(obj), msg_);
+    if (obj->untag()->IsRemembered()) {
+      RELEASE_ASSERT_WITH_MSG(in_store_buffer_->Contains(obj), msg_);
+    } else {
+      RELEASE_ASSERT_WITH_MSG(!in_store_buffer_->Contains(obj), msg_);
+    }
 
     visiting_ = obj;
     is_remembered_ = obj->untag()->IsRemembered();
@@ -999,6 +1013,8 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   bool is_remembered_;
   bool is_card_remembered_;
   const char* msg_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckStoreBufferScavengeVisitor);
 };
 
 void Scavenger::VerifyStoreBuffers(const char* msg) {
@@ -1011,12 +1027,12 @@ void Scavenger::VerifyStoreBuffers(const char* msg) {
   heap_->AddRegionsToObjectSet(in_store_buffer);
 
   {
-    CollectStoreBufferVisitor visitor(in_store_buffer, msg);
+    CollectStoreBufferScavengeVisitor visitor(in_store_buffer, msg);
     heap_->isolate_group()->store_buffer()->VisitObjectPointers(&visitor);
   }
 
   {
-    CheckStoreBufferVisitor visitor(in_store_buffer, to_, msg);
+    CheckStoreBufferScavengeVisitor visitor(in_store_buffer, to_, msg);
     heap_->old_space()->VisitObjects(&visitor);
   }
 }
@@ -1612,8 +1628,18 @@ bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
     ObjectPtr parent,
     CompressedObjectPtr* slot) {
   ObjectPtr target = slot->Decompress(parent->heap_base());
-  if (target->IsImmediateOrOldObject()) {
+  if (target->IsImmediateObject()) {
     // Object already null (which is old) or not touched during this GC.
+    return false;
+  }
+  if (target->IsOldObject()) {
+    if (parent->IsOldObject() && target->untag()->IsEvacuationCandidate()) {
+      if (!parent->untag()->IsCardRemembered()) {
+        if (parent->untag()->TryAcquireRememberedBit()) {
+          Thread::Current()->StoreBufferAddObjectGC(parent);
+        }
+      }
+    }
     return false;
   }
   uword header = ReadHeaderRelaxed(target);
@@ -1644,7 +1670,8 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 
 void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kMarkerTask));
+         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
+         (Thread::Current()->task_kind() == Thread::kIncrementalCompactorTask));
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
     page->VisitObjects(visitor);
   }
@@ -1814,7 +1841,6 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     }
   }
   ASSERT(promotion_stack_.IsEmpty());
-  heap_->old_space()->ResumeConcurrentMarking();
 
   // Scavenge finished. Run accounting.
   int64_t end = OS::GetCurrentMonotonicMicros();
@@ -1822,6 +1848,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
       start, end, usage_before, GetCurrentUsage(), promo_candidate_words,
       bytes_promoted >> kWordSizeLog2, abandoned_bytes >> kWordSizeLog2));
   Epilogue(from);
+  heap_->old_space()->ResumeConcurrentMarking();
 
   if (FLAG_verify_after_gc) {
     heap_->WaitForSweeperTasksAtSafepoint(thread);
@@ -1908,7 +1935,8 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         uword from_header = static_cast<uword>(to_header);
         from_header =
             UntaggedObject::OldAndNotRememberedBit::update(false, from_header);
-        from_header = UntaggedObject::NewBit::update(true, from_header);
+        from_header = UntaggedObject::NewOrEvacuationCandidateBit::update(
+            true, from_header);
 
         WriteHeaderRelaxed(from_obj, from_header);
 

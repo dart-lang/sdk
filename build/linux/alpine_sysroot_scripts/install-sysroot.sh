@@ -21,7 +21,7 @@ SCRIPT="$(readlink -f -- "$0")"
 WORKDIR="$(dirname -- "$(dirname -- "$(dirname -- "$(dirname -- "$SCRIPT")")")")"
 
 if test $# -eq 0; then
-  set aarch64 armv7 x86_64 x86
+  set aarch64 armv7 x86_64 x86 riscv64
 fi
 
 echo "$@" | xargs -n 1 -- sh -xc 'apk add --root "$1/buildtools/sysroot/alpine-linux-$2" --repositories-file /etc/apk/repositories --allow-untrusted --arch "$2" --no-cache --no-scripts --initdb -- build-base linux-headers' -- "$WORKDIR"

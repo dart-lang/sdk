@@ -6435,11 +6435,6 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
       // The target field is native and unboxed, so not traversed by the GC.
       return false;
     }
-    if (instance()->definition() == value()->definition()) {
-      // `x.slot = x` cannot create an old->new or old&marked->old&unmarked
-      // reference.
-      return false;
-    }
 
     if (value()->definition()->Type()->IsBool()) {
       return false;
@@ -7092,12 +7087,6 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
   bool ShouldEmitStoreBarrier() const {
-    if (array()->definition() == value()->definition()) {
-      // `x[slot] = x` cannot create an old->new or old&marked->old&unmarked
-      // reference.
-      return false;
-    }
-
     if (value()->definition()->Type()->IsBool()) {
       return false;
     }
