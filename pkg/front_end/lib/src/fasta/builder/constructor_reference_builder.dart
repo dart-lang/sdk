@@ -29,8 +29,7 @@ class ConstructorReferenceBuilder {
   Builder? target;
 
   ConstructorReferenceBuilder(this.typeName, this.typeArguments, this.suffix,
-      Builder parent, this.charOffset)
-      : fileUri = parent.fileUri!;
+      this.fileUri, this.charOffset);
 
   String get fullNameForErrors {
     return "${typeName.fullName}"

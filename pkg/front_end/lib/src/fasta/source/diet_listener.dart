@@ -23,7 +23,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/modifier_builder.dart';
 import '../codes/fasta_codes.dart'
     show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
 import '../constant_context.dart' show ConstantContext;
@@ -552,8 +551,7 @@ class DietListener extends StackListenerImpl {
 
     LibraryDependency? dependency =
         _offsetMap.lookupImport(importKeyword).libraryDependency;
-    parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
-        dependency);
+    parseMetadata(libraryBuilder.bodyBuilderContext, metadata, dependency);
   }
 
   @override
@@ -568,8 +566,7 @@ class DietListener extends StackListenerImpl {
     Token? metadata = pop() as Token?;
     LibraryDependency dependency =
         _offsetMap.lookupExport(exportKeyword).libraryDependency;
-    parseMetadata(libraryBuilder.bodyBuilderContext, libraryBuilder, metadata,
-        dependency);
+    parseMetadata(libraryBuilder.bodyBuilderContext, metadata, dependency);
   }
 
   @override
@@ -578,8 +575,7 @@ class DietListener extends StackListenerImpl {
 
     Token? metadata = pop() as Token?;
     LibraryPart part = _offsetMap.lookupPart(partKeyword);
-    parseMetadata(
-        libraryBuilder.bodyBuilderContext, libraryBuilder, metadata, part);
+    parseMetadata(libraryBuilder.bodyBuilderContext, metadata, part);
   }
 
   @override
@@ -769,8 +765,8 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  BodyBuilder createListener(BodyBuilderContext bodyBuilderContext,
-      ModifierBuilder builder, Scope memberScope,
+  BodyBuilder createListener(
+      BodyBuilderContext bodyBuilderContext, Scope memberScope,
       {VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       Scope? formalParameterScope,
@@ -825,8 +821,7 @@ class DietListener extends StackListenerImpl {
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
-    return createListener(
-        builder.bodyBuilderContext, builder, typeParameterScope,
+    return createListener(builder.bodyBuilderContext, typeParameterScope,
         thisVariable: builder.thisVariable,
         thisTypeParameters: builder.thisTypeParameters,
         formalParameterScope: formalParameterScope,
@@ -876,7 +871,7 @@ class DietListener extends StackListenerImpl {
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
-        createListener(declaration.bodyBuilderContext, declaration, memberScope,
+        createListener(declaration.bodyBuilderContext, memberScope,
             inferenceDataForTesting: declaration.dataForTesting?.inferenceData),
         token,
         metadata,
@@ -1303,10 +1298,10 @@ class DietListener extends StackListenerImpl {
   /// If the [metadata] is not `null`, return the parsed metadata [Expression]s.
   /// Otherwise, return `null`.
   List<Expression>? parseMetadata(BodyBuilderContext bodyBuilderContext,
-      ModifierBuilder builder, Token? metadata, Annotatable? parent) {
+      Token? metadata, Annotatable? parent) {
     if (metadata != null) {
       StackListenerImpl listener =
-          createListener(bodyBuilderContext, builder, memberScope);
+          createListener(bodyBuilderContext, memberScope);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
           allowPatterns: libraryFeatures.patterns.isEnabled);

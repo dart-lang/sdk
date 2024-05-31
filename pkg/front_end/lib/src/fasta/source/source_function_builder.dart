@@ -93,7 +93,6 @@ abstract class SourceFunctionBuilder
 
   void set body(Statement? newBody);
 
-  @override
   bool get isNative;
 
   /// Returns the [index]th parameter of this function.

@@ -4,8 +4,7 @@
 
 part of 'declaration_builders.dart';
 
-abstract class ITypeDeclarationBuilder implements ModifierBuilder {
-  @override
+abstract class ITypeDeclarationBuilder implements Builder {
   String get name;
 
   bool get isNamedMixinApplication;

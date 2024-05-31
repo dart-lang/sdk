@@ -14,8 +14,7 @@ import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
 
-abstract class MemberBuilder implements ModifierBuilder {
-  @override
+abstract class MemberBuilder implements Builder {
   String get name;
 
   bool get isAssignable;
@@ -164,9 +163,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isTopLevel => !isDeclarationMember;
-
-  @override
-  bool get isNative => false;
 
   @override
   bool get isExternal => (modifiers & externalMask) != 0;

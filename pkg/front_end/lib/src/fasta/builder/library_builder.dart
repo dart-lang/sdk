@@ -36,7 +36,7 @@ import 'nullability_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
-abstract class LibraryBuilder implements ModifierBuilder {
+abstract class LibraryBuilder implements Builder {
   Scope get scope;
 
   Scope get exportScope;
