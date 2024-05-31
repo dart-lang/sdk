@@ -1103,7 +1103,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         // If count is null, read as many bytes as possible.
         // Loop here to ensure bytes that arrived while this read was
         // issued are also read.
-        BytesBuilder builder = BytesBuilder();
+        BytesBuilder builder = BytesBuilder(copy: false);
         do {
           assert(available > 0);
           list = nativeRead(available);
@@ -1111,6 +1111,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             break;
           }
           builder.add(list);
+          const MAX_BUFFER_SIZE = 4 * 1024 * 1024;
+          if (builder.length > MAX_BUFFER_SIZE) {
+            // Don't consume too many bytes, otherwise we risk running
+            // out of memory when handling the whole aggregated lot.
+            break;
+          }
           available = nativeAvailable();
         } while (available > 0);
         if (builder.isEmpty) {
