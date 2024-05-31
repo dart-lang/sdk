@@ -266,10 +266,7 @@ class _MustBeOverridden {
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustCallSuper {
   const _MustCallSuper();
