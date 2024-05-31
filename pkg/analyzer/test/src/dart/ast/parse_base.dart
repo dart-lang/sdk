@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 class ParseBase with ResourceProviderMixin {
@@ -17,7 +18,7 @@ class ParseBase with ResourceProviderMixin {
 
   ParseResult parseUnit(String path) {
     var file = getFile(path);
-    var source = file.createSource();
+    var source = FileSource(file);
     var content = file.readAsStringSync();
 
     var featureSet = analysisOptions.contextFeatures;

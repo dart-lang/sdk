@@ -16,13 +16,14 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 
 AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
 
-Source createSource(Uri sourceUri) {
-  return PhysicalResourceProvider.INSTANCE
-      .getFile(sourceUri.toFilePath())
-      .createSource(sourceUri);
+Source createSource(Uri uri) {
+  var filePath = uri.toFilePath();
+  var file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+  return FileSource(file, uri);
 }
 
 /// Print the given message and exit with the given [exitCode]

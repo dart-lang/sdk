@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart' show UriResolver;
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/uri.dart';
 
 /// A [UriResolver] for [Resource]s.
@@ -30,7 +31,7 @@ class ResourceUriResolver extends UriResolver {
     }
     String path = fileUriToNormalizedPath(_provider.pathContext, uri);
     File file = _provider.getFile(path);
-    return file.createSource(uri);
+    return FileSource(file, uri);
   }
 
   /// Return `true` if the given [uri] is a `file` URI.

@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart' show UriResolver;
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/asserts.dart' as asserts;
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:path/path.dart' as pathos;
@@ -83,7 +84,7 @@ class PackageMapUriResolver extends UriResolver {
       Folder packageDir = packageDirs.single;
       String relPath = pathSegments.skip(1).join('/');
       File file = packageDir.getChildAssumingFile(relPath);
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return null;
   }

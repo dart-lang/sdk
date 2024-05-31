@@ -101,8 +101,8 @@ class SourceFactoryTest with ResourceProviderMixin {
       'package': [libFolder]
     });
     SourceFactory factory = SourceFactory([resolver]);
-    Source librarySource =
-        firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
+    var uri = Uri.parse('package:package/dir/first.dart');
+    var librarySource = FileSource(firstFile, uri);
 
     var result = factory.resolveUri(librarySource, 'second.dart')!;
     expect(result, isNotNull);

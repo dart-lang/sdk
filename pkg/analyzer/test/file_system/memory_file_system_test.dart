@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -128,7 +129,7 @@ class MemoryFileSourceExistingTest extends BaseTest {
     super.setUp();
     File file = getFile(exists: true);
     sourcePath = file.path;
-    source = file.createSource();
+    source = FileSource(file);
   }
 
   test_contents() {
@@ -139,8 +140,8 @@ class MemoryFileSourceExistingTest extends BaseTest {
   test_equals_false_differentFile() {
     File fileA = getFile(exists: false, filePath: join(tempPath, 'a.dart'));
     File fileB = getFile(exists: false, filePath: join(tempPath, 'b.dart'));
-    Source sourceA = fileA.createSource();
-    Source sourceB = fileB.createSource();
+    Source sourceA = FileSource(fileA);
+    Source sourceB = FileSource(fileB);
 
     expect(sourceA == sourceB, isFalse);
   }
@@ -150,8 +151,10 @@ class MemoryFileSourceExistingTest extends BaseTest {
   }
 
   test_equals_true_sameFile() {
-    Source sourceA = getFile(exists: false).createSource();
-    Source sourceB = getFile(exists: false).createSource();
+    var fileA = getFile(exists: false);
+    var fileB = getFile(exists: false);
+    Source sourceA = FileSource(fileA);
+    Source sourceB = FileSource(fileB);
 
     expect(sourceA == sourceB, isTrue);
   }
@@ -187,7 +190,7 @@ class MemoryFileSourceExistingTest extends BaseTest {
     File file = getFile(
         exists: false,
         filePath: provider.convertPath('/sdk/lib/core/core.dart'));
-    Source source = file.createSource(Uri.parse('dart:core'));
+    Source source = FileSource(file, Uri.parse('dart:core'));
 
     Uri resolved = resolveRelativeUri(source.uri, Uri.parse('int.dart'));
     expect(resolved.toString(), 'dart:core/int.dart');
@@ -208,7 +211,7 @@ class MemoryFileSourceNotExistingTest extends BaseTest {
     super.setUp();
     File file = getFile(exists: false);
     sourcePath = file.path;
-    source = file.createSource();
+    source = FileSource(file);
   }
 
   test_contents() {

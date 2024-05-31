@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -79,7 +80,7 @@ class PackageConfigFileUriResolver extends ResourceUriResolver {
     }
     var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return null;
   }
@@ -137,7 +138,7 @@ class PackageConfigPackageUriResolver extends UriResolver {
     var file = _workspace.builtFile(
         _workspace._builtPackageSourcePath(filePath), packageName);
     if (file != null && file.exists) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return basicResolverSource;
   }
