@@ -232,6 +232,24 @@ void testZlibInflateWithLargerWindow() {
   });
 }
 
+void testRoundTripLarge() {
+  for (var gzip in [true, false]) {
+    for (var strategy in [
+      ZLibOption.strategyFiltered,
+      ZLibOption.strategyHuffmanOnly,
+      ZLibOption.strategyRle,
+      ZLibOption.strategyFixed,
+      ZLibOption.strategyDefault,
+    ]) {
+      final uncompressedData = List.generate(2000000, (i) => i % 256);
+      final compressedData =
+          ZLibEncoder(gzip: gzip, strategy: strategy).convert(uncompressedData);
+      final decodedData = new ZLibDecoder().convert(compressedData);
+      Expect.listEquals(uncompressedData, decodedData);
+    }
+  }
+}
+
 void testZlibWithDictionary() {
   var dict = [102, 111, 111, 98, 97, 114];
   var data = [98, 97, 114, 102, 111, 111];
@@ -241,6 +259,39 @@ void testZlibWithDictionary() {
     var decoded = new ZLibDecoder(dictionary: dict).convert(encoded);
     Expect.listEquals(data, decoded);
   });
+}
+
+void testConcatenatedBlocks() {
+  for (var gzip in [true, false]) {
+    for (var strategy in [
+      ZLibOption.strategyFiltered,
+      ZLibOption.strategyHuffmanOnly,
+      ZLibOption.strategyRle,
+      ZLibOption.strategyFixed,
+      ZLibOption.strategyDefault,
+    ]) {
+      final compressedData = [
+        ...ZLibEncoder(gzip: gzip, strategy: strategy).convert([1, 2, 3]),
+        ...ZLibEncoder(gzip: gzip, strategy: strategy).convert([4, 5, 6])
+      ];
+      final decodedData = new ZLibDecoder().convert(compressedData);
+      Expect.listEquals([1, 2, 3, 4, 5, 6], decodedData);
+    }
+  }
+}
+
+void testInvalidDataAfterBlock() {
+  for (var gzip in [true, false]) {
+    final compressedData = [
+      ...ZLibEncoder(gzip: gzip).convert([1, 2, 3]),
+      1,
+      2,
+      3
+    ];
+
+    Expect.throwsFormatException(
+        () => new ZLibDecoder().convert(compressedData));
+  }
 }
 
 var generateListTypes = [
@@ -284,6 +335,9 @@ void main() {
   });
   testZlibInflateThrowsWithSmallerWindow();
   testZlibInflateWithLargerWindow();
+  testRoundTripLarge();
   testZlibWithDictionary();
+  testConcatenatedBlocks();
+  testInvalidDataAfterBlock();
   asyncEnd();
 }

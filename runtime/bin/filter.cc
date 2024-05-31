@@ -347,9 +347,9 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
   switch (deflate(&stream_, end     ? Z_FINISH
                             : flush ? Z_SYNC_FLUSH
                                     : Z_NO_FLUSH)) {
+    case Z_OK:
     case Z_STREAM_END:
-    case Z_BUF_ERROR:
-    case Z_OK: {
+    case Z_BUF_ERROR: {
       intptr_t processed = length - stream_.avail_out;
       if (processed == 0) {
         break;
@@ -413,10 +413,20 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   switch (v = inflate(&stream_, end     ? Z_FINISH
                                 : flush ? Z_SYNC_FLUSH
                                         : Z_NO_FLUSH)) {
+    case Z_OK:
     case Z_STREAM_END:
-    case Z_BUF_ERROR:
-    case Z_OK: {
+    case Z_BUF_ERROR: {
       intptr_t processed = length - stream_.avail_out;
+
+      if (v == Z_STREAM_END) {
+        // Allow for concatenated compressed blocks. For example:
+        // final data = [
+        //  ...gzip.encode([1, 2, 3]),
+        //  ...gzip.encode([4, 5, 6]),
+        // ];
+        // final decoded = gzip.decode(data);  // [1, 2, 3, 4, 5, 6]
+        inflateReset(&stream_);
+      }
       if (processed == 0) {
         break;
       }
