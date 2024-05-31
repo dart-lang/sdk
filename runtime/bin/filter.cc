@@ -425,6 +425,10 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
         //  ...gzip.encode([4, 5, 6]),
         // ];
         // final decoded = gzip.decode(data);  // [1, 2, 3, 4, 5, 6]
+
+        // The return code for `inflateReset` can be ignored because, if the
+        // result is an error, the same error will be returned in the next
+        // call to `inflate`.
         inflateReset(&stream_);
       }
       if (processed == 0) {
