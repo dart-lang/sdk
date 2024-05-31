@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/error_code_values.g.dart';
@@ -46,7 +45,7 @@ HashMap<String, ErrorCode> _computeUniqueNameToCodeMap() {
 
 /// An error discovered during the analysis of some Dart code.
 ///
-/// See [AnalysisErrorListener].
+/// See `AnalysisErrorListener`.
 class AnalysisError implements Diagnostic {
   /// An empty array of errors used when no errors are expected.
   static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
