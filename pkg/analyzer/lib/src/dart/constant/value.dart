@@ -976,6 +976,12 @@ class DartObjectImpl implements DartObject, Constant {
     return null;
   }
 
+  @override
+  DartType? toStaticTypeValue() {
+    if (state case TypeState(:final _staticType)) return _staticType;
+    return null;
+  }
+
   /// Return the result of type-instantiating this object as [type].
   ///
   /// [typeArguments] are the type arguments used in the instantiation.
@@ -3118,13 +3124,13 @@ class SymbolState extends InstanceState {
 class TypeState extends InstanceState {
   /// The element representing the type being modeled.
   final DartType? _type;
+  final DartType? _staticType;
 
   factory TypeState(DartType? type) {
-    type = type?.extensionTypeErasure;
-    return TypeState._(type);
+    return TypeState._(type?.extensionTypeErasure, type);
   }
 
-  TypeState._(this._type);
+  TypeState._(this._type, this._staticType);
 
   @override
   int get hashCode => _type?.hashCode ?? 0;

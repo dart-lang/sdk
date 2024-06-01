@@ -145,4 +145,13 @@ abstract class DartObject {
   /// * this object is not of type 'Type', or
   /// * the value of the object being represented is `null`.
   DartType? toTypeValue();
+
+  /// Return the representation of the static type corresponding to the value of
+  /// the object being represented, or `null` if
+  /// * this object is not of type 'Type', or
+  /// * the value of the object being represented is `null`.
+  /// This differs from [toTypeValue] as it represents the extension type of the
+  /// object if it exists. If there is no extension type, the return value is
+  /// identical to [toTypeValue].
+  DartType? toStaticTypeValue();
 }
