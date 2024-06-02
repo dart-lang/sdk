@@ -1793,6 +1793,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
         onError: controller.addError,
         onDone: controller.close,
         cancelOnError: true);
+    controller.onCancel = sub.cancel;
     controller.onPause = sub.pause;
     controller.onResume = sub.resume;
     // Write headers now that we are listening to the stream.
