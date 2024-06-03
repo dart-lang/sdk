@@ -18,7 +18,7 @@ abstract class LegacyUpperBoundTest {
   late Library testLibrary;
 
   Future<void> parseComponent(String source) {
-    env = new parser.Env(source, isNonNullableByDefault: true);
+    env = new parser.Env(source);
     assert(
         env.component.libraries.length == 2,
         "The test component is expected to have exactly two libraries: "

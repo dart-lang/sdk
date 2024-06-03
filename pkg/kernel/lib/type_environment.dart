@@ -88,8 +88,6 @@ abstract class TypeEnvironment extends Types {
       DartType? futureType =
           getTypeAsInstanceOf(resolved, coreTypes.futureClass, coreTypes);
       if (futureType != null) {
-        // TODO(johnniwinther): The two implementations are inconsistent wrt.
-        //  how [isNonNullableByDefault] is treated.
         return futureType.withDeclaredNullability(resolved.declaredNullability);
       }
     } else if (resolved is FutureOrType) {
@@ -905,9 +903,6 @@ class StaticTypeContextImpl implements StaticTypeContext {
   final TypeEnvironment typeEnvironment;
 
   /// The library in which the static type is computed.
-  ///
-  /// The `library.isNonNullableByDefault` property is used to determine the
-  /// nullabilities of the static types.
   final Library _library;
 
   /// The static type of a `this` expression.
