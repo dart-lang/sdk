@@ -7011,9 +7011,6 @@ ResourceIdentifiersNotStatic:
 ResourceIdentifiersMultiple:
   problemMessage: "Only one resource identifier pragma can be used at a time."
 
-WasmImportOrExportInUserCode:
-  problemMessage: "Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code."
-
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
 

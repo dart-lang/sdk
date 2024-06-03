@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -719,6 +721,20 @@ import '../file.dart'
     ];
 
     await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_emptyAnalysisRoots_handlesFileRequestsImmediately() async {
+    var content = '''
+// test
+''';
+
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize(allowEmptyRootUri: true);
+
+    unawaited(openFile(mainFileUri, code.code));
+    var tokens = await getSemanticTokens(mainFileUri);
+    expect(tokens.data, isNotEmpty);
   }
 
   Future<void> test_extension() async {

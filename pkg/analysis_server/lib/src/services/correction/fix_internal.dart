@@ -1378,6 +1378,9 @@ final _builtInNonLintProducers = {
   ParserErrorCode.EXTRANEOUS_MODIFIER: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.FINAL_ENUM: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.FINAL_CONSTRUCTOR: [
     RemoveExtraModifier.new,
   ],

@@ -186,6 +186,15 @@ class C {
 ''');
   }
 
+  Future<void> test_finalEnum() async {
+    await resolveTestCode(r'''
+final enum E {e}
+''');
+    await assertHasFix('''
+enum E {e}
+''');
+  }
+
   Future<void> test_invalidAsyncConstructorModifier() async {
     await resolveTestCode(r'''
 class A {

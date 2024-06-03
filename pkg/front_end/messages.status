@@ -1115,8 +1115,6 @@ VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
-WasmImportOrExportInUserCode/analyzerCode: Fail
-WasmImportOrExportInUserCode/example: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: Fail
 WeakReferenceMismatchReturnAndArgumentTypes/example: Fail
 WeakReferenceNotOneArgument/analyzerCode: Fail

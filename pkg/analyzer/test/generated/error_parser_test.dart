@@ -1865,6 +1865,18 @@ class Wrong<T> {
     parseExpression("x(y)(z).a++");
   }
 
+  void test_missingAssignableSelector_superAsExpressionFunctionBody() {
+    CompilationUnit unit = parseCompilationUnit('main() => super;', errors: [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 10, 5),
+    ]);
+    var declaration = unit.declarations.first as FunctionDeclaration;
+    var body = declaration.functionExpression.body as ExpressionFunctionBody;
+    var expression = body.expression;
+    expect(expression, isSuperExpression);
+    var superExpression = expression as SuperExpression;
+    expect(superExpression.superKeyword, isNotNull);
+  }
+
   void test_missingAssignableSelector_superPrimaryExpression() {
     CompilationUnit unit = parseCompilationUnit('main() {super;}', errors: [
       expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 8, 5)

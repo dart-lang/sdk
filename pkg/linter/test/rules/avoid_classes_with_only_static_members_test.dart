@@ -100,6 +100,12 @@ class C {
     ]);
   }
 
+  test_class_empty() async {
+    await assertNoDiagnostics(r'''
+class C {}
+''');
+  }
+
   test_class_empty_augmentation_empty() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 import augment 'b.dart';
@@ -118,6 +124,62 @@ augment class A {}
 
     result = await resolveFile(b.path);
     await assertNoDiagnosticsIn(errors);
+  }
+
+  test_class_extendingValidClass() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int f = 1;
+}
+
+class C extends A {
+  static int i = 0;
+  static m() {}
+}
+''');
+  }
+
+  test_class_noPublicConstructor() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C._();
+  static int f = 0;
+}
+''');
+  }
+
+  test_class_withConstructor() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C();
+}
+''');
+  }
+
+  test_class_withInstanceField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int a = 0;
+}
+''');
+  }
+
+  test_class_withInstanceMethod() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void m() {}
+}
+''');
+  }
+
+  test_class_withStaticConstFields() async {
+    await assertNoDiagnostics(r'''
+class C {
+  static const red = '#f00';
+  static const green = '#0f0';
+  static const blue = '#00f';
+}
+''');
   }
 
   test_finalClass() async {
