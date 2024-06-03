@@ -435,13 +435,20 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
-    if (target.enclosingLibrary.name == "dart.core") {
-      if (target.name.text == "_isIntrinsified") {
-        // This is part of the VM's [BigInt] implementation. We just return false.
-        // TODO(joshualitt): Can we find another way to reuse this patch file
-        // without hardcoding this case?
-        b.i32_const(0);
-        return w.NumType.i32;
+    if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
+      switch (target.name.text) {
+        case "_isIntrinsified":
+          // This is part of the VM's [BigInt] implementation. We just return false.
+          // TODO(joshualitt): Can we find another way to reuse this patch file
+          // without hardcoding this case?
+          b.i32_const(0);
+          return w.NumType.i32;
+        case "_typeRulesSupers":
+          return translator.types.makeTypeRulesSupers(b);
+        case "_typeRulesSubstitutions":
+          return translator.types.makeTypeRulesSubstitutions(b);
+        case "_typeNames":
+          return translator.types.makeTypeNames(b);
       }
     }
 
@@ -670,12 +677,6 @@ class Intrinsifier {
             return w.NumType.i32;
           }
           break;
-        case "_getTypeRulesSupers":
-          return translator.types.makeTypeRulesSupers(b);
-        case "_getTypeRulesSubstitutions":
-          return translator.types.makeTypeRulesSubstitutions(b);
-        case "_getTypeNames":
-          return translator.types.makeTypeNames(b);
         case "_isObjectClassId":
           final classId = node.arguments.positional.single;
 
