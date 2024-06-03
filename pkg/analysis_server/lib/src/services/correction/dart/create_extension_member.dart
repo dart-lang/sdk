@@ -171,6 +171,85 @@ class CreateExtensionMethod extends _CreateExtensionMember {
   }
 }
 
+class CreateExtensionSetter extends _CreateExtensionMember {
+  String _setterName = '';
+
+  CreateExtensionSetter({
+    required super.context,
+  });
+
+  @override
+  List<String> get fixArguments => [_setterName];
+
+  @override
+  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_SETTER;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
+      return;
+    }
+    if (!nameNode.inSetterContext()) {
+      return;
+    }
+
+    _setterName = nameNode.name;
+
+    // prepare target
+    Expression? target;
+    switch (nameNode.parent) {
+      case PrefixedIdentifier prefixedIdentifier:
+        if (prefixedIdentifier.identifier == nameNode) {
+          target = prefixedIdentifier.prefix;
+        }
+      case PropertyAccess propertyAccess:
+        if (propertyAccess.propertyName == nameNode) {
+          target = propertyAccess.realTarget;
+        }
+    }
+    if (target == null) {
+      return;
+    }
+
+    // We need the type for the extension.
+    var targetType = target.staticType;
+    if (targetType == null ||
+        targetType is DynamicType ||
+        targetType is InvalidType) {
+      return;
+    }
+
+    // Try to find the type of the field.
+    var fieldTypeNode = climbPropertyAccess(nameNode);
+    var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+
+    void writeSetter(DartEditBuilder builder) {
+      builder.writeSetterDeclaration(
+        _setterName,
+        nameGroupName: 'NAME',
+        parameterType: fieldType,
+        parameterTypeGroupName: 'TYPE',
+      );
+    }
+
+    var updatedExisting = await _updateExistingExtension(
+      builder,
+      targetType,
+      (extension, builder) {
+        builder.insertGetter(extension, (builder) {
+          writeSetter(builder);
+        });
+      },
+    );
+    if (updatedExisting) {
+      return;
+    }
+
+    await _addNewExtension(builder, targetType, nameNode, writeSetter);
+  }
+}
+
 abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
   _CreateExtensionMember({
     required super.context,

@@ -1297,6 +1297,7 @@ final _builtInNonLintProducers = {
   ],
   CompileTimeErrorCode.UNDEFINED_SETTER: [
     ChangeTo.getterOrSetter,
+    CreateExtensionSetter.new,
     CreateField.new,
     CreateSetter.new,
   ],
