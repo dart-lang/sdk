@@ -38,7 +38,7 @@ class RemoveUnnecessaryConst extends _RemoveConst {
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONST_MULTI;
 }
 
-abstract class _RemoveConst extends ResolvedCorrectionProducer {
+abstract class _RemoveConst extends ParsedCorrectionProducer {
   _RemoveConst({required super.context});
 
   @override

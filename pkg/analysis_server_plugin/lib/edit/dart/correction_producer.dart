@@ -339,6 +339,13 @@ abstract class MultiCorrectionProducer
   ResolvedUnitResult get unitResult => super.unitResult as ResolvedUnitResult;
 }
 
+/// A correction producer that can work on non-resolved units
+/// ([ParsedUnitResult]s).
+abstract class ParsedCorrectionProducer
+    extends CorrectionProducer<ParsedUnitResult> {
+  ParsedCorrectionProducer({required super.context});
+}
+
 /// A [CorrectionProducer] that can compute a correction (fix or assist) in a
 /// Dart file using the resolved AST.
 abstract class ResolvedCorrectionProducer

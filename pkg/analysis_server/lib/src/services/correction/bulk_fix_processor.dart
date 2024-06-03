@@ -204,7 +204,9 @@ class BulkFixProcessor {
   /// will be produced.
   final DartChangeWorkspace workspace;
 
-  /// An optional list of diagnostic codes to fix.
+  /// A list of diagnostic codes to fix.
+  ///
+  /// If `null`, fixes are computed for all codes.
   final List<String>? codes;
 
   /// The change builder used to build the changes required to fix the
@@ -307,8 +309,7 @@ class BulkFixProcessor {
           List<AnalysisContext> contexts) =>
       _organizeDirectives(contexts);
 
-  Future<void> _applyProducer(
-      CorrectionProducerContext context, CorrectionProducer producer) async {
+  Future<void> _applyProducer(CorrectionProducer producer) async {
     try {
       var localBuilder = builder.copy() as ChangeBuilderImpl;
 
@@ -331,10 +332,16 @@ class BulkFixProcessor {
     }
   }
 
-  Future<void> _bulkApply(List<ProducerGenerator> generators, String codeName,
-      CorrectionProducerContext context) async {
+  Future<void> _bulkApply(
+    List<ProducerGenerator> generators,
+    String codeName,
+    CorrectionProducerContext context, {
+    bool parsedOnly = false,
+  }) async {
     for (var generator in generators) {
       var producer = generator(context: context);
+      assert(!parsedOnly || producer is ParsedCorrectionProducer,
+          '$producer must be a ParsedCorrectionProducer');
       var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
           ? producer.canBeAppliedAutomatically
           : producer.canBeAppliedAcrossFiles;
@@ -524,7 +531,7 @@ class BulkFixProcessor {
                 parsedUnit.content, parsedUnit.unit, errorReporter));
           }
           for (var linterUnit in allUnits) {
-            _computeLints(linterUnit, allUnits);
+            _computeParsedResultLint(linterUnit, allUnits);
           }
           await _fixErrorsInParsedLibrary(result, errorListener.errors,
               stopAfterFirst: stopAfterFirst);
@@ -537,7 +544,9 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  void _computeLints(
+  /// Computes lint for lint rules with names [syntacticLintCodes] (rules that
+  /// do not require [ResolvedUnitResult]s).
+  void _computeParsedResultLint(
       LinterContextUnit currentUnit, List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
     var nodeRegistry = NodeLintRegistry(false);
@@ -545,9 +554,9 @@ class BulkFixProcessor {
     var lintRules = syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
         .nonNulls;
-    for (var linter in lintRules) {
-      linter.reporter = currentUnit.errorReporter;
-      linter.registerNodeProcessors(nodeRegistry, context);
+    for (var lintRule in lintRules) {
+      lintRule.reporter = currentUnit.errorReporter;
+      lintRule.registerNodeProcessors(nodeRegistry, context);
     }
 
     // Run lints that handle specific node types.
@@ -773,7 +782,7 @@ class BulkFixProcessor {
     try {
       if (errorCode is LintCode) {
         var generators = FixProcessor.parseLintProducerMap[codeName] ?? [];
-        await _bulkApply(generators, codeName, context);
+        await _bulkApply(generators, codeName, context, parsedOnly: true);
         if (isCancelled) {
           return;
         }
@@ -832,7 +841,7 @@ class BulkFixProcessor {
     int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     var oldHash = computeChangeHash();
-    await _applyProducer(context, producer);
+    await _applyProducer(producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
       changeMap.add(context.path, code.toLowerCase());
