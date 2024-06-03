@@ -4196,6 +4196,7 @@ class AstBuilder extends StackListener {
     debugEvent("ExpressionFunctionBody");
 
     var expression = pop() as ExpressionImpl;
+    reportErrorIfSuper(expression);
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
     if (parseFunctionBodies) {
