@@ -1111,13 +1111,13 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             break;
           }
           builder.add(list);
+          available = nativeAvailable();
           const MAX_BUFFER_SIZE = 4 * 1024 * 1024;
           if (builder.length > MAX_BUFFER_SIZE) {
             // Don't consume too many bytes, otherwise we risk running
             // out of memory when handling the whole aggregated lot.
             break;
           }
-          available = nativeAvailable();
         } while (available > 0);
         if (builder.isEmpty) {
           list = null;
