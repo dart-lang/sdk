@@ -188,8 +188,6 @@ class ProcessedOptions {
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
-  bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
-
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
   bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;

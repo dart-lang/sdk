@@ -1238,51 +1238,6 @@ class DietListener extends StackListenerImpl {
     bodyBuilder.checkEmpty(token.charOffset);
   }
 
-  Builder? handleDuplicatedName(Builder? declaration, int charOffset) {
-    if (declaration == null) {
-      return null;
-    } else {
-      Builder? originalDeclaration = declaration;
-      while (declaration != null) {
-        if (declaration.charOffset == charOffset &&
-            declaration.fileUri == uri) {
-          return declaration;
-        }
-        declaration = declaration.next;
-      }
-      assert(false, () {
-        StringBuffer sb = new StringBuffer();
-        sb.write("Unable to find declaration for ");
-        sb.write(originalDeclaration);
-        sb.write(" @ ");
-        sb.write(charOffset);
-        sb.write(" in {");
-        String comma = '';
-        Builder? current = originalDeclaration;
-        while (current != null) {
-          sb.write(comma);
-          sb.write(current.charOffset);
-          current = current.next;
-          comma = ', ';
-        }
-        sb.write("}.");
-        return sb.toString();
-      }());
-      return originalDeclaration;
-    }
-  }
-
-  /*void checkBuilder(Builder? declaration, String name, int charOffset) {
-    if (declaration == null) {
-      internalProblem(
-          templateInternalProblemNotFound.withArguments(name), charOffset, uri);
-    }
-    if (uri != declaration.fileUri) {
-      unexpected("$uri", "${declaration.fileUri}", declaration.charOffset,
-          declaration.fileUri);
-    }
-  }*/
-
   @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled = false, List<LocatedMessage>? context}) {

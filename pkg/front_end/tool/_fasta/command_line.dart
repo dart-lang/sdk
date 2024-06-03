@@ -77,7 +77,6 @@ const List<Option> optionSpecification = [
   Options.verbosity,
   Options.verify,
   Options.skipPlatformVerification,
-  Options.warnOnReachabilityCheck,
   Options.linkDependencies,
   Options.noDeps,
   Options.invocationModes,
@@ -184,9 +183,6 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool enableUnscheduledExperiments =
       Options.enableUnscheduledExperiments.read(parsedOptions);
 
-  final bool warnOnReachabilityCheck =
-      Options.warnOnReachabilityCheck.read(parsedOptions);
-
   final List<Uri> linkDependencies =
       Options.linkDependencies.read(parsedOptions) ?? [];
 
@@ -264,7 +260,6 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
-    ..warnOnReachabilityCheck = warnOnReachabilityCheck
     ..invocationModes = InvocationMode.parseArguments(invocationModes)
     ..verbosity = Verbosity.parseArgument(verbosity)
     ..showGeneratedMacroSourcesForTesting = showGeneratedMacroSources;

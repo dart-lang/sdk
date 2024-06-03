@@ -617,22 +617,6 @@ class OperationsCfe
     return result;
   }
 
-  DartType getLegacyType(DartType type) {
-    // Note that the [IntersectionType.withDeclaredNullability] is special so
-    // we don't trust it.
-    if (type.declaredNullability == Nullability.legacy &&
-        type is! IntersectionType) {
-      return type;
-    }
-    DartType? cached = typeCacheLegacy[type];
-    if (cached != null) {
-      return cached;
-    }
-    DartType result = type.withDeclaredNullability(Nullability.legacy);
-    typeCacheLegacy[type] = result;
-    return result;
-  }
-
   @override
   DartType variableType(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {

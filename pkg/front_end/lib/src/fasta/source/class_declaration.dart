@@ -30,10 +30,6 @@ abstract class ClassDeclaration
 
   bool get isMixinDeclaration;
 
-  /// Returns `true` if this class declaration has a generative constructor,
-  /// either explicitly or implicitly through a no-name default constructor.
-  bool get hasGenerativeConstructor;
-
   int resolveConstructors(SourceLibraryBuilder library);
 }
 

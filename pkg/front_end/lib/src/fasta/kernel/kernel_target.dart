@@ -165,11 +165,6 @@ class KernelTarget {
 
   GlobalFeatures get globalFeatures => _options.globalFeatures;
 
-  Version getExperimentEnabledVersionInLibrary(
-      ExperimentalFlag flag, Uri importUri) {
-    return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
-  }
-
   bool isExperimentEnabledInLibraryByVersion(
       ExperimentalFlag flag, Uri importUri, Version version) {
     return _options.isExperimentEnabledInLibraryByVersion(

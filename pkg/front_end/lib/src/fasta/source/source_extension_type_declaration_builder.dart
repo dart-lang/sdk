@@ -748,12 +748,6 @@ class SourceExtensionTypeDeclarationBuilder
   bool get isMixinDeclaration => false;
 
   @override
-  bool get hasGenerativeConstructor {
-    // TODO(johnniwinther): Support default constructor? and factories.
-    return true;
-  }
-
-  @override
   BodyBuilderContext get bodyBuilderContext =>
       new ExtensionTypeBodyBuilderContext(this);
 

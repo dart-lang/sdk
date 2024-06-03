@@ -452,10 +452,6 @@ class SourceClassBuilder extends ClassBuilderImpl
           const _SourceClassBuilderAugmentationAccess(), this,
           includeDuplicates: false);
 
-  @override
-  bool get hasGenerativeConstructor =>
-      fullConstructorNameIterator<SourceConstructorBuilder>().moveNext();
-
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
   SourceConstructorBuilder? lookupConstructor(Name name) {
