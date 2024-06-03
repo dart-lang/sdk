@@ -208,6 +208,15 @@ enum E {e}
 ''');
   }
 
+  Future<void> test_finalMixin() async {
+    await resolveTestCode('''
+final mixin M {}
+''');
+    await assertHasFix('''
+mixin M {}
+''');
+  }
+
   Future<void> test_invalidAsyncConstructorModifier() async {
     await resolveTestCode(r'''
 class A {
