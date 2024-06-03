@@ -32,13 +32,14 @@ abstract class AbstractSemanticTokensHandler<T>
 
   Future<List<SemanticTokenInfo>> getServerResult(
       String path, SourceRange? range) async {
-    var result = await server.getResolvedUnit(path);
-    var unit = result?.unit;
-    if (unit != null) {
-      var computer = DartUnitHighlightsComputer(unit, range: range);
-      return computer.computeSemanticTokens();
-    }
-    return [];
+    var result = await requireResolvedUnit(path);
+    return result.map(
+      (_) => [], // Error, return nothing.
+      (unit) {
+        var computer = DartUnitHighlightsComputer(unit.unit, range: range);
+        return computer.computeSemanticTokens();
+      },
+    );
   }
 
   Iterable<SemanticTokenInfo> _filter(
