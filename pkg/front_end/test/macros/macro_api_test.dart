@@ -4,6 +4,7 @@
 
 import 'dart:io' show Platform;
 
+import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:macros/src/executor/multi_executor.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -24,7 +25,9 @@ Future<void> main(List<String> args) async {
         '../../../_fe_analyzer_shared/test/macros/api/package_config.json');
     options.macroExecutor ??= new MultiMacroExecutor();
     options.macroSerializer = macroSerializer;
-
+    options.onDiagnostic = (DiagnosticMessage message) {
+      printDiagnosticMessage(message, print);
+    };
     InternalCompilerResult result = await kernelForProgramInternal(
         Platform.script.resolve(
             '../../../_fe_analyzer_shared/test/macros/api/api_test_data.dart'),

@@ -229,7 +229,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/source/source_extension_builder.dart":
       61.261261261261254,
   "package:front_end/src/fasta/source/source_extension_type_declaration_builder.dart":
-      85.34136546184739,
+      84.0,
   "package:front_end/src/fasta/source/source_factory_builder.dart":
       92.22222222222223,
   "package:front_end/src/fasta/source/source_field_builder.dart":

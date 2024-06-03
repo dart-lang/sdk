@@ -382,13 +382,17 @@ class KernelTarget {
     loader.resolveConstructors(augmentationLibraries);
   }
 
-  Future<void> _applyMacroPhase2(MacroApplications macroApplications,
-      List<SourceClassBuilder> sortedSourceClassBuilders) async {
+  Future<void> _applyMacroPhase2(
+      MacroApplications macroApplications,
+      List<SourceClassBuilder> sortedSourceClassBuilders,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sortedSourceExtensionTypeBuilders) async {
     benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
     macroApplications.enterDeclarationsMacroPhase(loader.hierarchyBuilder);
 
     Future<void> applyDeclarationMacros() async {
-      await macroApplications.applyDeclarationsMacros(sortedSourceClassBuilders,
+      await macroApplications.applyDeclarationsMacros(
+          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders,
           (SourceLibraryBuilder augmentationLibrary) async {
         List<SourceLibraryBuilder> augmentationLibraries = [
           augmentationLibrary
@@ -503,7 +507,8 @@ class KernelTarget {
           underscoreEnumClass);
 
       if (macroApplications != null) {
-        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders);
+        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders,
+            sortedSourceExtensionTypeBuilders);
       }
 
       benchmarker

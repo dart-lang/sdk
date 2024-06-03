@@ -9,6 +9,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -779,6 +780,25 @@ class SourceExtensionTypeDeclarationBuilder
     }
     return result;
   }
+
+  @override
+  Iterator<T> localMemberIterator<T extends Builder>() =>
+      new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
+          T>.local(this, includeDuplicates: false);
+
+  @override
+  Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorIterator<
+          SourceExtensionTypeDeclarationBuilder,
+          T>.local(this, includeDuplicates: false);
+
+  /// Returns an iterator the origin extension type declaration and all
+  /// augmentations in application order.
+  Iterator<SourceExtensionTypeDeclarationBuilder> get declarationIterator =>
+      new AugmentationIterator<SourceExtensionTypeDeclarationBuilder>(
+          // TODO(johnniwinther): Support augmentations.
+          origin,
+          null);
 }
 
 class _SourceExtensionTypeDeclarationBuilderAugmentationAccess
