@@ -11,9 +11,13 @@ This is a patch release that:
 
 - Adds support for `--enable-experiment` flag to `dart compile wasm.
 
+- Fixes an issue in dart2wasm compiler that can result in incorrect nullability
+  of type parameter (see [#55741])
+
 [#55767]: https://github.com/dart-lang/sdk/issues/55767
 [#55872]: https://github.com/dart-lang/sdk/issues/55872
 [#55876]: https://github.com/dart-lang/sdk/issues/55876
+[#55741]: https://github.com/dart-lang/sdk/issues/55741
 
 ## 3.4.2 - 2024-05-29
 
