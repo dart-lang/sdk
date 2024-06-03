@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_kind.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:matcher/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

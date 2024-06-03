@@ -6,8 +6,8 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 

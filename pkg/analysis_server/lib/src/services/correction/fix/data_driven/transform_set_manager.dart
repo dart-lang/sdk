@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:meta/meta.dart';
 
 /// An object used to manage the transform sets.

@@ -4,11 +4,11 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart'
     show SourceFactory, UriResolver;
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';

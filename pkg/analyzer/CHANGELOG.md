@@ -1,6 +1,8 @@
 ## 6.6.0-dev
 * Stop exporting `src/file_system/file_system.dart`
   from `file_system/file_system.dart`.
+* Deprecated `package:analyzer/src/source/source_resource.dart`,
+  import `package:analyzer/source/file_source.dart` instead.
 
 ## 6.5.2
 * Updated constraints `macros: '>=0.1.2-0 <0.1.3'`.

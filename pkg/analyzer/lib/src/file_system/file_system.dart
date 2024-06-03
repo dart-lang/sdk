@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart' show UriResolver;
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/uri.dart';
 
 /// A [UriResolver] for [Resource]s.

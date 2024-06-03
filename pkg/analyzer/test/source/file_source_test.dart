@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -40,6 +40,7 @@ class FileSourceTest with ResourceProviderMixin {
     expect(source1 == source2, isTrue);
   }
 
+  @Deprecated('We will remove reading source content')
   void test_fileReadMode() {
     expect(FileSource.fileReadMode('a'), 'a');
     expect(FileSource.fileReadMode('a\n'), 'a\n');
@@ -50,6 +51,7 @@ class FileSourceTest with ResourceProviderMixin {
     expect(FileSource.fileReadMode('a\r\nb'), 'a\r\nb');
   }
 
+  @Deprecated('We will remove reading source content')
   void test_fileReadMode_changed() {
     FileSource.fileReadMode = (String s) => '${s}xyz';
     expect(FileSource.fileReadMode('a'), 'axyz');
