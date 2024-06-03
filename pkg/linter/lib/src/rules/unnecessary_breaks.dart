@@ -78,7 +78,7 @@ class UnnecessaryBreaks extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.isEnabled(Feature.patterns)) return;
+    if (!context.libraryElement!.featureSet.isEnabled(Feature.patterns)) return;
     var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);
   }

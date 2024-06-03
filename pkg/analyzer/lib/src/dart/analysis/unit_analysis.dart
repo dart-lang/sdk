@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,7 +14,6 @@ class UnitAnalysis {
   final RecordingErrorListener errorListener;
   final ErrorReporter errorReporter;
   final CompilationUnitImpl unit;
-  final LineInfo lineInfo;
   final IgnoreInfo ignoreInfo;
 
   late final CompilationUnitElementImpl element;
@@ -23,9 +21,7 @@ class UnitAnalysis {
   UnitAnalysis({
     required this.file,
     required this.errorListener,
-    required this.errorReporter,
     required this.unit,
-    required this.lineInfo,
-    required this.ignoreInfo,
-  });
+  })  : errorReporter = ErrorReporter(errorListener, file.source),
+        ignoreInfo = IgnoreInfo.forDart(unit, file.content);
 }

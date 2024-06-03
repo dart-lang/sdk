@@ -78,7 +78,9 @@ class UseEnums extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.isEnabled(Feature.enhanced_enums)) return;
+    if (!context.libraryElement!.featureSet.isEnabled(Feature.enhanced_enums)) {
+      return;
+    }
 
     var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);

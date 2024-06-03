@@ -79,7 +79,7 @@ class DependOnReferencedPackages extends LintRule {
         for (var dep in dependencies)
           if (dep.name?.text != null) dep.name!.text!,
       if (devDependencies != null &&
-          !isInPublicDir(context.currentUnit.unit, context.package))
+          !isInPublicDir(context.definingUnit.unit, context.package))
         for (var dep in devDependencies)
           if (dep.name?.text != null) dep.name!.text!,
     ];

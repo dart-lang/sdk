@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
-import '../ast.dart';
 import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
@@ -54,9 +53,7 @@ class PreferRelativeImports extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!isInLibDir(context.currentUnit.unit, context.package)) {
-      return;
-    }
+    if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this, context);
     registry.addImportDirective(this, visitor);
