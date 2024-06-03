@@ -746,6 +746,39 @@ void main() {
 ''');
   }
 
+  test_method_result_assigned_wildcard_unused() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  var _ = A().foo();
+}
+''');
+  }
+
+  test_method_result_assigned_wildcard_unused_preWildcards() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  var _ = A().foo();
+}
+''');
+  }
+
   test_method_result_binaryExpression() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
