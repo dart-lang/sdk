@@ -65,7 +65,6 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
-import '../target_implementation.dart' show TargetImplementation;
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_schema.dart';
 import '../uri_translator.dart' show UriTranslator;
@@ -82,7 +81,7 @@ import 'kernel_helper.dart';
 import 'macro/macro.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
-class KernelTarget extends TargetImplementation {
+class KernelTarget {
   final Ticker ticker;
 
   /// The [FileSystem] which should be used to access files.
@@ -139,10 +138,8 @@ class KernelTarget extends TargetImplementation {
 
   final UriTranslator uriTranslator;
 
-  @override
   final Target backendTarget;
 
-  @override
   final CompilerContext context = CompilerContext.current;
 
   /// Shared with [CompilerContext].
@@ -167,11 +164,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   GlobalFeatures get globalFeatures => _options.globalFeatures;
-
-  Version getExperimentEnabledVersionInLibrary(
-      ExperimentalFlag flag, Uri importUri) {
-    return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
-  }
 
   bool isExperimentEnabledInLibraryByVersion(
       ExperimentalFlag flag, Uri importUri, Version version) {
@@ -390,13 +382,17 @@ class KernelTarget extends TargetImplementation {
     loader.resolveConstructors(augmentationLibraries);
   }
 
-  Future<void> _applyMacroPhase2(MacroApplications macroApplications,
-      List<SourceClassBuilder> sortedSourceClassBuilders) async {
+  Future<void> _applyMacroPhase2(
+      MacroApplications macroApplications,
+      List<SourceClassBuilder> sortedSourceClassBuilders,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sortedSourceExtensionTypeBuilders) async {
     benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
     macroApplications.enterDeclarationsMacroPhase(loader.hierarchyBuilder);
 
     Future<void> applyDeclarationMacros() async {
-      await macroApplications.applyDeclarationsMacros(sortedSourceClassBuilders,
+      await macroApplications.applyDeclarationsMacros(
+          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders,
           (SourceLibraryBuilder augmentationLibrary) async {
         List<SourceLibraryBuilder> augmentationLibraries = [
           augmentationLibrary
@@ -511,7 +507,8 @@ class KernelTarget extends TargetImplementation {
           underscoreEnumClass);
 
       if (macroApplications != null) {
-        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders);
+        await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders,
+            sortedSourceExtensionTypeBuilders);
       }
 
       benchmarker

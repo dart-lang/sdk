@@ -128,8 +128,6 @@ class Options {
       const Option(Flags.verify, const BoolValue(false));
   static const Option<bool> skipPlatformVerification =
       const Option(Flags.skipPlatformVerification, const BoolValue(false));
-  static const Option<bool> warnOnReachabilityCheck =
-      const Option(Flags.warnOnReachabilityCheck, const BoolValue(false));
   static const Option<List<Uri>?> linkDependencies =
       const Option(Flags.linkDependencies, const UriListValue());
   static const Option<bool> noDeps =

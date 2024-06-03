@@ -288,19 +288,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return context == null;
   }
 
-  /// True if [member] is a binary operator that returns an `int` if both
-  /// operands are `int`, and otherwise returns `double`.
-  ///
-  /// Note that this behavior depends on the receiver type, so we can only make
-  /// this determination if we know the type of the receiver.
-  ///
-  /// This is a case of type-based overloading, which in Dart is only supported
-  /// by giving special treatment to certain arithmetic operators.
-  bool isSpecialCasesBinaryForReceiverType(
-      Procedure member, DartType receiverType) {
-    return isSpecialCasedBinaryOperator(member);
-  }
-
   @override
   bool isTop(DartType t) {
     if (t is UnknownType) {

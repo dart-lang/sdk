@@ -36,6 +36,10 @@ class MacroIntrospection {
 
   Map<ClassBuilder, macro.ParameterizedTypeDeclaration> _classDeclarations = {};
   Map<macro.ParameterizedTypeDeclaration, ClassBuilder> _classBuilders = {};
+  Map<ExtensionTypeDeclarationBuilder, macro.ParameterizedTypeDeclaration>
+      _extensionTypeDeclarations = {};
+  Map<macro.ExtensionTypeDeclaration, ExtensionTypeDeclarationBuilder>
+      _extensionTypeBuilders = {};
   Map<NominalVariableBuilder, macro.TypeParameterDeclarationImpl>
       _typeParameters = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
@@ -65,6 +69,8 @@ class MacroIntrospection {
     _libraries.clear();
     _classDeclarations.clear();
     _classBuilders.clear();
+    _extensionTypeDeclarations.clear();
+    _extensionTypeBuilders.clear();
     _memberDeclarations.clear();
     _typeAliasDeclarations.clear();
     _declarationOffsets.clear();
@@ -89,6 +95,14 @@ class MacroIntrospection {
     return _classDeclarations[builder] ??= _createClassDeclaration(builder);
   }
 
+  /// Returns the [macro.ParameterizedTypeDeclaration] corresponding to
+  /// [builder].
+  macro.ParameterizedTypeDeclaration getExtensionTypeDeclaration(
+      ExtensionTypeDeclarationBuilder builder) {
+    return _extensionTypeDeclarations[builder] ??=
+        _createExtensionTypeDeclaration(builder);
+  }
+
   /// Returns the [macro.TypeAliasDeclaration] corresponding to [builder].
   macro.TypeAliasDeclaration getTypeAliasDeclaration(TypeAliasBuilder builder) {
     return _typeAliasDeclarations[builder] ??=
@@ -99,6 +113,13 @@ class MacroIntrospection {
   ClassBuilder _getClassBuilder(
       macro.ParameterizedTypeDeclaration declaration) {
     return _classBuilders[declaration]!;
+  }
+
+  /// Returns the [ExtensionTypeDeclarationBuilder] corresponding to
+  /// [declaration].
+  ExtensionTypeDeclarationBuilder _getExtensionTypeDeclarationBuilder(
+      macro.ExtensionTypeDeclaration declaration) {
+    return _extensionTypeBuilders[declaration]!;
   }
 
   /// Creates the [macro.Declaration] corresponding to [memberBuilder].
@@ -266,6 +287,31 @@ class MacroIntrospection {
     return declaration;
   }
 
+  macro.ExtensionTypeDeclaration _createExtensionTypeDeclaration(
+      ExtensionTypeDeclarationBuilder builder) {
+    final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
+    List<macro.TypeParameterDeclarationImpl> typeParameters =
+        _nominalVariableBuildersToDeclarations(
+            builder.libraryBuilder, builder.typeParameters);
+    macro.ExtensionTypeDeclarationImpl declaration =
+        new macro.ExtensionTypeDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: new TypeDeclarationBuilderIdentifier(
+          typeDeclarationBuilder: builder,
+          libraryBuilder: builder.libraryBuilder,
+          id: macro.RemoteInstance.uniqueId,
+          name: builder.name),
+      library: library,
+      // TODO: Provide metadata annotations.
+      metadata: const [],
+      typeParameters: typeParameters,
+      representationType: types.getTypeAnnotation(
+          builder.libraryBuilder, builder.declaredRepresentationTypeBuilder),
+    );
+    _extensionTypeBuilders[declaration] = builder;
+    return declaration;
+  }
+
   /// Creates the [macro.TypeAliasDeclaration] corresponding to [builder].
   macro.TypeAliasDeclaration _createTypeAliasDeclaration(
       TypeAliasBuilder builder) {
@@ -360,8 +406,15 @@ class MacroIntrospection {
       List<macro.FormalParameterDeclarationImpl> positionalParameters,
       List<macro.FormalParameterDeclarationImpl> namedParameters
     ) = _createParameters(builder.libraryBuilder, formals);
-    macro.ParameterizedTypeDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder!);
+    macro.ParameterizedTypeDeclaration definingTypeDeclaration;
+    Builder? parent = builder.parent;
+    if (parent is ClassBuilder) {
+      definingTypeDeclaration = getClassDeclaration(parent);
+    } else if (parent is ExtensionTypeDeclarationBuilder) {
+      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
+    } else {
+      throw new UnsupportedError("Unexpected parent of constructor: $parent");
+    }
     macro.ConstructorDeclaration declaration =
         new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -372,7 +425,7 @@ class MacroIntrospection {
       library: getLibrary(builder.libraryBuilder),
       // TODO: Provide metadata annotations.
       metadata: const [],
-      definingType: definingClass.identifier as macro.IdentifierImpl,
+      definingType: definingTypeDeclaration.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
@@ -398,10 +451,15 @@ class MacroIntrospection {
       List<macro.FormalParameterDeclarationImpl> positionalParameters,
       List<macro.FormalParameterDeclarationImpl> namedParameters
     ) = _createParameters(builder.libraryBuilder, builder.formals);
-    macro.ParameterizedTypeDeclaration definingClass =
-        // TODO(johnniwinther): Support extension type factories.
-        getClassDeclaration(builder.classBuilder!);
-
+    macro.ParameterizedTypeDeclaration definingTypeDeclaration;
+    Builder? parent = builder.parent;
+    if (parent is ClassBuilder) {
+      definingTypeDeclaration = getClassDeclaration(parent);
+    } else if (parent is ExtensionTypeDeclarationBuilder) {
+      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
+    } else {
+      throw new UnsupportedError("Unexpected parent of constructor: $parent");
+    }
     macro.ConstructorDeclaration declaration =
         new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -412,7 +470,7 @@ class MacroIntrospection {
       library: getLibrary(builder.libraryBuilder),
       // TODO: Provide metadata annotations.
       metadata: const [],
-      definingType: definingClass.identifier as macro.IdentifierImpl,
+      definingType: definingTypeDeclaration.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
@@ -437,13 +495,16 @@ class MacroIntrospection {
       List<macro.FormalParameterDeclarationImpl> namedParameters
     ) = _createParameters(builder.libraryBuilder, builder.formals);
 
-    macro.ParameterizedTypeDeclaration? definingClass = null;
-    if (builder.classBuilder != null) {
-      definingClass = getClassDeclaration(builder.classBuilder!);
+    macro.ParameterizedTypeDeclaration? definingTypeDeclaration = null;
+    Builder? parent = builder.parent;
+    if (parent is ClassBuilder) {
+      definingTypeDeclaration = getClassDeclaration(parent);
+    } else if (parent is ExtensionTypeDeclarationBuilder) {
+      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
     }
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
     macro.FunctionDeclaration declaration;
-    if (definingClass != null) {
+    if (definingTypeDeclaration != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
       declaration = new macro.MethodDeclarationImpl(
@@ -455,7 +516,8 @@ class MacroIntrospection {
           library: library,
           // TODO(johnniwinther): Provide metadata annotations.
           metadata: const [],
-          definingType: definingClass.identifier as macro.IdentifierImpl,
+          definingType:
+              definingTypeDeclaration.identifier as macro.IdentifierImpl,
           // TODO(johnniwinther): Real implementation of hasBody.
           hasBody: true,
           hasExternal: builder.isExternal,
@@ -500,13 +562,16 @@ class MacroIntrospection {
   /// Creates the [macro.VariableDeclaration] corresponding to [builder].
   macro.VariableDeclaration _createVariableDeclaration(
       SourceFieldBuilder builder) {
-    macro.ParameterizedTypeDeclaration? definingClass = null;
-    if (builder.classBuilder != null) {
-      definingClass = getClassDeclaration(builder.classBuilder!);
+    macro.ParameterizedTypeDeclaration? definingTypeDeclaration = null;
+    Builder? parent = builder.parent;
+    if (parent is ClassBuilder) {
+      definingTypeDeclaration = getClassDeclaration(parent);
+    } else if (parent is ExtensionTypeDeclarationBuilder) {
+      definingTypeDeclaration = getExtensionTypeDeclaration(parent);
     }
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
     macro.VariableDeclaration declaration;
-    if (definingClass != null) {
+    if (definingTypeDeclaration != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
       declaration = new macro.FieldDeclarationImpl(
@@ -518,7 +583,8 @@ class MacroIntrospection {
           library: library,
           // TODO: Provide metadata annotations.
           metadata: const [],
-          definingType: definingClass.identifier as macro.IdentifierImpl,
+          definingType:
+              definingTypeDeclaration.identifier as macro.IdentifierImpl,
           hasAbstract: builder.isAbstract,
           hasConst: builder.isConst,
           hasExternal: builder.isExternal,
@@ -666,23 +732,40 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
       macro.TypeDeclaration type) {
-    if (type is! macro.ClassDeclaration) {
-      throw new UnsupportedError('Only introspection on classes is supported');
-    }
-    ClassBuilder classBuilder = _introspection
-        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
+    // TODO(johnniwinther): Create all member declarations together so that
+    // can assert that all are handled.
     List<macro.ConstructorDeclaration> result = [];
-    Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator();
-    while (iterator.moveNext()) {
-      MemberBuilder memberBuilder = iterator.current;
-      if (memberBuilder is DeclaredSourceConstructorBuilder) {
-        // TODO(johnniwinther): Should we support synthesized constructors?
-        result.add(_introspection.getMemberDeclaration(memberBuilder)
-            as macro.ConstructorDeclaration);
-      } else if (memberBuilder is SourceFactoryBuilder) {
-        result.add(_introspection.getMemberDeclaration(memberBuilder)
-            as macro.ConstructorDeclaration);
+    if (type is macro.ClassDeclaration) {
+      ClassBuilder classBuilder = _introspection._getClassBuilder(type);
+      Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator();
+      while (iterator.moveNext()) {
+        MemberBuilder memberBuilder = iterator.current;
+        if (memberBuilder is DeclaredSourceConstructorBuilder) {
+          // TODO(johnniwinther): Should we support synthesized constructors?
+          result.add(_introspection.getMemberDeclaration(memberBuilder)
+              as macro.ConstructorDeclaration);
+        } else if (memberBuilder is SourceFactoryBuilder) {
+          result.add(_introspection.getMemberDeclaration(memberBuilder)
+              as macro.ConstructorDeclaration);
+        }
       }
+    } else if (type is macro.ExtensionTypeDeclaration) {
+      ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+          _introspection._getExtensionTypeDeclarationBuilder(type);
+      Iterator<MemberBuilder> iterator =
+          extensionTypeDeclarationBuilder.fullConstructorIterator();
+      while (iterator.moveNext()) {
+        MemberBuilder memberBuilder = iterator.current;
+        if (memberBuilder is SourceExtensionTypeConstructorBuilder) {
+          result.add(_introspection.getMemberDeclaration(memberBuilder)
+              as macro.ConstructorDeclaration);
+        } else if (memberBuilder is SourceFactoryBuilder) {
+          result.add(_introspection.getMemberDeclaration(memberBuilder)
+              as macro.ConstructorDeclaration);
+        }
+      }
+    } else {
+      throw new UnsupportedError('Only introspection on classes is supported');
     }
     return new Future.value(result);
   }
@@ -696,34 +779,56 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.FieldDeclaration>> fieldsOf(macro.TypeDeclaration type) {
-    if (type is! macro.ClassDeclaration) {
-      throw new UnsupportedError('Only introspection on classes is supported');
-    }
-    ClassBuilder classBuilder = _introspection._getClassBuilder(type);
     List<macro.FieldDeclaration> result = [];
-    Iterator<SourceFieldBuilder> iterator =
-        classBuilder.fullMemberIterator<SourceFieldBuilder>();
-    while (iterator.moveNext()) {
-      result.add(_introspection.getMemberDeclaration(iterator.current)
-          as macro.FieldDeclaration);
+    if (type is macro.ClassDeclaration || type is macro.MixinDeclaration) {
+      ClassBuilder classBuilder = _introspection
+          ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
+      Iterator<SourceFieldBuilder> iterator =
+          classBuilder.fullMemberIterator<SourceFieldBuilder>();
+      while (iterator.moveNext()) {
+        result.add(_introspection.getMemberDeclaration(iterator.current)
+            as macro.FieldDeclaration);
+      }
+    } else if (type is macro.ExtensionTypeDeclaration) {
+      ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+          _introspection._getExtensionTypeDeclarationBuilder(type);
+      Iterator<SourceFieldBuilder> iterator = extensionTypeDeclarationBuilder
+          .fullMemberIterator<SourceFieldBuilder>();
+      while (iterator.moveNext()) {
+        result.add(_introspection.getMemberDeclaration(iterator.current)
+            as macro.FieldDeclaration);
+      }
+    } else {
+      throw new UnsupportedError('Only introspection on classes is supported');
     }
     return new Future.value(result);
   }
 
   @override
   Future<List<macro.MethodDeclaration>> methodsOf(macro.TypeDeclaration type) {
-    if (type is! macro.ClassDeclaration && type is! macro.MixinDeclaration) {
+    List<macro.MethodDeclaration> result = [];
+    if (type is macro.ClassDeclaration || type is macro.MixinDeclaration) {
+      ClassBuilder classBuilder = _introspection
+          ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
+      Iterator<SourceProcedureBuilder> iterator =
+          classBuilder.fullMemberIterator<SourceProcedureBuilder>();
+      while (iterator.moveNext()) {
+        result.add(_introspection.getMemberDeclaration(iterator.current)
+            as macro.MethodDeclaration);
+      }
+    } else if (type is macro.ExtensionTypeDeclaration) {
+      ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+          _introspection._getExtensionTypeDeclarationBuilder(type);
+      Iterator<SourceProcedureBuilder> iterator =
+          extensionTypeDeclarationBuilder
+              .fullMemberIterator<SourceProcedureBuilder>();
+      while (iterator.moveNext()) {
+        result.add(_introspection.getMemberDeclaration(iterator.current)
+            as macro.MethodDeclaration);
+      }
+    } else {
       throw new UnsupportedError(
           'Only introspection on classes and mixins is supported');
-    }
-    ClassBuilder classBuilder = _introspection
-        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
-    List<macro.MethodDeclaration> result = [];
-    Iterator<SourceProcedureBuilder> iterator =
-        classBuilder.fullMemberIterator<SourceProcedureBuilder>();
-    while (iterator.moveNext()) {
-      result.add(_introspection.getMemberDeclaration(iterator.current)
-          as macro.MethodDeclaration);
     }
     return new Future.value(result);
   }

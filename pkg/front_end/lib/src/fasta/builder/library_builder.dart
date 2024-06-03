@@ -123,8 +123,6 @@ abstract class LibraryBuilder implements Builder {
   /// Returns true if the export scope was modified.
   bool addToExportScope(String name, Builder member, [int charOffset = -1]);
 
-  void addToScope(String name, Builder member, int charOffset, bool isImport);
-
   Builder computeAmbiguousDeclaration(
       String name, Builder declaration, Builder other, int charOffset,
       {bool isExport = false, bool isImport = false});
@@ -169,6 +167,7 @@ abstract class LibraryBuilder implements Builder {
 
   NullabilityBuilder get nonNullableBuilder;
 
+  /// Unused in interface; left in on purpose.
   NullabilityBuilder nullableBuilderIfTrue(bool isNullable);
 
   /// Returns `true` if [cls] is the 'Function' class defined in [coreLibrary].

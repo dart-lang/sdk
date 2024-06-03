@@ -40,13 +40,13 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
           uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
         case TypeAliasBuilder():
           uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
+        case ExtensionTypeDeclarationBuilder():
+          uri = typeDeclarationBuilder.libraryBuilder.origin.importUri;
         case NominalVariableBuilder():
         // TODO(johnniwinther): Handle this case.
         case StructuralVariableBuilder():
         // TODO(johnniwinther): Handle this case.
         case ExtensionBuilder():
-        // TODO(johnniwinther): Handle this case.
-        case ExtensionTypeDeclarationBuilder():
         // TODO(johnniwinther): Handle this case.
         case InvalidTypeDeclarationBuilder():
         case BuiltinTypeDeclarationBuilder():
@@ -72,13 +72,15 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
     switch (typeDeclarationBuilder) {
       case ClassBuilder():
         return macroIntrospection.getClassDeclaration(typeDeclarationBuilder);
+      case ExtensionTypeDeclarationBuilder():
+        return macroIntrospection
+            .getExtensionTypeDeclaration(typeDeclarationBuilder);
       case TypeAliasBuilder():
         return macroIntrospection
             .getTypeAliasDeclaration(typeDeclarationBuilder);
       case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionBuilder():
-      case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
       // TODO(johnniwinther): How should we handle this case?

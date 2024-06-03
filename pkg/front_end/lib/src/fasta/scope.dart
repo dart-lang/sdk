@@ -589,17 +589,6 @@ class Scope extends MutableScope {
     _setters?.forEach(f);
   }
 
-  ExtensionBuilder? lookupLocalUnnamedExtension(Uri fileUri, int offset) {
-    if (_extensions != null) {
-      for (ExtensionBuilder extension in _extensions!) {
-        if (extension.fileUri == fileUri && extension.charOffset == offset) {
-          return extension;
-        }
-      }
-    }
-    return null;
-  }
-
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
     _extensions?.forEach(f);
   }

@@ -520,28 +520,6 @@ class _AsyncClosureContext implements ClosureContext {
     node.expression = expressionResult.expression..parent = node;
   }
 
-  DartType computeAssignableType(InferenceVisitorBase inferrer,
-      DartType contextType, DartType expressionType) {
-    contextType = inferrer.computeGreatestClosure(contextType);
-
-    DartType initialContextType = contextType;
-    if (!inferrer.isAssignable(initialContextType, expressionType)) {
-      // If the body of the function is async, the expected return type has the
-      // shape FutureOr<T>.  We check both branches for FutureOr here: both T
-      // and Future<T>.
-      DartType unfuturedExpectedType =
-          inferrer.typeSchemaEnvironment.flatten(contextType);
-      DartType futuredExpectedType = inferrer.wrapFutureType(
-          unfuturedExpectedType, Nullability.nonNullable);
-      if (inferrer.isAssignable(unfuturedExpectedType, expressionType)) {
-        contextType = unfuturedExpectedType;
-      } else if (inferrer.isAssignable(futuredExpectedType, expressionType)) {
-        contextType = futuredExpectedType;
-      }
-    }
-    return contextType;
-  }
-
   @override
   DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {

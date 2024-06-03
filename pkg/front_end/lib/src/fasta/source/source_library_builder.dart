@@ -1567,7 +1567,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
     Builder? existing =
         importScope.lookupLocalMember(name, setter: member.isSetter);

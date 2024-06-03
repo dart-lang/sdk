@@ -47,13 +47,25 @@ class Class3 extends Class2 implements Interface1 {
 class Class4 extends Class1 with Mixin1 {}
 
 @ClassMacro()
-class Class5 extends Class2
+abstract class Class5 extends Class2
     with Mixin1, Mixin2
     implements Interface1, Interface2 {}
 
+@MixinMacro()
 mixin Mixin1 {}
 
-mixin Mixin2 {}
+@MixinMacro()
+mixin Mixin2 {
+  var instanceField;
+  static var staticField;
+  get instanceGetter => 42;
+  set instanceSetter(int value) {}
+  static get staticGetter => 42;
+  static set staticSetter(int value) {}
+  instanceMethod() {}
+  abstractMethod();
+  static staticMethod() {}
+}
 
 @ClassMacro()
 abstract class Interface1 {}
@@ -66,3 +78,17 @@ void topLevelFunction1(Class1 a, {Class1? b, required Class2? c}) {}
 
 @FunctionMacro()
 external Class2 topLevelFunction2(Class1 a, [Class2? b]);
+
+@ExtensionTypeMacro()
+extension type ExtensionType1(int i) {
+  ExtensionType1.constructor(this.i);
+  factory ExtensionType1.fact(int i) => ExtensionType1(i);
+  factory ExtensionType1.redirect(int i) = ExtensionType1.constructor;
+  static var staticField;
+  get instanceGetter => 42;
+  set instanceSetter(int value) {}
+  static get staticGetter => 42;
+  static set staticSetter(int value) {}
+  instanceMethod() {}
+  static staticMethod() {}
+}

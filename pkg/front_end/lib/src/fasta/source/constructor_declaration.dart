@@ -32,8 +32,6 @@ abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult});
 
-  List<Initializer> get initializers;
-
   void prepareInitializers();
 
   void prependInitializer(Initializer initializer);

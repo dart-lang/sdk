@@ -188,11 +188,6 @@ abstract class TypeInferenceEngine {
   TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType? thisType,
       SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
 
-  /// Creates a [TypeInferrer] object which is ready to perform type inference
-  /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
-
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
   /// initializing formals from the corresponding fields.
@@ -371,7 +366,8 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
         assignedVariables, dataForTesting, benchmarker!, unknownFunction);
   }
 
-  @override
+  /// Creates a [TypeInferrer] object which is ready to perform type inference
+  /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
       SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -618,22 +614,6 @@ class OperationsCfe
     }
     DartType result = type.withDeclaredNullability(Nullability.nullable);
     typeCacheNullable[type] = result;
-    return result;
-  }
-
-  DartType getLegacyType(DartType type) {
-    // Note that the [IntersectionType.withDeclaredNullability] is special so
-    // we don't trust it.
-    if (type.declaredNullability == Nullability.legacy &&
-        type is! IntersectionType) {
-      return type;
-    }
-    DartType? cached = typeCacheLegacy[type];
-    if (cached != null) {
-      return cached;
-    }
-    DartType result = type.withDeclaredNullability(Nullability.legacy);
-    typeCacheLegacy[type] = result;
     return result;
   }
 

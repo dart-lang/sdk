@@ -23,8 +23,6 @@ class Export {
 
   Export(this.exporter, this.exported, this.combinators, this.charOffset);
 
-  Uri get fileUri => exporter.fileUri;
-
   /// The [LibraryDependency] node corresponding to this import.
   ///
   /// This set in [SourceLibraryBuilder.addDependencies].

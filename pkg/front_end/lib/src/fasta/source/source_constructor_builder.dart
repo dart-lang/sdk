@@ -174,7 +174,6 @@ abstract class AbstractSourceConstructorBuilder
     }
   }
 
-  @override
   List<Initializer> get initializers;
 
   void _injectInvalidInitializer(Message message, int charOffset, int length,

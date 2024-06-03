@@ -1166,6 +1166,154 @@ library;
 // @LibraryTypesMacro() // Error
 //  ^
 //
+// org-dartlang-test:///a/b/c/main.dart:507:2: Error: The macro can only be applied to fields, functions, methods or variables.
+// @VariableAndFunctionTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:506:2: Error: The macro can only be applied to fields or methods.
+// @FieldAndMethodTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:505:2: Error: The macro can only be applied to typedefs.
+// @TypeAliasDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:504:2: Error: The macro can only be applied to typedefs.
+// @TypeAliasTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:500:2: Error: The macro can only be applied to extensions.
+// @ExtensionDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:499:2: Error: The macro can only be applied to extensions.
+// @ExtensionDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:498:2: Error: The macro can only be applied to extensions.
+// @ExtensionTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:497:2: Error: The macro can only be applied to mixin declarations.
+// @MixinDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:496:2: Error: The macro can only be applied to mixin declarations.
+// @MixinDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:495:2: Error: The macro can only be applied to mixin declarations.
+// @MixinTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:494:2: Error: The macro can only be applied to constructors.
+// @ConstructorDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:493:2: Error: The macro can only be applied to constructors.
+// @ConstructorDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:492:2: Error: The macro can only be applied to constructors.
+// @ConstructorTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:491:2: Error: The macro can only be applied to methods.
+// @MethodDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:490:2: Error: The macro can only be applied to methods.
+// @MethodDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:489:2: Error: The macro can only be applied to methods.
+// @MethodTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:488:2: Error: The macro can only be applied to fields.
+// @FieldDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:487:2: Error: The macro can only be applied to fields.
+// @FieldDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:486:2: Error: The macro can only be applied to fields.
+// @FieldTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:485:2: Error: The macro can only be applied to enum values.
+// @EnumValueDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:484:2: Error: The macro can only be applied to enum values.
+// @EnumValueDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:483:2: Error: The macro can only be applied to enum values.
+// @EnumValueTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:482:2: Error: The macro can only be applied to enums.
+// @EnumDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:481:2: Error: The macro can only be applied to enums.
+// @EnumDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:480:2: Error: The macro can only be applied to enums.
+// @EnumTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:479:2: Error: The macro can only be applied to classes.
+// @ClassDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:478:2: Error: The macro can only be applied to classes.
+// @ClassDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:477:2: Error: The macro can only be applied to classes.
+// @ClassTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:476:2: Error: The macro can only be applied to fields or variables.
+// @VariableDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:475:2: Error: The macro can only be applied to fields or variables.
+// @VariableDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:474:2: Error: The macro can only be applied to fields or variables.
+// @VariableTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:473:2: Error: The macro can only be applied to functions or methods.
+// @FunctionDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:472:2: Error: The macro can only be applied to functions or methods.
+// @FunctionDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:471:2: Error: The macro can only be applied to functions or methods.
+// @FunctionTypesMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:470:2: Error: The macro can only be applied to libraries.
+// @LibraryDefinitionMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:469:2: Error: The macro can only be applied to libraries.
+// @LibraryDeclarationsMacro() // Error
+//  ^
+//
+// org-dartlang-test:///a/b/c/main.dart:468:2: Error: The macro can only be applied to libraries.
+// @LibraryTypesMacro() // Error
+//  ^
+//
 // org-dartlang-test:///a/b/c/main.dart:256:2: Error: The macro can only be applied to fields or methods.
 // @FieldAndMethodTypesMacro() // Error
 //  ^

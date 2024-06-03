@@ -188,8 +188,6 @@ class ProcessedOptions {
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
-  bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
-
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
   bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;
@@ -910,33 +908,6 @@ class ProcessedOptions {
       bool ignoreDebugDump = true}) {
     return _raw.equivalent(other._raw);
   }
-}
-
-/// A [FileSystem] that only allows access to files that have been explicitly
-/// allowlisted.
-class HermeticFileSystem implements FileSystem {
-  final Set<Uri> includedFiles;
-  final FileSystem _realFileSystem;
-
-  HermeticFileSystem(this.includedFiles, this._realFileSystem);
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (includedFiles.contains(uri)) return _realFileSystem.entityForUri(uri);
-    throw new HermeticAccessException(uri);
-  }
-}
-
-class HermeticAccessException extends FileSystemException {
-  HermeticAccessException(Uri uri)
-      : super(
-            uri,
-            'Invalid access to $uri: '
-            'the file is accessed in a modular hermetic build, '
-            'but it was not explicitly listed as an input.');
-
-  @override
-  String toString() => message;
 }
 
 /// A package config and the `URI` it was loaded from.

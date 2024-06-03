@@ -70,14 +70,17 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
 
   void set variance(Variance value);
 
+  /// Unused in interface; left in on purpose.
   bool get hasUnsetParameterBound;
 
   DartType get parameterBound;
 
   void set parameterBound(DartType bound);
 
+  /// Unused in interface; left in on purpose.
   Nullability get nullabilityFromParameterBound;
 
+  /// Unused in interface; left in on purpose.
   bool get hasUnsetParameterDefaultType;
 
   void set parameterDefaultType(DartType defaultType);

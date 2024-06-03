@@ -67,6 +67,7 @@ abstract class Builder {
   ///       static method3b() {}
   ///     }
   ///
+  /// Unused in interface; left in on purpose.
   bool get isDeclarationMember;
 
   /// Returns `true` if this builder is a member of a class or mixin
@@ -89,6 +90,7 @@ abstract class Builder {
   ///       static method3b() {} // Not a class member.
   ///     }
   ///
+  /// Unused in interface; left in on purpose.
   bool get isClassMember;
 
   /// Returns `true` if this builder is a member of an extension declaration.
@@ -109,6 +111,7 @@ abstract class Builder {
   ///       static method3b() {}
   ///     }
   ///
+  /// Unused in interface; left in on purpose.
   bool get isExtensionMember;
 
   /// Returns `true` if this builder is a member of an extension type

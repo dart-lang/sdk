@@ -43,8 +43,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   ConstantContext get constantContext;
 
-  bool get isDeclarationInstanceContext;
-
   /// Whether instance type variables can be accessed.
   ///
   /// This is used when creating [NamedTypeBuilder]s within
@@ -140,13 +138,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildProblemErrorIfConst(
       Message message, int charOffset, int length);
-
-  Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper = false});
-
-  Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper = false});
-
-  Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper = false});
 
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
       {List<LocatedMessage>? context});
@@ -257,8 +248,4 @@ enum UnresolvedKind {
   Getter,
   Setter,
   Constructor,
-}
-
-abstract class EnsureLoaded {
-  void ensureLoaded(Member? member);
 }

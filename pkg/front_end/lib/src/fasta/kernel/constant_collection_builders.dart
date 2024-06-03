@@ -81,8 +81,6 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant? addConstant(Constant constant, TreeNode context);
-
-  Constant build();
 }
 
 class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
@@ -116,7 +114,6 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
     return null;
   }
 
-  @override
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
@@ -198,7 +195,6 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     return null;
   }
 
-  @override
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated

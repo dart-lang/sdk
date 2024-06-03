@@ -123,6 +123,8 @@ class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, MacroExecutionResultsForTesting> libraryResults =
       {};
   Map<SourceClassBuilder, MacroExecutionResultsForTesting> classResults = {};
+  Map<SourceExtensionTypeDeclarationBuilder, MacroExecutionResultsForTesting>
+      extensionTypeResults = {};
   Map<MemberBuilder, MacroExecutionResultsForTesting> memberResults = {};
 
   List<ApplicationDataForTesting> typesApplicationOrder = [];
@@ -137,6 +139,9 @@ class MacroApplicationDataForTesting {
     } else if (builder is SourceClassBuilder) {
       resultsForTesting =
           classResults[builder] ??= new MacroExecutionResultsForTesting();
+    } else if (builder is SourceExtensionTypeDeclarationBuilder) {
+      resultsForTesting = extensionTypeResults[builder] ??=
+          new MacroExecutionResultsForTesting();
     } else {
       resultsForTesting = memberResults[builder as MemberBuilder] ??=
           new MacroExecutionResultsForTesting();
@@ -196,11 +201,18 @@ class ApplicationDataForTesting {
 class LibraryMacroApplicationData {
   ApplicationData? libraryApplications;
   Map<SourceClassBuilder, ClassMacroApplicationData> classData = {};
+  Map<SourceExtensionTypeDeclarationBuilder, ExtensionTypeMacroApplicationData>
+      extensionTypeData = {};
   Map<MemberBuilder, ApplicationData> memberApplications = {};
 }
 
 class ClassMacroApplicationData {
   ApplicationData? classApplications;
+  Map<MemberBuilder, ApplicationData> memberApplications = {};
+}
+
+class ExtensionTypeMacroApplicationData {
+  ApplicationData? extensionTypeApplications;
   Map<MemberBuilder, ApplicationData> memberApplications = {};
 }
 
@@ -290,6 +302,8 @@ void checkMacroApplications(
     }
 
     Map<Class, List<ClassMacroApplicationData>> classData = {};
+    Map<ExtensionTypeDeclaration, List<ExtensionTypeMacroApplicationData>>
+        extensionTypeData = {};
     Map<Annotatable, List<ApplicationData>> libraryMemberData = {};
     List<LibraryMacroApplicationData>? libraryMacroApplicationDataList =
         libraryData[libraryBuilder.library];
@@ -299,6 +313,12 @@ void checkMacroApplications(
         for (MapEntry<SourceClassBuilder, ClassMacroApplicationData> entry
             in libraryMacroApplicationData.classData.entries) {
           (classData[entry.key.cls] ??= []).add(entry.value);
+        }
+        for (MapEntry<SourceExtensionTypeDeclarationBuilder,
+                ExtensionTypeMacroApplicationData> entry
+            in libraryMacroApplicationData.extensionTypeData.entries) {
+          (extensionTypeData[entry.key.extensionTypeDeclaration] ??= [])
+              .add(entry.value);
         }
         for (MapEntry<MemberBuilder, ApplicationData> entry
             in libraryMacroApplicationData.memberApplications.entries) {
@@ -340,6 +360,38 @@ void checkMacroApplications(
         }
       }
       checkMembers(cls.members, classMemberData);
+    }
+    for (ExtensionTypeDeclaration cls in library.extensionTypeDeclarations) {
+      List<ExtensionTypeMacroApplicationData>? classMacroApplications =
+          extensionTypeData[cls];
+      List<ApplicationData> applicationDataList = [];
+      if (classMacroApplications != null) {
+        for (ExtensionTypeMacroApplicationData classMacroApplicationData
+            in classMacroApplications) {
+          ApplicationData? classApplications =
+              classMacroApplicationData.extensionTypeApplications;
+          if (classApplications != null) {
+            applicationDataList.add(classApplications);
+          }
+        }
+      }
+      checkAnnotations(cls.annotations, applicationDataList,
+          fileUri: cls.fileUri);
+
+      Map<Annotatable, List<ApplicationData>> classMemberData = {};
+      if (classMacroApplications != null) {
+        for (ExtensionTypeMacroApplicationData classMacroApplicationData
+            in classMacroApplications) {
+          for (MapEntry<MemberBuilder, ApplicationData> entry
+              in classMacroApplicationData.memberApplications.entries) {
+            for (Annotatable annotatable in entry.key.annotatables) {
+              (classMemberData[annotatable] ??= []).add(entry.value);
+            }
+          }
+        }
+      }
+      // TODO(johnniwinther): Check member applications.
+      //checkMembers(cls.members, classMemberData);
     }
   }
 }
@@ -398,27 +450,26 @@ class MacroApplications {
     while (iterator.moveNext()) {
       Builder builder = iterator.current;
       if (builder is SourceClassBuilder) {
-        SourceClassBuilder classBuilder = builder;
         ClassMacroApplicationData classMacroApplicationData =
             new ClassMacroApplicationData();
         List<MacroApplication>? classMacroApplications = prebuildAnnotations(
             enclosingLibrary: libraryBuilder,
-            scope: classBuilder.scope,
-            fileUri: classBuilder.fileUri,
-            metadataBuilders: classBuilder.metadata,
+            scope: builder.scope,
+            fileUri: builder.fileUri,
+            metadataBuilders: builder.metadata,
             currentMacroDeclarations: currentMacroDeclarations);
         if (classMacroApplications != null) {
           classMacroApplicationData.classApplications =
               new ClassApplicationData(_macroIntrospection, libraryBuilder,
-                  classBuilder, classMacroApplications);
+                  builder, classMacroApplications);
         }
-        Iterator<Builder> memberIterator = classBuilder.localMemberIterator();
+        Iterator<Builder> memberIterator = builder.localMemberIterator();
         while (memberIterator.moveNext()) {
           Builder memberBuilder = memberIterator.current;
           if (memberBuilder is SourceProcedureBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
-                scope: classBuilder.scope,
+                scope: builder.scope,
                 fileUri: memberBuilder.fileUri,
                 metadataBuilders: memberBuilder.metadata,
                 currentMacroDeclarations: currentMacroDeclarations);
@@ -430,7 +481,7 @@ class MacroApplications {
           } else if (memberBuilder is SourceFieldBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
-                scope: classBuilder.scope,
+                scope: builder.scope,
                 fileUri: memberBuilder.fileUri,
                 metadataBuilders: memberBuilder.metadata,
                 currentMacroDeclarations: currentMacroDeclarations);
@@ -445,13 +496,13 @@ class MacroApplications {
           }
         }
         Iterator<MemberBuilder> constructorIterator =
-            classBuilder.localConstructorIterator();
+            builder.localConstructorIterator();
         while (constructorIterator.moveNext()) {
           MemberBuilder memberBuilder = constructorIterator.current;
           if (memberBuilder is DeclaredSourceConstructorBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
-                scope: classBuilder.scope,
+                scope: builder.scope,
                 fileUri: memberBuilder.fileUri,
                 metadataBuilders: memberBuilder.metadata,
                 currentMacroDeclarations: currentMacroDeclarations);
@@ -463,7 +514,7 @@ class MacroApplications {
           } else if (memberBuilder is SourceFactoryBuilder) {
             List<MacroApplication>? macroApplications = prebuildAnnotations(
                 enclosingLibrary: libraryBuilder,
-                scope: classBuilder.scope,
+                scope: builder.scope,
                 fileUri: memberBuilder.fileUri,
                 metadataBuilders: memberBuilder.metadata,
                 currentMacroDeclarations: currentMacroDeclarations);
@@ -507,8 +558,97 @@ class MacroApplications {
               new MemberApplicationData(_macroIntrospection, libraryBuilder,
                   builder, macroApplications);
         }
+      } else if (builder is SourceExtensionTypeDeclarationBuilder) {
+        ExtensionTypeMacroApplicationData extensionTypeMacroApplicationData =
+            new ExtensionTypeMacroApplicationData();
+        List<MacroApplication>? classMacroApplications = prebuildAnnotations(
+            enclosingLibrary: libraryBuilder,
+            scope: builder.scope,
+            fileUri: builder.fileUri,
+            metadataBuilders: builder.metadata,
+            currentMacroDeclarations: currentMacroDeclarations);
+        if (classMacroApplications != null) {
+          extensionTypeMacroApplicationData.extensionTypeApplications =
+              new ExtensionTypeApplicationData(_macroIntrospection,
+                  libraryBuilder, builder, classMacroApplications);
+        }
+        Iterator<Builder> memberIterator = builder.localMemberIterator();
+        while (memberIterator.moveNext()) {
+          Builder memberBuilder = memberIterator.current;
+          if (memberBuilder is SourceProcedureBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: builder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
+            if (macroApplications != null) {
+              extensionTypeMacroApplicationData
+                      .memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else if (memberBuilder is SourceFieldBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: builder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
+            if (macroApplications != null) {
+              extensionTypeMacroApplicationData
+                      .memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else {
+            throw new UnsupportedError("Unexpected class member "
+                "$memberBuilder (${memberBuilder.runtimeType})");
+          }
+        }
+        Iterator<MemberBuilder> constructorIterator =
+            builder.localConstructorIterator();
+        while (constructorIterator.moveNext()) {
+          MemberBuilder memberBuilder = constructorIterator.current;
+          if (memberBuilder is SourceExtensionTypeConstructorBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: builder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
+            if (macroApplications != null) {
+              extensionTypeMacroApplicationData
+                      .memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else if (memberBuilder is SourceFactoryBuilder) {
+            List<MacroApplication>? macroApplications = prebuildAnnotations(
+                enclosingLibrary: libraryBuilder,
+                scope: builder.scope,
+                fileUri: memberBuilder.fileUri,
+                metadataBuilders: memberBuilder.metadata,
+                currentMacroDeclarations: currentMacroDeclarations);
+            if (macroApplications != null) {
+              extensionTypeMacroApplicationData
+                      .memberApplications[memberBuilder] =
+                  new MemberApplicationData(_macroIntrospection, libraryBuilder,
+                      memberBuilder, macroApplications);
+            }
+          } else {
+            throw new UnsupportedError("Unexpected constructor "
+                "$memberBuilder (${memberBuilder.runtimeType})");
+          }
+        }
+
+        if (extensionTypeMacroApplicationData.extensionTypeApplications !=
+                null ||
+            extensionTypeMacroApplicationData.memberApplications.isNotEmpty) {
+          libraryMacroApplicationData.extensionTypeData[builder] =
+              extensionTypeMacroApplicationData;
+        }
       } else if (builder is SourceExtensionBuilder ||
-          builder is SourceExtensionTypeDeclarationBuilder ||
           builder is SourceTypeAliasBuilder) {
         // TODO(johnniwinther): Support macro applications.
       } else if (builder is PrefixBuilder) {
@@ -520,6 +660,7 @@ class MacroApplications {
     }
     if (libraryMacroApplications != null ||
         libraryMacroApplicationData.classData.isNotEmpty ||
+        libraryMacroApplicationData.extensionTypeData.isNotEmpty ||
         libraryMacroApplicationData.memberApplications.isNotEmpty) {
       _libraryData[libraryBuilder] = libraryMacroApplicationData;
       dataForTesting?.libraryData[libraryBuilder] = libraryMacroApplicationData;
@@ -624,6 +765,14 @@ class MacroApplications {
           await ensureMacroClassIds(applicationData);
         }
       }
+      for (ExtensionTypeMacroApplicationData extensionTypeData
+          in libraryData.extensionTypeData.values) {
+        await ensureMacroClassIds(extensionTypeData.extensionTypeApplications);
+        for (ApplicationData applicationData
+            in extensionTypeData.memberApplications.values) {
+          await ensureMacroClassIds(applicationData);
+        }
+      }
       for (ApplicationData applicationData
           in libraryData.memberApplications.values) {
         await ensureMacroClassIds(applicationData);
@@ -688,9 +837,8 @@ class MacroApplications {
         executionResults.addAll(
             await _applyTypeMacros(libraryBuilder.origin, applicationData));
       }
-      for (MapEntry<ClassBuilder, ClassMacroApplicationData> entry
-          in data.classData.entries) {
-        ClassMacroApplicationData classApplicationData = entry.value;
+      for (ClassMacroApplicationData classApplicationData
+          in data.classData.values) {
         for (ApplicationData applicationData
             in classApplicationData.memberApplications.values) {
           executionResults.addAll(
@@ -699,6 +847,18 @@ class MacroApplications {
         if (classApplicationData.classApplications != null) {
           executionResults.addAll(await _applyTypeMacros(
               libraryBuilder.origin, classApplicationData.classApplications!));
+        }
+      }
+      for (ExtensionTypeMacroApplicationData extensionTypeApplicationData
+          in data.extensionTypeData.values) {
+        for (ApplicationData applicationData
+            in extensionTypeApplicationData.memberApplications.values) {
+          executionResults.addAll(
+              await _applyTypeMacros(libraryBuilder.origin, applicationData));
+        }
+        if (extensionTypeApplicationData.extensionTypeApplications != null) {
+          executionResults.addAll(await _applyTypeMacros(libraryBuilder.origin,
+              extensionTypeApplicationData.extensionTypeApplications!));
         }
       }
       if (executionResults.isNotEmpty) {
@@ -813,6 +973,8 @@ class MacroApplications {
 
   Future<void> applyDeclarationsMacros(
       List<SourceClassBuilder> sortedSourceClassBuilders,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sortedSourceExtensionTypeBuilders,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
     // TODO(johnniwinther): Maintain a pending list instead of running through
     // all annotations to find the once have to be applied now.
@@ -838,19 +1000,52 @@ class MacroApplications {
 
     // Apply macros to classes first, in class hierarchy order.
     for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
-      await applyClassMacros(classBuilder);
-      // TODO(johnniwinther): Avoid accessing augmentations from the outside.
-      List<SourceClassBuilder>? augmentationClassBuilders =
-          classBuilder.augmentationsForTesting;
-      if (augmentationClassBuilders != null) {
-        for (SourceClassBuilder augmentationClassBuilder
-            in augmentationClassBuilders) {
-          await applyClassMacros(augmentationClassBuilder);
-        }
+      Iterator<SourceClassBuilder> declarationIterator =
+          classBuilder.declarationIterator;
+      while (declarationIterator.moveNext()) {
+        await applyClassMacros(declarationIterator.current);
       }
     }
 
-    // Apply macros to library members second.
+    // TODO(johnniwinther): Maintain a pending list instead of running through
+    // all annotations to find the once have to be applied now.
+    Future<void> applyExtensionTypeMacros(
+        SourceExtensionTypeDeclarationBuilder
+            extensionTypeDeclarationBuilder) async {
+      SourceLibraryBuilder libraryBuilder =
+          extensionTypeDeclarationBuilder.libraryBuilder;
+      LibraryMacroApplicationData? libraryApplicationData =
+          _libraryData[libraryBuilder];
+      if (libraryApplicationData == null) return;
+
+      ExtensionTypeMacroApplicationData? extensionTypeApplicationData =
+          libraryApplicationData
+              .extensionTypeData[extensionTypeDeclarationBuilder];
+      if (extensionTypeApplicationData == null) return;
+      for (ApplicationData applicationData
+          in extensionTypeApplicationData.memberApplications.values) {
+        await _applyDeclarationsMacros(
+            libraryBuilder.origin, applicationData, onAugmentationLibrary);
+      }
+      if (extensionTypeApplicationData.extensionTypeApplications != null) {
+        await _applyDeclarationsMacros(
+            libraryBuilder.origin,
+            extensionTypeApplicationData.extensionTypeApplications!,
+            onAugmentationLibrary);
+      }
+    }
+
+    // Apply macros to extension types second, in class hierarchy order.
+    for (SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
+        in sortedSourceExtensionTypeBuilders) {
+      Iterator<SourceExtensionTypeDeclarationBuilder> declarationIterator =
+          extensionTypeDeclarationBuilder.declarationIterator;
+      while (declarationIterator.moveNext()) {
+        await applyExtensionTypeMacros(declarationIterator.current);
+      }
+    }
+
+    // Apply macros to library members third.
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
         in _libraryData.entries) {
       SourceLibraryBuilder libraryBuilder = entry.key;
@@ -925,9 +1120,8 @@ class MacroApplications {
         executionResults.addAll(await _applyDefinitionMacros(
             libraryBuilder.origin, applicationData));
       }
-      for (MapEntry<ClassBuilder, ClassMacroApplicationData> entry
-          in data.classData.entries) {
-        ClassMacroApplicationData classApplicationData = entry.value;
+      for (ClassMacroApplicationData classApplicationData
+          in data.classData.values) {
         for (ApplicationData applicationData
             in classApplicationData.memberApplications.values) {
           executionResults.addAll(await _applyDefinitionMacros(
@@ -936,6 +1130,19 @@ class MacroApplications {
         if (classApplicationData.classApplications != null) {
           executionResults.addAll(await _applyDefinitionMacros(
               libraryBuilder.origin, classApplicationData.classApplications!));
+        }
+      }
+      for (ExtensionTypeMacroApplicationData extensionTypeApplicationData
+          in data.extensionTypeData.values) {
+        for (ApplicationData applicationData
+            in extensionTypeApplicationData.memberApplications.values) {
+          executionResults.addAll(await _applyDefinitionMacros(
+              libraryBuilder.origin, applicationData));
+        }
+        if (extensionTypeApplicationData.extensionTypeApplications != null) {
+          executionResults.addAll(await _applyDefinitionMacros(
+              libraryBuilder.origin,
+              extensionTypeApplicationData.extensionTypeApplications!));
         }
       }
       if (executionResults.isNotEmpty) {
@@ -1072,6 +1279,8 @@ macro.DeclarationKind _declarationKind(macro.Declaration declaration) {
     return macro.DeclarationKind.enumType;
   } else if (declaration is macro.MixinDeclaration) {
     return macro.DeclarationKind.mixinType;
+  } else if (declaration is macro.ExtensionTypeDeclaration) {
+    return macro.DeclarationKind.extensionType;
   }
   throw new UnsupportedError(
       "Unexpected declaration ${declaration} (${declaration.runtimeType})");
@@ -1149,6 +1358,25 @@ class ClassApplicationData extends DeclarationApplicationData {
 
   @override
   String get textForTesting => _classBuilder.name;
+}
+
+class ExtensionTypeApplicationData extends DeclarationApplicationData {
+  final SourceExtensionTypeDeclarationBuilder _extensionTypeDeclarationBuilder;
+
+  ExtensionTypeApplicationData(super.macroIntrospection, super.libraryBuilder,
+      this._extensionTypeDeclarationBuilder, super.macroApplications);
+
+  @override
+  macro.Declaration get declaration {
+    return _declaration ??= _macroIntrospection
+        .getExtensionTypeDeclaration(_extensionTypeDeclarationBuilder);
+  }
+
+  @override
+  Builder get builder => _extensionTypeDeclarationBuilder;
+
+  @override
+  String get textForTesting => _extensionTypeDeclarationBuilder.name;
 }
 
 class MemberApplicationData extends DeclarationApplicationData {
