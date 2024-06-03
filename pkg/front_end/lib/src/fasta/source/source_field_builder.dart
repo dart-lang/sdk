@@ -134,8 +134,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isAbstract: isAbstract,
           isExternal: isExternal,
           isFinal: isFinal,
-          isCovariantByDeclaration: isCovariantByDeclaration,
-          isNonNullableByDefault: true);
+          isCovariantByDeclaration: isCovariantByDeclaration);
     } else if (fieldNameScheme.isExtensionTypeMember &&
         fieldNameScheme.isInstanceMember) {
       assert(fieldReference == null);
@@ -285,7 +284,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           isConst: isConst,
           isLate: isLate,
           hasInitializer: hasInitializer,
-          isNonNullableByDefault: true,
           fieldReference: fieldReference,
           getterReference: fieldGetterReference,
           setterReference: fieldSetterReference,
@@ -661,7 +659,6 @@ class RegularFieldEncoding implements FieldEncoding {
       required bool isConst,
       required bool isLate,
       required bool hasInitializer,
-      required bool isNonNullableByDefault,
       required Reference? fieldReference,
       required Reference? getterReference,
       required Reference? setterReference,
@@ -1703,8 +1700,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       {required this.isAbstract,
       required this.isExternal,
       required bool isFinal,
-      required bool isCovariantByDeclaration,
-      required bool isNonNullableByDefault})
+      required bool isCovariantByDeclaration})
       : _isExtensionInstanceMember = isExternal &&
             nameScheme.isExtensionMember &&
             nameScheme.isInstanceMember,

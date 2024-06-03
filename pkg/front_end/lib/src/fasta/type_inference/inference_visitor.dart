@@ -813,9 +813,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   bool _isIncompatibleWithAwait(DartType type) {
     if (isNullableTypeConstructorApplication(type)) {
-      return _isIncompatibleWithAwait(computeTypeWithoutNullabilityMarker(
-          (type),
-          isNonNullableByDefault: true));
+      return _isIncompatibleWithAwait(
+          computeTypeWithoutNullabilityMarker(type));
     } else {
       switch (type) {
         case ExtensionType():

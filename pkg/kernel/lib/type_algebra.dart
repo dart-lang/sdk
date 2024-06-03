@@ -2092,22 +2092,17 @@ class NullabilityAwareFreeTypeVariableEliminator
 /// returning the non-nullable version of type int.  In case of
 /// [TypeParameterType]s, the result may be either [Nullability.nonNullable] or
 /// [Nullability.undetermined], depending on the bound.
-DartType computeTypeWithoutNullabilityMarker(DartType type,
-    {required bool isNonNullableByDefault}) {
+DartType computeTypeWithoutNullabilityMarker(DartType type) {
   if (type is TypeParameterType) {
     // The default nullability for library is used when there are no
     // nullability markers on the type.
-    return new TypeParameterType(
-        type.parameter,
-        _defaultNullabilityForTypeParameterType(type.parameter,
-            isNonNullableByDefault: isNonNullableByDefault));
+    return new TypeParameterType(type.parameter,
+        _defaultNullabilityForTypeParameterType(type.parameter));
   } else if (type is StructuralParameterType) {
     // The default nullability for library is used when there are no
     // nullability markers on the type.
-    return new StructuralParameterType(
-        type.parameter,
-        _defaultNullabilityForStructuralParameterType(type.parameter,
-            isNonNullableByDefault: isNonNullableByDefault));
+    return new StructuralParameterType(type.parameter,
+        _defaultNullabilityForStructuralParameterType(type.parameter));
   } else if (type is IntersectionType) {
     // Intersection types can't be arguments to the nullable and the legacy
     // type constructors, so nothing can be peeled off.
@@ -2127,13 +2122,11 @@ DartType computeTypeWithoutNullabilityMarker(DartType type,
 /// type parameter.  Some examples of types declared without nullability markers
 /// are T% and S, where T and S are type parameters such that T extends Object?
 /// and S extends Object.
-bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type,
-    {required bool isNonNullableByDefault}) {
+bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type) {
   // The default nullability for library is used when there are no nullability
   // markers on the type.
   return type.declaredNullability ==
-      _defaultNullabilityForTypeParameterType(type.parameter,
-          isNonNullableByDefault: isNonNullableByDefault);
+      _defaultNullabilityForTypeParameterType(type.parameter);
 }
 
 /// Returns true if [type] is declared without nullability markers.
@@ -2143,13 +2136,11 @@ bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type,
 /// are T% and S, where T and S are type parameters such that T extends Object?
 /// and S extends Object.
 bool isStructuralParameterTypeWithoutNullabilityMarker(
-    StructuralParameterType type,
-    {required bool isNonNullableByDefault}) {
+    StructuralParameterType type) {
   // The default nullability for library is used when there are no nullability
   // markers on the type.
   return type.declaredNullability ==
-      _defaultNullabilityForStructuralParameterType(type.parameter,
-          isNonNullableByDefault: isNonNullableByDefault);
+      _defaultNullabilityForStructuralParameterType(type.parameter);
 }
 
 bool isTypeWithoutNullabilityMarker(DartType type) {
@@ -2219,14 +2210,12 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return !isTypeParameterTypeWithoutNullabilityMarker(node,
-        isNonNullableByDefault: true);
+    return !isTypeParameterTypeWithoutNullabilityMarker(node);
   }
 
   @override
   bool visitStructuralParameterType(StructuralParameterType node) {
-    return !isStructuralParameterTypeWithoutNullabilityMarker(node,
-        isNonNullableByDefault: true);
+    return !isStructuralParameterTypeWithoutNullabilityMarker(node);
   }
 
   @override
@@ -2267,22 +2256,19 @@ bool isNullableTypeConstructorApplication(DartType type) {
 /// A type is considered an application of the legacy type constructor if it was
 /// declared within a legacy library and is not one of exempt types, such as
 /// dynamic or void.
-bool isLegacyTypeConstructorApplication(DartType type,
-    {required bool isNonNullableByDefault}) {
+bool isLegacyTypeConstructorApplication(DartType type) {
   if (type is TypeParameterType) {
     // The legacy nullability is considered an application of the legacy
     // nullability constructor if it doesn't match the default nullability
     // of the type-parameter type for the library.
     return type.declaredNullability == Nullability.legacy &&
-        !isTypeParameterTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault: isNonNullableByDefault);
+        !isTypeParameterTypeWithoutNullabilityMarker(type);
   } else if (type is StructuralParameterType) {
     // The legacy nullability is considered an application of the legacy
     // nullability constructor if it doesn't match the default nullability
     // of the type-parameter type for the library.
     return type.declaredNullability == Nullability.legacy &&
-        !isStructuralParameterTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault: isNonNullableByDefault);
+        !isStructuralParameterTypeWithoutNullabilityMarker(type);
   } else if (type is InvalidType) {
     return false;
   } else {
@@ -2290,19 +2276,13 @@ bool isLegacyTypeConstructorApplication(DartType type,
   }
 }
 
-Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter,
-    {required bool isNonNullableByDefault}) {
-  return isNonNullableByDefault
-      ? TypeParameterType.computeNullabilityFromBound(parameter)
-      : Nullability.legacy;
+Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter) {
+  return TypeParameterType.computeNullabilityFromBound(parameter);
 }
 
 Nullability _defaultNullabilityForStructuralParameterType(
-    StructuralParameter parameter,
-    {required bool isNonNullableByDefault}) {
-  return isNonNullableByDefault
-      ? StructuralParameterType.computeNullabilityFromBound(parameter)
-      : Nullability.legacy;
+    StructuralParameter parameter) {
+  return StructuralParameterType.computeNullabilityFromBound(parameter);
 }
 
 /// Recalculates and updates nullabilities of the bounds in [typeParameters].

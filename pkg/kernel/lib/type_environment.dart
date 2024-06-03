@@ -161,8 +161,7 @@ abstract class TypeEnvironment extends Types {
   ///     getUnionFreeType(FutureOr<int?>?) = int
   DartType getUnionFreeType(DartType type) {
     if (isNullableTypeConstructorApplication(type)) {
-      return getUnionFreeType(computeTypeWithoutNullabilityMarker(type,
-          isNonNullableByDefault: true));
+      return getUnionFreeType(computeTypeWithoutNullabilityMarker(type));
     } else if (type is FutureOrType) {
       return getUnionFreeType(type.typeArgument);
     } else {

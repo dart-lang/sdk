@@ -902,8 +902,7 @@ class OperationsCfe
   DartType withNullabilitySuffix(DartType type, NullabilitySuffix modifier) {
     switch (modifier) {
       case NullabilitySuffix.none:
-        return computeTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault: true);
+        return computeTypeWithoutNullabilityMarker(type);
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
       case NullabilitySuffix.star:

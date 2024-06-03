@@ -359,31 +359,21 @@ mixin StandardBounds {
       bool type2HasNullabilityMarker = !isTypeWithoutNullabilityMarker(type2);
       if (type1HasNullabilityMarker && !type2HasNullabilityMarker) {
         return _getNullabilityAwareStandardLowerBound(
-            computeTypeWithoutNullabilityMarker(type1,
-                isNonNullableByDefault: true),
-            type2);
+            computeTypeWithoutNullabilityMarker(type1), type2);
       } else if (!type1HasNullabilityMarker && type2HasNullabilityMarker) {
         return _getNullabilityAwareStandardLowerBound(
-            type1,
-            computeTypeWithoutNullabilityMarker(type2,
-                isNonNullableByDefault: true));
-      } else if (isLegacyTypeConstructorApplication(type1,
-              isNonNullableByDefault: true) ||
-          isLegacyTypeConstructorApplication(type2,
-              isNonNullableByDefault: true)) {
+            type1, computeTypeWithoutNullabilityMarker(type2));
+      } else if (isLegacyTypeConstructorApplication(type1) ||
+          isLegacyTypeConstructorApplication(type2)) {
         return _getNullabilityAwareStandardLowerBound(
-                computeTypeWithoutNullabilityMarker(type1,
-                    isNonNullableByDefault: true),
-                computeTypeWithoutNullabilityMarker(type2,
-                    isNonNullableByDefault: true))
+                computeTypeWithoutNullabilityMarker(type1),
+                computeTypeWithoutNullabilityMarker(type2))
             .withDeclaredNullability(Nullability.legacy);
       } else if (isNullableTypeConstructorApplication(type1) &&
           isNullableTypeConstructorApplication(type2)) {
         return _getNullabilityAwareStandardLowerBound(
-                computeTypeWithoutNullabilityMarker(type1,
-                    isNonNullableByDefault: true),
-                computeTypeWithoutNullabilityMarker(type2,
-                    isNonNullableByDefault: true))
+                computeTypeWithoutNullabilityMarker(type1),
+                computeTypeWithoutNullabilityMarker(type2))
             .withDeclaredNullability(Nullability.nullable);
       }
     }
@@ -404,11 +394,9 @@ mixin StandardBounds {
     // [intersectNullabilities] to compute the resulting type if the subtype
     // relation is established.
     DartType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1,
-            isNonNullableByDefault: true);
+        computeTypeWithoutNullabilityMarker(type1);
     DartType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2,
-            isNonNullableByDefault: true);
+        computeTypeWithoutNullabilityMarker(type2);
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(intersectNullabilities(
@@ -697,21 +685,15 @@ mixin StandardBounds {
     if (isNullableTypeConstructorApplication(type1) ||
         isNullableTypeConstructorApplication(type2)) {
       return _getNullabilityAwareStandardUpperBound(
-              computeTypeWithoutNullabilityMarker(type1,
-                  isNonNullableByDefault: true),
-              computeTypeWithoutNullabilityMarker(type2,
-                  isNonNullableByDefault: true))
+              computeTypeWithoutNullabilityMarker(type1),
+              computeTypeWithoutNullabilityMarker(type2))
           .withDeclaredNullability(Nullability.nullable);
     }
-    if (isLegacyTypeConstructorApplication(type1,
-            isNonNullableByDefault: true) ||
-        isLegacyTypeConstructorApplication(type2,
-            isNonNullableByDefault: true)) {
+    if (isLegacyTypeConstructorApplication(type1) ||
+        isLegacyTypeConstructorApplication(type2)) {
       return _getNullabilityAwareStandardUpperBound(
-              computeTypeWithoutNullabilityMarker(type1,
-                  isNonNullableByDefault: true),
-              computeTypeWithoutNullabilityMarker(type2,
-                  isNonNullableByDefault: true))
+              computeTypeWithoutNullabilityMarker(type1),
+              computeTypeWithoutNullabilityMarker(type2))
           .withDeclaredNullability(Nullability.legacy);
     }
 
@@ -823,11 +805,9 @@ mixin StandardBounds {
     // uses [uniteNullabilities] to compute the resulting type if the subtype
     // relation is established.
     DartType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1,
-            isNonNullableByDefault: true);
+        computeTypeWithoutNullabilityMarker(type1);
     DartType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2,
-            isNonNullableByDefault: true);
+        computeTypeWithoutNullabilityMarker(type2);
 
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
