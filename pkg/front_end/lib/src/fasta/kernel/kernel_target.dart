@@ -65,7 +65,6 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
-import '../target_implementation.dart' show TargetImplementation;
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_schema.dart';
 import '../uri_translator.dart' show UriTranslator;
@@ -82,7 +81,7 @@ import 'kernel_helper.dart';
 import 'macro/macro.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
-class KernelTarget extends TargetImplementation {
+class KernelTarget {
   final Ticker ticker;
 
   /// The [FileSystem] which should be used to access files.
@@ -139,10 +138,8 @@ class KernelTarget extends TargetImplementation {
 
   final UriTranslator uriTranslator;
 
-  @override
   final Target backendTarget;
 
-  @override
   final CompilerContext context = CompilerContext.current;
 
   /// Shared with [CompilerContext].

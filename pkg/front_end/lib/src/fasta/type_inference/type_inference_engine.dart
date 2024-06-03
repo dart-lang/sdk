@@ -188,11 +188,6 @@ abstract class TypeInferenceEngine {
   TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType? thisType,
       SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
 
-  /// Creates a [TypeInferrer] object which is ready to perform type inference
-  /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
-
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
   /// initializing formals from the corresponding fields.
@@ -371,7 +366,8 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
         assignedVariables, dataForTesting, benchmarker!, unknownFunction);
   }
 
-  @override
+  /// Creates a [TypeInferrer] object which is ready to perform type inference
+  /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
       SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;

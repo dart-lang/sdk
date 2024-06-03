@@ -27,8 +27,6 @@ import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 /// This class describes the interface for use by clients of type inference
 /// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
 abstract class TypeInferrer {
-  SourceLibraryBuilder get libraryBuilder;
-
   /// Gets the [TypeSchemaEnvironment] being used for type inference.
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
@@ -36,16 +34,7 @@ abstract class TypeInferrer {
   FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
       get flowAnalysis;
 
-  /// The URI of the code for which type inference is currently being
-  /// performed--this is used for testing.
-  Uri get uriForInstrumentation;
-
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
-
-  /// Indicates whether the construct we are currently performing inference for
-  /// is outside of a method body, and hence top level type inference rules
-  /// should apply.
-  bool get isTopLevel;
 
   /// Performs top level type inference on the given field initializer and
   /// returns the computed field type.
@@ -111,10 +100,13 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final InferenceDataForTesting? dataForTesting;
 
-  @override
+  /// The URI of the code for which type inference is currently being
+  /// performed--this is used for testing.
   final Uri uriForInstrumentation;
 
-  @override
+  /// Indicates whether the construct we are currently performing inference for
+  /// is outside of a method body, and hence top level type inference rules
+  /// should apply.
   final bool isTopLevel;
 
   final Instrumentation? instrumentation;
@@ -124,7 +116,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final InterfaceType? thisType;
 
-  @override
   final SourceLibraryBuilder libraryBuilder;
 
   late final StaticTypeContext staticTypeContext =
@@ -319,9 +310,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
         );
 
   @override
-  bool get isTopLevel => impl.isTopLevel;
-
-  @override
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
       impl.assignedVariables;
 
@@ -330,13 +318,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       get flowAnalysis => impl.flowAnalysis;
 
   @override
-  SourceLibraryBuilder get libraryBuilder => impl.libraryBuilder;
-
-  @override
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
-
-  @override
-  Uri get uriForInstrumentation => impl.uriForInstrumentation;
 
   @override
   DartType inferImplicitFieldType(

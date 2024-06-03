@@ -6,7 +6,6 @@ library fasta.stack_listener_impl;
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
     show ExperimentalFlag;
-import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
@@ -15,7 +14,6 @@ import '../../api_prototype/experimental_flags.dart';
 import '../codes/fasta_codes.dart';
 import '../problems.dart' as problems
     show internalProblem, unhandled, unsupported;
-import '../scope.dart';
 import 'source_library_builder.dart';
 
 abstract class StackListenerImpl extends StackListener {
@@ -51,18 +49,6 @@ abstract class StackListenerImpl extends StackListener {
   // and ast_builder.dart.
   List<Expression> finishMetadata(Annotatable? parent) {
     return problems.unsupported("finishMetadata", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  void exitLocalScope({required List<ScopeKind> expectedScopeKinds}) {
-    problems.unsupported("exitLocalScope", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart.
-  dynamic parseSingleExpression(
-      Parser parser, Token token, FunctionNode parameters) {
-    return problems.unsupported("finishSingleExpression", -1, uri);
   }
 
   /// Used to report an internal error encountered in the stack listener.

@@ -8,7 +8,6 @@ import '../../api_prototype/experimental_flags.dart';
 import '../source/source_library_builder.dart';
 
 abstract class DelayedActionPerformer {
-  bool get hasDelayedActions;
   void performDelayedActions({required bool allowFurtherDelays});
 }
 

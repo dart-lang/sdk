@@ -122,7 +122,7 @@ enum JumpTargetKind {
 }
 
 class BodyBuilder extends StackListenerImpl
-    implements ExpressionGeneratorHelper, EnsureLoaded, DelayedActionPerformer {
+    implements ExpressionGeneratorHelper, DelayedActionPerformer {
   @override
   final Forest forest;
 
@@ -489,7 +489,6 @@ class BodyBuilder extends StackListenerImpl
     ]));
   }
 
-  @override
   void exitLocalScope({List<ScopeKind>? expectedScopeKinds}) {
     assert(checkState(null, [
       ValueKinds.Scope,
@@ -636,7 +635,6 @@ class BodyBuilder extends StackListenerImpl
     return functionNestingLevel == 0 && _context.isConstructor;
   }
 
-  @override
   bool get isDeclarationInstanceContext {
     return _context.isDeclarationInstanceContext;
   }
@@ -1476,7 +1474,6 @@ class BodyBuilder extends StackListenerImpl
   ///    transformation needed has been performed); and
   /// b) The library is correctly marked as being used to allow for proper
   ///    'dependency pruning'.
-  @override
   void ensureLoaded(Member? member) {
     if (member == null) return;
     Library ensureLibraryLoaded = member.enclosingLibrary;
@@ -1755,7 +1752,6 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  @override
   bool get hasDelayedActions {
     return delayedRedirectingFactoryInvocations.isNotEmpty ||
         delayedTypeAliasedFactoryInvocations.isNotEmpty ||
@@ -1815,7 +1811,6 @@ class BodyBuilder extends StackListenerImpl
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
-  @override
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
     assert(redirectingFactoryInvocations.isEmpty);
@@ -3163,7 +3158,6 @@ class BodyBuilder extends StackListenerImpl
     return message;
   }
 
-  @override
   Message warnUnresolvedGet(Name name, int charOffset,
       {bool isSuper = false,
       bool reportWarning = true,
@@ -3178,7 +3172,6 @@ class BodyBuilder extends StackListenerImpl
     return message;
   }
 
-  @override
   Message warnUnresolvedSet(Name name, int charOffset,
       {bool isSuper = false,
       bool reportWarning = true,
@@ -3193,7 +3186,6 @@ class BodyBuilder extends StackListenerImpl
     return message;
   }
 
-  @override
   Message warnUnresolvedMethod(Name name, int charOffset,
       {bool isSuper = false,
       bool reportWarning = true,

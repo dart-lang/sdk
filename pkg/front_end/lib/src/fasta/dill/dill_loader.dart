@@ -48,7 +48,6 @@ class DillLoader extends Loader {
 
   final List<Library> libraries = <Library>[];
 
-  @override
   final DillTarget target;
 
   /// List of all handled compile-time errors seen so far by libraries loaded
@@ -339,7 +338,6 @@ severity: $severity
   bool containsLibraryBuilder(Uri importUri) =>
       _builders.containsKey(importUri);
 
-  @override
   DillLibraryBuilder? lookupLibraryBuilder(Uri importUri) =>
       _builders[importUri];
 

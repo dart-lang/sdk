@@ -14,15 +14,9 @@ import 'builder/type_builder.dart';
 
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
 
-import 'target_implementation.dart' show TargetImplementation;
-
 const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
 abstract class Loader {
-  TargetImplementation get target;
-
-  LibraryBuilder? lookupLibraryBuilder(Uri importUri);
-
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   FormattedMessage? addProblem(

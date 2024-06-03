@@ -86,8 +86,6 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
 
   Uri get declarationUri => declarationBuilder.fileUri;
 
-  Name get name;
-
   void _checkGetterSetter({
     required Types types,
     required Name name,
@@ -190,7 +188,6 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
 
 class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
   final SourceClassBuilder classBuilder;
-  @override
   final Name name;
   final ClassMember getable;
   final ClassMember setable;
@@ -259,7 +256,6 @@ class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
 
 class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
   final SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
-  @override
   final Name name;
   final ClassMember getable;
   final ClassMember setable;

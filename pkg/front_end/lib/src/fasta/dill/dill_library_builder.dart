@@ -19,7 +19,7 @@ import '../codes/fasta_codes.dart'
     show Message, noLength, templateDuplicatedDeclaration, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
-import '../problems.dart' show internalProblem, unhandled, unimplemented;
+import '../problems.dart' show internalProblem, unhandled;
 import '../scope.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
@@ -270,11 +270,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
     _addBuilder(
         typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this));
-  }
-
-  @override
-  void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    unimplemented("addToScope", charOffset, fileUri);
   }
 
   @override

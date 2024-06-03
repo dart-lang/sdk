@@ -20,11 +20,9 @@ import '../ticker.dart' show Ticker;
 
 import '../uri_translator.dart' show UriTranslator;
 
-import '../target_implementation.dart' show TargetImplementation;
-
 import 'dill_loader.dart' show DillLoader;
 
-class DillTarget extends TargetImplementation {
+class DillTarget {
   final Ticker ticker;
 
   bool isLoaded = false;
@@ -33,10 +31,8 @@ class DillTarget extends TargetImplementation {
 
   final UriTranslator uriTranslator;
 
-  @override
   final Target backendTarget;
 
-  @override
   final CompilerContext context = CompilerContext.current;
 
   /// Shared with [CompilerContext].

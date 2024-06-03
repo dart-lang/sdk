@@ -161,6 +161,8 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// If this class builder is an augmentation, interface members declared in
   /// this augmentation are searched before searching the interface members in
   /// the origin class.
+  ///
+  /// Unused in interface; left in on purpose.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false});
 }

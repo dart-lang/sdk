@@ -159,7 +159,6 @@ class SourceLoader extends Loader {
 
   final List<Library> libraries = <Library>[];
 
-  @override
   final KernelTarget target;
 
   /// List of all handled compile-time errors seen so far by libraries loaded
@@ -230,7 +229,6 @@ class SourceLoader extends Loader {
   bool containsLibraryBuilder(Uri importUri) =>
       _builders.containsKey(importUri);
 
-  @override
   LibraryBuilder? lookupLibraryBuilder(Uri importUri) => _builders[importUri];
 
   /// The [LibraryBuilder]s for libraries built from source or loaded from dill.

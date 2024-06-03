@@ -48,8 +48,6 @@ abstract class SourceFunctionBuilder
 
   List<FormalParameterBuilder>? get formals;
 
-  AsyncMarker get asyncModifier;
-
   @override
   ProcedureKind? get kind;
 
@@ -86,8 +84,6 @@ abstract class SourceFunctionBuilder
   Scope computeTypeParameterScope(Scope parent);
 
   FormalParameterBuilder? getFormal(Identifier identifier);
-
-  String? get nativeMethodName;
 
   Statement? get body;
 
@@ -174,7 +170,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   String get debugName => "${runtimeType}";
 
-  @override
   AsyncMarker get asyncModifier;
 
   @override
@@ -286,7 +281,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     return null;
   }
 
-  @override
   final String? nativeMethodName;
 
   Statement? bodyInternal;

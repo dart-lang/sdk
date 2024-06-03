@@ -83,6 +83,8 @@ abstract class MemberBuilder implements Builder {
   List<ClassMember> get localSetters;
 
   /// The builder for the enclosing class or extension type declaration, if any.
+  ///
+  /// Unused in interface; left in on purpose.
   DeclarationBuilder? get declarationBuilder;
 
   /// The builder for the enclosing class, if any.
