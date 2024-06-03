@@ -37,7 +37,11 @@ class ReplaceReturnTypeFuture extends ResolvedCorrectionProducer {
     _typeArgument = utils.getNodeText(typeAnnotation);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.replaceTypeWithFuture(typeAnnotation, typeProvider);
+      builder.replaceTypeWithFuture(
+        typeAnnotation: typeAnnotation,
+        typeSystem: typeSystem,
+        typeProvider: typeProvider,
+      );
     });
   }
 

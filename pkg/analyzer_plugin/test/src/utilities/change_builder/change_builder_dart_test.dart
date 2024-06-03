@@ -2157,7 +2157,11 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
-      builder.convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
+      builder.convertFunctionFromSyncToAsync(
+        body: body,
+        typeSystem: resolvedUnit.typeSystem,
+        typeProvider: resolvedUnit.typeProvider,
+      );
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
@@ -2174,7 +2178,11 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
-      builder.convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
+      builder.convertFunctionFromSyncToAsync(
+        body: body,
+        typeSystem: resolvedUnit.typeSystem,
+        typeProvider: resolvedUnit.typeProvider,
+      );
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
@@ -2621,7 +2629,11 @@ class B {}
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
-      builder.replaceTypeWithFuture(type, resolvedUnit.typeProvider);
+      builder.replaceTypeWithFuture(
+        typeAnnotation: type,
+        typeProvider: resolvedUnit.typeProvider,
+        typeSystem: resolvedUnit.typeSystem,
+      );
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(1));

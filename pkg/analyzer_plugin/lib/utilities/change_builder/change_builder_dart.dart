@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -376,8 +377,11 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   ///
   /// Throws an [ArgumentError] if the function body is not both synchronous and
   /// a non-generator.
-  void convertFunctionFromSyncToAsync(
-      FunctionBody body, TypeProvider typeProvider);
+  void convertFunctionFromSyncToAsync({
+    required FunctionBody body,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  });
 
   /// Formats the code covered by the [range].
   ///
@@ -492,10 +496,13 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// Optionally creates an edit to replace the given [typeAnnotation] with the
   /// type `Future` (with the given type annotation as the type argument).
   ///
-  /// The [typeProvider] is used to check the current type, because if it is
+  /// The [typeSystem] is used to check the current type, because if it is
   /// already `Future`, no edit will be added.
-  void replaceTypeWithFuture(
-      TypeAnnotation typeAnnotation, TypeProvider typeProvider);
+  void replaceTypeWithFuture({
+    required TypeAnnotation typeAnnotation,
+    required TypeSystem typeSystem,
+    required TypeProvider typeProvider,
+  });
 }
 
 /// A [LinkedEditBuilder] used to build linked edits for Dart files.

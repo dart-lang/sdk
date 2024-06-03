@@ -55,9 +55,12 @@ class AddAsync extends ResolvedCorrectionProducer {
     } else {
       var body = node.thisOrAncestorOfType<FunctionBody>();
       if (body != null && body.keyword == null) {
-        var typeProvider = this.typeProvider;
         await builder.addDartFileEdit(file, (builder) {
-          builder.convertFunctionFromSyncToAsync(body, typeProvider);
+          builder.convertFunctionFromSyncToAsync(
+            body: body,
+            typeSystem: typeSystem,
+            typeProvider: typeProvider,
+          );
         });
       }
     }
