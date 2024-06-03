@@ -2929,21 +2929,27 @@ class UnusedElementWildCardVariablesTest extends UnusedElementTest
     with WithWildCardVariablesMixin {
   @override
   test_localFunction_inFunction_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   _(){}
 }
-''');
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 8, 5),
+    ]);
   }
 
   @override
   test_localFunction_inMethod_wildcard() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   m() {
     _(){}
   }
 }
-''');
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 22, 5),
+    ]);
   }
 }

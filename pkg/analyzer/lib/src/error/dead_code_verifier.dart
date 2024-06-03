@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -31,7 +32,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker? _labelTracker;
 
-  DeadCodeVerifier(this._errorReporter);
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
+  DeadCodeVerifier(this._errorReporter, LibraryElement library)
+      : _wildCardVariablesEnabled =
+            library.featureSet.isEnabled(Feature.wildcard_variables);
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -56,6 +62,19 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    var element = node.declaredElement;
+    // TODO(pq): ask the FunctionElement once implemented
+    if (_wildCardVariablesEnabled &&
+        element is FunctionElement &&
+        element.isLocal &&
+        element.name == '_') {
+      _errorReporter.atNode(node, WarningCode.DEAD_CODE);
+    }
+    super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -543,6 +562,11 @@ class _LabelTracker {
       }
     }
   }
+}
+
+extension on FunctionElement {
+  bool get isLocal =>
+      enclosingElement is FunctionElement || enclosingElement is MethodElement;
 }
 
 extension DoStatementExtension on DoStatement {
