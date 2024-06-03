@@ -272,7 +272,7 @@ class _InterfaceType extends _Type {
     // We don't need to check whether the object is of interface type, since
     // non-interface class IDs ([Object], closures, records) will be rejected by
     // the interface type subtype check.
-    return _typeUniverse.isInterfaceSubtypeInner(
+    return _TypeUniverse.isInterfaceSubtypeInner(
         ClassID.getID(o), Object._getTypeArguments(o), null, this, null);
   }
 
@@ -303,7 +303,7 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    s.write(_getTypeNames()?[classId] ?? 'minified:Class${classId}');
+    s.write(_typeNames?[classId] ?? 'minified:Class${classId}');
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -412,7 +412,7 @@ class _FunctionType extends _Type {
   @override
   bool _checkInstance(Object o) {
     if (ClassID.getID(o) != ClassID.cid_Closure) return false;
-    return _typeUniverse.isFunctionSubtype(
+    return _TypeUniverse.isFunctionSubtype(
         _Closure._getClosureRuntimeType(unsafeCast(o)), null, this, null);
   }
 
@@ -601,9 +601,9 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-external WasmArray<WasmArray<WasmI32>> _getTypeRulesSupers();
-external WasmArray<WasmArray<WasmArray<_Type>>> _getTypeRulesSubstitutions();
-external WasmArray<String>? _getTypeNames();
+external WasmArray<WasmArray<WasmI32>> get _typeRulesSupers;
+external WasmArray<WasmArray<WasmArray<_Type>>> get _typeRulesSubstitutions;
+external WasmArray<String>? get _typeNames;
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -650,20 +650,7 @@ class _Environment {
   }
 }
 
-class _TypeUniverse {
-  /// 'Map' of classId to the transitive set of super classes it implements.
-  final WasmArray<WasmArray<WasmI32>> typeRulesSupers;
-
-  /// 'Map' of classId, and super offset(from [typeRulesSupers]) to a list of
-  /// type substitutions.
-  final WasmArray<WasmArray<WasmArray<_Type>>> typeRulesSubstitutions;
-
-  const _TypeUniverse._(this.typeRulesSupers, this.typeRulesSubstitutions);
-
-  factory _TypeUniverse.create() {
-    return _TypeUniverse._(_getTypeRulesSupers(), _getTypeRulesSubstitutions());
-  }
-
+abstract class _TypeUniverse {
   static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter,
       WasmArray<_Type> substitutions) {
@@ -822,8 +809,8 @@ class _TypeUniverse {
     return _FutureOrType(declaredNullability, typeArgument);
   }
 
-  bool areTypeArgumentsSubtypes(WasmArray<_Type> sArgs, _Environment? sEnv,
-      WasmArray<_Type> tArgs, _Environment? tEnv) {
+  static bool areTypeArgumentsSubtypes(WasmArray<_Type> sArgs,
+      _Environment? sEnv, WasmArray<_Type> tArgs, _Environment? tEnv) {
     assert(sArgs.length == tArgs.length);
     for (int i = 0; i < sArgs.length; i++) {
       if (!isSubtype(sArgs[i], sEnv, tArgs[i], tEnv)) {
@@ -833,12 +820,12 @@ class _TypeUniverse {
     return true;
   }
 
-  bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
+  static bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
       _InterfaceType t, _Environment? tEnv) {
     return isInterfaceSubtypeInner(s.classId, s.typeArguments, sEnv, t, tEnv);
   }
 
-  bool isInterfaceSubtypeInner(int sId, WasmArray<_Type> sTypeArguments,
+  static bool isInterfaceSubtypeInner(int sId, WasmArray<_Type> sTypeArguments,
       _Environment? sEnv, _InterfaceType t, _Environment? tEnv) {
     int tId = t.classId;
 
@@ -850,7 +837,7 @@ class _TypeUniverse {
 
     // Otherwise, check if [s] is a subtype of [t], and if it is then compare
     // [s]'s type substitutions with [t]'s type arguments.
-    final WasmArray<WasmI32> sSupers = typeRulesSupers[sId];
+    final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
     if (sSupers.length == 0) return false;
     int sSuperIndexOfT = -1;
     for (int i = 0; i < sSupers.length; i++) {
@@ -860,11 +847,11 @@ class _TypeUniverse {
       }
     }
     if (sSuperIndexOfT == -1) return false;
-    assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
+    assert(sSuperIndexOfT < _typeRulesSubstitutions[sId].length);
 
     // Return early if we don't have to check type arguments.
     WasmArray<_Type> substitutions =
-        typeRulesSubstitutions[sId][sSuperIndexOfT];
+        _typeRulesSubstitutions[sId][sSuperIndexOfT];
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
       return true;
     }
@@ -889,8 +876,8 @@ class _TypeUniverse {
     return areTypeArgumentsSubtypes(substituted, sEnv, t.typeArguments, tEnv);
   }
 
-  bool isFunctionSubtype(_FunctionType s, _Environment? sEnv, _FunctionType t,
-      _Environment? tEnv) {
+  static bool isFunctionSubtype(_FunctionType s, _Environment? sEnv,
+      _FunctionType t, _Environment? tEnv) {
     // Set up environments
     sEnv = _Environment(sEnv, s);
     tEnv = _Environment(tEnv, t);
@@ -974,7 +961,7 @@ class _TypeUniverse {
     return true;
   }
 
-  bool isRecordSubtype(
+  static bool isRecordSubtype(
       _RecordType s, _Environment? sEnv, _RecordType t, _Environment? tEnv) {
     // [s] <: [t] iff s and t have the same shape and fields of `s` are
     // subtypes of the same field in `t` by index.
@@ -995,7 +982,8 @@ class _TypeUniverse {
 
   // Subtype check based off of sdk/lib/_internal/js_runtime/lib/rti.dart.
   // Returns true if [s] is a subtype of [t], false otherwise.
-  bool isSubtype(_Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
+  static bool isSubtype(
+      _Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
     // Reflexivity:
     if (identical(s, t)) return true;
 
@@ -1099,12 +1087,11 @@ class _TypeUniverse {
   }
 
   // Check whether two types are both subtypes of each other.
-  bool areEquivalent(_Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
+  static bool areEquivalent(
+      _Type s, _Environment? sEnv, _Type t, _Environment? tEnv) {
     return isSubtype(s, sEnv, t, tEnv) && isSubtype(t, tEnv, s, sEnv);
   }
 }
-
-_TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
@@ -1123,7 +1110,7 @@ bool _isSubtype(Object? o, _Type t) {
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 bool _isTypeSubtype(_Type s, _Type t) {
-  return _typeUniverse.isSubtype(s, null, t, null);
+  return _TypeUniverse.isSubtype(s, null, t, null);
 }
 
 @pragma("wasm:entry-point")
@@ -1243,7 +1230,7 @@ void _checkClosureType(
       final typeArgument = typeArguments[i];
       final paramBound = _TypeUniverse.substituteTypeArgument(
           functionType.typeParameterBounds[i], typeArguments, functionType);
-      if (!_typeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
+      if (!_TypeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
         final stackTrace = StackTrace.current;
         final typeError = _TypeError.fromMessageAndStackTrace(
             "Type argument '$typeArgument' is not a "
