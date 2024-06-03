@@ -1394,6 +1394,9 @@ final _builtInNonLintProducers = {
   ParserErrorCode.GETTER_WITH_PARAMETERS: [
     RemoveParametersInGetterDeclaration.new,
   ],
+  ParserErrorCode.INTERFACE_MIXIN: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
     AddConst.new,
   ],

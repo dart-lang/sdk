@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 349 "needsFix"
-# - 402  "hasFix"
+# - 348 "needsFix"
+# - 403  "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2915,9 +2915,7 @@ ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
 ParserErrorCode.INTERFACE_ENUM:
   status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `interface` keyword.
+  status: hasFix
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
   status: needsFix
   notes: |-
