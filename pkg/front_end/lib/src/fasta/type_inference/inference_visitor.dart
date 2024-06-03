@@ -821,8 +821,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ExtensionType():
           return typeSchemaEnvironment.hierarchy
                   .getExtensionTypeAsInstanceOfClass(
-                      type, coreTypes.futureClass,
-                      isNonNullableByDefault: true) ==
+                      type, coreTypes.futureClass) ==
               null;
         case TypeParameterType():
           return _isIncompatibleWithAwait(type.parameter.bound);
@@ -4595,8 +4594,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             null;
       }
       typeContextAsIterable = hierarchyBuilder.getTypeAsInstanceOf(
-          unfuturedTypeContext, coreTypes.iterableClass,
-          isNonNullableByDefault: true);
+          unfuturedTypeContext, coreTypes.iterableClass);
       if (node.entries.isEmpty &&
           typeContextAsIterable != null &&
           !typeContextIsMap) {

@@ -894,8 +894,7 @@ mixin StandardBounds {
   DartType _getLegacyLeastUpperBound(
       TypeDeclarationType type1, TypeDeclarationType type2) {
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      return hierarchy.getLegacyLeastUpperBound(type1, type2,
-          isNonNullableByDefault: true);
+      return hierarchy.getLegacyLeastUpperBound(type1, type2);
     } else if (type1 is ExtensionType || type2 is ExtensionType) {
       // This mimics the legacy least upper bound implementation for regular
       // classes, where the least upper bound is found as the single common
@@ -939,8 +938,7 @@ mixin StandardBounds {
           if (implemented is ExtensionType) {
             ExtensionType supertype =
                 hierarchy.getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
-                    type, implemented.extensionTypeDeclaration,
-                    isNonNullableByDefault: true)!;
+                    type, implemented.extensionTypeDeclaration)!;
             computeSuperTypes(supertype, supertypes, superInterfaceTypes);
           }
         }
@@ -984,8 +982,7 @@ mixin StandardBounds {
       }
 
       return hierarchy.getLegacyLeastUpperBoundFromSupertypeLists(
-          type1, type2, superInterfaceTypes1, superInterfaceTypes2,
-          isNonNullableByDefault: true);
+          type1, type2, superInterfaceTypes1, superInterfaceTypes2);
     }
     if (type1 is ExtensionType && type1.isPotentiallyNullable ||
         type2 is ExtensionType && type2.isPotentiallyNullable) {
@@ -1827,8 +1824,7 @@ mixin StandardBounds {
           if (!areMutualSubtypes(
               tArgs1[i], tArgs2[i], SubtypeCheckMode.withNullabilities)) {
             // No bound will be valid, find bound at the interface level.
-            return hierarchy.getLegacyLeastUpperBound(type1, type2,
-                isNonNullableByDefault: true);
+            return hierarchy.getLegacyLeastUpperBound(type1, type2);
           }
           // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
           //  parameters.
@@ -1843,8 +1839,7 @@ mixin StandardBounds {
               type1.declaredNullability, type2.declaredNullability),
           tArgs);
     }
-    return hierarchy.getLegacyLeastUpperBound(type1, type2,
-        isNonNullableByDefault: true);
+    return hierarchy.getLegacyLeastUpperBound(type1, type2);
   }
 
   DartType _getNullabilityObliviousTypeParameterStandardUpperBound(

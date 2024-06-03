@@ -17,11 +17,8 @@ abstract class LegacyUpperBoundTest {
   late Library coreLibrary;
   late Library testLibrary;
 
-  bool get isNonNullableByDefault;
-
   Future<void> parseComponent(String source) {
-    env =
-        new parser.Env(source, isNonNullableByDefault: isNonNullableByDefault);
+    env = new parser.Env(source, isNonNullableByDefault: true);
     assert(
         env.component.libraries.length == 2,
         "The test component is expected to have exactly two libraries: "
@@ -43,20 +40,16 @@ abstract class LegacyUpperBoundTest {
     return new Future<void>.value();
   }
 
-  DartType getLegacyLeastUpperBound(DartType a, DartType b,
-      {required bool isNonNullableByDefault});
+  DartType getLegacyLeastUpperBound(DartType a, DartType b);
 
-  void checkLegacyUpTypes(DartType a, DartType b, DartType expected,
-      {required bool isNonNullableByDefault}) {
-    DartType actual = getLegacyLeastUpperBound(a, b,
-        isNonNullableByDefault: isNonNullableByDefault);
+  void checkLegacyUpTypes(DartType a, DartType b, DartType expected) {
+    DartType actual = getLegacyLeastUpperBound(a, b);
     Expect.equals(expected, actual);
   }
 
   void checkLegacyUp(String type1, String type2, String expectedType) {
-    checkLegacyUpTypes(
-        env.parseType(type1), env.parseType(type2), env.parseType(expectedType),
-        isNonNullableByDefault: true);
+    checkLegacyUpTypes(env.parseType(type1), env.parseType(type2),
+        env.parseType(expectedType));
   }
 
   Future<void> test() {

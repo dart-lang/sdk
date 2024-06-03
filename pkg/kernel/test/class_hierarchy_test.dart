@@ -1345,13 +1345,9 @@ class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
     var b_int = new InterfaceType(b, Nullability.legacy, [int]);
-    expect(
-        hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, a,
-            isNonNullableByDefault: true),
+    expect(hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, a),
         new InterfaceType(a, Nullability.legacy, [int, bool]));
-    expect(
-        hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, objectClass,
-            isNonNullableByDefault: true),
+    expect(hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, objectClass),
         new InterfaceType(objectClass, Nullability.legacy));
   }
 

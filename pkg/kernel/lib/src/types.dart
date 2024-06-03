@@ -419,10 +419,8 @@ class Types with StandardBounds {
   static List<Object>? typeChecksForTesting;
 
   TypeDeclarationType? getTypeAsInstanceOf(TypeDeclarationType type,
-      TypeDeclaration typeDeclaration, CoreTypes coreTypes,
-      {required bool isNonNullableByDefault}) {
-    return hierarchy.getTypeAsInstanceOf(type, typeDeclaration,
-        isNonNullableByDefault: isNonNullableByDefault);
+      TypeDeclaration typeDeclaration, CoreTypes coreTypes) {
+    return hierarchy.getTypeAsInstanceOf(type, typeDeclaration);
   }
 
   List<DartType>? getTypeArgumentsAsInstanceOf(

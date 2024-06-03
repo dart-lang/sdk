@@ -113,8 +113,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       }
       InterfaceType supertype = _hierarchy.getInterfaceTypeAsInstanceOfClass(
           _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
-          member.enclosingClass!,
-          isNonNullableByDefault: true)!;
+          member.enclosingClass!)!;
       Substitution substitution = Substitution.fromInterfaceType(supertype);
       DartType? type;
       if (member is Procedure) {
