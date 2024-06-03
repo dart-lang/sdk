@@ -437,7 +437,7 @@ class LibraryAnalyzer {
 
     UnicodeTextVerifier(errorReporter).verify(unit, unitAnalysis.file.content);
 
-    unit.accept(DeadCodeVerifier(errorReporter));
+    unit.accept(DeadCodeVerifier(errorReporter, _libraryElement));
 
     unit.accept(
       BestPracticesVerifier(

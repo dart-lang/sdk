@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -78,7 +80,7 @@ class PackageConfigFileUriResolver extends ResourceUriResolver {
     }
     var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return null;
   }
@@ -136,7 +138,7 @@ class PackageConfigPackageUriResolver extends UriResolver {
     var file = _workspace.builtFile(
         _workspace._builtPackageSourcePath(filePath), packageName);
     if (file != null && file.exists) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return basicResolverSource;
   }

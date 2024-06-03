@@ -26,11 +26,7 @@ void g() {
   const [f as void Function<T>(T, [int])];
 }
 ''', [
-      // This error is reported because the cast fails if the type on the right
-      // has type parameters.
-      // TODO(srawlins): Deduplicate these two errors.
       error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 31),
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 60, 1),
     ]);
   }
 
@@ -350,6 +346,39 @@ class A<T> {
   const A();
   void m() {
     const A<void Function<U>()>();
+  }
+}
+''');
+  }
+
+  test_indirect_functionType_typeParameter_nestedFunctionType() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<void Function<U>(void Function<V>(U, V))>();
+  }
+}
+''');
+  }
+
+  test_indirect_functionType_typeParameter_referencedDirectly() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<U Function<U>()>();
+  }
+}
+''');
+  }
+
+  test_indirect_functionType_typeParameter_typeArgumentOfReturnType() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+  void m() {
+    const A<List<U> Function<U>()>();
   }
 }
 ''');

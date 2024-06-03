@@ -46,8 +46,6 @@ class AnnotationVerifier {
       _checkLiteral(node);
     } else if (element.isMustBeOverridden) {
       _checkMustBeOverridden(node);
-    } else if (element.isMustCallSuper) {
-      _checkMustCallSuper(node);
     } else if (element.isNonVirtual) {
       _checkNonVirtual(node);
     } else if (element.isReopen) {
@@ -209,23 +207,6 @@ class AnnotationVerifier {
   /// Reports a warning [node] if its parent is not a valid target for a
   /// `@mustBeOverridden` annotation.
   void _checkMustBeOverridden(Annotation node) {
-    var parent = node.parent;
-    if ((parent is MethodDeclaration && parent.isStatic) ||
-        (parent is FieldDeclaration && parent.isStatic) ||
-        parent.parent is ExtensionDeclaration ||
-        parent.parent is ExtensionTypeDeclaration ||
-        parent.parent is EnumDeclaration) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_ANNOTATION_TARGET,
-        arguments: [node.name.name, 'instance members of classes and mixins'],
-      );
-    }
-  }
-
-  /// Reports a warning at [node] if its parent is not a valid target for a
-  /// `@mustCallSuper` annotation.
-  void _checkMustCallSuper(Annotation node) {
     var parent = node.parent;
     if ((parent is MethodDeclaration && parent.isStatic) ||
         (parent is FieldDeclaration && parent.isStatic) ||

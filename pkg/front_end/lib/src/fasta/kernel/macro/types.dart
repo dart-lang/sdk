@@ -345,13 +345,11 @@ class _StaticTypeImpl extends macro.StaticTypeImpl {
           identifier.typeDeclarationBuilder;
       switch (declarationBuilder) {
         case ClassBuilder():
-          result = types._sourceLoader.hierarchyBuilder.getTypeAsInstanceOf(
-              type, declarationBuilder.cls,
-              isNonNullableByDefault: true);
+          result = types._sourceLoader.hierarchyBuilder
+              .getTypeAsInstanceOf(type, declarationBuilder.cls);
         case ExtensionTypeDeclarationBuilder():
           result = types._sourceLoader.hierarchyBuilder.getTypeAsInstanceOf(
-              type, declarationBuilder.extensionTypeDeclaration,
-              isNonNullableByDefault: true);
+              type, declarationBuilder.extensionTypeDeclaration);
         case BuiltinTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():
         case OmittedTypeDeclarationBuilder():

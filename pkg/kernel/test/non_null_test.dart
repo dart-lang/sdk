@@ -78,7 +78,7 @@ const Map<String, String> data = {
 };
 
 void main() {
-  Env env = new Env('', isNonNullableByDefault: true)
+  Env env = new Env('')
     ..extendWithTypeParameters('X,'
         'X_extends_Object extends Object,'
         'X_extends_dynamic extends dynamic,'

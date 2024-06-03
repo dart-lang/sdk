@@ -78,9 +78,7 @@ class Env {
 
   late TypeParserEnvironment _libraryEnvironment;
 
-  final bool isNonNullableByDefault;
-
-  Env(String source, {required this.isNonNullableByDefault}) {
+  Env(String source) {
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
     TypeParserEnvironment coreEnvironment =

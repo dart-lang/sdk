@@ -237,6 +237,15 @@ class C {
 ''');
   }
 
+  Future<void> test_sealed_mixin() async {
+    await resolveTestCode('''
+sealed mixin M {}
+''');
+    await assertHasFix('''
+mixin M {}
+''');
+  }
+
   Future<void> test_staticTopLevelDeclaration_enum() async {
     await resolveTestCode(r'''
 static enum E { v }

@@ -549,14 +549,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /// Verify that the given [type] does not reference any type parameters.
+  /// Verify that the given [type] does not reference any type parameters which
+  /// are declared outside [type].
+  ///
+  /// A generic function type is allowed to reference its own type parameter(s).
   ///
   /// See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
   void _checkForConstWithTypeParameters(
-      TypeAnnotation type, ErrorCode errorCode) {
+      TypeAnnotation type, ErrorCode errorCode,
+      {Set<TypeParameterElement>? allowedTypeParameters}) {
+    allowedTypeParameters = {...?allowedTypeParameters};
     if (type is NamedType) {
       // Should not be a type parameter.
-      if (type.element is TypeParameterElement) {
+      if (type.element is TypeParameterElement &&
+          !allowedTypeParameters.contains(type.element)) {
         _errorReporter.atNode(
           type,
           errorCode,
@@ -566,31 +572,38 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // Check type arguments.
       var typeArguments = type.typeArguments;
       if (typeArguments != null) {
-        for (TypeAnnotation argument in typeArguments.arguments) {
-          _checkForConstWithTypeParameters(argument, errorCode);
+        for (var argument in typeArguments.arguments) {
+          _checkForConstWithTypeParameters(argument, errorCode,
+              allowedTypeParameters: allowedTypeParameters);
         }
       }
     } else if (type is GenericFunctionType) {
-      var returnType = type.returnType;
-      if (returnType != null) {
-        _checkForConstWithTypeParameters(returnType, errorCode);
-      }
-      for (var parameter in type.parameters.parameters) {
-        // [parameter] cannot be a [DefaultFormalParameter], a
-        // [FieldFormalParameter], nor a [FunctionTypedFormalParameter].
-        if (parameter is SimpleFormalParameter) {
-          var parameterType = parameter.type;
-          if (parameterType != null) {
-            _checkForConstWithTypeParameters(parameterType, errorCode);
-          }
-        }
-      }
       var typeParameters = type.typeParameters;
       if (typeParameters != null) {
+        allowedTypeParameters.addAll(typeParameters.typeParameters
+            .map((tp) => tp.declaredElement)
+            .nonNulls);
         for (var typeParameter in typeParameters.typeParameters) {
           var bound = typeParameter.bound;
           if (bound != null) {
-            _checkForConstWithTypeParameters(bound, errorCode);
+            _checkForConstWithTypeParameters(bound, errorCode,
+                allowedTypeParameters: allowedTypeParameters);
+          }
+        }
+      }
+      var returnType = type.returnType;
+      if (returnType != null) {
+        _checkForConstWithTypeParameters(returnType, errorCode,
+            allowedTypeParameters: allowedTypeParameters);
+      }
+      for (var parameter in type.parameters.parameters) {
+        // In a generic function type, [parameter] can only be a
+        // [SimpleFormalParameter].
+        if (parameter is SimpleFormalParameter) {
+          var parameterType = parameter.type;
+          if (parameterType != null) {
+            _checkForConstWithTypeParameters(parameterType, errorCode,
+                allowedTypeParameters: allowedTypeParameters);
           }
         }
       }

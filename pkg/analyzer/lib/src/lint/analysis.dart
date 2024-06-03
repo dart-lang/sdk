@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/apply_options.dart';
@@ -19,10 +20,10 @@ import 'package:analyzer/src/lint/linter.dart';
 
 AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
 
-Source createSource(Uri sourceUri) {
-  return PhysicalResourceProvider.INSTANCE
-      .getFile(sourceUri.toFilePath())
-      .createSource(sourceUri);
+Source createSource(Uri uri) {
+  var filePath = uri.toFilePath();
+  var file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+  return FileSource(file, uri);
 }
 
 /// Print the given message and exit with the given [exitCode]

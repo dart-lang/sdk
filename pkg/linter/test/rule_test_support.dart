@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -490,9 +491,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     var pubspecAst = Pubspec.parse(content,
         sourceUrl: sourceUri, resourceProvider: resourceProvider);
     var listener = RecordingErrorListener();
+    var file = resourceProvider.getFile(path);
     var reporter = ErrorReporter(
       listener,
-      resourceProvider.getFile(path).createSource(sourceUri),
+      FileSource(file, sourceUri),
     );
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;

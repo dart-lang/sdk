@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
+    defineReflectiveTests(DeadCodeWildcardVariablesTest);
     defineReflectiveTests(DeadCodeTest_Language219);
   });
 }
@@ -134,6 +135,17 @@ void f(int a) {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 30, 7),
+    ]);
+  }
+
+  test_localFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+void f() {
+  _(){}
+}
+''', [
+      // No dead code.
+      error(WarningCode.UNUSED_ELEMENT, 13, 1),
     ]);
   }
 
@@ -1741,6 +1753,22 @@ Iterable<int> f() sync* {
 }
 ''', [
       error(WarningCode.DEAD_CODE, 38, 8),
+    ]);
+  }
+}
+
+// TODO(pq): inline this test once we've sorted out how we want to use language overrides for experiment testing
+@reflectiveTest
+class DeadCodeWildcardVariablesTest extends DeadCodeTest
+    with WithWildCardVariablesMixin {
+  @override
+  test_localFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+void f() {
+  _(){}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 13, 5),
     ]);
   }
 }

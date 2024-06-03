@@ -85,12 +85,9 @@ abstract class TypeEnvironment extends Types {
     // future type.
     DartType resolved = t.nonTypeVariableBound;
     if (resolved is TypeDeclarationType) {
-      DartType? futureType = getTypeAsInstanceOf(
-          resolved, coreTypes.futureClass, coreTypes,
-          isNonNullableByDefault: true);
+      DartType? futureType =
+          getTypeAsInstanceOf(resolved, coreTypes.futureClass, coreTypes);
       if (futureType != null) {
-        // TODO(johnniwinther): The two implementations are inconsistent wrt.
-        //  how [isNonNullableByDefault] is treated.
         return futureType.withDeclaredNullability(resolved.declaredNullability);
       }
     } else if (resolved is FutureOrType) {
@@ -162,8 +159,7 @@ abstract class TypeEnvironment extends Types {
   ///     getUnionFreeType(FutureOr<int?>?) = int
   DartType getUnionFreeType(DartType type) {
     if (isNullableTypeConstructorApplication(type)) {
-      return getUnionFreeType(computeTypeWithoutNullabilityMarker(type,
-          isNonNullableByDefault: true));
+      return getUnionFreeType(computeTypeWithoutNullabilityMarker(type));
     } else if (type is FutureOrType) {
       return getUnionFreeType(type.typeArgument);
     } else {
@@ -421,8 +417,7 @@ abstract class TypeEnvironment extends Types {
       // is the static type of `e`.
       InterfaceType? testedAgainstTypeAsOperandClass = hierarchy
           .getInterfaceTypeAsInstanceOfClass(
-              checkTargetType, expressionStaticType.classNode,
-              isNonNullableByDefault: true)
+              checkTargetType, expressionStaticType.classNode)
           ?.withDeclaredNullability(checkTargetType.declaredNullability);
 
       // If `A<T1, ..., Tn>` isn't an instance of `B`, the full type check
@@ -446,8 +441,7 @@ abstract class TypeEnvironment extends Types {
                         TypeParameterType.computeNullabilityFromBound(
                             typeParameter))
                 ]),
-                expressionStaticType.classNode,
-                isNonNullableByDefault: true)!;
+                expressionStaticType.classNode)!;
         // Now we search for the occurrences of `X1`, ..., `Xn` in `B<R1,
         // ..., Rk>`. Those that are found indicate the positions in `A<T1,
         // ..., Tn>` that are fixed and supposed to be the same for every
@@ -909,9 +903,6 @@ class StaticTypeContextImpl implements StaticTypeContext {
   final TypeEnvironment typeEnvironment;
 
   /// The library in which the static type is computed.
-  ///
-  /// The `library.isNonNullableByDefault` property is used to determine the
-  /// nullabilities of the static types.
   final Library _library;
 
   /// The static type of a `this` expression.

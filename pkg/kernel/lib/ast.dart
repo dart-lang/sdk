@@ -11048,8 +11048,7 @@ sealed class DartType extends Node implements SharedType {
     } else if (isNullableTypeConstructorApplication(this)) {
       return NullabilitySuffix.question;
     } else {
-      assert(isLegacyTypeConstructorApplication(this,
-          isNonNullableByDefault: true));
+      assert(isLegacyTypeConstructorApplication(this));
       return NullabilitySuffix.star;
     }
   }

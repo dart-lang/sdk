@@ -43,7 +43,7 @@ class TypeConstraintGathererTest {
   Library get testLibrary => _testLibrary;
 
   void parseTestLibrary(String testLibraryText) {
-    env = new Env(testLibraryText, isNonNullableByDefault: true);
+    env = new Env(testLibraryText);
     assert(
         env.component.libraries.length == 2,
         "The tests are supposed to have exactly two libraries: "

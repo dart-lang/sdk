@@ -142,8 +142,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
           if (declaringClass.typeParameters.isNotEmpty) {
             Substitution substitution = substitutions[declaringClass] ??=
                 Substitution.fromInterfaceType(_classHierarchy
-                    .getInterfaceTypeAsInstanceOfClass(type, declaringClass,
-                        isNonNullableByDefault: true)!);
+                    .getInterfaceTypeAsInstanceOfClass(type, declaringClass)!);
             fieldType = substitution.substituteType(fieldType);
           }
           fieldTypes[new NameKey(member.name.text)] = fieldType;
@@ -161,8 +160,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         if (implementedType.typeDeclaration.typeParameters.isNotEmpty) {
           Substitution substitution = Substitution.fromTypeDeclarationType(
               _classHierarchy.getTypeAsInstanceOf(
-                  type, implementedType.typeDeclaration,
-                  isNonNullableByDefault: true)!);
+                  type, implementedType.typeDeclaration)!);
           for (MapEntry<Key, DartType> entry in implementedFieldTypes.entries) {
             fieldTypes[entry.key] = substitution.substituteType(entry.value);
           }
@@ -270,8 +268,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
     type = type.nonTypeVariableBound;
     if (type is TypeDeclarationType) {
       return _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.listClass,
-          isNonNullableByDefault: true);
+          type, _typeEnvironment.coreTypes.listClass);
     }
     return null;
   }
@@ -467,8 +464,8 @@ class CfeSealedClassOperations
     InterfaceType thisType = subClass.getThisType(
         _typeEnvironment.coreTypes, Nullability.nonNullable);
     InterfaceType asSealedType = _typeEnvironment.hierarchy
-        .getInterfaceTypeAsInstanceOfClass(thisType, sealedClassType.classNode,
-            isNonNullableByDefault: true)!;
+        .getInterfaceTypeAsInstanceOfClass(
+            thisType, sealedClassType.classNode)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }

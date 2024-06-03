@@ -943,8 +943,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType? implementedInterface =
           hierarchy.getInterfaceTypeAsInstanceOfClass(
-              supertype, requiredInterface.classNode,
-              isNonNullableByDefault: true);
+              supertype, requiredInterface.classNode);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(implementedInterface,
               requiredInterface, SubtypeCheckMode.withNullabilities)) {

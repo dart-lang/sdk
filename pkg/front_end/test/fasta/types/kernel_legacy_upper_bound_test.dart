@@ -12,20 +12,15 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   late ClassHierarchy hierarchy;
 
   @override
-  bool get isNonNullableByDefault => true;
-
-  @override
   Future<void> parseComponent(String source) async {
     await super.parseComponent(source);
     hierarchy = new ClassHierarchy(env.component, env.coreTypes);
   }
 
   @override
-  DartType getLegacyLeastUpperBound(DartType a, DartType b,
-      {required bool isNonNullableByDefault}) {
+  DartType getLegacyLeastUpperBound(DartType a, DartType b) {
     return hierarchy.getLegacyLeastUpperBound(
-        a as InterfaceType, b as InterfaceType,
-        isNonNullableByDefault: isNonNullableByDefault);
+        a as InterfaceType, b as InterfaceType);
   }
 }
 

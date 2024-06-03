@@ -32,29 +32,25 @@ void main() {
 
   int combination = 0;
   for (bool isSynthetic in [true, false]) {
-    for (bool isNonNullableByDefault in [true, false]) {
-      for (NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode
-          in [
-        NonNullableByDefaultCompiledMode.Weak,
-        NonNullableByDefaultCompiledMode.Strong,
-        NonNullableByDefaultCompiledMode.Agnostic,
-      ]) {
-        combination++;
-        print("Checking combination #$combination ("
-            "isSynthetic: $isSynthetic; "
-            "isNonNullableByDefault: $isNonNullableByDefault; "
-            "nonNullableByDefaultCompiledMode:"
-            " $nonNullableByDefaultCompiledMode");
-        Uri uri = Uri.parse("foo://bar.dart");
-        Library lib = new Library(uri, fileUri: uri);
-        setSynthetic(lib, isSynthetic);
-        setNonNullableByDefaultCompiledMode(
-            lib, nonNullableByDefaultCompiledMode);
-        Library lib2 = libRoundTrip(lib);
-        verifySynthetic(lib2, isSynthetic);
-        verifyNonNullableByDefaultCompiledMode(
-            lib2, nonNullableByDefaultCompiledMode);
-      }
+    for (NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode in [
+      NonNullableByDefaultCompiledMode.Weak,
+      NonNullableByDefaultCompiledMode.Strong,
+      NonNullableByDefaultCompiledMode.Agnostic,
+    ]) {
+      combination++;
+      print("Checking combination #$combination ("
+          "isSynthetic: $isSynthetic; "
+          "nonNullableByDefaultCompiledMode:"
+          " $nonNullableByDefaultCompiledMode");
+      Uri uri = Uri.parse("foo://bar.dart");
+      Library lib = new Library(uri, fileUri: uri);
+      setSynthetic(lib, isSynthetic);
+      setNonNullableByDefaultCompiledMode(
+          lib, nonNullableByDefaultCompiledMode);
+      Library lib2 = libRoundTrip(lib);
+      verifySynthetic(lib2, isSynthetic);
+      verifyNonNullableByDefaultCompiledMode(
+          lib2, nonNullableByDefaultCompiledMode);
     }
   }
 

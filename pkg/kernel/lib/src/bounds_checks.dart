@@ -6,7 +6,6 @@ import '../ast.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
 import '../util/graph.dart' show Graph, computeStrongComponents;
-import 'legacy_erasure.dart';
 import 'replacement_visitor.dart';
 
 class TypeVariableGraph extends Graph<int> {
@@ -312,7 +311,6 @@ class TypeArgumentIssue {
 List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
     {required bool allowSuperBounded,
-    required bool isNonNullableByDefault,
     required bool areGenericArgumentsAllowed}) {
   List<TypeParameter> variables;
   List<DartType> arguments;
@@ -338,17 +336,14 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
         for (DartType formal in positionalParameters)
           ...findTypeArgumentIssues(formal, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true,
-              isNonNullableByDefault: isNonNullableByDefault,
               areGenericArgumentsAllowed: areGenericArgumentsAllowed),
         for (NamedType named in namedParameters)
           ...findTypeArgumentIssues(
               named.type, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true,
-              isNonNullableByDefault: isNonNullableByDefault,
               areGenericArgumentsAllowed: areGenericArgumentsAllowed),
         ...findTypeArgumentIssues(returnType, typeEnvironment, subtypeCheckMode,
             allowSuperBounded: true,
-            isNonNullableByDefault: isNonNullableByDefault,
             areGenericArgumentsAllowed: areGenericArgumentsAllowed)
       ];
     case FutureOrType(:var typeArgument):
@@ -385,9 +380,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
           isGenericTypeAsArgumentIssue: true));
     } else if (variables[i].bound is! InvalidType) {
       DartType bound = substitution.substituteType(variables[i].bound);
-      if (!isNonNullableByDefault) {
-        bound = legacyErasure(bound);
-      }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
         result.add(new TypeArgumentIssue(i, argument, variables[i], type));
       }
@@ -402,9 +394,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
   if (!allowSuperBounded) return result;
 
   bool isCorrectSuperBounded = true;
-  DartType? invertedType = convertSuperBoundedToRegularBounded(
-      typeEnvironment, type,
-      isNonNullableByDefault: isNonNullableByDefault);
+  DartType? invertedType =
+      convertSuperBoundedToRegularBounded(typeEnvironment, type);
 
   // The auxiliary type is the same as [type].  At this point we know that
   // [type] is not regular-bounded, which means that the inverted type is also
@@ -462,8 +453,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     TypeEnvironment typeEnvironment,
     SubtypeCheckMode subtypeCheckMode,
     DartType bottomType,
-    {required bool isNonNullableByDefault,
-    required bool areGenericArgumentsAllowed}) {
+    {required bool areGenericArgumentsAllowed}) {
   assert(arguments.length == parameters.length);
   assert(bottomType == const NeverType.nonNullable() || bottomType is NullType);
 
@@ -482,9 +472,6 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
           isGenericTypeAsArgumentIssue: true));
     } else if (parameters[i].bound is! InvalidType) {
       DartType bound = substitution.substituteType(parameters[i].bound);
-      if (!isNonNullableByDefault) {
-        bound = legacyErasure(bound);
-      }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
         result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
       }
@@ -507,63 +494,38 @@ String getGenericTypeName(DartType type) {
 /// with `Object`.  Returns null if the converted type is the same as [type].
 DartType? convertSuperBoundedToRegularBounded(
     TypeEnvironment typeEnvironment, DartType type,
-    {Variance variance = Variance.covariant,
-    required bool isNonNullableByDefault}) {
-  return type.accept1(
-      new _SuperBoundedTypeInverter(typeEnvironment,
-          isNonNullableByDefault: isNonNullableByDefault),
-      variance);
+    {Variance variance = Variance.covariant}) {
+  return type.accept1(new _SuperBoundedTypeInverter(typeEnvironment), variance);
 }
 
 class _SuperBoundedTypeInverter extends ReplacementVisitor {
   final TypeEnvironment typeEnvironment;
-  final bool isNonNullableByDefault;
   bool isOutermost = true;
 
-  _SuperBoundedTypeInverter(this.typeEnvironment,
-      {required this.isNonNullableByDefault});
+  _SuperBoundedTypeInverter(this.typeEnvironment);
 
   bool flipTop(Variance variance) {
-    return isNonNullableByDefault
-        ? variance != Variance.contravariant
-        : variance == Variance.covariant;
+    return variance != Variance.contravariant;
   }
 
   bool flipBottom(Variance variance) {
-    return isNonNullableByDefault
-        ? variance == Variance.contravariant
-        : variance != Variance.covariant;
+    return variance == Variance.contravariant;
   }
 
   DartType get topType {
-    return isNonNullableByDefault
-        ? typeEnvironment.coreTypes.objectNullableRawType
-        : const DynamicType();
+    return typeEnvironment.coreTypes.objectNullableRawType;
   }
 
   DartType get bottomType {
-    return isNonNullableByDefault
-        ? const NeverType.nonNullable()
-        : const NullType();
+    return const NeverType.nonNullable();
   }
 
   bool isTop(DartType node) {
-    if (isNonNullableByDefault) {
-      return typeEnvironment.coreTypes.isTop(node);
-    } else {
-      return node is DynamicType ||
-          node is VoidType ||
-          node is InterfaceType &&
-              node.classNode == typeEnvironment.coreTypes.objectClass;
-    }
+    return typeEnvironment.coreTypes.isTop(node);
   }
 
   bool isBottom(DartType node) {
-    if (isNonNullableByDefault) {
-      return typeEnvironment.coreTypes.isBottom(node);
-    } else {
-      return node is NullType;
-    }
+    return typeEnvironment.coreTypes.isBottom(node);
   }
 
   @override
@@ -660,9 +622,6 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   // arguments' positions depend on the opt-in status of the library.
   @override
   DartType? visitTypedefType(TypedefType node, Variance variance) {
-    if (!isNonNullableByDefault && !isOutermost) {
-      return node.unalias.accept1(this, variance);
-    }
     isOutermost = false;
     Nullability? newNullability = visitNullability(node);
     List<DartType>? newTypeArguments = null;
@@ -672,10 +631,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
       // here in passing the 'variance' parameter unchanged in for legacy
       // libraries.
       DartType? newTypeArgument = node.typeArguments[i].accept1(
-          this,
-          isNonNullableByDefault
-              ? variance.combine(node.typedefNode.typeParameters[i].variance)
-              : variance);
+          this, variance.combine(node.typedefNode.typeParameters[i].variance));
       if (newTypeArgument != null) {
         newTypeArguments ??= new List<DartType>.of(node.typeArguments);
         newTypeArguments[i] = newTypeArgument;

@@ -81,6 +81,7 @@ import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_super.dart';
+import 'package:analysis_server/src/services/correction/dart/create_extension_member.dart';
 import 'package:analysis_server/src/services/correction/dart/create_field.dart';
 import 'package:analysis_server/src/services/correction/dart/create_file.dart';
 import 'package:analysis_server/src/services/correction/dart/create_function.dart';
@@ -1285,6 +1286,7 @@ final _builtInNonLintProducers = {
   CompileTimeErrorCode.UNDEFINED_METHOD: [
     ChangeTo.method,
     CreateClass.new,
+    CreateExtensionMethod.new,
     CreateFunction.new,
     CreateMethod.method,
   ],
@@ -1414,6 +1416,9 @@ final _builtInNonLintProducers = {
   ],
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA: [
     AddTrailingComma.new,
+  ],
+  ParserErrorCode.SEALED_MIXIN: [
+    RemoveExtraModifier.new,
   ],
   ParserErrorCode.SEALED_MIXIN_CLASS: [
     RemoveExtraModifier.new,

@@ -788,8 +788,7 @@ class OperationsCfe
       return null;
     } else {
       TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
-          type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: true);
+          type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes);
       if (mapType == null) {
         return null;
       } else {
@@ -830,8 +829,7 @@ class OperationsCfe
       TypeDeclarationType? interfaceType = typeEnvironment.getTypeAsInstanceOf(
           type,
           typeEnvironment.coreTypes.iterableClass,
-          typeEnvironment.coreTypes,
-          isNonNullableByDefault: true);
+          typeEnvironment.coreTypes);
       if (interfaceType == null) {
         return null;
       } else {
@@ -904,8 +902,7 @@ class OperationsCfe
   DartType withNullabilitySuffix(DartType type, NullabilitySuffix modifier) {
     switch (modifier) {
       case NullabilitySuffix.none:
-        return computeTypeWithoutNullabilityMarker(type,
-            isNonNullableByDefault: true);
+        return computeTypeWithoutNullabilityMarker(type);
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
       case NullabilitySuffix.star:

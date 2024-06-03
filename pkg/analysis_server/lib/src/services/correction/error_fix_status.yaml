@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 353 "needsFix"
-# - 398 "hasFix"
+# - 352 "needsFix"
+# - 399 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3233,9 +3233,7 @@ ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `sealed` keyword.
+  status: hasFix
 ParserErrorCode.SEALED_MIXIN_CLASS:
   status: hasFix
 ParserErrorCode.SETTER_CONSTRUCTOR:

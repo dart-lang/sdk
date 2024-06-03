@@ -671,8 +671,7 @@ abstract class CombinedMemberSignatureBase {
       return type;
     }
     TypeDeclarationType instance = hierarchy.getTypeAsInstanceOf(
-        thisType, member.enclosingTypeDeclaration!,
-        isNonNullableByDefault: true)!;
+        thisType, member.enclosingTypeDeclaration!)!;
     return Substitution.fromTypeDeclarationType(instance).substituteType(type);
   }
 

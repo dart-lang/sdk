@@ -109,6 +109,7 @@ import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
 import 'create_constructor_super_test.dart' as create_constructor_super;
 import 'create_constructor_test.dart' as create_constructor;
+import 'create_extension_member_test.dart' as create_extension_member;
 import 'create_field_test.dart' as create_field;
 import 'create_file_test.dart' as create_file;
 import 'create_function_test.dart' as create_function;
@@ -379,6 +380,7 @@ void main() {
     create_constructor_for_final_field.main();
     create_constructor_super.main();
     create_constructor.main();
+    create_extension_member.main();
     create_field.main();
     create_file.main();
     create_function.main();

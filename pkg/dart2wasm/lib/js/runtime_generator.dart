@@ -89,13 +89,13 @@ $jsRuntimeBlobPart5
 RuntimeFinalizer createRuntimeFinalizer(
     Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("package:js/js.dart")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_annotations")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_helper")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:js_interop")),
   };
   Map<Procedure, String> jsInteropMethods = {};

@@ -211,8 +211,7 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
       // The bound could be made non-nullable so we use it as the promoted
       // bound.
       return new IntersectionType(
-          computeTypeWithoutNullabilityMarker(node.left,
-              isNonNullableByDefault: true) as TypeParameterType,
+          computeTypeWithoutNullabilityMarker(node.left) as TypeParameterType,
           right);
     } else {
       // The bound could not be made non-nullable so we use it as the promoted

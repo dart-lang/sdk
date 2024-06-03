@@ -6,8 +6,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
@@ -65,7 +66,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
         (package is PubPackage) ? package.sdkVersionConstraint : null;
 
     var errors = analyzeAnalysisOptions(
-      optionsFile.createSource(),
+      FileSource(optionsFile),
       content,
       sourceFactory,
       contextRoot.root.path,

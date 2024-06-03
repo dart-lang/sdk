@@ -34,8 +34,7 @@ abstract class TypeSchemaEnvironmentTestBase {
   late final OperationsCfe _operations;
 
   void parseTestLibrary(String testLibraryText) {
-    typeParserEnvironment =
-        new Env(testLibraryText, isNonNullableByDefault: true);
+    typeParserEnvironment = new Env(testLibraryText);
     typeSchemaEnvironment = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
     assert(

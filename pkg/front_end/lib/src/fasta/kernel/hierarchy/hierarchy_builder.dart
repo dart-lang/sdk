@@ -113,8 +113,7 @@ class ClassHierarchyBuilder
 
   @override
   InterfaceType? getInterfaceTypeAsInstanceOfClass(
-      InterfaceType type, Class superclass,
-      {required bool isNonNullableByDefault}) {
+      InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type;
     return asSupertypeOf(type, superclass)
         ?.asInterfaceType
@@ -137,8 +136,7 @@ class ClassHierarchyBuilder
       TypeDeclarationType type1,
       TypeDeclarationType type2,
       List<ClassHierarchyNode> supertypeNodes1,
-      List<ClassHierarchyNode> supertypeNodes2,
-      {required bool isNonNullableByDefault}) {
+      List<ClassHierarchyNode> supertypeNodes2) {
     Set<ClassHierarchyNode> supertypeNodesSet1 = supertypeNodes1.toSet();
     List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
 
@@ -149,10 +147,10 @@ class ClassHierarchyBuilder
         continue;
       }
       if (supertypeNodesSet1.contains(node)) {
-        DartType candidate1 = getTypeAsInstanceOf(type1, node.classBuilder.cls,
-            isNonNullableByDefault: isNonNullableByDefault)!;
-        DartType candidate2 = getTypeAsInstanceOf(type2, node.classBuilder.cls,
-            isNonNullableByDefault: isNonNullableByDefault)!;
+        DartType candidate1 =
+            getTypeAsInstanceOf(type1, node.classBuilder.cls)!;
+        DartType candidate2 =
+            getTypeAsInstanceOf(type2, node.classBuilder.cls)!;
         if (candidate1 == candidate2) {
           common.add(node);
         }
@@ -174,8 +172,7 @@ class ClassHierarchyBuilder
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getTypeAsInstanceOf(type1, node.classBuilder.cls,
-                    isNonNullableByDefault: isNonNullableByDefault)!
+        return getTypeAsInstanceOf(type1, node.classBuilder.cls)!
                 .withDeclaredNullability(
                     uniteNullabilities(type1.nullability, type2.nullability))
             as InterfaceType;
@@ -196,26 +193,11 @@ class ClassHierarchyBuilder
 
   @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2,
-      {required bool isNonNullableByDefault}) {
+      InterfaceType type1, InterfaceType type2) {
     if (type1 == type2) return type1;
 
-    // LLUB(Null, List<dynamic>*) works differently for opt-in and opt-out
-    // libraries.  In opt-out libraries the legacy behavior is preserved, so
-    // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-out libraries the
-    // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
-    if (!isNonNullableByDefault) {
-      if (type1 is NullType) {
-        return type2;
-      }
-      if (type2 is NullType) {
-        return type1;
-      }
-    }
-
     return getLegacyLeastUpperBoundFromSupertypeLists(
-        type1, type2, <InterfaceType>[type1], <InterfaceType>[type2],
-        isNonNullableByDefault: isNonNullableByDefault);
+        type1, type2, <InterfaceType>[type1], <InterfaceType>[type2]);
   }
 
   @override
@@ -223,8 +205,7 @@ class ClassHierarchyBuilder
       TypeDeclarationType type1,
       TypeDeclarationType type2,
       List<InterfaceType> supertypes1,
-      List<InterfaceType> supertypes2,
-      {required bool isNonNullableByDefault}) {
+      List<InterfaceType> supertypes2) {
     List<ClassHierarchyNode> supertypeNodes1 = <ClassHierarchyNode>[
       for (InterfaceType supertype in supertypes1)
         ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this)
@@ -235,8 +216,7 @@ class ClassHierarchyBuilder
     ];
 
     return _getLegacyLeastUpperBoundInternal(
-        type1, type2, supertypeNodes1, supertypeNodes2,
-        isNonNullableByDefault: isNonNullableByDefault);
+        type1, type2, supertypeNodes1, supertypeNodes2);
   }
 
   static ClassHierarchyBuilder build(

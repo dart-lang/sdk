@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:yaml/yaml.dart';
@@ -53,7 +54,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     }
     var errors = validatePubspec(
       contents: node,
-      source: pubspecFile.createSource(),
+      source: FileSource(pubspecFile),
       provider: resourceProvider,
       analysisOptions: analysisOptions,
     );

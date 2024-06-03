@@ -10,6 +10,7 @@ import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -255,7 +256,7 @@ class Driver implements CommandLineStarter {
           var sdkVersionConstraint =
               (package is PubPackage) ? package.sdkVersionConstraint : null;
           var errors = analyzeAnalysisOptions(
-            file.createSource(),
+            FileSource(file),
             content,
             analysisDriver.sourceFactory,
             contextRoot.root.path,
@@ -296,7 +297,7 @@ class Driver implements CommandLineStarter {
             if (node is YamlMap) {
               errors.addAll(validatePubspec(
                 contents: node,
-                source: file.createSource(),
+                source: FileSource(file),
                 provider: resourceProvider,
                 analysisOptions: analysisOptions,
               ));
@@ -333,7 +334,8 @@ class Driver implements CommandLineStarter {
             var analysisOptions =
                 analysisDriver.getAnalysisOptionsForFile(file);
             var content = file.readAsStringSync();
-            var validator = ManifestValidator(file.createSource());
+            var source = FileSource(file);
+            var validator = ManifestValidator(source);
             var lineInfo = LineInfo.fromContent(content);
             var errors = validator.validate(
                 content, analysisOptions.chromeOsManifestChecks);

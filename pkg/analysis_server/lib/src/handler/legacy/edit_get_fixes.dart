@@ -18,6 +18,7 @@ import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
@@ -118,7 +119,7 @@ class EditGetFixesHandler extends LegacyHandler
     var sdkVersionConstraint =
         (package is PubPackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
-      optionsFile.createSource(),
+      FileSource(optionsFile),
       content,
       sourceFactory,
       analysisContext.contextRoot.root.path,
@@ -252,7 +253,7 @@ error.errorCode: ${error.errorCode}
     var analysisOptions = fileResult.analysisOptions;
     var errors = validatePubspec(
       contents: node,
-      source: pubspecFile.createSource(),
+      source: FileSource(pubspecFile),
       provider: resourceProvider,
       analysisOptions: analysisOptions,
     );
