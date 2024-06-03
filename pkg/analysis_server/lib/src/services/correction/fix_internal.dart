@@ -1384,6 +1384,9 @@ final _builtInNonLintProducers = {
   ParserErrorCode.FINAL_CONSTRUCTOR: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.FINAL_METHOD: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.GETTER_WITH_PARAMETERS: [
     RemoveParametersInGetterDeclaration.new,
   ],

@@ -186,6 +186,19 @@ class C {
 ''');
   }
 
+  Future<void> test_final_method() async {
+    await resolveTestCode('''
+class C {
+  final m() {}
+}
+''');
+    await assertHasFix('''
+class C {
+  m() {}
+}
+''');
+  }
+
   Future<void> test_finalEnum() async {
     await resolveTestCode(r'''
 final enum E {e}
