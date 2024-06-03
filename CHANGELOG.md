@@ -9,6 +9,8 @@ This is a patch release that:
   `array.new_fixed()` has a constant larger than 10000 (issues [#55872],
   [#55876]).
 
+- Adds support for `--enable-experiment` flag to `dart compile wasm.
+
 [#55767]: https://github.com/dart-lang/sdk/issues/55767
 [#55872]: https://github.com/dart-lang/sdk/issues/55872
 [#55876]: https://github.com/dart-lang/sdk/issues/55876
