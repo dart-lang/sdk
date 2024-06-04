@@ -256,10 +256,7 @@ class _MustBeConst {
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustBeOverridden {
   const _MustBeOverridden();

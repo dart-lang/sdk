@@ -131,7 +131,23 @@ void f(Object? x) {
   }
 
   test_inFor_underscores() async {
+    await assertErrorsInCode(r'''
+main() {
+  for (var _ in [1,2,3]) {
+    for (var __ in [4,5,6]) {
+      // do something
+    }
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 2),
+    ]);
+  }
+
+  test_inFor_underscores_preWildCards() async {
     await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
 main() {
   for (var _ in [1,2,3]) {
     for (var __ in [4,5,6]) {

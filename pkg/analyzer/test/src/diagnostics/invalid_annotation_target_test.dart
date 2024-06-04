@@ -157,19 +157,6 @@ extension E on String {
     ]);
   }
 
-  test_extensionType_instance_method() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-extension type E(int i) {
-  @mustBeOverridden
-  void m() { }
-}
-''', [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 63, 16),
-    ]);
-  }
-
   test_mixin_instance_method() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
+import 'package:linter/src/test_utilities/test_linter.dart';
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
@@ -79,7 +80,7 @@ void defineLinterEngineTests() {
         var visited = false;
         var options =
             LinterOptions(enabledRules: [MockLinter((n) => visited = true)]);
-        DartLinter(options).lintPubspecSource(contents: 'name: foo_bar');
+        TestLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
       test('error collecting', () {
@@ -88,7 +89,7 @@ void defineLinterEngineTests() {
             offset: 0,
             length: 0,
             errorCode: LintCode('MockLint', 'This is a test...'));
-        var linter = DartLinter(LinterOptions(enabledRules: []))
+        var linter = TestLinter(LinterOptions(enabledRules: []))
           ..onError(error);
         expect(linter.errors.contains(error), isTrue);
       });

@@ -382,6 +382,14 @@ extension on int {}
 ''');
   }
 
+  test_issue_52363() async {
+    await _assertCanBeAnalyzed(r'''
+class A {
+  const a = (var b,) = (0,);
+}
+''');
+  }
+
   test_issue_52432() async {
     await _assertCanBeAnalyzed(r'''
 void f() {

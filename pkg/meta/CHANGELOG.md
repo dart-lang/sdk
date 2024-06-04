@@ -3,9 +3,9 @@
 - Require that `@Immutable` is only used on classes, extensions, and mixins.
   Previously, this behavior was custom-wired into the Dart analyzer, but now it
   is specified with TargetKinds.
-- Require that `@mustCallSuper` is only used on overridable members. Previously,
-  this behavior was custom-wired into the Dart analyzer, but now it is
-  specified with TargetKinds.
+- Require that `@mustBeOverridden` and `@mustCallSuper` are only used on
+  overridable members. Previously, this behavior was custom-wired into the Dart
+  analyzer, but now it is specified with TargetKinds.
 
 ## 1.15.0
 

@@ -339,6 +339,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
   List<String> get experiments {
     return [
       Feature.macros.enableString,
+      Feature.wildcard_variables.enableString,
     ];
   }
 
@@ -632,11 +633,4 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
   /// are allowed and when implicit casts are not allowed.
   Future<void> assertNoErrorsWithStrictCasts(String code) async =>
       assertErrorsWithStrictCasts(code, []);
-}
-
-// TODO(pq): revisit, https://dart-review.googlesource.com/c/sdk/+/368880
-mixin WithWildCardVariablesMixin on PubPackageResolutionTest {
-  @override
-  List<String> get experiments =>
-      [...super.experiments, Feature.wildcard_variables.enableString];
 }

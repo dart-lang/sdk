@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -12,9 +10,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart' as file_system;
-import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -27,10 +22,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl;
 import 'package:analyzer/src/lint/analysis.dart';
-import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -42,82 +34,6 @@ import 'package:path/path.dart' as p;
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
-
-typedef Printer = void Function(String msg);
-
-/// Dart source linter, only for package:linter's tools and tests.
-class DartLinter implements AnalysisErrorListener {
-  final errors = <AnalysisError>[];
-
-  final LinterOptions options;
-  final file_system.ResourceProvider _resourceProvider;
-  final Reporter reporter;
-
-  /// The total number of sources that were analyzed.  Only valid after
-  /// [lintFiles] has been called.
-  late int numSourcesAnalyzed;
-
-  DartLinter(
-    this.options, {
-    file_system.ResourceProvider? resourceProvider,
-    this.reporter = const PrintingReporter(),
-  }) : _resourceProvider =
-            resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
-
-  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    List<AnalysisErrorInfo> errors = [];
-    var lintDriver = LintDriver(options, _resourceProvider);
-    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where((f) => isPubspecFile(f)).forEach((path) {
-      numSourcesAnalyzed++;
-      var errorsForFile = lintPubspecSource(
-        contents: path.readAsStringSync(),
-        sourcePath: _resourceProvider.pathContext.normalize(path.absolute.path),
-      );
-      errors.addAll(errorsForFile);
-    });
-    return errors;
-  }
-
-  @visibleForTesting
-  Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {required String contents, String? sourcePath}) {
-    var results = <AnalysisErrorInfo>[];
-
-    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
-
-    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
-
-    for (var lint in options.enabledRules) {
-      var rule = lint;
-      var visitor = rule.getPubspecVisitor();
-      if (visitor != null) {
-        // Analyzer sets reporters; if this file is not being analyzed,
-        // we need to set one ourselves.  (Needless to say, when pubspec
-        // processing gets pushed down, this hack can go away.)
-        if (sourceUrl != null) {
-          var source = createSource(sourceUrl);
-          rule.reporter = ErrorReporter(this, source);
-        }
-        try {
-          spec.accept(visitor);
-        } on Exception catch (e) {
-          reporter.exception(LinterException(e.toString()));
-        }
-        if (rule._locationInfo.isNotEmpty) {
-          results.addAll(rule._locationInfo);
-          rule._locationInfo.clear();
-        }
-      }
-    }
-
-    return results;
-  }
-
-  @override
-  void onError(AnalysisError error) => errors.add(error);
-}
 
 class Group implements Comparable<Group> {
   /// Defined rule groups.
@@ -134,11 +50,16 @@ class Group implements Comparable<Group> {
           'https://dart.dev/guides/language/effective-dart/style'));
 
   /// List of builtin groups in presentation order.
+  @visibleForTesting
   static const Iterable<Group> builtin = [errors, style, pub];
 
   final String name;
+
+  @visibleForTesting
   final bool custom;
+
   final String description;
+
   final Hyperlink? link;
 
   factory Group(String name, {String description = '', Hyperlink? link}) {
@@ -349,11 +270,6 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
   /// messages page.
   final bool hasDocumentation;
 
-  /// Until pubspec analysis is pushed into the analyzer proper, we need to
-  /// do some extra book-keeping to keep track of details that will help us
-  /// constitute AnalysisErrorInfos.
-  final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
-
   /// The state of a lint, and optionally since when the state began.
   final State state;
 
@@ -456,21 +372,15 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
       {List<Object> arguments = const [],
       List<DiagnosticMessage> contextMessages = const [],
       ErrorCode? errorCode}) {
-    var source = node.source;
-    // Cache error and location info for creating AnalysisErrorInfos
-    AnalysisError error = AnalysisError.tmp(
-      source: source,
+    // Cache error and location info for creating `AnalysisErrorInfo`s.
+    var error = AnalysisError.tmp(
+      source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
       errorCode: errorCode ?? lintCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );
-    LineInfo lineInfo = LineInfo.fromContent(source.contents.data);
-
-    _locationInfo.add(AnalysisErrorInfoImpl([error], lineInfo));
-
-    // Then do the reporting
     reporter.reportError(error);
   }
 }
@@ -487,7 +397,7 @@ abstract class NodeLintRule {
 }
 
 class PrintingReporter implements Reporter {
-  final Printer _print;
+  final void Function(String msg) _print;
 
   const PrintingReporter([this._print = print]);
 

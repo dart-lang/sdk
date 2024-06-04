@@ -15,7 +15,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-/// An object that listen for [AnalysisError]s being produced by the analysis
+/// An object that listens for [AnalysisError]s being produced by the analysis
 /// engine.
 abstract class AnalysisErrorListener {
   /// An error listener that ignores errors that are reported to it.

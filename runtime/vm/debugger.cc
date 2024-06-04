@@ -2302,8 +2302,10 @@ void Debugger::FindCompiledFunctions(
         });
 
     Class& cls = Class::Handle(zone);
-    Function& function = Function::Handle(zone);
     Array& functions = Array::Handle(zone);
+    Function& function = Function::Handle(zone);
+    Array& fields = Array::Handle(zone);
+    Field& field = Field::Handle(zone);
 
     const ClassTable& class_table = *isolate_->group()->class_table();
     const intptr_t num_classes = class_table.NumCids();
@@ -2343,6 +2345,28 @@ void Debugger::FindCompiledFunctions(
               if (function.is_debuggable() && function.HasCode()) {
                 code_function_list->Add(function);
               }
+            }
+          }
+        }
+        fields = cls.fields();
+        if (!fields.IsNull()) {
+          const intptr_t num_fields = fields.Length();
+          for (intptr_t pos = 0; pos < num_fields; pos++) {
+            field ^= fields.At(pos);
+            ASSERT(!field.IsNull());
+            if (field.Script() != script.ptr()) {
+              continue;
+            }
+            if (!field.has_nontrivial_initializer()) {
+              continue;
+            }
+            function = field.EnsureInitializerFunction();
+            ASSERT(!function.IsNull());
+            if (function.is_debuggable() && function.HasCode() &&
+                function.token_pos() == start_pos &&
+                function.end_token_pos() == end_pos &&
+                function.script() == script.ptr()) {
+              code_function_list->Add(function);
             }
           }
         }
@@ -2476,11 +2500,8 @@ bool Debugger::FindBestFit(const Script& script,
           }
         }
       }
-      // If none of the functions in the class contain token_pos, then we
-      // check if it falls within a function literal initializer of a field
-      // that has not been initialized yet. If the field (and hence the
-      // function literal initializer) has already been initialized, then
-      // it would have been found above in the object store as a closure.
+      // If none of the functions in the class contain token_pos, then we check
+      // if it falls within a function literal initializer of a field.
       fields = cls.fields();
       if (!fields.IsNull()) {
         const intptr_t num_fields = fields.Length();
@@ -2501,6 +2522,7 @@ bool Debugger::FindBestFit(const Script& script,
           end = field.end_token_pos();
           if (token_pos.IsWithin(start, end) ||
               start.IsWithin(token_pos, last_token_pos)) {
+            *best_fit = field.InitializerFunction();
             return true;
           }
         }
