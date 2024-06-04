@@ -68,7 +68,10 @@ class UseSuperParameters extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.isEnabled(Feature.super_parameters)) return;
+    if (!context.libraryElement!.featureSet
+        .isEnabled(Feature.super_parameters)) {
+      return;
+    }
 
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);

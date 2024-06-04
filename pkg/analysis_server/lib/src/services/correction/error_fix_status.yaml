@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 351 "needsFix"
-# - 400  "hasFix"
+# - 348 "needsFix"
+# - 403  "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2865,13 +2865,9 @@ ParserErrorCode.FINAL_CONSTRUCTOR:
 ParserErrorCode.FINAL_ENUM:
   status: hasFix
 ParserErrorCode.FINAL_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_MIXIN_CLASS:
   status: needsFix
   notes: |-
@@ -2919,9 +2915,7 @@ ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
 ParserErrorCode.INTERFACE_ENUM:
   status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `interface` keyword.
+  status: hasFix
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
   status: needsFix
   notes: |-

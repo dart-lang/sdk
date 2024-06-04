@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:test/test.dart';
@@ -35,7 +34,7 @@ var tests = <IsolateTest>[
     late StreamSubscription stdoutSub;
     bool started = false;
     stdoutSub = service.onStdoutEvent.listen((event) async {
-      final output = utf8.decode(base64Decode(event.bytes!));
+      final output = decodeBase64(event.bytes!);
       // DDS buffers log history and sends each entry as an event upon the
       // initial stream subscription. Wait for the initial sentinel before
       // executing test logic.

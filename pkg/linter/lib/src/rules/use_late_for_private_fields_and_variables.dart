@@ -76,20 +76,39 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
+    registry.afterLibrary(this, () => visitor.afterLibrary());
   }
 }
 
 class _Visitor extends RecursiveAstVisitor<void> {
-  static final lateables =
-      <CompilationUnitElement, List<VariableDeclaration>>{};
+  final lateables = <CompilationUnitElement, List<VariableDeclaration>>{};
 
-  static final nullableAccess = <CompilationUnitElement, Set<Element>>{};
+  final nullableAccess = <Element>{};
+
   final LintRule rule;
-
   final LinterContext context;
 
-  CompilationUnitElement? currentUnit;
+  /// The "current" [CompilationUnitElement], which is set by
+  /// [visitCompilationUnit].
+  late CompilationUnitElement currentUnit;
+
   _Visitor(this.rule, this.context);
+
+  void afterLibrary() {
+    for (var contextUnit in context.allUnits) {
+      var unit = contextUnit.unit.declaredElement;
+      var variables = lateables[unit];
+      if (variables == null) continue;
+      for (var variable in variables) {
+        if (!nullableAccess.contains(variable.declaredElement)) {
+          var contextUnit = context.allUnits
+              .firstWhereOrNull((u) => u.unit.declaredElement == unit);
+          if (contextUnit == null) continue;
+          contextUnit.errorReporter.atNode(variable, rule.lintCode);
+        }
+      }
+    }
+  }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -104,7 +123,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
           context.typeSystem.isNonNullable(rhsType)) {
         // This is OK; non-null access.
       } else {
-        nullableAccess[currentUnit]?.add(element);
+        nullableAccess.add(element);
       }
     }
     super.visitAssignmentExpression(node);
@@ -125,30 +144,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     var declaredElement = node.declaredElement;
-    if (declaredElement == null) {
-      return;
-    }
-    lateables.putIfAbsent(declaredElement, () => []);
-    nullableAccess.putIfAbsent(declaredElement, () => {});
+    if (declaredElement == null) return;
     currentUnit = declaredElement;
 
     super.visitCompilationUnit(node);
-
-    var unitsInContext =
-        context.allUnits.map((e) => e.unit.declaredElement).toSet();
-    var libraryUnitsInContext =
-        declaredElement.library.units.where(unitsInContext.contains).toSet();
-    var areAllLibraryUnitsVisited =
-        libraryUnitsInContext.every(lateables.containsKey);
-    if (areAllLibraryUnitsVisited) {
-      _checkAccess(libraryUnitsInContext);
-
-      // Clean up.
-      for (var unit in libraryUnitsInContext) {
-        lateables.remove(unit);
-        nullableAccess.remove(unit);
-      }
-    }
   }
 
   @override
@@ -209,34 +208,15 @@ class _Visitor extends RecursiveAstVisitor<void> {
     super.visitTopLevelVariableDeclaration(node);
   }
 
-  void _checkAccess(Iterable<CompilationUnitElement> units) {
-    var allNullableAccess =
-        units.expand((unit) => nullableAccess[unit] ?? const {}).toSet();
-    for (var unit in units) {
-      for (var variable in lateables[unit] ?? const <VariableDeclaration>[]) {
-        if (!allNullableAccess.contains(variable.declaredElement)) {
-          var contextUnit = context.allUnits
-              .firstWhereOrNull((u) => u.unit.declaredElement == unit);
-          if (contextUnit == null) continue;
-          contextUnit.errorReporter.atNode(variable, rule.lintCode);
-        }
-      }
-    }
-  }
-
   void _visit(VariableDeclaration variable) {
-    if (variable.isLate) {
-      return;
-    }
-    if (variable.isSynthetic) {
-      return;
-    }
+    if (variable.isLate) return;
+    if (variable.isSynthetic) return;
     var declaredElement = variable.declaredElement;
     if (declaredElement == null ||
         context.typeSystem.isNonNullable(declaredElement.type)) {
       return;
     }
-    lateables[currentUnit]?.add(variable);
+    lateables.putIfAbsent(currentUnit, () => []).add(variable);
   }
 
   /// Checks whether [expression], which must be an [Identifier] or
@@ -244,20 +224,20 @@ class _Visitor extends RecursiveAstVisitor<void> {
   void _visitIdentifierOrPropertyAccess(
       Expression expression, Element? canonicalElement) {
     assert(expression is Identifier || expression is PropertyAccess);
-    if (canonicalElement != null) {
-      var parent = expression.parent;
-      if (parent is Expression) {
-        parent = parent.unParenthesized;
-      }
-      if (expression is SimpleIdentifier && expression.inDeclarationContext()) {
-        // This is OK.
-      } else if (parent is PostfixExpression &&
-          parent.operand == expression &&
-          parent.operator.type == TokenType.BANG) {
-        // This is OK; non-null access.
-      } else {
-        nullableAccess[currentUnit]?.add(canonicalElement);
-      }
+    if (canonicalElement == null) return;
+
+    var parent = expression.parent;
+    if (parent is Expression) {
+      parent = parent.unParenthesized;
+    }
+    if (expression is SimpleIdentifier && expression.inDeclarationContext()) {
+      // This is OK.
+    } else if (parent is PostfixExpression &&
+        parent.operand == expression &&
+        parent.operator.type == TokenType.BANG) {
+      // This is OK; non-null access.
+    } else {
+      nullableAccess.add(canonicalElement);
     }
   }
 }

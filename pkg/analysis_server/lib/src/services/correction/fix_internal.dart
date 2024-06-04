@@ -1297,6 +1297,7 @@ final _builtInNonLintProducers = {
   ],
   CompileTimeErrorCode.UNDEFINED_SETTER: [
     ChangeTo.getterOrSetter,
+    CreateExtensionSetter.new,
     CreateField.new,
     CreateSetter.new,
   ],
@@ -1384,8 +1385,17 @@ final _builtInNonLintProducers = {
   ParserErrorCode.FINAL_CONSTRUCTOR: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.FINAL_METHOD: [
+    RemoveExtraModifier.new,
+  ],
+  ParserErrorCode.FINAL_MIXIN: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.GETTER_WITH_PARAMETERS: [
     RemoveParametersInGetterDeclaration.new,
+  ],
+  ParserErrorCode.INTERFACE_MIXIN: [
+    RemoveExtraModifier.new,
   ],
   ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
     AddConst.new,

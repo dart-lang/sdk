@@ -57,8 +57,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = context.currentUnit.content;
-    if (content.isNotEmpty &&
+    var content = node.declaredElement?.source.contents.data;
+    if (content != null &&
+        content.isNotEmpty &&
+        // TODO(srawlins): Re-implement this check without iterating over
+        // various lists of strings.
         (!content.endsWithNewline || content.endsWithMultipleNewlines)) {
       rule.reportLintForOffset(content.trimRight().length, 1);
     }

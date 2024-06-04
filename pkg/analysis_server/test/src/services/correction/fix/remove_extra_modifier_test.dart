@@ -186,12 +186,43 @@ class C {
 ''');
   }
 
+  Future<void> test_final_method() async {
+    await resolveTestCode('''
+class C {
+  final m() {}
+}
+''');
+    await assertHasFix('''
+class C {
+  m() {}
+}
+''');
+  }
+
   Future<void> test_finalEnum() async {
     await resolveTestCode(r'''
 final enum E {e}
 ''');
     await assertHasFix('''
 enum E {e}
+''');
+  }
+
+  Future<void> test_finalMixin() async {
+    await resolveTestCode('''
+final mixin M {}
+''');
+    await assertHasFix('''
+mixin M {}
+''');
+  }
+
+  Future<void> test_interfaceMixin() async {
+    await resolveTestCode('''
+interface mixin M {}
+''');
+    await assertHasFix('''
+mixin M {}
 ''');
   }
 

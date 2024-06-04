@@ -66,7 +66,7 @@ class UnnecessaryLibraryName extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!context.currentUnit.unit.featureSet
+    if (!context.libraryElement!.featureSet
         .isEnabled(Feature.unnamedLibraries)) {
       return;
     }

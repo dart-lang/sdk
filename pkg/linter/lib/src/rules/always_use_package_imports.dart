@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 
 const _desc = r'Avoid relative imports for files in `lib/`.';
 
@@ -68,10 +67,8 @@ class AlwaysUsePackageImports extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     // Relative paths from outside of the lib folder are handled by the
-    // `avoid_relative_lib_imports` lint.
-    if (!isInLibDir(context.currentUnit.unit, context.package)) {
-      return;
-    }
+    // `avoid_relative_lib_imports` lint rule.
+    if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this);
     registry.addImportDirective(this, visitor);

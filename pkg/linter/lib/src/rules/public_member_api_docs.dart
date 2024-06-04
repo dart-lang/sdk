@@ -87,9 +87,7 @@ class PublicMemberApiDocs extends LintRule {
     if (package != null && !package.canHavePublicApi) {
       return;
     }
-    if (!isInLibDir(context.currentUnit.unit, context.package)) {
-      return;
-    }
+    if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);

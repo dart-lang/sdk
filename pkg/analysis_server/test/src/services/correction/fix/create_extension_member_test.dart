@@ -12,6 +12,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateExtensionGetterTest);
     defineReflectiveTests(CreateExtensionMethodTest);
+    defineReflectiveTests(CreateExtensionSetterTest);
   });
 }
 
@@ -484,6 +485,196 @@ void f(List<int> a) {
 
 extension on List<int> {
   void test() {}
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateExtensionSetterTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_EXTENSION_SETTER;
+
+  Future<void> test_existingExtension() async {
+    await resolveTestCode('''
+void f() {
+  ''.test = 0;
+}
+
+extension on String {}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test = 0;
+}
+
+extension on String {
+  set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_existingExtension_generic_matching() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test = 0;
+}
+
+extension E<T> on Iterable<T> {}
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test = 0;
+}
+
+extension E<T> on Iterable<T> {
+  set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_existingExtension_generic_notMatching() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test = 0;
+}
+
+extension E<K, V> on Map<K, V> {}
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test = 0;
+}
+
+extension on List<int> {
+  set test(int test) {}
+}
+
+extension E<K, V> on Map<K, V> {}
+''');
+  }
+
+  Future<void> test_existingExtension_hasMethod() async {
+    await resolveTestCode('''
+void f() {
+  ''.test = 0;
+}
+
+extension E on String {
+  // ignore:unused_element
+  void foo() {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test = 0;
+}
+
+extension E on String {
+  set test(int test) {}
+
+  // ignore:unused_element
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_existingExtension_notGeneric_matching() async {
+    await resolveTestCode('''
+void f() {
+  ''.test = 0;
+}
+
+extension on String {}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test = 0;
+}
+
+extension on String {
+  set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_existingExtension_notGeneric_notMatching() async {
+    await resolveTestCode('''
+void f() {
+  ''.test = 0;
+}
+
+extension on int {}
+''');
+    await assertHasFix('''
+void f() {
+  ''.test = 0;
+}
+
+extension on String {
+  set test(int test) {}
+}
+
+extension on int {}
+''');
+  }
+
+  Future<void> test_parent_nothing() async {
+    await resolveTestCode('''
+void f() {
+  test = 0;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_parent_prefixedIdentifier() async {
+    await resolveTestCode('''
+void f(String a) {
+  a.test = 0;
+}
+''');
+    await assertHasFix('''
+void f(String a) {
+  a.test = 0;
+}
+
+extension on String {
+  set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_parent_propertyAccess_cascade() async {
+    await resolveTestCode('''
+void f(String a) {
+  a..test = 0;
+}
+''');
+    await assertHasFix('''
+void f(String a) {
+  a..test = 0;
+}
+
+extension on String {
+  set test(int test) {}
+}
+''');
+  }
+
+  Future<void> test_targetType_hasTypeArguments() async {
+    await resolveTestCode('''
+void f(List<int> a) {
+  a.test = 0;
+}
+''');
+    await assertHasFix('''
+void f(List<int> a) {
+  a.test = 0;
+}
+
+extension on List<int> {
+  set test(int test) {}
 }
 ''');
   }

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 import '../extensions.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
@@ -66,9 +65,7 @@ class AvoidRenamingMethodParameters extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    if (!isInLibDir(context.currentUnit.unit, context.package)) {
-      return;
-    }
+    if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);

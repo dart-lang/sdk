@@ -52,7 +52,7 @@ class DocumentIgnores extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -60,13 +60,11 @@ class DocumentIgnores extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final String content;
-
-  _Visitor(this.rule, LinterContext context)
-      : content = context.currentUnit.content;
+  _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
+    var content = node.declaredElement?.source.contents.data;
     for (var comment in node.ignoreComments) {
       var ignoredElements = comment.ignoredElements;
       if (ignoredElements.isEmpty) {
@@ -84,7 +82,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         // first line.
         var previousLineOffset =
             node.lineInfo.getOffsetOfLine(ignoreCommentLine - 2);
-        if (_startsWithEndOfLineComment(previousLineOffset)) {
+        if (content != null &&
+            _startsWithEndOfLineComment(content, previousLineOffset)) {
           // A preceding comment, which may be attached to a different token,
           // documents this/these ignore(s). For example in:
           //
@@ -102,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Returns whether [content] at [offset_] represents starts with optional
   /// whitespace and then an end-of-line comment (two slashes).
-  bool _startsWithEndOfLineComment(int offset_) {
+  bool _startsWithEndOfLineComment(String content, int offset_) {
     var offset = offset_;
     var length = content.length;
     while (offset < length) {

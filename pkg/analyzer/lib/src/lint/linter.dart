@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -184,9 +183,14 @@ class LinterConstantEvaluationResult {
 abstract class LinterContext {
   List<LinterContextUnit> get allUnits;
 
-  LinterContextUnit get currentUnit;
+  LinterContextUnit get definingUnit;
 
   InheritanceManager3 get inheritanceManager;
+
+  /// Whether the [definingUnit] is in a package's top-level `lib` directory.
+  bool get isInLibDir;
+
+  LibraryElement? get libraryElement;
 
   WorkspacePackage? get package;
 
@@ -194,8 +198,12 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Returns whether the [feature] is enabled in the library being linted.
-  bool isEnabled(Feature feature);
+  static bool _isInLibDir(String? path, WorkspacePackage? package) {
+    if (package == null) return false;
+    if (path == null) return false;
+    var libDir = p.join(package.root, 'lib');
+    return p.isWithin(libDir, path);
+  }
 }
 
 class LinterContextImpl implements LinterContext {
@@ -203,7 +211,7 @@ class LinterContextImpl implements LinterContext {
   final List<LinterContextUnit> allUnits;
 
   @override
-  final LinterContextUnit currentUnit;
+  final LinterContextUnit definingUnit;
 
   @override
   final WorkspacePackage? package;
@@ -218,7 +226,7 @@ class LinterContextImpl implements LinterContext {
 
   LinterContextImpl(
     this.allUnits,
-    this.currentUnit,
+    this.definingUnit,
     this.typeProvider,
     this.typeSystem,
     this.inheritanceManager,
@@ -226,10 +234,12 @@ class LinterContextImpl implements LinterContext {
   );
 
   @override
-  bool isEnabled(Feature feature) {
-    var unitElement = currentUnit.unit.declaredElement!;
-    return unitElement.library.featureSet.isEnabled(feature);
-  }
+  bool get isInLibDir => LinterContext._isInLibDir(
+      definingUnit.unit.declaredElement?.source.fullName, package);
+
+  @override
+  LibraryElement get libraryElement =>
+      definingUnit.unit.declaredElement!.library;
 }
 
 class LinterContextParsedImpl implements LinterContext {
@@ -237,7 +247,7 @@ class LinterContextParsedImpl implements LinterContext {
   final List<LinterContextUnit> allUnits;
 
   @override
-  final LinterContextUnit currentUnit;
+  final LinterContextUnit definingUnit;
 
   @override
   final WorkspacePackage? package = null;
@@ -247,8 +257,18 @@ class LinterContextParsedImpl implements LinterContext {
 
   LinterContextParsedImpl(
     this.allUnits,
-    this.currentUnit,
+    this.definingUnit,
   );
+
+  @override
+  bool get isInLibDir {
+    return LinterContext._isInLibDir(
+        definingUnit.unit.declaredElement?.source.fullName, package);
+  }
+
+  @override
+  LibraryElement get libraryElement =>
+      throw UnsupportedError('LinterContext with parsed results');
 
   @override
   TypeProvider get typeProvider =>
@@ -256,10 +276,6 @@ class LinterContextParsedImpl implements LinterContext {
 
   @override
   TypeSystem get typeSystem =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  bool isEnabled(Feature feature) =>
       throw UnsupportedError('LinterContext with parsed results');
 }
 

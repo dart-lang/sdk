@@ -23,6 +23,10 @@ class LinterVisitor implements AstVisitor<void> {
       : exceptionHandler = exceptionHandler ??
             LinterExceptionHandler(propagateExceptions: true).logException;
 
+  void afterLibrary() {
+    _runAfterLibrarySubscriptions(registry._afterLibrary);
+  }
+
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     _runSubscriptions(node, registry._forAdjacentStrings);
@@ -1073,10 +1077,19 @@ class LinterVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
+  void _runAfterLibrarySubscriptions(
+      List<_AfterLibrarySubscription> subscriptions) {
+    for (var subscription in subscriptions) {
+      var timer = subscription.timer;
+      timer?.start();
+      subscription.callback();
+      timer?.stop();
+    }
+  }
+
   void _runSubscriptions<T extends AstNode>(
       T node, List<_Subscription<T>> subscriptions) {
-    for (int i = 0; i < subscriptions.length; i++) {
-      var subscription = subscriptions[i];
+    for (var subscription in subscriptions) {
       var timer = subscription.timer;
       timer?.start();
       try {
@@ -1095,6 +1108,7 @@ class LinterVisitor implements AstVisitor<void> {
 /// The container to register visitors for separate AST node types.
 class NodeLintRegistry {
   final bool enableTiming;
+  final List<_AfterLibrarySubscription> _afterLibrary = [];
   final List<_Subscription<AdjacentStrings>> _forAdjacentStrings = [];
   final List<_Subscription<Annotation>> _forAnnotation = [];
   final List<_Subscription<ArgumentList>> _forArgumentList = [];
@@ -2067,6 +2081,11 @@ class NodeLintRegistry {
     _forYieldStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void afterLibrary(LintRule linter, void Function() callback) {
+    _afterLibrary
+        .add(_AfterLibrarySubscription(linter, callback, _getTimer(linter)));
+  }
+
   /// Get the timer associated with the given [linter].
   Stopwatch? _getTimer(LintRule linter) {
     if (enableTiming) {
@@ -2075,6 +2094,14 @@ class NodeLintRegistry {
       return null;
     }
   }
+}
+
+class _AfterLibrarySubscription {
+  final LintRule linter;
+  final void Function() callback;
+  final Stopwatch? timer;
+
+  _AfterLibrarySubscription(this.linter, this.callback, this.timer);
 }
 
 /// A single subscription for a node type, by the specified [linter].

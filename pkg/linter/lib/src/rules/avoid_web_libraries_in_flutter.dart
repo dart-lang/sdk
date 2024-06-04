@@ -98,7 +98,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
       if (hasFlutter == null) {
         // Clear the previous cache.
         clearCache();
-        var pubspecFile = locatePubspecFile(context.currentUnit.unit);
+        var pubspecFile = locatePubspecFile(context.definingUnit.unit);
         hasFlutter = hasFlutterDep(pubspecFile);
         _rootHasFlutterCache[root] = hasFlutter;
       }
