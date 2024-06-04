@@ -14,10 +14,16 @@ This is a patch release that:
 - Fixes an issue in dart2wasm compiler that can result in incorrect nullability
   of type parameter (see [#55741])
 
+- Disallows `dart:ffi` imports in user code in dart2wasm (e.g. issue [#53910]) as
+  dart2wasm's currently only supports a small subset of `dart:ffi` (tracking
+  issue [#46690]).
+
 [#55767]: https://github.com/dart-lang/sdk/issues/55767
 [#55872]: https://github.com/dart-lang/sdk/issues/55872
 [#55876]: https://github.com/dart-lang/sdk/issues/55876
 [#55741]: https://github.com/dart-lang/sdk/issues/55741
+[#55733]: https://github.com/dart-lang/sdk/issues/53910
+[#46690]: https://github.com/dart-lang/sdk/issues/46690
 
 ## 3.4.2 - 2024-05-29
 

@@ -188,6 +188,8 @@ CyclicRedirectingFactoryConstructors/part_wrapped_script: Fail # Error is report
 CyclicRedirectingFactoryConstructors/script: Fail # Error is reported for each factory involved in the cycle.
 CyclicRepresentationDependency/analyzerCode: Fail
 CyclicTypedef/example: Fail
+DartFfiLibraryInDart2Wasm/analyzerCode: Fail
+DartFfiLibraryInDart2Wasm/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredExtensionImport/analyzerCode: Fail
 DeferredExtensionImport/part_wrapped_script: Fail

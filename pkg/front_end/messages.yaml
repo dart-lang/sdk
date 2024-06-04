@@ -7528,3 +7528,6 @@ NoMacroApplicationTarget:
 MacroDefinitionApplicationSameLibraryCycle:
   problemMessage: "The macro '#name' can't be applied in the same library cycle where it is defined."
   correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+
+DartFfiLibraryInDart2Wasm:
+  problemMessage: "'dart:ffi' can't be imported when compiling to Wasm."
