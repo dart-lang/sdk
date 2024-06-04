@@ -140,6 +140,15 @@ mixin class A {}
 ''');
   }
 
+  Future<void> test_constMethod() async {
+    await resolveTestCode('''
+const void m() {}
+''');
+    await assertHasFix('''
+void m() {}
+''');
+  }
+
   Future<void> test_covariantTopLevelDeclaration_class() async {
     await resolveTestCode(r'''
 covariant class C {}
