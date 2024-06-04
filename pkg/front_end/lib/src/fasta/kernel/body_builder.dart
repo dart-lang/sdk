@@ -7915,11 +7915,11 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
     debugEvent("beginSwitchCase");
     int count = labelCount + expressionCount;
     assert(checkState(
-        firstToken,
+        beginToken,
         repeatedKind(
             unionOfKinds([
               ValueKinds.Label,
@@ -7986,7 +7986,7 @@ class BodyBuilder extends StackListenerImpl
           }
         } else {
           scope.declareLabel(
-              labelName, createGotoTarget(firstToken.charOffset));
+              labelName, createGotoTarget(beginToken.charOffset));
         }
       }
     }
@@ -8086,7 +8086,7 @@ class BodyBuilder extends StackListenerImpl
     createAndEnterLocalScope(
         debugName: "switch-case-body", kind: ScopeKind.switchCaseBody);
 
-    assert(checkState(firstToken, [
+    assert(checkState(beginToken, [
       ValueKinds.Scope,
       ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.VariableDeclarationListOrNull,
@@ -8168,10 +8168,10 @@ class BodyBuilder extends StackListenerImpl
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     debugEvent("SwitchCase");
-    assert(checkState(firstToken, [
+    assert(checkState(beginToken, [
       ...repeatedKind(ValueKinds.Statement, statementCount),
       ValueKinds.Scope,
       ValueKinds.VariableDeclarationListOrNull,
@@ -8186,7 +8186,7 @@ class BodyBuilder extends StackListenerImpl
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
-    Statement block = popBlock(statementCount, firstToken, null);
+    Statement block = popBlock(statementCount, beginToken, null);
     exitLocalScope(expectedScopeKinds: const [ScopeKind.switchCaseBody]);
     List<VariableDeclaration>? jointPatternVariables =
         pop() as List<VariableDeclaration>?;
@@ -8307,7 +8307,7 @@ class BodyBuilder extends StackListenerImpl
         }
       }
       push(forest.createPatternSwitchCase(
-          firstToken.charOffset, caseOffsets, patternGuards, block,
+          beginToken.charOffset, caseOffsets, patternGuards, block,
           isDefault: defaultKeyword != null,
           hasLabel: labels != null,
           jointVariables: usedJointPatternVariables ?? [],
@@ -8326,12 +8326,12 @@ class BodyBuilder extends StackListenerImpl
       push(new SwitchCaseImpl(
           caseOffsets, expressions, expressionOffsets, block,
           isDefault: defaultKeyword != null, hasLabel: labels != null)
-        ..fileOffset = firstToken.charOffset);
+        ..fileOffset = beginToken.charOffset);
     }
     push(labels ?? NullValues.Labels);
     createAndEnterLocalScope(
         debugName: "case-head", kind: ScopeKind.caseHead); // Sentinel scope.
-    assert(checkState(firstToken, [
+    assert(checkState(beginToken, [
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.SwitchCase,

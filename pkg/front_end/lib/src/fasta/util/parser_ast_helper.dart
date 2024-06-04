@@ -2888,11 +2888,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
     SwitchCaseBegin data = new SwitchCaseBegin(ParserAstType.BEGIN,
         labelCount: labelCount,
         expressionCount: expressionCount,
-        firstToken: firstToken);
+        beginToken: beginToken);
     seen(data);
   }
 
@@ -2903,7 +2903,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     SwitchCaseEnd data = new SwitchCaseEnd(ParserAstType.END,
         labelCount: labelCount,
@@ -2911,7 +2911,7 @@ abstract class AbstractParserAstListener implements Listener {
         defaultKeyword: defaultKeyword,
         colonAfterDefault: colonAfterDefault,
         statementCount: statementCount,
-        firstToken: firstToken,
+        beginToken: beginToken,
         endToken: endToken);
     seen(data);
   }
@@ -9420,32 +9420,35 @@ class AugmentSuperExpressionHandle extends ParserAstNode {
 class SwitchCaseBegin extends ParserAstNode {
   final int labelCount;
   final int expressionCount;
-  final Token firstToken;
+  final Token beginToken;
 
   SwitchCaseBegin(ParserAstType type,
       {required this.labelCount,
       required this.expressionCount,
-      required this.firstToken})
+      required this.beginToken})
       : super("SwitchCase", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
         "expressionCount": expressionCount,
-        "firstToken": firstToken,
+        "beginToken": beginToken,
       };
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchCaseBegin(this);
 }
 
-class SwitchCaseEnd extends ParserAstNode {
+class SwitchCaseEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final int labelCount;
   final int expressionCount;
   final Token? defaultKeyword;
   final Token? colonAfterDefault;
   final int statementCount;
-  final Token firstToken;
+  @override
+  final Token beginToken;
+  @override
   final Token endToken;
 
   SwitchCaseEnd(ParserAstType type,
@@ -9454,7 +9457,7 @@ class SwitchCaseEnd extends ParserAstNode {
       this.defaultKeyword,
       this.colonAfterDefault,
       required this.statementCount,
-      required this.firstToken,
+      required this.beginToken,
       required this.endToken})
       : super("SwitchCase", type);
 
@@ -9465,7 +9468,7 @@ class SwitchCaseEnd extends ParserAstNode {
         "defaultKeyword": defaultKeyword,
         "colonAfterDefault": colonAfterDefault,
         "statementCount": statementCount,
-        "firstToken": firstToken,
+        "beginToken": beginToken,
         "endToken": endToken,
       };
 

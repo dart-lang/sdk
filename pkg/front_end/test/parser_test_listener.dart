@@ -3058,10 +3058,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-    seen(firstToken);
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
+    seen(beginToken);
     doPrint(
-        'beginSwitchCase(' '$labelCount, ' '$expressionCount, ' '$firstToken)');
+        'beginSwitchCase(' '$labelCount, ' '$expressionCount, ' '$beginToken)');
     indent++;
   }
 
@@ -3072,12 +3072,12 @@ class ParserTestListener implements Listener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     indent--;
     seen(defaultKeyword);
     seen(colonAfterDefault);
-    seen(firstToken);
+    seen(beginToken);
     seen(endToken);
     doPrint('endSwitchCase('
         '$labelCount, '
@@ -3085,7 +3085,7 @@ class ParserTestListener implements Listener {
         '$defaultKeyword, '
         '$colonAfterDefault, '
         '$statementCount, '
-        '$firstToken, '
+        '$beginToken, '
         '$endToken)');
   }
 

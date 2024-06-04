@@ -3137,7 +3137,7 @@ class AstBuilder extends StackListener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     assert(optionalOrNull('default', defaultKeyword));
     assert(defaultKeyword == null

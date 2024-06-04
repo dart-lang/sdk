@@ -2164,7 +2164,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("AugmentSuperExpression");
   }
 
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {}
 
   void endSwitchCase(
       int labelCount,
@@ -2172,7 +2172,7 @@ class Listener implements UnescapeErrorListener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     logEvent("SwitchCase");
   }

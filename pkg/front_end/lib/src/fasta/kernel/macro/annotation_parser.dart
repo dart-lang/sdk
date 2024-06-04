@@ -930,7 +930,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
     _unsupported();
   }
 
@@ -1549,7 +1549,7 @@ class _MacroListener implements Listener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     _unsupported();
   }

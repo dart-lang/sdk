@@ -56,22 +56,46 @@ mixin KernelNodes {
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
+  late final Field typeIsDeclaredNullableField =
+      index.getField("dart:core", "_Type", "isDeclaredNullable");
   late final InterfaceType typeType =
       InterfaceType(typeClass, Nullability.nonNullable);
   late final Class abstractFunctionTypeClass =
       index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
+  late final Field functionTypeTypeParameterOffsetField =
+      index.getField("dart:core", "_FunctionType", "typeParameterOffset");
+  late final Field functionTypeTypeParameterBoundsField =
+      index.getField("dart:core", "_FunctionType", "typeParameterBounds");
   late final Field functionTypeTypeParameterDefaultsField =
       index.getField("dart:core", "_FunctionType", "typeParameterDefaults");
+  late final Field functionTypeReturnTypeField =
+      index.getField("dart:core", "_FunctionType", "returnType");
+  late final Field functionTypePositionalParametersField =
+      index.getField("dart:core", "_FunctionType", "positionalParameters");
+  late final Field functionTypeRequiredParameterCountField =
+      index.getField("dart:core", "_FunctionType", "requiredParameterCount");
+  late final Field functionTypeTypeParameterNamedParamsField =
+      index.getField("dart:core", "_FunctionType", "namedParameters");
   late final Class functionTypeParameterTypeClass =
       index.getClass("dart:core", "_FunctionTypeParameterType");
+  late final Field functionTypeParameterTypeIndexField =
+      index.getField("dart:core", "_FunctionTypeParameterType", "index");
   late final Class futureOrTypeClass =
       index.getClass("dart:core", "_FutureOrType");
+  late final Field futureOrTypeTypeArgumentField =
+      index.getField("dart:core", "_FutureOrType", "typeArgument");
   late final Class interfaceTypeClass =
       index.getClass("dart:core", "_InterfaceType");
+  late final Field interfaceTypeClassIdField =
+      index.getField("dart:core", "_InterfaceType", "classId");
+  late final Field interfaceTypeTypeArguments =
+      index.getField("dart:core", "_InterfaceType", "typeArguments");
   late final Class interfaceTypeParameterTypeClass =
       index.getClass("dart:core", "_InterfaceTypeParameterType");
+  late final Field interfaceTypeParameterTypeEnvironmentIndexField = index
+      .getField("dart:core", "_InterfaceTypeParameterType", "environmentIndex");
   late final Class namedParameterClass =
       index.getClass("dart:core", "_NamedParameter");
   late final Field namedParameterNameField =
@@ -84,12 +108,16 @@ mixin KernelNodes {
       InterfaceType(namedParameterClass, Nullability.nonNullable);
   late final Class bottomTypeClass = index.getClass("dart:core", "_BottomType");
   late final Class topTypeClass = index.getClass("dart:core", "_TopType");
+  late final Field topTypeKindField =
+      index.getField("dart:core", "_TopType", "_kind");
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
-  late final Class typeUniverseClass =
-      index.getClass("dart:core", "_TypeUniverse");
   late final Class abstractRecordTypeClass =
       index.getClass("dart:core", "_AbstractRecordType");
   late final Class recordTypeClass = index.getClass("dart:core", "_RecordType");
+  late final Field recordTypeFieldTypesField =
+      index.getField("dart:core", "_RecordType", "fieldTypes");
+  late final Field recordTypeNamesField =
+      index.getField("dart:core", "_RecordType", "names");
 
   // dart:core sync* support classes
   late final Class suspendStateClass =

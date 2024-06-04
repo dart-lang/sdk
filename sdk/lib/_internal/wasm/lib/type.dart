@@ -272,8 +272,7 @@ class _InterfaceType extends _Type {
     // We don't need to check whether the object is of interface type, since
     // non-interface class IDs ([Object], closures, records) will be rejected by
     // the interface type subtype check.
-    return _TypeUniverse.isInterfaceSubtypeInner(
-        ClassID.getID(o), Object._getTypeArguments(o), null, this, null);
+    return _TypeUniverse.isObjectInterfaceSubtype(o, this);
   }
 
   @override
@@ -822,17 +821,46 @@ abstract class _TypeUniverse {
 
   static bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
       _InterfaceType t, _Environment? tEnv) {
-    return isInterfaceSubtypeInner(s.classId, s.typeArguments, sEnv, t, tEnv);
+    return isInterfaceSubtypeWithArguments(
+        s.classId, s.typeArguments, sEnv, t.classId, t.typeArguments, tEnv);
   }
 
-  static bool isInterfaceSubtypeInner(int sId, WasmArray<_Type> sTypeArguments,
-      _Environment? sEnv, _InterfaceType t, _Environment? tEnv) {
-    int tId = t.classId;
+  @pragma('wasm:prefer-inline')
+  static bool isObjectInterfaceSubtype(Object o, _InterfaceType t) {
+    final int sId = ClassID.getID(o);
+    final int tId = t.classId;
+    final tTypeArguments = t.typeArguments;
 
+    // If the type we check against is not generic, then the test can be
+    // performed without looking at the object's type arguments.
+    if (tTypeArguments.isEmpty) {
+      return _TypeUniverse.isInterfaceSubtypeWithoutArguments(sId, tId);
+    }
+    return _TypeUniverse.isInterfaceSubtypeWithArguments(
+        sId, Object._getTypeArguments(o), null, tId, tTypeArguments, null);
+  }
+
+  @pragma('wasm:prefer-inline')
+  static bool isInterfaceSubtypeWithoutArguments(int sId, int tId) {
+    if (sId == tId) return true;
+    final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
+    for (int i = 0; i < sSupers.length; i++) {
+      if (sSupers.readUnsigned(i) == tId) return true;
+    }
+    return false;
+  }
+
+  static bool isInterfaceSubtypeWithArguments(
+      int sId,
+      WasmArray<_Type> sTypeArguments,
+      _Environment? sEnv,
+      int tId,
+      WasmArray<_Type> tTypeArguments,
+      _Environment? tEnv) {
     // If we have the same class, simply compare type arguments.
     if (sId == tId) {
       return areTypeArgumentsSubtypes(
-          sTypeArguments, sEnv, t.typeArguments, tEnv);
+          sTypeArguments, sEnv, tTypeArguments, tEnv);
     }
 
     // Otherwise, check if [s] is a subtype of [t], and if it is then compare
@@ -849,8 +877,9 @@ abstract class _TypeUniverse {
     if (sSuperIndexOfT == -1) return false;
     assert(sSuperIndexOfT < _typeRulesSubstitutions[sId].length);
 
-    // Return early if we don't have to check type arguments.
-    if (t.typeArguments.isEmpty) return true;
+    // Return early if we don't have to check type arguments as the destination
+    // type is non-generic.
+    if (tTypeArguments.isEmpty) return true;
 
     final WasmArray<_Type> substitutions =
         _typeRulesSubstitutions[sId][sSuperIndexOfT];
@@ -873,7 +902,7 @@ abstract class _TypeUniverse {
       substituted[i] = substituteTypeArgument(
           substitutions[i], typeArgumentsForSubstitution, null);
     }
-    return areTypeArgumentsSubtypes(substituted, sEnv, t.typeArguments, tEnv);
+    return areTypeArgumentsSubtypes(substituted, sEnv, tTypeArguments, tEnv);
   }
 
   static bool isFunctionSubtype(_FunctionType s, _Environment? sEnv,
