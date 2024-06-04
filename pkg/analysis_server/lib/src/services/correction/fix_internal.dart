@@ -1400,6 +1400,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.INTERFACE_MIXIN: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.INTERFACE_MIXIN_CLASS: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
     AddConst.new,
   ],

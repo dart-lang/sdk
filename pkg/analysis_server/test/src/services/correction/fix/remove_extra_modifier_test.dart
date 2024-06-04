@@ -235,6 +235,15 @@ mixin M {}
 ''');
   }
 
+  Future<void> test_interfaceMixinClass() async {
+    await resolveTestCode('''
+interface mixin class A {}
+''');
+    await assertHasFix('''
+mixin class A {}
+''');
+  }
+
   Future<void> test_invalidAsyncConstructorModifier() async {
     await resolveTestCode(r'''
 class A {

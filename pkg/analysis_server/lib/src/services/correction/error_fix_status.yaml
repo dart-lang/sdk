@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 347 "needsFix"
-# - 404  "hasFix"
+# - 346 "needsFix"
+# - 405 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2915,9 +2915,7 @@ ParserErrorCode.INTERFACE_ENUM:
 ParserErrorCode.INTERFACE_MIXIN:
   status: hasFix
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `interface` keyword.
+  status: hasFix
 ParserErrorCode.INVALID_AWAIT_IN_FOR:
   status: noFix
   notes: |-
