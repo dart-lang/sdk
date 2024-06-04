@@ -50,7 +50,11 @@ class ConvertIntoAsyncBody extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.convertFunctionFromSyncToAsync(body, typeProvider);
+      builder.convertFunctionFromSyncToAsync(
+        body: body,
+        typeSystem: typeSystem,
+        typeProvider: typeProvider,
+      );
     });
   }
 }

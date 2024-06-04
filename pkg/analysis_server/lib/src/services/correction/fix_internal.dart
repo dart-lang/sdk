@@ -259,7 +259,7 @@ final _builtInLintMultiProducers = {
   ],
 };
 
-final _builtInLintProducers = {
+final _builtInLintProducers = <String, List<ProducerGenerator>>{
   LintNames.always_declare_return_types: [
     AddReturnType.new,
   ],
@@ -847,7 +847,7 @@ final _builtInNonLintMultiProducers = {
   ],
 };
 
-final _builtInNonLintProducers = {
+final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
     RemoveAbstract.new,
     RemoveInitializer.new,
@@ -1391,6 +1391,9 @@ final _builtInNonLintProducers = {
   ParserErrorCode.FINAL_MIXIN: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.FINAL_MIXIN_CLASS: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.GETTER_WITH_PARAMETERS: [
     RemoveParametersInGetterDeclaration.new,
   ],
@@ -1660,7 +1663,7 @@ final _builtInNonLintProducers = {
   ],
 };
 
-final _builtInParseLintProducers = {
+final _builtInParseLintProducers = <String, List<ProducerGenerator>>{
   LintNames.prefer_generic_function_type_aliases: [
     ConvertToGenericFunctionSyntax.new,
   ],

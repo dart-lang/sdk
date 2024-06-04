@@ -217,6 +217,15 @@ mixin M {}
 ''');
   }
 
+  Future<void> test_finalMixinClass() async {
+    await resolveTestCode('''
+final mixin class A {}
+''');
+    await assertHasFix('''
+mixin class A {}
+''');
+  }
+
   Future<void> test_interfaceMixin() async {
     await resolveTestCode('''
 interface mixin M {}
