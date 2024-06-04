@@ -850,11 +850,11 @@ abstract class _TypeUniverse {
     assert(sSuperIndexOfT < _typeRulesSubstitutions[sId].length);
 
     // Return early if we don't have to check type arguments.
-    WasmArray<_Type> substitutions =
+    if (t.typeArguments.isEmpty) return true;
+
+    final WasmArray<_Type> substitutions =
         _typeRulesSubstitutions[sId][sSuperIndexOfT];
-    if (substitutions.isEmpty && sTypeArguments.isEmpty) {
-      return true;
-    }
+    assert(substitutions.isNotEmpty);
 
     // If we have empty type arguments then create a list of dynamic type
     // arguments.
