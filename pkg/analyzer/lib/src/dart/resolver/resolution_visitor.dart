@@ -1561,7 +1561,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _define(Element element) {
-    (_nameScope as LocalScope).add(element);
+    if (_nameScope case LocalScope nameScope) {
+      nameScope.add(element);
+    }
   }
 
   /// Define given [elements] in the [_nameScope].
