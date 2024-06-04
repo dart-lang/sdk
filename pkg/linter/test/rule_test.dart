@@ -55,18 +55,6 @@ void defineRuleTests() {
         });
       }
     });
-    group('pub', () {
-      for (var entry in Directory(p.join(ruleTestDataDir, 'pub')).listSync()) {
-        if (entry is Directory) {
-          for (var child in entry.listSync()) {
-            if (child is File && isPubspecFile(child)) {
-              var ruleName = p.basename(entry.path);
-              testRule(ruleName, child);
-            }
-          }
-        }
-      }
-    });
   });
 }
 

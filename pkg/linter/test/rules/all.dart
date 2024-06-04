@@ -143,6 +143,7 @@ import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
+import 'package_names_test.dart' as package_names;
 import 'parameter_assignments_test.dart' as parameter_assignments;
 import 'prefer_adjacent_string_concatenation_test.dart'
     as prefer_adjacent_string_concatenation;
@@ -380,6 +381,7 @@ void main() {
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
+  package_names.main();
   parameter_assignments.main();
   prefer_adjacent_string_concatenation.main();
   prefer_asserts_in_initializer_lists.main();

@@ -22,7 +22,6 @@ export 'package:analyzer/src/lint/linter.dart'
         dart2_12,
         dart3,
         dart3_3,
-        DartLinter,
         Group,
         LintFilter,
         LintRule,

@@ -12,10 +12,11 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import 'test_linter.dart';
 
-/// Builds the [DartLinter] with appropriate mock SDK, resource providers, and
+/// Builds the [TestLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
-DartLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
+TestLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
   var memoryResourceProvider = MemoryResourceProvider(
       context: PhysicalResourceProvider.INSTANCE.pathContext);
   var resourceProvider = TestResourceProvider(memoryResourceProvider);
@@ -32,7 +33,7 @@ DartLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
       LinterOptions(enabledRules: [rule], analysisOptions: analysisOptions)
         ..dartSdkPath = sdkRoot.path;
 
-  return DartLinter(options, resourceProvider: resourceProvider);
+  return TestLinter(options, resourceProvider: resourceProvider);
 }
 
 /// A resource provider that accesses entities in a MemoryResourceProvider,
