@@ -11,7 +11,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
-    defineReflectiveTests(UnusedElementWildCardVariablesTest);
   });
 }
 
@@ -842,11 +841,25 @@ class A {
 
   test_localFunction_inFunction_wildcard() async {
     await assertErrorsInCode(r'''
+m() {
+  _(){}
+}
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 8, 5),
+    ]);
+  }
+
+  test_localFunction_inFunction_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
 main() {
   _(){}
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT, 11, 1),
+      error(WarningCode.UNUSED_ELEMENT, 55, 1),
     ]);
   }
 
@@ -870,7 +883,23 @@ class C {
   }
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT, 22, 1),
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 22, 5),
+    ]);
+  }
+
+  test_localFunction_inMethod_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class C {
+  m() {
+    _(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 66, 1),
     ]);
   }
 
@@ -2920,36 +2949,6 @@ void f() {
 typedef _A = List<int>;
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 8, 2),
-    ]);
-  }
-}
-
-@reflectiveTest
-class UnusedElementWildCardVariablesTest extends UnusedElementTest
-    with WithWildCardVariablesMixin {
-  @override
-  test_localFunction_inFunction_wildcard() async {
-    await assertErrorsInCode(r'''
-m() {
-  _(){}
-}
-''', [
-      // Code is dead but not unused.
-      error(WarningCode.DEAD_CODE, 8, 5),
-    ]);
-  }
-
-  @override
-  test_localFunction_inMethod_wildcard() async {
-    await assertErrorsInCode(r'''
-class C {
-  m() {
-    _(){}
-  }
-}
-''', [
-      // Code is dead but not unused.
-      error(WarningCode.DEAD_CODE, 22, 5),
     ]);
   }
 }
