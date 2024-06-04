@@ -485,8 +485,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-    listener?.beginSwitchCase(labelCount, expressionCount, firstToken);
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
+    listener?.beginSwitchCase(labelCount, expressionCount, beginToken);
   }
 
   @override
@@ -1203,10 +1203,10 @@ class ForwardingListener implements Listener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     listener?.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        colonAfterDefault, statementCount, firstToken, endToken);
+        colonAfterDefault, statementCount, beginToken, endToken);
   }
 
   @override

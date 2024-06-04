@@ -494,8 +494,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-    super.beginSwitchCase(labelCount, expressionCount, firstToken);
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
+    super.beginSwitchCase(labelCount, expressionCount, beginToken);
     begin('SwitchCase');
   }
 
@@ -1236,11 +1236,11 @@ class ForwardingTestListener extends ForwardingListener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     end('SwitchCase');
     super.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        colonAfterDefault, statementCount, firstToken, endToken);
+        colonAfterDefault, statementCount, beginToken, endToken);
   }
 
   @override
