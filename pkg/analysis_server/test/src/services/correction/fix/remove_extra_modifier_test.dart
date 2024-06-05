@@ -321,4 +321,13 @@ static enum E { v }
 enum E { v }
 ''');
   }
+
+  Future<void> test_topLevel_factoryDeclaration() async {
+    await resolveTestCode(r'''
+factory class C {}
+''');
+    await assertHasFix('''
+class C {}
+''');
+  }
 }

@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 345 "needsFix"
-# - 406 "hasFix"
+# - 344 "needsFix"
+# - 407 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2831,9 +2831,7 @@ ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
 ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
   status: needsEvaluation
 ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
-  status: needsFix
-  notes: |-
-    Remove the `factory` keyword.
+  status: hasFix
 ParserErrorCode.FACTORY_WITH_INITIALIZERS:
   status: needsFix
   notes: |-
