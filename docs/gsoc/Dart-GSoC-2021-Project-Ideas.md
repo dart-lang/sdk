@@ -18,7 +18,7 @@ All projects assume familiarity with Dart (and sometimes Flutter). Aspiring appl
 Applicants are welcome to find and fix bugs in [Dart](https://github.com/dart-lang/sdk) or some of the [packages written by the Dart team](https://pub.dev/publishers/dart.dev/packages). However, getting reviews can take a long time as code owners may be busy working on new features. So instead of requiring applicants to fix a _good first bug_, we
 suggest that applicants write a working code sample relevant for the proposed project.
 
-The code sample can be attached to the application as a [gist](https://gist.github.com/), or simply github repository. Suggested ideas below includes proposed "Good Sample Projects".
+The code sample can be attached to the application as a [gist](https://gist.github.com/), or simply GitHub repository. Suggested ideas below includes proposed "Good Sample Projects".
 
 **Do not spend too much energy on this piece of sample code**, we just want to see
 that you can code something relevant -- and that this sample code can run and do something non-trivial. Be aware that we have a limited number of
@@ -103,7 +103,7 @@ Stretch goal might be to handle `LICENSE` files with multiple licenses and
 display an SPDX license expression on pub.dev.
 
 **Getting Started**
-Try writing a small sample program that can fetch one of the [SPDX master files](https://github.com/spdx/license-list-XML/tree/master/src) and print it to terminal as
+Try writing a small sample program that can fetch one of the [SPDX origin files](https://github.com/spdx/license-list-XML/tree/main/src) and print it to terminal as
 markdown. Don't make it too perfect, just figure out how to parse the XML.
 For the proposal, it would be valuable to include:
  * Comparison of text similarity approach to SPDX matching guidelines,
@@ -127,7 +127,7 @@ For the proposal, it would be valuable to include:
 **Description**:
 With `dart:ffi` binding to native libraries we have an opportunity to build more performant and more feature rich IO libraries than `dart:io`.
 Building such libraries has become one step easier by [`package:ffigen`](https://pub.dev/packages/ffigen) which can generate the bindings for the native libraries.
-In this project we would like to target HTTP by binding to Cronet's [native API](https://chromium.googlesource.com/chromium/src/+/master/components/cronet/native/test_instructions.md).
+In this project we would like to target HTTP by binding to Cronet's [native API](https://chromium.googlesource.com/chromium/src/+/main/components/cronet/native/test_instructions.md).
 
 This project will be challenging.
 It requires the whole `dart:ffi` toolbox. For example: native resource management with finalizers and asynchronous callbacks with native ports.

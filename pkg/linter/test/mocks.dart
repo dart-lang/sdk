@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
 
 class CollectingSink extends MockIOSink {
   final StringBuffer buffer = StringBuffer();
@@ -82,24 +81,6 @@ class MockIOSink implements IOSink {
 
   @override
   void writeln([Object? obj = '']) {}
-}
-
-class MockReporter extends Reporter {
-  List<LinterException> exceptions = <LinterException>[];
-
-  List<String> warnings = <String>[];
-
-  MockReporter();
-
-  @override
-  void exception(LinterException exception) {
-    exceptions.add(exception);
-  }
-
-  @override
-  void warn(String message) {
-    warnings.add(message);
-  }
 }
 
 class MockSource extends BasicSource {

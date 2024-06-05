@@ -457,7 +457,8 @@ final class TypeParameterCode implements Code {
 }
 
 extension Join<T extends Object> on List<T> {
-  /// Joins all the items in [this] with [separator], and returns a new list.
+  /// Joins all the items in this [Join] with [separator], and returns a new
+  /// list.
   ///
   /// Works on any kind of non-nullable list which accepts String entries, and
   /// does not convert the individual items to strings.

@@ -3,7 +3,7 @@
 ## Bumping versions
 
 Dart packages have two varieties of versioning schemes. We use
-[semver](semver.org) with a variation that the numbers are shifted to the right
+[semver](https://semver.org) with a variation that the numbers are shifted to the right
 if the package is not stable enough to reach a `1.0.0` release. Note that the
 Dart team culture was previously to keep packages at `0.x` for a long time,
 whereas now we prefer to publish `1.0.0` as soon as feasible to avoid confusion
@@ -113,11 +113,11 @@ at a time and then the old behavior can be removed once everything is migrated.
     request. Prefer to merge into that branch to resolve conflicts, prefer not
     to rebase.
     -   Comments are tied to commits, so force pushing also destroys comment
-        history in github prs.
+        history in GitHub prs.
     -   Pushing a new commit with code review updates makes it easy to review
         changes since your last review, by looking at the new commits only. 
 -   Add comments from the "Files changed" view, even as the PR author, so that
     they can sent in a batch rather than replying to each one by one on the
     "Conversation" view.
 -   The [gh cli tool](https://cli.github.com/) makes it easy to checkout a PR
-    in cases where a change may be easer to understand in an IDE.
+    in cases where a change may be easier to understand in an IDE.

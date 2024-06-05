@@ -31,13 +31,13 @@ Run gclient sync to install the Android NDK and SDK. This may take 10 minutes or
 
 # Building for Android
 
-Once you’ve set up your build tree, you can build the Dart VM for Android by using the standard Dart build script with the addition of the --os android build flag:
+Once you've set up your build tree, you can build the Dart VM for Android by using the standard Dart build script with the addition of the --os android build flag:
 
 `$ tools/build.py --no-goma --arch=arm,arm64,ia32,x64 --os=android runtime`
 
 # Testing the result
 
-Adding “adb” to your path
+Adding `adb` to your path
 
 For convenience, add the path to the adb tool to your shell PATH:
 
@@ -91,7 +91,7 @@ or
 
 `$ adb -s emulator-name emu kill    ← if there is more than one emulator running`
 
-## Running the Dart VM on an Android device ##
+## Running the Dart VM on an Android device
 
 First, make sure that the "USB Debugging" mode is enabled by navigating to Settings > Developer options > USB debugging. The box should be checked. You may need to have root on the device.
 
@@ -110,4 +110,4 @@ Now, you can copy dart and hello.dart to the device as above. If an emulator is 
 
 # Notes
 
-The only effect of the “target_os” line in the Dart .gclient configuration file is to install the Android tools. Despite what the name “target_os” implies, the target_os line does not affect which OS is targeted. Therefore, once you’ve installed the Android tools you can (and should) leave the target_os = [“android”] line in place even when switching back and forth between building for Android and building for Linux.
+The only effect of the `target_os` line in the Dart `.gclient` configuration file is to install the Android tools. Despite what the name `target_os` implies, the target_os line does not affect which OS is targeted. Therefore, once you've installed the Android tools you can (and should) leave the `target_os = ["android"]` line in place even when switching back and forth between building for Android and building for Linux.

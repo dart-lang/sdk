@@ -45,7 +45,7 @@ Each of these outcomes has a canonical name. Things like:
 
 There are other, more exotic outcomes. For the full list of them, see the code:
 
-[pkg/status_file/lib/expectation.dart](https://github.com/dart-lang/sdk/blob/master/pkg/status_file/lib/expectation.dart)
+[`pkg/status_file/lib/expectation.dart`](https://github.com/dart-lang/sdk/blob/main/pkg/status_file/lib/expectation.dart)
 
 In a perfect world, every test would pass in every configuration and the test
 runner could simplify verify that every test's outcome was "Pass". Alas, life is
@@ -97,7 +97,7 @@ entries are used. Otherwise, its entries are ignored.
 If there are entries in the implicit first headerless section, the condition is
 always considered to be true and the entries are always applied.
 
-Arbitarily large expressions are supported, but the larger they are, the harder
+Arbitrarily large expressions are supported, but the larger they are, the harder
 it is for your fellow teammates to understand what outcomes are expected for a
 given configuration.
 
@@ -147,11 +147,11 @@ There are a few different expression forms:
     to test against a literal value.
 
     The set of variables that are available in status file expressions is baked
-    into test.dart. You can see the full list of them here:
+    into `test.dart`. You can see the full list of them here:
 
-    [tools/testing/dart/environment.dart](https://github.com/dart-lang/sdk/blob/master/tools/testing/dart/environment.dart#L13)
+    [`tools/testing/dart/environment.dart`](https://github.com/dart-lang/sdk/blob/main/pkg/test_runner/lib/src/environment.dart#L12)
 
-    For each variable, test.dart also knows all of the values that are allowed
+    For each variable, `test.dart` also knows all of the values that are allowed
     for it. It uses this to validate these expressions at parse time. If you
     misspell a variable, like `$compile` or test it against a value it can't
     have like `$runtime == dart2js` (dart2js is a compiler, not a runtime), it
@@ -256,10 +256,10 @@ async/multiple_timer_test: Pass, Fail # Timing related
 Many of these sections are disjoint so that if one applies, another won't, but
 not all of them are. For example, if you're running on Fuchsia on the VM with
 hot reload enabled, the second and last sections both apply. They have different
-expectations. So what does test.dart expect this test to do?
+expectations. So what does `test.dart` expect this test to do?
 
-When there are multiple sets of expectations for the same file, test.dart unions
-all of the sets together. So, in this case, the resulting expectation is
+When there are multiple sets of expectations for the same file, `test.dart`
+unions all of the sets together. So, in this case, the resulting expectation is
 "RuntimeError, Pass, Fail".
 
 A test succeeds if the outcome is *any* of the expectations. Here, that
@@ -276,8 +276,8 @@ Some "expectations" don't line up with actual possible test outcomes. Instead,
 they affect how the test runner works or have another purpose. A couple of
 important ones are:
 
-*   **Skip** and **SkipByDesign** – These tell test.dart to not run the test at
-    all. The latter is OK, it means "this behavior isn't relevant for this
+*   **Skip** and **SkipByDesign** – These tell `test.dart` to not run the test
+    at all. The latter is OK, it means "this behavior isn't relevant for this
     configuration". For example, Dartium doesn't support "dart:io", so the
     status file says:
 
@@ -302,4 +302,4 @@ important ones are:
 
 There are some other special expectations, documented in the source here:
 
-[/pkg/status_file/lib/expectation.dart](https://github.com/dart-lang/sdk/blob/master/pkg/status_file/lib/expectation.dart)
+[`/pkg/status_file/lib/expectation.dart`](https://github.com/dart-lang/sdk/blob/main/pkg/status_file/lib/expectation.dart)

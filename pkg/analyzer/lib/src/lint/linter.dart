@@ -35,57 +35,29 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-class Group implements Comparable<Group> {
-  /// Defined rule groups.
-  static const Group errors =
-      Group._('errors', description: 'Possible coding errors.');
-  static const Group pub = Group._('pub',
-      description: 'Pub-related rules.',
-      link: Hyperlink('See the <strong>Pubspec Format</strong>',
-          'https://dart.dev/tools/pub/pubspec'));
-  static const Group style = Group._('style',
-      description:
-          'Matters of style, largely derived from the official Dart Style Guide.',
-      link: Hyperlink('See the <strong>Style Guide</strong>',
-          'https://dart.dev/guides/language/effective-dart/style'));
+abstract class Group {
+  /// A group representing possible coding errors.
+  static const String errors = 'errors';
 
-  /// List of builtin groups in presentation order.
-  @visibleForTesting
-  static const Iterable<Group> builtin = [errors, style, pub];
+  /// A group representing Pub-related rules.
+  static const String pub = 'pub';
 
-  final String name;
-
-  @visibleForTesting
-  final bool custom;
-
-  final String description;
-
-  final Hyperlink? link;
-
-  factory Group(String name, {String description = '', Hyperlink? link}) {
-    var n = name.toLowerCase();
-    return builtin.firstWhere((g) => g.name == n,
-        orElse: () =>
-            Group._(name, custom: true, description: description, link: link));
-  }
-
-  const Group._(this.name,
-      {this.custom = false, required this.description, this.link});
-
-  @override
-  int compareTo(Group other) => name.compareTo(other.name);
+  /// A group representing matters of style, largely derived from Effective
+  /// Dart.
+  static const String style = 'style';
 }
 
+@visibleForTesting
 class Hyperlink {
-  final String label;
-  final String href;
-  final bool bold;
+  final String _label;
+  final String _href;
+  final bool _bold;
 
-  const Hyperlink(this.label, this.href, {this.bold = false});
+  const Hyperlink(this._label, this._href, {bool bold = false}) : _bold = bold;
 
-  String get html => '<a href="$href">${_emph(label)}</a>';
+  String get html => '<a href="$_href">${_emph(_label)}</a>';
 
-  String _emph(String msg) => bold ? '<strong>$msg</strong>' : msg;
+  String _emph(String msg) => _bold ? '<strong>$msg</strong>' : msg;
 }
 
 /// The result of attempting to evaluate an expression.
@@ -96,7 +68,7 @@ class LinterConstantEvaluationResult {
   /// The errors reported during the evaluation.
   final List<AnalysisError> errors;
 
-  LinterConstantEvaluationResult(this.value, this.errors);
+  LinterConstantEvaluationResult._(this.value, this.errors);
 }
 
 /// Provides access to information needed by lint rules that is not available
@@ -171,9 +143,6 @@ class LinterContextParsedImpl implements LinterContext {
   final LinterContextUnit definingUnit;
 
   @override
-  final WorkspacePackage? package = null;
-
-  @override
   final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   LinterContextParsedImpl(
@@ -190,6 +159,9 @@ class LinterContextParsedImpl implements LinterContext {
   @override
   LibraryElement get libraryElement =>
       throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  WorkspacePackage? get package => null;
 
   @override
   TypeProvider get typeProvider =>
@@ -210,25 +182,11 @@ class LinterContextUnit {
   LinterContextUnit(this.content, this.unit, this.errorReporter);
 }
 
-/// Thrown when an error occurs in linting.
-class LinterException implements Exception {
-  /// A message describing the error.
-  final String? message;
-
-  /// Creates a new LinterException with an optional error [message].
-  const LinterException([this.message]);
-
-  @override
-  String toString() =>
-      message == null ? "LinterException" : "LinterException: $message";
-}
-
 class LinterOptions extends DriverOptions {
   final Iterable<LintRule> enabledRules;
   final String? analysisOptions;
   LintFilter? filter;
 
-  // TODO(pq): consider migrating to named params (but note Linter dep).
   LinterOptions({
     Iterable<LintRule>? enabledRules,
     this.analysisOptions,
@@ -242,7 +200,7 @@ abstract class LintFilter {
 }
 
 /// Describes a lint rule.
-abstract class LintRule implements Comparable<LintRule> {
+abstract class LintRule {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before any node processors start
   /// visiting nodes.
@@ -256,7 +214,7 @@ abstract class LintRule implements Comparable<LintRule> {
   final String description;
 
   /// Lint group (for example, 'style').
-  final Group group;
+  final String group;
 
   /// Lint name.
   final String name;
@@ -306,15 +264,6 @@ abstract class LintRule implements Comparable<LintRule> {
   ErrorReporter get reporter => _reporter;
 
   set reporter(ErrorReporter value) => _reporter = value;
-
-  @override
-  int compareTo(LintRule other) {
-    var g = group.compareTo(other.group);
-    if (g != 0) {
-      return g;
-    }
-    return name.compareTo(other.name);
-  }
 
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
@@ -386,28 +335,6 @@ abstract class LintRule implements Comparable<LintRule> {
     );
     reporter.reportError(error);
   }
-}
-
-class PrintingReporter implements Reporter {
-  final void Function(String msg) _print;
-
-  const PrintingReporter([this._print = print]);
-
-  @override
-  void exception(LinterException exception) {
-    _print('EXCEPTION: $exception');
-  }
-
-  @override
-  void warn(String message) {
-    _print('WARN: $message');
-  }
-}
-
-abstract class Reporter {
-  void exception(LinterException exception);
-
-  void warn(String message);
 }
 
 /// An error listener that only records whether any constant related errors have
@@ -547,7 +474,7 @@ extension ExpressionExtension on Expression {
   /// constant value, and a list of errors that occurred during the computation.
   LinterConstantEvaluationResult computeConstantValue() {
     var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
-    if (unitElement == null) return LinterConstantEvaluationResult(null, []);
+    if (unitElement == null) return LinterConstantEvaluationResult._(null, []);
     var libraryElement = unitElement.library as LibraryElementImpl;
 
     var errorListener = RecordingErrorListener();
@@ -575,7 +502,7 @@ extension ExpressionExtension on Expression {
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
     var dartObject = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
+    return LinterConstantEvaluationResult._(dartObject, errorListener.errors);
   }
 
   bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {

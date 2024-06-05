@@ -1,6 +1,6 @@
 ## Required steps when updating this package
 
-Whenever any change to the `lib` directory of this package is made, the
+When making any functional change in the `lib` directory of this package, the
 following procedure **must** be followed.
 
 ### Update pubspec/changelog for each release.
@@ -29,6 +29,12 @@ It is possible that multiple breaking changes can land within the same major
 version of this package, during the pre-release period. Version compatibility is
 thus **not** guaranteed on the dev or main channels, only the beta and stable
 channels.
+
+### Bypassing presubmit checks
+
+When making a non-functional change in the `lib` directory, use the
+`--bypass-hooks` flag to bypass presubmit checks, as in
+`git cl upload --bypass-hooks`.
 
 ## Special considerations for this package
 

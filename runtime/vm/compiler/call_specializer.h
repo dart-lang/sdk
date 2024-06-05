@@ -9,6 +9,8 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#include <array>
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 
@@ -216,18 +218,20 @@ class CallSpecializer : public FlowGraphVisitor {
 };
 
 #define PUBLIC_TYPED_DATA_CLASS_LIST(V)                                        \
-  V(Int8List, int8_list_type_, int_type_, kTypedDataInt8ArrayCid)              \
-  V(Uint8List, uint8_list_type_, int_type_, kTypedDataUint8ArrayCid)           \
-  V(Uint8ClampedList, uint8_clamped_type_, int_type_,                          \
-    kTypedDataUint8ClampedArrayCid)                                            \
-  V(Int16List, int16_list_type_, int_type_, kTypedDataInt16ArrayCid)           \
-  V(Uint16List, uint16_list_type_, int_type_, kTypedDataUint16ArrayCid)        \
-  V(Int32List, int32_list_type_, int_type_, kTypedDataInt32ArrayCid)           \
-  V(Uint32List, uint32_list_type_, int_type_, kTypedDataUint32ArrayCid)        \
-  V(Int64List, int64_list_type_, int_type_, kTypedDataInt64ArrayCid)           \
-  V(Uint64List, uint64_list_type_, int_type_, kTypedDataUint64ArrayCid)        \
-  V(Float32List, float32_list_type_, double_type_, kTypedDataFloat32ArrayCid)  \
-  V(Float64List, float64_list_type_, double_type_, kTypedDataFloat64ArrayCid)
+  V(Int8List, int_type_, kTypedDataInt8ArrayCid)                               \
+  V(Uint8List, int_type_, kTypedDataUint8ArrayCid)                             \
+  V(Uint8ClampedList, int_type_, kTypedDataUint8ClampedArrayCid)               \
+  V(Int16List, int_type_, kTypedDataInt16ArrayCid)                             \
+  V(Uint16List, int_type_, kTypedDataUint16ArrayCid)                           \
+  V(Int32List, int_type_, kTypedDataInt32ArrayCid)                             \
+  V(Uint32List, int_type_, kTypedDataUint32ArrayCid)                           \
+  V(Int64List, int_type_, kTypedDataInt64ArrayCid)                             \
+  V(Uint64List, int_type_, kTypedDataUint64ArrayCid)                           \
+  V(Float32List, double_type_, kTypedDataFloat32ArrayCid)                      \
+  V(Float64List, double_type_, kTypedDataFloat64ArrayCid)                      \
+  V(Float32x4List, float32x4_type_, kTypedDataFloat32x4ArrayCid)               \
+  V(Int32x4List, int32x4_type_, kTypedDataInt32x4ArrayCid)                     \
+  V(Float64x2List, float64x2_type_, kTypedDataFloat64x2ArrayCid)
 
 // Specializes instance/static calls with receiver type being a typed data
 // interface (if that interface is only implemented by internal/external/view
@@ -268,12 +272,11 @@ class TypedDataSpecializer : public FlowGraphVisitor {
         thread_(Thread::Current()),
         zone_(thread_->zone()),
         flow_graph_(flow_graph),
-#define ALLOCATE_HANDLE(iface, member_name, type, cid)                         \
-        member_name(AbstractType::Handle(zone_)),
-        PUBLIC_TYPED_DATA_CLASS_LIST(ALLOCATE_HANDLE)
-#undef INIT_HANDLE
         int_type_(AbstractType::Handle()),
         double_type_(AbstractType::Handle()),
+        float32x4_type_(AbstractType::Handle()),
+        int32x4_type_(AbstractType::Handle()),
+        float64x2_type_(AbstractType::Handle()),
         implementor_(Class::Handle()) {
   }
   // clang-format on
@@ -306,12 +309,26 @@ class TypedDataSpecializer : public FlowGraphVisitor {
   FlowGraph* flow_graph_;
   bool initialized_ = false;
 
-#define DEF_HANDLE(iface, member_name, type, cid) AbstractType& member_name;
-  PUBLIC_TYPED_DATA_CLASS_LIST(DEF_HANDLE)
-#undef DEF_HANDLE
+  struct TypedDataVariant {
+    AbstractType& array_type = AbstractType::Handle();
+    intptr_t array_cid = kIllegalCid;
+    AbstractType& element_type = AbstractType::Handle();
+  };
+
+  enum {
+#define DEFINE_INDEX(iface, type, cid) k##iface##Index,
+    PUBLIC_TYPED_DATA_CLASS_LIST(DEFINE_INDEX)
+#undef DEFINE_INDEX
+        kNumTypedDataVariants
+  };
+
+  std::array<TypedDataVariant, kNumTypedDataVariants> typed_data_variants_;
 
   AbstractType& int_type_;
   AbstractType& double_type_;
+  AbstractType& float32x4_type_;
+  AbstractType& int32x4_type_;
+  AbstractType& float64x2_type_;
   Class& implementor_;
 };
 

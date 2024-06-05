@@ -1445,6 +1445,9 @@ void TypedDataSpecializer::EnsureIsInitialized() {
 
   int_type_ = Type::IntType();
   double_type_ = Type::Double();
+  float32x4_type_ = Type::Float32x4();
+  int32x4_type_ = Type::Int32x4();
+  float64x2_type_ = Type::Float64x2();
 
   const auto& typed_data = Library::Handle(
       Z, Library::LookupLibrary(thread_, Symbols::DartTypedData()));
@@ -1453,11 +1456,13 @@ void TypedDataSpecializer::EnsureIsInitialized() {
   auto& direct_implementors = GrowableObjectArray::Handle(Z);
   SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
-#define INIT_HANDLE(iface, member_name, type, cid)                             \
+#define INIT_HANDLE(iface, type, cid)                                          \
   td_class = typed_data.LookupClass(Symbols::iface());                         \
   ASSERT(!td_class.IsNull());                                                  \
   direct_implementors = td_class.direct_implementors();                        \
-  member_name = td_class.RareType();
+  typed_data_variants_[k##iface##Index].array_type = td_class.RareType();      \
+  typed_data_variants_[k##iface##Index].array_cid = cid;                       \
+  typed_data_variants_[k##iface##Index].element_type = type.ptr();
 
   PUBLIC_TYPED_DATA_CLASS_LIST(INIT_HANDLE)
 #undef INIT_HANDLE
@@ -1481,55 +1486,70 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
   const bool is_index_set =
       call->Selector() == Symbols::AssignIndexToken().ptr();
 
-  if (is_length_getter || is_index_get || is_index_set) {
-    EnsureIsInitialized();
-
-    const intptr_t receiver_index = call->FirstArgIndex();
-
-    CompileType* receiver_type =
-        call->ArgumentValueAt(receiver_index + 0)->Type();
-
-    CompileType* index_type = nullptr;
-    if (is_index_get || is_index_set) {
-      index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
-    }
-
-    CompileType* value_type = nullptr;
-    if (is_index_set) {
-      value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
-    }
-
-    auto& type_class = Class::Handle(zone_);
-#define TRY_INLINE(iface, member_name, type, cid)                              \
-  if (!member_name.IsNull()) {                                                 \
-    auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);   \
-    const bool is_float_access =                                               \
-        rep == kUnboxedFloat || rep == kUnboxedDouble;                         \
-    if (receiver_type->IsAssignableTo(member_name)) {                          \
-      if (is_length_getter) {                                                  \
-        type_class = member_name.type_class();                                 \
-        ReplaceWithLengthGetter(call);                                         \
-      } else if (is_index_get) {                                               \
-        if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) { \
-          return;                                                              \
-        }                                                                      \
-        if (!index_type->IsNullableInt()) return;                              \
-        type_class = member_name.type_class();                                 \
-        ReplaceWithIndexGet(call, cid);                                        \
-      } else {                                                                 \
-        if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) { \
-          return;                                                              \
-        }                                                                      \
-        if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(type)) return;                         \
-        type_class = member_name.type_class();                                 \
-        ReplaceWithIndexSet(call, cid);                                        \
-      }                                                                        \
-      return;                                                                  \
-    }                                                                          \
+  if (!(is_length_getter || is_index_get || is_index_set)) {
+    return;
   }
-    PUBLIC_TYPED_DATA_CLASS_LIST(TRY_INLINE)
-#undef INIT_HANDLE
+
+  EnsureIsInitialized();
+
+  const intptr_t receiver_index = call->FirstArgIndex();
+
+  CompileType* receiver_type =
+      call->ArgumentValueAt(receiver_index + 0)->Type();
+
+  CompileType* index_type = nullptr;
+  if (is_index_get || is_index_set) {
+    index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
+  }
+
+  CompileType* value_type = nullptr;
+  if (is_index_set) {
+    value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
+  }
+
+  auto& type_class = Class::Handle(zone_);
+  for (auto& variant : typed_data_variants_) {
+    if (!receiver_type->IsAssignableTo(variant.array_type)) {
+      continue;
+    }
+
+    if (is_length_getter) {
+      type_class = variant.array_type.type_class();
+      ReplaceWithLengthGetter(call);
+      return;
+    }
+
+    auto const rep =
+        RepresentationUtils::RepresentationOfArrayElement(variant.array_cid);
+    const bool is_float_access = rep == kUnboxedFloat || rep == kUnboxedDouble;
+    const bool is_simd_access = rep == kUnboxedInt32x4 ||
+                                rep == kUnboxedFloat32x4 ||
+                                rep == kUnboxedFloat64x2;
+
+    if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) {
+      return;
+    }
+
+    if (is_simd_access && !FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      return;
+    }
+
+    if (!index_type->IsNullableInt()) {
+      return;
+    }
+
+    if (is_index_get) {
+      type_class = variant.array_type.type_class();
+      ReplaceWithIndexGet(call, variant.array_cid);
+    } else {
+      if (!value_type->IsAssignableTo(variant.element_type)) {
+        return;
+      }
+      type_class = variant.array_type.type_class();
+      ReplaceWithIndexSet(call, variant.array_cid);
+    }
+
+    return;
   }
 }
 

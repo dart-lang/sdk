@@ -8,7 +8,7 @@
 
 [Building the standalone VM only](#standalone)
 
-<a name="dependencies"/>
+<a id="dependencies"></a>
 
 # Dependencies
 
@@ -50,17 +50,17 @@ export PATH="$PATH:$PWD/depot_tools"
 
 ## Windows
 
-[Install Visual Studio](https://chromium.googlesource.com/chromium/src/+/master/docs/windows_build_instructions.md#visual-studio) (2017 or newer). Make sure to install "Desktop development with C++" component. 
+[Install Visual Studio](https://chromium.googlesource.com/chromium/src/+/main/docs/windows_build_instructions.md#visual-studio) (2017 or newer). Make sure to install "Desktop development with C++" component. 
 
 You must have Windows 10 SDK installed. This can be installed separately or by checking the appropriate box in the Visual Studio Installer.
 
-The SDK Debugging Tools must also be installed. If the Windows 10 SDK was installed via the Visual Studio installer, then they can be installed by going to: Control Panel → Programs → Programs and Features → Select the “Windows Software Development Kit” → Change → Change → Check “Debugging Tools For Windows” → Change. Or, you can download the standalone SDK installer and use it to install the Debugging Tools. 
+The SDK Debugging Tools must also be installed. If the Windows 10 SDK was installed via the Visual Studio installer, then they can be installed by going to: Control Panel → Programs → Programs and Features → Select the "Windows Software Development Kit" → Change → Change → Check "Debugging Tools For Windows" → Change. Or, you can download the standalone SDK installer and use it to install the Debugging Tools. 
 
-Install Chromium's depot tools following [this](http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up) or [this](https://chromium.googlesource.com/chromium/src/+/master/docs/windows_build_instructions.md#install) instructions.
+Install Chromium's depot tools following [this](http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up) or [this](https://chromium.googlesource.com/chromium/src/+/main/docs/windows_build_instructions.md#install) instructions.
 
 **Important:** If you are not a Googler make sure to set `DEPOT_TOOLS_WIN_TOOLCHAIN` system variable to `0` otherwise depot tools will attempt to pull down a Google-internal toolchain instead of using a local installation of Visual Studio.
 
-<a name="source"/>
+<a id="source"></a>
 
 # Getting the source
 
@@ -93,7 +93,7 @@ Note: If you do not have emscripten, you can update your `.gclient` file to pull
     },
 ```
 
-<a name="building"/>
+<a id="building"></a>
 
 # Building
 
@@ -107,7 +107,7 @@ cd sdk
 ./tools/build.py --mode release --arch x64 create_sdk
 ```
 
-The output will be in `out/ReleaseX64/dart-sdk` on Linux and Windows, and `xcodebuild/ReleaseX64/dart-sdk` on MacOS.
+The output will be in `out/ReleaseX64/dart-sdk` on Linux and Windows, and `xcodebuild/ReleaseX64/dart-sdk` on macOS.
 
 Build the 32-bit SDK:
 
@@ -116,7 +116,7 @@ Build the 32-bit SDK:
 cd sdk
 ./tools/build.py --mode release --arch ia32 create_sdk
 ```
-The output will be in `out/ReleaseIA32/dart-sdk` on Linux and Windows, or `xcodebuild/ReleaseIA32/dart-sdk` on MacOS.
+The output will be in `out/ReleaseIA32/dart-sdk` on Linux and Windows, or `xcodebuild/ReleaseIA32/dart-sdk` on macOS.
 
 See also [Building Dart SDK for ARM or RISC-V](Building-Dart-SDK-for-ARM-or-RISC-V.md).
 
@@ -124,7 +124,7 @@ See also [Building Dart SDK for ARM or RISC-V](Building-Dart-SDK-for-ARM-or-RISC
 
 By default the build and test scripts select the debug binaries. You can build and test the release version of the VM by specifying `--mode=release` or both debug and release by specifying `--mode=all` on the respective `build.py` and `test.py` command lines.  This can be shortened to `-mrelease` or `-m release`, and the architecture can be specified with `--arch=x64` or `-a x64`, the default.  Other architectures, like `ia32`, `arm`, and `arm64` are also supported.
 
-We recommend that you use a local file system at least for the output of the builds. The output directory is `out` on linux, `xcodebuild` on Mac OS, and `build` on Windows.  If your code is in some NFS partition, you can link the `out` directory to a local directory:
+We recommend that you use a local file system at least for the output of the builds. The output directory is `out` on linux, `xcodebuild` on macOS, and `build` on Windows.  If your code is in some NFS partition, you can link the `out` directory to a local directory:
 ```bash
 
 $ cd sdk/
@@ -143,7 +143,7 @@ Your Visual Studio executable command may have a different name from the standar
 
 ## Building on Windows with Visual Studio 2015
 Gyp should autodetect the version of Visual Studio you have, and produce solution files in the correct format.
-If this is not happening, then set environment variable gyp\_msvs\_version to 2015.
+If this is not happening, then set environment variable `gyp_msvs_version` to `2015`.
 
 For example, this will produce Visual Studio 2015-compliant solution files:
 ```bash
@@ -244,7 +244,7 @@ Some common problems you might get when running tests for the first time:
 
     * Other options include using ssh X tunneling (`ssh -Y`), NX, VNC, setting up `xhost` and exporting the DISPLAY environment variable, or simply running tests locally.
 
-<a name="standalone"/>
+<a id="standalone"></a>
 
 # Building the standalone VM only
 

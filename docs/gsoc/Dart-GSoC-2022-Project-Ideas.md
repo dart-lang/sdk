@@ -10,8 +10,8 @@ For GSoC related discussions please use the [dart-gsoc group](https://groups.goo
 **Potential mentors**
  * Jonas Jensen ([jonasfj](https://github.com/jonasfj)) `jonasfj@google.com`
  * Daco Harkes ([dcharkes](https://github.com/dcharkes)) `dacoharkes@google.com`
- * Sighurd Meldgaard ([sigurdm](https://github.com/sigurdm))‎ `sigurdm@google.com`
- * Liam Appelbe‎ ([liamappelbe](https://github.com/liamappelbe)) `liama@google.com`
+ * Sigurd Meldgaard ([sigurdm](https://github.com/sigurdm)) `sigurdm@google.com`
+ * Liam Appelbe ([liamappelbe](https://github.com/liamappelbe)) `liama@google.com`
  * Majid Hajian ([mhadaily](https://github.com/mhadaily))
  * Simon Lightfoot ([slightfoot](https://github.com/slightfoot))
  * Miguel Beltran ([miquelbeltran](https://github.com/miquelbeltran))
@@ -99,7 +99,7 @@ changelogs and successfully parse the vast majority of changelogs on pub.dev.
  - **Skills**: Dart, Flutter
 
 **Description**:
-The Flutter Community (FC) is providing several packages to the community and pub. dev that is all maintained differently. It’s hard for Flutter Community admins to engage with all of the changes, releases, changelogs, and activities on all packages. 
+The Flutter Community (FC) is providing several packages to the community and pub. dev that is all maintained differently. It's hard for Flutter Community admins to engage with all of the changes, releases, changelogs, and activities on all packages. 
 
 One of the main challenges is keeping track of releases, especially allowing maintainers to trigger package releases on pub dev without giving them super admin access. 
 
@@ -113,7 +113,7 @@ Last but not least, it would be great to make the dashboard even smarter by addi
 
 Tasks:
 
-* [ ] Simple login with Github only
+* [ ] Simple login with GitHub only
 * [ ] Gather information and show them as graphs, numbers and etc. to give a better understanding of the overall performance of the organization 
 * [ ] Details of each repo under the orgs, such as number of issues, in active issues, closing and maintainers 
 

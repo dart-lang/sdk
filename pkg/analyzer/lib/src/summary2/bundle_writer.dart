@@ -815,10 +815,6 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void writeEnum(Enum e) {
-    writeByte(e.index);
-  }
-
   void writeMacroDiagnostics(List<AnalyzerMacroDiagnostic> elements) {
     writeList(elements, _writeMacroDiagnostic);
   }

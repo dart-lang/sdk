@@ -143,8 +143,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
         freelist_(freelist),
         bytes_promoted_(0),
         visiting_old_object_(nullptr),
+        pending_(nullptr),
         promoted_list_(promotion_stack) {}
-  ~ScavengerVisitorBase() {}
+  ~ScavengerVisitorBase() { ASSERT(pending_ == nullptr); }
 
 #ifdef DEBUG
   constexpr static const char* const kName = "Scavenger";
@@ -354,24 +355,31 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     thread_ = nullptr;
   }
 
-  void Finalize() {
+  void Finalize(StoreBuffer* store_buffer) {
     if (!scavenger_->abort_) {
       promoted_list_.Finalize();
       weak_array_list_.Finalize();
       weak_property_list_.Finalize();
       weak_reference_list_.Finalize();
       finalizer_entry_list_.Finalize();
+      ASSERT(pending_ == nullptr);
     } else {
       promoted_list_.AbandonWork();
       weak_array_list_.AbandonWork();
       weak_property_list_.AbandonWork();
       weak_reference_list_.AbandonWork();
       finalizer_entry_list_.AbandonWork();
+      if (pending_ != nullptr) {
+        pending_->Reset();
+        store_buffer->PushBlock(pending_, StoreBuffer::kIgnoreThreshold);
+        pending_ = nullptr;
+      }
     }
   }
 
   Page* head() const { return head_; }
   Page* tail() const { return tail_; }
+  void set_pending(StoreBufferBlock* pending) { pending_ = pending; }
 
   static bool ForwardOrSetNullIfCollected(ObjectPtr parent,
                                           CompressedObjectPtr* ptr_address);
@@ -611,6 +619,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
   FreeList* freelist_;
   intptr_t bytes_promoted_;
   ObjectPtr visiting_old_object_;
+  StoreBufferBlock* pending_;
   PromotionWorkList promoted_list_;
   LocalBlockWorkList<64, WeakArrayPtr> weak_array_list_;
   LocalBlockWorkList<64, WeakPropertyPtr> weak_property_list_;
@@ -1188,12 +1197,17 @@ template <bool parallel>
 void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateStoreBuffers");
 
-  // Iterating through the store buffers.
-  // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
-  StoreBufferBlock* pending = blocks_;
-  while (pending != nullptr) {
-    StoreBufferBlock* next = pending->next();
+  StoreBufferBlock* pending;
+  for (;;) {
+    {
+      MutexLocker ml(&space_lock_);
+      pending = blocks_;
+      if (pending == nullptr) break;
+      blocks_ = pending->next();
+    }
+    // Ensure the block is freed in case of scavenger abort.
+    visitor->set_pending(pending);
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
     while (!pending->IsEmpty()) {
@@ -1207,9 +1221,8 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
     store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
-    blocks_ = pending = next;
+    visitor->set_pending(nullptr);
   }
-  // Done iterating through old objects remembered in the store buffers.
 }
 
 template <bool parallel>
@@ -1229,7 +1242,6 @@ void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 enum RootSlices {
   kIsolate = 0,
   kObjectIdRing,
-  kStoreBuffer,
   kNumRootSlices,
 };
 
@@ -1248,14 +1260,12 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
       case kObjectIdRing:
         IterateObjectIdTable(visitor);
         break;
-      case kStoreBuffer:
-        IterateStoreBuffers(visitor);
-        break;
       default:
         UNREACHABLE();
     }
   }
 
+  IterateStoreBuffers(visitor);
   IterateRememberedCards(visitor);
 }
 
@@ -1873,7 +1883,7 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
   visitor.ProcessRoots();
   visitor.ProcessAll();
   visitor.ProcessWeak();
-  visitor.Finalize();
+  visitor.Finalize(heap_->isolate_group()->store_buffer());
   to_->AddList(visitor.head(), visitor.tail());
   return visitor.bytes_promoted();
 }
@@ -1907,9 +1917,10 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
     }
   }
 
+  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ParallelScavengerVisitor* visitor = visitors[i];
-    visitor->Finalize();
+    visitor->Finalize(store_buffer);
     to_->AddList(visitor->head(), visitor->tail());
     bytes_promoted += visitor->bytes_promoted();
     delete visitor;

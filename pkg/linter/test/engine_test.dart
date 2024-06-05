@@ -21,31 +21,6 @@ void main() {
 void defineLinterEngineTests() {
   group('engine', () {
     setUp(setUpSharedTestEnvironment);
-    group('reporter', () {
-      void doTest(
-          String label, String expected, Function(PrintingReporter r) report) {
-        test(label, () {
-          String? msg;
-          var reporter = PrintingReporter((m) => msg = m);
-          report(reporter);
-          expect(msg, expected);
-        });
-      }
-
-      doTest('exception', 'EXCEPTION: LinterException: foo',
-          (r) => r.exception(LinterException('foo')));
-      doTest('warn', 'WARN: foo', (r) => r.warn('foo'));
-    });
-
-    group('exceptions', () {
-      test('message', () {
-        expect(const LinterException('foo').message, 'foo');
-      });
-      test('toString', () {
-        expect(const LinterException().toString(), 'LinterException');
-        expect(const LinterException('foo').toString(), 'LinterException: foo');
-      });
-    });
 
     group('camel case', () {
       test('humanize', () {
@@ -58,20 +33,6 @@ void defineLinterEngineTests() {
       });
       test('toString', () {
         expect(CamelCaseString('FooBar').toString(), 'FooBar');
-      });
-    });
-
-    group('groups', () {
-      test('factory', () {
-        expect(Group('style').custom, isFalse);
-        expect(Group('pub').custom, isFalse);
-        expect(Group('errors').custom, isFalse);
-        expect(Group('Kustom').custom, isTrue);
-      });
-      test('builtins', () {
-        expect(Group.builtin.contains(Group.style), isTrue);
-        expect(Group.builtin.contains(Group.errors), isTrue);
-        expect(Group.builtin.contains(Group.pub), isTrue);
       });
     });
 
@@ -107,17 +68,6 @@ void defineLinterEngineTests() {
               link.html, '<a href="http://dart.dev"><strong>dart</strong></a>');
         });
       });
-
-      group('rule', () {
-        test('comparing', () {
-          LintRule r1 = MockLintRule('Bar', Group('acme'));
-          LintRule r2 = MockLintRule('Foo', Group('acme'));
-          expect(r1.compareTo(r2), -1);
-          LintRule r3 = MockLintRule('Bar', Group('acme'));
-          LintRule r4 = MockLintRule('Bar', Group('woody'));
-          expect(r3.compareTo(r4), -1);
-        });
-      });
     });
   });
 }
@@ -135,11 +85,6 @@ class MockLinter extends LintRule {
 
   @override
   PubspecVisitor getPubspecVisitor() => MockPubspecVisitor(nodeVisitor);
-}
-
-class MockLintRule extends LintRule {
-  MockLintRule(String name, Group group)
-      : super(name: name, group: group, description: '', details: '');
 }
 
 class MockPubspecVisitor extends PubspecVisitor {
