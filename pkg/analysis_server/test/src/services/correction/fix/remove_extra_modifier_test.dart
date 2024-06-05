@@ -149,6 +149,19 @@ void m() {}
 ''');
   }
 
+  Future<void> test_covariantMember() async {
+    await resolveTestCode(r'''
+class C {
+  covariant c() {}
+}
+''');
+    await assertHasFix('''
+class C {
+  c() {}
+}
+''');
+  }
+
   Future<void> test_covariantTopLevelDeclaration_class() async {
     await resolveTestCode(r'''
 covariant class C {}

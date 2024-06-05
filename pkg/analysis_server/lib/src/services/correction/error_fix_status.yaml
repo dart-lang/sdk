@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 344 "needsFix"
-# - 407 "hasFix"
+# - 343 "needsFix"
+# - 408 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2615,9 +2615,7 @@ ParserErrorCode.COVARIANT_CONSTRUCTOR:
   notes: |-
     Remove `covariant`.
 ParserErrorCode.COVARIANT_MEMBER:
-  status: needsFix
-  notes: |-
-    Remove `covariant`.
+  status: hasFix
 ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
   status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
