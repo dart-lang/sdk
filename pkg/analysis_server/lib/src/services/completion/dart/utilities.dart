@@ -12,6 +12,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -187,6 +188,20 @@ String getTypeString(DartType type) {
   } else {
     return '${type.getDisplayString()} ';
   }
+}
+
+/// Instantiates the given [InterfaceElement]
+InterfaceType instantiateInstanceElement(
+    InterfaceElement element, NeverType neverType) {
+  var typeParameters = element.typeParameters;
+  var typeArguments = const <DartType>[];
+  if (typeParameters.isNotEmpty) {
+    typeArguments = List.filled(typeParameters.length, neverType);
+  }
+  return element.instantiate(
+    typeArguments: typeArguments,
+    nullabilitySuffix: NullabilitySuffix.none,
+  );
 }
 
 /// Return name of the type of the given [identifier], or, if it unresolved, the

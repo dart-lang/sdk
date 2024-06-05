@@ -3373,6 +3373,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addPatternKeywords();
           // TODO(scheglov): Actually we need constructors, but only const.
           // And not-yet imported contributors does not work well yet.
+          collector.preferConstants = true;
           declarationHelper(
             mustBeNonVoid: true,
           ).addLexicalDeclarations(node);
@@ -3401,6 +3402,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
 
     keywordHelper.addPatternKeywords();
+    collector.preferConstants = true;
     declarationHelper(
             mustBeConstant: mustBeConst,
             mustBeStatic: node.inStaticContext,

@@ -20,6 +20,10 @@ class SuggestionCollector {
   /// exception being thrown.
   bool isIncomplete = false;
 
+  /// Return `true` if the context prefers a constant expression. This is used
+  /// to compute relevance.
+  bool preferConstants = false;
+
   /// Initializes a newly created collector to collect candidate suggestions.
   SuggestionCollector();
 
