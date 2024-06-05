@@ -339,6 +339,11 @@ class DevToolsServer {
       'no-store',
     );
 
+    // Add the headers required to serve with wasm.
+    server.defaultResponseHeaders
+      ..add('Cross-Origin-Embedder-Policy', 'credentialless')
+      ..add('Cross-Origin-Opener-Policy', 'same-origin');
+
     // Serve requests in an error zone to prevent failures
     // when running from another error zone.
     runZonedGuarded(
