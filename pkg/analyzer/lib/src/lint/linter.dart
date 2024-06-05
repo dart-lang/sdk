@@ -35,45 +35,16 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-class Group implements Comparable<Group> {
-  /// Defined rule groups.
-  static const Group errors =
-      Group._('errors', description: 'Possible coding errors.');
-  static const Group pub = Group._('pub',
-      description: 'Pub-related rules.',
-      link: Hyperlink('See the <strong>Pubspec Format</strong>',
-          'https://dart.dev/tools/pub/pubspec'));
-  static const Group style = Group._('style',
-      description:
-          'Matters of style, largely derived from the official Dart Style Guide.',
-      link: Hyperlink('See the <strong>Style Guide</strong>',
-          'https://dart.dev/guides/language/effective-dart/style'));
+abstract class Group {
+  /// A group representing possible coding errors.
+  static const String errors = 'errors';
 
-  /// List of builtin groups in presentation order.
-  @visibleForTesting
-  static const Iterable<Group> builtin = [errors, style, pub];
+  /// A group representing Pub-related rules.
+  static const String pub = 'pub';
 
-  final String name;
-
-  @visibleForTesting
-  final bool custom;
-
-  final String description;
-
-  final Hyperlink? link;
-
-  factory Group(String name, {String description = '', Hyperlink? link}) {
-    var n = name.toLowerCase();
-    return builtin.firstWhere((g) => g.name == n,
-        orElse: () =>
-            Group._(name, custom: true, description: description, link: link));
-  }
-
-  const Group._(this.name,
-      {this.custom = false, required this.description, this.link});
-
-  @override
-  int compareTo(Group other) => name.compareTo(other.name);
+  /// A group representing matters of style, largely derived from Effective
+  /// Dart.
+  static const String style = 'style';
 }
 
 @visibleForTesting
@@ -229,7 +200,7 @@ abstract class LintFilter {
 }
 
 /// Describes a lint rule.
-abstract class LintRule implements Comparable<LintRule> {
+abstract class LintRule {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before any node processors start
   /// visiting nodes.
@@ -243,7 +214,7 @@ abstract class LintRule implements Comparable<LintRule> {
   final String description;
 
   /// Lint group (for example, 'style').
-  final Group group;
+  final String group;
 
   /// Lint name.
   final String name;
@@ -293,15 +264,6 @@ abstract class LintRule implements Comparable<LintRule> {
   ErrorReporter get reporter => _reporter;
 
   set reporter(ErrorReporter value) => _reporter = value;
-
-  @override
-  int compareTo(LintRule other) {
-    var g = group.compareTo(other.group);
-    if (g != 0) {
-      return g;
-    }
-    return name.compareTo(other.name);
-  }
 
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
