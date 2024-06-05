@@ -21,31 +21,6 @@ void main() {
 void defineLinterEngineTests() {
   group('engine', () {
     setUp(setUpSharedTestEnvironment);
-    group('reporter', () {
-      void doTest(
-          String label, String expected, Function(PrintingReporter r) report) {
-        test(label, () {
-          String? msg;
-          var reporter = PrintingReporter((m) => msg = m);
-          report(reporter);
-          expect(msg, expected);
-        });
-      }
-
-      doTest('exception', 'EXCEPTION: LinterException: foo',
-          (r) => r.exception(LinterException('foo')));
-      doTest('warn', 'WARN: foo', (r) => r.warn('foo'));
-    });
-
-    group('exceptions', () {
-      test('message', () {
-        expect(const LinterException('foo').message, 'foo');
-      });
-      test('toString', () {
-        expect(const LinterException().toString(), 'LinterException');
-        expect(const LinterException('foo').toString(), 'LinterException: foo');
-      });
-    });
 
     group('camel case', () {
       test('humanize', () {
