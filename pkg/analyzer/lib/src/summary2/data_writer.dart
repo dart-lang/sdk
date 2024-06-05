@@ -165,6 +165,18 @@ class BufferedSink {
     }
   }
 
+  void writeMap<K, V>(
+    Map<K, V> map, {
+    required void Function(K key) writeKey,
+    required void Function(V value) writeValue,
+  }) {
+    writeUInt30(map.length);
+    for (var entry in map.entries) {
+      writeKey(entry.key);
+      writeValue(entry.value);
+    }
+  }
+
   void writeOptionalObject<T>(T? object, void Function(T x) write) {
     if (object != null) {
       writeBool(true);
