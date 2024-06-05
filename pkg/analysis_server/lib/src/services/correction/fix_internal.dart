@@ -1382,6 +1382,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [
     RemoveConstructor.new,
   ],
+  ParserErrorCode.EXTERNAL_CLASS: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.EXTRANEOUS_MODIFIER: [
     RemoveExtraModifier.new,
   ],
