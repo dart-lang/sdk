@@ -28,7 +28,6 @@ export 'package:analyzer/src/lint/linter.dart'
         LinterContext,
         LinterOptions,
         NodeLintRegistry,
-        NodeLintRule,
         State;
 export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/lint/util.dart' show FileSpelunker;
