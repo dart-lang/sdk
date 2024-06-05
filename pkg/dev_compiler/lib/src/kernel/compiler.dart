@@ -4794,11 +4794,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Detects temporary variables so we can avoid displaying
   /// them in the debugger if needed.
-  bool _isTemporaryVariable(VariableDeclaration v) =>
-      v.isLowered ||
-      v.isSynthesized ||
-      v.name == null ||
-      v.name!.startsWith('#');
+  bool _isTemporaryVariable(VariableDeclaration v) {
+    // Late local variables are be exposed to the debugger for inspection and
+    // evaluation by treating the backing store local variable as a regular
+    // non-temporary variable.
+    // See https://github.com/dart-lang/sdk/issues/55918
+    if (isLateLoweredLocal(v)) return false;
+    return v.isLowered ||
+        v.isSynthesized ||
+        v.name == null ||
+        v.name!.startsWith('#');
+  }
 
   /// Creates a temporary name recognized by the debugger.
   /// Assumes `_isTemporaryVariable(v)`  is true.
@@ -4821,7 +4827,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       name ??= 't\$${_tempVariables.length}';
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name!));
     }
-    return _emitIdentifier(v.name!);
+    var name = v.name!;
+    if (isLateLoweredLocal(v)) {
+      // Late local variables are be exposed to the debugger for inspection and
+      // evaluation by treating the backing store local variable as a regular
+      // non-temporary variable.
+      // See https://github.com/dart-lang/sdk/issues/55918
+      name = extractLocalNameFromLateLoweredLocal(name);
+    }
+    return _emitIdentifier(name);
   }
 
   /// Emits the declaration of a variable.

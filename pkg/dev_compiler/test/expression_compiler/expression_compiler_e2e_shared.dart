@@ -67,6 +67,8 @@ class C {
 }
 
 int global = 42;
+late int lateGlobal;
+late String lateGlobal2;
 
 const soundNullSafety = !(<Null>[] is List<int>);
 soundNullSafetyTest() {
@@ -103,6 +105,24 @@ extensionsSymbolTest() {
   list.add(0);
   // Breakpoint: extensionSymbolsBP
   print(list);
+}
+
+lateLocalVariableTest() {
+  late int lateLocal;
+  late int lateLocal2;
+  if (42.isEven) {
+    lateLocal = 42;
+  }
+  // Breakpoint: lateLocalVariableBP
+  print(lateLocal);
+}
+
+lateGlobalVariableTest() {
+  if (42.isEven) {
+    lateGlobal = 42;
+  }
+  // Breakpoint: lateGlobalVariableBP
+  print(lateGlobal);
 }
 
 int foo(int x, {int y = 0}) {
@@ -268,6 +288,8 @@ main() {
   soundNullSafetyTest();
   couldReturnNullTest();
   extensionsSymbolTest();
+  lateLocalVariableTest();
+  lateGlobalVariableTest();
 
   "1234".parseIntPlusOne();
   callFooTest();
@@ -750,6 +772,58 @@ void runNullSafeSharedTests(
       test('scope', () async {
         await driver.checkScope(breakpointId: 'enumBP', expectedScope: {
           'e': 'e',
+        });
+      });
+    });
+
+    group('late', () {
+      group('local', () {
+        test(
+          'can be evaluated when initialized',
+          () async {
+            await driver.checkInFrame(
+                breakpointId: 'lateLocalVariableBP',
+                expression: 'lateLocal',
+                expectedResult: '42');
+          },
+        );
+        test('does not throw when evaluated and not initialized', () async {
+          // It isn't clear if this is expected to work or not, the behavior is
+          // somewhat undefined for the debugger. At this time we expose the
+          // backing storage variable that can be displayed or might be null if
+          // uninitialized.
+          // See https://github.com/dart-lang/sdk/issues/55918
+          await driver.checkInFrame(
+              breakpointId: 'lateLocalVariableBP',
+              expression: 'lateLocal2',
+              expectedResult: 'null');
+        });
+        test('throws when not initialized and used in method call', () async {
+          // It isn't clear if this is expected to work or not, the behavior is
+          // somewhat undefined for the debugger. At this time we expose the
+          // backing storage variable that can be displayed or might be null if
+          // uninitialized.
+          // See https://github.com/dart-lang/sdk/issues/55918
+          await driver.checkInFrame(
+              breakpointId: 'lateLocalVariableBP',
+              expression: 'lateLocal2.isEven',
+              expectedError: "Error: Property 'isEven' cannot be accessed on "
+                  "'int?' because it is potentially null.");
+        });
+      });
+      group('global', () {
+        test('can be evaluated when initialized', () async {
+          await driver.checkInFrame(
+              breakpointId: 'lateGlobalVariableBP',
+              expression: 'lateGlobal',
+              expectedResult: '42');
+        });
+        test('throws when not initialized', () async {
+          await driver.checkInFrame(
+              breakpointId: 'lateGlobalVariableBP',
+              expression: 'lateGlobal2',
+              expectedError: 'Error: LateInitializationError: '
+                  "Field 'lateGlobal2' has not been initialized.");
         });
       });
     });
