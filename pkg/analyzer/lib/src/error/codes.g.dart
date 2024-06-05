@@ -6824,17 +6824,6 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Remove @required.",
   );
 
-  ///  This warning is generated anywhere where `@sealed` annotates something
-  ///  other than a class.
-  ///
-  ///  No parameters.
-  static const WarningCode INVALID_SEALED_ANNOTATION = WarningCode(
-    'INVALID_SEALED_ANNOTATION',
-    "The annotation '@sealed' can only be applied to classes.",
-    correctionMessage: "Try removing the '@sealed' annotation.",
-    hasPublishedDocs: true,
-  );
-
   ///  Parameters:
   ///  0: the name of the member
   static const WarningCode INVALID_USE_OF_INTERNAL_MEMBER = WarningCode(

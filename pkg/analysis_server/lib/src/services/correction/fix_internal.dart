@@ -1543,9 +1543,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
     RemoveAnnotation.new,
   ],
-  WarningCode.INVALID_SEALED_ANNOTATION: [
-    RemoveAnnotation.new,
-  ],
   WarningCode.INVALID_VISIBILITY_ANNOTATION: [
     RemoveAnnotation.new,
   ],

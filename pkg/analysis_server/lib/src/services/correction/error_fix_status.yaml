@@ -3605,8 +3605,6 @@ WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
-WarningCode.INVALID_SEALED_ANNOTATION:
-  status: hasFix
 WarningCode.invalid_use_of_do_not_submit_member:
   status: needsEvaluation
 WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:

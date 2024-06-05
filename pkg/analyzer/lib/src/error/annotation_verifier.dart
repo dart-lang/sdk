@@ -50,8 +50,6 @@ class AnnotationVerifier {
       _checkReopen(node);
     } else if (element.isRedeclare) {
       _checkRedeclare(node);
-    } else if (element.isSealed) {
-      _checkSealed(node);
     } else if (element.isUseResult) {
       _checkUseResult(node, element);
     } else if (element.isVisibleForTemplate ||
@@ -305,18 +303,6 @@ class AnnotationVerifier {
         );
         return;
       }
-    }
-  }
-
-  /// Reports a warning at [node] if its parent is not a valid target for a
-  /// `@sealed` annotation.
-  void _checkSealed(Annotation node) {
-    var parent = node.parent;
-    if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_SEALED_ANNOTATION,
-      );
     }
   }
 

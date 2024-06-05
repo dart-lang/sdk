@@ -307,6 +307,9 @@ class _Reopen {
   const _Reopen();
 }
 
+@Target({
+  TargetKind.classType,
+})
 class _Sealed {
   const _Sealed();
 }

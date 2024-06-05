@@ -24932,6 +24932,7 @@ WarningCode:
 
       No parameters.
   INVALID_SEALED_ANNOTATION:
+    removedIn: "3.5"
     problemMessage: "The annotation '@sealed' can only be applied to classes."
     correctionMessage: Try removing the '@sealed' annotation.
     hasPublishedDocs: true
