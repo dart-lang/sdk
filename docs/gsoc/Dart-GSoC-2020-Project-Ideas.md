@@ -32,7 +32,7 @@ Suggested ideas for code samples include:
  * A minimal Dart library that can parse something simple.
    (Perhaps a miniscule subset of YAML).
  * A minimal Dart console program that can print the size and filename of the
-   first file in a USTAR tar archieve (ignoring other tar extensions).
+   first file in a USTAR tar archive (ignoring other tar extensions).
  * Check out the _getting started_ section for each idea, invent your own small demo,
    or ask the potential mentor.
 
@@ -177,12 +177,12 @@ able to read all packages on [pub.dev](https://pub.dev).
 
 **Getting Started**
 Try writing a small sample program that can print the file name and size of the
-first file in a USTAR tar archieve. Link to the sample in a secret gist attached
+first file in a USTAR tar archive. Link to the sample in a secret gist attached
 to the project proposal. For the proposal, it would be valuable to include:
  * References to relevant documentation of the various TAR formats.
  * An API outline for the streaming TAR reader package.
-   (Explain how an program using the package would read a tar file).
- * List of TAR features you'd suggest supporting: what are the strech goals,
+   (Explain how a program using the package would read a tar file).
+ * List of TAR features you'd suggest supporting: what are the stretch goals,
    what features do we ignore, how do we expose these features.
    (From the perspective of `pub` we mostly care about ordinary files and folders).
  * How do we plan to test this? What test cases can we find? How can we become
@@ -205,7 +205,7 @@ Stretch goal might be to handle `LICENSE` files with multiple licenses and
 display an SPDX license expression on pub.dev.
 
 **Getting Started**
-Try writing a small sample program that can fetch one of the [SPDX master files](https://github.com/spdx/license-list-XML/tree/master/src) and print it to terminal as
+Try writing a small sample program that can fetch one of the [SPDX origin files](https://github.com/spdx/license-list-XML/tree/main/src) and print it to terminal as
 markdown. Don't make it too perfect, just figure out how to parse the XML.
 For the proposal, it would be valuable to include:
  * References to relevant documentation.

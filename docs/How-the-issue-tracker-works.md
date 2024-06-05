@@ -267,7 +267,7 @@ There are a few other miscellaneous labels you might run into:
 
 
 *   **[merge-to-dev][]**, **[merge-to-stable][]**: These are used to track
-    requests to cherry-pick a change from master to one of the [release
+    requests to cherry-pick a change from main to one of the [release
     branches][branches].
 
 *   **[needs-info][]**: Like the name says, this means we need more

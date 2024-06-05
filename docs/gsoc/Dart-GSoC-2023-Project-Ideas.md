@@ -95,7 +95,7 @@ code sample in documentation comments:
 
 Some of these questions might be debated in the project proposal.
 A project proposal should also discuss how package authors would run the code sample tests.
-Finally, a project proposal is encouraged to outline implementation stages, including strech goals.
+Finally, a project proposal is encouraged to outline implementation stages, including stretch goals.
 
 
 **Good Sample Project**: Create a function that given some Dart code will use `package:analyzer` to do static analysis of the code and count static errors. Additional step would be to try and use `package:analyzer` to extract documentation comments from source code and use `package:markdown` to extract code-snippets from source code comments, and then run analysis on the extracted source code snippets. Ideally, all of this could be done, in-memory without writing files to disk.
@@ -121,7 +121,7 @@ Successfully completely this project will likely involve:
   * Creating a JNI bindings for those APIs using [`package:jnigen`](https://pub.dev/packages/jnigen).
   * Creating a higher-level interface over the JNI bindings e.g. so the Dart developer can work with [Dart URIs](https://api.dart.dev/stable/dart-core/Uri-class.html) rather than [java.net.URI](https://developer.android.com/reference/java/net/URI).
   * Creating a [`package:http` `Client`](https://pub.dev/documentation/http/latest/http/Client-class.html) implementation using the interface above.
-  * Verifying that the `Client` implementation passes the [conformance tests](https://github.com/dart-lang/http/tree/master/pkgs/http_client_conformance_tests).
+  * Verifying that the `Client` implementation passes the [conformance tests](https://github.com/dart-lang/http/tree/main/pkgs/http_client_conformance_tests).
 
 You'll like working on this project because:
 
@@ -129,7 +129,7 @@ You'll like working on this project because:
  * There are existing [conformance tests](https://github.com/dart-lang/http/tree/master/pkgs/http_client_conformance_tests) to validate the correctness of the work.
  * Dart users want it!
 
-A good project proposal will describe what Java APIs are necessary to implement the [`package:http` `Client` interface](https://pub.dev/documentation/http/latest/http/Client-class.html) and an *excellent* project proposal will discuss what features [`package:jnigen`](https://pub.dev/packages/jnigen) needs to to use those APIs from Dart.
+A good project proposal will describe what Java APIs are necessary to implement the [`package:http` `Client` interface](https://pub.dev/documentation/http/latest/http/Client-class.html) and an *excellent* project proposal will discuss what features [`package:jnigen`](https://pub.dev/packages/jnigen) needs to use those APIs from Dart.
 
 **Good Sample Project**: Try writing a small [Flutter](https://flutter.dev/) application that makes HTTP requests using Java API bindings created with [`package:jnigen`](https://pub.dev/packages/jnigen).
 
@@ -149,7 +149,7 @@ We would like to explore the possibilities of the new language features that cou
 We are using [Federated plugins](https://docs.flutter.dev/development/packages-and-plugins/developing-packages#federated-plugins)  therefore this is likely to involve:
  
 * refactoring `platform_interface` class for each package,
-* refactoring app-faceing and platform-specific-implementation packages,
+* refactoring app-facing and platform-specific-implementation packages,
 * potentially removing native code and replacing it with direct dart API calls,
 * rewriting the entire package unit and e-2-e tests,
 * replacing CI/CD existing workflow making it compatible with upcoming language feature, and
@@ -157,7 +157,7 @@ We are using [Federated plugins](https://docs.flutter.dev/development/packages-a
 
 Some of these questions might be debated in the project proposal. A project proposal is encouraged to outline implementation stages, including stretch goals.
 
-**Good Sample Project**: Create new packages for both [Device_Info](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/device_info_plus) or [Connectivity_Plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus) and redesign part of the APIs including in platform interface and use Dart 3 language features, then create a Flutter project from Master branch and then use these packages with latest Flutter and Dart 3 version that uses all APIs.
+**Good Sample Project**: Create new packages for both [Device_Info](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/device_info_plus) or [Connectivity_Plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus) and redesign part of the APIs including in platform interface and use Dart 3 language features, then create a Flutter project from main branch and then use these packages with latest Flutter and Dart 3 version that uses all APIs.
 
 
 

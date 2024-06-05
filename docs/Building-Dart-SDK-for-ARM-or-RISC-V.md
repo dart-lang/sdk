@@ -21,7 +21,7 @@ If you are running Debian/Ubuntu, you can obtain a cross-compiler by doing the f
 $ sudo apt-get install g++-arm-linux-gnueabihf  # For 32-bit ARM (ARMv7)	
 $ sudo apt-get install g++-aarch64-linux-gnu    # For 64-bit ARM (ARMv8)
 $ sudo apt-get install g++-riscv64-linux-gnu    # For 64-bit RISC-V (RV64GC)
-```	
+```
 
 ## Android
 

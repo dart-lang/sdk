@@ -35,4 +35,4 @@ main() {
 
 The full set of features is defined [here][features]. For any given configuration, the test runner knows which features that configuration supports. When it is determining which tests to run, if a test requires a feature that the configuration does not support, the test is automatically skipped.
 
-[features]: https://github.com/dart-lang/sdk/blob/master/pkg/test_runner/lib/src/feature.dart
+[features]: https://github.com/dart-lang/sdk/blob/main/pkg/test_runner/lib/src/feature.dart

@@ -63,7 +63,7 @@ those out of the way first.
 
 *   **Bots**, **BuildBots**, **builders** - The infrastructure for automatically
     running the tests in the cloud across a number of configurations. Whenever a
-    change lands on master, the bots run all of the tests to determine what
+    change lands on main, the bots run all of the tests to determine what
     behavior changed.
 
 ## Expectations, outcomes, status files, and the results database
@@ -97,7 +97,7 @@ All this means that it's not as simple as "run test and if no errors then great,
 otherwise blow up." At a high level, what we really want is:
 
 * To encode the behavior we *intend* to ship.
-* To know what behavior are *are* shipping.
+* To know what behavior *are* shipping.
 * To know when that behavior *changes* and what commits cause it.
 
 ### Expectation
@@ -249,7 +249,7 @@ test suites. For each test file:
     ```
 
     In other words, if the outcome and the expectation align, that's a "pass" in
-    that the tool does what a human says its supposed to. If they disagree,
+    that the tool does what a human says it's supposed to. If they disagree,
     there is some kind of "failure"&mdash;either an error was supposed to
     reported and wasn't, or an unexpected error occurred.
 
@@ -418,7 +418,7 @@ also survive a gauntlet of robots.
 The commit queue is a system that automatically runs your not-yet-landed change
 on a subset of all of the bots. This subset is the trybots. They run a selected
 set of configurations to balance good coverage against completing in a timely
-manner. If all of those tests pass the change can land on master. Here "pass"
+manner. If all of those tests pass the change can land on main. Here "pass"
 means that the test result is *the same as it was before your change.* A
 *change* in status is what's considered "failure".
 
@@ -430,7 +430,7 @@ deliberate and desired.
 This workflow is still in flux as part of the move away from status files.
 **TODO: Rewrite or remove this once the approval workflow is gone or complete.**
 
-Once you please all of the trybots, the change can land on master. After that
+Once you please all of the trybots, the change can land on main. After that
 *all* of the bots pick up the change and run the tests on all of the supported
 configurations against your change. Assuming we've picked a good set of trybots,
 these should all pass. But sometimes you encounter a test that behaves as
@@ -477,8 +477,8 @@ single Dart file][expect lib] that exposes a rudimentary JUnit-like API for
 making assertions about behavior. Fortunately, since the behavior we're testing
 is also pretty low-level, that API is usually sufficient.
 
-[expect pkg]: https://github.com/dart-lang/sdk/tree/master/pkg/expect
-[expect lib]: https://github.com/dart-lang/sdk/blob/master/pkg/expect/lib/expect.dart
+[expect pkg]: https://github.com/dart-lang/sdk/tree/main/pkg/expect
+[expect lib]: https://github.com/dart-lang/sdk/blob/main/pkg/expect/lib/expect.dart
 
 The way it works is that if an assertion fails, it throws an exception. That
 exception unwinds the entire callstack and a Dart implementation then exits in
@@ -489,7 +489,7 @@ If you are writing asynchronous tests, there is a separate tiny
 ["async_helper"][async pkg] package that talks to the test runner to ensure all
 asynchronous operations performed by the test have a chance to complete.
 
-[async pkg]: https://github.com/dart-lang/sdk/tree/master/pkg/async_helper
+[async pkg]: https://github.com/dart-lang/sdk/tree/main/pkg/async_helper
 
 With these two packages, it's straightforward to write tests of expected correct
 runtime behavior. You can also write tests for validating runtime *failures* by

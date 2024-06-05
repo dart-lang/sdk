@@ -50,6 +50,6 @@ The commit message must contain the `[stable]` or `[beta]` hashtags to ensure re
 
 The `Cherry-pick` footer must link to the original review on the main branch. Use the footer multiple times if multiple changes are bundled into the cherry-pick. If the change is original and isn't cherry-picked from main, then describe why the change is original. The purpose of the footer is to help reviewers understand the original change and know it is safe on the release branch.
 
-The `Cherry-pick-request` footer must link to the github issue where the cherry-pick's rationale is being approved. The purpose of the footer is to help reviewers understand why the cherry-pick is needed and to ensure the approvals are obtained before submission.
+The `Cherry-pick-request` footer must link to the GitHub issue where the cherry-pick's rationale is being approved. The purpose of the footer is to help reviewers understand why the cherry-pick is needed and to ensure the approvals are obtained before submission.
 
 The commit message must not contain the old `Reviewed-on`, `Reviewed-by`, and `Commit-Queue` footers from the old commit message as they are not true of the new change. The appropriate new footers will be automatically generated on submission.

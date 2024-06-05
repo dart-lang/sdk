@@ -238,7 +238,7 @@ code sample in documentation comments:
 
 Some of these questions might be debated in the project proposal.
 A project proposal should also discuss how package authors would run the code sample tests.
-Finally, a project proposal is encouraged to outline implementation stages, including strech goals.
+Finally, a project proposal is encouraged to outline implementation stages, including stretch goals.
 
 **Good Sample Project**: Create a function that given some Dart code will use `package:analyzer` to do static analysis of the code and count static errors. Additional step would be to try and use `package:analyzer` to extract documentation comments from source code and use `package:markdown` to extract code-snippets from source code comments, and then run analysis on the extracted source code snippets. Ideally, all of this could be done, in-memory without writing files to disk.
 
