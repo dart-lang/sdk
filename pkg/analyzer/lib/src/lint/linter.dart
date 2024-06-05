@@ -242,7 +242,7 @@ abstract class LintFilter {
 }
 
 /// Describes a lint rule.
-abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
+abstract class LintRule implements Comparable<LintRule> {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before any node processors start
   /// visiting nodes.
@@ -321,7 +321,10 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
   /// Lint errors are reported via this [Linter]'s error [reporter].
   PubspecVisitor? getPubspecVisitor() => null;
 
-  @override
+  /// Registers node processors in the given [registry].
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {}
 
@@ -383,17 +386,6 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
     );
     reporter.reportError(error);
   }
-}
-
-/// [LintRule]s that implement this interface want to process only some types
-/// of AST nodes, and will register their processors in the registry.
-abstract class NodeLintRule {
-  /// This method is invoked to let the [LintRule] register node processors
-  /// in the given [registry].
-  ///
-  /// The node processors may use the provided [context] to access information
-  /// that is not available from the AST nodes or their associated elements.
-  void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
 }
 
 class PrintingReporter implements Reporter {

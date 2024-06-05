@@ -26,7 +26,7 @@ b() {
 
 ''';
 
-class EnableNullSafety extends LintRule implements NodeLintRule {
+class EnableNullSafety extends LintRule {
   static const LintCode code = LintCode(
       'enable_null_safety', 'Use sound null safety.',
       correctionMessage:
