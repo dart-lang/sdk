@@ -6070,8 +6070,6 @@ class PcDescriptors : public Object {
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
 
-  static void PrintHeaderString();
-
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
   // We would have a VisitPointers function here to traverse the
@@ -10842,22 +10840,27 @@ class Array : public Instance {
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
+    ASSERT((0 <= index) && (index < Length()));
     return untag()->element<order>(index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr());
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr(), thread);
   }
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
+    ASSERT((0 <= index) && (index < Length()));
     return untag()->element<std::memory_order_acquire>(index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<std::memory_order_release>(index, value.ptr());
   }
 

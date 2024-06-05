@@ -381,9 +381,12 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
       }));
     }
 
-    if (options.verbose) {
+    if (options.verbose || log != null) {
       String result = pass ? "PASS" : "FAIL";
       print("${testName}: ${result}");
+      if (log != null) {
+        print("  ${log.replaceAll('\n', '\n  ')}");
+      }
     }
   }
 
@@ -393,6 +396,7 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
       // TODO(jensj): More info here would be good.
       addResult(coverageEntry.key.toString(), false, log: "Error");
     } else {
+      StringBuffer sb = new StringBuffer();
       int hitCount = coverageEntry.value.hitCount;
       int missCount = coverageEntry.value.missCount;
       double percent = (hitCount / (hitCount + missCount) * 100);
@@ -402,13 +406,24 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
       int requireAtLeast =
           (_expect[coverageEntry.key.toString()] ?? 0.0).floor();
       bool pass = percent >= requireAtLeast;
-      String? log;
       if (!pass) {
-        log = "${coverageEntry.value.visualization}\n\n"
-            "Expected at least $requireAtLeast%, got $percent% "
-            "($hitCount hits and $missCount misses).";
+        sb.write("${coverageEntry.value.visualization}");
+        sb.write("\n\nExpected at least $requireAtLeast%, got $percent% "
+            "($hitCount hits and $missCount misses).");
+        sb.write("\n\nTo re-run this test, run:");
+        var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
+        // It looks like coverage results vary slightly based on the number of
+        // tasks, so include a `--tasks=` argument in the repro instructions.
+        //
+        // TODO(paulberry): why do coverage results vary based on the number of
+        // tasks? (Note: possibly due to
+        // https://github.com/dart-lang/sdk/issues/42061)
+        sb.write(
+            "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
+            "--tasks=${options.numberOfWorkers}");
       }
-      addResult(coverageEntry.key.toString(), pass, log: log);
+      addResult(coverageEntry.key.toString(), pass,
+          log: sb.isEmpty ? null : sb.toString());
     }
   }
 
@@ -507,3 +522,9 @@ class Options {
     );
   }
 }
+
+final bool _assertsEnabled = () {
+  bool assertsEnabled = false;
+  assert(assertsEnabled = true);
+  return assertsEnabled;
+}();

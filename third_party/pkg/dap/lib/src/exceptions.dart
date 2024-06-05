@@ -8,7 +8,10 @@
 class DebugAdapterException implements Exception {
   final String message;
 
-  DebugAdapterException(this.message);
+  /// Whether or not to show the error to the user as a notification.
+  final bool showToUser;
+
+  DebugAdapterException(this.message, {this.showToUser = false});
 
   @override
   String toString() => 'DebugAdapterException: $message';
@@ -37,12 +40,16 @@ class DebugAdapterInvalidArgumentException implements DebugAdapterException {
   final Type actualType;
   final Object? actualValue;
 
+  @override
+  final bool showToUser;
+
   DebugAdapterInvalidArgumentException({
     required this.requestName,
     required this.argumentName,
     required this.expectedType,
     required this.actualType,
     required this.actualValue,
+    this.showToUser = false,
   });
 
   @override
