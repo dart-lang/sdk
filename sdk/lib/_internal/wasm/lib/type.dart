@@ -703,15 +703,17 @@ abstract class _TypeUniverse {
           substituteTypeArgument(type.as<_FutureOrType>().typeArgument,
               substitutions, rootFunction));
     } else if (type.isInterface) {
-      _InterfaceType interfaceType = type.as<_InterfaceType>();
-      final typeArguments = WasmArray<_Type>.filled(
-          interfaceType.typeArguments.length, _literal<dynamic>());
-      for (int i = 0; i < typeArguments.length; i++) {
-        typeArguments[i] = substituteTypeArgument(
-            interfaceType.typeArguments[i], substitutions, rootFunction);
+      final interfaceType = type.as<_InterfaceType>();
+      final arguments = interfaceType.typeArguments;
+      if (arguments.length == 0) return interfaceType;
+      final newArguments =
+          WasmArray<_Type>.filled(arguments.length, _literal<dynamic>());
+      for (int i = 0; i < arguments.length; i++) {
+        newArguments[i] =
+            substituteTypeArgument(arguments[i], substitutions, rootFunction);
       }
       return _InterfaceType(interfaceType.classId,
-          interfaceType.isDeclaredNullable, typeArguments);
+          interfaceType.isDeclaredNullable, newArguments);
     } else if (type.isInterfaceTypeParameterType) {
       assert(rootFunction == null);
       return substituteInterfaceTypeParameter(
@@ -885,24 +887,15 @@ abstract class _TypeUniverse {
         _typeRulesSubstitutions[sId][sSuperIndexOfT];
     assert(substitutions.isNotEmpty);
 
-    // If we have empty type arguments then create a list of dynamic type
-    // arguments.
-    WasmArray<_Type> typeArgumentsForSubstitution =
-        substitutions.isNotEmpty && sTypeArguments.isEmpty
-            ? WasmArray<_Type>.filled(substitutions.length, _literal<dynamic>())
-            : sTypeArguments;
-
-    // Finally substitute arguments. We must do this upfront so we can normalize
-    // the type.
-    // TODO(joshualitt): This process is expensive so we should cache the
-    // result.
-    final substituted =
-        WasmArray<_Type>.filled(substitutions.length, _literal<dynamic>());
-    for (int i = 0; i < substitutions.length; i++) {
-      substituted[i] = substituteTypeArgument(
-          substitutions[i], typeArgumentsForSubstitution, null);
+    // Check arguments.
+    for (int i = 0; i < tTypeArguments.length; i++) {
+      final sArgForTClass =
+          substituteTypeArgument(substitutions[i], sTypeArguments, null);
+      if (!isSubtype(sArgForTClass, sEnv, tTypeArguments[i], tEnv)) {
+        return false;
+      }
     }
-    return areTypeArgumentsSubtypes(substituted, sEnv, tTypeArguments, tEnv);
+    return true;
   }
 
   static bool isFunctionSubtype(_FunctionType s, _Environment? sEnv,
