@@ -121,6 +121,10 @@ class BufferedSink {
     addByte(byte);
   }
 
+  void writeEnum(Enum e) {
+    writeByte(e.index);
+  }
+
   void writeIf<T extends Object>(
     bool condition,
     void Function() ifTrue,

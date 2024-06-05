@@ -56,6 +56,11 @@ class SummaryDataReader {
     return _doubleBuffer[0];
   }
 
+  T readEnum<T extends Enum>(List<T> values) {
+    var index = readByte();
+    return values[index];
+  }
+
   T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
     if (readBool()) {
       return read(this);

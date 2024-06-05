@@ -2062,8 +2062,7 @@ class ResolutionReader {
   }
 
   T readEnum<T extends Enum>(List<T> values) {
-    var index = readByte();
-    return values[index];
+    return _reader.readEnum(values);
   }
 
   List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
