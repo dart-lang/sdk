@@ -873,17 +873,6 @@ static void GenerateNoSuchMethodDispatcherCode(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateDispatcherCode(Assembler* assembler,
-                                   Label* call_target_function) {
-  __ Comment("NoSuchMethodDispatch");
-  // When lazily generated invocation dispatchers are disabled, the
-  // miss-handler may return null.
-  const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, call_target_function);
-  GenerateNoSuchMethodDispatcherCode(assembler);
-}
-
 void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
   GenerateNoSuchMethodDispatcherCode(assembler);
 }
@@ -2083,11 +2072,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
-    GenerateDispatcherCode(assembler, &call_target_function);
-  } else {
-    __ jmp(&call_target_function);
-  }
+  ASSERT(!FLAG_precompiled_mode);
+  __ jmp(&call_target_function);
 
   __ Bind(&found);
   // EBX: Pointer to an IC data check group.

@@ -16,99 +16,87 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_resolving, false, "Trace resolving.");
 
-// The actual names of named arguments are not checked by the dynamic resolver,
-// but by the method entry code. It is important that the dynamic resolver
-// checks that no named arguments are passed to a method that does not accept
-// them, since the entry code of such a method does not check for named
-// arguments. The dynamic resolver actually checks that a valid number of named
-// arguments is passed in.
-FunctionPtr Resolver::ResolveDynamic(const Instance& receiver,
-                                     const String& function_name,
-                                     const ArgumentsDescriptor& args_desc) {
-  // Figure out type of receiver first.
-  const Class& cls = Class::Handle(receiver.clazz());
-  return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
-}
-
 static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
     Zone* zone,
     const Class& receiver_class,
     const String& function_name,
     bool allow_add,
     std::function<FunctionPtr(Class&, const String&)> lookup) {
-  Class& cls = Class::Handle(zone, receiver_class.ptr());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // No methods can be added in the precompiled runtime.
+  ASSERT(!allow_add);
+#endif
+
   if (FLAG_trace_resolving) {
     THR_Print("ResolveDynamic '%s' for class %s\n", function_name.ToCString(),
-              String::Handle(zone, cls.Name()).ToCString());
-  }
-  Function& function = Function::Handle(zone);
-
-  const String& demangled = String::Handle(
-      zone,
-      Function::IsDynamicInvocationForwarderName(function_name)
-          ? Function::DemangleDynamicInvocationForwarderName(function_name)
-          : function_name.ptr());
-
-  const bool is_getter = Field::IsGetterName(demangled);
-  String& demangled_getter_name = String::Handle();
-  if (is_getter) {
-    demangled_getter_name = Field::NameFromGetter(demangled);
+              receiver_class.NameCString(Object::kInternalName));
   }
 
-  const bool is_dyn_call = demangled.ptr() != function_name.ptr();
+  const bool is_dyn_call =
+      Function::IsDynamicInvocationForwarderName(function_name);
+  const String* const demangled_name =
+      is_dyn_call
+          ? &String::Handle(
+                zone,
+                Function::DemangleDynamicInvocationForwarderName(function_name))
+          : &function_name;
+
+  const bool is_getter = Field::IsGetterName(*demangled_name);
+  const String* const method_name_to_extract =
+      is_getter ? &String::Handle(zone, Field::NameFromGetter(*demangled_name))
+                : nullptr;
 
   Thread* thread = Thread::Current();
-  bool need_to_create_method_extractor = false;
-  while (!cls.IsNull()) {
+  Function& function = Function::Handle(zone);
+  for (auto& cls = Class::Handle(zone, receiver_class.ptr()); !cls.IsNull();
+       cls = cls.SuperClass()) {
     if (is_dyn_call) {
-      // Try to find a dyn:* forwarder & return it.
+      // If a dyn:* forwarder already exists, return it.
       function = cls.GetInvocationDispatcher(
           function_name, Array::null_array(),
           UntaggedFunction::kDynamicInvocationForwarder,
           /*create_if_absent=*/false);
+      if (!function.IsNull()) return function.ptr();
     }
-    if (!function.IsNull()) return function.ptr();
 
     ASSERT(cls.is_finalized());
     {
       SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-      function = lookup(cls, demangled);
+      function = lookup(cls, *demangled_name);
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    // In JIT we might need to lazily create a dyn:* forwarder.
-    if (is_dyn_call && !function.IsNull()) {
-      function =
-          function.GetDynamicInvocationForwarder(function_name, allow_add);
+    if (allow_add && is_dyn_call && !function.IsNull()) {
+      // In JIT mode, lazily create a dyn:* forwarder if one is required.
+      function = function.GetDynamicInvocationForwarder(function_name);
     }
 #endif
     if (!function.IsNull()) return function.ptr();
 
-    // Getter invocation might actually be a method extraction.
+    // Getter invocation might be an attempted closurization of a method that
+    // does not already have an implicit closure function or method extractor.
     if (is_getter) {
       SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-      function = lookup(cls, demangled_getter_name);
-      if (!function.IsNull()) {
-        if (allow_add && FLAG_lazy_dispatchers) {
-          need_to_create_method_extractor = true;
-          break;
-        } else {
-          return Function::null();
-        }
-      }
+      function = lookup(cls, *method_name_to_extract);
     }
-    cls = cls.SuperClass();
+    if (!function.IsNull()) {
+      // Only create method extractors if adding new methods is allowed.
+      if (!allow_add) return Function::null();
+      // Don't create method extractors in the precompiler, as it creates those
+      // based on metadata (see Precompiler::CheckForNewDynamicFunctions).
+      if (FLAG_precompiled_mode) return Function::null();
+      // Use GetMethodExtractor in case a method extractor was created between
+      // the earlier attempted resolution of [*demangled_name] and now.
+      return function.GetMethodExtractor(*demangled_name);
+    }
   }
-  if (need_to_create_method_extractor) {
-    // We were looking for the getter but found a method with the same
-    // name. Create a method extractor and return it.
-    // Use GetMethodExtractor instead of CreateMethodExtractor to ensure
-    // nobody created method extractor since we last checked under ReadRwLocker.
-    function = function.GetMethodExtractor(demangled);
-  } else if (is_getter && receiver_class.IsRecordClass() && allow_add &&
-             FLAG_lazy_dispatchers) {
-    function = receiver_class.GetRecordFieldGetter(demangled);
+  if (is_getter && receiver_class.IsRecordClass()) {
+    // Only create record field getters if adding new methods is allowed.
+    if (!allow_add) return Function::null();
+    // Don't create record field getters in the precompiler.
+    if (FLAG_precompiled_mode) return Function::null();
+    return receiver_class.GetRecordFieldGetter(*demangled_name);
   }
-  return function.ptr();
+  return Function::null();
 }
 
 static FunctionPtr ResolveDynamicForReceiverClassWithCustomLookup(
@@ -170,10 +158,9 @@ FunctionPtr Resolver::ResolveDynamicForReceiverClass(
 FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
     const Class& receiver_class,
     const String& function_name,
-    const ArgumentsDescriptor& args_desc,
-    bool allow_add) {
+    const ArgumentsDescriptor& args_desc) {
   return ResolveDynamicForReceiverClassWithCustomLookup(
-      receiver_class, function_name, args_desc, allow_add,
+      receiver_class, function_name, args_desc, /*allow_add=*/false,
       std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
 }
 
@@ -202,16 +189,6 @@ FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
   return ResolveDynamicAnyArgsWithCustomLookup(
       zone, receiver_class, function_name, allow_add,
       std::mem_fn(&Class::LookupDynamicFunctionUnsafe));
-}
-
-FunctionPtr Resolver::ResolveDynamicAnyArgsAllowPrivate(
-    Zone* zone,
-    const Class& receiver_class,
-    const String& function_name,
-    bool allow_add) {
-  return ResolveDynamicAnyArgsWithCustomLookup(
-      zone, receiver_class, function_name, allow_add,
-      std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
 }
 
 }  // namespace dart

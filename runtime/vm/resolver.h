@@ -22,33 +22,23 @@ class ArgumentsDescriptor;
 // invocations.
 class Resolver : public AllStatic {
  public:
-  // Resolve specified dart instance function.
-  static FunctionPtr ResolveDynamic(const Instance& receiver,
-                                    const String& function_name,
-                                    const ArgumentsDescriptor& args_desc);
-
   // If 'allow_add' is true we may add a function to the class during lookup.
   static FunctionPtr ResolveDynamicForReceiverClass(
       const Class& receiver_class,
       const String& function_name,
       const ArgumentsDescriptor& args_desc,
-      bool allow_add = true);
+      bool allow_add);
+
   static FunctionPtr ResolveDynamicForReceiverClassAllowPrivate(
       const Class& receiver_class,
       const String& function_name,
-      const ArgumentsDescriptor& args_desc,
-      bool allow_add);
+      const ArgumentsDescriptor& args_desc);
 
   // If 'allow_add' is true we may add a function to the class during lookup.
   static FunctionPtr ResolveDynamicAnyArgs(Zone* zone,
                                            const Class& receiver_class,
                                            const String& function_name,
-                                           bool allow_add = true);
-  static FunctionPtr ResolveDynamicAnyArgsAllowPrivate(
-      Zone* zone,
-      const Class& receiver_class,
-      const String& function_name,
-      bool allow_add);
+                                           bool allow_add);
 
   // Resolve instance function [function_name] with any args, it doesn't
   // allow adding methods during resolution: [allow_add] is [false].

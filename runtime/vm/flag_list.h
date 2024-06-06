@@ -59,7 +59,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")
 

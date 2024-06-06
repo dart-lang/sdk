@@ -5217,18 +5217,8 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
 
 static FunctionPtr FindBinarySmiOp(Zone* zone, const String& name) {
   const auto& smi_class = Class::Handle(zone, Smi::Class());
-  auto& smi_op_target = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (smi_op_target.IsNull() &&
-      Function::IsDynamicInvocationForwarderName(name)) {
-    const String& demangled = String::Handle(
-        zone, Function::DemangleDynamicInvocationForwarderName(name));
-    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
-  }
-#endif
-  return smi_op_target.ptr();
+  return Resolver::ResolveDynamicAnyArgs(zone, smi_class, name,
+                                         /*allow_add=*/true);
 }
 
 void InstanceCallInstr::EnsureICData(FlowGraph* graph) {
