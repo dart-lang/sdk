@@ -735,9 +735,6 @@ class KernelTarget {
         case NnbdMode.Strong:
           compiledMode = NonNullableByDefaultCompiledMode.Strong;
           break;
-        case NnbdMode.Agnostic:
-          compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-          break;
       }
     } else {
       compiledMode = NonNullableByDefaultCompiledMode.Weak;
@@ -815,25 +812,14 @@ class KernelTarget {
       for (Library library in component.libraries) {
         if (component.mode == NonNullableByDefaultCompiledMode.Strong) {
           if (library.nonNullableByDefaultCompiledMode !=
-                  NonNullableByDefaultCompiledMode.Strong &&
-              library.nonNullableByDefaultCompiledMode !=
-                  NonNullableByDefaultCompiledMode.Agnostic) {
-            return "Expected library ${library.importUri} to be strong or "
-                "agnostic, but was ${library.nonNullableByDefaultCompiledMode}";
+              NonNullableByDefaultCompiledMode.Strong) {
+            return "Expected library ${library.importUri} to be strong, "
+                "but was ${library.nonNullableByDefaultCompiledMode}";
           }
         } else if (component.mode == NonNullableByDefaultCompiledMode.Weak) {
           if (library.nonNullableByDefaultCompiledMode !=
-                  NonNullableByDefaultCompiledMode.Weak &&
-              library.nonNullableByDefaultCompiledMode !=
-                  NonNullableByDefaultCompiledMode.Agnostic) {
-            return "Expected library ${library.importUri} to be weak or "
-                "agnostic, but was ${library.nonNullableByDefaultCompiledMode}";
-          }
-        } else if (component.mode ==
-            NonNullableByDefaultCompiledMode.Agnostic) {
-          if (library.nonNullableByDefaultCompiledMode !=
-              NonNullableByDefaultCompiledMode.Agnostic) {
-            return "Expected library ${library.importUri} to be agnostic, "
+              NonNullableByDefaultCompiledMode.Weak) {
+            return "Expected library ${library.importUri} to be weak, "
                 "but was ${library.nonNullableByDefaultCompiledMode}";
           }
         } else {

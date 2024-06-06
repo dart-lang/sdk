@@ -298,7 +298,6 @@ class ProcessedOptions {
               messageCompilingWithoutSoundNullSafety.severity);
           break;
         case NnbdMode.Strong:
-        case NnbdMode.Agnostic:
           break;
       }
     }
@@ -430,8 +429,7 @@ class ProcessedOptions {
           '${component.libraries.join('\n')}');
     }
     if (nnbdMode == NnbdMode.Strong &&
-        !(component.mode == NonNullableByDefaultCompiledMode.Strong ||
-            component.mode == NonNullableByDefaultCompiledMode.Agnostic)) {
+        component.mode != NonNullableByDefaultCompiledMode.Strong) {
       throw new FormatException(
           'Provided .dill file for the following libraries does not '
           'support sound null safety:\n'

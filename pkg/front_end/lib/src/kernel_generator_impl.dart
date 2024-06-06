@@ -198,9 +198,6 @@ Future<InternalCompilerResult> _buildInternal(
       case NnbdMode.Strong:
         compiledMode = NonNullableByDefaultCompiledMode.Strong;
         break;
-      case NnbdMode.Agnostic:
-        compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-        break;
     }
     if (kernelTarget.loader.hasInvalidNnbdModeLibrary) {
       compiledMode = NonNullableByDefaultCompiledMode.Invalid;

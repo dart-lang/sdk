@@ -256,8 +256,7 @@ class CompilerOptions {
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
 
-  /// Whether nnbd weak, strong or agnostic mode is used if experiment
-  /// 'non-nullable' is enabled.
+  /// Whether nnbd weak or strong mode is used.
   NnbdMode nnbdMode = NnbdMode.Strong;
 
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".

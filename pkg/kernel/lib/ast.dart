@@ -268,7 +268,7 @@ abstract class Annotatable extends TreeNode {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-enum NonNullableByDefaultCompiledMode { Strong, Weak, Agnostic, Invalid }
+enum NonNullableByDefaultCompiledMode { Strong, Weak, Invalid }
 
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
@@ -310,7 +310,6 @@ class Library extends NamedNode
     bool bit2 = (flags & NonNullableByDefaultModeBit2) != 0;
     if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
     if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
-    if (bit1 && bit2) return NonNullableByDefaultCompiledMode.Agnostic;
     if (!bit1 && bit2) return NonNullableByDefaultCompiledMode.Invalid;
     throw new StateError("Unused bit-pattern for compilation mode");
   }
@@ -325,10 +324,6 @@ class Library extends NamedNode
       case NonNullableByDefaultCompiledMode.Weak:
         flags = (flags | NonNullableByDefaultModeBit1) &
             ~NonNullableByDefaultModeBit2;
-        break;
-      case NonNullableByDefaultCompiledMode.Agnostic:
-        flags = (flags | NonNullableByDefaultModeBit1) |
-            NonNullableByDefaultModeBit2;
         break;
       case NonNullableByDefaultCompiledMode.Invalid:
         flags = (flags & ~NonNullableByDefaultModeBit1) |

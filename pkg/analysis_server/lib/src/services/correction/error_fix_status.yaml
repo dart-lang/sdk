@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 341 "needsFix"
-# - 410 "hasFix"
+# - 340 "needsFix"
+# - 411 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2815,9 +2815,7 @@ ParserErrorCode.EXTERNAL_SETTER_WITH_BODY:
   notes: |-
     Remove the `external` keyword, or remove the body.
 ParserErrorCode.EXTERNAL_TYPEDEF:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
+  status: hasFix
 ParserErrorCode.EXTRANEOUS_MODIFIER:
   status: hasFix
 ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:

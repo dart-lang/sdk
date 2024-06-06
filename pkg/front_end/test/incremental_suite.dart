@@ -1926,21 +1926,6 @@ Result? checkNNBDSettings(Component component) {
   for (Library lib in component.libraries) {
     if (mode == lib.nonNullableByDefaultCompiledMode) continue;
 
-    if (mode == NonNullableByDefaultCompiledMode.Agnostic) {
-      // Component says agnostic but the library isn't => Error!
-      return new Result(
-          null,
-          NNBDModeMismatch,
-          "Component mode was agnostic but ${lib.importUri} had mode "
-          "${lib.nonNullableByDefaultCompiledMode}.");
-    }
-
-    // Agnostic can be mixed with everything.
-    if (lib.nonNullableByDefaultCompiledMode ==
-        NonNullableByDefaultCompiledMode.Agnostic) {
-      continue;
-    }
-
     if (mode == NonNullableByDefaultCompiledMode.Strong ||
         lib.nonNullableByDefaultCompiledMode ==
             NonNullableByDefaultCompiledMode.Strong) {

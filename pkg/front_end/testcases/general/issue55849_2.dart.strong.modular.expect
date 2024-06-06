@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::int x) → self::A
+    : super core::Object::•()
+    ;
+  static factory redir(core::int x) → self::A /* redirection-target: self::A::• */
+    return new self::A::•(x);
+}
+@#C1
+static method foo(@#C1 core::String y) → dynamic {
+  @#C1 dynamic z;
+}
+static method main() → dynamic {
+  () → <T extends core::Object? = dynamic>() → Null => <@#C1 T extends core::Object? = dynamic>() → Null => null;
+}
+
+constants  {
+  #C1 = self::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue55849_2.dart:
+- A. (from org-dartlang-testcase:///issue55849_2.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

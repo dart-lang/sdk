@@ -71,7 +71,6 @@ const List<Option> optionSpecification = [
   Options.singleRootScheme,
   Options.nnbdWeakMode,
   Options.nnbdStrongMode,
-  Options.nnbdAgnosticMode,
   Options.target,
   Options.verbose,
   Options.verbosity,
@@ -174,11 +173,7 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final bool nnbdWeakMode = Options.nnbdWeakMode.read(parsedOptions);
 
-  final bool nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
-
-  final NnbdMode nnbdMode = nnbdAgnosticMode
-      ? NnbdMode.Agnostic
-      : (nnbdWeakMode ? NnbdMode.Weak : NnbdMode.Strong);
+  final NnbdMode nnbdMode = nnbdWeakMode ? NnbdMode.Weak : NnbdMode.Strong;
 
   final bool enableUnscheduledExperiments =
       Options.enableUnscheduledExperiments.read(parsedOptions);
@@ -200,18 +195,6 @@ ProcessedOptions analyzeCommandLine(String programName,
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
         "'${Flags.nnbdWeakMode}'.");
-  }
-
-  if (nnbdStrongMode && nnbdAgnosticMode) {
-    return throw new CommandLineProblem.deprecated(
-        "Can't specify both '${Flags.nnbdStrongMode}' and "
-        "'${Flags.nnbdAgnosticMode}'.");
-  }
-
-  if (nnbdWeakMode && nnbdAgnosticMode) {
-    return throw new CommandLineProblem.deprecated(
-        "Can't specify both '${Flags.nnbdWeakMode}' and "
-        "'${Flags.nnbdAgnosticMode}'.");
   }
 
   FileSystem fileSystem = StandardFileSystem.instance;

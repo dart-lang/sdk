@@ -475,7 +475,6 @@ trace to find the place to insert the appropriate support.
                     '--no-defines',
                     '--nnbd-strong',
                     '--nnbd-weak',
-                    '--nnbd-agnostic',
                     '--exclude-source',
             ]:
                 pass

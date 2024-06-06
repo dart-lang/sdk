@@ -9,7 +9,6 @@ import 'package:kernel/target/targets.dart';
 class Flags {
   // TODO(johnniwinther): What is the right name for this?
   static const String nnbdStrongMode = "--nnbd-strong";
-  static const String nnbdAgnosticMode = "--nnbd-agnostic";
   static const String nnbdWeakMode = "--nnbd-weak";
 
   static const String forceLateLowering = "--force-late-lowering";
@@ -115,8 +114,6 @@ class Options {
       const Option(Flags.nnbdWeakMode, const BoolValue(false));
   static const Option<bool> nnbdStrongMode =
       const Option(Flags.nnbdStrongMode, const BoolValue(false));
-  static const Option<bool> nnbdAgnosticMode =
-      const Option(Flags.nnbdAgnosticMode, const BoolValue(false));
   static const Option<String> target = const Option(
       Flags.target, const StringValue(defaultValue: 'vm'),
       aliases: ["-t"]);

@@ -172,15 +172,6 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       return evaluator.createEvaluationErrorConstant(
           context, templateConstEvalDuplicateElement.withArguments(constant));
     }
-    if (evaluator.evaluationMode == EvaluationMode.agnostic) {
-      Constant weakConstant =
-          evaluator._weakener.visitConstant(constant) ?? constant;
-      bool weakUnseen = weakSeen.add(weakConstant);
-      if (unseen != weakUnseen) {
-        return evaluator.createEvaluationErrorConstant(
-            context, messageNonAgnosticConstant);
-      }
-    }
 
     List<Constant> lastPart;
     if (parts.last is List<Constant>) {
@@ -318,14 +309,7 @@ class MapConstantBuilder {
       return evaluator.createEvaluationErrorConstant(
           keyContext, templateConstEvalDuplicateKey.withArguments(key));
     }
-    if (evaluator.evaluationMode == EvaluationMode.agnostic) {
-      Constant weakKey = evaluator._weakener.visitConstant(key) ?? key;
-      bool weakUnseenKey = weakSeenKeys.add(weakKey);
-      if (unseenKey != weakUnseenKey) {
-        return evaluator.createEvaluationErrorConstant(
-            keyContext, messageNonAgnosticConstant);
-      }
-    }
+
     Constant key2 = evaluator.ensureIsSubtype(key, keyType, keyContext);
     if (key2 is AbortConstant) return key2;
     Constant value2 = evaluator.ensureIsSubtype(value, valueType, valueContext);

@@ -242,28 +242,6 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAgnosticWithStrongDillLibrary =
-    messageAgnosticWithStrongDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAgnosticWithStrongDillLibrary = const MessageCode(
-  "AgnosticWithStrongDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAgnosticWithWeakDillLibrary =
-    messageAgnosticWithWeakDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAgnosticWithWeakDillLibrary = const MessageCode(
-  "AgnosticWithWeakDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12911,15 +12889,6 @@ const Code<Null> codeNoUnnamedConstructorInObject =
 const MessageCode messageNoUnnamedConstructorInObject = const MessageCode(
   "NoUnnamedConstructorInObject",
   problemMessage: r"""'Object' has no unnamed constructor.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonAgnosticConstant = messageNonAgnosticConstant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAgnosticConstant = const MessageCode(
-  "NonAgnosticConstant",
-  problemMessage: r"""Constant value is not strong/weak mode agnostic.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
