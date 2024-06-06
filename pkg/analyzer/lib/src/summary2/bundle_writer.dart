@@ -23,7 +23,7 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
@@ -1024,45 +1024,6 @@ class ResolutionSink extends _SummaryDataWriter {
   void _writeMacroDiagnosticMessage(MacroDiagnosticMessage object) {
     writeStringUtf8(object.message);
 
-    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
-      switch (location) {
-        case AliasedTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.aliasedType);
-          writeTypeAnnotationLocation(location.parent);
-        case ElementTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.element);
-          writeElement(location.element);
-        case ExtendsClauseTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.extendsClause);
-          writeTypeAnnotationLocation(location.parent);
-        case FormalParameterTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.formalParameter);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case ListIndexTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.listIndex);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case RecordNamedFieldTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.recordNamedField);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case RecordPositionalFieldTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.recordPositionalField);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case ReturnTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.returnType);
-          writeTypeAnnotationLocation(location.parent);
-        case VariableTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.variableType);
-          writeTypeAnnotationLocation(location.parent);
-        default:
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError('${location.runtimeType}');
-      }
-    }
-
     var target = object.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
@@ -1077,7 +1038,10 @@ class ResolutionSink extends _SummaryDataWriter {
         writeUInt30(target.annotationIndex);
       case TypeAnnotationMacroDiagnosticTarget():
         writeEnum(MacroDiagnosticTargetKind.type);
-        writeTypeAnnotationLocation(target.location);
+        TypeAnnotationLocationWriter(
+          sink: this,
+          writeElement: writeElement,
+        ).write(target.location);
     }
   }
 

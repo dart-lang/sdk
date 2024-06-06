@@ -1385,6 +1385,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXTERNAL_CLASS: [
     RemoveExtraModifier.new,
   ],
+  ParserErrorCode.EXTERNAL_ENUM: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.EXTRANEOUS_MODIFIER: [
     RemoveExtraModifier.new,
   ],

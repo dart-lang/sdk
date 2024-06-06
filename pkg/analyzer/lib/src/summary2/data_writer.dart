@@ -149,6 +149,11 @@ class BufferedSink {
     }
   }
 
+  /// Writes [items], converts to [List] first.
+  void writeIterable<T>(Iterable<T> items, void Function(T x) writeItem) {
+    writeList(items.toList(), writeItem);
+  }
+
   void writeList<T>(List<T> items, void Function(T x) writeItem) {
     writeUInt30(items.length);
     for (var i = 0; i < items.length; i++) {

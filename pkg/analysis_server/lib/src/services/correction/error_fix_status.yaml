@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 342 "needsFix"
-# - 409 "hasFix"
+# - 341 "needsFix"
+# - 410 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2781,9 +2781,7 @@ ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
   notes: |-
     Remove the `external` keyword or remove the initializers.
 ParserErrorCode.EXTERNAL_ENUM:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
+  status: hasFix
 ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION:
   status: needsFix
   notes: |-
