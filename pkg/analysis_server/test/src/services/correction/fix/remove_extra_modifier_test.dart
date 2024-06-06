@@ -213,6 +213,15 @@ enum E { o }
 ''');
   }
 
+  Future<void> test_externalTypedef() async {
+    await resolveTestCode('''
+external typedef T();
+''');
+    await assertHasFix('''
+typedef T();
+''');
+  }
+
   Future<void> test_final_constructor() async {
     await resolveTestCode('''
 class C {
