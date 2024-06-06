@@ -1592,10 +1592,11 @@ void FlowGraph::RenameRecursive(
         break;
       }
 
-      case Instruction::kConstant: {
+      case Instruction::kConstant:
+      case Instruction::kUnboxedConstant: {
         ConstantInstr* constant = current->Cast<ConstantInstr>();
         if (constant->HasTemp()) {
-          result = GetConstant(constant->value());
+          result = GetConstant(constant->value(), constant->representation());
         }
         break;
       }

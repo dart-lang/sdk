@@ -389,7 +389,12 @@ LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
                                  kMaxInt64 >> scale_shift));
   // Any possible int64 value is okay as a constant here.
   summary->set_in(kOffsetPos, LocationRegisterOrConstant(offset()));
-  summary->set_out(0, Location::RequiresRegister());
+
+  if (IsNoop()) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresRegister());
+  }
 
   return summary;
 }
@@ -400,20 +405,20 @@ void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location& offset_loc = locs()->in(kOffsetPos);
   const Register result_reg = locs()->out(0).reg();
 
+  if (IsNoop()) {
+    ASSERT_EQUAL(base_reg, result_reg);
+    return;
+  }
+
   if (index_loc.IsConstant()) {
+    const intptr_t scaled_index =
+        Smi::Cast(index_loc.constant()).Value() * index_scale();
     if (offset_loc.IsConstant()) {
-      ASSERT_EQUAL(Smi::Cast(index_loc.constant()).Value(), 0);
-      ASSERT(Integer::Cast(offset_loc.constant()).AsInt64Value() != 0);
-      // No index involved at all.
-      const int64_t offset_value =
-          Integer::Cast(offset_loc.constant()).AsInt64Value();
-      __ AddImmediate(result_reg, base_reg, offset_value);
+      const intptr_t offset_in_bytes =
+          scaled_index + Smi::Cast(offset_loc.constant()).Value();
+      __ AddImmediate(result_reg, base_reg, offset_in_bytes);
     } else {
       __ add(result_reg, base_reg, compiler::Operand(offset_loc.reg()));
-      // Don't need wrap-around as the index is constant only if multiplying
-      // it by the scale is an int64.
-      const int64_t scaled_index =
-          Smi::Cast(index_loc.constant()).Value() * index_scale();
       __ AddImmediate(result_reg, scaled_index);
     }
   } else {

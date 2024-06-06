@@ -3785,26 +3785,8 @@ Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* CalculateElementAddressInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (index()->BindsToSmiConstant() && offset()->BindsToSmiConstant()) {
-    const intptr_t offset_in_bytes = Utils::AddWithWrapAround(
-        Utils::MulWithWrapAround<intptr_t>(index()->BoundSmiConstant(),
-                                           index_scale()),
-        offset()->BoundSmiConstant());
-
-    if (offset_in_bytes == 0) return base()->definition();
-
-    if (compiler::target::IsSmi(offset_in_bytes)) {
-      auto* const Z = flow_graph->zone();
-      auto* const new_adjust = new (Z) CalculateElementAddressInstr(
-          base()->CopyWithType(Z),
-          new (Z) Value(
-              flow_graph->GetConstant(Object::smi_zero(), kUnboxedIntPtr)),
-          /*index_scale=*/1,
-          new (Z) Value(flow_graph->GetConstant(
-              Smi::Handle(Smi::New(offset_in_bytes)), kUnboxedIntPtr)));
-      flow_graph->InsertBefore(this, new_adjust, env(), FlowGraph::kValue);
-      return new_adjust;
-    }
+  if (IsNoop()) {
+    return base()->definition();
   }
   return this;
 }
