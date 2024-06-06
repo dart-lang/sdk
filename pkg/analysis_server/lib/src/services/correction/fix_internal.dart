@@ -139,13 +139,13 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_constr
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_extends_clause.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_extra_modifier.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_lexeme.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_library_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_name_from_combinator.dart';
@@ -875,7 +875,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddAsync.new,
   ],
   CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER: [
     RemoveLate.new,
@@ -1032,7 +1032,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     MakeVariableNullable.new,
   ],
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
     RemoveParenthesesInGetterInvocation.new,
@@ -1349,10 +1349,10 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveAbstract.bulkFixable,
   ],
   ParserErrorCode.ABSTRACT_STATIC_FIELD: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.ABSTRACT_STATIC_METHOD: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.CONST_CLASS: [
     RemoveConst.new,
@@ -1364,13 +1364,13 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveConst.new,
   ],
   ParserErrorCode.COVARIANT_MEMBER: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION: [
     ReplaceWithWildcard.new,
   ],
   ParserErrorCode.DUPLICATED_MODIFIER: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.EXPECTED_TOKEN: [
     InsertSemicolon.new,
@@ -1383,43 +1383,46 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveConstructor.new,
   ],
   ParserErrorCode.EXTERNAL_CLASS: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.EXTERNAL_ENUM: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.EXTERNAL_TYPEDEF: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.EXTRANEOUS_MODIFIER: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.FINAL_ENUM: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.FINAL_CONSTRUCTOR: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.FINAL_METHOD: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.FINAL_MIXIN: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.FINAL_MIXIN_CLASS: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
+  ],
+  ParserErrorCode.GETTER_CONSTRUCTOR: [
+    RemoveLexeme.keyword,
   ],
   ParserErrorCode.GETTER_WITH_PARAMETERS: [
     RemoveParametersInGetterDeclaration.new,
   ],
   ParserErrorCode.INTERFACE_MIXIN: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.INTERFACE_MIXIN_CLASS: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY: [
     AddConst.new,
@@ -1434,7 +1437,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     SurroundWithParentheses.new,
   ],
   ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [
     RemoveLate.new,
@@ -1458,10 +1461,10 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddTrailingComma.new,
   ],
   ParserErrorCode.SEALED_MIXIN: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.SEALED_MIXIN_CLASS: [
-    RemoveExtraModifier.new,
+    RemoveLexeme.modifier,
   ],
   ParserErrorCode.VAR_AND_TYPE: [
     RemoveTypeAnnotation.fixVarAndType,

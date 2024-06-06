@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 339 "needsFix"
-# - 412 "hasFix"
+# - 338 "needsFix"
+# - 413 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2861,9 +2861,7 @@ ParserErrorCode.FINAL_MIXIN_CLASS:
 ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
   status: noFix
 ParserErrorCode.GETTER_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `get` keyword.
+  status: hasFix
 ParserErrorCode.GETTER_IN_FUNCTION:
   status: needsFix
   notes: |-

@@ -11,15 +11,15 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveExtraModifierMultiTest);
-    defineReflectiveTests(RemoveExtraModifierTest);
+    defineReflectiveTests(RemoveLexemeMultiTest);
+    defineReflectiveTests(RemoveLexemeTest);
   });
 }
 
 @reflectiveTest
-class RemoveExtraModifierMultiTest extends FixProcessorTest {
+class RemoveLexemeMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTRA_MODIFIER_MULTI;
+  FixKind get kind => DartFixKind.REMOVE_LEXEME_MULTI;
 
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -47,9 +47,9 @@ augment class A {}
 }
 
 @reflectiveTest
-class RemoveExtraModifierTest extends FixProcessorTest {
+class RemoveLexemeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTRA_MODIFIER;
+  FixKind get kind => DartFixKind.REMOVE_LEXEME;
 
   Future<void> test_abstract_static_field() async {
     await resolveTestCode('''
@@ -285,6 +285,19 @@ final mixin class A {}
 ''');
     await assertHasFix('''
 mixin class A {}
+''');
+  }
+
+  Future<void> test_getterConstructor() async {
+    await resolveTestCode('''
+class C {
+  get C.c();
+}
+''');
+    await assertHasFix('''
+class C {
+  C.c();
+}
 ''');
   }
 

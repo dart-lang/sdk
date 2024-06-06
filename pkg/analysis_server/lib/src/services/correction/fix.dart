@@ -1125,15 +1125,15 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Remove invalid 'extends' clauses everywhere in file",
   );
-  static const REMOVE_EXTRA_MODIFIER = FixKind(
-    'dart.fix.remove.extra.modifier',
+  static const REMOVE_LEXEME = FixKind(
+    'dart.fix.remove.lexeme',
     DartFixKindPriority.DEFAULT,
-    'Remove extra {0} modifier',
+    'Remove the {0} {1}',
   );
-  static const REMOVE_EXTRA_MODIFIER_MULTI = FixKind(
-    'dart.fix.remove.extra.modifier.multi',
+  static const REMOVE_LEXEME_MULTI = FixKind(
+    'dart.fix.remove.lexeme.multi',
     DartFixKindPriority.IN_FILE,
-    'Remove extra modifiers everywhere in file',
+    'Remove {0}s everywhere in file',
   );
   static const REMOVE_IF_NULL_OPERATOR = FixKind(
     'dart.fix.remove.ifNullOperator',
