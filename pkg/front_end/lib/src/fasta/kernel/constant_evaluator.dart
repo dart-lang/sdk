@@ -116,7 +116,6 @@ void transformProcedure(
 
 enum EvaluationMode {
   weak,
-  agnostic,
   strong;
 
   static EvaluationMode fromNnbdMode(NnbdMode nnbdMode) {
@@ -125,223 +124,7 @@ enum EvaluationMode {
         return EvaluationMode.weak;
       case NnbdMode.Strong:
         return EvaluationMode.strong;
-      case NnbdMode.Agnostic:
-        return EvaluationMode.agnostic;
     }
-  }
-}
-
-class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
-  ConstantEvaluator _evaluator;
-
-  ConstantWeakener(this._evaluator);
-
-  @override
-  Constant? processValue(Constant node, Constant? value) {
-    if (value != null) {
-      value = _evaluator.canonicalize(value);
-    }
-    return value;
-  }
-
-  @override
-  Constant? visitNullConstant(NullConstant node) => null;
-
-  @override
-  Constant? visitBoolConstant(BoolConstant node) => null;
-
-  @override
-  Constant? visitIntConstant(IntConstant node) => null;
-
-  @override
-  Constant? visitDoubleConstant(DoubleConstant node) => null;
-
-  @override
-  Constant? visitStringConstant(StringConstant node) => null;
-
-  @override
-  Constant? visitSymbolConstant(SymbolConstant node) => null;
-
-  @override
-  Constant? visitMapConstant(MapConstant node) {
-    DartType? keyType =
-        computeConstCanonicalType(node.keyType, _evaluator.coreTypes);
-    DartType? valueType =
-        computeConstCanonicalType(node.valueType, _evaluator.coreTypes);
-    List<ConstantMapEntry>? entries;
-    for (int index = 0; index < node.entries.length; index++) {
-      ConstantMapEntry entry = node.entries[index];
-      Constant? key = visitConstant(entry.key);
-      Constant? value = visitConstant(entry.value);
-      if (key != null || value != null) {
-        entries ??= node.entries.toList(growable: false);
-        entries[index] =
-            new ConstantMapEntry(key ?? entry.key, value ?? entry.value);
-      }
-    }
-    if (keyType != null || valueType != null || entries != null) {
-      return new MapConstant(keyType ?? node.keyType,
-          valueType ?? node.valueType, entries ?? node.entries);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitListConstant(ListConstant node) {
-    DartType? typeArgument =
-        computeConstCanonicalType(node.typeArgument, _evaluator.coreTypes);
-    List<Constant>? entries;
-    for (int index = 0; index < node.entries.length; index++) {
-      Constant? entry = visitConstant(node.entries[index]);
-      if (entry != null) {
-        entries ??= node.entries.toList(growable: false);
-        entries[index] = entry;
-      }
-    }
-    if (typeArgument != null || entries != null) {
-      return new ListConstant(
-          typeArgument ?? node.typeArgument, entries ?? node.entries);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitSetConstant(SetConstant node) {
-    DartType? typeArgument =
-        computeConstCanonicalType(node.typeArgument, _evaluator.coreTypes);
-    List<Constant>? entries;
-    for (int index = 0; index < node.entries.length; index++) {
-      Constant? entry = visitConstant(node.entries[index]);
-      if (entry != null) {
-        entries ??= node.entries.toList(growable: false);
-        entries[index] = entry;
-      }
-    }
-    if (typeArgument != null || entries != null) {
-      return new SetConstant(
-          typeArgument ?? node.typeArgument, entries ?? node.entries);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitRecordConstant(RecordConstant node) {
-    RecordType? recordType =
-        computeConstCanonicalType(node.recordType, _evaluator.coreTypes)
-            as RecordType?;
-    List<Constant>? positional;
-    for (int index = 0; index < node.positional.length; index++) {
-      Constant? field = visitConstant(node.positional[index]);
-      if (field != null) {
-        positional ??= node.positional.toList(growable: false);
-        positional[index] = field;
-      }
-    }
-    Map<String, Constant>? named;
-    for (MapEntry<String, Constant> entry in node.named.entries) {
-      Constant? value = visitConstant(entry.value);
-      if (value != null) {
-        named ??= new Map<String, Constant>.of(node.named);
-        named[entry.key] = value;
-      }
-    }
-    if (recordType != null || positional != null || named != null) {
-      return new RecordConstant(positional ?? node.positional,
-          named ?? node.named, recordType ?? node.recordType);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitInstanceConstant(InstanceConstant node) {
-    List<DartType>? typeArguments;
-    for (int index = 0; index < node.typeArguments.length; index++) {
-      DartType? typeArgument = computeConstCanonicalType(
-          node.typeArguments[index], _evaluator.coreTypes);
-      if (typeArgument != null) {
-        typeArguments ??= node.typeArguments.toList(growable: false);
-        typeArguments[index] = typeArgument;
-      }
-    }
-    Map<Reference, Constant>? fieldValues;
-    for (MapEntry<Reference, Constant> entry in node.fieldValues.entries) {
-      Reference reference = entry.key;
-      Constant? value = visitConstant(entry.value);
-      if (value != null) {
-        fieldValues ??= new Map<Reference, Constant>.of(node.fieldValues);
-        fieldValues[reference] = value;
-      }
-    }
-    if (typeArguments != null || fieldValues != null) {
-      return new InstanceConstant(node.classReference,
-          typeArguments ?? node.typeArguments, fieldValues ?? node.fieldValues);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitInstantiationConstant(InstantiationConstant node) {
-    List<DartType>? types;
-    for (int index = 0; index < node.types.length; index++) {
-      DartType? type =
-          computeConstCanonicalType(node.types[index], _evaluator.coreTypes);
-      if (type != null) {
-        types ??= node.types.toList(growable: false);
-        types[index] = type;
-      }
-    }
-    if (types != null) {
-      return new InstantiationConstant(node.tearOffConstant, types);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitStaticTearOffConstant(StaticTearOffConstant node) => null;
-
-  @override
-  Constant? visitTypeLiteralConstant(TypeLiteralConstant node) {
-    DartType? type = computeConstCanonicalType(node.type, _evaluator.coreTypes);
-    if (type != null) {
-      return new TypeLiteralConstant(type);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitUnevaluatedConstant(UnevaluatedConstant node) => null;
-
-  @override
-  Constant? visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
-      null;
-
-  @override
-  Constant? visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant node) =>
-      null;
-
-  @override
-  Constant? visitTypedefTearOffConstant(TypedefTearOffConstant node) {
-    List<DartType>? types;
-    for (int index = 0; index < node.types.length; index++) {
-      DartType? type =
-          computeConstCanonicalType(node.types[index], _evaluator.coreTypes);
-      if (type != null) {
-        types ??= node.types.toList(growable: false);
-        types[index] = type;
-      }
-    }
-    if (types != null) {
-      return new TypedefTearOffConstant(
-          node.parameters, node.tearOffConstant, types);
-    }
-    return null;
-  }
-
-  @override
-  Constant? visitAuxiliaryConstant(AuxiliaryConstant node) {
-    throw new UnsupportedError(
-        'Unsupported auxiliary constant $node (${node.runtimeType}).');
   }
 }
 
@@ -2447,8 +2230,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   Library get currentLibrary => staticTypeContext.enclosingLibrary;
 
-  late ConstantWeakener _weakener;
-
   ConstantEvaluator(this.dartLibrarySupport, this.backend, this.component,
       this._environmentDefines, this.typeEnvironment, this.errorReporter,
       {this.enableTripleShift = false,
@@ -2487,7 +2268,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       coreTypes.typeClass: true,
     };
     primitiveHashCodeCache = <Class, bool>{...primitiveEqualCache};
-    _weakener = new ConstantWeakener(this);
   }
 
   Map<String, String>? _supportedLibrariesCache;
@@ -2524,7 +2304,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   DartType convertType(DartType type) {
     switch (evaluationMode) {
       case EvaluationMode.strong:
-      case EvaluationMode.agnostic:
         return norm(coreTypes, type);
       case EvaluationMode.weak:
         type = norm(coreTypes, type);
@@ -2535,7 +2314,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   List<DartType> convertTypes(List<DartType> types) {
     switch (evaluationMode) {
       case EvaluationMode.strong:
-      case EvaluationMode.agnostic:
         return types.map((DartType type) => norm(coreTypes, type)).toList();
       case EvaluationMode.weak:
         return types.map((DartType type) {
@@ -4370,13 +4148,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(member, typeEnvironment);
     Constant constant = _evaluateSubexpression(expression);
-    if (constant is! AbortConstant) {
-      if (staticTypeContext.nonNullableByDefaultCompiledMode ==
-              NonNullableByDefaultCompiledMode.Agnostic &&
-          evaluationMode == EvaluationMode.weak) {
-        constant = _weakener.visitConstant(constant) ?? constant;
-      }
-    }
     _staticTypeContext = oldStaticTypeContext;
     return constant;
   }
@@ -4628,20 +4399,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         Constant evaluateIdentical() {
           // Since we canonicalize constants during the evaluation, we can use
           // identical here.
-          Constant result = makeBoolConstant(identical(left, right));
-          if (evaluationMode == EvaluationMode.agnostic) {
-            Constant? weakLeft = _weakener.visitConstant(left);
-            Constant? weakRight = _weakener.visitConstant(right);
-            if (weakLeft != null || weakRight != null) {
-              Constant weakResult = makeBoolConstant(
-                  identical(weakLeft ?? left, weakRight ?? right));
-              if (!identical(result, weakResult)) {
-                return createEvaluationErrorConstant(
-                    node, messageNonAgnosticConstant);
-              }
-            }
-          }
-          return result;
+          return makeBoolConstant(identical(left, right));
         }
 
         if (targetingJavaScript) {
@@ -4793,15 +4551,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     switch (evaluationMode) {
       case EvaluationMode.strong:
         return makeBoolConstant(performIs(constant, strongMode: true));
-      case EvaluationMode.agnostic:
-        bool strongResult = performIs(constant, strongMode: true);
-        Constant weakConstant = _weakener.visitConstant(constant) ?? constant;
-        bool weakResult = performIs(weakConstant, strongMode: false);
-        if (strongResult != weakResult) {
-          return createEvaluationErrorConstant(
-              node, messageNonAgnosticConstant);
-        }
-        return makeBoolConstant(strongResult);
       case EvaluationMode.weak:
         return makeBoolConstant(performIs(constant, strongMode: false));
     }
@@ -5104,18 +4853,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     switch (evaluationMode) {
       case EvaluationMode.strong:
         result = isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
-        break;
-      case EvaluationMode.agnostic:
-        bool strongResult =
-            isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
-        Constant weakConstant = _weakener.visitConstant(constant) ?? constant;
-        bool weakResult = isSubtype(
-            weakConstant, type, SubtypeCheckMode.ignoringNullabilities);
-        if (strongResult != weakResult) {
-          return createEvaluationErrorConstant(
-              node, messageNonAgnosticConstant);
-        }
-        result = strongResult;
         break;
       case EvaluationMode.weak:
         result =

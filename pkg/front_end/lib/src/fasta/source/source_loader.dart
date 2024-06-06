@@ -506,28 +506,15 @@ class SourceLoader extends Loader {
     } else {
       switch (nnbdMode) {
         case NnbdMode.Weak:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
-              libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+          if (libraryMode != NonNullableByDefaultCompiledMode.Weak) {
             registerNnbdMismatchLibrary(
                 libraryBuilder, messageWeakWithStrongDillLibrary);
           }
           break;
         case NnbdMode.Strong:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
-              libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+          if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
             registerNnbdMismatchLibrary(
                 libraryBuilder, messageStrongWithWeakDillLibrary);
-          }
-          break;
-        case NnbdMode.Agnostic:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
-            if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
-              registerNnbdMismatchLibrary(
-                  libraryBuilder, messageAgnosticWithStrongDillLibrary);
-            } else {
-              registerNnbdMismatchLibrary(
-                  libraryBuilder, messageAgnosticWithWeakDillLibrary);
-            }
           }
           break;
       }

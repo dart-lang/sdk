@@ -5,5 +5,4 @@
 enum NnbdMode {
   Strong,
   Weak,
-  Agnostic,
 }

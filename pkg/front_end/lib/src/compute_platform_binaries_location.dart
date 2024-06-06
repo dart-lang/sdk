@@ -34,30 +34,21 @@ String? computePlatformDillName(
           return 'ddc_outline_unsound.dill';
         //TODO(johnniwinther): Support using the full dill.
         //return 'ddc_platform_unsound.dill';
-        case NnbdMode.Agnostic:
-          break;
       }
-      break;
     case 'dart2js':
       switch (nnbdMode) {
         case NnbdMode.Strong:
           return 'dart2js_platform.dill';
         case NnbdMode.Weak:
           return 'dart2js_platform_unsound.dill';
-        case NnbdMode.Agnostic:
-          break;
       }
-      break;
     case 'dart2js_server':
       switch (nnbdMode) {
         case NnbdMode.Strong:
           return 'dart2js_server_platform.dill';
         case NnbdMode.Weak:
           return 'dart2js_server_platform_unsound.dill';
-        case NnbdMode.Agnostic:
-          break;
       }
-      break;
     case 'vm':
       // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
       // 'vm_platform_strong.dill' to 'vm_platform.dill'.
@@ -71,7 +62,6 @@ String? computePlatformDillName(
         //TODO(johnniwinther): Support using the full dill.
         //return 'dart2wasm_platform.dill';
         case NnbdMode.Weak:
-        case NnbdMode.Agnostic:
           break;
       }
       break;
@@ -82,7 +72,6 @@ String? computePlatformDillName(
         //TODO(johnniwinther): Support using the full dill.
         //return 'dart2wasm_js_compatibility_platform.dill';
         case NnbdMode.Weak:
-        case NnbdMode.Agnostic:
           break;
       }
       break;

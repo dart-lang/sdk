@@ -450,10 +450,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.nonNullableByDefaultCompiledMode =
             NonNullableByDefaultCompiledMode.Strong;
         break;
-      case NnbdMode.Agnostic:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Agnostic;
-        break;
     }
   }
 

@@ -35,7 +35,6 @@ void main() {
     for (NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode in [
       NonNullableByDefaultCompiledMode.Weak,
       NonNullableByDefaultCompiledMode.Strong,
-      NonNullableByDefaultCompiledMode.Agnostic,
     ]) {
       combination++;
       print("Checking combination #$combination ("

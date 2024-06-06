@@ -1009,14 +1009,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
-        case NnbdMode.Agnostic:
-          // Don't expect strong, weak or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
       }
     } else {
       // Don't expect strong or invalid.
@@ -2704,9 +2696,6 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
               break;
             case NnbdMode.Strong:
               compiledMode = NonNullableByDefaultCompiledMode.Strong;
-              break;
-            case NnbdMode.Agnostic:
-              compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
               break;
           }
         } else {

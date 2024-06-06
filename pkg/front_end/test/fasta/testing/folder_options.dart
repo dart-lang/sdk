@@ -26,7 +26,6 @@ const List<Option> folderOptionsSpecification = [
   Options.forceStaticFieldLowering,
   Options.forceNoExplicitGetterCalls,
   Options.forceConstructorTearOffLowering,
-  Options.nnbdAgnosticMode,
   Options.noDefines,
   noVerifyCmd,
   Options.target,
@@ -49,7 +48,6 @@ class SuiteFolderOptions {
       bool? forceStaticFieldLowering;
       bool? forceNoExplicitGetterCalls;
       int? forceConstructorTearOffLowering;
-      bool nnbdAgnosticMode = false;
       bool noVerify = false;
       Map<String, String>? defines = {};
       String target = "vm";
@@ -62,7 +60,6 @@ class SuiteFolderOptions {
             forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
             forceConstructorTearOffLowering: forceConstructorTearOffLowering,
-            nnbdAgnosticMode: nnbdAgnosticMode,
             defines: defines,
             noVerify: noVerify,
             target: target,
@@ -90,7 +87,6 @@ class SuiteFolderOptions {
               Options.forceNoExplicitGetterCalls.read(parsedOptions);
           forceConstructorTearOffLowering =
               Options.forceConstructorTearOffLowering.read(parsedOptions);
-          nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
           defines = parsedOptions.defines;
           showOffsets = Options.showOffsets.read(parsedOptions);
           if (Options.noDefines.read(parsedOptions)) {
@@ -114,7 +110,6 @@ class SuiteFolderOptions {
               forceStaticFieldLowering: forceStaticFieldLowering,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
               forceConstructorTearOffLowering: forceConstructorTearOffLowering,
-              nnbdAgnosticMode: nnbdAgnosticMode,
               defines: defines,
               noVerify: noVerify,
               target: target,
@@ -167,7 +162,6 @@ class FolderOptions {
   final bool? forceStaticFieldLowering;
   final bool? forceNoExplicitGetterCalls;
   final int? forceConstructorTearOffLowering;
-  final bool nnbdAgnosticMode;
   final Map<String, String>? defines;
   final bool noVerify;
   final String target;
@@ -181,7 +175,6 @@ class FolderOptions {
       this.forceStaticFieldLowering,
       this.forceNoExplicitGetterCalls,
       this.forceConstructorTearOffLowering,
-      this.nnbdAgnosticMode = false,
       this.defines = const {},
       this.noVerify = false,
       this.target = "vm",

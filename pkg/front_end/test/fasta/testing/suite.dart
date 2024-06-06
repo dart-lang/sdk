@@ -785,7 +785,7 @@ CompilationSetup createCompilationSetup(
           !isExperimentEnabled(ExperimentalFlag.nonNullable,
               explicitExperimentalFlags: experimentalFlags)
       ? NnbdMode.Weak
-      : (folderOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
+      : NnbdMode.Strong;
   List<Uri> inputs = <Uri>[description.uri];
 
   CompilerOptions createCompilerOptions(

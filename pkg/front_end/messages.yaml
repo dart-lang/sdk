@@ -1893,12 +1893,6 @@ WeakWithStrongDillLibrary:
 StrongWithWeakDillLibrary:
   problemMessage: "Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety."
 
-AgnosticWithStrongDillLibrary:
-  problemMessage: "Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety."
-
-AgnosticWithWeakDillLibrary:
-  problemMessage: "Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety."
-
 InvalidNnbdDillLibrary:
   problemMessage: "Trying to use library with invalid null safety."
 
@@ -5888,9 +5882,6 @@ FinalPossiblyAssignedError:
       i = 0;
       i = 0;
     }
-
-NonAgnosticConstant:
-  problemMessage: "Constant value is not strong/weak mode agnostic."
 
 CannotAssignToFinalVariable:
   problemMessage: "Can't assign to the final variable '#name'."

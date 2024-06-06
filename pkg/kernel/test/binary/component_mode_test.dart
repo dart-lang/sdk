@@ -21,7 +21,6 @@ void main() {
   const List<NonNullableByDefaultCompiledMode> modes = const [
     NonNullableByDefaultCompiledMode.Weak,
     NonNullableByDefaultCompiledMode.Strong,
-    NonNullableByDefaultCompiledMode.Agnostic,
   ];
 
   int combination = 0;
@@ -128,18 +127,13 @@ void main() {
 
 bool isOK(NonNullableByDefaultCompiledMode c1Mode,
     NonNullableByDefaultCompiledMode c2Mode) {
-  if (c1Mode == c2Mode) return true;
-  if (c1Mode == NonNullableByDefaultCompiledMode.Agnostic) return true;
-  if (c2Mode == NonNullableByDefaultCompiledMode.Agnostic) return true;
-  return false;
+  return c1Mode == c2Mode;
 }
 
 NonNullableByDefaultCompiledMode verifyOK(
     NonNullableByDefaultCompiledMode c1Mode,
     NonNullableByDefaultCompiledMode c2Mode) {
   if (isOK(c1Mode, c2Mode)) {
-    if (c1Mode == NonNullableByDefaultCompiledMode.Agnostic) return c2Mode;
-    if (c2Mode == NonNullableByDefaultCompiledMode.Agnostic) return c1Mode;
     return c1Mode;
   }
   throw "Not OK combination: $c1Mode and $c2Mode";
