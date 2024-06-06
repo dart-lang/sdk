@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 338 "needsFix"
-# - 413 "hasFix"
+# - 337 "needsFix"
+# - 414 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3209,9 +3209,7 @@ ParserErrorCode.SEALED_MIXIN:
 ParserErrorCode.SEALED_MIXIN_CLASS:
   status: hasFix
 ParserErrorCode.SETTER_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `set`.
+  status: hasFix
 ParserErrorCode.SETTER_IN_FUNCTION:
   status: needsFix
   notes: |-

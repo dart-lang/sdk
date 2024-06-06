@@ -1466,6 +1466,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.SEALED_MIXIN_CLASS: [
     RemoveLexeme.modifier,
   ],
+  ParserErrorCode.SETTER_CONSTRUCTOR: [
+    RemoveLexeme.keyword,
+  ],
   ParserErrorCode.VAR_AND_TYPE: [
     RemoveTypeAnnotation.fixVarAndType,
     RemoveVar.new,
