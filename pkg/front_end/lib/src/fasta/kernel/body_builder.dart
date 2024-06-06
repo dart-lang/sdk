@@ -3942,7 +3942,12 @@ class BodyBuilder extends StackListenerImpl
     VariableDeclaration variable = node as VariableDeclaration;
     variable.fileOffset = nameToken.charOffset;
     push(variable);
-    declareVariable(variable, scope);
+
+    // Avoid adding the local identifier to scope if it's a wildcard.
+    if (!(libraryFeatures.wildcardVariables.isEnabled &&
+        variable.name == '_')) {
+      declareVariable(variable, scope);
+    }
   }
 
   @override

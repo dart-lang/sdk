@@ -138,7 +138,8 @@
         "/testcases/triple_shift/",
         "/testcases/unified_collections/",
         "/testcases/unscheduled_experiments/",
-        "/testcases/variance/"
+        "/testcases/variance/",
+        "/testcases/wildcard_variables/"
       ]
     },
     {
