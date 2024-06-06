@@ -314,7 +314,13 @@ abstract class AbstractSourceConstructorBuilder
       }
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, bodyBuilderContext, declarationScope, fileUri,
+              libraryBuilder,
+              createBodyBuilderContext(
+                  inOutlineBuildingPhase: true,
+                  inMetadata: false,
+                  inConstFields: false),
+              declarationScope,
+              fileUri,
               formalParameterScope: formalParameterScope);
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
@@ -626,8 +632,14 @@ class DeclaredSourceConstructorBuilder
       List<Initializer>? initializers;
       if (beginInitializers != null) {
         BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(libraryBuilder,
-                bodyBuilderContext, declarationBuilder.scope, fileUri);
+            .createBodyBuilderForOutlineExpression(
+                libraryBuilder,
+                createBodyBuilderContext(
+                    inOutlineBuildingPhase: false,
+                    inMetadata: false,
+                    inConstFields: false),
+                declarationBuilder.scope,
+                fileUri);
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }
@@ -953,8 +965,15 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  BodyBuilderContext get bodyBuilderContext =>
-      new ConstructorBodyBuilderContext(this);
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return new ConstructorBodyBuilderContext(this,
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override
@@ -1362,8 +1381,15 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  BodyBuilderContext get bodyBuilderContext =>
-      new ExtensionTypeConstructorBodyBuilderContext(this);
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return new ExtensionTypeConstructorBodyBuilderContext(this,
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override

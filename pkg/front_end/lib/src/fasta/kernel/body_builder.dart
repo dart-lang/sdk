@@ -252,6 +252,9 @@ class BodyBuilder extends StackListenerImpl
     return _defaultValueNestingLevel > 0;
   }
 
+  /// True if the parser is between [beginMetadata] and [endMetadata].
+  bool _insideMetadataParsing = false;
+
   /// Numeric nestedness of formal parameter default values.
   ///
   /// The value of 0 means that the currently built part is not within a default
@@ -292,10 +295,36 @@ class BodyBuilder extends StackListenerImpl
   /// values or inside the default values that aren't built as outline
   /// expressions need to be added during the second pass.
   bool get _createdStaticInvocationsNeedPostProcessing {
-    return _context.hasFormalParameters &&
-            !_insideOfFormalParameterDefaultValue ||
-        !_context.hasImmediateOutlineExpressionsBuilt ||
-        !_context.needsImmediateValuesBuiltAsOutlineExpressions;
+    return
+        // All invocations in outline building phase will be type-inferred, and
+        // they all should be added to the post-processing.
+        _context.inOutlineBuildingPhase ||
+
+            // Here we aren't in the outline mode, but rather in the
+            // body-building mode. If the current context has formal parameters,
+            // their default values should be skipped because in the
+            // body-building mode they aren't passed through type inference. An
+            // exception here is the default values of instance methods: they
+            // are actually inferred in body-building phase, and they aren't
+            // built at all during the outline phase.
+            (!_context.hasFormalParameters ||
+                    !_insideOfFormalParameterDefaultValue ||
+                    !isDeclarationInstanceContext) &&
+
+                // The invocations in the metadata should also be skipped in the
+                // body-building phase, since they aren't type-inferred. An
+                // exception here are the annotations within method bodies,
+                // field initializers, and on formal parameters.
+                !(_context.inMetadata ||
+                    _insideMetadataParsing &&
+                        !_inBody &&
+                        !inFormals &&
+                        !inFieldInitializer) &&
+
+                // Finally, the const fields in body-building phase aren't
+                // inferred and the invocations in them should be skipped during
+                // post-processing.
+                !_context.inConstFields;
   }
 
   bool get inFunctionType =>
@@ -314,6 +343,10 @@ class BodyBuilder extends StackListenerImpl
   bool inCatchBlock = false;
 
   int functionNestingLevel = 0;
+
+  int _inBodyCount = 0;
+
+  bool get _inBody => _inBodyCount > 0;
 
   Statement? problemInLoopOrSwitch;
 
@@ -475,6 +508,9 @@ class BodyBuilder extends StackListenerImpl
   void enterLocalScope(Scope localScope) {
     push(scope);
     scope = localScope;
+    if (scope.kind == ScopeKind.functionBody) {
+      _inBodyCount++;
+    }
     assert(checkState(null, [
       ValueKinds.Scope,
     ]));
@@ -484,6 +520,9 @@ class BodyBuilder extends StackListenerImpl
       {required String debugName, required ScopeKind kind}) {
     push(scope);
     scope = scope.createNestedScope(debugName: debugName, kind: kind);
+    if (kind == ScopeKind.functionBody) {
+      _inBodyCount++;
+    }
     assert(checkState(null, [
       ValueKinds.Scope,
     ]));
@@ -507,6 +546,9 @@ class BodyBuilder extends StackListenerImpl
       if (declaredInCurrentGuard!.isEmpty) {
         declaredInCurrentGuard = null;
       }
+    }
+    if (scope.kind == ScopeKind.functionBody) {
+      _inBodyCount--;
     }
     scope = pop() as Scope;
   }
@@ -867,6 +909,7 @@ class BodyBuilder extends StackListenerImpl
     super.push(constantContext);
     constantContext = ConstantContext.inferred;
     assert(checkState(token, [ValueKinds.ConstantContext]));
+    _insideMetadataParsing = true;
   }
 
   @override
@@ -941,6 +984,7 @@ class BodyBuilder extends StackListenerImpl
       }
       constantContext = savedConstantContext;
     }
+    _insideMetadataParsing = false;
     assert(checkState(beginToken, [ValueKinds.Expression]));
   }
 

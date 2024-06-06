@@ -115,7 +115,10 @@ Future<void> main() async {
 
     BodyBuilder helper = new BodyBuilder(
         libraryBuilder: libraryBuilder,
-        context: new LibraryBodyBuilderContext(libraryBuilder),
+        context: new LibraryBodyBuilderContext(libraryBuilder,
+            inOutlineBuildingPhase: false,
+            inMetadata: false,
+            inConstFields: false),
         uri: uri,
         enclosingScope: new Scope.immutable(kind: ScopeKind.functionBody),
         coreTypes: coreTypes,
