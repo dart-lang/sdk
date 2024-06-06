@@ -366,7 +366,25 @@ LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
   // Only use a Smi constant for the offset if it is an int32 constant.
   summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset(), kMinInt32,
                                                             kMaxInt32));
-  summary->set_out(0, Location::RequiresRegister());
+  // Special case for when both inputs are appropriate constants.
+  if (summary->in(kIndexPos).IsConstant() &&
+      summary->in(kOffsetPos).IsConstant()) {
+    const int64_t offset_in_bytes = Utils::AddWithWrapAround<int64_t>(
+        Utils::MulWithWrapAround<int64_t>(index()->BoundSmiConstant(),
+                                          index_scale()),
+        offset()->BoundSmiConstant());
+    if (!Utils::IsInt(32, offset_in_bytes)) {
+      // The offset in bytes calculated from the index and offset cannot
+      // fit in a 32-bit immediate, so pass the index as a register instead.
+      summary->set_in(kIndexPos, Location::RequiresRegister());
+    }
+  }
+
+  if (IsNoop()) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresRegister());
+  }
 
   return summary;
 }
@@ -377,18 +395,21 @@ void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location& offset_loc = locs()->in(kOffsetPos);
   const Register result_reg = locs()->out(0).reg();
 
+  if (IsNoop()) {
+    ASSERT_EQUAL(base_reg, result_reg);
+    return;
+  }
+
   if (index_loc.IsConstant()) {
+    const intptr_t scaled_index =
+        Smi::Cast(index_loc.constant()).Value() * index_scale();
+    ASSERT(Utils::IsInt(32, scaled_index));
     if (offset_loc.IsConstant()) {
-      ASSERT_EQUAL(Smi::Cast(index_loc.constant()).Value(), 0);
-      ASSERT(Smi::Cast(offset_loc.constant()).Value() != 0);
-      // No index involved at all.
-      const int32_t offset_value = Smi::Cast(offset_loc.constant()).Value();
-      __ leaq(result_reg, compiler::Address(base_reg, offset_value));
+      const intptr_t offset_in_bytes =
+          scaled_index + Smi::Cast(offset_loc.constant()).Value();
+      ASSERT(Utils::IsInt(32, offset_in_bytes));
+      __ leaq(result_reg, compiler::Address(base_reg, offset_in_bytes));
     } else {
-      // Don't need wrap-around as the index is constant only if multiplying
-      // it by the scale is an int32.
-      const int32_t scaled_index =
-          Smi::Cast(index_loc.constant()).Value() * index_scale();
       __ leaq(result_reg, compiler::Address(base_reg, offset_loc.reg(), TIMES_1,
                                             scaled_index));
     }
@@ -408,7 +429,8 @@ void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     auto const scale = ToScaleFactor(index_scale(), index_unboxed);
     if (offset_loc.IsConstant()) {
-      const int32_t offset_value = Smi::Cast(offset_loc.constant()).Value();
+      const intptr_t offset_value = Smi::Cast(offset_loc.constant()).Value();
+      ASSERT(Utils::IsInt(32, offset_value));
       __ leaq(result_reg,
               compiler::Address(base_reg, index_reg, scale, offset_value));
     } else {

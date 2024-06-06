@@ -1813,8 +1813,7 @@ static void AddNamesToFunctionsTable(Zone* zone,
     *mangled_name = function.name();
     *mangled_name =
         Function::CreateDynamicInvocationForwarderName(*mangled_name);
-    *dyn_function = function.GetDynamicInvocationForwarder(*mangled_name,
-                                                           /*allow_add=*/true);
+    *dyn_function = function.GetDynamicInvocationForwarder(*mangled_name);
   }
   *mangled_name = Function::CreateDynamicInvocationForwarderName(fname);
   AddNameToFunctionsTable(zone, table, *mangled_name, *dyn_function);

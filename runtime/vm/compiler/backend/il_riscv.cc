@@ -455,10 +455,28 @@ LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
                                                kMaxIntX >> scale_shift));
 #if XLEN == 32
   summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset()));
+  // Special case for when both inputs are appropriate constants.
+  if (summary->in(kIndexPos).IsConstant() &&
+      summary->in(kOffsetPos).IsConstant()) {
+    const int64_t offset_in_bytes = Utils::AddWithWrapAround<int64_t>(
+        Utils::MulWithWrapAround<int64_t>(index()->BoundSmiConstant(),
+                                          index_scale()),
+        offset()->BoundSmiConstant());
+    if (!Utils::IsInt(32, offset_in_bytes)) {
+      // The offset in bytes calculated from the index and offset cannot
+      // fit in a 32-bit immediate, so pass the index as a register instead.
+      summary->set_in(kIndexPos, Location::RequiresRegister());
+    }
+  }
 #else
   summary->set_in(kOffsetPos, LocationRegisterOrConstant(offset()));
 #endif
-  summary->set_out(0, Location::RequiresRegister());
+
+  if (IsNoop()) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresRegister());
+  }
 
   return summary;
 }
@@ -469,20 +487,20 @@ void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location& offset_loc = locs()->in(kOffsetPos);
   const Register result_reg = locs()->out(0).reg();
 
+  if (IsNoop()) {
+    ASSERT_EQUAL(base_reg, result_reg);
+    return;
+  }
+
   if (index_loc.IsConstant()) {
+    const intptr_t scaled_index =
+        Smi::Cast(index_loc.constant()).Value() * index_scale();
     if (offset_loc.IsConstant()) {
-      ASSERT_EQUAL(Smi::Cast(index_loc.constant()).Value(), 0);
-      ASSERT(Integer::Cast(offset_loc.constant()).AsInt64Value() != 0);
-      // No index involved at all.
-      const intx_t offset_value =
-          Integer::Cast(offset_loc.constant()).AsInt64Value();
-      __ AddImmediate(result_reg, base_reg, offset_value);
+      const intx_t offset_in_bytes =
+          scaled_index + Smi::Cast(offset_loc.constant()).Value();
+      __ AddImmediate(result_reg, base_reg, offset_in_bytes);
     } else {
       __ add(result_reg, base_reg, offset_loc.reg());
-      // Don't need wrap-around as the index is constant only if multiplying
-      // it by the scale is an intx.
-      const intx_t scaled_index =
-          Smi::Cast(index_loc.constant()).Value() * index_scale();
       __ AddImmediate(result_reg, scaled_index);
     }
   } else {

@@ -8038,6 +8038,11 @@ class CalculateElementAddressInstr : public TemplateDefinition<3, NoThrow> {
 #undef FIELD_LIST
 
  private:
+  bool IsNoop() const {
+    return index()->BindsToSmiConstant() && index()->BoundSmiConstant() == 0 &&
+           offset()->BindsToSmiConstant() && offset()->BoundSmiConstant() == 0;
+  }
+
   DISALLOW_COPY_AND_ASSIGN(CalculateElementAddressInstr);
 };
 

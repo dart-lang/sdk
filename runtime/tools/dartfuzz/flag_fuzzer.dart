@@ -77,7 +77,6 @@ final compilerFlags = [
   "--no_enable_peephole",
   "--no_guess_icdata_cid",
   "--no_intrinsify",
-  "--no_lazy_dispatchers",
   "--no_load_cse",
   "--no_polymorphic_with_deopt",
   "--no_propagate_ic_data",

@@ -4009,8 +4009,7 @@ class Function : public Object {
   FunctionPtr CreateDynamicInvocationForwarder(
       const String& mangled_name) const;
 
-  FunctionPtr GetDynamicInvocationForwarder(const String& mangled_name,
-                                            bool allow_add = true) const;
+  FunctionPtr GetDynamicInvocationForwarder(const String& mangled_name) const;
 #endif
 
   // Slow function, use in asserts to track changes in important library

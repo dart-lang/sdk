@@ -2039,10 +2039,9 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   if (class_is_abstract_return != nullptr) {
     *class_is_abstract_return = cls.is_abstract();
   }
-  const bool allow_add = false;
   Function& target_function =
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
-                                 cls, name, args_desc, allow_add));
+                                 cls, name, args_desc, /*allow_add=*/false));
   if (target_function.IsNull()) return false;
   *fn_return = target_function.ptr();
   return true;

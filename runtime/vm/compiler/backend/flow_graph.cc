@@ -571,7 +571,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
         Class::Handle(zone(), isolate_group()->object_store()->null_class());
     Function& target = Function::Handle(zone());
     if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
-      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
+      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name,
+                                               /*allow_add=*/true);
     }
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
@@ -1592,10 +1593,11 @@ void FlowGraph::RenameRecursive(
         break;
       }
 
-      case Instruction::kConstant: {
+      case Instruction::kConstant:
+      case Instruction::kUnboxedConstant: {
         ConstantInstr* constant = current->Cast<ConstantInstr>();
         if (constant->HasTemp()) {
-          result = GetConstant(constant->value());
+          result = GetConstant(constant->value(), constant->representation());
         }
         break;
       }

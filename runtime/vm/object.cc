@@ -4235,8 +4235,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 }
 
 FunctionPtr Function::GetDynamicInvocationForwarder(
-    const String& mangled_name,
-    bool allow_add /*=true*/) const {
+    const String& mangled_name) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -4254,10 +4253,6 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
       kernel::NeedsDynamicInvocationForwarder(*this);
   if (!needs_dyn_forwarder) {
     return ptr();
-  }
-
-  if (!allow_add) {
-    return Function::null();
   }
 
   // If we failed to find it and possibly need to create it, use a write lock.
@@ -20027,7 +20022,9 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
   const String& internal_getter_name =
       String::Handle(zone, Field::GetterName(getter_name));
   Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
+      zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name,
+                                      /*allow_add=*/!FLAG_precompiled_mode));
 
   if (!function.IsNull() && check_is_entrypoint) {
     // The getter must correspond to either an entry-point field or a getter
@@ -20043,9 +20040,10 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
     }
   }
 
-  // Check for method extraction when method extractors are not created.
-  if (function.IsNull() && !FLAG_lazy_dispatchers) {
-    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
+  // Check for method extraction when method extractors are not lazily created.
+  if (function.IsNull() && FLAG_precompiled_mode) {
+    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name,
+                                               /*allow_add=*/false);
 
     if (!function.IsNull() && check_is_entrypoint) {
       CHECK_ERROR(function.VerifyClosurizedEntryPoint());
@@ -20088,7 +20086,9 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
   const Function& setter = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
+      zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name,
+                                      /*allow_add=*/!FLAG_precompiled_mode));
 
   if (check_is_entrypoint) {
     // The setter must correspond to either an entry-point field or a setter
@@ -20129,7 +20129,9 @@ ObjectPtr Instance::Invoke(const String& function_name,
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
 
   Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
+      zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, function_name,
+                                      /*allow_add=*/!FLAG_precompiled_mode));
 
   if (!function.IsNull() && check_is_entrypoint) {
     CHECK_ERROR(function.VerifyCallEntryPoint());
@@ -20151,7 +20153,9 @@ ObjectPtr Instance::Invoke(const String& function_name,
     // Didn't find a method: try to find a getter and invoke call on its result.
     const String& getter_name =
         String::Handle(zone, Field::GetterName(function_name));
-    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
+    function =
+        Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name,
+                                        /*allow_add=*/!FLAG_precompiled_mode);
     if (!function.IsNull()) {
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));

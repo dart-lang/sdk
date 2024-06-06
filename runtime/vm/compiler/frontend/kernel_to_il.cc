@@ -2702,16 +2702,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   const int kTypeArgsLen = 0;
   ArgumentsDescriptor two_arguments(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, 2)));
-  Function& no_such_method =
-      Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                  Class::Handle(Z, function.Owner()),
-                                  Symbols::NoSuchMethod(), two_arguments));
+  Function& no_such_method = Function::ZoneHandle(
+      Z, Resolver::ResolveDynamicForReceiverClass(
+             Class::Handle(Z, function.Owner()), Symbols::NoSuchMethod(),
+             two_arguments, /*allow_add=*/true));
   if (no_such_method.IsNull()) {
     // If noSuchMethod is not found on the receiver class, call
     // Object.noSuchMethod.
     no_such_method = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(Z, IG->object_store()->object_class()),
-        Symbols::NoSuchMethod(), two_arguments);
+        Symbols::NoSuchMethod(), two_arguments, /*allow_add=*/true);
   }
   body += StaticCall(TokenPosition::kMinSource, no_such_method,
                      /* argument_count = */ 2, ICData::kNSMDispatch);

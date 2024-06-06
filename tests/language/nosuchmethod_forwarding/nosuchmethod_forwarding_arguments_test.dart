@@ -5,9 +5,6 @@
 // Testing that `noSuchMethod` forwarding properly handles optional, named and
 // type parameters, and result type checking.
 
-// VMOptions=--lazy-dispatchers
-// VMOptions=--no-lazy-dispatchers
-
 import 'package:expect/expect.dart';
 
 class A {

@@ -312,7 +312,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   Function& target = Function::Handle();
   if (Error::Handle(null_class.EnsureIsFinalized(thread)).IsNull()) {
     target = Resolver::ResolveDynamicAnyArgs(thread->zone(), null_class,
-                                             function_name);
+                                             function_name, /*allow_add=*/true);
   }
   if (target.IsNull()) {
     // If the selector is not defined on Null, we can propagate non-nullness.
