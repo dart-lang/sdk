@@ -204,6 +204,15 @@ class C {}
 ''');
   }
 
+  Future<void> test_externalEnum() async {
+    await resolveTestCode(r'''
+external enum E { o }
+''');
+    await assertHasFix('''
+enum E { o }
+''');
+  }
+
   Future<void> test_final_constructor() async {
     await resolveTestCode('''
 class C {
