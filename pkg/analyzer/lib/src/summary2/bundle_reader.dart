@@ -28,7 +28,7 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -2423,49 +2423,6 @@ class ResolutionReader {
   MacroDiagnosticMessage _readMacroDiagnosticMessage() {
     var message = _reader.readStringUtf8();
 
-    TypeAnnotationLocation readTypeAnnotationLocation() {
-      var kind = readEnum(TypeAnnotationLocationKind.values);
-      switch (kind) {
-        case TypeAnnotationLocationKind.aliasedType:
-          var parent = readTypeAnnotationLocation();
-          return AliasedTypeLocation(parent);
-        case TypeAnnotationLocationKind.element:
-          var element = readElement()!;
-          return ElementTypeLocation(element);
-        case TypeAnnotationLocationKind.extendsClause:
-          var parent = readTypeAnnotationLocation();
-          return ExtendsClauseTypeLocation(parent);
-        case TypeAnnotationLocationKind.formalParameter:
-          return FormalParameterTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.listIndex:
-          return ListIndexTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.recordNamedField:
-          return RecordNamedFieldTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.recordPositionalField:
-          return RecordPositionalFieldTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.returnType:
-          var parent = readTypeAnnotationLocation();
-          return ReturnTypeLocation(parent);
-        case TypeAnnotationLocationKind.variableType:
-          var parent = readTypeAnnotationLocation();
-          return VariableTypeLocation(parent);
-        default:
-          throw UnimplementedError('kind: $kind');
-      }
-    }
-
     MacroDiagnosticTarget target;
     var targetKind = readEnum(MacroDiagnosticTargetKind.values);
     switch (targetKind) {
@@ -2485,7 +2442,10 @@ class ResolutionReader {
           annotationIndex: readUInt30(),
         );
       case MacroDiagnosticTargetKind.type:
-        var location = readTypeAnnotationLocation();
+        var location = TypeAnnotationLocationReader(
+          reader: _reader,
+          readElement: readElement,
+        ).read();
         target = TypeAnnotationMacroDiagnosticTarget(location: location);
     }
 
