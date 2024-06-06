@@ -2064,6 +2064,36 @@ augment class X {
 ''');
   }
 
+  test_resolveIdentifier_class_exported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'b.dart';
+
+@ReferenceIdentifier('package:test/b.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
   test_resolveIdentifier_class_field_instance() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -2637,7 +2667,37 @@ set foo(int value) {}
 import 'code_generation.dart';
 import 'a.dart';
 
-@ReferenceIdentifier('package:test/a.dart', 'foo')
+@ReferenceIdentifier('package:test/a.dart', 'foo=')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+augment library 'package:test/test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_setter_exported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int value) {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'b.dart';
+
+@ReferenceIdentifier('package:test/b.dart', 'foo=')
 class A {}
 ''');
 
@@ -6052,7 +6112,7 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
 $leadCode
 
 @IntrospectDeclaration(
-  uriStr: 'package:test/test.dart',
+  uriStr: '$uriStr',
   name: '$name',
   withUnnamedConstructor: $withUnnamedConstructor,
 )
@@ -9453,7 +9513,7 @@ class A {}
 import 'append.dart';
 import 'a.dart';
 
-@DeclareInType('  {{package:test/test.dart@A}} foo() {}')
+@DeclareInType('  {{package:test/a.dart@A}} foo() {}')
 class X {}
 ''');
 
@@ -9464,7 +9524,7 @@ library
     package:test/a.dart
   definingUnit
     classes
-      class X @104
+      class X @101
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
         augmented
           methods
@@ -11208,7 +11268,7 @@ foo
 set foo(int value) {}
 ''');
 
-    await _assertIntrospectText('foo', r'''
+    await _assertIntrospectText('foo=', r'''
 foo
   flags: hasBody isSetter
   positionalParameters
@@ -11673,7 +11733,7 @@ foo
   }
 
   test_inferType_topSetter_formalParameter() async {
-    await _assertIntrospectText('foo', r'''
+    await _assertIntrospectText('foo=', r'''
 void set foo(value) {}
 ''', r'''
 foo
@@ -11688,7 +11748,7 @@ foo
   }
 
   test_inferType_topSetter_returnType() async {
-    await _assertIntrospectText('foo', r'''
+    await _assertIntrospectText('foo=', r'''
 set foo(int value) {}
 ''', r'''
 foo
@@ -11816,7 +11876,7 @@ topLevelDeclarationsOf
   }
 
   test_topLevelDeclarationsOf_self_setter() async {
-    await _assertLibraryDefinitionsPhaseText('foo', r'''
+    await _assertLibraryDefinitionsPhaseText('foo=', r'''
 set foo(int value) {}
 set bar(int value) {}
 ''', r'''

@@ -313,6 +313,9 @@ class Linker {
       },
     );
 
+    // The macro types phase can resolve exported identifier.
+    _buildExportScopes();
+
     await performance.runAsync(
       'executeMacroTypesPhase',
       (performance) async {
