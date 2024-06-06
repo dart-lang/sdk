@@ -159,7 +159,8 @@ LintCode:
       The analyzer produces this diagnostic when the statement after an `else`
       is an empty statement (a semicolon).
 
-      For more information, see the documentation for [avoid_empty_else][].
+      For more information, see the documentation for
+      [`avoid_empty_else`](https://dart.dev/diagnostics/avoid_empty_else).
 
       #### Example
 
@@ -302,7 +303,8 @@ LintCode:
       #### Common fixes
 
       If you're writing code that uses Flutter, then use the function
-      `[debugPrint][]`, guarded by a test using `[kDebugMode][]`:
+      [`debugPrint`][debugPrint], guarded by a test
+      using [`kDebugMode`][kDebugMode]:
 
       ```dart
       import 'package:flutter/foundation.dart';
@@ -315,7 +317,7 @@ LintCode:
       ```
 
       If you're writing code that doesn't use Flutter, then use a logging
-      service, such as `[package:logging][package-logging]`, to write the
+      service, such as [`package:logging`][package-logging], to write the
       information.
   avoid_relative_lib_imports:
     documentation: |-
@@ -1042,7 +1044,7 @@ LintCode:
 
       The analyzer produces this diagnostic when a documentation comment that
       appears to be library documentation isn't followed by a `library`
-      directive. More specificially, it is produced when a documentation comment
+      directive. More specifically, it is produced when a documentation comment
       appears before the first directive in the library, assuming that it isn't
       a `library` directive, or before the first top-level declaration and is
       separated from the declaration by one or more blank lines.
@@ -1989,7 +1991,7 @@ LintCode:
       For example, given a package named `my_package`, here are the library
       names for various files in the package:
 
-      ```
+      ```dart
       // In lib/my_package.dart
       library my_package;
 

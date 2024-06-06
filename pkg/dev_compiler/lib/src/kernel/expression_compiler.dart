@@ -102,6 +102,19 @@ class ExpressionCompiler {
       // different from dart.
       // See [issue 40273](https://github.com/dart-lang/sdk/issues/40273)
 
+      // Work around mismatched names and lowered representation for late local
+      // variables.
+      // Replace the existing entries with a name that matches the named
+      // extracted from the lowering.
+      // See https://github.com/dart-lang/sdk/issues/55918
+      var dartLateLocals = [
+        for (var name in dartScope.definitions.keys)
+          if (isLateLoweredLocalName(name)) name,
+      ];
+      for (var localName in dartLateLocals) {
+        dartScope.definitions[extractLocalName(localName)] =
+            dartScope.definitions.remove(localName)!;
+      }
       // remove undefined js variables (this allows us to get a reference error
       // from chrome on evaluation)
       dartScope.definitions.removeWhere((variable, type) =>

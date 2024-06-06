@@ -195,6 +195,15 @@ f() {
 ''');
   }
 
+  Future<void> test_externalClass() async {
+    await resolveTestCode(r'''
+external class C {}
+''');
+    await assertHasFix('''
+class C {}
+''');
+  }
+
   Future<void> test_final_constructor() async {
     await resolveTestCode('''
 class C {

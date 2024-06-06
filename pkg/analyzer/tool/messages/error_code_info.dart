@@ -5,7 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
@@ -214,6 +216,7 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
 /// error name.
 Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeLinterMessagesYaml(
     Object? yaml) {
+  linter.registerLintRules();
   Never problem(String message) {
     throw 'Problem in pkg/linter/messages.yaml: $message';
   }
@@ -264,7 +267,7 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeLinterMessagesYaml(
               aliasFor: aliasFor, comment: errorValue['comment'] as String?);
         } else {
           (result[className] ??= {})[errorName] =
-              AnalyzerErrorCodeInfo.fromLinterYaml(errorValue);
+              LinterRuleInfo.fromYaml(errorName, errorValue);
         }
       } catch (e) {
         problem('while processing $className.$errorName, $e');
@@ -288,7 +291,7 @@ Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
   return decodeCfeMessagesYaml(messagesYaml);
 }
 
-/// Loads linter messages from the linters's `messages.yaml` file.
+/// Loads linter messages from the linter's `messages.yaml` file.
 Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadLintMessages() {
   Object? messagesYaml =
       loadYaml(File(join(linterPkgPath, 'messages.yaml')).readAsStringSync());
@@ -354,6 +357,10 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
   String get aliasForFilePath => errorClasses
       .firstWhere((element) => element.name == aliasForClass)
       .filePath;
+
+  @override
+  List<String> get formattedProblemMessages => throw StateError(
+      'The problem message of an error code should not be used.');
 }
 
 /// In-memory representation of error code information obtained from the
@@ -371,9 +378,10 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     super.sharedName,
   });
 
-  AnalyzerErrorCodeInfo.fromLinterYaml(super.yaml) : super.fromLinterYaml();
-
   AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
+
+  @override
+  List<String> get formattedProblemMessages => [problemMessage];
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -562,13 +570,6 @@ abstract class ErrorCodeInfo {
   });
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
-  ErrorCodeInfo.fromLinterYaml(Map<Object?, Object?> yaml)
-      : this(
-            documentation: yaml['documentation'] as String?,
-            hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
-            problemMessage: '');
-
-  /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
       : this(
             comment: yaml['comment'] as String?,
@@ -582,6 +583,8 @@ abstract class ErrorCodeInfo {
             sharedName: yaml['sharedName'] as String?,
             removedIn: yaml['removedIn'] as String?,
             previousName: yaml['previousName'] as String?);
+
+  List<String> get formattedProblemMessages;
 
   /// If this error is no longer reported and
   /// its error codes should no longer be generated.
@@ -681,6 +684,10 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
         super.fromYaml();
 
   @override
+  List<String> get formattedProblemMessages =>
+      [convertTemplate(computePlaceholderToIndexMap(), problemMessage)];
+
+  @override
   Map<Object?, Object?> toYaml() => {
         if (analyzerCode.isNotEmpty)
           'analyzerCode': _encodeAnalyzerCode(analyzerCode),
@@ -707,4 +714,34 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
       return analyzerCode;
     }
   }
+}
+
+/// In-memory representation of error code information obtained from the
+/// linter's `messages.yaml` file.
+class LinterRuleInfo extends AnalyzerErrorCodeInfo {
+  final List<String> problemMessages;
+
+  /// Decodes an [LinterRuleInfo] object from its [ruleName] and
+  /// its [yaml] representation.
+  factory LinterRuleInfo.fromYaml(String ruleName, Map<Object?, Object?> yaml) {
+    var lint = linter.Registry.ruleRegistry[ruleName]!;
+    var problemMessages = lint.lintCodes
+        .map((code) => code.problemMessage)
+        .toList(growable: false);
+
+    return LinterRuleInfo._(
+      documentation: yaml['documentation'] as String?,
+      hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
+      problemMessages: problemMessages,
+    );
+  }
+
+  LinterRuleInfo._({
+    required this.problemMessages,
+    required super.documentation,
+    required super.hasPublishedDocs,
+  }) : super(problemMessage: problemMessages.firstOrNull ?? '');
+
+  @override
+  List<String> get formattedProblemMessages => problemMessages;
 }

@@ -141,7 +141,8 @@ class DartCompletionManager {
           },
         );
       }
-      await builder.suggestFromCandidates(collector.suggestions);
+      await builder.suggestFromCandidates(
+          collector.suggestions, collector.preferConstants);
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.

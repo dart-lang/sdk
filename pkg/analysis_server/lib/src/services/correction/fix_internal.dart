@@ -1382,6 +1382,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [
     RemoveConstructor.new,
   ],
+  ParserErrorCode.EXTERNAL_CLASS: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.EXTRANEOUS_MODIFIER: [
     RemoveExtraModifier.new,
   ],
@@ -1538,9 +1541,6 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveAnnotation.new,
   ],
   WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM: [
-    RemoveAnnotation.new,
-  ],
-  WarningCode.INVALID_SEALED_ANNOTATION: [
     RemoveAnnotation.new,
   ],
   WarningCode.INVALID_VISIBILITY_ANNOTATION: [

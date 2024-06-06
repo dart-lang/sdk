@@ -36,7 +36,7 @@ class DiagnosticInformation {
   final String name;
 
   /// The messages associated with the diagnostic.
-  List<String> messages;
+  final List<String> messages;
 
   /// The previous names by which this diagnostic has been known.
   List<String> previousNames = [];
@@ -46,7 +46,7 @@ class DiagnosticInformation {
 
   /// Initialize a newly created information holder with the given [name] and
   /// [message].
-  DiagnosticInformation(this.name, String message) : messages = [message];
+  DiagnosticInformation(this.name, this.messages);
 
   /// Return `true` if this diagnostic has documentation.
   bool get hasDocumentation => documentation != null;
@@ -56,6 +56,12 @@ class DiagnosticInformation {
     if (!messages.contains(message)) {
       messages.add(message);
     }
+  }
+
+  /// Add the list of [messages] to the list of messages
+  /// associated with the diagnostic.
+  void addMessages(List<String> messages) {
+    messages.forEach(addMessage);
   }
 
   void addPreviousName(String previousName) {
@@ -118,6 +124,9 @@ class DocumentationGenerator {
     for (var classEntry in analyzerMessages.entries) {
       _extractAllDocs(classEntry.key, classEntry.value);
     }
+    for (var classEntry in lintMessages.entries) {
+      _extractAllDocs(classEntry.key, classEntry.value);
+    }
     for (var errorClass in errorClasses) {
       if (errorClass.includeCfeMessages) {
         _extractAllDocs(
@@ -147,14 +156,12 @@ class DocumentationGenerator {
       }
       var name = errorCodeInfo.sharedName ?? errorName;
       var info = infoByName[name];
-      var message = convertTemplate(
-          errorCodeInfo.computePlaceholderToIndexMap(),
-          errorCodeInfo.problemMessage);
+      var messages = errorCodeInfo.formattedProblemMessages;
       if (info == null) {
-        info = DiagnosticInformation(name, message);
+        info = DiagnosticInformation(name, messages);
         infoByName[name] = info;
       } else {
-        info.addMessage(message);
+        info.addMessages(messages);
       }
       var previousName = errorCodeInfo.previousName;
       if (previousName != null) {
@@ -196,7 +203,7 @@ that might work in unexpected ways.
 
 [bottom type]: https://dart.dev/null-safety/understanding-null-safety#top-and-bottom
 [debugPrint]: https://api.flutter.dev/flutter/foundation/debugPrint.html
-[ffi]: https://dart.dev/guides/libraries/c-interop
+[ffi]: https://dart.dev/interop/c-interop
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
 [kDebugMode]: https://api.flutter.dev/flutter/foundation/kDebugMode-constant.html

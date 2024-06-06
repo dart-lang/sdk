@@ -2073,14 +2073,10 @@ class ResolutionReader {
     required K Function() readKey,
     required V Function() readValue,
   }) {
-    var length = readUInt30();
-    if (length == 0) {
-      return const {};
-    }
-
-    return {
-      for (var i = 0; i < length; i++) readKey(): readValue(),
-    };
+    return _reader.readMap(
+      readKey: readKey,
+      readValue: readValue,
+    );
   }
 
   FunctionType? readOptionalFunctionType() {
