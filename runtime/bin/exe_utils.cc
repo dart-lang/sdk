@@ -65,7 +65,7 @@ static const char* GetFileNameFromPath(const char* path) {
   return path;
 }
 
-CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
+CStringUniquePtr EXEUtils::GetDirectoryPrefixFromResolvedExeName() {
   const char* name = nullptr;
   const int kTargetSize = PATH_MAX;
   char target[kTargetSize];
@@ -117,6 +117,12 @@ CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
   }
   namespc->Release();
   return CStringUniquePtr(result == nullptr ? Utils::StrDup("") : result);
+}
+
+CStringUniquePtr EXEUtils::GetDirectoryPrefixFromUnresolvedExeName() {
+  const char* exe = Platform::GetExecutableName();
+  return CStringUniquePtr(exe == nullptr ? nullptr
+                                         : GetDirectoryFromPath(exe, nullptr));
 }
 
 #if !defined(DART_HOST_OS_WINDOWS)

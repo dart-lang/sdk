@@ -30,7 +30,7 @@ class Sdk {
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
   // if the SDK isn't completely built.
-  String get dart => Platform.resolvedExecutable;
+  String get dart => Platform.executable;
 
   String get dartAotRuntime => _runFromBuildRoot
       ? path.absolute(
@@ -149,21 +149,36 @@ class Sdk {
 
   static Sdk _createSingleton() {
     // Find SDK path.
+    (String, bool)? trySDKPath(String executablePath) {
+      // The common case, and how cli_util.dart computes the Dart SDK directory,
+      // [path.dirname] called twice on Platform.executable. We confirm by
+      // asserting that the directory `./bin/snapshots/` exists in this directory:
+      var sdkPath = path.absolute(path.dirname(path.dirname(executablePath)));
+      var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
+      var runFromBuildRoot = false;
+      if (!Directory(snapshotsDir).existsSync()) {
+        // This is the less common case where the user is in
+        // the checked out Dart SDK, and is executing `dart` via:
+        // ./out/ReleaseX64/dart ... or in google3.
+        sdkPath = path.absolute(path.dirname(executablePath));
+        snapshotsDir = sdkPath;
+        runFromBuildRoot = true;
+      }
 
-    // The common case, and how cli_util.dart computes the Dart SDK directory,
-    // [path.dirname] called twice on Platform.resolvedExecutable. We confirm by
-    // asserting that the directory `./bin/snapshots/` exists in this directory:
-    var sdkPath =
-        path.absolute(path.dirname(path.dirname(Platform.resolvedExecutable)));
-    var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
-    var runFromBuildRoot = false;
-    if (!Directory(snapshotsDir).existsSync()) {
-      // This is the less common case where the user is in
-      // the checked out Dart SDK, and is executing `dart` via:
-      // ./out/ReleaseX64/dart ... or in google3.
-      sdkPath = path.absolute(path.dirname(Platform.resolvedExecutable));
-      runFromBuildRoot = true;
+      // Try to locate the DartDev snapshot to determine if we're able to find
+      // the SDK snapshots with this SDK path. This is meant to handle
+      // non-standard SDK layouts that can involve symlinks (e.g., Brew
+      // installations, google3 tests, etc).
+      if (!File(path.join(snapshotsDir, 'dartdev.dart.snapshot'))
+          .existsSync()) {
+        return null;
+      }
+      return (sdkPath, runFromBuildRoot);
     }
+
+    final (sdkPath, runFromBuildRoot) =
+        trySDKPath(Platform.resolvedExecutable) ??
+            trySDKPath(Platform.executable)!;
 
     // Defer to [Runtime] for the version.
     var version = Runtime.runtime.version;

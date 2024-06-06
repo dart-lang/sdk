@@ -80,25 +80,37 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
 }
 
 CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(const char* filename) {
-  // |dir_prefix| includes the last path separator.
-  auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
+  auto try_resolve_path = [&](CStringUniquePtr dir_prefix) {
+    // First assume we're in dart-sdk/bin.
+    char* snapshot_path =
+        Utils::SCreate("%ssnapshots/%s", dir_prefix.get(), filename);
+    if (File::Exists(nullptr, snapshot_path)) {
+      return CStringUniquePtr(snapshot_path);
+    }
+    free(snapshot_path);
 
-  // First assume we're in dart-sdk/bin.
-  char* snapshot_path =
-      Utils::SCreate("%ssnapshots/%s", dir_prefix.get(), filename);
-  if (File::Exists(nullptr, snapshot_path)) {
-    return CStringUniquePtr(snapshot_path);
-  }
-  free(snapshot_path);
+    // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
+    // directories. Try to use a snapshot from a previously built SDK.
+    snapshot_path = Utils::SCreate("%s%s", dir_prefix.get(), filename);
+    if (File::Exists(nullptr, snapshot_path)) {
+      return CStringUniquePtr(snapshot_path);
+    }
+    free(snapshot_path);
+    return CStringUniquePtr(nullptr);
+  };
 
-  // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
-  // directories. Try to use a snapshot from a previously built SDK.
-  snapshot_path = Utils::SCreate("%s%s", dir_prefix.get(), filename);
-  if (File::Exists(nullptr, snapshot_path)) {
-    return CStringUniquePtr(snapshot_path);
+  // Try to find the artifact using the resolved EXE path first. This can fail
+  // if the Dart SDK file structure is faked using symlinks and the actual
+  // artifacts are spread across directories on the file system (e.g., some
+  // google3 execution environments).
+  auto result =
+      try_resolve_path(EXEUtils::GetDirectoryPrefixFromResolvedExeName());
+  if (result == nullptr) {
+    result =
+        try_resolve_path(EXEUtils::GetDirectoryPrefixFromUnresolvedExeName());
   }
-  free(snapshot_path);
-  return CStringUniquePtr(nullptr);
+
+  return result;
 }
 
 CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
