@@ -24014,12 +24014,6 @@ WarningCode:
       If the function doesn't need to be exported, then stop exporting it,
       either by removing it from the `show` clause, adding it to the `hide`
       clause, or by removing the export.
-  INVALID_FACTORY_ANNOTATION:
-    problemMessage: Only methods can be annotated as factories.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere a @factory annotation is associated
-      with anything other than a method.
   INVALID_FACTORY_METHOD_DECL:
     problemMessage: "Factory method '{0}' must have a return type."
     hasPublishedDocs: true

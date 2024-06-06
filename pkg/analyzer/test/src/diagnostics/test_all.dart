@@ -428,7 +428,6 @@ import 'invalid_export_of_internal_element_test.dart'
     as invalid_export_of_internal_element;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
-import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
@@ -1190,7 +1189,6 @@ main() {
     invalid_exception_value.main();
     invalid_export_of_internal_element.main();
     invalid_extension_argument_count.main();
-    invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();

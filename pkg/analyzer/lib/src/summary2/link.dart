@@ -74,6 +74,7 @@ class Linker {
 
   Linker(this.elementFactory, this.macroExecutor) {
     macroDeclarationBuilder = DeclarationBuilder(
+      elementFactory: elementFactory,
       nodeOfElement: (element) => elementNodes[element],
     );
   }

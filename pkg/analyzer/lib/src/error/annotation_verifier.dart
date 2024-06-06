@@ -69,10 +69,7 @@ class AnnotationVerifier {
   void _checkFactory(Annotation node) {
     var parent = node.parent;
     if (parent is! MethodDeclaration) {
-      _errorReporter.atNode(
-        node.name,
-        WarningCode.INVALID_FACTORY_ANNOTATION,
-      );
+      // Warning reported by `_checkKinds`.
       return;
     }
     var returnType = parent.returnType?.type;

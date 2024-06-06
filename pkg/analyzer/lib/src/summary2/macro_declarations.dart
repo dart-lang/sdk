@@ -10,7 +10,9 @@ import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -88,9 +90,10 @@ final class ConstructorMetadataAnnotationImpl extends macro
 }
 
 class DeclarationBuilder {
+  final LinkedElementFactory elementFactory;
   final ast.AstNode? Function(Element?) nodeOfElement;
 
-  final _VoidIdentifierImpl _voidIdentifier = _VoidIdentifierImpl();
+  final IdentifierImplVoid voidIdentifier = IdentifierImplVoid();
   final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
 
   late final DeclarationBuilderFromNode fromNode =
@@ -100,8 +103,13 @@ class DeclarationBuilder {
       DeclarationBuilderFromElement(this);
 
   DeclarationBuilder({
+    required this.elementFactory,
     required this.nodeOfElement,
   });
+
+  Reference get rootReference {
+    return elementFactory.rootReference;
+  }
 
   macro.MacroTarget buildTarget(ast.AstNode node) {
     switch (node) {
@@ -166,6 +174,28 @@ class DeclarationBuilder {
     }
   }
 
+  macro.IdentifierImpl identifierDeclared({
+    required String name,
+    required Element element,
+  }) {
+    return _identifierMap[element] ??= IdentifierImplDeclared(
+      id: macro.RemoteInstance.uniqueId,
+      name: name,
+      element: element,
+    );
+  }
+
+  macro.IdentifierImpl identifierFromElement({
+    required String name,
+    required Element element,
+  }) {
+    return _identifierMap[element] ??= IdentifierImplFromElement(
+      id: macro.RemoteInstance.uniqueId,
+      name: name,
+      element: element,
+    );
+  }
+
   macro.TypeAnnotation inferOmittedType(
     macro.OmittedTypeAnnotation omittedType,
   ) {
@@ -174,7 +204,7 @@ class DeclarationBuilder {
   }
 
   macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
-    if (identifier is _VoidIdentifierImpl) {
+    if (identifier is IdentifierImplVoid) {
       return macro.ResolvedIdentifier(
         kind: macro.IdentifierKind.topLevelMember,
         name: 'void',
@@ -509,7 +539,7 @@ class DeclarationBuilder {
 
   DartType _resolveTypeCodeNamed(macro.NamedTypeAnnotationCode typeCode) {
     var identifier = typeCode.name as IdentifierImpl;
-    if (identifier is _VoidIdentifierImpl) {
+    if (identifier is IdentifierImplVoid) {
       return VoidTypeImpl.instance;
     }
 
@@ -534,11 +564,11 @@ class DeclarationBuilder {
   DartType _resolveTypeCodeOmitted(macro.OmittedTypeAnnotationCode typeCode) {
     var omittedType = typeCode.typeAnnotation;
     switch (omittedType) {
-      case _OmittedTypeAnnotationDynamic():
+      case OmittedTypeAnnotationDynamic():
         return DynamicTypeImpl.instance;
-      case _OmittedTypeAnnotationFunctionReturnType():
+      case OmittedTypeAnnotationFunctionReturnType():
         return omittedType.element.returnType;
-      case _OmittedTypeAnnotationVariable():
+      case OmittedTypeAnnotationVariable():
         return omittedType.element.type;
       default:
         throw UnimplementedError('${omittedType.runtimeType}');
@@ -859,7 +889,7 @@ class DeclarationBuilderFromElement {
       case VoidType():
         return macro.NamedTypeAnnotationImpl(
           id: macro.RemoteInstance.uniqueId,
-          identifier: _VoidIdentifierImpl(),
+          identifier: IdentifierImplVoid(),
           isNullable: false,
           typeArguments: const [],
         );
@@ -1599,7 +1629,7 @@ class DeclarationBuilderFromNode {
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
     var map = builder._identifierMap;
-    return map[element] ??= _DeclaredIdentifierImpl(
+    return map[element] ??= IdentifierImplDeclared(
       id: macro.RemoteInstance.uniqueId,
       name: name.lexeme,
       element: element,
@@ -1608,7 +1638,7 @@ class DeclarationBuilderFromNode {
 
   macro.IdentifierImpl _declaredIdentifier2(String name, Element element) {
     var map = builder._identifierMap;
-    return map[element] ??= _DeclaredIdentifierImpl(
+    return map[element] ??= IdentifierImplDeclared(
       id: macro.RemoteInstance.uniqueId,
       name: name,
       element: element,
@@ -1826,7 +1856,7 @@ class DeclarationBuilderFromNode {
 
   macro.IdentifierImpl _namedTypeIdentifier(ast.NamedType node) {
     if (node.importPrefix == null && node.name2.lexeme == 'void') {
-      return builder._voidIdentifier;
+      return builder.voidIdentifier;
     }
 
     var element = node.element;
@@ -1897,7 +1927,7 @@ class DeclarationBuilderFromNode {
 
     var returnType = node.returnType;
     if (returnType == null) {
-      return _OmittedTypeAnnotationFunctionReturnType(element, location);
+      return OmittedTypeAnnotationFunctionReturnType(element, location);
     }
 
     return _typeAnnotation(returnType, location);
@@ -1914,7 +1944,7 @@ class DeclarationBuilderFromNode {
 
     var returnType = node.returnType;
     if (returnType == null) {
-      return _OmittedTypeAnnotationFunctionReturnType(element, location);
+      return OmittedTypeAnnotationFunctionReturnType(element, location);
     }
 
     return _typeAnnotation(returnType, location);
@@ -1925,7 +1955,7 @@ class DeclarationBuilderFromNode {
     TypeAnnotationLocation location,
   ) {
     if (node == null) {
-      return _OmittedTypeAnnotationDynamic(location);
+      return OmittedTypeAnnotationDynamic(location);
     }
     return _typeAnnotation(node, location);
   }
@@ -1989,7 +2019,7 @@ class DeclarationBuilderFromNode {
   ) {
     var location = VariableTypeLocation(parentLocation);
     if (type == null) {
-      return _OmittedTypeAnnotationVariable(element, location);
+      return OmittedTypeAnnotationVariable(element, location);
     }
     return _typeAnnotation(type, location);
   }
@@ -2179,6 +2209,17 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
   Element? get element;
 }
 
+class IdentifierImplDeclared extends IdentifierImpl {
+  @override
+  final Element element;
+
+  IdentifierImplDeclared({
+    required super.id,
+    required super.name,
+    required this.element,
+  });
+}
+
 class IdentifierImplFromElement extends IdentifierImpl {
   @override
   final Element element;
@@ -2201,6 +2242,17 @@ class IdentifierImplFromNode extends IdentifierImpl {
 
   @override
   Element? get element => getElement();
+}
+
+class IdentifierImplVoid extends IdentifierImpl {
+  IdentifierImplVoid()
+      : super(
+          id: macro.RemoteInstance.uniqueId,
+          name: 'void',
+        );
+
+  @override
+  Element? get element => null;
 }
 
 class IdentifierMetadataAnnotationImpl extends macro
@@ -2292,6 +2344,41 @@ class MixinDeclarationImpl extends macro.MixinDeclarationImpl
   });
 }
 
+sealed class OmittedTypeAnnotation extends macro.OmittedTypeAnnotationImpl {
+  OmittedTypeAnnotation()
+      : super(
+          id: macro.RemoteInstance.uniqueId,
+        );
+}
+
+class OmittedTypeAnnotationDynamic extends OmittedTypeAnnotation
+    implements TypeAnnotationWithLocation {
+  @override
+  final TypeAnnotationLocation location;
+
+  OmittedTypeAnnotationDynamic(this.location);
+}
+
+class OmittedTypeAnnotationFunctionReturnType extends OmittedTypeAnnotation
+    implements TypeAnnotationWithLocation {
+  final ExecutableElement element;
+
+  @override
+  final TypeAnnotationLocation location;
+
+  OmittedTypeAnnotationFunctionReturnType(this.element, this.location);
+}
+
+class OmittedTypeAnnotationVariable extends OmittedTypeAnnotation
+    implements TypeAnnotationWithLocation {
+  final VariableElement element;
+
+  @override
+  final TypeAnnotationLocation location;
+
+  OmittedTypeAnnotationVariable(this.element, this.location);
+}
+
 class TypeAliasDeclarationImpl extends macro.TypeAliasDeclarationImpl
     implements HasElement {
   @override
@@ -2347,17 +2434,6 @@ class VariableDeclarationImpl extends macro.VariableDeclarationImpl
   });
 }
 
-class _DeclaredIdentifierImpl extends IdentifierImpl {
-  @override
-  final Element element;
-
-  _DeclaredIdentifierImpl({
-    required super.id,
-    required super.name,
-    required this.element,
-  });
-}
-
 class _FunctionTypeAnnotation extends macro.FunctionTypeAnnotationImpl
     implements TypeAnnotationWithLocation {
   @override
@@ -2401,41 +2477,6 @@ class _NamedTypeIdentifierImpl extends IdentifierImpl {
   Element? get element => node.element;
 }
 
-sealed class _OmittedTypeAnnotation extends macro.OmittedTypeAnnotationImpl {
-  _OmittedTypeAnnotation()
-      : super(
-          id: macro.RemoteInstance.uniqueId,
-        );
-}
-
-class _OmittedTypeAnnotationDynamic extends _OmittedTypeAnnotation
-    implements TypeAnnotationWithLocation {
-  @override
-  final TypeAnnotationLocation location;
-
-  _OmittedTypeAnnotationDynamic(this.location);
-}
-
-class _OmittedTypeAnnotationFunctionReturnType extends _OmittedTypeAnnotation
-    implements TypeAnnotationWithLocation {
-  final ExecutableElement element;
-
-  @override
-  final TypeAnnotationLocation location;
-
-  _OmittedTypeAnnotationFunctionReturnType(this.element, this.location);
-}
-
-class _OmittedTypeAnnotationVariable extends _OmittedTypeAnnotation
-    implements TypeAnnotationWithLocation {
-  final VariableElement element;
-
-  @override
-  final TypeAnnotationLocation location;
-
-  _OmittedTypeAnnotationVariable(this.element, this.location);
-}
-
 class _RecordTypeAnnotation extends macro.RecordTypeAnnotationImpl
     implements TypeAnnotationWithLocation {
   @override
@@ -2448,24 +2489,6 @@ class _RecordTypeAnnotation extends macro.RecordTypeAnnotationImpl
     required super.positionalFields,
     required this.location,
   });
-}
-
-class _VoidIdentifierImpl extends IdentifierImpl {
-  _VoidIdentifierImpl()
-      : super(
-          id: macro.RemoteInstance.uniqueId,
-          name: 'void',
-        );
-
-  @override
-  Element? get element => null;
-}
-
-extension<T> on T? {
-  R? mapOrNull<R>(R Function(T) mapper) {
-    var self = this;
-    return self != null ? mapper(self) : null;
-  }
 }
 
 extension on Element {
@@ -2493,5 +2516,12 @@ extension<T extends ast.DeclarationImpl> on T {
       current = nextNode;
     }
     return result;
+  }
+}
+
+extension<T> on T? {
+  R? mapOrNull<R>(R Function(T) mapper) {
+    var self = this;
+    return self != null ? mapper(self) : null;
   }
 }

@@ -642,7 +642,9 @@ class _Experimental {
   const _Experimental();
 }
 
-// TODO(srawlins): Enforce with `TargetKind.method`.
+@Target({
+  TargetKind.method,
+})
 class _Factory {
   const _Factory();
 }

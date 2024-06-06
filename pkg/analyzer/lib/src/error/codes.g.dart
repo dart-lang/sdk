@@ -6599,13 +6599,6 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This warning is generated anywhere a @factory annotation is associated
-  ///  with anything other than a method.
-  static const WarningCode INVALID_FACTORY_ANNOTATION = WarningCode(
-    'INVALID_FACTORY_ANNOTATION',
-    "Only methods can be annotated as factories.",
-  );
-
   ///  Parameters:
   ///  0: The name of the method
   static const WarningCode INVALID_FACTORY_METHOD_DECL = WarningCode(
