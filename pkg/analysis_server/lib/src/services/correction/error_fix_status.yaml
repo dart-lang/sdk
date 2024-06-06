@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 337 "needsFix"
-# - 414 "hasFix"
+# - 336 "needsFix"
+# - 415 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3217,9 +3217,7 @@ ParserErrorCode.SETTER_IN_FUNCTION:
 ParserErrorCode.STACK_OVERFLOW:
   status: noFix
 ParserErrorCode.STATIC_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `static` keyword.
+  status: hasFix
 ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
   status: needsFix
   notes: |-
