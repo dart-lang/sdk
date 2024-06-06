@@ -227,6 +227,9 @@ class _Experimental {
   const _Experimental();
 }
 
+@Target({
+  TargetKind.method,
+})
 class _Factory {
   const _Factory();
 }

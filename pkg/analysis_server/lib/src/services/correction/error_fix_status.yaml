@@ -3534,8 +3534,6 @@ WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
 
     The fix is to update the export directive so that the member using the name
     is no longer exported.
-WarningCode.INVALID_FACTORY_ANNOTATION:
-  status: hasFix
 WarningCode.INVALID_FACTORY_METHOD_DECL:
   status: noFix
 WarningCode.INVALID_FACTORY_METHOD_IMPL:
