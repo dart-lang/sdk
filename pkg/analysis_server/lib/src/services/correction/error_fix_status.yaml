@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 340 "needsFix"
-# - 411 "hasFix"
+# - 339 "needsFix"
+# - 412 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2974,9 +2974,7 @@ ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
 ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
   status: noFix
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
-  status: needsFix
-  notes: |-
-    Remove the `covariant`.
+  status: hasFix
 ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
   status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:

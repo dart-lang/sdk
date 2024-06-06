@@ -149,6 +149,19 @@ void m() {}
 ''');
   }
 
+  Future<void> test_covariantInExtension() async {
+    await resolveTestCode(r'''
+extension E on String {
+  void f({covariant int a = 0}) {}
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  void f({int a = 0}) {}
+}
+''');
+  }
+
   Future<void> test_covariantMember() async {
     await resolveTestCode(r'''
 class C {

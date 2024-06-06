@@ -1433,6 +1433,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN: [
     SurroundWithParentheses.new,
   ],
+  ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION: [
+    RemoveExtraModifier.new,
+  ],
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [
     RemoveLate.new,
   ],
