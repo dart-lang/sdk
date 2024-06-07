@@ -103,6 +103,12 @@ class ReplaceNewWithConstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(meta: true);
+  }
+
   Future<void> test_new() async {
     await resolveTestCode('''
 class C {
@@ -136,5 +142,24 @@ void f() {
 ''');
     // handled by ADD_CONST
     await assertNoFix();
+  }
+
+  Future<void> test_nonConstCallToLiteralConstructorUsingNew() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+var a = new A();
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+var a = const A();
+''');
   }
 }

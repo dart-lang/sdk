@@ -1582,6 +1582,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   WarningCode.MUST_CALL_SUPER: [
     AddCallSuper.new,
   ],
+  WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW: [
+    ReplaceNewWithConst.new,
+  ],
   WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
     RemoveQuestionMark.new,
   ],

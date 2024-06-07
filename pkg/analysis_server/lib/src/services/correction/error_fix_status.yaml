@@ -3638,9 +3638,7 @@ WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   notes: |-
     The fix is to add `const` before the constructor invocation.
 WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
-  status: needsFix
-  notes: |-
-    The fix is to replace `new` with `const`.
+  status: hasFix
 WarningCode.NON_NULLABLE_EQUALS_PARAMETER:
   status: needsFix
   notes: |-
