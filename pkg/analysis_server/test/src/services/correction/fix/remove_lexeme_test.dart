@@ -392,6 +392,19 @@ class C {
 ''');
   }
 
+  Future<void> test_staticConstructor() async {
+    await resolveTestCode('''
+class C {
+  static C.c(){}
+}
+''');
+    await assertHasFix('''
+class C {
+  C.c(){}
+}
+''');
+  }
+
   Future<void> test_staticTopLevelDeclaration_enum() async {
     await resolveTestCode(r'''
 static enum E { v }
