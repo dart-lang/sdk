@@ -44,6 +44,16 @@ on an issue, say so, and consider adding the `needs-info` label to the issue. Is
 with a `needs-info` label are triaged by our [no response] bot; it will auto-close
 the issue after 14 days if the issue reporter does not respond.
 
+## Triage automation
+
+We're experimenting with triage automation. You may see comments made by a
+`@dart-github-bot` - that's related to our automation investigations. We may or
+may not continue experimentation here; for now, you can safely ignore these
+comments.
+
+For the source for the triage tool, see
+https://github.com/dart-lang/ecosystem/tree/main/pkgs/sdk_triage_bot.
+
 ## Follow up steps for Dart VM and Dart IO Library issues
 
 Issues filed against the Dart VM (issues with label `area-vm` : [VM issues](https://github.com/dart-lang/sdk/issues?q=is%3Aissue+is%3Aopen+label%3Aarea-vm+)) and IO library (issues with labels `area-core-library` `library-io` : [io library issues](https://github.com/dart-lang/sdk/issues?q=is%3Aissue+is%3Aopen+label%3Aarea-core-library+label%3Alibrary-io)) are triaged at least weekly by a member of the Dart VM team.

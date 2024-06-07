@@ -1,0 +1,38 @@
+# A workflow to invoke a triage automation bot.
+#
+# For more information, see
+# https://github.com/dart-lang/ecosystem/tree/main/pkgs/sdk_triage_bot and
+# https://github.com/dart-lang/sdk/blob/main/docs/Triaging-Dart-SDK-issues.md.
+
+name: Triage Bot
+
+# Run when an issue is created.
+on:
+  issues:
+    types:
+      - opened
+
+# All permissions not specified are set to 'none'.
+permissions:
+  issues: write
+
+jobs:
+  triage_issues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        with:
+          repository: dart-lang/ecosystem
+
+      - uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
+
+      - run: dart pub get
+        working-directory: pkgs/sdk_triage_bot
+
+      - name: triage issue
+        working-directory: pkgs/sdk_triage_bot
+        env:
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: dart bin/triage.dart $ISSUE_URL --dry-run
