@@ -16,4 +16,5 @@ dev_dependencies:
   args: any
   collection: any
   http: any
+  lints: any
   path: any

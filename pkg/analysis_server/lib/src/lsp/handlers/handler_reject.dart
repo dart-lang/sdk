@@ -18,7 +18,7 @@ class RejectMessageHandler extends SharedMessageHandler<Object?, void> {
       super.server, this.handlesMessage, this.errorCode, this.errorMessage);
 
   @override
-  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
   ErrorOr<void> handle(

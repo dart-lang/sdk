@@ -2959,6 +2959,17 @@
           ]
         },
         {
+          "name": "analyze third_party/pkg authored packages",
+          "script": "${build_root}/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--suppress-analytics",
+            "--fatal-infos",
+            "third_party/pkg/dap",
+            "third_party/pkg/language_server_protocol"
+          ]
+        },
+        {
           "name": "pub integration tests",
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
