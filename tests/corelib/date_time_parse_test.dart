@@ -10,22 +10,12 @@ check(DateTime expected, String str) {
   Expect.equals(expected.isUtc, actual.isUtc);
 }
 
-bool get supportsMicroseconds =>
-    new DateTime.fromMicrosecondsSinceEpoch(1).microsecondsSinceEpoch == 1;
-
 main() {
   check(new DateTime(2012, 02, 27, 13, 27), "2012-02-27 13:27:00");
-  if (supportsMicroseconds) {
-    check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 456),
-        "2012-02-27 13:27:00.1234567891234z");
-    check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 456),
-        "2012-02-27 13:27:00,1234567891234z");
-  } else {
-    check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 0),
-        "2012-02-27 13:27:00.1234567891234z");
-    check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 0),
-        "2012-02-27 13:27:00,1234567891234z");
-  }
+  check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 456),
+      "2012-02-27 13:27:00.1234567891234z");
+  check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123, 456),
+      "2012-02-27 13:27:00,1234567891234z");
   check(new DateTime(2012, 02, 27, 13, 27), "20120227 13:27:00");
   check(new DateTime(2012, 02, 27, 13, 27), "20120227T132700");
   check(new DateTime(2012, 02, 27), "20120227");
@@ -42,15 +32,8 @@ main() {
   check(
       new DateTime.utc(2015, 02, 14, 13, 0, 0, 0), "2015-02-15T00:00:00+11:00");
 
-  if (supportsMicroseconds) {
-    check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 500, 500),
-        "2015-02-15T00:00:00.500500Z");
-    check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 511, 500),
-        "2015-02-15T00:00:00.511500Z");
-  } else {
-    check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 501),
-        "2015-02-15T00:00:00.501Z");
-    check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 512),
-        "2015-02-15T00:00:00.512Z");
-  }
+  check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 500, 500),
+      "2015-02-15T00:00:00.500500Z");
+  check(new DateTime.utc(2015, 02, 15, 0, 0, 0, 511, 500),
+      "2015-02-15T00:00:00.511500Z");
 }

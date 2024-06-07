@@ -9,9 +9,6 @@ import "package:expect/expect.dart";
 // TODO(37442): Find far-away dates with milliseconds-since-epoch values that
 // are 'web' integers.
 
-bool get supportsMicroseconds =>
-    DateTime.fromMicrosecondsSinceEpoch(1).microsecondsSinceEpoch == 1;
-
 void testFarAwayDates() {
   DateTime dt =
       DateTime.fromMillisecondsSinceEpoch(1000000000000001, isUtc: true);
@@ -65,8 +62,6 @@ void testFarAwayDates() {
   Expect.equals(true, 0 <= dt.second && dt.second < 60);
   Expect.equals(999, dt.millisecond);
   Expect.equals(0, dt.microsecond);
-
-  if (!supportsMicroseconds) return;
 
   // `1000000000000000128` is a valid web number, allowing this test to be
   // compiled by the web compilers.
