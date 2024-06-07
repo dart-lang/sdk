@@ -61,7 +61,7 @@ class CurlyBracesInFlowControlStructures extends LintRule {
             name: 'curly_braces_in_flow_control_structures',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   bool get canUseParsedResult => true;

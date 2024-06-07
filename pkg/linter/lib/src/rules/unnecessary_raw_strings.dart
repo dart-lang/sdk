@@ -36,7 +36,7 @@ class UnnecessaryRawStrings extends LintRule {
             name: 'unnecessary_raw_strings',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -38,7 +38,7 @@ class PreferNullAwareOperators extends LintRule {
             name: 'prefer_null_aware_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

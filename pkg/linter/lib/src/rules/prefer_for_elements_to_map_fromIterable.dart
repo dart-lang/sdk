@@ -63,7 +63,7 @@ class PreferForElementsToMapFromIterable extends LintRule {
             name: 'prefer_for_elements_to_map_fromIterable',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

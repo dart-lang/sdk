@@ -40,7 +40,7 @@ class AvoidTypesOnClosureParameters extends LintRule {
             name: 'avoid_types_on_closure_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];

@@ -42,7 +42,7 @@ class ConditionalUriDoesNotExist extends LintRule {
             name: 'conditional_uri_does_not_exist',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -259,7 +259,7 @@ class InternalLint extends LintRule {
   InternalLint()
       : super(
           name: 'internal_lint',
-          group: Group.style,
+          categories: {Category.style},
           state: State.internal(),
           description: '',
           details: '',

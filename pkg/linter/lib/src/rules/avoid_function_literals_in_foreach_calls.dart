@@ -69,7 +69,7 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
             name: 'avoid_function_literals_in_foreach_calls',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

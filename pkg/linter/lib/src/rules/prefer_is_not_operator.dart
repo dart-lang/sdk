@@ -42,7 +42,7 @@ class PreferIsNotOperator extends LintRule {
             name: 'prefer_is_not_operator',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

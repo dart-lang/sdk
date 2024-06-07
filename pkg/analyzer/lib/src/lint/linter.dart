@@ -35,29 +35,16 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-abstract class Group {
-  /// A group representing possible coding errors.
+final class Category {
+  /// A category representing possible coding errors.
   static const String errors = 'errors';
 
-  /// A group representing Pub-related rules.
+  /// A category representing Pub-related rules.
   static const String pub = 'pub';
 
-  /// A group representing matters of style, largely derived from Effective
+  /// A category representing matters of style, largely derived from Effective
   /// Dart.
   static const String style = 'style';
-}
-
-@visibleForTesting
-class Hyperlink {
-  final String _label;
-  final String _href;
-  final bool _bold;
-
-  const Hyperlink(this._label, this._href, {bool bold = false}) : _bold = bold;
-
-  String get html => '<a href="$_href">${_emph(_label)}</a>';
-
-  String _emph(String msg) => _bold ? '<strong>$msg</strong>' : msg;
 }
 
 /// The result of attempting to evaluate an expression.
@@ -213,8 +200,8 @@ abstract class LintRule {
   /// Short description suitable for display in console output.
   final String description;
 
-  /// Lint group (for example, 'style').
-  final String group;
+  /// Lint groups (for example, 'style', 'errors', 'pub').
+  final Set<String> categories;
 
   /// Lint name.
   final String name;
@@ -233,7 +220,7 @@ abstract class LintRule {
 
   LintRule({
     required this.name,
-    required this.group,
+    required this.categories,
     required this.description,
     required this.details,
     State? state,

@@ -34,7 +34,7 @@ class NoSoloTests extends LintRule {
             name: 'no_solo_tests',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   void registerNodeProcessors(

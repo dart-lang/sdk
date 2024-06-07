@@ -72,7 +72,7 @@ class OnlyThrowErrors extends LintRule {
             name: 'only_throw_errors',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

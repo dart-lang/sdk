@@ -44,7 +44,7 @@ class DocumentIgnores extends LintRule {
             name: 'document_ignores',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

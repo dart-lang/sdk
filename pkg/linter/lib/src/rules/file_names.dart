@@ -54,7 +54,7 @@ class FileNames extends LintRule {
             name: 'file_names',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

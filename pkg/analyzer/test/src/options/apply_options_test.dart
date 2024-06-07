@@ -375,7 +375,7 @@ class TestRule extends LintRule {
           name: 'fantastic_test_rule',
           description: '',
           details: '',
-          group: Group.style,
+          categories: {Category.style},
         );
 
   TestRule.withName(String name)
@@ -383,6 +383,6 @@ class TestRule extends LintRule {
           name: name,
           description: '',
           details: '',
-          group: Group.style,
+          categories: {Category.style},
         );
 }

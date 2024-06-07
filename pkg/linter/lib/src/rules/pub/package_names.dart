@@ -31,7 +31,7 @@ class PackageNames extends LintRule {
             name: 'package_names',
             description: _desc,
             details: _details,
-            group: Group.pub);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -43,7 +43,7 @@ class UnnecessaryBraceInStringInterps extends LintRule {
             name: 'unnecessary_brace_in_string_interps',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

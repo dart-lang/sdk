@@ -37,7 +37,7 @@ class AvoidMultipleDeclarationsPerLine extends LintRule {
             name: 'avoid_multiple_declarations_per_line',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -91,7 +91,7 @@ class SortChildPropertiesLast extends LintRule {
             name: 'sort_child_properties_last',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

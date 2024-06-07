@@ -55,7 +55,7 @@ class ConstantIdentifierNames extends LintRule {
             name: 'constant_identifier_names',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

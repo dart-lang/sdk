@@ -53,7 +53,7 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
             name: 'library_private_types_in_public_api',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

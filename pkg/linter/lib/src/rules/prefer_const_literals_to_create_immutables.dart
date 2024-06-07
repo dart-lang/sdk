@@ -48,7 +48,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
             name: 'prefer_const_literals_to_create_immutables',
             description: desc,
             details: details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

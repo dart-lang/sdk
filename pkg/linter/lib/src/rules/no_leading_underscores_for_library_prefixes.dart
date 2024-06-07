@@ -39,7 +39,7 @@ class NoLeadingUnderscoresForLibraryPrefixes extends LintRule {
             name: 'no_leading_underscores_for_library_prefixes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -176,7 +176,7 @@ class DirectivesOrdering extends LintRule {
             name: 'directives_ordering',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   void registerNodeProcessors(

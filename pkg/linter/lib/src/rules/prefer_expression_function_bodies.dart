@@ -61,7 +61,7 @@ class PreferExpressionFunctionBodies extends LintRule {
             name: 'prefer_expression_function_bodies',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

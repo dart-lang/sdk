@@ -72,7 +72,7 @@ class PreferFinalParameters extends LintRule {
             name: 'prefer_final_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<String> get incompatibleRules =>

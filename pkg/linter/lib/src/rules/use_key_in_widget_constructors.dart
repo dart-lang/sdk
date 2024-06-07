@@ -43,7 +43,7 @@ class UseKeyInWidgetConstructors extends LintRule {
             name: 'use_key_in_widget_constructors',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

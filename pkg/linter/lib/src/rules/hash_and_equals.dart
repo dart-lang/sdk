@@ -62,7 +62,7 @@ class HashAndEquals extends LintRule {
             name: 'hash_and_equals',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

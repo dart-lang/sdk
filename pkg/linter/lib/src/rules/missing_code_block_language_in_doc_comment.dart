@@ -51,7 +51,7 @@ class MissingCodeBlockLanguageInDocComment extends LintRule {
             name: 'missing_code_block_language_in_doc_comment',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

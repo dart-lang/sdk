@@ -48,7 +48,7 @@ class UseColoredBox extends LintRule {
             name: 'use_colored_box',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

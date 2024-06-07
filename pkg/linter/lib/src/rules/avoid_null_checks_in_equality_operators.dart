@@ -72,7 +72,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
             name: 'avoid_null_checks_in_equality_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

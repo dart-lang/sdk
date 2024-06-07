@@ -55,7 +55,7 @@ class AlwaysDeclareReturnTypes extends LintRule {
             name: 'always_declare_return_types',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -46,7 +46,7 @@ class CamelCaseTypes extends LintRule {
             name: 'camel_case_types',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

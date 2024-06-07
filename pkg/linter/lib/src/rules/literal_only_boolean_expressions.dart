@@ -119,7 +119,7 @@ class LiteralOnlyBooleanExpressions extends LintRule {
             name: 'literal_only_boolean_expressions',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

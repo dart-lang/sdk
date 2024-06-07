@@ -55,7 +55,7 @@ class DependOnReferencedPackages extends LintRule {
             name: 'depend_on_referenced_packages',
             description: _desc,
             details: _details,
-            group: Group.pub);
+            categories: {Category.pub});
 
   @override
   LintCode get lintCode => code;

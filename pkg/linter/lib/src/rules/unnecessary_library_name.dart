@@ -58,7 +58,7 @@ class UnnecessaryLibraryName extends LintRule {
             name: 'unnecessary_library_name',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

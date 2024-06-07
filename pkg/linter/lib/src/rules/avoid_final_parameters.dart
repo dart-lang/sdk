@@ -61,7 +61,7 @@ class AvoidFinalParameters extends LintRule {
             name: 'avoid_final_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<String> get incompatibleRules => const ['prefer_final_parameters'];

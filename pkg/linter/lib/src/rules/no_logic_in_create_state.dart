@@ -68,7 +68,7 @@ class NoLogicInCreateState extends LintRule {
             name: 'no_logic_in_create_state',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

@@ -78,7 +78,7 @@ class AvoidSlowAsyncIo extends LintRule {
             name: 'avoid_slow_async_io',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

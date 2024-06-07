@@ -69,7 +69,7 @@ class VisitRegisteredNodes extends LintRule {
             name: 'visit_registered_nodes',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   void registerNodeProcessors(

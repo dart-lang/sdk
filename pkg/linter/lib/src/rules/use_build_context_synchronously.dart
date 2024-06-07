@@ -975,7 +975,7 @@ class UseBuildContextSynchronously extends LintRule {
           name: 'use_build_context_synchronously',
           description: _desc,
           details: _details,
-          group: Group.errors,
+          categories: {Category.errors},
           state: State.stable(since: Version(3, 2, 0)),
         );
 

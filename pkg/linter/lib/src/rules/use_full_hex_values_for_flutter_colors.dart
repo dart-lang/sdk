@@ -42,7 +42,7 @@ class UseFullHexValuesForFlutterColors extends LintRule {
             name: 'use_full_hex_values_for_flutter_colors',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

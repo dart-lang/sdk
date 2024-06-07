@@ -45,7 +45,7 @@ class UnnecessaryAwaitInReturn extends LintRule {
             name: 'unnecessary_await_in_return',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

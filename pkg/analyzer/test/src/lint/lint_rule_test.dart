@@ -139,7 +139,7 @@ class TestRule extends LintRule {
           name: 'test_rule',
           description: '',
           details: '... tl;dr ...',
-          group: Group.errors,
+          categories: {Category.errors},
         );
 }
 

@@ -52,7 +52,7 @@ class LibraryAnnotations extends LintRule {
             name: 'library_annotations',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

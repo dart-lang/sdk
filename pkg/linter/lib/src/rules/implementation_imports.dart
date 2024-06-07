@@ -70,7 +70,7 @@ class ImplementationImports extends LintRule {
             name: 'implementation_imports',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

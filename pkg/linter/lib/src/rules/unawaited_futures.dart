@@ -53,7 +53,7 @@ class UnawaitedFutures extends LintRule {
             name: 'unawaited_futures',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

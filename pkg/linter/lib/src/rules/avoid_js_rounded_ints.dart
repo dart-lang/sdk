@@ -44,7 +44,7 @@ class AvoidJsRoundedInts extends LintRule {
             name: 'avoid_js_rounded_ints',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

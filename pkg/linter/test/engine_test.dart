@@ -56,19 +56,7 @@ void defineLinterEngineTests() {
       });
     });
 
-    group('dtos', () {
-      group('hyperlink', () {
-        test('html', () {
-          var link = Hyperlink('dart', 'http://dart.dev');
-          expect(link.html, '<a href="http://dart.dev">dart</a>');
-        });
-        test('html - strong', () {
-          var link = Hyperlink('dart', 'http://dart.dev', bold: true);
-          expect(
-              link.html, '<a href="http://dart.dev"><strong>dart</strong></a>');
-        });
-      });
-    });
+    group('dtos', () {});
   });
 }
 
@@ -79,7 +67,7 @@ class MockLinter extends LintRule {
   MockLinter(this.nodeVisitor)
       : super(
             name: 'MockLint',
-            group: Group.style,
+            categories: {Category.style},
             description: 'Desc',
             details: 'And so on...');
 

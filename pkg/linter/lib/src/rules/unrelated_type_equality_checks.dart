@@ -149,7 +149,7 @@ class UnrelatedTypeEqualityChecks extends LintRule {
             name: 'unrelated_type_equality_checks',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   List<LintCode> get lintCodes => [expressionCode, patternCode];
