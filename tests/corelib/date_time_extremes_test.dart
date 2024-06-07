@@ -6,9 +6,6 @@ import "package:expect/expect.dart";
 
 // Dart test program for DateTime, extreme values.
 
-bool get supportsMicroseconds =>
-    DateTime.fromMicrosecondsSinceEpoch(1).microsecondsSinceEpoch == 1;
-
 // Identical to _maxMillisecondsSinceEpoch in date_time.dart
 const int _MAX_MILLISECONDS = 8640000000000000;
 
@@ -60,8 +57,6 @@ void testExtremes() {
   dt = DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(
       () => DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, -1));
-
-  if (!supportsMicroseconds) return;
 
   /// The nearest value to [base] in the direction [delta]. For native `int`s,
   /// this is just `base + delta`. For web `int`s outside the safe range, the
