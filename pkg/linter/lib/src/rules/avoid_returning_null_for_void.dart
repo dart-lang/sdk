@@ -55,7 +55,7 @@ class AvoidReturningNullForVoid extends LintRule {
             name: 'avoid_returning_null_for_void',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<LintCode> get lintCodes => [fromFunction, fromMethod];

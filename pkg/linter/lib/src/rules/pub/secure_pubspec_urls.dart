@@ -40,7 +40,7 @@ class SecurePubspecUrls extends LintRule {
             name: 'secure_pubspec_urls',
             description: _desc,
             details: _details,
-            group: Group.pub);
+            categories: {Category.pub});
 
   @override
   LintCode get lintCode => code;

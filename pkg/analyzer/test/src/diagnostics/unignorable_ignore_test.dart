@@ -77,7 +77,7 @@ class _AvoidIntRule extends LintRule {
           name: 'avoid_int',
           description: '',
           details: '',
-          group: Group.errors,
+          categories: {Category.errors},
         );
 
   @override

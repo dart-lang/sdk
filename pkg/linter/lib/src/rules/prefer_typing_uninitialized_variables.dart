@@ -72,7 +72,7 @@ class PreferTypingUninitializedVariables extends LintRule {
             name: 'prefer_typing_uninitialized_variables',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   void registerNodeProcessors(

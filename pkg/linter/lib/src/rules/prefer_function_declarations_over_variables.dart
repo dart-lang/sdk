@@ -48,7 +48,7 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
             name: 'prefer_function_declarations_over_variables',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

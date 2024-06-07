@@ -57,7 +57,7 @@ class AvoidRenamingMethodParameters extends LintRule {
             name: 'avoid_renaming_method_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => parameterCode;

@@ -52,7 +52,7 @@ class DanglingLibraryDocComments extends LintRule {
             name: 'dangling_library_doc_comments',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

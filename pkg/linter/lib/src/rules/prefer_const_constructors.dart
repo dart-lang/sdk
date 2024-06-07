@@ -65,7 +65,7 @@ class PreferConstConstructors extends LintRule {
             name: 'prefer_const_constructors',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

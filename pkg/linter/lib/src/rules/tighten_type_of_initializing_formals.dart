@@ -55,7 +55,7 @@ class TightenTypeOfInitializingFormals extends LintRule {
           name: 'tighten_type_of_initializing_formals',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

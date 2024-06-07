@@ -36,7 +36,7 @@ class PreferIterableWhereType extends LintRule {
             name: 'prefer_iterable_whereType',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

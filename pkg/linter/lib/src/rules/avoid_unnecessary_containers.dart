@@ -59,7 +59,7 @@ class AvoidUnnecessaryContainers extends LintRule {
             name: 'avoid_unnecessary_containers',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

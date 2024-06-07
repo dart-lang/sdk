@@ -41,7 +41,7 @@ class UnnecessaryNew extends LintRule {
             name: 'unnecessary_new',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   bool get canUseParsedResult => true;

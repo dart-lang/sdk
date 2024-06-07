@@ -52,7 +52,7 @@ class AvoidAs extends LintRule {
           name: 'avoid_as',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
           state: State.removed(since: dart2_12),
         );
 

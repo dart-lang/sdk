@@ -63,7 +63,7 @@ class AvoidCatchesWithoutOnClauses extends LintRule {
             name: 'avoid_catches_without_on_clauses',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

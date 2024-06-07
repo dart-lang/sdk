@@ -72,7 +72,7 @@ Future<String> getMachineListing(
       {
         'name': rule.name,
         'description': rule.description,
-        'group': rule.group,
+        'group': rule.categories,
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [

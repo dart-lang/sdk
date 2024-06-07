@@ -52,7 +52,7 @@ class AvoidRedundantArgumentValues extends LintRule {
             name: 'avoid_redundant_argument_values',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

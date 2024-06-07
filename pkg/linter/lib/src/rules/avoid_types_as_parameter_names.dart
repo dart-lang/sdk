@@ -39,7 +39,7 @@ class AvoidTypesAsParameterNames extends LintRule {
             name: 'avoid_types_as_parameter_names',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

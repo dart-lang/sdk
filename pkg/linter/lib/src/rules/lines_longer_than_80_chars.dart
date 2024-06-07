@@ -51,7 +51,7 @@ class LinesLongerThan80Chars extends LintRule {
             name: 'lines_longer_than_80_chars',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

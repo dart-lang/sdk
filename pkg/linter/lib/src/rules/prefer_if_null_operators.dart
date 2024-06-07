@@ -36,7 +36,7 @@ class PreferIfNullOperators extends LintRule {
             name: 'prefer_if_null_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

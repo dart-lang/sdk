@@ -39,7 +39,7 @@ class UseStringInPartOfDirectives extends LintRule {
           name: 'use_string_in_part_of_directives',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

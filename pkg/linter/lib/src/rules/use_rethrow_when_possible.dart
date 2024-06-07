@@ -48,7 +48,7 @@ class UseRethrowWhenPossible extends LintRule {
             name: 'use_rethrow_when_possible',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -66,7 +66,7 @@ class PreferCollectionLiterals extends LintRule {
             name: 'prefer_collection_literals',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

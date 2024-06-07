@@ -55,7 +55,7 @@ class AlwaysUsePackageImports extends LintRule {
             name: 'always_use_package_imports',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   List<String> get incompatibleRules => const ['prefer_relative_imports'];

@@ -43,7 +43,7 @@ class SortConstructorsFirst extends LintRule {
             name: 'sort_constructors_first',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

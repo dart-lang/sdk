@@ -57,7 +57,7 @@ class SizedBoxForWhitespace extends LintRule {
             name: 'sized_box_for_whitespace',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

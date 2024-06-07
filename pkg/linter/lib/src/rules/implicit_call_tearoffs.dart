@@ -52,7 +52,7 @@ class ImplicitCallTearoffs extends LintRule {
           name: 'implicit_call_tearoffs',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

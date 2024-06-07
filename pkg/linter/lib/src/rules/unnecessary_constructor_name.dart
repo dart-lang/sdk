@@ -49,7 +49,7 @@ class UnnecessaryConstructorName extends LintRule {
             name: 'unnecessary_constructor_name',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

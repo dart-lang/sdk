@@ -30,7 +30,7 @@ class EraseDartTypeExtensionTypes extends LintRule {
             description: _desc,
             details: _details,
             state: State.internal(),
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

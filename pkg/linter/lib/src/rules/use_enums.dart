@@ -70,7 +70,7 @@ class UseEnums extends LintRule {
             name: 'use_enums',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

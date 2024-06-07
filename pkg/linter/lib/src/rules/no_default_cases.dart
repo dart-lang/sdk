@@ -59,7 +59,7 @@ class NoDefaultCases extends LintRule {
           name: 'no_default_cases',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
           state: State.experimental(),
         );
 

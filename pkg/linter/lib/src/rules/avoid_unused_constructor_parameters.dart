@@ -42,7 +42,7 @@ class AvoidUnusedConstructorParameters extends LintRule {
             name: 'avoid_unused_constructor_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

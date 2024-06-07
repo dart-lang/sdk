@@ -46,7 +46,7 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
           name: 'unnecessary_null_aware_operator_on_extension_on_nullable',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

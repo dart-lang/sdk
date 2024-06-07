@@ -60,7 +60,7 @@ class TypeAnnotatePublicApis extends LintRule {
             name: 'type_annotate_public_apis',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

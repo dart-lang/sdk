@@ -38,7 +38,7 @@ class ValidRegexps extends LintRule {
             name: 'valid_regexps',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

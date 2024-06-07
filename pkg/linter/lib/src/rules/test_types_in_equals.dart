@@ -77,7 +77,7 @@ class TestTypesInEquals extends LintRule {
             name: 'test_types_in_equals',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

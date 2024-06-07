@@ -36,7 +36,7 @@ class EolAtEndOfFile extends LintRule {
             name: 'eol_at_end_of_file',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

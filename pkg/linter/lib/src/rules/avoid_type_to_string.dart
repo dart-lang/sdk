@@ -59,7 +59,7 @@ class AvoidTypeToString extends LintRule {
             name: 'avoid_type_to_string',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

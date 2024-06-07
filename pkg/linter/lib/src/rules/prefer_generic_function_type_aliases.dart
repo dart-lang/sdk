@@ -42,7 +42,7 @@ class PreferGenericFunctionTypeAliases extends LintRule {
             name: 'prefer_generic_function_type_aliases',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   bool get canUseParsedResult => true;

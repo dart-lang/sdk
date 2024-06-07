@@ -91,7 +91,7 @@ class PreferFinalFields extends LintRule {
             name: 'prefer_final_fields',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
