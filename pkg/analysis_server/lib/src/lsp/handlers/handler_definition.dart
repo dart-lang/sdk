@@ -51,19 +51,16 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
         .toList();
   }
 
-  Future<AnalysisNavigationParams> getServerResult(
-      bool supportsLocationLink, String path, int offset) async {
+  Future<AnalysisNavigationParams> getServerResult(ResolvedUnitResult result,
+      String path, bool supportsLocationLink, int offset) async {
     var collector = NavigationCollectorImpl();
 
-    var result = await server.getResolvedUnit(path);
-    if (result != null) {
-      computeDartNavigation(
-          server.resourceProvider, collector, result, offset, 0);
-      if (supportsLocationLink) {
-        await _updateTargetsWithCodeLocations(collector);
-      }
-      collector.createRegions();
+    computeDartNavigation(
+        server.resourceProvider, collector, result, offset, 0);
+    if (supportsLocationLink) {
+      await _updateTargetsWithCodeLocations(collector);
     }
+    collector.createRegions();
 
     return AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);
@@ -86,7 +83,10 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     var path = pathOfDoc(params.textDocument);
 
     return path.mapResult((path) async {
-      var lineInfo = server.getLineInfo(path);
+      // Always prefer a LineInfo from a resolved unit than server.getLineInfo.
+      var resolvedUnit = (await requireResolvedUnit(path)).resultOrNull;
+      var lineInfo = resolvedUnit?.lineInfo ?? server.getLineInfo(path);
+
       // If there is no lineInfo, the request cannot be translated from LSP line/col
       // to server offset/length.
       if (lineInfo == null) {
@@ -97,7 +97,9 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
 
       return offset.mapResult((offset) async {
         var allResults = [
-          await getServerResult(supportsLocationLink, path, offset),
+          if (resolvedUnit != null)
+            await getServerResult(
+                resolvedUnit, path, supportsLocationLink, offset),
           ...await getPluginResults(path, offset),
         ];
 
