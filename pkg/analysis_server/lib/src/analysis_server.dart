@@ -618,21 +618,22 @@ abstract class AnalysisServer {
   /// This method supports non-Dart files but uses the current content of the
   /// file which may not be the latest analyzed version of the file if it was
   /// recently modified, so using the LineInfo from an analyzed result may be
-  /// preferable.
+  /// preferable. This method exists mainly to support plugins which do not
+  /// provide us a matching [LineInfo] for the content they used.
   LineInfo? getLineInfo(String path) {
     try {
-      // First try to get from the File if it's an analyzed Dart file.
+      // First try from the overlay because it may be more up-to-date than
+      // the file state.
+      var content = resourceProvider.getFile(path).readAsStringSync();
+      return LineInfo.fromContent(content);
+    } on FileSystemException {
+      // If the file does not exist or cannot be read, try the file state
+      // because this could be something like a macro-generated file.
       var result = getAnalysisDriver(path)?.getFileSync(path);
       if (result is FileResult) {
         return result.lineInfo;
       }
 
-      // Fall back to reading from the resource provider.
-      var content = resourceProvider.getFile(path).readAsStringSync();
-      return LineInfo.fromContent(content);
-    } on FileSystemException {
-      // If the file does not exist or cannot be read, return null to allow
-      // the caller to decide how to handle this.
       return null;
     }
   }

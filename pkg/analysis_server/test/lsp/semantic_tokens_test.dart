@@ -802,6 +802,36 @@ extension type E(int i) {}
     expect(decoded, equals(expected));
   }
 
+  /// Verify that sending a semantic token request immediately after an overlay
+  /// update (with no delay) does not result in corrupt semantic tokens because
+  /// the previous file content was used.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/55084
+  Future<void> test_immediatelyAfterUpdate() async {
+    const initialContent = 'class A {}\nclass B {}';
+    const updatedContent = 'class Aaaaa {}\nclass Bbbbb {}';
+
+    newFile(mainFilePath, initialContent);
+    await initialize();
+
+    await openFile(mainFileUri, initialContent);
+
+    // Send an edit (don't await), then fetch the tokens and verify the results
+    // were correct for the final content. If the bug occurs, the strings won't
+    // match up because the offsets will have been mapped incorrectly.
+    unawaited(replaceFile(2, mainFileUri, updatedContent));
+    var tokens = await getSemanticTokens(mainFileUri);
+    var decoded = _decodeSemanticTokens(updatedContent, tokens);
+    expect(decoded, [
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('Aaaaa', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('Bbbbb', SemanticTokenTypes.class_,
+          [SemanticTokenModifiers.declaration])
+    ]);
+  }
+
   Future<void> test_invalidSyntax() async {
     failTestOnErrorDiagnostic = false;
 
