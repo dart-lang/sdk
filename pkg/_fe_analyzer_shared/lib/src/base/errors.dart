@@ -6,10 +6,10 @@ import 'dart:math';
 
 import 'customized_codes.dart';
 
-/// An error code associated with an [AnalysisError].
+/// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
-/// Diagnostics](../fasta/diagnostics.md).
+/// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/fasta/diagnostics.md).
 abstract class ErrorCode {
   /// Regular expression for identifying positional arguments in error messages.
   static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
