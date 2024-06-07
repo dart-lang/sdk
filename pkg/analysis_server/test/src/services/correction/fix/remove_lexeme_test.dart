@@ -11,15 +11,15 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveExtraModifierMultiTest);
-    defineReflectiveTests(RemoveExtraModifierTest);
+    defineReflectiveTests(RemoveLexemeMultiTest);
+    defineReflectiveTests(RemoveLexemeTest);
   });
 }
 
 @reflectiveTest
-class RemoveExtraModifierMultiTest extends FixProcessorTest {
+class RemoveLexemeMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTRA_MODIFIER_MULTI;
+  FixKind get kind => DartFixKind.REMOVE_LEXEME_MULTI;
 
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -47,9 +47,9 @@ augment class A {}
 }
 
 @reflectiveTest
-class RemoveExtraModifierTest extends FixProcessorTest {
+class RemoveLexemeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTRA_MODIFIER;
+  FixKind get kind => DartFixKind.REMOVE_LEXEME;
 
   Future<void> test_abstract_static_field() async {
     await resolveTestCode('''
@@ -146,6 +146,19 @@ const void m() {}
 ''');
     await assertHasFix('''
 void m() {}
+''');
+  }
+
+  Future<void> test_covariantInExtension() async {
+    await resolveTestCode(r'''
+extension E on String {
+  void f({covariant int a = 0}) {}
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  void f({int a = 0}) {}
+}
 ''');
   }
 
@@ -275,6 +288,19 @@ mixin class A {}
 ''');
   }
 
+  Future<void> test_getterConstructor() async {
+    await resolveTestCode('''
+class C {
+  get C.c();
+}
+''');
+    await assertHasFix('''
+class C {
+  C.c();
+}
+''');
+  }
+
   Future<void> test_interfaceMixin() async {
     await resolveTestCode('''
 interface mixin M {}
@@ -350,6 +376,19 @@ sealed mixin M {}
 ''');
     await assertHasFix('''
 mixin M {}
+''');
+  }
+
+  Future<void> test_setterConstructor() async {
+    await resolveTestCode('''
+class C {
+  set C.c();
+}
+''');
+    await assertHasFix('''
+class C {
+  C.c();
+}
 ''');
   }
 

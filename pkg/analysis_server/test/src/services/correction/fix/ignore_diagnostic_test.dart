@@ -10,14 +10,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(IgnoreDiagnosticAnaylsisOptionFileTest);
+    defineReflectiveTests(IgnoreDiagnosticAnalysisOptionFileTest);
     defineReflectiveTests(IgnoreDiagnosticLineTest);
     defineReflectiveTests(IgnoreDiagnosticFileTest);
   });
 }
 
 @reflectiveTest
-class IgnoreDiagnosticAnaylsisOptionFileTest extends FixProcessorTest {
+class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
 
@@ -171,10 +171,10 @@ include: package:lints/recommended.yaml
   ''');
     await assertHasFix(
       '''
+include: package:lints/recommended.yaml
 analyzer:
   errors:
     unused_local_variable: ignore
-include: package:lints/recommended.yaml
 ''',
       target: analysisOptionsPath,
     );

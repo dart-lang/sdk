@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 340 "needsFix"
-# - 411 "hasFix"
+# - 337 "needsFix"
+# - 414 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2861,9 +2861,7 @@ ParserErrorCode.FINAL_MIXIN_CLASS:
 ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
   status: noFix
 ParserErrorCode.GETTER_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `get` keyword.
+  status: hasFix
 ParserErrorCode.GETTER_IN_FUNCTION:
   status: needsFix
   notes: |-
@@ -2974,9 +2972,7 @@ ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
 ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
   status: noFix
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
-  status: needsFix
-  notes: |-
-    Remove the `covariant`.
+  status: hasFix
 ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
   status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
@@ -3213,9 +3209,7 @@ ParserErrorCode.SEALED_MIXIN:
 ParserErrorCode.SEALED_MIXIN_CLASS:
   status: hasFix
 ParserErrorCode.SETTER_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `set`.
+  status: hasFix
 ParserErrorCode.SETTER_IN_FUNCTION:
   status: needsFix
   notes: |-

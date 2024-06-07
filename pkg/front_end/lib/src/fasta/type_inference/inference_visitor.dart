@@ -9152,19 +9152,57 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         positional[index] = expressionResult.expression;
       }
     } else {
-      List<String> sortedNames = namedElements.keys.toList()..sort();
-
       positionalTypes =
           new List<DartType>.filled(positional.length, const UnknownType());
       Map<String, DartType> namedElementTypes = {};
+
+      // Index into [positional] of the positional element we find next.
+      int positionalIndex = 0;
+
+      for (int index = 0; index < originalElementOrder.length; index++) {
+        Object element = originalElementOrder[index];
+        if (element is NamedExpression) {
+          DartType contextType =
+              namedTypeContexts?[element.name] ?? const UnknownType();
+          ExpressionInferenceResult expressionResult =
+              inferExpression(element.value, contextType);
+          if (contextType is! UnknownType) {
+            expressionResult = coerceExpressionForAssignment(
+                    contextType, expressionResult,
+                    treeNodeForTesting: node) ??
+                expressionResult;
+          }
+          Expression expression = expressionResult.expression;
+          DartType type = expressionResult.postCoercionType ??
+              expressionResult.inferredType;
+          element.value = expression..parent = element;
+          namedElementTypes[element.name] = type;
+        } else {
+          DartType contextType =
+              positionalTypeContexts?[positionalIndex] ?? const UnknownType();
+          ExpressionInferenceResult expressionResult =
+              inferExpression(element as Expression, contextType);
+          if (contextType is! UnknownType) {
+            expressionResult = coerceExpressionForAssignment(
+                    contextType, expressionResult,
+                    treeNodeForTesting: node) ??
+                expressionResult;
+          }
+          Expression expression = expressionResult.expression;
+          DartType type = expressionResult.postCoercionType ??
+              expressionResult.inferredType;
+          positional[positionalIndex] = expression;
+          positionalTypes[positionalIndex] = type;
+          positionalIndex++;
+        }
+      }
+
+      List<String> sortedNames = namedElements.keys.toList()..sort();
 
       // Index into [sortedNames] of the named element we expected to find
       // next, for the named elements to be sorted. This also used to detect
       // when all named elements have been seen, even when they are not sorted.
       int nameIndex = sortedNames.length - 1;
-
-      // Index into [positional] of the positional element we find next.
-      int positionalIndex = positional.length - 1;
 
       // For const literals we don't hoist to avoid using let variables in
       // inside constants. Since the elements of the literal must be constant
@@ -9183,22 +9221,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // expressions we need to hoist. When we observe an element out of order,
       // either positional after named or unsorted named, all preceding
       // elements must be hoisted to retain the original evaluation order.
+      positionalIndex--;
       for (int index = originalElementOrder.length - 1; index >= 0; index--) {
         Object element = originalElementOrder[index];
         if (element is NamedExpression) {
-          DartType contextType =
-              namedTypeContexts?[element.name] ?? const UnknownType();
-          ExpressionInferenceResult expressionResult =
-              inferExpression(element.value, contextType);
-          if (contextType is! UnknownType) {
-            expressionResult = coerceExpressionForAssignment(
-                    contextType, expressionResult,
-                    treeNodeForTesting: node) ??
-                expressionResult;
-          }
-          Expression expression = expressionResult.expression;
-          DartType type = expressionResult.postCoercionType ??
-              expressionResult.inferredType;
+          Expression expression = element.value;
+          DartType type = namedElementTypes[element.name]!;
           // TODO(johnniwinther): Should we use [isPureExpression] as is, make
           // it include (simple) literals, or add a new predicate?
           if (needsHoisting && !isPureExpression(expression)) {
@@ -9208,10 +9236,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             hoistedExpressions ??= [];
             hoistedExpressions.add(variable);
             element.value = createVariableGet(variable)..parent = element;
-          } else {
-            element.value = expression..parent = element;
           }
-          namedElementTypes[element.name] = type;
           if (!namedNeedsSorting && element.name != sortedNames[nameIndex]) {
             // Named elements are not sorted, so we need to hoist and sort them.
             namedNeedsSorting = true;
@@ -9219,19 +9244,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           nameIndex--;
         } else {
-          DartType contextType =
-              positionalTypeContexts?[positionalIndex] ?? const UnknownType();
-          ExpressionInferenceResult expressionResult =
-              inferExpression(element as Expression, contextType);
-          if (contextType is! UnknownType) {
-            expressionResult = coerceExpressionForAssignment(
-                    contextType, expressionResult,
-                    treeNodeForTesting: node) ??
-                expressionResult;
-          }
-          Expression expression = expressionResult.expression;
-          DartType type = expressionResult.postCoercionType ??
-              expressionResult.inferredType;
+          Expression expression = positional[positionalIndex];
+          DartType type = positionalTypes[positionalIndex];
           // TODO(johnniwinther): Should we use [isPureExpression] as is, make
           // it include (simple) literals, or add a new predicate?
           if (needsHoisting && !isPureExpression(expression)) {
@@ -9241,15 +9255,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             hoistedExpressions ??= [];
             hoistedExpressions.add(variable);
             positional[positionalIndex] = createVariableGet(variable);
-          } else {
-            positional[positionalIndex] = expression;
-            if (nameIndex >= 0) {
-              // We have not seen all named elements yet, so we must hoist the
-              // remaining named elements and the preceding positional elements.
-              needsHoisting = enableHoisting;
-            }
+          } else if (nameIndex >= 0) {
+            // We have not seen all named elements yet, so we must hoist the
+            // remaining named elements and the preceding positional elements.
+            needsHoisting = enableHoisting;
           }
-          positionalTypes[positionalIndex] = type;
           positionalIndex--;
         }
       }

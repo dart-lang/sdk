@@ -101,7 +101,7 @@ void DFE::InitKernelServiceAndPlatformDills() {
   }
 
   // |dir_prefix| includes the last path separator.
-  auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
+  auto dir_prefix = EXEUtils::GetDirectoryPrefixFromResolvedExeName();
 
   // Look for the frontend snapshot next to the executable.
   frontend_filename_ =

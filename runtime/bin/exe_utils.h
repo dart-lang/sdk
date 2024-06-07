@@ -17,8 +17,15 @@ namespace bin {
 
 class EXEUtils {
  public:
-  // Returns the path to the directory the current executable resides in.
-  static CStringUniquePtr GetDirectoryPrefixFromExeName();
+  // Returns the resolved path to the directory the current executable resides
+  // in.
+  static CStringUniquePtr GetDirectoryPrefixFromResolvedExeName();
+
+  // Returns the path to the directory the current executable resides
+  // in without following symlinks.
+  //
+  // Returns null if Platform::GetExecutableName() returns null.
+  static CStringUniquePtr GetDirectoryPrefixFromUnresolvedExeName();
 
 #if !defined(DART_HOST_OS_WINDOWS)
   // Loads a compact symbolization table from "$exepath.sym" that is used by the
