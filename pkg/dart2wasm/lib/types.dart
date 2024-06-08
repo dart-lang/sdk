@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:math' show max;
 
 import 'package:kernel/ast.dart';
@@ -63,34 +64,12 @@ class Types {
   late final w.ValueType recordTypeNamesFieldExpectedType = classAndFieldToType(
       translator.recordTypeClass, FieldIndex.recordTypeNames);
 
-  /// A mapping from concrete subclass `classID` to [Map]s of superclass
-  /// `classID` and the necessary substitutions which must be performed to test
-  /// for a valid subtyping relationship.
-  late final Map<int, Map<int, List<DartType>>> typeRules = _buildTypeRules();
+  late final RuntimeTypeInformation rtt = RuntimeTypeInformation(translator);
 
   /// We will build the [interfaceTypeEnvironment] when building the
   /// [typeRules].
   final InterfaceTypeEnvironment interfaceTypeEnvironment =
       InterfaceTypeEnvironment();
-
-  /// Because we can't currently support [Map]s in our `TypeUniverse`, we have
-  /// to decompose [typeRules] into two [Map]s based on [List]s.
-  ///
-  /// [typeRulesSupers] is a [List] where the index in the list is a subclasses'
-  /// `classID` and the value at that index is a [List] of superclass
-  /// `classID`s.
-  late final List<List<int>> typeRulesSupers = _buildTypeRulesSupers();
-
-  /// [typeRulesSubstitutions] is a [List] where the index in the list is a
-  /// subclasses' `classID` and the value at that index is a [List] indexed by
-  /// the index of the superclasses' `classID` in [typeRulesSuper] and the value
-  /// at that index is a [List] of [DartType]s which must be substituted for the
-  /// subtyping relationship to be valid.
-  late final List<List<List<DartType>>> typeRulesSubstitutions =
-      _buildTypeRulesSubstitutions();
-
-  /// A list which maps class ID to the classes [String] name.
-  late final List<String> typeNames = _buildTypeNames();
 
   /// Type parameter offset for function types, specifying the lower end of
   /// their index range for type parameter types.
@@ -115,176 +94,6 @@ class Types {
       InterfaceType(translator.typeClass, Nullability.nonNullable);
 
   CoreTypes get coreTypes => translator.coreTypes;
-
-  /// Builds a [Map<int, Map<int, List<DartType>>>] to store subtype
-  /// information.  The first key is the class id of a subtype. This returns a
-  /// map where each key is the class id of a transitively implemented super
-  /// type and each value is a list of the necessary type substitutions required
-  /// for the subtyping relationship to be valid.
-  Map<int, Map<int, List<DartType>>> _buildTypeRules() {
-    List<ClassInfo> classes = translator.classes;
-    Map<int, Map<int, List<DartType>>> subtypeMap = {};
-    for (ClassInfo classInfo in classes) {
-      ClassInfo superclassInfo = classInfo;
-
-      // We don't need type rules for any class without a superclass, or for
-      // classes whose supertype is [Object]. The latter case will be handled
-      // directly in the subtype checking algorithm.
-      if (superclassInfo.cls == null ||
-          superclassInfo.cls == coreTypes.objectClass) {
-        continue;
-      }
-      Class superclass = superclassInfo.cls!;
-
-      // TODO(joshualitt): This includes abstract types that can't be
-      // instantiated, but might be needed for subtype checks. The majority of
-      // abstract classes are probably unnecessary though. We should filter
-      // these cases to reduce the size of the type rules.
-      Iterable<Class> subclasses = translator.subtypes
-          .getSubtypesOf(superclass)
-          .where((cls) => cls != superclass);
-      Iterable<InterfaceType> subtypes = subclasses.map(
-          (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
-      for (InterfaceType subtype in subtypes) {
-        interfaceTypeEnvironment._add(subtype);
-        List<DartType>? typeArguments = translator.hierarchy
-            .getInterfaceTypeArgumentsAsInstanceOfClass(subtype, superclass)
-            ?.map(normalize)
-            .toList();
-        ClassInfo subclassInfo = translator.classInfo[subtype.classNode]!;
-        Map<int, List<DartType>> substitutionMap =
-            subtypeMap[subclassInfo.classId] ??= {};
-        substitutionMap[superclassInfo.classId] = typeArguments ?? const [];
-      }
-    }
-    return subtypeMap;
-  }
-
-  List<List<int>> _buildTypeRulesSupers() {
-    List<List<int>> typeRulesSupers = [];
-    for (int classId = 0; classId < translator.classes.length; classId++) {
-      List<int>? superclassIds = typeRules[classId]?.keys.toList();
-      if (superclassIds == null) {
-        typeRulesSupers.add(const []);
-      } else {
-        superclassIds.sort();
-        typeRulesSupers.add(superclassIds);
-      }
-    }
-    return typeRulesSupers;
-  }
-
-  List<List<List<DartType>>> _buildTypeRulesSubstitutions() {
-    List<List<List<DartType>>> typeRulesSubstitutions = [];
-    for (int classId = 0; classId < translator.classes.length; classId++) {
-      List<int> supers = typeRulesSupers[classId];
-      typeRulesSubstitutions.add(supers.isEmpty ? const [] : []);
-      for (int j = 0; j < supers.length; j++) {
-        int superId = supers[j];
-        typeRulesSubstitutions.last.add(typeRules[classId]![superId]!);
-      }
-    }
-    return typeRulesSubstitutions;
-  }
-
-  List<String> _buildTypeNames() {
-    // This logic assumes `translator.classes` returns the classes indexed by
-    // class ID. If we ever change that logic, we will need to change this code.
-    List<String> typeNames = [];
-    for (ClassInfo classInfo in translator.classes) {
-      Class? cls = classInfo.cls;
-      if (cls == null || cls.isAnonymousMixin) {
-        typeNames.add("");
-      } else {
-        typeNames.add(cls.name);
-      }
-    }
-    return typeNames;
-  }
-
-  /// Builds a map of subclasses to the transitive set of superclasses they
-  /// implement.
-  /// TODO(joshualitt): This implementation is just temporary. Eventually we
-  /// should move to a data structure more closely resembling [typeRules].
-  w.ValueType makeTypeRulesSupers(w.InstructionsBuilder b) {
-    final wasmI32Type =
-        InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
-
-    final supersOfClasses = <Constant>[];
-    for (List<int> supers in typeRulesSupers) {
-      supersOfClasses.add(translator.constants.makeArrayOf(
-          wasmI32Type, [for (final cid in supers) IntConstant(cid)]));
-    }
-
-    final arrayOfWasmI32Type = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [wasmI32Type]);
-    final typeRuleSupers =
-        translator.constants.makeArrayOf(arrayOfWasmI32Type, supersOfClasses);
-
-    final arrayOfArrayOfWasmI32Type = InterfaceType(translator.wasmArrayClass,
-        Nullability.nonNullable, [arrayOfWasmI32Type]);
-
-    final typeRulesSupersType =
-        translator.translateStorageType(arrayOfArrayOfWasmI32Type).unpacked;
-    translator.constants
-        .instantiateConstant(null, b, typeRuleSupers, typeRulesSupersType);
-    return typeRulesSupersType;
-  }
-
-  /// Similar to the above, but provides the substitutions required for each
-  /// supertype.
-  /// TODO(joshualitt): Like [makeTypeRulesSupers], this is just temporary.
-  w.ValueType makeTypeRulesSubstitutions(w.InstructionsBuilder b) {
-    final typeType =
-        InterfaceType(translator.typeClass, Nullability.nonNullable);
-    final arrayOfType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
-    final arrayOfArrayOfType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [arrayOfType]);
-    final arrayOfArrayOfArrayOfType = InterfaceType(translator.wasmArrayClass,
-        Nullability.nonNullable, [arrayOfArrayOfType]);
-
-    final substitutionsConstantL0 = <Constant>[];
-    for (List<List<DartType>> substitutionsL1 in typeRulesSubstitutions) {
-      final substitutionsConstantL1 = <Constant>[];
-      for (List<DartType> substitutionsL2 in substitutionsL1) {
-        substitutionsConstantL1.add(translator.constants.makeArrayOf(typeType,
-            [for (final t in substitutionsL2) TypeLiteralConstant(t)]));
-      }
-      substitutionsConstantL0.add(translator.constants
-          .makeArrayOf(arrayOfType, substitutionsConstantL1));
-    }
-
-    final typeRulesSubstitutionsType =
-        translator.translateStorageType(arrayOfArrayOfArrayOfType).unpacked;
-    translator.constants.instantiateConstant(
-        null,
-        b,
-        translator.constants
-            .makeArrayOf(arrayOfArrayOfType, substitutionsConstantL0),
-        typeRulesSubstitutionsType);
-    return typeRulesSubstitutionsType;
-  }
-
-  /// Returns a list of string type names for pretty printing types.
-  w.ValueType makeTypeNames(w.InstructionsBuilder b) {
-    final stringType =
-        translator.coreTypes.stringRawType(Nullability.nonNullable);
-    final arrayOfStringType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
-
-    final typeNamesType =
-        translator.translateStorageType(arrayOfStringType).unpacked;
-    if (translator.options.minify) {
-      b.ref_null((typeNamesType as w.RefType).heapType);
-    } else {
-      final arrayOfStrings = translator.constants.makeArrayOf(
-          stringType, [for (final name in typeNames) StringConstant(name)]);
-      translator.constants
-          .instantiateConstant(null, b, arrayOfStrings, typeNamesType);
-    }
-    return typeNamesType;
-  }
 
   bool isTypeConstant(DartType type) {
     return type is DynamicType ||
@@ -804,6 +613,198 @@ class Types {
 
   int encodedNullability(DartType type) =>
       type.declaredNullability == Nullability.nullable ? 1 : 0;
+}
+
+/// Builds up data structures that the Runtime Type System implementation uses.
+///
+/// There are 3 data structures:
+///
+///   * The name of all classes represented as an wasm array of strings.
+///
+///   * A canonical substitution table where each entry represents
+///     (potentially uninstantiated) type arguments to a superclass.
+///
+///     => This is used for translating type arguments between related classes
+///     in a hierarchy.
+///
+///   * A table mapping each class id to its transitive super classes (i.e.
+///     transitive implements/extends) and an index into the canonical
+///     substitution table on how to translate type arguments between the two
+///     related clases.
+///
+/// See sdk/lib/_internal/wasm/lib/type.dart for more information.
+class RuntimeTypeInformation {
+  final Translator translator;
+
+  /// Canonical substitution table of type `const WasmArray<WasmArray<_Type>>`.
+  ///
+  /// Stores a canonical table of substitution arrays. Each substitution array
+  /// describes (possibly uninstantiated) type arguments that can be
+  /// instantiated with actual object type arguments.
+  /// => This allows translating an objects type arguments to the type arguments
+  /// of a related super class.
+  ///
+  /// See sdk/lib/_internal/wasm/lib/type.dart:_canonicalSubstitutionTable for
+  /// what this contains and how it's used for substitution.
+  late final InstanceConstant substitutionTableConstant;
+
+  /// The Dart type of the [substitutionTableConstant] constant.
+  late final DartType substitutionTableConstantType;
+
+  /// Type rules supers table of type `const WasmArray<WasmArray<_WasmI32>>`.
+  ///
+  /// Has an array for every class id in the system. For a particular class id
+  /// it has (super-classId, canonical-substitutionIndex) tuples used by the RTT
+  /// system to determine whether two classes are related and how to translate
+  /// type arguments from one class to type arguments of a related other class.
+  ///
+  /// See sdk/lib/_internal/wasm/lib/type.dart:_typeRulesSupers for
+  /// what this contains and how it's used for substitution.
+  late final InstanceConstant typeRulesSupers;
+  late final DartType typeRulesSupersType;
+
+  /// Table of type names indexed by class id.
+  late final InstanceConstant typeNames;
+  late final DartType typeNamesType;
+
+  CoreTypes get coreTypes => translator.coreTypes;
+  Types get types => translator.types;
+
+  RuntimeTypeInformation(this.translator) {
+    final (
+      Map<int, Map<int, int>> typeRules,
+      LinkedHashMap<InstanceConstant, int> substitutionTable
+    ) = _buildTypeRules();
+
+    // The canonical substitution table of type WasmArray<WasmArray<_Type>>
+    _initSubstitutionTableConstant(substitutionTable);
+
+    // The super type substitution rules for each class of type
+    // WasmArray<WasmArray<WasmI32>>.
+    _initTypeRulesSupers(typeRules);
+
+    // The class name table of type WasmArray<String>
+    _initTypeNames();
+  }
+
+  (Map<int, Map<int, int>>, LinkedHashMap<InstanceConstant, int>)
+      _buildTypeRules() {
+    final subtypeMap = <int, Map<int, int>>{};
+    // ignore: prefer_collection_literals
+    final substitutionTable = LinkedHashMap<InstanceConstant, int>();
+
+    for (ClassInfo classInfo in translator.classes) {
+      ClassInfo superclassInfo = classInfo;
+
+      // We don't need type rules for any class without a superclass, or for
+      // classes whose supertype is [Object]. The latter case will be handled
+      // directly in the subtype checking algorithm.
+      if (superclassInfo.cls == null ||
+          superclassInfo.cls == coreTypes.objectClass) {
+        continue;
+      }
+      Class superclass = superclassInfo.cls!;
+
+      // TODO(joshualitt): This includes abstract types that can't be
+      // instantiated, but might be needed for subtype checks. The majority of
+      // abstract classes are probably unnecessary though. We should filter
+      // these cases to reduce the size of the type rules.
+      Iterable<Class> subclasses = translator.subtypes
+          .getSubtypesOf(superclass)
+          .where((cls) => cls != superclass);
+      Iterable<InterfaceType> subtypes = subclasses.map(
+          (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
+      for (InterfaceType subtype in subtypes) {
+        types.interfaceTypeEnvironment._add(subtype);
+
+        final List<DartType>? typeArguments = translator.hierarchy
+            .getInterfaceTypeArgumentsAsInstanceOfClass(subtype, superclass)
+            ?.map(types.normalize)
+            .toList();
+
+        final substitution =
+            translator.constants.makeTypeArray(typeArguments ?? const []);
+        final substitutionIndex = substitutionTable.putIfAbsent(
+            substitution, () => substitutionTable.length);
+
+        final subclassId = translator.classInfo[subtype.classNode]!.classId;
+        (subtypeMap[subclassId] ??= {})[superclassInfo.classId] =
+            substitutionIndex;
+      }
+    }
+    return (subtypeMap, substitutionTable);
+  }
+
+  void _initSubstitutionTableConstant(
+      LinkedHashMap<InstanceConstant, int> substitutionTable) {
+    final typeType =
+        InterfaceType(translator.typeClass, Nullability.nonNullable);
+    final arrayOfType = InterfaceType(
+        translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
+
+    // We rely on the keys being in insertion order.
+    substitutionTableConstant = translator.constants
+        .makeArrayOf(arrayOfType, substitutionTable.keys.toList());
+    substitutionTableConstantType = InterfaceType(
+        translator.wasmArrayClass, Nullability.nonNullable, [arrayOfType]);
+  }
+
+  void _initTypeRulesSupers(Map<int, Map<int, int>> typeRules) {
+    final wasmI32 =
+        InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
+    final arrayOfI32 = InterfaceType(
+        translator.wasmArrayClass, Nullability.nonNullable, [wasmI32]);
+
+    // Maps each class id to a list of
+    // (implementedClassId, substitutionTableIndex) tuples.
+    final typeRulesArray = <InstanceConstant>[];
+    for (int classId = 0; classId < translator.classes.length; classId++) {
+      final rules = typeRules[classId];
+      if (rules == null) {
+        typeRulesArray.add(
+            translator.constants.makeArrayOf(wasmI32, const <IntConstant>[]));
+        continue;
+      }
+
+      final List<int> superclassIds = rules.keys.toList();
+      superclassIds.sort();
+      final superClassSubstitutionTuples =
+          List<IntConstant>.filled(2 * superclassIds.length, IntConstant(0));
+      for (int i = 0; i < superclassIds.length; ++i) {
+        final superClassId = superclassIds[i];
+        final substitutionTableIndex = rules[superClassId]!;
+
+        superClassSubstitutionTuples[2 * i + 0] = IntConstant(superClassId);
+        superClassSubstitutionTuples[2 * i + 1] =
+            IntConstant(substitutionTableIndex);
+      }
+      typeRulesArray.add(translator.constants
+          .makeArrayOf(wasmI32, superClassSubstitutionTuples));
+    }
+    typeRulesSupers =
+        translator.constants.makeArrayOf(arrayOfI32, typeRulesArray);
+    typeRulesSupersType = InterfaceType(
+        translator.wasmArrayClass, Nullability.nonNullable, [arrayOfI32]);
+  }
+
+  void _initTypeNames() {
+    final stringType =
+        translator.coreTypes.stringRawType(Nullability.nonNullable);
+
+    final emptyString = StringConstant('');
+    List<StringConstant> nameConstants = [];
+    for (ClassInfo classInfo in translator.classes) {
+      Class? cls = classInfo.cls;
+      if (cls == null || cls.isAnonymousMixin) {
+        nameConstants.add(emptyString);
+      } else {
+        nameConstants.add(StringConstant(cls.name));
+      }
+    }
+    typeNames = translator.constants.makeArrayOf(stringType, nameConstants);
+    typeNamesType = InterfaceType(
+        translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
+  }
 }
 
 /// For a function type F = `... Function<X0, ..., Xn-1>(...)` compute offset(F)

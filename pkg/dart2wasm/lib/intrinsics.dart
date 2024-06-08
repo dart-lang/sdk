@@ -10,6 +10,7 @@ import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_forwarders.dart';
 import 'translator.dart';
+import 'types.dart';
 
 typedef CodeGenCallback = void Function(CodeGenerator);
 
@@ -112,6 +113,7 @@ class Intrinsifier {
   };
 
   Translator get translator => codeGen.translator;
+  Types get types => codeGen.translator.types;
   w.InstructionsBuilder get b => codeGen.b;
 
   DartType dartTypeOf(Expression exp) => codeGen.dartTypeOf(exp);
@@ -444,11 +446,29 @@ class Intrinsifier {
           b.i32_const(0);
           return w.NumType.i32;
         case "_typeRulesSupers":
-          return translator.types.makeTypeRulesSupers(b);
-        case "_typeRulesSubstitutions":
-          return translator.types.makeTypeRulesSubstitutions(b);
+          final type = translator
+              .translateStorageType(types.rtt.typeRulesSupersType)
+              .unpacked;
+          translator.constants
+              .instantiateConstant(null, b, types.rtt.typeRulesSupers, type);
+          return type;
+        case "_canonicalSubstitutionTable":
+          final type = translator
+              .translateStorageType(types.rtt.substitutionTableConstantType)
+              .unpacked;
+          translator.constants.instantiateConstant(
+              null, b, types.rtt.substitutionTableConstant, type);
+          return type;
         case "_typeNames":
-          return translator.types.makeTypeNames(b);
+          final type =
+              translator.translateStorageType(types.rtt.typeNamesType).unpacked;
+          if (translator.options.minify) {
+            b.ref_null((type as w.RefType).heapType);
+          } else {
+            translator.constants
+                .instantiateConstant(null, b, types.rtt.typeNames, type);
+          }
+          return type;
       }
     }
 
