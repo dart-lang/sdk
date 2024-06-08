@@ -325,8 +325,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
-    w.Local? tempLocalForType;
-
     void setupParamLocal(VariableDeclaration variable, int index,
         Constant? defaultValue, bool isRequired) {
       w.Local local = paramLocals[implicitParams + index];
@@ -362,9 +360,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       if (!translator.options.omitImplicitTypeChecks) {
         if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
-          final typeLocal = tempLocalForType ??= addLocal(
-              translator.classInfo[translator.typeClass]!.nonNullableType);
-
           final boxedType = variable.type.isPotentiallyNullable
               ? translator.topInfo.nullableType
               : translator.topInfo.nonNullableType;
@@ -379,9 +374,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           _generateArgumentTypeCheck(
             variable.name!,
             () => b.local_get(operand),
-            () => types.makeType(this, variable.type),
+            variable.type,
             operand,
-            typeLocal,
           );
         }
       }
@@ -3348,11 +3342,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Local for the argument.
     final argLocal = addLocal(translator.topInfo.nullableType);
 
-    // Local for the expected type of the argument.
-    final typeType =
-        translator.classInfo[translator.typeClass]!.nonNullableType;
-    final argTypeLocal = addLocal(typeType);
-
     final member_ = member;
     DartType paramType;
     if (member_ is Field) {
@@ -3361,13 +3350,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       paramType = (member_ as Procedure).setterType;
     }
 
-    _generateArgumentTypeCheck(
-      member.name.text,
-      () => b.local_get(positionalArgLocal),
-      () => types.makeType(this, paramType),
-      argLocal,
-      argTypeLocal,
-    );
+    if (!translator.options.omitImplicitTypeChecks) {
+      _generateArgumentTypeCheck(
+        member.name.text,
+        () => b.local_get(positionalArgLocal),
+        paramType,
+        argLocal,
+      );
+    }
 
     ClassInfo info = translator.classInfo[member_.enclosingClass]!;
     if (member_ is Field) {
@@ -3465,13 +3455,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       final List<VariableDeclaration> memberPositionalParams =
           procedure.function.positionalParameters;
 
-      // Local for the current argument being checked. Used to avoid indexing the
-      // positional parameters array again when throwing type error.
+      // Local for the current argument being checked. Used to avoid indexing
+      // the positional parameters array again when throwing type error.
       final argLocal = addLocal(translator.topInfo.nullableType);
-
-      // Local for the expected type of the current positional arguments. Used to
-      // avoid generating the type again when throwing type error.
-      final argTypeLocal = addLocal(typeType);
 
       for (int positionalParamIdx = 0;
           positionalParamIdx < memberPositionalParams.length;
@@ -3484,11 +3470,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
             b.i32_const(positionalParamIdx);
             b.array_get(translator.nullableObjectArrayType);
           },
-          () {
-            types.makeType(this, param.type);
-          },
+          param.type,
           argLocal,
-          argTypeLocal,
         );
       }
 
@@ -3519,11 +3502,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
             b.i32_const(mapNamedParameterToArrayIndex(param.name!));
             b.array_get(translator.nullableObjectArrayType);
           },
-          () {
-            types.makeType(this, param.type);
-          },
+          param.type,
           argLocal,
-          argTypeLocal,
         );
       }
     }
@@ -3582,39 +3562,42 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// Does not expect any values on stack and does not leave any values on
   /// stack.
   ///
-  /// Locals [argLocal] and [argExpectedTypeLocal] are used to store values
-  /// pushed by [pushArg] and [pushArgExpectedType] and reuse the values.
+  /// Locals [argLocal] are used to store values pushed by [pushArg]
+  /// and reuse the values.
   ///
   /// [argName] is used in the type error as the name of the argument that
   /// doesn't match the expected type.
   void _generateArgumentTypeCheck(
     String argName,
     void Function() pushArg,
-    void Function() pushArgExpectedType,
+    DartType testedAgainstType,
     w.Local argLocal,
-    w.Local argExpectedTypeLocal,
   ) {
-    // Argument
-    pushArg();
-    b.local_tee(argLocal);
-
-    // Expected type
-    pushArgExpectedType();
-    b.local_tee(argExpectedTypeLocal);
-
-    // Check that argument type is subtype of expected type
-    call(translator.isSubtype.reference);
-
-    b.i32_eqz();
-    b.if_();
-    // Type check failed
-    b.local_get(argLocal);
-    b.local_get(argExpectedTypeLocal);
-    _emitString(argName);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.throwArgumentTypeCheckError.reference);
-    b.unreachable();
-    b.end();
+    if (translator.options.minify) {
+      // We don't need to include the name in the error message, so we can use
+      // the optimized `as` checks.
+      pushArg();
+      types.emitAsCheck(
+          this,
+          testedAgainstType,
+          translator.coreTypes.objectNullableRawType,
+          argLocal.type as w.RefType);
+      b.drop();
+    } else {
+      pushArg();
+      b.local_tee(argLocal);
+      types.emitIsTest(
+          this, testedAgainstType, translator.coreTypes.objectNullableRawType);
+      b.i32_eqz();
+      b.if_();
+      b.local_get(argLocal);
+      types.makeType(this, testedAgainstType);
+      _emitString(argName);
+      call(translator.stackTraceCurrent.reference);
+      call(translator.throwArgumentTypeCheckError.reference);
+      b.unreachable();
+      b.end();
+    }
   }
 
   void _generateTypeArgumentBoundCheck(
