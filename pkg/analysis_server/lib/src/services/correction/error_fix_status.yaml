@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 336 "needsFix"
-# - 415 "hasFix"
+# - 335 "needsFix"
+# - 416 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -905,35 +905,35 @@ CompileTimeErrorCode.INVALID_ASSIGNMENT:
 CompileTimeErrorCode.INVALID_CAST_FUNCTION:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_SET:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_METHOD:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_NEW_EXPR:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CONSTANT:
   status: noFix
   notes: |-
@@ -3223,9 +3223,7 @@ ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
   notes: |-
     Add an empty body.
 ParserErrorCode.STATIC_OPERATOR:
-  status: needsFix
-  notes: |-
-    Remove the `static` keyword.
+  status: hasFix
 ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
   status: needsFix
   notes: |-

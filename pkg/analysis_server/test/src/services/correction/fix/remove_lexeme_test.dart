@@ -405,6 +405,19 @@ class C {
 ''');
   }
 
+  Future<void> test_staticOperator() async {
+    await resolveTestCode('''
+class C {
+  static operator +(int x) => 1;
+}
+''');
+    await assertHasFix('''
+class C {
+  operator +(int x) => 1;
+}
+''');
+  }
+
   Future<void> test_staticTopLevelDeclaration_enum() async {
     await resolveTestCode(r'''
 static enum E { v }

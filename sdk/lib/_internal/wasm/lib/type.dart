@@ -600,8 +600,59 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
+/// Rules that describe whether two classes are related in a hierarchy and if so
+/// how to translate a subtype's class's type arguments to the type arguments of
+/// a supertype's class.
+///
+/// The table has key for every class in the system. The value is an array of
+/// `(superClassId, canonicalSubstitutionIndex)`.
+///
+/// For example, let's assume we have these classes:
+///
+///   ```
+///   class Sub<T> extends Foo<List<T>> {}
+///   class Foo<T> implements Bar<int, T> {}
+///   class Bar<T, H> {}
+///   ```
+///
+/// The table will have an entry for every transitively extended/implemented
+/// class (except `Object`).
+///
+/// ```
+///   _typeRulesSupers = [
+///     ...
+///     @Sub.classId: [(Foo.classId, IDX-X), (Bar.classId, IDX-Y)]
+///     ...
+///   ]
+/// ```
+///
+/// Where the `IDX-X` and `IDX-Y` are integer indices into the canonical
+/// substitution table, which would look like this:
+/// ```
+///   _canonicalSubstitutionTable = [
+///     ...
+///     @IDX-X: [
+///               _InterfaceType(List.classId, args: [_InterfaceTypeParameterType(index=0)])
+///             ]
+///     ...
+///     @IDX-Y: [
+///               _InterfaceType(int.classId args: []),
+///               _InterfaceType(List.classId, args: [_InterfaceTypeParameterType(index=0)])
+///             ]
+///     ...
+///   ]
+/// ```
+///
 external WasmArray<WasmArray<WasmI32>> get _typeRulesSupers;
-external WasmArray<WasmArray<WasmArray<_Type>>> get _typeRulesSubstitutions;
+
+/// Canonical substitution table used to translate type arguments from one class
+/// to a related other class.
+///
+/// See [_typeRulesSupers] for more information on how they are used.
+external WasmArray<WasmArray<_Type>> get _canonicalSubstitutionTable;
+
+/// The names of all classes (indexed by class id) or null (if `--minify` was
+/// used)
 external WasmArray<String>? get _typeNames;
 
 /// Type parameter environment used while comparing function types.
@@ -845,11 +896,15 @@ abstract class _TypeUniverse {
   @pragma('wasm:prefer-inline')
   static bool isInterfaceSubtypeWithoutArguments(int sId, int tId) {
     if (sId == tId) return true;
-    final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
-    for (int i = 0; i < sSupers.length; i++) {
-      if (sSupers.readUnsigned(i) == tId) return true;
+    return _linearSearch(_typeRulesSupers[sId], tId) != -1;
+  }
+
+  @pragma('wasm:prefer-inline')
+  static int _linearSearch(WasmArray<WasmI32> table, int key) {
+    for (int i = 0; i < table.length; i += 2) {
+      if (table.readUnsigned(i) == key) return i;
     }
-    return false;
+    return -1;
   }
 
   static bool isInterfaceSubtypeWithArguments(
@@ -869,22 +924,18 @@ abstract class _TypeUniverse {
     // [s]'s type substitutions with [t]'s type arguments.
     final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
     if (sSupers.length == 0) return false;
-    int sSuperIndexOfT = -1;
-    for (int i = 0; i < sSupers.length; i++) {
-      if (sSupers.readUnsigned(i) == tId) {
-        sSuperIndexOfT = i;
-        break;
-      }
-    }
-    if (sSuperIndexOfT == -1) return false;
-    assert(sSuperIndexOfT < _typeRulesSubstitutions[sId].length);
+
+    final int idMatchIndex = _linearSearch(sSupers, tId);
+    if (idMatchIndex == -1) return false;
+    assert(idMatchIndex < _canonicalSubstitutionTable.length);
+    final int substitutionIndex = sSupers.readUnsigned(idMatchIndex + 1);
 
     // Return early if we don't have to check type arguments as the destination
     // type is non-generic.
     if (tTypeArguments.isEmpty) return true;
 
     final WasmArray<_Type> substitutions =
-        _typeRulesSubstitutions[sId][sSuperIndexOfT];
+        _canonicalSubstitutionTable[substitutionIndex];
     assert(substitutions.isNotEmpty);
 
     // Check arguments.
