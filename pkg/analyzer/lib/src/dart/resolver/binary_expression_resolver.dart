@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -26,13 +25,11 @@ import 'package:analyzer/src/generated/super_context.dart';
 class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
-  final InvocationInferenceHelper _inferenceHelper;
 
   BinaryExpressionResolver({
     required ResolverVisitor resolver,
   })  : _resolver = resolver,
-        _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _typePropertyResolver = resolver.typePropertyResolver;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -209,7 +206,7 @@ class BinaryExpressionResolver {
       staticType = t;
     }
 
-    _inferenceHelper.recordStaticType(node, staticType);
+    node.recordStaticType(staticType, resolver: _resolver);
 
     _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
@@ -238,7 +235,7 @@ class BinaryExpressionResolver {
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
   void _resolveLogicalOr(BinaryExpressionImpl node) {
@@ -265,7 +262,7 @@ class BinaryExpressionResolver {
     _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
 
-    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
+    node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
   void _resolveRightOperand(
@@ -298,7 +295,7 @@ class BinaryExpressionResolver {
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
     node.leftOperand.accept(_resolver);
     node.rightOperand.accept(_resolver);
-    _inferenceHelper.recordStaticType(node, InvalidTypeImpl.instance);
+    node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
@@ -324,7 +321,7 @@ class BinaryExpressionResolver {
           InvalidTypeImpl.instance,
         );
         _resolver.popRewrite();
-        node.staticType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
         return;
       }
     }
@@ -346,13 +343,13 @@ class BinaryExpressionResolver {
     var augmentationTarget = augmentation.augmentationTarget;
 
     // Unresolved by default.
-    left.staticType = InvalidTypeImpl.instance;
-    node.staticType = InvalidTypeImpl.instance;
+    left.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
 
     switch (augmentationTarget) {
       case MethodElement operatorElement:
         left.element = operatorElement;
-        left.staticType = _resolver.thisType ?? InvalidTypeImpl.instance;
+        left.setPseudoExpressionStaticType(
+            _resolver.thisType ?? InvalidTypeImpl.instance);
         if (operatorElement.name == methodName) {
           node.staticElement = operatorElement;
           node.staticInvokeType = operatorElement.type;
@@ -368,7 +365,7 @@ class BinaryExpressionResolver {
       case PropertyAccessorElement accessor:
         left.element = accessor;
         if (accessor.isGetter) {
-          left.staticType = accessor.returnType;
+          left.setPseudoExpressionStaticType(accessor.returnType);
           _resolveUserDefinableElement(node, methodName);
         } else {
           _errorReporter.atToken(
@@ -378,7 +375,7 @@ class BinaryExpressionResolver {
         }
       case PropertyInducingElement property:
         left.element = property;
-        left.staticType = property.type;
+        left.setPseudoExpressionStaticType(property.type);
         _resolveUserDefinableElement(node, methodName);
     }
 
@@ -465,7 +462,7 @@ class BinaryExpressionResolver {
     }
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
       return;
     }
 
@@ -486,6 +483,6 @@ class BinaryExpressionResolver {
         node.staticElement,
       );
     }
-    _inferenceHelper.recordStaticType(node, staticType);
+    node.recordStaticType(staticType, resolver: _resolver);
   }
 }

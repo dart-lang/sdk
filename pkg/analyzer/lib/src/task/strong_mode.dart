@@ -520,7 +520,8 @@ class InstanceMemberInferrer {
           constructor.parameters,
           initializer.argumentList.arguments,
           (parameter, argument) {
-            (argument as SimpleIdentifierImpl).staticType = parameter.type;
+            (argument as SimpleIdentifierImpl)
+                .setPseudoExpressionStaticType(parameter.type);
           },
         );
       }

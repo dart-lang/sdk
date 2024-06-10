@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -22,14 +21,12 @@ import 'package:analyzer/src/generated/resolver.dart';
 class PostfixExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
-  final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   PostfixExpressionResolver({
     required ResolverVisitor resolver,
   })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
         );
@@ -164,7 +161,7 @@ class PostfixExpressionResolver {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     } else {
       DartType operatorReturnType;
       if (receiverType.isDartCoreInt) {
@@ -184,7 +181,7 @@ class PostfixExpressionResolver {
       }
     }
 
-    _inferenceHelper.recordStaticType(node, receiverType);
+    node.recordStaticType(receiverType, resolver: _resolver);
     _resolver.nullShortingTermination(node);
   }
 
@@ -197,8 +194,8 @@ class PostfixExpressionResolver {
         node,
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
       );
-      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance);
-      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
+      operand.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
       return;
     }
 
@@ -208,7 +205,7 @@ class PostfixExpressionResolver {
     var operandType = operand.typeOrThrow;
 
     var type = _typeSystem.promoteToNonNull(operandType);
-    _inferenceHelper.recordStaticType(node, type);
+    node.recordStaticType(type, resolver: _resolver);
 
     _resolver.nullShortingTermination(node);
     _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);

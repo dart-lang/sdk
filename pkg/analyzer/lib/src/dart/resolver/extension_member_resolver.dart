@@ -175,7 +175,7 @@ class ExtensionMemberResolver {
           CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
         );
       }
-      nodeImpl.staticType = _dynamicType;
+      nodeImpl.setPseudoExpressionStaticType(_dynamicType);
     }
 
     var arguments = node.argumentList.arguments;

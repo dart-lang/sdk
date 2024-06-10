@@ -129,17 +129,17 @@ class ConstructorReferenceResolver {
 
         constructorName.staticElement = constructorElement.declaration;
         constructorName.name?.staticElement = constructorElement.declaration;
-        node.staticType = inferred;
+        node.recordStaticType(inferred, resolver: _resolver);
         // The NamedType child of `constructorName` doesn't have a static type.
         constructorName.type.type = null;
       }
     } else {
       var constructorElement = constructorName.staticElement;
-      if (constructorElement == null) {
-        node.staticType = InvalidTypeImpl.instance;
-      } else {
-        node.staticType = constructorElement.type;
-      }
+      node.recordStaticType(
+          constructorElement == null
+              ? InvalidTypeImpl.instance
+              : constructorElement.type,
+          resolver: _resolver);
       // The NamedType child of `constructorName` doesn't have a static type.
       constructorName.type.type = null;
     }

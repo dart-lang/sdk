@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../types/shared_type.dart';
+
 /// Maximum length for strings returned by [describe].
 const int _descriptionLengthThreshold = 80;
 
@@ -56,22 +58,38 @@ class Event {
   Event({required this.message});
 }
 
+/// Specialization of [State] used when type inferring an expression.
+class ExpressionState extends State {
+  /// Whether [SharedInferenceLogWriterImpl.recordStaticType] or
+  /// [SharedInferenceLogWriterImpl.recordExpressionWithNoType] has been called
+  /// for the expression represented by this [State] object.
+  ///
+  /// The inference log infrastructure uses this boolean to verify that each
+  /// expression that undergoes type inference either receives a static type, or
+  /// is determined by analysis to not need a static type.
+  bool typeRecorded = false;
+
+  ExpressionState(
+      {required super.writer, required super.message, required super.nodeSet})
+      : super(kind: StateKind.expression);
+}
+
 /// Public API to the interface log writer.
 ///
 /// This class defines methods that the analyzer or CFE can use to instrument
 /// their type inference logic. The implementations are found in
 /// [SharedInferenceLogWriterImpl].
-abstract interface class SharedInferenceLogWriter {
+abstract interface class SharedInferenceLogWriter<Type extends SharedType> {
   /// Verifies that every call to an `enter...` method has been matched by a
   /// corresponding call to an `exit...` method.
   void assertIdle();
 
   /// Called when type inference begins inferring an expression.
-  void enterExpression(Object node);
+  void enterExpression(Object node, Type contextType);
 
   /// Called when type inference begins inferring an AST node associated with
   /// extension override syntax.
-  void enterExtensionOverride(Object node);
+  void enterExtensionOverride(Object node, Type contextType);
 
   /// Called when type inference has discovered that a construct that uses
   /// method invocation syntax (e.g. `x.f()`) is actually an invocation of a
@@ -114,6 +132,14 @@ abstract interface class SharedInferenceLogWriter {
   /// double check that it's only recorded once in the log.
   void recordExpressionRewrite(
       {Object? oldExpression, required Object newExpression});
+
+  /// Called when type inference is inferring an expression, and discovers that
+  /// the expression should not have any type.
+  void recordExpressionWithNoType(Object expression);
+
+  /// Called when type inference is inferring an expression, and assigns the
+  /// expression a static type.
+  void recordStaticType(Object expression, Type type);
 }
 
 /// Implementation of the interface log writer.
@@ -125,8 +151,8 @@ abstract interface class SharedInferenceLogWriter {
 /// from classes derived from [SharedInferenceLogWriterImpl], but these methods
 /// are not exposed in [SharedInferenceLogWriter] so that they won't be called
 /// accidentally on their own.
-abstract class SharedInferenceLogWriterImpl
-    implements SharedInferenceLogWriter {
+abstract class SharedInferenceLogWriterImpl<Type extends SharedType>
+    implements SharedInferenceLogWriter<Type> {
   /// A stack of [State] objects representing the calls that have been made to
   /// `enter...` methods without any matched `exit...` method.
   ///
@@ -237,27 +263,26 @@ abstract class SharedInferenceLogWriterImpl
   }
 
   @override
-  void enterExpression(Object node) {
-    pushState(new State(
-        kind: StateKind.expression,
+  void enterExpression(Object node, Type contextType) {
+    pushState(new ExpressionState(
         writer: this,
-        message: 'INFER EXPRESSION ${describe(node)}',
+        message: 'INFER EXPRESSION ${describe(node)} IN CONTEXT $contextType',
         nodeSet: [node]));
   }
 
   @override
-  void enterExtensionOverride(Object node) {
+  void enterExtensionOverride(Object node, Type contextType) {
     pushState(new State(
         kind: StateKind.extensionOverride,
         writer: this,
-        message: 'INFER EXTENSION OVERRIDE ${describe(node)}',
+        message: 'INFER EXTENSION OVERRIDE ${describe(node)} IN CONTEXT '
+            '$contextType',
         nodeSet: [node]));
   }
 
   @override
   void enterFunctionExpressionInvocationTarget(Object node) {
-    pushState(new State(
-        kind: StateKind.expression,
+    pushState(new ExpressionState(
         writer: this,
         message: 'REINTERPRET METHOD NAME ${describe(node)} AS AN EXPRESSION',
         nodeSet: [node]));
@@ -280,8 +305,14 @@ abstract class SharedInferenceLogWriterImpl
         namedArguments: {if (reanalyze) 'reanalyze': reanalyze},
         expectedNode: node,
         expectedKind: StateKind.expression);
+    bool typeRecorded = (state as ExpressionState).typeRecorded;
     if (reanalyze) {
+      if (typeRecorded) {
+        fail('Tried to reanalyze after already recording a static type');
+      }
       addEvent(new Event(message: 'WILL REANALYZE AS OTHER EXPRESSION'));
+    } else if (!typeRecorded) {
+      fail('Failed to record a type for $state');
     }
     popState();
   }
@@ -349,13 +380,37 @@ abstract class SharedInferenceLogWriterImpl
     addEvent(new Event(
         message: 'REWRITE ${describe(oldExpression)} TO '
             '${describe(newExpression)}'));
-    state.nodeSet.add(newExpression);
+    (state as ExpressionState).nodeSet.add(newExpression);
     if (oldExpression != null) {
       if (_rewrittenExpressions[oldExpression] ?? false) {
         fail('Expression already rewritten: ${describe(oldExpression)}');
       }
       _rewrittenExpressions[oldExpression] = true;
     }
+  }
+
+  @override
+  void recordExpressionWithNoType(Object expression) {
+    checkCall(
+        method: 'recordExpressionWithNoType',
+        arguments: [expression],
+        expectedNode: expression,
+        expectedKind: StateKind.expression);
+    addEvent(
+        new Event(message: 'EXPRESSION ${describe(expression)} HAS NO TYPE'));
+    (state as ExpressionState).typeRecorded = true;
+  }
+
+  @override
+  void recordStaticType(Object expression, Type type) {
+    checkCall(
+        method: 'recordStaticType',
+        arguments: [expression, type],
+        expectedNode: expression,
+        expectedKind: StateKind.expression);
+    addEvent(
+        new Event(message: 'STATIC TYPE OF ${describe(expression)} IS $type'));
+    (state as ExpressionState).typeRecorded = true;
   }
 }
 

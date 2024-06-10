@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 final bool _assertionsEnabled = () {
@@ -53,7 +54,7 @@ void stopInferenceLogging() {
 /// The [SharedInferenceLogWriter] interface, augmented with analyzer-specific
 /// functionality.
 abstract interface class InferenceLogWriter
-    implements SharedInferenceLogWriter {
+    implements SharedInferenceLogWriter<DartType> {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
   /// This is called from [ResolverVisitor.dispatchExpression], to verify that
@@ -63,7 +64,8 @@ abstract interface class InferenceLogWriter
 
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
 /// analyzer-specific functionality.
-final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
+final class _InferenceLogWriterImpl
+    extends SharedInferenceLogWriterImpl<DartType>
     implements InferenceLogWriter {
   @override
   void assertExpressionWasRecorded(Object expression) {
@@ -72,22 +74,23 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   }
 
   @override
-  void enterExpression(covariant Expression node) {
+  void enterExpression(covariant Expression node, DartType contextType) {
     checkCall(
         method: 'enterExpression',
-        arguments: [node],
+        arguments: [node, contextType],
         expectedNode: traceableAncestor(node));
-    super.enterExpression(node);
+    super.enterExpression(node, contextType);
     _recordedExpressions[node] = true;
   }
 
   @override
-  void enterExtensionOverride(covariant ExtensionOverride node) {
+  void enterExtensionOverride(
+      covariant ExtensionOverride node, DartType contextType) {
     checkCall(
         method: 'enterExtensionOverride',
-        arguments: [node],
+        arguments: [node, contextType],
         expectedNode: traceableAncestor(node));
-    super.enterExtensionOverride(node);
+    super.enterExtensionOverride(node, contextType);
     _recordedExpressions[node] = true;
   }
 

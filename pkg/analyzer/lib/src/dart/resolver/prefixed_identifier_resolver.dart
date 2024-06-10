@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 class PrefixedIdentifierResolver {
@@ -65,8 +66,8 @@ class PrefixedIdentifierResolver {
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      _inferenceHelper.recordStaticType(identifier, NeverTypeImpl.instance);
-      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
+      identifier.setPseudoExpressionStaticType(NeverTypeImpl.instance);
+      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
       return null;
     }
 
@@ -78,22 +79,24 @@ class PrefixedIdentifierResolver {
     } else if (element is InterfaceElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
-        node.staticType = type;
-        identifier.staticType = type;
+        node.recordStaticType(type, resolver: _resolver);
+        identifier.setPseudoExpressionStaticType(type);
+      } else {
+        inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return null;
     } else if (element is DynamicElementImpl) {
       var type = _typeProvider.typeType;
-      node.staticType = type;
-      identifier.staticType = type;
+      node.recordStaticType(type, resolver: _resolver);
+      identifier.setPseudoExpressionStaticType(type);
       return null;
     } else if (element is TypeAliasElement) {
       if (node.parent is NamedType) {
         // no type
       } else {
         var type = _typeProvider.typeType;
-        node.staticType = type;
-        identifier.staticType = type;
+        node.recordStaticType(type, resolver: _resolver);
+        identifier.setPseudoExpressionStaticType(type);
       }
       return null;
     } else if (element is MethodElement) {
@@ -120,8 +123,8 @@ class PrefixedIdentifierResolver {
       type = _inferenceHelper.inferTearOff(node, identifier, type,
           contextType: contextType);
     }
-    _inferenceHelper.recordStaticType(identifier, type);
-    _inferenceHelper.recordStaticType(node, type);
+    identifier.setPseudoExpressionStaticType(type);
+    node.recordStaticType(type, resolver: _resolver);
     return null;
   }
 
@@ -165,6 +168,7 @@ class PrefixedIdentifierResolver {
         parent is MethodInvocation && parent.target == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {
+      inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }
 
@@ -175,10 +179,10 @@ class PrefixedIdentifierResolver {
     );
 
     if (node is PrefixedIdentifierImpl) {
-      node.identifier.staticType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      node.identifier.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
     } else if (node is SimpleIdentifier) {
-      node.staticType = DynamicTypeImpl.instance;
+      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
     }
   }
 }

@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -20,13 +19,11 @@ import 'package:analyzer/src/generated/resolver.dart';
 class FunctionExpressionInvocationResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
-  final InvocationInferenceHelper _inferenceHelper;
 
   FunctionExpressionInvocationResolver({
     required ResolverVisitor resolver,
   })  : _resolver = resolver,
-        _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _typePropertyResolver = resolver.typePropertyResolver;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -150,7 +147,7 @@ class FunctionExpressionInvocationResolver {
       contextType: contextType,
     ).resolveInvocation(rawType: rawType);
 
-    _inferenceHelper.recordStaticType(node, returnType);
+    node.recordStaticType(returnType, resolver: _resolver);
   }
 
   void _resolveReceiverExtensionOverride(FunctionExpressionInvocationImpl node,
@@ -196,7 +193,7 @@ class FunctionExpressionInvocationResolver {
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: null);
     node.staticInvokeType = type;
-    node.staticType = type;
+    node.recordStaticType(type, resolver: _resolver);
   }
 
   /// Inference cannot be done, we still want to fill type argument types.

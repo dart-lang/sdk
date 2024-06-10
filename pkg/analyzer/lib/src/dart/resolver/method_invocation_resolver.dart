@@ -316,7 +316,7 @@ class MethodInvocationResolver with ScopeHelpers {
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
-    _inferenceHelper.recordStaticType(node, staticStaticType);
+    node.recordStaticType(staticStaticType, resolver: _resolver);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -440,7 +440,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (hasMatchingObjectMethod) {
         nameNode.staticElement = target;
         rawType = target.type;
-        node.staticType = target.returnType;
+        node.recordStaticType(target.returnType, resolver: _resolver);
       }
     }
 
@@ -454,13 +454,16 @@ class MethodInvocationResolver with ScopeHelpers {
         .resolveInvocation(rawType: rawType);
 
     if (receiverType is InvalidType) {
-      nameNode.staticType = InvalidTypeImpl.instance;
+      nameNode.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
       node.staticInvokeType = InvalidTypeImpl.instance;
-      node.staticType = InvalidTypeImpl.instance;
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
     } else if (rawType == null) {
-      nameNode.staticType = DynamicTypeImpl.instance;
+      nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       node.staticInvokeType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
+    } else {
+      // rawType is not `null`, therefore a static type was already recorded
+      // above.
     }
   }
 
@@ -507,9 +510,9 @@ class MethodInvocationResolver with ScopeHelpers {
         WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
 
-      node.methodName.staticType = _dynamicType;
+      node.methodName.setPseudoExpressionStaticType(_dynamicType);
       node.staticInvokeType = _dynamicType;
-      node.staticType = NeverTypeImpl.instance;
+      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
       return;
     }
   }
@@ -729,7 +732,7 @@ class MethodInvocationResolver with ScopeHelpers {
       // TODO(scheglov): Replace this with using FunctionType directly.
       // Here was erase resolution that _setResolution() sets.
       nameNode.staticElement = null;
-      nameNode.staticType = _dynamicType;
+      nameNode.setPseudoExpressionStaticType(_dynamicType);
       return null;
     }
 
@@ -738,9 +741,9 @@ class MethodInvocationResolver with ScopeHelpers {
       _setResolution(node, DynamicTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       nameNode.staticElement = null;
-      nameNode.staticType = DynamicTypeImpl.instance;
+      nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       node.staticInvokeType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       return null;
     }
 
@@ -905,11 +908,11 @@ class MethodInvocationResolver with ScopeHelpers {
                 getterReturnType) ??
             targetType;
       }
-      functionExpression.staticType = targetType;
+      functionExpression.setPseudoExpressionStaticType(targetType);
     }
     inferenceLogWriter
         ?.enterFunctionExpressionInvocationTarget(node.methodName);
-    _inferenceHelper.recordStaticType(node.methodName, targetType);
+    node.methodName.recordStaticType(targetType, resolver: _resolver);
     inferenceLogWriter?.exitExpression(node.methodName);
 
     var invocation = FunctionExpressionInvocationImpl(
@@ -927,10 +930,10 @@ class MethodInvocationResolver with ScopeHelpers {
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       required DartType contextType}) {
     if (setNameTypeToDynamic) {
-      node.methodName.staticType = _dynamicType;
+      node.methodName.setPseudoExpressionStaticType(_dynamicType);
     }
     node.staticInvokeType = _dynamicType;
-    node.staticType = _dynamicType;
+    node.setPseudoExpressionStaticType(_dynamicType);
     _setExplicitTypeArgumentTypes();
     _resolveArguments_finishInference(node, whyNotPromotedList,
         contextType: contextType);
@@ -957,13 +960,13 @@ class MethodInvocationResolver with ScopeHelpers {
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       required DartType contextType}) {
     if (setNameTypeToDynamic) {
-      node.methodName.staticType = InvalidTypeImpl.instance;
+      node.methodName.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
     }
     _setExplicitTypeArgumentTypes();
     _resolveArguments_finishInference(node, whyNotPromotedList,
         contextType: contextType);
     node.staticInvokeType = InvalidTypeImpl.instance;
-    node.staticType = InvalidTypeImpl.instance;
+    node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
   }
 
   void _setResolution(MethodInvocationImpl node, DartType type,
@@ -971,7 +974,7 @@ class MethodInvocationResolver with ScopeHelpers {
       {required DartType contextType}) {
     // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
-    node.methodName.staticType = type;
+    node.methodName.setPseudoExpressionStaticType(type);
 
     if (type == _dynamicType || _isCoreFunction(type)) {
       _setDynamicTypeResolution(node,
