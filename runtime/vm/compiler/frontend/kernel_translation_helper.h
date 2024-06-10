@@ -419,6 +419,7 @@ class VariableDeclarationHelper {
     kLowered = 1 << 8,
     kSynthesized = 1 << 9,
     kHoisted = 1 << 10,
+    kWildcard = 1 << 11,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -440,6 +441,7 @@ class VariableDeclarationHelper {
   bool IsRequired() const { return (flags_ & kRequired) != 0; }
   bool IsSynthesized() const { return (flags_ & kSynthesized) != 0; }
   bool IsHoisted() const { return (flags_ & kHoisted) != 0; }
+  bool IsWildcard() const { return (flags_ & kWildcard) != 0; }
   bool HasDeclaredInitializer() const {
     return (flags_ & kHasDeclaredInitializer) != 0;
   }

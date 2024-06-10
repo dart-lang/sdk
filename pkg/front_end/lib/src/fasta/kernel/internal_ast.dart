@@ -1151,7 +1151,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isRequired = false,
       bool isLowered = false,
       bool isSynthesized = false,
-      this.isStaticLate = false})
+      this.isStaticLate = false,
+      bool isWildcard = false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
         super(name,
@@ -1165,7 +1166,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isRequired: isRequired,
             isLowered: isLowered,
             isSynthesized: isSynthesized,
-            hasDeclaredInitializer: hasDeclaredInitializer);
+            hasDeclaredInitializer: hasDeclaredInitializer,
+            isWildcard: isWildcard);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,

@@ -3842,7 +3842,8 @@ class BodyBuilder extends StackListenerImpl
         isLate: isLate,
         isRequired: isRequired,
         hasDeclaredInitializer: initializer != null,
-        isStaticLate: isFinal && initializer == null)
+        isStaticLate: isFinal && initializer == null,
+        isWildcard: identifier.name == '_')
       ..fileOffset = identifier.nameOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer.assignedVariables.declare(variable);
@@ -3900,8 +3901,9 @@ class BodyBuilder extends StackListenerImpl
     push(variable);
 
     // Avoid adding the local identifier to scope if it's a wildcard.
-    if (!(libraryFeatures.wildcardVariables.isEnabled &&
-        variable.name == '_')) {
+    // TODO(kallentu): Emit better error on lookup, rather than not adding it to
+    // the scope.
+    if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
       declareVariable(variable, scope);
     }
   }
