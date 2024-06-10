@@ -219,6 +219,34 @@ class PubspecWarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const PubspecWarningCode WORKSPACE_FIELD_NOT_LIST = PubspecWarningCode(
+    'WORKSPACE_FIELD_NOT_LIST',
+    "The value of the 'workspace' field is required to be a list of relative "
+        "file paths.",
+    correctionMessage:
+        "Try converting the value to be a list of relative file paths.",
+  );
+
+  ///  No parameters.
+  static const PubspecWarningCode WORKSPACE_VAUE_NOT_STRING =
+      PubspecWarningCode(
+    'WORKSPACE_VAUE_NOT_STRING',
+    "Workspace entries are required to be directory paths (strings).",
+    correctionMessage: "Try converting the value to be a string.",
+  );
+
+  ///  Parameters:
+  ///  0: the path of the directory that contains the pubspec.yaml file.
+  static const PubspecWarningCode WORKSPACE_VAUE_NOT_SUBDIRECTORY =
+      PubspecWarningCode(
+    'WORKSPACE_VAUE_NOT_SUBDIRECTORY',
+    "Workspace values must be a relative path of a subdirectory of '{0}'.",
+    correctionMessage:
+        "Try using a subdirectory of the directory containing the "
+        "'pubspec.yaml' file.",
+  );
+
   /// Initialize a newly created error code to have the given [name].
   const PubspecWarningCode(
     String name,

@@ -155,6 +155,9 @@ class DocumentationValidator {
     'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
     'PubspecWarningCode.UNKNOWN_PLATFORM',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
+    'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
+    'PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING',
+    'PubspecWarningCode.WORKSPACE_VAUE_NOT_SUBDIRECTORY',
 
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
     'WarningCode.DEPRECATED_EXTENDS_FUNCTION',

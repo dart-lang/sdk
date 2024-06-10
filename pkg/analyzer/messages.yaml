@@ -22483,6 +22483,115 @@ PubspecWarningCode:
       dependencies:
         meta: ^1.0.2
       ```
+  WORKSPACE_FIELD_NOT_LIST:
+    problemMessage: "The value of the 'workspace' field is required to be a list of relative file paths."
+    correctionMessage: Try converting the value to be a list of relative file paths.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of the `workspace` key
+      isn't a list.
+
+      #### Example
+
+      The following code produces this diagnostic because the value of the
+      `workspace` key is a string when a list is expected:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace: [!notPaths!]
+      ```
+
+      #### Common fixes
+
+      Change the value of the workspace field so that it's a list:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - pkg/package_1
+          - pkg/package_2
+      ```
+
+  WORKSPACE_VAUE_NOT_STRING:
+    problemMessage: Workspace entries are required to be directory paths (strings).
+    correctionMessage: Try converting the value to be a string.
+    hasPublishedDocs: false
+    comment: |-
+      No parameters.
+
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `workspace` list contains a
+      value that isn't a string.
+
+      #### Example
+
+      The following code produces this diagnostic because the `workspace` list
+      contains a map:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - [!image.gif: true!]
+      ```
+
+      #### Common fixes
+
+      Change the `workspace` list so that it only contains valid POSIX-style directory
+      paths:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - pkg/package_1
+          - pkg/package_2
+      ```
+
+  WORKSPACE_VAUE_NOT_SUBDIRECTORY:
+    problemMessage: Workspace values must be a relative path of a subdirectory of '{0}'.
+    correctionMessage: Try using a subdirectory of the directory containing the 'pubspec.yaml' file.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the path of the directory that contains the pubspec.yaml file.
+
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `workspace` list contains a
+      value that is not a subdirectory of the directory containing the `pubspec.yaml`` file.
+
+      #### Example
+
+      The following code produces this diagnostic because the value in the `workspace` list is not a
+      relative path of a subdirectory of the directory containing the 'pubspec.yaml' file:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - /home/my_package
+      ```
+
+      #### Common fixes
+
+      Change the `workspace` list so that it only contains only subdirectory paths.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - pkg/package_1
+          - pkg/package_2
+      ```
 StaticWarningCode:
   DEAD_NULL_AWARE_EXPRESSION:
     problemMessage: "The left operand can't be null, so the right operand is never executed."

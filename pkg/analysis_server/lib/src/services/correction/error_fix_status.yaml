@@ -3362,6 +3362,12 @@ PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
   since: ~2.15
   notes: |-
     The fix is to remove the dependency
+PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST:
+  status: needsEvaluation
+PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING:
+  status: needsEvaluation
+PubspecWarningCode.WORKSPACE_VAUE_NOT_SUBDIRECTORY:
+  status: needsEvaluation
 ScannerErrorCode.EXPECTED_TOKEN:
   status: noFix
 ScannerErrorCode.ILLEGAL_CHARACTER:
