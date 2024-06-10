@@ -84,15 +84,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   Extension get extension => isAugmenting ? origin._extension : _extension;
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ExtensionBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
-  }
+  BodyBuilderContext get bodyBuilderContext =>
+      new ExtensionBodyBuilderContext(this);
 
   @override
   Annotatable get annotatable => extension;

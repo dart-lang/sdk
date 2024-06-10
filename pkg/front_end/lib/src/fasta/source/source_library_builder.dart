@@ -3682,15 +3682,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return builder;
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new LibraryBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
-  }
+  BodyBuilderContext get bodyBuilderContext =>
+      new LibraryBodyBuilderContext(this);
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
@@ -3706,15 +3699,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library,
-        metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
-        this,
-        fileUri,
-        scope,
+        library, metadata, bodyBuilderContext, this, fileUri, scope,
         createFileUriExpression: isAugmenting);
 
     Iterator<Builder> iterator = localMembersIterator;

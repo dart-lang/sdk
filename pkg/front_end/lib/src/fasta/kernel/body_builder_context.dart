@@ -43,20 +43,15 @@ abstract class BodyBuilderContext {
 
   final bool isDeclarationInstanceMember;
 
-  final bool inOutlineBuildingPhase;
-
-  final bool inMetadata;
-
-  final bool inConstFields;
-
   BodyBuilderContext(
       LibraryBuilder libraryBuilder, DeclarationBuilder? declarationBuilder,
-      {required this.isDeclarationInstanceMember,
-      required this.inOutlineBuildingPhase,
-      required this.inMetadata,
-      required this.inConstFields})
+      {required this.isDeclarationInstanceMember})
       : _declarationContext = new BodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
+
+  bool get hasImmediateOutlineExpressionsBuilt;
+
+  bool get needsImmediateValuesBuiltAsOutlineExpressions;
 
   bool get hasFormalParameters;
 
@@ -495,15 +490,21 @@ class _TopLevelBodyBuilderDeclarationContext
 }
 
 class LibraryBodyBuilderContext extends BodyBuilderContext {
-  LibraryBodyBuilderContext(SourceLibraryBuilder libraryBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
-      : super(libraryBuilder, null,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+  LibraryBodyBuilderContext(SourceLibraryBuilder libraryBuilder)
+      : super(libraryBuilder, null, isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Libraries don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Libraries don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
@@ -519,15 +520,22 @@ mixin _DeclarationBodyBuilderContext<T extends DeclarationBuilder>
 
 class ClassBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceClassBuilder> {
-  ClassBodyBuilderContext(SourceClassBuilder sourceClassBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ClassBodyBuilderContext(SourceClassBuilder sourceClassBuilder)
       : super(sourceClassBuilder.libraryBuilder, sourceClassBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Classes don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Classes don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
@@ -535,15 +543,22 @@ class ClassBodyBuilderContext extends BodyBuilderContext
 
 class EnumBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceEnumBuilder> {
-  EnumBodyBuilderContext(SourceEnumBuilder sourceEnumBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  EnumBodyBuilderContext(SourceEnumBuilder sourceEnumBuilder)
       : super(sourceEnumBuilder.libraryBuilder, sourceEnumBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Enums don't have immediate values relevant in outlines.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Enums don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
@@ -551,15 +566,22 @@ class EnumBodyBuilderContext extends BodyBuilderContext
 
 class ExtensionBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceExtensionBuilder> {
-  ExtensionBodyBuilderContext(SourceExtensionBuilder sourceExtensionBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ExtensionBodyBuilderContext(SourceExtensionBuilder sourceExtensionBuilder)
       : super(sourceExtensionBuilder.libraryBuilder, sourceExtensionBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Extensions don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Extensions don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
@@ -569,31 +591,46 @@ class ExtensionTypeBodyBuilderContext extends BodyBuilderContext
     with _DeclarationBodyBuilderContext<SourceExtensionTypeDeclarationBuilder> {
   ExtensionTypeBodyBuilderContext(
       SourceExtensionTypeDeclarationBuilder
-          sourceExtensionTypeDeclarationBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+          sourceExtensionTypeDeclarationBuilder)
       : super(sourceExtensionTypeDeclarationBuilder.libraryBuilder,
             sourceExtensionTypeDeclarationBuilder,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Extension type declarations don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Extension type declarations don't have immediate values relevant in
+    // outlines, so all of them from the empty set can be assumed to have been
+    // processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
 }
 
 class TypedefBodyBuilderContext extends BodyBuilderContext {
-  TypedefBodyBuilderContext(SourceTypeAliasBuilder sourceTypeAliasBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  TypedefBodyBuilderContext(SourceTypeAliasBuilder sourceTypeAliasBuilder)
       : super(sourceTypeAliasBuilder.libraryBuilder, null,
-            isDeclarationInstanceMember: false,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: false);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Typedefs don't have immediate values.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Typedefs don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
@@ -625,15 +662,9 @@ class FieldBodyBuilderContext extends BodyBuilderContext
   @override
   SourceFieldBuilder _member;
 
-  FieldBodyBuilderContext(this._member,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  FieldBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool get isLateField => _member.isLate;
@@ -660,6 +691,17 @@ class FieldBodyBuilderContext extends BodyBuilderContext
         : !_member.isStatic && _declarationContext.declaresConstConstructor
             ? ConstantContext.required
             : ConstantContext.none;
+  }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Const field initializers are a part of outline.
+    return _member.isConst;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasOutlineExpressionsBuilt;
   }
 
   @override
@@ -758,15 +800,19 @@ class ProcedureBodyBuilderContext extends BodyBuilderContext
   @override
   final SourceProcedureBuilder _member;
 
-  ProcedureBodyBuilderContext(this._member,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ProcedureBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    return _member.needsDefaultValuesBuiltAsOutlineExpressions;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
 
   @override
   bool get hasFormalParameters => true;
@@ -836,15 +882,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   final DeclaredSourceConstructorBuilder _member;
 
-  ConstructorBodyBuilderContext(this._member,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ConstructorBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool isConstructorCyclic(String name) {
@@ -855,6 +895,19 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
     return !_declarationContext.isObjectClass(coreTypes) &&
         !isExternalConstructor;
+  }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters generative constructors to support forwarding
+    // constructors in mixin applications.
+    return true;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
   }
 
   @override
@@ -870,19 +923,26 @@ class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
   @override
   final SourceExtensionTypeConstructorBuilder _member;
 
-  ExtensionTypeConstructorBodyBuilderContext(this._member,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  ExtensionTypeConstructorBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool isConstructorCyclic(String name) {
     return _declarationContext.isConstructorCyclic(_member.name, name);
+  }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters generative constructors to support forwarding
+    // constructors in mixin applications.
+    return true;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
   }
 
   @override
@@ -896,15 +956,9 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   @override
   final SourceFactoryBuilder _member;
 
-  FactoryBodyBuilderContext(this._member,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  FactoryBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   void setAsyncModifier(AsyncMarker asyncModifier) {
@@ -914,6 +968,19 @@ class FactoryBodyBuilderContext extends BodyBuilderContext
   @override
   DartType get returnTypeContext {
     return _member.function.returnType;
+  }
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases for const constructors to enable
+    // constant evaluation,
+    return _member.parent!.isFactory && _member.parent!.isConst;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
   }
 
   @override
@@ -927,15 +994,9 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   @override
   final RedirectingFactoryBuilder _member;
 
-  RedirectingFactoryBodyBuilderContext(this._member,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+  RedirectingFactoryBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 
   @override
   bool get isRedirectingFactory => true;
@@ -946,37 +1007,50 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // For modular compilation we need to include default values for optional
+    // and named parameters in several cases for const constructors to enable
+    // constant evaluation,
+    return _member.parent!.isFactory && _member.parent!.isConst;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    return _member.hasBuiltOutlineExpressions;
+  }
+
+  @override
   bool get hasFormalParameters => true;
 }
 
 class ParameterBodyBuilderContext extends BodyBuilderContext {
   factory ParameterBodyBuilderContext(
-      FormalParameterBuilder formalParameterBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
+      FormalParameterBuilder formalParameterBuilder) {
     final DeclarationBuilder declarationBuilder =
         formalParameterBuilder.parent!.parent as DeclarationBuilder;
     return new ParameterBodyBuilderContext._(declarationBuilder.libraryBuilder,
-        declarationBuilder, formalParameterBuilder,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+        declarationBuilder, formalParameterBuilder);
   }
 
   ParameterBodyBuilderContext._(
       LibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      FormalParameterBuilder formalParameterBuilder,
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+      FormalParameterBuilder formalParameterBuilder)
       : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember:
-                formalParameterBuilder.isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+                formalParameterBuilder.isDeclarationInstanceMember);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Parameters are covered by their parents rather than individually.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Parameters are covered by their parents rather than individually.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;
@@ -989,15 +1063,22 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
 
   ExpressionCompilerProcedureBodyBuildContext(
       DietListener listener, this._member,
-      {required bool isDeclarationInstanceMember,
-      required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields})
+      {required bool isDeclarationInstanceMember})
       : super(listener.libraryBuilder, listener.currentDeclaration,
-            isDeclarationInstanceMember: isDeclarationInstanceMember,
-            inOutlineBuildingPhase: inOutlineBuildingPhase,
-            inMetadata: inMetadata,
-            inConstFields: inConstFields);
+            isDeclarationInstanceMember: isDeclarationInstanceMember);
+
+  @override
+  bool get needsImmediateValuesBuiltAsOutlineExpressions {
+    // Expressions don't have immediate values relevant in outlines.
+    return false;
+  }
+
+  @override
+  bool get hasImmediateOutlineExpressionsBuilt {
+    // Expressions don't have immediate values relevant in outlines, so all of
+    // them from the empty set can be assumed to have been processed.
+    return true;
+  }
 
   @override
   bool get hasFormalParameters => false;

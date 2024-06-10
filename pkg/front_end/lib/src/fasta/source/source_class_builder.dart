@@ -334,15 +334,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     return cls;
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ClassBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
-  }
+  BodyBuilderContext get bodyBuilderContext =>
+      new ClassBodyBuilderContext(this);
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
@@ -354,25 +347,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
-    MetadataBuilder.buildAnnotations(
-        isAugmenting ? origin.cls : cls,
-        metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
-        libraryBuilder,
-        fileUri,
-        libraryBuilder.scope,
+    MetadataBuilder.buildAnnotations(isAugmenting ? origin.cls : cls, metadata,
+        bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope,
         createFileUriExpression: isAugmenting);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
             libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
+            bodyBuilderContext,
             classHierarchy,
             delayedActionPerformers,
             scope.parent!);

@@ -485,26 +485,15 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       Scope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
-        MetadataBuilder.buildAnnotations(
-            annotatable,
-            metadata,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            libraryBuilder,
-            fileUri,
-            parentScope,
+        MetadataBuilder.buildAnnotations(annotatable, metadata,
+            bodyBuilderContext, libraryBuilder, fileUri, parentScope,
             createFileUriExpression: isAugmented);
       }
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(
               libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: true,
-                  inConstFields: false),
+              bodyBuilderContext,
               classHierarchy,
               delayedActionPerformers,
               computeTypeParameterScope(parentScope));

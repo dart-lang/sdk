@@ -142,33 +142,19 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     });
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields});
+  BodyBuilderContext get bodyBuilderContext;
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(
-        annotatable,
-        metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
-        libraryBuilder,
-        fileUri,
-        libraryBuilder.scope);
+    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
             libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
+            bodyBuilderContext,
             classHierarchy,
             delayedActionPerformers,
             scope.parent!);
