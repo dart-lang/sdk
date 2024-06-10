@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 335 "needsFix"
-# - 416 "hasFix"
+# - 334 "needsFix"
+# - 417 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3654,9 +3654,7 @@ WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
   status: noFix
   since: ~2.15
 WarningCode.NULL_CHECK_ALWAYS_FAILS:
-  status: needsFix
-  notes: |-
-    Remove the null check.
+  status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
   status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
