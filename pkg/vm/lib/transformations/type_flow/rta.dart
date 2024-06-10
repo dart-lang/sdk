@@ -559,6 +559,9 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
   ConcreteType addAllocatedClass(Class c) => rta.addAllocatedClass(c);
 
   @override
+  void addDynamicallyExtendableClass(Class c) {}
+
+  @override
   Field getRecordPositionalField(RecordShape shape, int pos) =>
       throw 'Unsupported operation';
 

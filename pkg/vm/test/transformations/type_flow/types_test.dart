@@ -22,13 +22,13 @@ class TestTypeHierarchy extends TypeHierarchy {
       : super(coreTypes, target);
 
   @override
-  Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
+  Type specializeTypeCone(TFClass base, {required bool allowWideCone}) {
     return specializations[base.classNode]!;
   }
 
   @override
   bool hasAllocatedSubtypes(TFClass cls) =>
-      specializeTypeCone(cls) is! EmptyType;
+      specializeTypeCone(cls, allowWideCone: true) is! EmptyType;
 
   @override
   TFClass getTFClass(Class c) =>

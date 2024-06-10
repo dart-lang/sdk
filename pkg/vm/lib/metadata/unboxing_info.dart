@@ -140,6 +140,12 @@ class UnboxingInfoMetadata {
     return false;
   }
 
+  void setFullyBoxed() {
+    argsInfo.length = 0;
+    returnInfo = UnboxingType.kBoxed;
+    mustUseStackCallingConvention = true;
+  }
+
   // Returns `true` if this [UnboxingInfoMetadata] matches default one:
   // all arguments and the return value are boxed, the method is not
   // forced to use stack based calling convention and there is no override

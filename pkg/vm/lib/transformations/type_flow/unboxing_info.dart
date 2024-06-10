@@ -127,14 +127,17 @@ class UnboxingInfoManager {
 
   void _updateUnboxingInfoOfMember(Member member,
       TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoMetadata unboxingInfo) {
+    if (_nativeCodeOracle.isDynamicallyOverriddenMember(member)) {
+      unboxingInfo.setFullyBoxed();
+      return;
+    }
+
     if (!typeFlowAnalysis.isMemberUsed(member)) {
       return;
     }
 
     if (_cannotUnbox(member)) {
-      unboxingInfo.argsInfo.length = 0;
-      unboxingInfo.returnInfo = UnboxingType.kBoxed;
-      unboxingInfo.mustUseStackCallingConvention = true;
+      unboxingInfo.setFullyBoxed();
       return;
     }
 
