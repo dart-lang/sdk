@@ -7201,7 +7201,9 @@ class ProgramDeserializationRoots : public DeserializationRoots {
 
   void PostLoad(Deserializer* d, const Array& refs) override {
     auto isolate_group = d->isolate_group();
-    { isolate_group->class_table()->CopySizesFromClassObjects(); }
+    {
+      isolate_group->class_table()->CopySizesFromClassObjects();
+    }
     d->heap()->old_space()->EvaluateAfterLoading();
 
     auto object_store = isolate_group->object_store();

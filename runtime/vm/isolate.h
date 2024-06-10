@@ -1574,14 +1574,23 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters vm_tag_counters_;
 
   // We use 6 list entries for each pending service extension calls.
-  enum {kPendingHandlerIndex = 0, kPendingMethodNameIndex, kPendingKeysIndex,
-        kPendingValuesIndex,      kPendingReplyPortIndex,  kPendingIdIndex,
-        kPendingEntrySize};
+  enum {
+    kPendingHandlerIndex = 0,
+    kPendingMethodNameIndex,
+    kPendingKeysIndex,
+    kPendingValuesIndex,
+    kPendingReplyPortIndex,
+    kPendingIdIndex,
+    kPendingEntrySize
+  };
   GrowableObjectArrayPtr pending_service_extension_calls_;
 
   // We use 2 list entries for each registered extension handler.
-  enum {kRegisteredNameIndex = 0, kRegisteredHandlerIndex,
-        kRegisteredEntrySize};
+  enum {
+    kRegisteredNameIndex = 0,
+    kRegisteredHandlerIndex,
+    kRegisteredEntrySize
+  };
   GrowableObjectArrayPtr registered_service_extension_handlers_;
 
   // Used to wake the isolate when it is in the pause event loop.

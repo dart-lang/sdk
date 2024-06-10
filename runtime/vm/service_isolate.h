@@ -85,11 +85,11 @@ class ServiceIsolate : public AllStatic {
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Monitor* monitor_;
-  enum State{
-      kStopped,
-      kStarting,
-      kStarted,
-      kStopping,
+  enum State {
+    kStopped,
+    kStarting,
+    kStarted,
+    kStopping,
   };
   static State state_;
   static Isolate* isolate_;
