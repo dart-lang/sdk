@@ -480,7 +480,8 @@ class WasmTarget extends Target {
   }
 
   @override
-  bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("wasm:");
+  bool isSupportedPragma(String pragmaName) =>
+      pragmaName.startsWith("wasm:") || pragmaName.startsWith("dyn-module:");
 
   late final Map<RecordShape, Class> recordClasses;
 

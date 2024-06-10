@@ -1,0 +1,86 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class A1 extends core::Object {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->i]
+  abstract method foo() → core::Object;
+}
+class B1 extends core::Object implements self::A1 {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->i]
+  method foo() → core::int
+    return 42;
+}
+abstract class A2 extends core::Object {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  abstract method foo() → core::Object;
+}
+class B2 extends core::Object implements self::A2 {
+  synthetic constructor •() → self::B2
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  method foo() → core::int
+    return 42;
+}
+@#C5
+abstract class C2 extends core::Object implements self::A2 {
+}
+
+[@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>]
+static field core::List<dynamic> opaque = let final core::List<dynamic> #t1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::•<dynamic>(0) in block {
+  [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dynamic>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::List::add}(new self::B1::•()){(dynamic) → void};
+  [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dynamic>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::List::add}(new self::B2::•()){(dynamic) → void};
+} =>#t1;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method call1([@vm.inferred-arg-type.metadata=#lib::B1] self::A1 obj) → void {
+  core::print([@vm.direct-call.metadata=#lib::B1.foo] [@vm.inferred-type.metadata=dart.core::_Smi (skip check) (value: 42)] obj.{self::A1::foo}(){() → core::Object});
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method call2([@vm.inferred-arg-type.metadata=!] self::A2 obj) → void {
+  core::print([@vm.inferred-type.metadata=!] obj.{self::A2::foo}(){() → core::Object});
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method cast1([@vm.inferred-arg-type.metadata=#lib::B1] self::A1 obj) → void {
+  core::print(true);
+  core::print(_in::unsafeCast<self::B1>(obj));
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method cast2([@vm.inferred-arg-type.metadata=!] self::A2 obj) → void {
+  core::print(obj is self::B2);
+  core::print(obj as self::B2);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → dynamic {
+  self::call1([@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] self::opaque.{core::List::[]}(0){(core::int) → dynamic} as{TypeError,ForDynamic} self::A1);
+  self::call2([@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] self::opaque.{core::List::[]}(1){(core::int) → dynamic} as{TypeError,ForDynamic} self::A2);
+  self::cast1([@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] self::opaque.{core::List::[]}(0){(core::int) → dynamic} as{TypeError,ForDynamic} self::A1);
+  self::cast2([@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] self::opaque.{core::List::[]}(1){(core::int) → dynamic} as{TypeError,ForDynamic} self::A2);
+}
+constants  {
+  #C1 = "dyn-module:can-be-overridden"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dyn-module:extendable"
+  #C5 = core::pragma {name:#C4, options:#C2}
+}

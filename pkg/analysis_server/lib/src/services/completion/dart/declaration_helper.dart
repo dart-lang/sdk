@@ -209,7 +209,7 @@ class DeclarationHelper {
 
       if (importElement.prefix case var importPrefix?) {
         if (importPrefix is DeferredImportElementPrefix) {
-          var matcherScore = state.matcher.score(importedLibrary.displayName);
+          var matcherScore = state.matcher.score('loadLibrary');
           if (matcherScore != -1) {
             collector.addSuggestion(
               LoadLibraryFunctionSuggestion(
@@ -1604,7 +1604,10 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the method `call` defined on the class `Function`.
   void _suggestFunctionCall() {
-    collector.addSuggestion(FunctionCall(matcherScore: 0));
+    var matcherScore = state.matcher.score('call');
+    if (matcherScore != -1) {
+      collector.addSuggestion(FunctionCall(matcherScore: matcherScore));
+    }
   }
 
   /// Adds a suggestion for the local function represented by the [element].

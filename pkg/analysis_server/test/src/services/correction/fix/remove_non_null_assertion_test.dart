@@ -90,6 +90,19 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_nullCheckAlwaysFails() async {
+    await resolveTestCode('''
+void f() {
+  null!;
+}
+''');
+    await assertHasFix('''
+void f() {
+  null;
+}
+''');
+  }
 }
 
 @reflectiveTest

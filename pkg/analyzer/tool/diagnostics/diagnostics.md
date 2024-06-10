@@ -23715,6 +23715,100 @@ const int x = 0;
 const int y = x;
 ```
 
+### workspace_field_not_list
+
+_The value of the 'workspace' field is required to be a list of relative file
+paths._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of the `workspace` key
+isn't a list.
+
+#### Example
+
+The following code produces this diagnostic because the value of the
+`workspace` key is a string when a list is expected:
+
+```yaml
+name: example
+workspace: [!notPaths!]
+```
+
+#### Common fixes
+
+Change the value of the workspace field so that it's a list:
+
+```yaml
+name: example
+workspace:
+    - pkg/package_1
+    - pkg/package_2
+```
+
+### workspace_vaue_not_string
+
+_Workspace entries are required to be directory paths (strings)._
+
+#### Description
+
+The analyzer produces this diagnostic when a `workspace` list contains a
+value that isn't a string.
+
+#### Example
+
+The following code produces this diagnostic because the `workspace` list
+contains a map:
+
+```yaml
+name: example
+workspace:
+    - [!image.gif: true!]
+```
+
+#### Common fixes
+
+Change the `workspace` list so that it only contains valid POSIX-style directory
+paths:
+
+```yaml
+name: example
+workspace:
+    - pkg/package_1
+    - pkg/package_2
+```
+
+### workspace_vaue_not_subdirectory
+
+_Workspace values must be a relative path of a subdirectory of '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a `workspace` list contains a
+value that is not a subdirectory of the directory containing the `pubspec.yaml`` file.
+
+#### Example
+
+The following code produces this diagnostic because the value in the `workspace` list is not a
+relative path of a subdirectory of the directory containing the 'pubspec.yaml' file:
+
+```yaml
+name: example
+workspace:
+    - /home/my_package
+```
+
+#### Common fixes
+
+Change the `workspace` list so that it only contains only subdirectory paths.
+
+```yaml
+name: example
+workspace:
+    - pkg/package_1
+    - pkg/package_2
+```
+
 ### wrong_number_of_parameters_for_operator
 
 _Operator '-' should declare 0 or 1 parameter, but {0} found._

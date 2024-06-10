@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -23,14 +22,12 @@ import 'package:analyzer/src/generated/resolver.dart';
 class AssignmentExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePropertyResolver _typePropertyResolver;
-  final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   AssignmentExpressionResolver({
     required ResolverVisitor resolver,
   })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
         );
@@ -325,7 +322,7 @@ class AssignmentExpressionResolver {
     } else {
       nodeType = assignedType;
     }
-    _inferenceHelper.recordStaticType(node, nodeType);
+    node.recordStaticType(nodeType, resolver: _resolver);
 
     // TODO(scheglov): Remove from ErrorVerifier?
     _checkForInvalidAssignment(

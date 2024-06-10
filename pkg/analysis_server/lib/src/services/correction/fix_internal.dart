@@ -1034,6 +1034,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [
     RemoveLexeme.modifier,
   ],
+  CompileTimeErrorCode.INVALID_USE_OF_COVARIANT: [
+    RemoveLexeme.keyword,
+  ],
   CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
     RemoveParenthesesInGetterInvocation.new,
   ],
@@ -1587,6 +1590,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW: [
     ReplaceNewWithConst.new,
+  ],
+  WarningCode.NULL_CHECK_ALWAYS_FAILS: [
+    RemoveNonNullAssertion.new,
   ],
   WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
     RemoveQuestionMark.new,

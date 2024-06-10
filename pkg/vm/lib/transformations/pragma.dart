@@ -22,9 +22,22 @@ const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
 const kWasmEntryPointPragmaName = "wasm:entry-point";
 const kWasmExportPragmaName = "wasm:export";
 
+// Dynamic modules pragmas, recognized both by the VM and dart2wasm
+const kDynModuleExtendablePragmaName = "dyn-module:extendable";
+const kDynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
+const kDynModuleCallablePragmaName = "dyn-module:callable";
+const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";
+
 abstract class ParsedPragma {}
 
-enum PragmaEntryPointType { Default, GetterOnly, SetterOnly, CallOnly }
+enum PragmaEntryPointType {
+  Default,
+  Extendable,
+  CanBeOverridden,
+  GetterOnly,
+  SetterOnly,
+  CallOnly
+}
 
 enum PragmaRecognizedType { AsmIntrinsic, GraphIntrinsic, Other }
 
@@ -64,6 +77,10 @@ class ParsedKeepNamePragma implements ParsedPragma {
 
 class ParsedPlatformConstPragma implements ParsedPragma {
   const ParsedPlatformConstPragma();
+}
+
+class ParsedDynModuleEntryPointPragma implements ParsedPragma {
+  const ParsedDynModuleEntryPointPragma();
 }
 
 abstract class PragmaAnnotationParser {
@@ -171,20 +188,29 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
       case kVmDisableUnboxedParametersPragmaName:
         return const ParsedDisableUnboxedParameters();
       case kVmKeepNamePragmaName:
-        return ParsedKeepNamePragma();
+        return const ParsedKeepNamePragma();
       case kVmPlatformConstPragmaName:
-        return ParsedPlatformConstPragma();
+        return const ParsedPlatformConstPragma();
       case kVmPlatformConstIfPragmaName:
         if (options is! BoolConstant) {
           throw "ERROR: Non-boolean option to '$kVmPlatformConstIfPragmaName' "
               "pragma: $options";
         }
-        return options.value ? ParsedPlatformConstPragma() : null;
+        return options.value ? const ParsedPlatformConstPragma() : null;
       case kWasmEntryPointPragmaName:
-        return ParsedEntryPointPragma(PragmaEntryPointType.Default);
+        return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kWasmExportPragmaName:
         // Exports are treated as entry points.
-        return ParsedEntryPointPragma(PragmaEntryPointType.Default);
+        return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
+      case kDynModuleExtendablePragmaName:
+        return const ParsedEntryPointPragma(PragmaEntryPointType.Extendable);
+      case kDynModuleCanBeOverriddenPragmaName:
+        return const ParsedEntryPointPragma(
+            PragmaEntryPointType.CanBeOverridden);
+      case kDynModuleCallablePragmaName:
+        return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
+      case kDynModuleEntryPointPragmaName:
+        return const ParsedDynModuleEntryPointPragma();
       default:
         return null;
     }

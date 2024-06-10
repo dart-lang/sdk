@@ -42,6 +42,10 @@ abstract class EntryPointsListener {
 
   /// Artificial call method corresponding to the given [closure].
   Procedure getClosureCallMethod(Closure closure);
+
+  /// Add class which can be extended by a dynamically loaded class
+  /// (unknown at compilation time).
+  void addDynamicallyExtendableClass(Class c);
 }
 
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
@@ -65,14 +69,18 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   visitClass(Class klass) {
     final type = _annotationsDefineRoot(klass.annotations);
     if (type != null) {
-      if (type != PragmaEntryPointType.Default) {
+      if (type == PragmaEntryPointType.Default) {
+        if (!klass.isAbstract) {
+          entryPoints.addAllocatedClass(klass);
+        }
+        nativeCodeOracle.addClassReferencedFromNativeCode(klass);
+      } else if (type == PragmaEntryPointType.Extendable) {
+        entryPoints.addDynamicallyExtendableClass(klass);
+        nativeCodeOracle.addClassReferencedFromNativeCode(klass);
+      } else {
         throw "Error: pragma entry-point definition on a class must evaluate "
             "to null, true or false. See entry_points_pragma.md.";
       }
-      if (!klass.isAbstract) {
-        entryPoints.addAllocatedClass(klass);
-      }
-      nativeCodeOracle.addClassReferencedFromNativeCode(klass);
     }
     klass.visitChildren(this);
   }
@@ -116,6 +124,12 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
         if (!proc.isSetter && !proc.isGetter && !proc.isFactory) {
           addSelector(CallKind.PropertyGet);
         }
+        break;
+      case PragmaEntryPointType.Extendable:
+        throw "Error: only class can be extendable";
+      case PragmaEntryPointType.CanBeOverridden:
+        nativeCodeOracle.addDynamicallyOverriddenMember(proc);
+        break;
     }
 
     nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
@@ -168,6 +182,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       case PragmaEntryPointType.CallOnly:
         throw "Error: can't generate invocation dispatcher for field $field"
             "through @pragma('vm:entry-point')";
+      case PragmaEntryPointType.Extendable:
+        throw "Error: only class can be extendable";
+      case PragmaEntryPointType.CanBeOverridden:
+        nativeCodeOracle.addDynamicallyOverriddenMember(field);
+        break;
     }
 
     nativeCodeOracle.setMemberReferencedFromNativeCode(field);
@@ -178,6 +197,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 class NativeCodeOracle {
   final LibraryIndex _libraryIndex;
   final Set<Member> _membersReferencedFromNativeCode = new Set<Member>();
+  final Set<Member> _dynamicallyOverriddenMembers = new Set<Member>();
   final Set<Class> _classesReferencedFromNativeCode = new Set<Class>();
   final PragmaAnnotationParser _matcher;
 
@@ -196,6 +216,13 @@ class NativeCodeOracle {
 
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
+
+  void addDynamicallyOverriddenMember(Member member) {
+    _dynamicallyOverriddenMembers.add(member);
+  }
+
+  bool isDynamicallyOverriddenMember(Member member) =>
+      _dynamicallyOverriddenMembers.contains(member);
 
   PragmaRecognizedType? recognizedType(Member member) {
     for (var annotation in member.annotations) {

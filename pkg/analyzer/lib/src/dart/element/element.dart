@@ -651,7 +651,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               StringToken(TokenType.STRING, implicitParameter.name, -1),
             )
               ..staticElement = implicitParameter
-              ..staticType = implicitParameter.type,
+              ..setPseudoExpressionStaticType(implicitParameter.type),
           );
         }
         implicitConstructor.parameters = implicitParameters.toFixedList();

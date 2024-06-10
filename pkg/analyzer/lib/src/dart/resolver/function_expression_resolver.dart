@@ -10,16 +10,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
-  final InvocationInferenceHelper _inferenceHelper;
 
   FunctionExpressionResolver({required ResolverVisitor resolver})
-      : _resolver = resolver,
-        _inferenceHelper = resolver.inferenceHelper;
+      : _resolver = resolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -160,7 +157,7 @@ class FunctionExpressionResolver {
       functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
-    _inferenceHelper.recordStaticType(node, functionElement.type);
+    node.recordStaticType(functionElement.type, resolver: _resolver);
   }
 
   static bool _shouldUpdateReturnType(FunctionExpression node) {

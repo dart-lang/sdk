@@ -177,7 +177,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get dumpAstOnFailures => true;
 
-  List<String> get experiments => ['macros'];
+  List<String> get experiments => ['macros', 'wildcard-variables'];
 
   List<String> get lintRules => _lintRules;
 

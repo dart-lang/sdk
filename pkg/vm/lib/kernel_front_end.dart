@@ -52,6 +52,8 @@ import 'target_os.dart';
 import 'transformations/deferred_loading.dart' as deferred_loading;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
+import 'transformations/dynamic_interface_annotator.dart'
+    as dynamic_interface_annotator show annotateComponent;
 import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
@@ -148,6 +150,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Name of the Fuchsia component', defaultsTo: null);
   args.addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files');
+  args.addOption('dynamic-interface',
+      help: 'Path to dynamic module interface yaml file.');
   args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
@@ -291,6 +295,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? resourcesFileUri =
       resourcesFilePath == null ? null : resolveInputUri(resourcesFilePath);
 
+  final String? dynamicInterfaceFilePath = options['dynamic-interface'];
+  final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
+      ? null
+      : resolveInputUri(dynamicInterfaceFilePath);
+
   Uri? mainUri;
   if (input != null) {
     mainUri = resolveInputUri(input);
@@ -332,6 +341,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       keepClassNamesImplementing: options['keep-class-names-implementing'],
+      dynamicInterface: dynamicInterfaceUri,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       useRapidTypeAnalysis: rta,
@@ -445,6 +455,7 @@ Future<KernelCompilationResults> compileToKernel(
   bool includePlatform = false,
   List<String> deleteToStringPackageUris = const <String>[],
   List<String> keepClassNamesImplementing = const <String>[],
+  Uri? dynamicInterface,
   bool aot = false,
   bool useGlobalTypeFlowAnalysis = false,
   bool useRapidTypeAnalysis = true,
@@ -507,6 +518,7 @@ Future<KernelCompilationResults> compileToKernel(
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
         useRapidTypeAnalysis: useRapidTypeAnalysis,
         keepClassNamesImplementing: keepClassNamesImplementing,
+        dynamicInterface: dynamicInterface,
         resourcesFile: resourcesFile);
 
     if (minimalKernel) {
@@ -570,12 +582,21 @@ Future runGlobalTransformations(
     bool useRapidTypeAnalysis = true,
     Map<String, String>? environmentDefines,
     List<String>? keepClassNamesImplementing,
+    Uri? dynamicInterface,
     String? targetOS,
     Uri? resourcesFile}) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
+
+  if (dynamicInterface != null) {
+    dynamic_interface_annotator.annotateComponent(
+        File(dynamicInterface.toFilePath()).readAsStringSync(),
+        dynamicInterface,
+        component,
+        coreTypes);
+  }
 
   // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of
   // identical mixin applications when creating mixin applications in frontend,

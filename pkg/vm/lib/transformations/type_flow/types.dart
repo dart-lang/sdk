@@ -75,6 +75,8 @@ class TFClass {
     return result;
   }
 
+  bool get hasDynamicallyExtendableSubtypes => false;
+
   @override
   int get hashCode => id;
 
@@ -290,7 +292,7 @@ abstract class TypeHierarchy extends TypesBuilder
   /// It is correct (although less accurate) for [specializeTypeCone] to return
   /// a larger set. In such case analysis would admit that a larger set of
   /// values can flow through the program.
-  Type specializeTypeCone(TFClass base, {bool allowWideCone = false});
+  Type specializeTypeCone(TFClass base, {required bool allowWideCone});
 
   /// Returns true if [cls] has allocated subtypes.
   bool hasAllocatedSubtypes(TFClass cls);
@@ -870,6 +872,7 @@ class ConeType extends Type {
 
   @override
   bool hasEmptySpecialization(TypeHierarchy typeHierarchy) =>
+      !cls.hasDynamicallyExtendableSubtypes &&
       !typeHierarchy.hasAllocatedSubtypes(cls);
 
   @override
@@ -927,7 +930,8 @@ class ConeType extends Type {
   }
 }
 
-/// Type representing a subtype cone which has too many concrete classes.
+/// Type representing a subtype cone which has too many concrete classes
+/// or may contain dynamically loaded subtypes (unknown at compilation time).
 /// It contains instances of all Dart types which extend, mix-in or implement
 /// certain class.
 class WideConeType extends ConeType {

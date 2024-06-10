@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
@@ -42,9 +44,10 @@ class OverrideHelper {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
         var invokeSuper = interface.isSuperImplemented(name);
-        // TODO(keertip): Use both "override" and the name of the overridden
-        //  member to compute the score.
-        var matcherScore = 0.0;
+        var matcherScore = math.max(
+            math.max(state.matcher.score('override'),
+                state.matcher.score('operator')),
+            state.matcher.score(element.displayName));
         if (matcherScore != -1) {
           collector.addSuggestion(
             OverrideSuggestion(

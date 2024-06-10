@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 335 "needsFix"
-# - 416 "hasFix"
+# - 334 "needsFix"
+# - 417 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -997,9 +997,7 @@ CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
 CompileTimeErrorCode.INVALID_URI:
   status: noFix
 CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
-  status: needsFix
-  notes: |-
-    Remove the keyword.
+  status: hasFix
 CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
   status: noFix
 CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL:
@@ -3362,6 +3360,12 @@ PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
   since: ~2.15
   notes: |-
     The fix is to remove the dependency
+PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST:
+  status: needsEvaluation
+PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING:
+  status: needsEvaluation
+PubspecWarningCode.WORKSPACE_VAUE_NOT_SUBDIRECTORY:
+  status: needsEvaluation
 ScannerErrorCode.EXPECTED_TOKEN:
   status: noFix
 ScannerErrorCode.ILLEGAL_CHARACTER:
@@ -3648,9 +3652,7 @@ WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
   status: noFix
   since: ~2.15
 WarningCode.NULL_CHECK_ALWAYS_FAILS:
-  status: needsFix
-  notes: |-
-    Remove the null check.
+  status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
   status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:

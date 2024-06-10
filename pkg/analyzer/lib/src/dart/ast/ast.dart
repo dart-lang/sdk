@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
@@ -87,7 +88,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitAdjacentStrings(this);
+    resolver.visitAdjacentStrings(this, contextType: contextType);
   }
 
   @override
@@ -1714,7 +1715,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitAugmentedExpression(this);
+    resolver.visitAugmentedExpression(this, contextType: contextType);
   }
 
   @override
@@ -2134,7 +2135,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitBooleanLiteral(this);
+    resolver.visitBooleanLiteral(this, contextType: contextType);
   }
 
   @override
@@ -5345,7 +5346,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitDoubleLiteral(this);
+    resolver.visitDoubleLiteral(this, contextType: contextType);
   }
 
   @override
@@ -5991,8 +5992,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
 sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  @override
-  DartType? staticType;
+  DartType? _staticType;
 
   @override
   bool get inConstantContext {
@@ -6076,7 +6076,22 @@ sealed class ExpressionImpl extends AstNodeImpl
   }
 
   @override
+  DartType? get staticType => _staticType;
+
+  @override
   ExpressionImpl get unParenthesized => this;
+
+  /// Record that the static type of the given node is the given type.
+  ///
+  /// @param expression the node whose type is to be recorded
+  /// @param type the static type of the node
+  void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
+    _staticType = type;
+    if (type.isBottom) {
+      resolver.flowAnalysis.flow?.handleExit();
+    }
+    inferenceLogWriter?.recordStaticType(this, type);
+  }
 
   @override
   void resolveElement(
@@ -6092,6 +6107,17 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// call [ResolverVisitor.dispatchExpression], which has some special logic
   /// for handling dynamic contexts.
   void resolveExpression(ResolverVisitor resolver, DartType contextType);
+
+  /// Records that the static type of `this` is [type], without triggering any
+  /// [ResolverVisitor] behaviors.
+  ///
+  /// This is used when the expression AST node occurs in a place where it is
+  /// not technically a true expression, but the analyzer chooses to assign it a
+  /// static type anyway (e.g. the [SimpleIdentifier] representing the method
+  /// name in a method invocation).
+  void setPseudoExpressionStaticType(DartType? type) {
+    _staticType = type;
+  }
 }
 
 /// An expression used as a statement.
@@ -6526,7 +6552,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitExtensionOverride(this);
+    resolver.visitExtensionOverride(this, contextType: contextType);
   }
 
   @override
@@ -8442,7 +8468,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitFunctionReference(this);
+    resolver.visitFunctionReference(this, contextType: contextType);
   }
 
   @override
@@ -10526,7 +10552,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitIsExpression(this);
+    resolver.visitIsExpression(this, contextType: contextType);
   }
 
   @override
@@ -12875,7 +12901,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitNullLiteral(this);
+    resolver.visitNullLiteral(this, contextType: contextType);
   }
 
   @override
@@ -13414,7 +13440,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitPatternAssignment(this);
+    resolver.visitPatternAssignment(this, contextType: contextType);
   }
 
   @override
@@ -14959,7 +14985,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitRethrowExpression(this);
+    resolver.visitRethrowExpression(this, contextType: contextType);
   }
 
   @override
@@ -15706,7 +15732,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSimpleStringLiteral(this);
+    resolver.visitSimpleStringLiteral(this, contextType: contextType);
   }
 
   @override
@@ -15950,7 +15976,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitStringInterpolation(this);
+    resolver.visitStringInterpolation(this, contextType: contextType);
   }
 
   @override
@@ -16214,7 +16240,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSuperExpression(this);
+    resolver.visitSuperExpression(this, contextType: contextType);
   }
 
   @override
@@ -16649,12 +16675,15 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    inferenceLogWriter?.enterExpression(this, contextType);
     var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
-    staticType = resolver
+    var staticType = resolver
         .analyzeSwitchExpression(this, expression, cases.length, contextType)
         .type;
+    recordStaticType(staticType, resolver: resolver);
     resolver.popRewrite();
     resolver.legacySwitchExhaustiveness = previousExhaustiveness;
+    inferenceLogWriter?.exitExpression(this);
   }
 
   @override
@@ -16968,7 +16997,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSymbolLiteral(this);
+    resolver.visitSymbolLiteral(this, contextType: contextType);
   }
 
   @override
@@ -17094,7 +17123,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitThrowExpression(this);
+    resolver.visitThrowExpression(this, contextType: contextType);
   }
 
   @override
@@ -17549,7 +17578,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitTypeLiteral(this);
+    resolver.visitTypeLiteral(this, contextType: contextType);
   }
 
   @override

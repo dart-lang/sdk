@@ -2542,7 +2542,7 @@ class _InstanceCreationEvaluator {
           StringToken(TokenType.STRING, parameter.name, -1),
         )
           ..staticElement = parameter
-          ..staticType = parameter.type;
+          ..setPseudoExpressionStaticType(parameter.type);
         if (parameter.isPositional) {
           superArguments.insert(positionalIndex++, value);
         } else {
@@ -2555,7 +2555,7 @@ class _InstanceCreationEvaluator {
                 colon: StringToken(TokenType.COLON, ':', -1),
               ),
               expression: value,
-            )..staticType = value.typeOrThrow,
+            )..setPseudoExpressionStaticType(value.typeOrThrow),
           );
         }
       }

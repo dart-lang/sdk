@@ -129,8 +129,8 @@ vars = {
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
   "cli_util_rev": "c37d5e14f50e72a268c1ad86149cecfa4b58c494",
   "clock_rev": "7cbf08e36a92f14f22132d255846610c1b065324",
-  "collection_rev": "586a5e841fad5572beae421ef9902ba7ceab1292",
-  "convert_rev": "302af1b7d7dffe5bc1f85a6f1b0958b9de920cd7",
+  "collection_rev": "141d83af3d7586ae9d27de610fd426071c98e5d3",
+  "convert_rev": "70940e3728f34d897ad92f44f98db2d47286b090",
   "crypto_rev": "7a9428a78962783f6081dc42465ed580cff225ca",
   "csslib_rev": "23c314bb6b247a71348cfb0987ba0eb29574abb6",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -144,14 +144,14 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "ddb8fb4410797f34d4c2245038f051683dd062a8",
-  "ecosystem_rev": "bc25c0cb80415fb711b9413d809c23fad9635616",
+  "dartdoc_rev": "3decf1edfe8c12fc76e2e5c901f9e6427af01c03",
+  "ecosystem_rev": "865b2c58e7c9c6361d9d12cee6a8393bbaa68538",
   "file_rev": "07cacaed6679a173e29176747e6ce0325742749f",
   "fixnum_rev": "a8157d87f17d5184e210403f2ed63d354b854132",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "eaec6a448576048b748475d80bfac2795ad5a267",
   "html_rev": "3bc803d7e655491b243418f19300ef0c6112bcea",
-  "http_rev": "a3567f83db01d55c0c8248b7298830410b5b297b",
+  "http_rev": "b522000fe8995df17fd0a1b4c4354bc8975ea835",
   "http_multi_server_rev": "25941e260658efb324de857e6022f418faf9bdd1",
   "http_parser_rev": "551e0e470bc7406f5400c55b6f95ee205ad18825",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -162,7 +162,7 @@ vars = {
   "markdown_rev": "3d8d7a8f14b74bb646bb6e4ae35e0bf2beb74154",
   "matcher_rev": "0abd4054c47a923486a6c0c04b5c974ba13ad2da",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "mime_rev": "8d2d559240ad76c8c2d231bcee0d89cf0ea3edc6",
+  "mime_rev": "4ca2f5edaafe21f462922d34db99486a44bb08b8",
   "mockito_rev": "2302814df66e651b6710311366501523dbee2e11",
   "native_rev": "fef40aebc3cf34654919e8a5785b6c50b3ea445c", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "903a0e528f91aef90821c8f5eaafbc1ae27198ab",
