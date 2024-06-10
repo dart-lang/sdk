@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -906,7 +907,10 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       functionExpression.staticType = targetType;
     }
+    inferenceLogWriter
+        ?.enterFunctionExpressionInvocationTarget(node.methodName);
     _inferenceHelper.recordStaticType(node.methodName, targetType);
+    inferenceLogWriter?.exitExpression(node.methodName);
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,

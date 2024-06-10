@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
@@ -16649,12 +16650,14 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    inferenceLogWriter?.enterExpression(this);
     var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
     staticType = resolver
         .analyzeSwitchExpression(this, expression, cases.length, contextType)
         .type;
     resolver.popRewrite();
     resolver.legacySwitchExhaustiveness = previousExhaustiveness;
+    inferenceLogWriter?.exitExpression(this);
   }
 
   @override

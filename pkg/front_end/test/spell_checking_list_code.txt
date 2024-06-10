@@ -137,6 +137,7 @@ bazel
 bb
 became
 beforehand
+begun
 behave
 believe
 belonging
@@ -145,6 +146,7 @@ benchmarked
 benchmarker
 benchmarking
 benchmarks
+beneath
 beta
 bf
 bi
@@ -521,6 +523,7 @@ dso
 dsos
 dst
 dummy
+dumping
 dupdate
 dyn
 dynamically
@@ -589,6 +592,7 @@ estimation
 et
 eval
 evar
+event's
 examines
 exceeds
 exchange
@@ -849,6 +853,7 @@ influence
 influences
 informative
 infos
+infrastructure
 inhabit
 inhabits
 inhibit
@@ -866,6 +871,7 @@ inst
 instanceof
 instantiable
 instantiator
+instrument
 integrate
 intel
 intends
@@ -988,6 +994,7 @@ lift
 lifted
 lifter
 limiting
+limits
 linearized
 linebreak
 linter
@@ -1387,6 +1394,7 @@ reachability
 react
 realign
 realise
+reanalyze
 reapplies
 reapply
 reapplying
@@ -1446,6 +1454,7 @@ rehash
 reified
 reindexed
 reinstate
+reinterpret
 reissued
 reject
 rejoin
@@ -1532,6 +1541,7 @@ rs
 rta
 runnable
 runtimes
+rvalue
 rvar
 s
 safer
@@ -1843,10 +1853,12 @@ token's
 tokenize
 tokenized
 tokenizer
+tolerant
 tolerate
 tolerated
 tolerates
 toplevel
+topmost
 topological
 tops
 tostring
@@ -1875,6 +1887,7 @@ trips
 trivially
 truncated
 truncates
+truncation
 ts
 tty
 tuple
