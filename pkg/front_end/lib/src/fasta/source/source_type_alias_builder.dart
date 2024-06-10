@@ -317,38 +317,20 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         growable: true);
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new TypedefBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
-  }
+  BodyBuilderContext get bodyBuilderContext =>
+      new TypedefBodyBuilderContext(this);
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    MetadataBuilder.buildAnnotations(
-        typedef,
-        metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
-        libraryBuilder,
-        fileUri,
-        libraryBuilder.scope);
+    MetadataBuilder.buildAnnotations(typedef, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, libraryBuilder.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
             libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
+            bodyBuilderContext,
             classHierarchy,
             delayedActionPerformers,
             computeTypeParameterScope(libraryBuilder.scope));

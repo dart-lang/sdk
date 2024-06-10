@@ -1048,10 +1048,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
+  BodyBuilderContext get bodyBuilderContext {
     throw new UnsupportedError(
         '$runtimeType.bodyBuilderContextForAnnotations}');
   }

@@ -1247,10 +1247,7 @@ severity: $severity
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         new ExpressionCompilerProcedureBodyBuildContext(dietListener, builder,
-            isDeclarationInstanceMember: isClassInstanceMember,
-            inOutlineBuildingPhase: false,
-            inMetadata: false,
-            inConstFields: false),
+            isDeclarationInstanceMember: isClassInstanceMember),
         dietListener.memberScope,
         thisVariable: extensionThis);
     builder.procedure.function = parameters..parent = builder.procedure;

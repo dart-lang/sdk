@@ -655,6 +655,10 @@ external WasmArray<WasmArray<_Type>> get _canonicalSubstitutionTable;
 /// used)
 external WasmArray<String>? get _typeNames;
 
+/// The non-negative index into [_canonicalSubstitutionTable] that represents
+/// that no substitution is needed.
+external WasmI32 get _noSubstitutionIndex;
+
 /// Type parameter environment used while comparing function types.
 ///
 /// In the case of nested function types, the environment refers to the
@@ -861,42 +865,98 @@ abstract class _TypeUniverse {
     return _FutureOrType(declaredNullability, typeArgument);
   }
 
-  static bool areTypeArgumentsSubtypes(WasmArray<_Type> sArgs,
-      _Environment? sEnv, WasmArray<_Type> tArgs, _Environment? tEnv) {
-    assert(sArgs.length == tArgs.length);
-    for (int i = 0; i < sArgs.length; i++) {
-      if (!isSubtype(sArgs[i], sEnv, tArgs[i], tEnv)) {
+  static bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
+      _InterfaceType t, _Environment? tEnv) {
+    final sId = s.classId;
+    final tId = t.classId;
+
+    // Return early if [sId] isn't a direct/indirect subclass of [tId].
+    final int substitutionIndex =
+        _checkSubclassRelationship(sId, tId).toIntSigned();
+    if (substitutionIndex == -1) return false;
+
+    // Return early if we don't have to check type arguments as the destination
+    // type is non-generic.
+    final tTypeArguments = t.typeArguments;
+    if (tTypeArguments.isEmpty) return true;
+
+    final sTypeArguments = s.typeArguments;
+    return areTypeArgumentsSubtypes(
+        sTypeArguments, sEnv, tTypeArguments, tEnv, substitutionIndex);
+  }
+
+  static bool isObjectInterfaceSubtype(Object o, _InterfaceType t) {
+    final int sId = ClassID.getID(o);
+    final int tId = t.classId;
+
+    // Return early if [sId] isn't a direct/indirect subclass of [tId].
+    final int substitutionIndex =
+        _checkSubclassRelationship(sId, tId).toIntSigned();
+    if (substitutionIndex == -1) return false;
+
+    // Return early if we don't have to check type arguments as the destination
+    // type is non-generic.
+    final tTypeArguments = t.typeArguments;
+    if (tTypeArguments.isEmpty) return true;
+
+    // Check individual type arguments without substitution (fast case).
+    final sTypeArguments = Object._getTypeArguments(o);
+    return areTypeArgumentsSubtypes(
+        sTypeArguments, null, tTypeArguments, null, substitutionIndex);
+  }
+
+  static bool areTypeArgumentsSubtypes(
+      WasmArray<_Type> sTypeArguments,
+      _Environment? sEnv,
+      WasmArray<_Type> tTypeArguments,
+      _Environment? tEnv,
+      int substitutionIndex) {
+    // Check individual type arguments without substitution (fast case).
+    if (substitutionIndex == _noSubstitutionIndex.toIntSigned()) {
+      for (int i = 0; i < tTypeArguments.length; i++) {
+        if (!isSubtype(sTypeArguments[i], sEnv, tTypeArguments[i], tEnv)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Substitute each argument before performing the subtype check (slow case).
+    final substitutions = _canonicalSubstitutionTable[substitutionIndex];
+    assert(substitutions.length == tTypeArguments.length);
+    for (int i = 0; i < tTypeArguments.length; i++) {
+      final sArgForClassT =
+          substituteTypeArgument(substitutions[i], sTypeArguments, null);
+      if (!isSubtype(sArgForClassT, sEnv, tTypeArguments[i], tEnv)) {
         return false;
       }
     }
     return true;
   }
 
-  static bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
-      _InterfaceType t, _Environment? tEnv) {
-    return isInterfaceSubtypeWithArguments(
-        s.classId, s.typeArguments, sEnv, t.classId, t.typeArguments, tEnv);
-  }
-
+  /// Checks that [sId] is direct/indirect subclass of [tId] and obtains
+  /// substitution array index to translate [sId]s type arguments to [tId]s
+  /// type arguments.
+  ///
+  /// Returns `null` if [sId] does not have [tId] in its transitive
+  /// extends/implements chain or
   @pragma('wasm:prefer-inline')
-  static bool isObjectInterfaceSubtype(Object o, _InterfaceType t) {
-    final int sId = ClassID.getID(o);
-    final int tId = t.classId;
-    final tTypeArguments = t.typeArguments;
+  static WasmI32 _checkSubclassRelationship(int sId, int tId) {
+    // Caller should ensure that the target cannot be a top type (which is
+    // usually the case as callers have an [_InterfaceType].
+    assert(!_isObjectClassId(tId));
 
-    // If the type we check against is not generic, then the test can be
-    // performed without looking at the object's type arguments.
-    if (tTypeArguments.isEmpty) {
-      return _TypeUniverse.isInterfaceSubtypeWithoutArguments(sId, tId);
-    }
-    return _TypeUniverse.isInterfaceSubtypeWithArguments(
-        sId, Object._getTypeArguments(o), null, tId, tTypeArguments, null);
-  }
+    // The [sSupers] array below doesn't encode the class itself.
+    if (sId == tId) return _noSubstitutionIndex;
 
-  @pragma('wasm:prefer-inline')
-  static bool isInterfaceSubtypeWithoutArguments(int sId, int tId) {
-    if (sId == tId) return true;
-    return _linearSearch(_typeRulesSupers[sId], tId) != -1;
+    // Otherwise, check if [s] is a subtype of [t], and if it is then compare
+    // [s]'s type substitutions with [t]'s type arguments.
+    final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
+    if (sSupers.length == 0) return (-1).toWasmI32();
+
+    final int idMatchIndex = _linearSearch(sSupers, tId);
+    if (idMatchIndex == -1) return (-1).toWasmI32();
+    return sSupers[idMatchIndex + 1];
   }
 
   @pragma('wasm:prefer-inline')
@@ -905,48 +965,6 @@ abstract class _TypeUniverse {
       if (table.readUnsigned(i) == key) return i;
     }
     return -1;
-  }
-
-  static bool isInterfaceSubtypeWithArguments(
-      int sId,
-      WasmArray<_Type> sTypeArguments,
-      _Environment? sEnv,
-      int tId,
-      WasmArray<_Type> tTypeArguments,
-      _Environment? tEnv) {
-    // If we have the same class, simply compare type arguments.
-    if (sId == tId) {
-      return areTypeArgumentsSubtypes(
-          sTypeArguments, sEnv, tTypeArguments, tEnv);
-    }
-
-    // Otherwise, check if [s] is a subtype of [t], and if it is then compare
-    // [s]'s type substitutions with [t]'s type arguments.
-    final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
-    if (sSupers.length == 0) return false;
-
-    final int idMatchIndex = _linearSearch(sSupers, tId);
-    if (idMatchIndex == -1) return false;
-    assert(idMatchIndex < _canonicalSubstitutionTable.length);
-    final int substitutionIndex = sSupers.readUnsigned(idMatchIndex + 1);
-
-    // Return early if we don't have to check type arguments as the destination
-    // type is non-generic.
-    if (tTypeArguments.isEmpty) return true;
-
-    final WasmArray<_Type> substitutions =
-        _canonicalSubstitutionTable[substitutionIndex];
-    assert(substitutions.isNotEmpty);
-
-    // Check arguments.
-    for (int i = 0; i < tTypeArguments.length; i++) {
-      final sArgForTClass =
-          substituteTypeArgument(substitutions[i], sTypeArguments, null);
-      if (!isSubtype(sArgForTClass, sEnv, tTypeArguments[i], tEnv)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   static bool isFunctionSubtype(_FunctionType s, _Environment? sEnv,

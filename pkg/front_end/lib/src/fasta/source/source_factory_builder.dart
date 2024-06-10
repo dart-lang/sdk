@@ -313,15 +313,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {}
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new FactoryBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
-  }
+  BodyBuilderContext get bodyBuilderContext =>
+      new FactoryBodyBuilderContext(this);
 
   @override
   String get fullNameForErrors {
@@ -496,14 +489,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           .createLocalTypeInferrer(
               fileUri, declarationBuilder.thisType, libraryBuilder, null);
       InferenceHelper helper = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              declarationBuilder.scope,
-              fileUri);
+          .createBodyBuilderForOutlineExpression(libraryBuilder,
+              bodyBuilderContext, declarationBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -849,13 +836,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new RedirectingFactoryBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
-  }
+  BodyBuilderContext get bodyBuilderContext =>
+      new RedirectingFactoryBodyBuilderContext(this);
 }

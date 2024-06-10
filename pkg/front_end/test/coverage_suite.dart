@@ -108,7 +108,8 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/crash.dart": 59.09090909090909,
   "package:front_end/src/fasta/dill/dill_builder_mixins.dart": 100.0,
   "package:front_end/src/fasta/dill/dill_class_builder.dart": 92.34972677595628,
-  "package:front_end/src/fasta/dill/dill_extension_builder.dart": 80,
+  "package:front_end/src/fasta/dill/dill_extension_builder.dart":
+      86.74698795180723,
   "package:front_end/src/fasta/dill/dill_extension_member_builder.dart":
       70.29702970297029,
   "package:front_end/src/fasta/dill/dill_extension_type_declaration_builder.dart":
@@ -176,7 +177,7 @@ const Map<String, double> _expect = {
   "package:front_end/src/fasta/kernel/invalid_type.dart": 74.13793103448276,
   "package:front_end/src/fasta/kernel/kernel_constants.dart": 45.45454545454545,
   "package:front_end/src/fasta/kernel/kernel_helper.dart": 98.95833333333334,
-  "package:front_end/src/fasta/kernel/kernel_target.dart": 78,
+  "package:front_end/src/fasta/kernel/kernel_target.dart": 79.03103709311128,
   "package:front_end/src/fasta/kernel/kernel_variable_builder.dart":
       61.111111111111114,
   "package:front_end/src/fasta/kernel/late_lowering.dart": 100.0,
@@ -231,7 +232,8 @@ const Map<String, double> _expect = {
       84.0,
   "package:front_end/src/fasta/source/source_factory_builder.dart":
       92.22222222222223,
-  "package:front_end/src/fasta/source/source_field_builder.dart": 89,
+  "package:front_end/src/fasta/source/source_field_builder.dart":
+      90.0990099009901,
   "package:front_end/src/fasta/source/source_function_builder.dart":
       89.29663608562691,
   "package:front_end/src/fasta/source/source_library_builder.dart":
