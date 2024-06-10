@@ -33,7 +33,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
 import 'package:vm/kernel_front_end.dart'
-    show runGlobalTransformations, ErrorDetector;
+    show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
 import 'package:vm/modular/target/install.dart' show installAdditionalTargets;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -116,18 +116,15 @@ Future main(List<String> args) async {
 
   // The [component] is treeshaken and has TFA annotations. Write output.
   if (argResults['aot']) {
-    const bool useGlobalTypeFlowAnalysis = true;
-    const bool enableAsserts = false;
-    const bool useProtobufAwareTreeShakerV2 = true;
     final nopErrorDetector = ErrorDetector();
     runGlobalTransformations(
-      target,
-      component,
-      useGlobalTypeFlowAnalysis,
-      enableAsserts,
-      useProtobufAwareTreeShakerV2,
-      nopErrorDetector,
-    );
+        target,
+        component,
+        nopErrorDetector,
+        KernelCompilationArguments(
+            useGlobalTypeFlowAnalysis: true,
+            enableAsserts: false,
+            useProtobufTreeShakerV2: true));
   } else {
     globalTypeFlow.transformComponent(target, CoreTypes(component), component,
         treeShakeProtobufs: true, treeShakeSignatures: false);

@@ -10,7 +10,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart'
-    show runGlobalTransformations, ErrorDetector;
+    show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 import '../common_test_utils.dart';
@@ -33,9 +33,6 @@ void runTestCaseAot(Uri source, bool throws) async {
     }
   }
 
-  const bool useGlobalTypeFlowAnalysis = true;
-  const bool enableAsserts = false;
-  const bool useProtobufAwareTreeShakerV2 = true;
   final nopErrorDetector = ErrorDetector();
 
   var tempDir = Directory.systemTemp.createTempSync().path;
@@ -44,15 +41,16 @@ void runTestCaseAot(Uri source, bool throws) async {
     path: path.join(tempDir, 'resources.json'),
   );
   runGlobalTransformations(
-    target,
-    component,
-    useGlobalTypeFlowAnalysis,
-    enableAsserts,
-    useProtobufAwareTreeShakerV2,
-    nopErrorDetector,
-    treeShakeWriteOnlyFields: true,
-    resourcesFile: resourcesFile,
-  );
+      target,
+      component,
+      nopErrorDetector,
+      KernelCompilationArguments(
+        useGlobalTypeFlowAnalysis: true,
+        enableAsserts: false,
+        useProtobufTreeShakerV2: true,
+        treeShakeWriteOnlyFields: true,
+        resourcesFile: resourcesFile,
+      ));
 
   verifyComponent(
     target,
