@@ -1342,10 +1342,12 @@ abstract class TypeImpl implements DartType {
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
+    bool preferTypeAlias = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
+      preferTypeAlias: preferTypeAlias,
     );
     appendTo(builder);
     return builder.toString();
