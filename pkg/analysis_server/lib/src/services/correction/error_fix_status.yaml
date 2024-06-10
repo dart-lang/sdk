@@ -997,9 +997,7 @@ CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
 CompileTimeErrorCode.INVALID_URI:
   status: noFix
 CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
-  status: needsFix
-  notes: |-
-    Remove the keyword.
+  status: hasFix
 CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
   status: noFix
 CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL:

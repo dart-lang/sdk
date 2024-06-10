@@ -332,6 +332,19 @@ class A {
 ''');
   }
 
+  Future<void> test_invalidUseOfCovariant() async {
+    await resolveTestCode('''
+class C {
+  void m(void p(covariant int)) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m(void p(int)) {}
+}
+''');
+  }
+
   Future<void> test_it() async {
     newFile('$testPackageLibPath/a.dart', '''
 import augment 'test.dart';
