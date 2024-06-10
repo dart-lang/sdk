@@ -7166,6 +7166,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool MayHaveVisibleEffect() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
 #define FIELD_LIST(F)                                                          \

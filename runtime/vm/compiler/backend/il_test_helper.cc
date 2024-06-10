@@ -120,6 +120,9 @@ FlowGraph* TestPipeline::RunPasses(
   const bool optimized = true;
   const intptr_t osr_id = Compiler::kNoOSRDeoptId;
 
+  // We assume that prebuilt graph is already in SSA form so we should
+  // avoid running ComputeSSA on it (it will just crash).
+  const bool is_ssa = (flow_graph_ != nullptr);
   if (flow_graph_ == nullptr) {
     auto pipeline = CompilationPipeline::New(zone, function_);
 
@@ -163,7 +166,8 @@ FlowGraph* TestPipeline::RunPasses(
     if (passes.size() > 0) {
       flow_graph_ = CompilerPass::RunPipelineWithPasses(pass_state_, passes);
     } else {
-      flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_);
+      flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_,
+                                              /*compute_ssa=*/!is_ssa);
     }
     pass_state_->call_specializer = nullptr;
   }

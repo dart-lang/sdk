@@ -1728,4 +1728,33 @@ ISOLATE_UNIT_TEST_CASE(IL_TestIntInstr) {
   }
 }
 
+// This is a smoke test which verifies that RecordCoverage instruction is not
+// accidentally removed by some overly eager optimization.
+ISOLATE_UNIT_TEST_CASE(IL_RecordCoverageSurvivesOptimizations) {
+  using compiler::BlockBuilder;
+  SetFlagScope<bool> sfs(&FLAG_reorder_basic_blocks, false);
+
+  TestPipeline pipeline(CompilerPass::kJIT, [&]() {
+    FlowGraphBuilderHelper H(/*num_parameters=*/0);
+
+    {
+      BlockBuilder builder(H.flow_graph(),
+                           H.flow_graph()->graph_entry()->normal_entry());
+      const auto& coverage_array = Array::Handle(Array::New(1));
+      coverage_array.SetAt(0, Smi::Handle(Smi::New(0)));
+      builder.AddInstruction(
+          new RecordCoverageInstr(coverage_array, 0, InstructionSource()));
+      builder.AddReturn(new Value(H.flow_graph()->constant_null()));
+    }
+
+    H.FinishGraph();
+    return H.flow_graph();
+  });
+
+  auto flow_graph = pipeline.RunPasses({});
+
+  // RecordCoverage instruction should remain in the graph.
+  EXPECT(flow_graph->graph_entry()->normal_entry()->next()->IsRecordCoverage());
+}
+
 }  // namespace dart
