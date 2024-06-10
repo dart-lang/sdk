@@ -1187,6 +1187,14 @@ bool _isTypeSubtype(_Type s, _Type t) {
 }
 
 @pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+void _asSubtype(Object? o, _Type t) {
+  if (!_isSubtype(o, t)) {
+    _TypeError._throwAsCheckError(o, t);
+  }
+}
+
+@pragma("wasm:entry-point")
 bool _verifyOptimizedTypeCheck(
     bool result, Object? o, _Type t, String? location) {
   _Type s = _getActualRuntimeTypeNullable(o);

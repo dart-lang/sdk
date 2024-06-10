@@ -426,16 +426,12 @@ class Types {
 
     w.Local operand = b.addLocal(boxedOperandType, isParameter: false);
     b.local_tee(operand);
-    w.Label asCheckBlock = b.block();
-    b.local_get(operand);
-    emitIsTest(codeGen, testedAgainstType, operandType, location);
-    b.br_if(asCheckBlock);
-    b.local_get(operand);
     makeType(codeGen, testedAgainstType);
-    codeGen.call(translator.stackTraceCurrent.reference);
-    codeGen.call(translator.throwAsCheckError.reference);
-    b.unreachable();
-    b.end();
+    final outputs = codeGen.call(translator.asSubtype.reference);
+    for (final _ in outputs) {
+      b.drop();
+    }
+    b.local_get(operand);
     return operand.type;
   }
 
@@ -594,8 +590,6 @@ class Types {
       b.local_get(b.locals[0]);
       translator.constants.instantiateConstant(function, b,
           TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
-      b.call(translator.functions
-          .getFunction(translator.stackTraceCurrent.reference));
       b.call(translator.functions
           .getFunction(translator.throwAsCheckError.reference));
       b.unreachable();

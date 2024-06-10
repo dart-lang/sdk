@@ -65,8 +65,8 @@ class _TypeError extends _Error implements TypeError {
   }
 
   @pragma("wasm:entry-point")
-  static Never _throwAsCheckError(
-      Object? operand, Type? type, StackTrace stackTrace) {
+  static Never _throwAsCheckError(Object? operand, Type? type) {
+    final stackTrace = StackTrace.current;
     final typeError = _TypeError.fromMessageAndStackTrace(
         "Type '${operand.runtimeType}' is not a subtype of type '$type'"
         " in type cast",
