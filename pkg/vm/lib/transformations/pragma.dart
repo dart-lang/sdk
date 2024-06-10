@@ -22,6 +22,12 @@ const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
 const kWasmEntryPointPragmaName = "wasm:entry-point";
 const kWasmExportPragmaName = "wasm:export";
 
+// Dynamic modules pragmas, recognized both by the VM and dart2wasm
+const kDynModuleExtendablePragmaName = "dyn-module:extendable";
+const kDynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
+const kDynModuleCallablePragmaName = "dyn-module:callable";
+const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";
+
 abstract class ParsedPragma {}
 
 enum PragmaEntryPointType { Default, GetterOnly, SetterOnly, CallOnly }

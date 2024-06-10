@@ -57,6 +57,7 @@ for arg in "$@"; do
     --protobuf-tree-shaker-v2 | \
     --minimal-kernel | \
     --no-embed-sources | \
+    --dynamic-interface=* | \
     -D* )
     GEN_KERNEL_OPTIONS+=("$arg")
     ;;
