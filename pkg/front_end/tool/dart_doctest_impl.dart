@@ -790,8 +790,8 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder =
-          kernelTargetForTesting!.loader.readAsEntryPoint(libraryUri);
+      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader
+          .lookupLoadedLibraryBuilder(libraryUri)!;
 
       kernelTargetForTesting!.loader.resetSeenMessages();
 

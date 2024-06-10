@@ -36,7 +36,62 @@ import 'nullability_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
-abstract class LibraryBuilder implements Builder {
+abstract class CompilationUnit {
+  /// Returns the import uri for the compilation unit.
+  ///
+  /// This is the canonical uri for the compilation unit, for instance
+  /// 'dart:core'.
+  Uri get importUri;
+  Uri get fileUri;
+  bool get isSynthetic;
+
+  /// If true, the library is not supported through the 'dart.library.*' value
+  /// used in conditional imports and `bool.fromEnvironment` constants.
+  bool get isUnsupported;
+
+  Loader get loader;
+
+  /// The [LibraryBuilder] for the library that this compilation unit belongs
+  /// to.
+  ///
+  /// This is only valid after `SourceLoader.resolveParts` has be called.
+  LibraryBuilder get libraryBuilder;
+
+  bool get isPart;
+
+  abstract LibraryBuilder? partOfLibrary;
+
+  /// Returns the [Uri]s for the libraries that this library depend upon, either
+  /// through import or export.
+  Iterable<Uri> get dependencies;
+
+  void recordAccess(
+      CompilationUnit accessor, int charOffset, int length, Uri fileUri);
+
+  void addExporter(LibraryBuilder exporter,
+      List<CombinatorBuilder>? combinators, int charOffset);
+
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
+  ///
+  /// Compared to [localMembersIterator] this also gives access to the name
+  /// that the builders are mapped to.
+  NameIterator<Builder> get localMembersNameIterator;
+
+  /// Add a problem with a severity determined by the severity of the message.
+  ///
+  /// If [fileUri] is null, it defaults to `this.fileUri`.
+  ///
+  /// See `Loader.addMessage` for an explanation of the
+  /// arguments passed to this method.
+  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
+      {bool wasHandled = false,
+      List<LocatedMessage>? context,
+      Severity? severity,
+      bool problemOnLibrary = false});
+}
+
+abstract class LibraryBuilder implements Builder, CompilationUnit {
   Scope get scope;
 
   Scope get exportScope;
@@ -46,14 +101,17 @@ abstract class LibraryBuilder implements Builder {
   @override
   LibraryBuilder get origin;
 
+  @override
   abstract LibraryBuilder? partOfLibrary;
 
   LibraryBuilder get nameOriginBuilder;
 
   abstract bool mayImplementRestrictedTypes;
 
+  @override
   bool get isPart;
 
+  @override
   Loader get loader;
 
   /// Returns the [Library] built by this builder.
@@ -64,15 +122,18 @@ abstract class LibraryBuilder implements Builder {
 
   /// Returns the [Uri]s for the libraries that this library depend upon, either
   /// through import or export.
+  @override
   Iterable<Uri> get dependencies;
 
   /// Returns the import uri for the library.
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
+  @override
   Uri get importUri;
 
   /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
+  @override
   bool get isUnsupported;
 
   /// Returns an iterator of all members (typedefs, classes and members)
@@ -90,6 +151,7 @@ abstract class LibraryBuilder implements Builder {
   ///
   /// Compared to [localMembersIterator] this also gives access to the name
   /// that the builders are mapped to.
+  @override
   NameIterator<Builder> get localMembersNameIterator;
 
   /// [Iterator] for all declarations declared in this library or any of its
@@ -104,6 +166,7 @@ abstract class LibraryBuilder implements Builder {
   /// Duplicates and augmenting members are _not_ included.
   NameIterator<T> fullMemberNameIterator<T extends Builder>();
 
+  @override
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 
@@ -113,6 +176,7 @@ abstract class LibraryBuilder implements Builder {
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
+  @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
@@ -156,8 +220,9 @@ abstract class LibraryBuilder implements Builder {
   /// reported.
   Builder? lookupLocalMember(String name, {bool required = false});
 
+  @override
   void recordAccess(
-      LibraryBuilder accessor, int charOffset, int length, Uri fileUri);
+      CompilationUnit accessor, int charOffset, int length, Uri fileUri);
 
   Nullability get nullable;
 
@@ -372,7 +437,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   void recordAccess(
-      LibraryBuilder accessor, int charOffset, int length, Uri fileUri) {}
+      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
   Nullability get nullable {

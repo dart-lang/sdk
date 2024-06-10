@@ -11,6 +11,7 @@ import 'builder/library_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/prefix_builder.dart';
 
+import 'kernel/load_library_builder.dart';
 import 'kernel/utils.dart' show toKernelCombinators;
 
 import 'combinator.dart' show CombinatorBuilder;
@@ -24,7 +25,7 @@ class Import {
   final SourceLibraryBuilder importer;
 
   /// The library being imported.
-  LibraryBuilder? imported;
+  CompilationUnit? imported;
 
   final PrefixBuilder? prefixBuilder;
 
@@ -78,8 +79,9 @@ class Import {
         prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    NameIterator<Builder> iterator = imported!.exportScope.filteredNameIterator(
-        includeDuplicates: false, includeAugmentations: false);
+    NameIterator<Builder> iterator = imported!.libraryBuilder.exportScope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       String name = iterator.name;
       Builder member = iterator.current;
@@ -113,19 +115,19 @@ class Import {
 PrefixBuilder? createPrefixBuilder(
     String? prefix,
     SourceLibraryBuilder importer,
-    LibraryBuilder? imported,
+    CompilationUnit? imported,
     List<CombinatorBuilder>? combinators,
     bool deferred,
     int charOffset,
     int prefixCharOffset,
     int importIndex) {
   if (prefix == null) return null;
-  LibraryDependency? dependency = null;
+  LoadLibraryBuilder? loadLibraryBuilder;
   if (deferred) {
-    dependency = new LibraryDependency.deferredImport(imported!.library, prefix,
-        combinators: toKernelCombinators(combinators))
-      ..fileOffset = charOffset;
+    loadLibraryBuilder = new LoadLibraryBuilder(importer, prefixCharOffset,
+        imported!, prefix, charOffset, toKernelCombinators(combinators));
   }
-  return new PrefixBuilder(
-      prefix, deferred, importer, dependency, prefixCharOffset, importIndex);
+
+  return new PrefixBuilder(prefix, deferred, importer, loadLibraryBuilder,
+      prefixCharOffset, importIndex);
 }

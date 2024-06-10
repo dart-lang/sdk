@@ -751,7 +751,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       yield export.exported.importUri;
     }
     for (Import import in imports) {
-      LibraryBuilder? imported = import.imported;
+      CompilationUnit? imported = import.imported;
       if (imported != null) {
         yield imported.importUri;
       }
@@ -777,7 +777,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    LibraryBuilder exportedLibrary = loader.read(
+    CompilationUnit exportedLibrary = loader.read(
         resolve(this.importUri, uri, uriOffset), charOffset,
         accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
@@ -810,7 +810,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    LibraryBuilder? builder = null;
+    CompilationUnit? compilationUnit = null;
     Uri? resolvedUri;
     String? nativePath;
     const String nativeExtensionScheme = "dart-ext:";
@@ -828,7 +828,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else {
       resolvedUri = resolve(this.importUri, uri, uriOffset);
-      builder = loader.read(resolvedUri, uriOffset,
+      compilationUnit = loader.read(resolvedUri, uriOffset,
           origin: isAugmentationImport ? this : null,
           accessor: this,
           isAugmentation: isAugmentationImport,
@@ -837,7 +837,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     Import import = new Import(
         this,
-        builder,
+        compilationUnit,
         isAugmentationImport,
         deferred,
         prefix,
@@ -861,12 +861,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         resolve(fileUri, uri, charOffset);
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
-    LibraryBuilder builder = loader.read(resolvedUri, charOffset,
+    CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
         origin: isAugmenting ? origin : null,
         fileUri: newFileUri,
         accessor: this,
         isPatch: isAugmenting);
-    parts.add(new Part(charOffset, builder));
+    parts.add(new Part(charOffset, compilationUnit));
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(<Expression>[], uri)
@@ -1214,6 +1214,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts) {
+    _libraryBuilder = library ?? this;
     if (library != null && parts.isNotEmpty) {
       // If [library] is null, we have already reported a problem that this
       // part is orphaned.
@@ -1226,7 +1227,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
       for (Part part in parts) {
         // Mark this part as used so we don't report it as orphaned.
-        usedParts!.add(part.builder.importUri);
+        usedParts!.add(part.compilationUnit.importUri);
       }
     }
     parts.clear();
@@ -1253,34 +1254,47 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  LibraryBuilder? _libraryBuilder;
+
+  @override
+  LibraryBuilder get libraryBuilder {
+    assert(_libraryBuilder != null,
+        "Library builder for $this has not been computed yet.");
+    return _libraryBuilder!;
+  }
+
   void includeParts(Set<Uri> usedParts) {
+    _libraryBuilder = this;
     Set<Uri> seenParts = new Set<Uri>();
     int index = 0;
     while (index < parts.length) {
       Part part = parts[index];
       bool keepPart = true;
       // TODO(johnniwinther): Use [part.offset] in messages.
-      if (part.builder == this) {
+      if (part.compilationUnit == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
         keepPart = false;
-      } else if (seenParts.add(part.builder.fileUri)) {
-        if (part.builder.partOfLibrary != null) {
-          addProblem(
-              messagePartOfTwoLibraries, -1, noLength, part.builder.fileUri,
+      } else if (seenParts.add(part.compilationUnit.fileUri)) {
+        if (part.compilationUnit.partOfLibrary != null) {
+          addProblem(messagePartOfTwoLibraries, -1, noLength,
+              part.compilationUnit.fileUri,
               context: [
                 messagePartOfTwoLibrariesContext.withLocation(
-                    part.builder.partOfLibrary!.fileUri, -1, noLength),
+                    part.compilationUnit.partOfLibrary!.fileUri, -1, noLength),
                 messagePartOfTwoLibrariesContext.withLocation(
                     this.fileUri, -1, noLength)
               ]);
           keepPart = false;
         } else {
-          usedParts.add(part.builder.importUri);
-          keepPart = _includePart(part.builder, usedParts, part.offset);
+          usedParts.add(part.compilationUnit.importUri);
+          keepPart = _includePart(part.compilationUnit, usedParts, part.offset);
         }
       } else {
-        addProblem(templatePartTwice.withArguments(part.builder.fileUri), -1,
-            noLength, fileUri);
+        addProblem(
+            templatePartTwice.withArguments(part.compilationUnit.fileUri),
+            -1,
+            noLength,
+            fileUri);
         keepPart = false;
       }
       if (keepPart) {
@@ -1291,7 +1305,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  bool _includePart(LibraryBuilder part, Set<Uri> usedParts, int partOffset) {
+  bool _includePart(CompilationUnit part, Set<Uri> usedParts, int partOffset) {
     if (part is SourceLibraryBuilder) {
       if (part.partOfUri != null) {
         if (uriIsValid(part.partOfUri!) && part.partOfUri != importUri) {
@@ -1777,7 +1791,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void recordAccess(
-      LibraryBuilder accessor, int charOffset, int length, Uri fileUri) {
+      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {
     accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
     if (accessProblem != null) {
       addProblem(accessProblem!, charOffset, length, fileUri);
@@ -3881,7 +3895,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (import.deferred && import.prefixBuilder?.dependency != null) {
           libraryDependency = import.prefixBuilder!.dependency!;
         } else {
-          LibraryBuilder imported = import.imported!.origin;
+          LibraryBuilder imported = import.imported!.libraryBuilder.origin;
           Library targetLibrary = imported.library;
           libraryDependency = new LibraryDependency.import(targetLibrary,
               name: import.prefix,
@@ -3894,7 +3908,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Add export
         Export export = exports[exportIndex++];
         LibraryDependency libraryDependency = new LibraryDependency.export(
-            export.exported.library,
+            export.exported.libraryBuilder.library,
             combinators: toKernelCombinators(export.combinators))
           ..fileOffset = export.charOffset;
         library.addDependency(libraryDependency);
@@ -3903,9 +3917,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     for (Part part in parts) {
-      LibraryBuilder builder = part.builder;
-      if (builder is SourceLibraryBuilder) {
-        builder.addDependencies(library, seen);
+      CompilationUnit compilationUnit = part.compilationUnit;
+      if (compilationUnit is SourceLibraryBuilder) {
+        compilationUnit.addDependencies(library, seen);
       }
     }
   }
@@ -6228,7 +6242,7 @@ class GenericFunctionTypeCheck {
 }
 
 class LibraryAccess {
-  final LibraryBuilder accessor;
+  final CompilationUnit accessor;
   final Uri fileUri;
   final int charOffset;
   final int length;
@@ -6339,15 +6353,15 @@ class SourceLibraryBuilderMemberNameIterator<T extends Builder>
 
 class Part {
   final int offset;
-  final LibraryBuilder builder;
+  final CompilationUnit compilationUnit;
 
-  Part(this.offset, this.builder);
+  Part(this.offset, this.compilationUnit);
 
   OffsetMap get offsetMap {
-    if (builder is SourceLibraryBuilder) {
-      return (builder as SourceLibraryBuilder).offsetMap;
+    if (compilationUnit is SourceLibraryBuilder) {
+      return (compilationUnit as SourceLibraryBuilder).offsetMap;
     }
-    assert(false, "No offset map for $builder.");
-    return new OffsetMap(builder.fileUri);
+    assert(false, "No offset map for $compilationUnit.");
+    return new OffsetMap(compilationUnit.fileUri);
   }
 }

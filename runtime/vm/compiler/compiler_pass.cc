@@ -300,8 +300,11 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
 }
 
 FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
-                                     CompilerPassState* pass_state) {
-  INVOKE_PASS(ComputeSSA);
+                                     CompilerPassState* pass_state,
+                                     bool compute_ssa) {
+  if (compute_ssa) {
+    INVOKE_PASS(ComputeSSA);
+  }
   INVOKE_PASS_AOT(ApplyClassIds);
   INVOKE_PASS_AOT(TypePropagation);
   INVOKE_PASS(ApplyICData);

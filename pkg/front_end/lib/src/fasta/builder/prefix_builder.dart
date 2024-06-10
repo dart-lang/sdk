@@ -28,18 +28,18 @@ class PrefixBuilder extends BuilderImpl {
 
   final int importIndex;
 
-  final LibraryDependency? dependency;
+  final LoadLibraryBuilder? loadLibraryBuilder;
 
-  LoadLibraryBuilder? loadLibraryBuilder;
-
-  PrefixBuilder(this.name, this.deferred, this.parent, this.dependency,
+  PrefixBuilder(this.name, this.deferred, this.parent, this.loadLibraryBuilder,
       this.charOffset, this.importIndex) {
-    if (deferred) {
-      loadLibraryBuilder =
-          new LoadLibraryBuilder(parent, dependency!, charOffset);
+    assert(deferred == (loadLibraryBuilder != null),
+        "LoadLibraryBuilder must be provided iff prefix is deferred.");
+    if (loadLibraryBuilder != null) {
       addToExportScope('loadLibrary', loadLibraryBuilder!, charOffset);
     }
   }
+
+  LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
   @override
   Uri get fileUri => parent.fileUri;

@@ -1753,7 +1753,7 @@ worlds:
   bool _knownByCompiler(Uri uri) {
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
         .kernelTargetForTesting!.loader
-        .lookupLibraryBuilder(_getImportUri(uri));
+        .lookupLoadedLibraryBuilder(_getImportUri(uri));
     if (libraryBuilder != null) {
       return true;
     }
@@ -1832,7 +1832,7 @@ worlds:
 
       knownInitialBuilders = <Uri, LibraryBuilder>{
         for (var v in incrementalCompiler
-            .kernelTargetForTesting!.loader.libraryBuilders)
+            .kernelTargetForTesting!.loader.loadedLibraryBuilders)
           v.importUri: v
       };
 

@@ -308,8 +308,8 @@ severity: $severity
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
-      library =
-          currentSourceLoader?.lookupLibraryBuilder(kernelLibrary.importUri);
+      library = currentSourceLoader
+          ?.lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     }
     return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
@@ -318,13 +318,13 @@ severity: $severity
   ExtensionTypeDeclarationBuilder
       computeExtensionTypeBuilderFromTargetExtensionType(
           ExtensionTypeDeclaration extensionType) {
-    Library kernelLibrary = extensionType.enclosingLibrary;
-    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
-    if (library == null) {
-      library =
-          currentSourceLoader?.lookupLibraryBuilder(kernelLibrary.importUri);
+    Library library = extensionType.enclosingLibrary;
+    LibraryBuilder? libraryBuilder = lookupLibraryBuilder(library.importUri);
+    if (libraryBuilder == null) {
+      libraryBuilder =
+          currentSourceLoader?.lookupLoadedLibraryBuilder(library.importUri);
     }
-    return library!.lookupLocalMember(extensionType.name, required: true)
+    return libraryBuilder!.lookupLocalMember(extensionType.name, required: true)
         as ExtensionTypeDeclarationBuilder;
   }
 

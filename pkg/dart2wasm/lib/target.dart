@@ -89,7 +89,7 @@ class ConstantResolver extends Transformer {
 }
 
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = true, this.mode = Mode.regular});
+  WasmTarget({this.removeAsserts = false, this.mode = Mode.regular});
 
   bool removeAsserts;
   Mode mode;

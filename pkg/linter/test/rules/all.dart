@@ -116,6 +116,7 @@ import 'leading_newlines_in_multiline_strings_test.dart'
     as leading_newlines_in_multiline_strings;
 import 'library_annotations_test.dart' as library_annotations;
 import 'library_names_test.dart' as library_names;
+import 'library_prefixes_test.dart' as library_prefixes;
 import 'library_private_types_in_public_api_test.dart'
     as library_private_types_in_public_api;
 import 'lines_longer_than_80_chars_test.dart' as lines_longer_than_80_chars;
@@ -128,6 +129,8 @@ import 'missing_whitespace_between_adjacent_strings_test.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'no_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
 import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
+import 'no_leading_underscores_for_library_prefixes_test.dart'
+    as no_leading_underscores_for_library_prefixes;
 import 'no_leading_underscores_for_local_identifiers_test.dart'
     as no_leading_underscores_for_local_identifiers;
 import 'no_literal_bool_comparisons_test.dart' as no_literal_bool_comparisons;
@@ -146,6 +149,8 @@ import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
 import 'package_names_test.dart' as package_names;
+import 'package_prefixed_library_names_test.dart'
+    as package_prefixed_library_names;
 import 'parameter_assignments_test.dart' as parameter_assignments;
 import 'prefer_adjacent_string_concatenation_test.dart'
     as prefer_adjacent_string_concatenation;
@@ -362,6 +367,7 @@ void main() {
   leading_newlines_in_multiline_strings.main();
   library_annotations.main();
   library_names.main();
+  library_prefixes.main();
   library_private_types_in_public_api.main();
   lines_longer_than_80_chars.main();
   literal_only_boolean_expressions.main();
@@ -370,6 +376,7 @@ void main() {
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
   no_duplicate_case_values.main();
+  no_leading_underscores_for_library_prefixes.main();
   no_leading_underscores_for_local_identifiers.main();
   no_literal_bool_comparisons.main();
   no_logic_in_create_state.main();
@@ -385,6 +392,7 @@ void main() {
   only_throw_errors.main();
   overridden_fields.main();
   package_names.main();
+  package_prefixed_library_names.main();
   parameter_assignments.main();
   prefer_adjacent_string_concatenation.main();
   prefer_asserts_in_initializer_lists.main();

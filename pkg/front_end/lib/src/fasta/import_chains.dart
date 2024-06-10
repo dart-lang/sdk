@@ -97,13 +97,14 @@ abstract class LoadedLibraries {
 
 class LoadedLibrariesImpl implements LoadedLibraries {
   /// The library of the compilation entry point.
-  final LibraryBuilder rootLibrary;
-  final Map<Uri, LibraryBuilder> libraryBuilders = <Uri, LibraryBuilder>{};
+  final CompilationUnit rootCompilationUnit;
+  final Map<Uri, CompilationUnit> compilationUnits = {};
 
   // TODO(johnniwinther): Support multiple entry-points.
-  LoadedLibrariesImpl(this.rootLibrary, Iterable<LibraryBuilder> libraries) {
-    libraries.forEach((LibraryBuilder libraryBuilder) {
-      libraryBuilders[libraryBuilder.importUri] = libraryBuilder;
+  LoadedLibrariesImpl(
+      this.rootCompilationUnit, Iterable<CompilationUnit> compilationUnits) {
+    compilationUnits.forEach((CompilationUnit compilationUnit) {
+      this.compilationUnits[compilationUnit.importUri] = compilationUnit;
     });
   }
 
@@ -112,27 +113,28 @@ class LoadedLibrariesImpl implements LoadedLibraries {
       {required bool callback(Link<Uri> importChainReversed)}) {
     bool aborted = false;
 
-    /// Map from libraries to the set of (unreversed) paths to [targetUri].
-    Map<LibraryBuilder, Iterable<Link<Uri>>> suffixChainMap =
-        <LibraryBuilder, Iterable<Link<Uri>>>{};
+    /// Map from compilation units to the set of (unreversed) paths to
+    /// [targetUri].
+    Map<CompilationUnit, Iterable<Link<Uri>>> suffixChainMap = {};
 
     /// Computes the set of (unreversed) paths to [targetUri].
     ///
-    /// Finds all paths (suffixes) from the current [library] to [targetUri] and
-    /// stores it in [suffixChainMap].
+    /// Finds all paths (suffixes) from the current [compilationUnit] to
+    /// [targetUri] and stores it in [suffixChainMap].
     ///
-    /// For every found suffix it prepends the given [prefix] and the [library]
-    /// and invokes the [callback] with the concatenated chain.
-    void computeSuffixes(LibraryBuilder library, Link<Uri> prefix) {
+    /// For every found suffix it prepends the given [prefix] and the
+    /// [compilationUnit] and invokes the [callback] with the concatenated
+    /// chain.
+    void computeSuffixes(CompilationUnit compilationUnit, Link<Uri> prefix) {
       if (aborted) return;
 
-      Uri canonicalUri = library.importUri;
+      Uri canonicalUri = compilationUnit.importUri;
       prefix = prefix.prepend(canonicalUri);
-      suffixChainMap[library] = const <Link<Uri>>[];
+      suffixChainMap[compilationUnit] = const <Link<Uri>>[];
       List<Link<Uri>> suffixes = [];
       if (targetUri != canonicalUri) {
         /// Process the import (or export) of [importedLibrary].
-        void processLibrary(LibraryBuilder importedLibrary) {
+        void processCompilationUnit(CompilationUnit importedLibrary) {
           bool suffixesArePrecomputed =
               suffixChainMap.containsKey(importedLibrary);
 
@@ -157,12 +159,12 @@ class LoadedLibrariesImpl implements LoadedLibraries {
           }
         }
 
-        for (Uri dependency in library.dependencies) {
-          LibraryBuilder? libraryBuilder = libraryBuilders[dependency];
-          if (libraryBuilder != null) {
-            // Library builder is only available if the dependency has been
+        for (Uri dependency in compilationUnit.dependencies) {
+          CompilationUnit? compilationUnit = compilationUnits[dependency];
+          if (compilationUnit != null) {
+            // The compilation unit is only available if the dependency has been
             // loaded.
-            processLibrary(libraryBuilder);
+            processCompilationUnit(compilationUnit);
           }
           if (aborted) return;
         }
@@ -174,15 +176,16 @@ class LoadedLibrariesImpl implements LoadedLibraries {
         }
         suffixes.add(const Link<Uri>().prepend(canonicalUri));
       }
-      suffixChainMap[library] = suffixes;
+      suffixChainMap[compilationUnit] = suffixes;
       return;
     }
 
-    computeSuffixes(rootLibrary, const Link<Uri>());
+    computeSuffixes(rootCompilationUnit, const Link<Uri>());
   }
 
   @override
-  String toString() => 'root=$rootLibrary,libraries=${libraryBuilders.keys}';
+  String toString() =>
+      'root=$rootCompilationUnit,compilationUnits=${compilationUnits.keys}';
 }
 
 /// [CodeLocation] divides uris into different classes.

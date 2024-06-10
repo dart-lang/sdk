@@ -456,6 +456,16 @@
         "timeout": 240
       }
     },
+    "dart2wasm-asserts-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+      "options": {
+        "host-asserts": true,
+        "enable-asserts": true,
+        "dart2wasm-options": [
+          "-O0"
+        ],
+        "timeout": 60
+      }
+    },
     "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "host-asserts": true,
@@ -2587,6 +2597,38 @@
           ],
           "shards": 10,
           "fileset": "js_platform_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-asserts-linux-chrome"
+      ],
+      "meta": {
+        "description": "dart2wasm tests with assertions enabled"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart2wasm",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "-ndart2wasm-asserts-linux-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
         }
       ]
     },
