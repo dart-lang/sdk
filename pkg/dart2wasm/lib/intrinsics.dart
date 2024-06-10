@@ -445,6 +445,9 @@ class Intrinsifier {
           // without hardcoding this case?
           b.i32_const(0);
           return w.NumType.i32;
+        case "_noSubstitutionIndex":
+          b.i32_const(RuntimeTypeInformation.noSubstitutionIndex);
+          return w.NumType.i32;
         case "_typeRulesSupers":
           final type = translator
               .translateStorageType(types.rtt.typeRulesSupersType)

@@ -645,6 +645,10 @@ class RuntimeTypeInformation {
   /// The Dart type of the [substitutionTableConstant] constant.
   late final DartType substitutionTableConstantType;
 
+  /// This index in the substitution canonicalization table indicates that we do
+  /// not have to substitute anything.
+  static const int noSubstitutionIndex = 0;
+
   /// Type rules supers table of type `const WasmArray<WasmArray<_WasmI32>>`.
   ///
   /// Has an array for every class id in the system. For a particular class id
@@ -687,6 +691,11 @@ class RuntimeTypeInformation {
     // ignore: prefer_collection_literals
     final substitutionTable = LinkedHashMap<InstanceConstant, int>();
 
+    assert(noSubstitutionIndex == 0);
+    assert(substitutionTable.length == noSubstitutionIndex);
+    substitutionTable[translator.constants.makeTypeArray([])] =
+        noSubstitutionIndex;
+
     for (ClassInfo classInfo in translator.classes) {
       ClassInfo superclassInfo = classInfo;
 
@@ -716,10 +725,15 @@ class RuntimeTypeInformation {
             ?.map(types.normalize)
             .toList();
 
-        final substitution =
-            translator.constants.makeTypeArray(typeArguments ?? const []);
-        final substitutionIndex = substitutionTable.putIfAbsent(
-            substitution, () => substitutionTable.length);
+        int substitutionIndex;
+        if (_isIdentitySubstitution(typeArguments)) {
+          substitutionIndex = noSubstitutionIndex;
+        } else {
+          final substitution =
+              translator.constants.makeTypeArray(typeArguments!);
+          substitutionIndex = substitutionTable.putIfAbsent(
+              substitution, () => substitutionTable.length);
+        }
 
         final subclassId = translator.classInfo[subtype.classNode]!.classId;
         (subtypeMap[subclassId] ??= {})[superclassInfo.classId] =
@@ -727,6 +741,35 @@ class RuntimeTypeInformation {
       }
     }
     return (subtypeMap, substitutionTable);
+  }
+
+  /// Whether the substitution [typeArguments] would cause a NOP substitution.
+  ///
+  /// We have a NOP substitution if one of the following conditions apply:
+  ///
+  ///   - the classes are unrelated
+  ///   - the super class is not generic
+  ///   - the type arguments from subclass are the same as for the super class
+  ///
+  bool _isIdentitySubstitution(List<DartType>? typeArguments) {
+    // This happen if the classes are not related to each other.
+    if (typeArguments == null) return true;
+
+    for (int i = 0; i < typeArguments.length; ++i) {
+      final typeArgument = typeArguments[i];
+      if (typeArgument is! TypeParameterType) {
+        return false;
+      }
+      if (typeArgument.declaredNullability == Nullability.nullable) {
+        return false;
+      }
+      final int environmentIndex =
+          types.interfaceTypeEnvironment.lookup(typeArgument.parameter);
+      if (i != environmentIndex) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void _initSubstitutionTableConstant(
