@@ -150,7 +150,9 @@ class SourceLoader extends Loader {
 
   final SourceLoaderDataForTesting? dataForTesting;
 
-  final Map<Uri, LibraryBuilder> _builders = <Uri, LibraryBuilder>{};
+  final Map<Uri, CompilationUnit> _compilationUnits = {};
+
+  Map<Uri, LibraryBuilder> _loadedLibraryBuilders = <Uri, LibraryBuilder>{};
 
   List<SourceLibraryBuilder>? _sourceLibraryBuilders;
 
@@ -205,9 +207,17 @@ class SourceLoader extends Loader {
 
   // TODO(johnniwinther): Replace with a `singleRoot`.
   // See also https://dart-review.googlesource.com/c/sdk/+/273381.
-  LibraryBuilder? get firstRoot {
+  LibraryBuilder? get rootLibrary {
     for (Uri uri in roots) {
-      LibraryBuilder? builder = _builders[uri];
+      LibraryBuilder? builder = lookupLoadedLibraryBuilder(uri);
+      if (builder != null) return builder;
+    }
+    return null;
+  }
+
+  CompilationUnit? get rootCompilationUnit {
+    for (Uri uri in roots) {
+      CompilationUnit? builder = _compilationUnits[uri];
       if (builder != null) return builder;
     }
     return null;
@@ -226,16 +236,31 @@ class SourceLoader extends Loader {
       : dataForTesting =
             retainDataForTesting ? new SourceLoaderDataForTesting() : null;
 
-  bool containsLibraryBuilder(Uri importUri) =>
-      _builders.containsKey(importUri);
+  bool containsLoadedLibraryBuilder(Uri importUri) =>
+      lookupLoadedLibraryBuilder(importUri) != null;
 
-  LibraryBuilder? lookupLibraryBuilder(Uri importUri) => _builders[importUri];
+  LibraryBuilder? lookupLoadedLibraryBuilder(Uri importUri) {
+    return _loadedLibraryBuilders[importUri];
+  }
 
-  /// The [LibraryBuilder]s for libraries built from source or loaded from dill.
-  ///
-  /// Before [resolveParts] have been called, this includes parts and
-  /// augmentations.
-  Iterable<LibraryBuilder> get libraryBuilders => _builders.values;
+  CompilationUnit? lookupCompilationUnit(Uri importUri) =>
+      _compilationUnits[importUri];
+
+  CompilationUnit? lookupCompilationUnitByFileUri(Uri fileUri) {
+    // TODO(johnniwinther): Store compilation units in a map by file URI?
+    for (CompilationUnit compilationUnit in _compilationUnits.values) {
+      if (compilationUnit.fileUri == fileUri) {
+        return compilationUnit;
+      }
+    }
+    return null;
+  }
+
+  Iterable<CompilationUnit> get compilationUnits => _compilationUnits.values;
+
+  Iterable<LibraryBuilder> get loadedLibraryBuilders {
+    return _loadedLibraryBuilders.values;
+  }
 
   /// The [SourceLibraryBuilder]s for the libraries built from source by this
   /// source loader.
@@ -258,20 +283,29 @@ class SourceLoader extends Loader {
     _sourceLibraryBuilders!.clear();
   }
 
-  Iterable<Uri> get libraryImportUris => _builders.keys;
+  Iterable<Uri> get loadedLibraryImportUris => _loadedLibraryBuilders.keys;
 
-  void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
+  void registerLoadedLibraryBuilder(LibraryBuilder libraryBuilder) {
+    assert(!libraryBuilder.isPart, "Unexpected part $libraryBuilder.");
+    assert(!libraryBuilder.isAugmenting,
+        "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
     _markDartLibraries(uri, libraryBuilder);
-    _builders[uri] = libraryBuilder;
+    _compilationUnits[uri] = libraryBuilder;
+    _loadedLibraryBuilders[uri] = libraryBuilder;
   }
 
-  LibraryBuilder? deregisterLibraryBuilder(Uri importUri) {
-    return _builders.remove(importUri);
+  LibraryBuilder? deregisterLoadedLibraryBuilder(Uri importUri) {
+    LibraryBuilder? libraryBuilder = _loadedLibraryBuilders.remove(importUri);
+    if (libraryBuilder != null) {
+      _compilationUnits.remove(importUri);
+    }
+    return libraryBuilder;
   }
 
   void clearLibraryBuilders() {
-    _builders.clear();
+    _compilationUnits.clear();
+    _loadedLibraryBuilders.clear();
   }
 
   /// Run [f] with [uri] and [fileOffset] as the current uri/offset used for
@@ -356,7 +390,8 @@ class SourceLoader extends Loader {
     }
     String libraryName = DartLibrarySupport.getDartLibraryName(dottedName);
     Uri uri = new Uri(scheme: "dart", path: libraryName);
-    LibraryBuilder? library = lookupLibraryBuilder(uri);
+    // TODO(johnniwinther): This should really be libraries only.
+    CompilationUnit? library = lookupCompilationUnit(uri);
     // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
     // point? And does it matter?
     library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
@@ -555,7 +590,7 @@ class SourceLoader extends Loader {
   /// as part [uri], and [charOffset] is the location of the corresponding
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
-  LibraryBuilder read(Uri uri, int charOffset,
+  CompilationUnit read(Uri uri, int charOffset,
       {Uri? fileUri,
       required LibraryBuilder accessor,
       LibraryBuilder? origin,
@@ -563,7 +598,7 @@ class SourceLoader extends Loader {
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
       bool isPatch = false}) {
-    LibraryBuilder libraryBuilder = _read(uri,
+    CompilationUnit libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
         referencesFromIndex: referencesFromIndex,
@@ -587,12 +622,12 @@ class SourceLoader extends Loader {
   ///
   /// This differs from [read] in that there is no accessor library, meaning
   /// that access to platform private libraries cannot be granted.
-  LibraryBuilder readAsEntryPoint(
+  CompilationUnit readAsEntryPoint(
     Uri uri, {
     Uri? fileUri,
     IndexedLibrary? referencesFromIndex,
   }) {
-    LibraryBuilder libraryBuilder = _read(uri,
+    CompilationUnit libraryBuilder = _read(uri,
         fileUri: fileUri,
         referencesFromIndex: referencesFromIndex,
         addAsRoot: true,
@@ -603,7 +638,7 @@ class SourceLoader extends Loader {
     // handle errors reported without an accessor, since the messages are not
     // associated with a library. This currently has the side effect that
     // the first library is the accessor of itself.
-    LibraryBuilder? firstLibrary = firstRoot;
+    CompilationUnit? firstLibrary = rootCompilationUnit;
     if (firstLibrary != null) {
       libraryBuilder.recordAccess(
           firstLibrary, -1, noLength, firstLibrary.fileUri);
@@ -631,7 +666,7 @@ class SourceLoader extends Loader {
     return true;
   }
 
-  LibraryBuilder _read(Uri uri,
+  CompilationUnit _read(Uri uri,
       {Uri? fileUri,
       LibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
@@ -639,13 +674,13 @@ class SourceLoader extends Loader {
       required bool isAugmentation,
       required bool isPatch,
       required bool addAsRoot}) {
-    LibraryBuilder? libraryBuilder = _builders[uri];
-    if (libraryBuilder == null) {
+    CompilationUnit? compilationUnit = _compilationUnits[uri];
+    if (compilationUnit == null) {
       if (target.dillTarget.isLoaded) {
-        libraryBuilder = _lookupDillLibraryBuilder(uri);
+        compilationUnit = _lookupDillLibraryBuilder(uri);
       }
-      if (libraryBuilder == null) {
-        libraryBuilder = _createSourceLibraryBuilder(
+      if (compilationUnit == null) {
+        compilationUnit = _createSourceLibraryBuilder(
             uri,
             fileUri,
             origin as SourceLibraryBuilder?,
@@ -655,9 +690,9 @@ class SourceLoader extends Loader {
             isPatch,
             addAsRoot);
       }
-      _builders[uri] = libraryBuilder;
+      _compilationUnits[uri] = compilationUnit;
     }
-    return libraryBuilder;
+    return compilationUnit;
   }
 
   void _ensureCoreLibrary() {
@@ -688,12 +723,9 @@ class SourceLoader extends Loader {
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
-      for (LibraryBuilder library in libraryBuilders) {
+      for (CompilationUnit library in compilationUnits) {
         if (library.loader == this) {
           libraryCount++;
-          if (library is SourceLibraryBuilder) {
-            libraryCount += library.augmentationLibraries?.length ?? 0;
-          }
         }
       }
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
@@ -1028,7 +1060,7 @@ severity: $severity
       _nnbdMismatchLibraries = null;
     }
     if (_unavailableDartLibraries.isNotEmpty) {
-      LibraryBuilder? rootLibrary = firstRoot;
+      CompilationUnit? rootLibrary = rootCompilationUnit;
       LoadedLibraries? loadedLibraries;
       for (SourceLibraryBuilder libraryBuilder in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
@@ -1037,7 +1069,7 @@ severity: $severity
             templateUnavailableDartLibrary.withArguments(importUri);
         if (rootLibrary != null) {
           loadedLibraries ??=
-              new LoadedLibrariesImpl(rootLibrary, libraryBuilders);
+              new LoadedLibrariesImpl(rootLibrary, compilationUnits);
           Set<String> importChain = computeImportChainsFor(
               rootLibrary.importUri, loadedLibraries, importUri,
               verbose: false);
@@ -1166,9 +1198,10 @@ severity: $severity
         allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
     for (Part part in library.parts) {
-      assert(part.builder.partOfLibrary == library,
-          "Part ${part.builder} is not part of ${library}.");
-      Token tokens = await tokenize(part.builder as SourceLibraryBuilder,
+      assert(part.compilationUnit.partOfLibrary == library,
+          "Part ${part.compilationUnit} is not part of ${library}.");
+      Token tokens = await tokenize(
+          part.compilationUnit as SourceLibraryBuilder,
           suppressLexicalErrors: true);
       DietListener listener = createDietListener(library, part.offsetMap);
       DietParser parser = new DietParser(listener,
@@ -1270,64 +1303,70 @@ severity: $severity
   }
 
   void resolveParts() {
-    List<Uri> parts = <Uri>[];
+    Map<Uri, SourceLibraryBuilder> parts = {};
     List<SourceLibraryBuilder> libraries = [];
     List<SourceLibraryBuilder> sourceLibraries = [];
     List<SourceLibraryBuilder> augmentationLibraries = [];
-    _builders.forEach((Uri uri, LibraryBuilder library) {
+    _compilationUnits.forEach((Uri uri, CompilationUnit library) {
       if (library.loader == this && library is SourceLibraryBuilder) {
         if (library.isPart) {
-          parts.add(uri);
+          parts[uri] = library;
         } else {
           if (library.isAugmenting) {
             augmentationLibraries.add(library);
           } else {
             sourceLibraries.add(library);
+            _loadedLibraryBuilders[uri] = library;
           }
           libraries.add(library);
         }
+      } else {
+        _loadedLibraryBuilders[uri] = library as DillLibraryBuilder;
       }
     });
     Set<Uri> usedParts = new Set<Uri>();
     for (SourceLibraryBuilder library in libraries) {
       library.includeParts(usedParts);
     }
-    for (Uri uri in parts) {
+    for (MapEntry<Uri, SourceLibraryBuilder> entry in parts.entries) {
+      Uri uri = entry.key;
+      SourceLibraryBuilder part = entry.value;
       if (usedParts.contains(uri)) {
-        LibraryBuilder? part = _builders.remove(uri);
+        _compilationUnits.remove(uri);
         if (roots.contains(uri)) {
           roots.remove(uri);
-          roots.add(part!.partOfLibrary!.importUri);
+          roots.add(part.partOfLibrary!.importUri);
         }
       } else {
-        SourceLibraryBuilder part =
-            lookupLibraryBuilder(uri) as SourceLibraryBuilder;
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         part.validatePart(null, null);
         sourceLibraries.add(part);
+        _loadedLibraryBuilders[uri] = part;
       }
     }
     ticker.logMs("Resolved parts");
 
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      _builders.remove(augmentationLibrary.fileUri);
+      _compilationUnits.remove(augmentationLibrary.fileUri);
       augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
       augmentationLibrary.applyAugmentations();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
-        libraryBuilders.every((library) => !library.isAugmenting),
+        _compilationUnits.values.every((library) =>
+            !(library is SourceLibraryBuilder && library.isAugmenting)),
         "Augmentation library found in libraryBuilders: "
-        "${libraryBuilders.where((library) => library.isAugmenting)}.");
+        // ignore: lines_longer_than_80_chars
+        "${_compilationUnits.values.where((library) => !(library is SourceLibraryBuilder && library.isAugmenting))}.");
     assert(
         sourceLibraries.every((library) => !library.isAugmenting),
         "Augmentation library found in sourceLibraryBuilders: "
         "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
-        libraryBuilders.every((library) =>
+        _compilationUnits.values.every((library) =>
             library.loader != this || sourceLibraries.contains(library)),
         "Source library not found in sourceLibraryBuilders:"
-        "${libraryBuilders.where((library) => // force line break
+        "${_compilationUnits.values.where((library) => // force line break
             library.loader == this && !sourceLibraries.contains(library))}");
     ticker.logMs("Applied augmentations");
   }
@@ -1390,31 +1429,6 @@ severity: $severity
       exportee.exporters.clear();
     }
     ticker.logMs("Computed library scopes");
-    // debugPrintExports();
-  }
-
-  void debugPrintExports() {
-    // TODO(sigmund): should be `covariant SourceLibraryBuilder`.
-    _builders.forEach((Uri uri, dynamic l) {
-      SourceLibraryBuilder library = l;
-      Set<Builder> members = new Set<Builder>();
-      Iterator<Builder> memberIterator = library.localMembersIterator;
-      while (memberIterator.moveNext()) {
-        members.add(memberIterator.current);
-      }
-      List<String> exports = <String>[];
-      NameIterator<Builder> exportsIterator = library.exportScope
-          .filteredNameIterator(
-              includeDuplicates: true, includeAugmentations: false);
-      while (exportsIterator.moveNext()) {
-        if (!members.contains(exportsIterator.current)) {
-          exports.add(exportsIterator.name);
-        }
-      }
-      if (exports.isNotEmpty) {
-        print("$uri exports $exports");
-      }
-    });
   }
 
   /// Resolve [NamedTypeBuilder]s in [libraryBuilders].
@@ -1431,7 +1445,8 @@ severity: $severity
   ///
   /// If no macros need precompilation, `null` is returned.
   NeededPrecompilations? computeMacroDeclarations() {
-    LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
+    LibraryBuilder? macroLibraryBuilder =
+        lookupLoadedLibraryBuilder(macroLibraryUri);
     if (macroLibraryBuilder == null) {
       // The macro library might not be directly imported by the source
       // libraries, so we look up in the dill loader as well.
@@ -1520,7 +1535,7 @@ severity: $severity
       return layeredComponents;
     }
 
-    Graph<Uri> graph = new BuilderGraph(_builders);
+    Graph<Uri> graph = new BuilderGraph(_compilationUnits);
 
     /// Libraries that are considered precompiled. These are libraries that are
     /// either given as precompiled macro libraries, or libraries that these
@@ -1537,7 +1552,7 @@ severity: $severity
       }
     }
 
-    for (LibraryBuilder builder in _builders.values) {
+    for (CompilationUnit builder in _compilationUnits.values) {
       if (builder.importUri.isScheme("dart") && !builder.isSynthetic) {
         // Assume the platform is precompiled.
         addPrecompiledLibrary(builder.importUri);
@@ -2446,11 +2461,12 @@ severity: $severity
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      if (!libraryBuilder.isAugmenting &&
-          (libraryBuilder.loader == this ||
-              libraryBuilder.importUri.isScheme("dart") ||
-              roots.contains(libraryBuilder.importUri))) {
+    for (LibraryBuilder libraryBuilder in loadedLibraryBuilders) {
+      assert(!libraryBuilder.isAugmenting,
+          "Unexpected augmentation library $libraryBuilder.");
+      if ((libraryBuilder.loader == this ||
+          libraryBuilder.importUri.isScheme("dart") ||
+          roots.contains(libraryBuilder.importUri))) {
         if (libraries.add(libraryBuilder.library)) {
           workList.add(libraryBuilder.library);
         }
@@ -2919,7 +2935,7 @@ severity: $severity
     _hierarchyBuilder = null;
     _membersBuilder = null;
     _typeInferenceEngine = null;
-    _builders.clear();
+    _compilationUnits.clear();
     libraries.clear();
     sourceBytes.clear();
     target.releaseAncillaryResources();
@@ -2929,12 +2945,14 @@ severity: $severity
 
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
-    Library kernelLibrary = cls.enclosingLibrary;
-    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
-    if (library == null) {
+    Library library = cls.enclosingLibrary;
+    LibraryBuilder? libraryBuilder =
+        lookupLoadedLibraryBuilder(library.importUri);
+    if (libraryBuilder == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
-    return library.lookupLocalMember(cls.name, required: true) as ClassBuilder;
+    return libraryBuilder.lookupLocalMember(cls.name, required: true)
+        as ClassBuilder;
   }
 
   @override
@@ -2942,7 +2960,8 @@ severity: $severity
       computeExtensionTypeBuilderFromTargetExtensionType(
           ExtensionTypeDeclaration extensionType) {
     Library kernelLibrary = extensionType.enclosingLibrary;
-    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
+    LibraryBuilder? library =
+        lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
       return target.dillTarget.loader
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);

@@ -21,56 +21,57 @@ import 'source/source_library_builder.dart' show Part, SourceLibraryBuilder;
 import 'incremental_compiler.dart' show getPartUri;
 
 class BuilderGraph implements Graph<Uri> {
-  final Map<Uri, LibraryBuilder> builders;
+  final Map<Uri, CompilationUnit> compilationUnits;
 
   final Map<Uri, List<Uri>> _neighborsCache = {};
 
-  BuilderGraph(this.builders);
+  BuilderGraph(this.compilationUnits);
 
   @override
-  Iterable<Uri> get vertices => builders.keys;
+  Iterable<Uri> get vertices => compilationUnits.keys;
 
   List<Uri> _computeNeighborsOf(Uri vertex) {
     List<Uri> neighbors = [];
-    LibraryBuilder? library = builders[vertex];
-    if (library == null) {
+    CompilationUnit? compilationUnit = compilationUnits[vertex];
+    if (compilationUnit == null) {
       throw "Library not found: $vertex";
     }
-    if (library is SourceLibraryBuilder) {
-      for (Import import in library.imports) {
+    if (compilationUnit is SourceLibraryBuilder) {
+      for (Import import in compilationUnit.imports) {
         // 'imported' can be null for fake imports, such as dart-ext:.
         if (import.imported != null) {
           Uri uri = import.imported!.importUri;
-          if (builders.containsKey(uri)) {
+          if (compilationUnits.containsKey(uri)) {
             neighbors.add(uri);
           }
         }
       }
-      for (Export export in library.exports) {
+      for (Export export in compilationUnit.exports) {
         Uri uri = export.exported.importUri;
-        if (builders.containsKey(uri)) {
+        if (compilationUnits.containsKey(uri)) {
           neighbors.add(uri);
         }
       }
-      for (Part part in library.parts) {
-        Uri uri = part.builder.importUri;
-        if (builders.containsKey(uri)) {
+      for (Part part in compilationUnit.parts) {
+        Uri uri = part.compilationUnit.importUri;
+        if (compilationUnits.containsKey(uri)) {
           neighbors.add(uri);
         }
       }
-    } else if (library is DillLibraryBuilder) {
+    } else if (compilationUnit is DillLibraryBuilder) {
       // Imports and exports
-      for (LibraryDependency dependency in library.library.dependencies) {
+      for (LibraryDependency dependency
+          in compilationUnit.library.dependencies) {
         Uri uri = dependency.targetLibrary.importUri;
-        if (builders.containsKey(uri)) {
+        if (compilationUnits.containsKey(uri)) {
           neighbors.add(uri);
         }
       }
 
       // Parts
-      for (LibraryPart part in library.library.parts) {
-        Uri uri = getPartUri(library.importUri, part);
-        if (builders.containsKey(uri)) {
+      for (LibraryPart part in compilationUnit.library.parts) {
+        Uri uri = getPartUri(compilationUnit.importUri, part);
+        if (compilationUnits.containsKey(uri)) {
           neighbors.add(uri);
         }
       }

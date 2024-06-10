@@ -73,6 +73,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
+  LibraryBuilder get libraryBuilder => this;
+
+  @override
   LibraryBuilder get origin => this;
 
   @override

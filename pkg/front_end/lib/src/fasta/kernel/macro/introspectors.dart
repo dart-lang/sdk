@@ -673,7 +673,8 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
 
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
-    LibraryBuilder? libraryBuilder = sourceLoader.lookupLibraryBuilder(library);
+    LibraryBuilder? libraryBuilder =
+        sourceLoader.lookupLoadedLibraryBuilder(library);
     if (libraryBuilder == null) {
       return new Future.error(
           new macro.MacroImplementationExceptionImpl(

@@ -1478,7 +1478,7 @@ class BodyBuilder extends StackListenerImpl
     if (member == null) return;
     Library ensureLibraryLoaded = member.enclosingLibrary;
     LibraryBuilder? builder = libraryBuilder.loader
-            .lookupLibraryBuilder(ensureLibraryLoaded.importUri) ??
+            .lookupLoadedLibraryBuilder(ensureLibraryLoaded.importUri) ??
         libraryBuilder.loader.target.dillTarget.loader
             .lookupLibraryBuilder(ensureLibraryLoaded.importUri);
     if (builder is DillLibraryBuilder) {

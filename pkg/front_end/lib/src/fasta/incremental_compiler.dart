@@ -80,7 +80,7 @@ import 'builder/declaration_builders.dart'
         ExtensionTypeDeclarationBuilder,
         TypeDeclarationBuilder;
 import 'builder/field_builder.dart' show FieldBuilder;
-import 'builder/library_builder.dart' show LibraryBuilder;
+import 'builder/library_builder.dart' show CompilationUnit, LibraryBuilder;
 import 'builder/member_builder.dart' show MemberBuilder;
 import 'builder/name_iterator.dart' show NameIterator;
 import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
@@ -105,7 +105,7 @@ import 'scope.dart' show Scope, ScopeKind;
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart'
-    show ImplicitLanguageVersion, Part, SourceLibraryBuilder;
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 import 'source/source_loader.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
@@ -226,8 +226,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Returns the [Library] with the given [importUri] from the most recent
   /// compilation.
-  Library? lookupLibrary(Uri importUri) =>
-      _lastGoodKernelTarget?.loader.lookupLibraryBuilder(importUri)?.library;
+  Library? lookupLibrary(Uri importUri) => _lastGoodKernelTarget?.loader
+      .lookupLoadedLibraryBuilder(importUri)
+      ?.library;
 
   void _enableExperimentsBasedOnEnvironment({Set<String>? enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
@@ -316,7 +317,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       if (lastGoodKernelTarget != null) {
         _ticker.logMs("Decided to reuse ${reusedLibraries.length}"
-            " of ${lastGoodKernelTarget.loader.libraryBuilders.length}"
+            " of ${lastGoodKernelTarget.loader.loadedLibraryBuilders.length}"
             " libraries");
       }
 
@@ -337,7 +338,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
         currentKernelTarget = _setupNewKernelTarget(c, uriTranslator, hierarchy,
             reusedLibraries, experimentalInvalidation, entryPoints);
-        Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
+        Map<LibraryBuilder, List<CompilationUnit>>? rebuildBodiesMap =
             _experimentalInvalidationCreateRebuildBodiesBuilders(
                 currentKernelTarget, experimentalInvalidation, uriTranslator);
         entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
@@ -547,7 +548,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       DillLibraryBuilder dillBuilder =
           _dillLoadedData!.loader.appendLibrary(builder.library);
-      nextGoodKernelTarget.loader.registerLibraryBuilder(dillBuilder);
+      nextGoodKernelTarget.loader.registerLoadedLibraryBuilder(dillBuilder);
       _userBuilders![builder.importUri] = dillBuilder;
       newDillLibraryBuilders.add(builder.library);
       changed = true;
@@ -610,18 +611,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   bool _checkEquivalentScopes(
       SourceLoader sourceLoader, DillLoader dillLoader) {
-    // TODO(johnniwinther): Use [SourceLoader.sourceLibraryBuilders] here.
-    // Currently this causes a failure in incremental_dartino_suite.dart.
-    for (LibraryBuilder sourceLibraryBuilder in sourceLoader.libraryBuilders) {
-      if (sourceLibraryBuilder is SourceLibraryBuilder) {
-        Uri uri = sourceLibraryBuilder.importUri;
-        DillLibraryBuilder dillLibraryBuilder =
-            dillLoader.lookupLibraryBuilder(uri)!;
-        assert(
-            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) ==
-                null,
-            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder));
-      }
+    for (SourceLibraryBuilder sourceLibraryBuilder
+        in sourceLoader.sourceLibraryBuilders) {
+      Uri uri = sourceLibraryBuilder.importUri;
+      DillLibraryBuilder dillLibraryBuilder =
+          dillLoader.lookupLibraryBuilder(uri)!;
+      assert(
+          _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) ==
+              null,
+          _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder));
     }
     return true;
   }
@@ -791,18 +789,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Fill in the replacement maps that describe the replacements that need to
   /// happen because of experimental invalidation.
   void _experimentalInvalidationFillReplacementMaps(
-      Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap,
+      Map<LibraryBuilder, List<CompilationUnit>> rebuildBodiesMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap) {
-    for (MapEntry<LibraryBuilder, List<LibraryBuilder>> entry
+    for (MapEntry<LibraryBuilder, List<CompilationUnit>> entry
         in rebuildBodiesMap.entries) {
       Map<String, Builder> childReplacementMap = {};
       Map<String, Builder> childReplacementSettersMap = {};
-      List<LibraryBuilder> builders = rebuildBodiesMap[entry.key]!;
+      List<CompilationUnit> compilationUnits = rebuildBodiesMap[entry.key]!;
       replacementMap[entry.key] = childReplacementMap;
       replacementSettersMap[entry.key] = childReplacementSettersMap;
-      for (LibraryBuilder builder in builders) {
-        NameIterator iterator = builder.localMembersNameIterator;
+      for (CompilationUnit compilationUnit in compilationUnits) {
+        NameIterator iterator = compilationUnit.localMembersNameIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
           if (childBuilder is SourceExtensionBuilder &&
@@ -818,9 +816,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           assert(
               !map.containsKey(name),
-              "Unexpected double-entry for $name in ${builder.importUri} "
-              "(org from ${entry.key.importUri}): $childBuilder and "
-              "${map[name]}");
+              "Unexpected double-entry for $name in "
+              "${compilationUnit.importUri} (org from ${entry.key.importUri}): "
+              "$childBuilder and ${map[name]}");
           map[name] = childBuilder;
         }
       }
@@ -831,24 +829,24 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// be rebuild special, namely they have to be
   /// [currentKernelTarget.loader.read] with references from the original
   /// [Library] for things to work.
-  Map<LibraryBuilder, List<LibraryBuilder>>
+  Map<LibraryBuilder, List<CompilationUnit>>
       _experimentalInvalidationCreateRebuildBodiesBuilders(
           IncrementalKernelTarget currentKernelTarget,
           ExperimentalInvalidation? experimentalInvalidation,
           UriTranslator uriTranslator) {
     // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
-    // builders based on the underlying libraries.
-    // Maps from old library builder to list of new library builder(s).
-    Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap =
-        new Map<LibraryBuilder, List<LibraryBuilder>>.identity();
+    // compilation units based on the underlying libraries.
+    // Maps from old library builder to list of new compilation unit(s).
+    Map<LibraryBuilder, List<CompilationUnit>> rebuildBodiesMap =
+        new Map<LibraryBuilder, List<CompilationUnit>>.identity();
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
-        LibraryBuilder newBuilder = currentKernelTarget.loader.readAsEntryPoint(
-            library.importUri,
-            fileUri: library.fileUri,
-            referencesFromIndex: new IndexedLibrary(library.library));
-        List<LibraryBuilder> builders = [newBuilder];
-        rebuildBodiesMap[library] = builders;
+        CompilationUnit newMainCompilationUnit = currentKernelTarget.loader
+            .readAsEntryPoint(library.importUri,
+                fileUri: library.fileUri,
+                referencesFromIndex: new IndexedLibrary(library.library));
+        List<CompilationUnit> compilationUnits = [newMainCompilationUnit];
+        rebuildBodiesMap[library] = compilationUnits;
         for (LibraryPart part in library.library.parts) {
           // We need to pass the reference to make any class, procedure etc
           // overwrite correctly, but the library itself should  not be
@@ -857,13 +855,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           Uri partUri = getPartUri(library.importUri, part);
           Uri? fileUri =
               uriTranslator.getPartFileUri(library.library.fileUri, part);
-          LibraryBuilder newPartBuilder = currentKernelTarget.loader.read(
-              partUri, -1,
-              accessor: library,
-              fileUri: fileUri,
-              referencesFromIndex: new IndexedLibrary(library.library),
-              referenceIsPartOwner: true);
-          builders.add(newPartBuilder);
+          CompilationUnit newPartCompilationUnit = currentKernelTarget.loader
+              .read(partUri, -1,
+                  accessor: library,
+                  fileUri: fileUri,
+                  referencesFromIndex: new IndexedLibrary(library.library),
+                  referenceIsPartOwner: true);
+          compilationUnits.add(newPartCompilationUnit);
         }
       }
     }
@@ -875,7 +873,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// didn't do anything special.
   void _experimentalInvalidationPatchUpScopes(
       ExperimentalInvalidation? experimentalInvalidation,
-      Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap) {
+      Map<LibraryBuilder, List<CompilationUnit>> rebuildBodiesMap) {
     if (experimentalInvalidation != null) {
       // Maps from old library builder to map of new content.
       Map<LibraryBuilder, Map<String, Builder>> replacementMap = {};
@@ -892,7 +890,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           builder.clearExtensionsInScopeCache();
           for (Import import in builder.imports) {
             assert(import.importer == builder);
-            List<LibraryBuilder>? replacements =
+            List<CompilationUnit>? replacements =
                 rebuildBodiesMap[import.imported];
             if (replacements != null) {
               import.imported = replacements.first;
@@ -904,7 +902,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           for (Export export in builder.exports) {
             assert(export.exporter == builder);
-            List<LibraryBuilder>? replacements =
+            List<CompilationUnit>? replacements =
                 rebuildBodiesMap[export.exported];
 
             if (replacements != null) {
@@ -989,7 +987,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<bool> seenModes = [false, false, false, false];
     for (LibraryBuilder library in reusedLibraries) {
       seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
-      kernelTarget.loader.registerLibraryBuilder(library);
+      kernelTarget.loader.registerLoadedLibraryBuilder(library);
     }
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
@@ -1716,7 +1714,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.isScheme("package")) continue;
       LibraryBuilder? builder =
-          currentKernelTarget.loader.deregisterLibraryBuilder(uri);
+          currentKernelTarget.loader.deregisterLoadedLibraryBuilder(uri);
       if (builder != null) {
         cleanedUpBuilders.add(builder);
         Library lib = builder.library;
@@ -1788,7 +1786,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Uri? partImportUri = uriToSource[partFileUri]?.importUri;
         if (partImportUri != null &&
             lastGoodKernelTarget!.loader
-                .containsLibraryBuilder(partImportUri)) {
+                .containsLoadedLibraryBuilder(partImportUri)) {
           continue;
         }
       } else if (reusedResult != null) {
@@ -1839,9 +1837,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Map<String, DartType>.of(inputDefinitions);
 
     return await context.runInContext((_) async {
-      // TODO(jensj): We should probably allow for this not being an import uri.
-      LibraryBuilder libraryBuilder =
-          lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
+      CompilationUnit? compilationUnit =
+          lastGoodKernelTarget!.loader.lookupCompilationUnit(libraryUri);
+      compilationUnit ??= lastGoodKernelTarget.loader
+          .lookupCompilationUnitByFileUri(libraryUri);
+      if (compilationUnit == null) {
+        // TODO(johnniwinther): Report an error?
+        return null;
+      }
+      LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -2174,15 +2178,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         invalidatedImportUris.add(uri);
       }
       if (libraryBuilder is SourceLibraryBuilder) {
-        // TODO(jensj): This shouldn't be possible anymore.
-        for (Part part in libraryBuilder.parts) {
-          partUriToParent[part.builder.importUri] = libraryBuilder;
-          partUriToParent[part.builder.fileUri] = libraryBuilder;
-          if (isInvalidated(part.builder.importUri, part.builder.fileUri)) {
-            invalidatedImportUris.add(part.builder.importUri);
-            builders[part.builder.importUri] = part.builder;
-          }
-        }
+        assert(false, "Unexpected SourceLibraryBuilder $libraryBuilder");
       } else if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryPart part in libraryBuilder.library.parts) {
           Uri partUri = getPartUri(libraryBuilder.importUri, part);
@@ -2209,7 +2205,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // [lastGoodKernelTarget] already contains the builders from
       // [userBuilders].
       for (LibraryBuilder libraryBuilder
-          in lastGoodKernelTarget.loader.libraryBuilders) {
+          in lastGoodKernelTarget.loader.loadedLibraryBuilders) {
         addBuilderAndInvalidateUris(libraryBuilder.importUri, libraryBuilder);
       }
     } else {
@@ -2269,7 +2265,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // https://dart-review.googlesource.com/47442 lands.
       if (builder.isAugmenting) continue;
       if (!seenUris.add(builder.importUri)) continue;
-      reusedLibraries.add(builder);
+      reusedLibraries.add(builder.libraryBuilder);
     }
     return new ReusageResult(notReusedLibraries, directlyInvalidated,
         invalidatedBecauseOfPackageUpdate, reusedLibraries, partUriToParent);
@@ -2285,7 +2281,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     if (lastGoodKernelTarget != null) {
       Set<Uri> uris =
-          new Set<Uri>.of(lastGoodKernelTarget.loader.libraryImportUris);
+          new Set<Uri>.of(lastGoodKernelTarget.loader.loadedLibraryImportUris);
       uris.removeAll(_dillLoadedData!.loader.libraryImportUris);
       if (_previousSourceBuilders != null) {
         for (Library library in _previousSourceBuilders!) {

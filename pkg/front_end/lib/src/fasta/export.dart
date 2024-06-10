@@ -15,7 +15,7 @@ class Export {
   final LibraryBuilder exporter;
 
   /// The library being exported.
-  LibraryBuilder exported;
+  CompilationUnit exported;
 
   final List<CombinatorBuilder>? combinators;
 

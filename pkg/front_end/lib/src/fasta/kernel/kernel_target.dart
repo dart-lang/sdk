@@ -187,8 +187,8 @@ class KernelTarget {
   /// type String, which is the name of the native method.
   MemberBuilder getNativeAnnotation(SourceLoader loader) {
     if (_cachedNativeAnnotation != null) return _cachedNativeAnnotation!;
-    LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1,
-        accessor: loader.coreLibrary);
+    LibraryBuilder internal =
+        loader.lookupLoadedLibraryBuilder(Uri.parse("dart:_internal"))!;
     return _cachedNativeAnnotation = internal.getConstructor("ExternalName");
   }
 
@@ -437,7 +437,7 @@ class KernelTarget {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeLibraryScopes);
-      loader.computeLibraryScopes(loader.libraryBuilders);
+      loader.computeLibraryScopes(loader.loadedLibraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
       MacroApplications? macroApplications =
@@ -745,7 +745,7 @@ class KernelTarget {
 
     Reference? mainReference;
 
-    LibraryBuilder? firstRoot = loader.firstRoot;
+    LibraryBuilder? firstRoot = loader.rootLibrary;
     if (firstRoot != null) {
       // TODO(sigmund): do only for full program
       Builder? declaration =
@@ -1258,7 +1258,7 @@ class KernelTarget {
       ...backendTarget.extraIndexedLibraries
     ]) {
       Uri uri = Uri.parse(platformLibrary);
-      LibraryBuilder? libraryBuilder = loader.lookupLibraryBuilder(uri);
+      LibraryBuilder? libraryBuilder = loader.lookupLoadedLibraryBuilder(uri);
       if (libraryBuilder == null) {
         // TODO(ahe): This is working around a bug in kernel_driver_test or
         // kernel_driver.

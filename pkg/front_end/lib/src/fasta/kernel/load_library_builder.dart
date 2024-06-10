@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Combinator,
         DartType,
         DynamicType,
         FunctionNode,
@@ -18,6 +19,7 @@ import 'package:kernel/ast.dart'
         Reference,
         ReturnStatement;
 
+import '../builder/library_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../builder/builder.dart';
@@ -29,7 +31,11 @@ class LoadLibraryBuilder extends BuilderImpl {
   @override
   final SourceLibraryBuilder parent;
 
-  final LibraryDependency importDependency;
+  late final LibraryDependency importDependency =
+      new LibraryDependency.deferredImport(
+          _imported.libraryBuilder.library, _prefix,
+          combinators: _combinators)
+        ..fileOffset = _importCharOffset;
 
   /// Offset of the import prefix.
   @override
@@ -39,7 +45,16 @@ class LoadLibraryBuilder extends BuilderImpl {
   /// null, no tear-offs were seen in the code and no method is generated.
   Procedure? tearoff;
 
-  LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset);
+  final CompilationUnit _imported;
+
+  final String _prefix;
+
+  final int _importCharOffset;
+
+  final List<Combinator>? _combinators;
+
+  LoadLibraryBuilder(this.parent, this.charOffset, this._imported, this._prefix,
+      this._importCharOffset, this._combinators);
 
   @override
   Uri get fileUri => parent.fileUri;

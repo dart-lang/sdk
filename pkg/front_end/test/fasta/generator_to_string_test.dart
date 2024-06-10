@@ -41,8 +41,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         VariableDeclaration,
         VariableGet,
-        defaultLanguageVersion,
-        dummyLibraryDependency;
+        defaultLanguageVersion;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -87,8 +86,13 @@ Future<void> main() async {
         isAugmentation: false,
         isPatch: false);
     libraryBuilder.markLanguageVersionFinal();
-    LoadLibraryBuilder loadLibraryBuilder =
-        new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);
+    LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(
+        libraryBuilder,
+        /*dummyLibraryDependency,*/ -1,
+        libraryBuilder,
+        'prefix',
+        -1,
+        null);
     Procedure getter = new Procedure(
         new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null),
         fileUri: uri);

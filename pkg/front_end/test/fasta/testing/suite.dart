@@ -1184,8 +1184,8 @@ class FuzzCompiles
 
     // Create lookup-table from file uri to whatever.
     Map<Uri, LibraryBuilder> builders = {};
-    for (LibraryBuilder builder
-        in incrementalCompiler.kernelTargetForTesting!.loader.libraryBuilders) {
+    for (LibraryBuilder builder in incrementalCompiler
+        .kernelTargetForTesting!.loader.loadedLibraryBuilders) {
       if (builder.importUri.isScheme("dart") && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
@@ -1332,8 +1332,8 @@ class FuzzCompiles
 
     // Create lookup-table from file uri to whatever.
     Map<Uri, LibraryBuilder> builders = {};
-    for (LibraryBuilder builder
-        in incrementalCompiler.kernelTargetForTesting!.loader.libraryBuilders) {
+    for (LibraryBuilder builder in incrementalCompiler
+        .kernelTargetForTesting!.loader.loadedLibraryBuilders) {
       if (builder.importUri.isScheme("dart") && !builder.isSynthetic) continue;
       if (builder.importUri.isScheme("package") &&
           !builder.fileUri.toString().contains("/pkg/front_end/testcases/")) {

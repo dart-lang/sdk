@@ -17,23 +17,16 @@ class KernelConstantErrorReporter extends ErrorReporter {
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // Try to find library.
-    LibraryBuilder? builder = loader.lookupLibraryBuilder(message.uri!);
-    if (builder == null) {
-      for (LibraryBuilder candidate in loader.libraryBuilders) {
-        if (candidate.fileUri == message.uri) {
-          // Found it.
-          builder = candidate;
-          break;
-        }
-      }
-    }
-    if (builder == null) {
+    Uri uri = message.uri!;
+    CompilationUnit? compilationUnit = loader.lookupCompilationUnit(uri);
+    compilationUnit ??= loader.lookupCompilationUnitByFileUri(uri);
+    if (compilationUnit == null) {
       // TODO(jensj): Probably a part or something.
       loader.addProblem(message.messageObject, message.charOffset,
           message.length, message.uri,
           context: context);
     } else {
-      builder.addProblem(message.messageObject, message.charOffset,
+      compilationUnit.addProblem(message.messageObject, message.charOffset,
           message.length, message.uri,
           context: context);
     }
