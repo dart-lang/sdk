@@ -66,6 +66,7 @@ class AbstractContextTest
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
         Feature.macros.enableString,
+        Feature.wildcard_variables.enableString,
       ];
 
   /// The path that is not in [workspaceRootPath], contains external packages.

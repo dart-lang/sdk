@@ -656,6 +656,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Convert to wildcard pattern',
   );
+  static const CONVERT_TO_WILDCARD_VARIABLE = FixKind(
+    'dart.fix.convert.toWildcardVariable',
+    DartFixKindPriority.DEFAULT,
+    'Convert to wildcard variable',
+  );
   static const CREATE_CLASS = FixKind(
     'dart.fix.create.class',
     DartFixKindPriority.DEFAULT,
