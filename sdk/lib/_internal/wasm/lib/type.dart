@@ -272,7 +272,18 @@ class _InterfaceType extends _Type {
     // We don't need to check whether the object is of interface type, since
     // non-interface class IDs ([Object], closures, records) will be rejected by
     // the interface type subtype check.
-    return _TypeUniverse.isObjectInterfaceSubtype(o, this);
+    if (typeArguments.length == 0) {
+      return _TypeUniverse.isObjectInterfaceSubtype0(o, classId);
+    }
+    if (typeArguments.length == 1) {
+      return _TypeUniverse.isObjectInterfaceSubtype1(
+          o, classId, typeArguments[0]);
+    }
+    if (typeArguments.length == 2) {
+      return _TypeUniverse.isObjectInterfaceSubtype2(
+          o, classId, typeArguments[0], typeArguments[1]);
+    }
+    return _TypeUniverse.isObjectInterfaceSubtypeN(o, classId, typeArguments);
   }
 
   @override
@@ -885,9 +896,44 @@ abstract class _TypeUniverse {
         sTypeArguments, sEnv, tTypeArguments, tEnv, substitutionIndex);
   }
 
-  static bool isObjectInterfaceSubtype(Object o, _InterfaceType t) {
+  static bool isObjectInterfaceSubtype0(Object o, int tId) {
     final int sId = ClassID.getID(o);
-    final int tId = t.classId;
+    return _checkSubclassRelationship(sId, tId).toIntSigned() != -1;
+  }
+
+  static bool isObjectInterfaceSubtype1(
+      Object o, int tId, _Type tTypeArgument0) {
+    final int sId = ClassID.getID(o);
+
+    // Return early if [sId] isn't a direct/indirect subclass of [tId].
+    final int substitutionIndex =
+        _checkSubclassRelationship(sId, tId).toIntSigned();
+    if (substitutionIndex == -1) return false;
+
+    // Check individual type arguments without substitution (fast case).
+    final sTypeArguments = Object._getTypeArguments(o);
+    return areTypeArgumentsSubtypes1(
+        sTypeArguments, tTypeArgument0, substitutionIndex);
+  }
+
+  static bool isObjectInterfaceSubtype2(
+      Object o, int tId, _Type tTypeArgument0, _Type tTypeArgument1) {
+    final int sId = ClassID.getID(o);
+
+    // Return early if [sId] isn't a direct/indirect subclass of [tId].
+    final int substitutionIndex =
+        _checkSubclassRelationship(sId, tId).toIntSigned();
+    if (substitutionIndex == -1) return false;
+
+    // Check individual type arguments without substitution (fast case).
+    final sTypeArguments = Object._getTypeArguments(o);
+    return areTypeArgumentsSubtypes2(
+        sTypeArguments, tTypeArgument0, tTypeArgument1, substitutionIndex);
+  }
+
+  static bool isObjectInterfaceSubtypeN(
+      Object o, int tId, WasmArray<_Type> tTypeArguments) {
+    final int sId = ClassID.getID(o);
 
     // Return early if [sId] isn't a direct/indirect subclass of [tId].
     final int substitutionIndex =
@@ -896,13 +942,46 @@ abstract class _TypeUniverse {
 
     // Return early if we don't have to check type arguments as the destination
     // type is non-generic.
-    final tTypeArguments = t.typeArguments;
     if (tTypeArguments.isEmpty) return true;
 
     // Check individual type arguments without substitution (fast case).
     final sTypeArguments = Object._getTypeArguments(o);
     return areTypeArgumentsSubtypes(
         sTypeArguments, null, tTypeArguments, null, substitutionIndex);
+  }
+
+  static bool areTypeArgumentsSubtypes1(WasmArray<_Type> sTypeArguments,
+      _Type tTypeArgument0, int substitutionIndex) {
+    // Check individual type arguments without substitution (fast case).
+    if (substitutionIndex == _noSubstitutionIndex.toIntSigned()) {
+      return isSubtype(sTypeArguments[0], null, tTypeArgument0, null);
+    }
+
+    // Substitue each argument before performing the subtype check (slow case).
+    final substitutions = _canonicalSubstitutionTable[substitutionIndex];
+    assert(substitutions.length == 1);
+    final sArgForClassT =
+        substituteTypeArgument(substitutions[0], sTypeArguments, null);
+    return isSubtype(sArgForClassT, null, tTypeArgument0, null);
+  }
+
+  static bool areTypeArgumentsSubtypes2(WasmArray<_Type> sTypeArguments,
+      _Type tTypeArgument0, _Type tTypeArgument1, int substitutionIndex) {
+    // Check individual type arguments without substitution (fast case).
+    if (substitutionIndex == _noSubstitutionIndex.toIntSigned()) {
+      return isSubtype(sTypeArguments[1], null, tTypeArgument1, null) &&
+          isSubtype(sTypeArguments[0], null, tTypeArgument0, null);
+    }
+
+    // Substitue each argument before performing the subtype check (slow case).
+    final substitutions = _canonicalSubstitutionTable[substitutionIndex];
+    assert(substitutions.length == 2);
+    final sArg1ForClassT =
+        substituteTypeArgument(substitutions[1], sTypeArguments, null);
+    final sArg0ForClassT =
+        substituteTypeArgument(substitutions[0], sTypeArguments, null);
+    return isSubtype(sArg0ForClassT, null, tTypeArgument0, null) &&
+        isSubtype(sArg1ForClassT, null, tTypeArgument1, null);
   }
 
   static bool areTypeArgumentsSubtypes(
@@ -1200,6 +1279,39 @@ bool _isSubtype(Object? o, _Type t) {
 
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
+bool _isInterfaceSubtype(Object? o, bool isDeclaredNullable, int tId,
+    WasmArray<_Type> typeArguments) {
+  final t = _InterfaceType(tId, isDeclaredNullable, typeArguments);
+  if (o == null) return t.isDeclaredNullable;
+  return t._checkInstance(o);
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+bool _isInterfaceSubtype0(Object? o, bool isDeclaredNullable, int tId) {
+  if (o == null) return isDeclaredNullable;
+  return _TypeUniverse.isObjectInterfaceSubtype0(o, tId);
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+bool _isInterfaceSubtype1(
+    Object? o, bool isDeclaredNullable, int tId, _Type tTypeArgument0) {
+  if (o == null) return isDeclaredNullable;
+  return _TypeUniverse.isObjectInterfaceSubtype1(o, tId, tTypeArgument0);
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+bool _isInterfaceSubtype2(Object? o, bool isDeclaredNullable, int tId,
+    _Type tTypeArgument0, _Type tTypeArgument1) {
+  if (o == null) return isDeclaredNullable;
+  return _TypeUniverse.isObjectInterfaceSubtype2(
+      o, tId, tTypeArgument0, tTypeArgument1);
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
 bool _isTypeSubtype(_Type s, _Type t) {
   return _TypeUniverse.isSubtype(s, null, t, null);
 }
@@ -1210,6 +1322,75 @@ void _asSubtype(Object? o, _Type t) {
   if (!_isSubtype(o, t)) {
     _TypeError._throwAsCheckError(o, t);
   }
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+void _asInterfaceSubtype(Object? o, bool isDeclaredNullable, int tId,
+    WasmArray<_Type> typeArguments) {
+  if (!_isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments)) {
+    _throwInterfaceTypeAsCheckError(o, isDeclaredNullable, tId, typeArguments);
+  }
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+void _asInterfaceSubtype0(Object? o, bool isDeclaredNullable, int tId) {
+  if (!_isInterfaceSubtype0(o, isDeclaredNullable, tId)) {
+    _throwInterfaceTypeAsCheckError0(o, isDeclaredNullable, tId);
+  }
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+void _asInterfaceSubtype1(
+    Object? o, bool isDeclaredNullable, int tId, _Type typeArgument0) {
+  if (!_isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0)) {
+    _throwInterfaceTypeAsCheckError1(o, isDeclaredNullable, tId, typeArgument0);
+  }
+}
+
+@pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
+void _asInterfaceSubtype2(Object? o, bool isDeclaredNullable, int tId,
+    _Type typeArgument0, _Type typeArgument1) {
+  if (!_isInterfaceSubtype2(
+      o, isDeclaredNullable, tId, typeArgument0, typeArgument1)) {
+    _throwInterfaceTypeAsCheckError2(
+        o, isDeclaredNullable, tId, typeArgument0, typeArgument1);
+  }
+}
+
+@pragma('wasm:never-inline')
+void _throwInterfaceTypeAsCheckError0(
+    Object? o, bool isDeclaredNullable, int tId) {
+  final typeArguments = const WasmArray<_Type>.literal([]);
+  _TypeError._throwAsCheckError(
+      o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
+}
+
+@pragma('wasm:never-inline')
+void _throwInterfaceTypeAsCheckError1(
+    Object? o, bool isDeclaredNullable, int tId, _Type typeArgument0) {
+  final typeArguments = WasmArray<_Type>.literal([typeArgument0]);
+  _TypeError._throwAsCheckError(
+      o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
+}
+
+@pragma('wasm:never-inline')
+void _throwInterfaceTypeAsCheckError2(Object? o, bool isDeclaredNullable,
+    int tId, _Type typeArgument0, _Type typeArgument1) {
+  final typeArguments =
+      WasmArray<_Type>.literal([typeArgument0, typeArgument1]);
+  _TypeError._throwAsCheckError(
+      o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
+}
+
+@pragma('wasm:never-inline')
+void _throwInterfaceTypeAsCheckError(Object? o, bool isDeclaredNullable,
+    int tId, WasmArray<_Type> typeArguments) {
+  _TypeError._throwAsCheckError(
+      o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
 }
 
 @pragma("wasm:entry-point")

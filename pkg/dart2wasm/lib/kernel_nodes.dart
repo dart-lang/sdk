@@ -294,8 +294,24 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_getMasqueradedRuntimeType");
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
+  late final Procedure isInterfaceSubtype =
+      index.getTopLevelProcedure("dart:core", "_isInterfaceSubtype");
+  late final Procedure isInterfaceSubtype0 =
+      index.getTopLevelProcedure("dart:core", "_isInterfaceSubtype0");
+  late final Procedure isInterfaceSubtype1 =
+      index.getTopLevelProcedure("dart:core", "_isInterfaceSubtype1");
+  late final Procedure isInterfaceSubtype2 =
+      index.getTopLevelProcedure("dart:core", "_isInterfaceSubtype2");
   late final Procedure asSubtype =
       index.getTopLevelProcedure("dart:core", "_asSubtype");
+  late final Procedure asInterfaceSubtype =
+      index.getTopLevelProcedure("dart:core", "_asInterfaceSubtype");
+  late final Procedure asInterfaceSubtype0 =
+      index.getTopLevelProcedure("dart:core", "_asInterfaceSubtype0");
+  late final Procedure asInterfaceSubtype1 =
+      index.getTopLevelProcedure("dart:core", "_asInterfaceSubtype1");
+  late final Procedure asInterfaceSubtype2 =
+      index.getTopLevelProcedure("dart:core", "_asInterfaceSubtype2");
   late final Procedure isTypeSubtype =
       index.getTopLevelProcedure("dart:core", "_isTypeSubtype");
   late final Procedure verifyOptimizedTypeCheck =

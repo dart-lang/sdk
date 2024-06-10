@@ -394,8 +394,30 @@ class Types {
       b.call(
           _generateIsChecker(typeToCheck, operandType.isPotentiallyNullable));
     } else {
-      makeType(codeGen, testedAgainstType);
-      codeGen.call(translator.isSubtype.reference);
+      if (testedAgainstType is InterfaceType &&
+          classForType(testedAgainstType) == translator.interfaceTypeClass) {
+        final typeClassInfo =
+            translator.classInfo[testedAgainstType.classNode]!;
+        final typeArguments = testedAgainstType.typeArguments;
+        b.i32_const(encodedNullability(testedAgainstType));
+        b.i64_const(typeClassInfo.classId);
+        if (typeArguments.isEmpty) {
+          codeGen.call(translator.isInterfaceSubtype0.reference);
+        } else if (typeArguments.length == 1) {
+          makeType(codeGen, typeArguments[0]);
+          codeGen.call(translator.isInterfaceSubtype1.reference);
+        } else if (typeArguments.length == 2) {
+          makeType(codeGen, typeArguments[0]);
+          makeType(codeGen, typeArguments[1]);
+          codeGen.call(translator.isInterfaceSubtype2.reference);
+        } else {
+          _makeTypeArray(codeGen, typeArguments);
+          codeGen.call(translator.isInterfaceSubtype.reference);
+        }
+      } else {
+        makeType(codeGen, testedAgainstType);
+        codeGen.call(translator.isSubtype.reference);
+      }
     }
     if (translator.options.verifyTypeChecks) {
       b.local_get(operandTemp!);
@@ -426,9 +448,32 @@ class Types {
 
     w.Local operand = b.addLocal(boxedOperandType, isParameter: false);
     b.local_tee(operand);
-    makeType(codeGen, testedAgainstType);
-    final outputs = codeGen.call(translator.asSubtype.reference);
-    for (final _ in outputs) {
+
+    late List<w.ValueType> outputsToDrop;
+    if (testedAgainstType is InterfaceType &&
+        classForType(testedAgainstType) == translator.interfaceTypeClass) {
+      final typeClassInfo = translator.classInfo[testedAgainstType.classNode]!;
+      final typeArguments = testedAgainstType.typeArguments;
+      b.i32_const(encodedNullability(testedAgainstType));
+      b.i64_const(typeClassInfo.classId);
+      if (typeArguments.isEmpty) {
+        outputsToDrop = codeGen.call(translator.asInterfaceSubtype0.reference);
+      } else if (typeArguments.length == 1) {
+        makeType(codeGen, typeArguments[0]);
+        outputsToDrop = codeGen.call(translator.asInterfaceSubtype1.reference);
+      } else if (typeArguments.length == 2) {
+        makeType(codeGen, typeArguments[0]);
+        makeType(codeGen, typeArguments[1]);
+        outputsToDrop = codeGen.call(translator.asInterfaceSubtype2.reference);
+      } else {
+        _makeTypeArray(codeGen, typeArguments);
+        outputsToDrop = codeGen.call(translator.asInterfaceSubtype.reference);
+      }
+    } else {
+      makeType(codeGen, testedAgainstType);
+      outputsToDrop = codeGen.call(translator.asSubtype.reference);
+    }
+    for (final _ in outputsToDrop) {
       b.drop();
     }
     b.local_get(operand);
