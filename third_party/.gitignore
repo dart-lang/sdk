@@ -1,17 +1,32 @@
-# ignore everything
-*
-# except for the following files and directories:
+# Ignore everything in third_party except for specific
+# directories.
+#
+# The forward-slash is necessary to gitignore everything
+# except for specific directories (configured below).
+# See https://git-scm.com/docs/gitignore#_examples
+/*
+# Do not ignore the following:
 !.gitignore
 !binaryen
-!d8
+!/d8/README.google
 !firefox_jsshell
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1
 !update.sh
 !/wasmer
+# First exclude pkg from the gitignore, then re-ignore all its
+# contents. See https://github.com/dart-lang/pub/issues/4300
+!/pkg/
+/pkg/*
+!/pkg/dap
+!/pkg/dap/*
+/pkg/dap/pubspec.lock
+/pkg/dap/.dart_tool
+!/pkg/language_server_protocol
+!/pkg/language_server_protocol/*
+/pkg/language_server_protocol/pubspec.lock
+/pkg/language_server_protocol/.dart_tool
 !/pkg/native_assets_builder.status
 !/pkg/native_assets_cli.status
 !/pkg/native_toolchain_c.status
-!/pkg/dap/
-!/pkg/language_server_protocol/
 !fallback_root_certificates
