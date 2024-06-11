@@ -3539,9 +3539,8 @@ void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
   ldr(dest,
       Address(dest,
               target::ClassTable::allocation_tracing_state_table_offset()));
-  AddScaled(cid, cid, TIMES_1,
+  AddScaled(dest, dest, cid, TIMES_1,
             target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
-  AddRegisters(dest, cid);
 }
 
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {

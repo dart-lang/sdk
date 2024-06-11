@@ -332,6 +332,19 @@ class A {
 ''');
   }
 
+  Future<void> test_invalidModifierOnSetter() async {
+    await resolveTestCode('''
+class C {
+  set x(v) async {}
+}
+''');
+    await assertHasFix('''
+class C {
+  set x(v) {}
+}
+''');
+  }
+
   Future<void> test_invalidUseOfCovariant() async {
     await resolveTestCode('''
 class C {

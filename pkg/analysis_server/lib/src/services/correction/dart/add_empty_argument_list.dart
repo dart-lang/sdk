@@ -24,10 +24,17 @@ class AddEmptyArgumentList extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is! AnnotationImpl) return;
+    int? offset;
+    if (node is AnnotationImpl) {
+      offset = node.end;
+    } else if (node is FunctionTypeAlias) {
+      // endToken is the trailing `;`.
+      offset = node.endToken.previous?.end;
+    }
+    if (offset == null) return;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.end, '()');
+      builder.addSimpleInsertion(offset!, '()');
     });
   }
 }

@@ -14,7 +14,7 @@ template("wasm_module") {
       "compiled_action",
       rebase_path("//third_party/emsdk/upstream/emscripten/emcc"),
       "--no-entry",
-      rebase_path("//tests/web/wasm/${invoker.module_name}.c"),
+      rebase_path("//tests/web/wasm/ffi/${invoker.module_name}.c"),
       "-o",
       rebase_path("$root_out_dir/wasm/${invoker.module_name}.wasm"),
       "-O",

@@ -749,8 +749,15 @@ class SourceExtensionTypeDeclarationBuilder
   bool get isMixinDeclaration => false;
 
   @override
-  BodyBuilderContext get bodyBuilderContext =>
-      new ExtensionTypeBodyBuilderContext(this);
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return new ExtensionTypeBodyBuilderContext(this,
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
 
   /// Return a map whose keys are the supertypes of this
   /// [SourceExtensionTypeDeclarationBuilder] after expansion of type aliases,

@@ -1339,7 +1339,8 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
     const intptr_t fixed_size_plus_alignment_padding =
         (target::Record::field_offset(0) +
          target::ObjectAlignment::kObjectAlignment - 1);
-    __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
+    __ AddScaled(temp_reg, kNoRegister, temp_reg,
+                 TIMES_COMPRESSED_HALF_WORD_SIZE,
                  fixed_size_plus_alignment_padding);
     __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 

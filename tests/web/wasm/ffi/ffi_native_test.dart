@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// dart2wasmOptions=--extra-compiler-option=--enable-experimental-ffi
 // SharedObjects=ffi_native_test_module
 
 import 'dart:ffi';

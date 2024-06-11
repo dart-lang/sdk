@@ -135,7 +135,11 @@ class _ImplicitFieldTypeRoot extends InferredType {
               enclosingClassThisType,
               fieldBuilder.libraryBuilder,
               fieldBuilder.dataForTesting?.inferenceData);
-      BodyBuilderContext bodyBuilderContext = fieldBuilder.bodyBuilderContext;
+      BodyBuilderContext bodyBuilderContext =
+          fieldBuilder.createBodyBuilderContext(
+              inOutlineBuildingPhase: false,
+              inMetadata: false,
+              inConstFields: false);
       BodyBuilder bodyBuilder = fieldBuilder.libraryBuilder.loader
           .createBodyBuilderForField(
               fieldBuilder.libraryBuilder,

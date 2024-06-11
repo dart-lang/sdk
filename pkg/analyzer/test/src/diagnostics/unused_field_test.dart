@@ -186,6 +186,30 @@ print(x) {}
 ''');
   }
 
+  test_isUsed_underscoreField_shadowsLocal() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var _ = 1;
+  void m() {
+    var _ = 0;
+    print(_);
+  }
+}
+''');
+  }
+
+  // See: https://github.com/dart-lang/sdk/issues/55862
+  test_isUsed_underscoreField_shadowsParameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var _ = 1;
+  void m(int? _) {
+    print(_);
+  }
+}
+''');
+  }
+
   test_notUsed_compoundAssign() async {
     await assertErrorsInCode(r'''
 class A {

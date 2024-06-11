@@ -273,8 +273,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         final DeclarationBuilder declarationBuilder =
             parent!.parent as DeclarationBuilder;
         Scope scope = declarationBuilder.scope;
-        BodyBuilderContext bodyBuilderContext =
-            new ParameterBodyBuilderContext(this);
+        BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
+            this,
+            inOutlineBuildingPhase: true,
+            inMetadata: false,
+            inConstFields: false);
         BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(
                 libraryBuilder, bodyBuilderContext, scope, fileUri);

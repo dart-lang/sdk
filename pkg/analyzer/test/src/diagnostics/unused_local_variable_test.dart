@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,7 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedLocalVariableTest);
-    defineReflectiveTests(UnusedLocalVariableWildCardVariablesTest);
   });
 }
 
@@ -132,7 +130,7 @@ void f(Object? x) {
 
   test_inFor_underscores() async {
     await assertErrorsInCode(r'''
-main() {
+f() {
   for (var _ in [1,2,3]) {
     for (var __ in [4,5,6]) {
       // do something
@@ -140,7 +138,7 @@ main() {
   }
 }
 ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 2),
     ]);
   }
 
@@ -148,11 +146,101 @@ main() {
     await assertNoErrorsInCode(r'''
 // @dart = 3.4
 // (pre wildcard-variables)
-main() {
+f() {
   for (var _ in [1,2,3]) {
     for (var __ in [4,5,6]) {
       // do something
     }
+  }
+}
+''');
+  }
+
+  test_localVariable_forElement_underscores() async {
+    await assertErrorsInCode(r'''
+f() {
+    [
+      for (var __ in [1, 2, 3]) 1
+    ];
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 2),
+    ]);
+  }
+
+  test_localVariable_underscores() async {
+    await assertErrorsInCode(r'''
+f() {
+  var __ = 0;
+  var ___ = 0;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 12, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 3),
+    ]);
+  }
+
+  test_localVariable_wildcard() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  var _ = 0;
+}
+''');
+  }
+
+  test_localVariableListPattern_underscores() async {
+    await assertErrorsInCode(r'''
+f() {
+  var [__] = [1];
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 2),
+    ]);
+  }
+
+  test_localVariableListPattern_wildcard() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  var [_] = [1];
+}
+''');
+  }
+
+  test_localVariablePattern_underscores() async {
+    await assertErrorsInCode(r'''
+f() {
+  var (__) = (1);
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 2),
+    ]);
+  }
+
+  test_localVariablePattern_wildcard() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  var (_) = (1);
+}
+''');
+  }
+
+  test_localVariableSwitchListPattern_underscores() async {
+    await assertErrorsInCode(r'''
+void f(Object o) {
+  switch(o) {
+    case [var __] : {}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2),
+    ]);
+  }
+
+  test_localVariableSwitchListPattern_wildcard() async {
+    await assertNoErrorsInCode(r'''
+void f(Object o) {
+  switch(o) {
+    case [var _] : {}
   }
 }
 ''');
@@ -516,120 +604,6 @@ class A {
 main() {
   var a = new A();
   a.foo();
-}
-''');
-  }
-}
-
-@reflectiveTest
-class UnusedLocalVariableWildCardVariablesTest extends UnusedLocalVariableTest {
-  @override
-  List<String> get experiments => [
-        ...super.experiments,
-        Feature.wildcard_variables.enableString,
-      ];
-
-  @override
-  test_inFor_underscores() async {
-    await assertErrorsInCode(r'''
-main() {
-  for (var _ in [1,2,3]) {
-    for (var __ in [4,5,6]) {
-      // do something
-    }
-  }
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 2),
-    ]);
-  }
-
-  test_localVariable_forElement_underscores() async {
-    await assertErrorsInCode(r'''
-main() {
-    [
-      for (var __ in [1, 2, 3]) 1
-    ];
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-    ]);
-  }
-
-  test_localVariable_underscores() async {
-    await assertErrorsInCode(r'''
-main() {
-  var __ = 0;
-  var ___ = 0;
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 3),
-    ]);
-  }
-
-  test_localVariable_wildcard() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  var _ = 0;
-}
-''');
-  }
-
-  test_localVariableListPattern_underscores() async {
-    await assertErrorsInCode(r'''
-main() {
-  var [__] = [1];
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 2),
-    ]);
-  }
-
-  test_localVariableListPattern_wildcard() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  var [_] = [1];
-}
-''');
-  }
-
-  test_localVariablePattern_underscores() async {
-    await assertErrorsInCode(r'''
-main() {
-  var (__) = (1);
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 2),
-    ]);
-  }
-
-  test_localVariablePattern_wildcard() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  var (_) = (1);
-}
-''');
-  }
-
-  test_localVariableSwitchListPattern_underscores() async {
-    await assertErrorsInCode(r'''
-void f(Object o) {
-  switch(o) {
-    case [var __] : {}
-  }
-}
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 2),
-    ]);
-  }
-
-  test_localVariableSwitchListPattern_wildcard() async {
-    await assertNoErrorsInCode(r'''
-void f(Object o) {
-  switch(o) {
-    case [var _] : {}
-  }
 }
 ''');
   }

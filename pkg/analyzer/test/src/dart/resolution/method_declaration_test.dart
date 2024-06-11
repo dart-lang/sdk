@@ -51,4 +51,23 @@ class B {
       findElement.parameter('a'),
     );
   }
+
+  test_formalParameterScope_wildcardVariable() async {
+    await assertNoErrorsInCode('''
+class A {
+  var _ = 1;
+  void m(int? _) {
+    _;
+  }
+}
+''');
+
+    var node = findNode.simple('_;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: _
+  staticElement: self::@class::A::@getter::_
+  staticType: int
+''');
+  }
 }

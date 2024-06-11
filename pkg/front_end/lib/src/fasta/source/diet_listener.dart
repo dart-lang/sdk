@@ -351,8 +351,11 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery) return;
 
     Identifier identifier = name as Identifier;
-    final BodyBuilder listener =
-        createFunctionListener(_offsetMap.lookupProcedure(identifier));
+    final BodyBuilder listener = createFunctionListener(
+        _offsetMap.lookupProcedure(identifier),
+        inOutlineBuildingPhase: false,
+        inMetadata: false,
+        inConstFields: false);
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
 
@@ -551,7 +554,13 @@ class DietListener extends StackListenerImpl {
 
     LibraryDependency? dependency =
         _offsetMap.lookupImport(importKeyword).libraryDependency;
-    parseMetadata(libraryBuilder.bodyBuilderContext, metadata, dependency);
+    parseMetadata(
+        libraryBuilder.createBodyBuilderContext(
+            inOutlineBuildingPhase: true,
+            inMetadata: true,
+            inConstFields: false),
+        metadata,
+        dependency);
   }
 
   @override
@@ -566,7 +575,13 @@ class DietListener extends StackListenerImpl {
     Token? metadata = pop() as Token?;
     LibraryDependency dependency =
         _offsetMap.lookupExport(exportKeyword).libraryDependency;
-    parseMetadata(libraryBuilder.bodyBuilderContext, metadata, dependency);
+    parseMetadata(
+        libraryBuilder.createBodyBuilderContext(
+            inOutlineBuildingPhase: true,
+            inMetadata: true,
+            inConstFields: false),
+        metadata,
+        dependency);
   }
 
   @override
@@ -575,7 +590,13 @@ class DietListener extends StackListenerImpl {
 
     Token? metadata = pop() as Token?;
     LibraryPart part = _offsetMap.lookupPart(partKeyword);
-    parseMetadata(libraryBuilder.bodyBuilderContext, metadata, part);
+    parseMetadata(
+        libraryBuilder.createBodyBuilderContext(
+            inOutlineBuildingPhase: true,
+            inMetadata: true,
+            inConstFields: false),
+        metadata,
+        part);
   }
 
   @override
@@ -623,7 +644,13 @@ class DietListener extends StackListenerImpl {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
     } else {
-      buildFunctionBody(createFunctionListener(builder), bodyToken, metadata,
+      buildFunctionBody(
+          createFunctionListener(builder,
+              inOutlineBuildingPhase: false,
+              inMetadata: false,
+              inConstFields: false),
+          bodyToken,
+          metadata,
           MemberKind.Factory);
     }
   }
@@ -761,7 +788,13 @@ class DietListener extends StackListenerImpl {
           ? MemberKind.StaticMethod
           : MemberKind.NonStaticMethod;
       buildFunctionBody(
-          createFunctionListener(builder), beginParam, metadata, memberKind);
+          createFunctionListener(builder,
+              inOutlineBuildingPhase: false,
+              inMetadata: false,
+              inConstFields: false),
+          beginParam,
+          metadata,
+          memberKind);
     }
   }
 
@@ -816,12 +849,20 @@ class DietListener extends StackListenerImpl {
       ..constantContext = constantContext;
   }
 
-  BodyBuilder createFunctionListener(SourceFunctionBuilder builder) {
+  BodyBuilder createFunctionListener(SourceFunctionBuilder builder,
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
-    return createListener(builder.bodyBuilderContext, typeParameterScope,
+    return createListener(
+        builder.createBodyBuilderContext(
+            inOutlineBuildingPhase: inOutlineBuildingPhase,
+            inMetadata: inMetadata,
+            inConstFields: inConstFields),
+        typeParameterScope,
         thisVariable: builder.thisVariable,
         thisTypeParameters: builder.thisTypeParameters,
         formalParameterScope: formalParameterScope,
@@ -832,7 +873,8 @@ class DietListener extends StackListenerImpl {
       MemberKind kind, Token? metadata) {
     _benchmarker?.beginSubdivide(
         BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod);
-    final BodyBuilder listener = createFunctionListener(builder);
+    final BodyBuilder listener = createFunctionListener(builder,
+        inOutlineBuildingPhase: false, inMetadata: false, inConstFields: false);
     try {
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -871,7 +913,12 @@ class DietListener extends StackListenerImpl {
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
-        createListener(declaration.bodyBuilderContext, memberScope,
+        createListener(
+            declaration.createBodyBuilderContext(
+                inOutlineBuildingPhase: false,
+                inMetadata: false,
+                inConstFields: declaration.isConst),
+            memberScope,
             inferenceDataForTesting: declaration.dataForTesting?.inferenceData),
         token,
         metadata,
@@ -1025,7 +1072,12 @@ class DietListener extends StackListenerImpl {
     SourceFunctionBuilder builder =
         _offsetMap.lookupPrimaryConstructor(beginToken);
     if (!builder.isConst) {
-      buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
+      buildPrimaryConstructor(
+          createFunctionListener(builder,
+              inOutlineBuildingPhase: false,
+              inMetadata: false,
+              inConstFields: false),
+          formalsToken);
     }
 
     // The current declaration is set in [beginClassOrMixinOrExtensionBody],
@@ -1081,8 +1133,11 @@ class DietListener extends StackListenerImpl {
       DeclaredSourceConstructorBuilder? defaultConstructorBuilder =
           enumBuilder.synthesizedDefaultConstructorBuilder;
       if (defaultConstructorBuilder != null) {
-        BodyBuilder bodyBuilder =
-            createFunctionListener(defaultConstructorBuilder);
+        BodyBuilder bodyBuilder = createFunctionListener(
+            defaultConstructorBuilder,
+            inOutlineBuildingPhase: false,
+            inMetadata: false,
+            inConstFields: false);
         bodyBuilder.finishConstructor(AsyncMarker.Sync, new EmptyStatement(),
             superParametersAsArguments: null);
       }
