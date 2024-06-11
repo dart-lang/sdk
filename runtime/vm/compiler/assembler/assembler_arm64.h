@@ -1784,16 +1784,21 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    if (scale == 0) {
-      AddImmediate(dest, src, value);
+                 int32_t disp) override {
+    if (base == kNoRegister || base == ZR) {
+      if (scale == TIMES_1) {
+        AddImmediate(dest, index, disp);
+      } else {
+        orr(dest, ZR, Operand(index, LSL, scale));
+        AddImmediate(dest, disp);
+      }
     } else {
-      orr(dest, ZR, Operand(src, LSL, scale));
-      AddImmediate(dest, dest, value);
+      add(dest, base, compiler::Operand(index, LSL, scale));
+      AddImmediate(dest, disp);
     }
   }
   void SubImmediateSetFlags(Register dest,

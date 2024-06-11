@@ -717,14 +717,17 @@ class Assembler : public AssemblerBase {
   }
   void AddImmediate(Register dest, Register src, int32_t value);
   void AddRegisters(Register dest, Register src) { addl(dest, src); }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    leal(dest, Address(src, scale, value));
+                 int32_t disp) override {
+    if (base == kNoRegister) {
+      leal(dest, Address(index, scale, disp));
+    } else {
+      leal(dest, Address(base, index, scale, disp));
+    }
   }
-
   void SubImmediate(Register reg, const Immediate& imm);
   void SubRegisters(Register dest, Register src) { subl(dest, src); }
   void MulImmediate(Register reg,

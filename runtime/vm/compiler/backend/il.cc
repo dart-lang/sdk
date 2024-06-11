@@ -7802,6 +7802,98 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  auto* const summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(kBasePos, Location::RequiresRegister());
+  // Only use a Smi constant for the index if multiplying it by the index
+  // scale would be an int32 constant.
+  const intptr_t scale_shift = Utils::ShiftForPowerOfTwo(index_scale());
+  summary->set_in(kIndexPos, LocationRegisterOrSmiConstant(
+                                 index(), kMinInt32 >> scale_shift,
+                                 kMaxInt32 >> scale_shift));
+  // Only use a Smi constant for the offset if it is an int32 constant.
+  summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset(), kMinInt32,
+                                                            kMaxInt32));
+  // Special case for when both inputs are appropriate constants.
+  if (summary->in(kIndexPos).IsConstant() &&
+      summary->in(kOffsetPos).IsConstant()) {
+    const int64_t offset_in_bytes = Utils::AddWithWrapAround<int64_t>(
+        Utils::MulWithWrapAround<int64_t>(index()->BoundSmiConstant(),
+                                          index_scale()),
+        offset()->BoundSmiConstant());
+    if (!Utils::IsInt(32, offset_in_bytes)) {
+      // The offset in bytes calculated from the index and offset cannot
+      // fit in a 32-bit immediate, so pass the index as a register instead.
+      summary->set_in(kIndexPos, Location::RequiresRegister());
+    }
+  }
+
+  // Currently this instruction can only be used in optimized mode as it takes
+  // and puts untagged values on the stack, and the canonicalization pass should
+  // always remove no-op uses of this instruction. Flag this for handling if
+  // this ever changes.
+  ASSERT(opt && !IsNoop());
+  summary->set_out(0, Location::RequiresRegister());
+
+  return summary;
+}
+
+void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register base_reg = locs()->in(kBasePos).reg();
+  const Location& index_loc = locs()->in(kIndexPos);
+  const Location& offset_loc = locs()->in(kOffsetPos);
+  const Register result_reg = locs()->out(0).reg();
+
+  ASSERT(!IsNoop());
+
+  if (index_loc.IsConstant()) {
+    const int64_t index = Smi::Cast(index_loc.constant()).Value();
+    ASSERT(Utils::IsInt(32, index));
+    const int64_t scaled_index = index * index_scale();
+    ASSERT(Utils::IsInt(32, scaled_index));
+    if (offset_loc.IsConstant()) {
+      const int64_t disp =
+          scaled_index + Smi::Cast(offset_loc.constant()).Value();
+      ASSERT(Utils::IsInt(32, disp));
+      __ AddScaled(result_reg, kNoRegister, base_reg, TIMES_1, disp);
+    } else {
+      __ AddScaled(result_reg, base_reg, offset_loc.reg(), TIMES_1,
+                   scaled_index);
+    }
+  } else {
+    Register index_reg = index_loc.reg();
+    ASSERT(RepresentationUtils::IsUnboxedInteger(
+        RequiredInputRepresentation(kIndexPos)));
+    auto scale = ToScaleFactor(index_scale(), /*index_unboxed=*/true);
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+    if (scale == TIMES_16) {
+      COMPILE_ASSERT(kSmiTagShift == 1);
+      // A ScaleFactor of TIMES_16 is invalid for x86, so box the index as a Smi
+      // (using the result register to store it to avoid allocating a writable
+      // register for the index) to reduce the ScaleFactor to TIMES_8.
+      __ MoveAndSmiTagRegister(result_reg, index_reg);
+      index_reg = result_reg;
+      scale = TIMES_8;
+    }
+#endif
+    if (offset_loc.IsConstant()) {
+      const intptr_t disp = Smi::Cast(offset_loc.constant()).Value();
+      ASSERT(Utils::IsInt(32, disp));
+      __ AddScaled(result_reg, base_reg, index_reg, scale, disp);
+    } else {
+      // No architecture can do this case in a single instruction.
+      __ AddScaled(result_reg, base_reg, index_reg, scale, /*disp=*/0);
+      __ AddRegisters(result_reg, offset_loc.reg());
+    }
+  }
+}
+
 const Code& DartReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
   const Function& function = compiler->parsed_function().function();
   ASSERT(function.IsSuspendableFunction());

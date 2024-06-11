@@ -1039,16 +1039,21 @@ class Assembler : public MicroAssembler {
     MulImmediate(dest, dest, imm, width);
   }
   void AddRegisters(Register dest, Register src) { add(dest, dest, src); }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    if (scale == 0) {
-      AddImmediate(dest, src, value);
+                 int32_t disp) override {
+    if (base == kNoRegister || base == ZR) {
+      if (scale == TIMES_1) {
+        AddImmediate(dest, index, disp);
+      } else {
+        slli(dest, index, scale);
+        AddImmediate(dest, disp);
+      }
     } else {
-      slli(dest, src, scale);
-      AddImmediate(dest, dest, value);
+      AddShifted(dest, base, index, scale);
+      AddImmediate(dest, disp);
     }
   }
   void AddShifted(Register dest, Register base, Register index, intx_t shift);

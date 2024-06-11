@@ -784,12 +784,16 @@ class Assembler : public AssemblerBase {
     AddImmediate(reg, Immediate(value), width);
   }
   void AddRegisters(Register dest, Register src) { addq(dest, src); }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    leaq(dest, Address(src, scale, value));
+                 int32_t disp) override {
+    if (base == kNoRegister) {
+      leaq(dest, Address(index, scale, disp));
+    } else {
+      leaq(dest, Address(base, index, scale, disp));
+    }
   }
   void AddImmediate(Register dest, Register src, int64_t value);
   void AddImmediate(const Address& address, const Immediate& imm);
