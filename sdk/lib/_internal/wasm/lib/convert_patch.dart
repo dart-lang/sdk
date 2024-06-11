@@ -48,9 +48,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
 
   Object? convert(List<int> input) {
     var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
-    parser.chunk = input;
-    parser.chunkEnd = input.length;
-    parser.parse(0);
+    parser.parseChunk(input, 0, input.length);
     parser.close();
     return parser.result;
   }
@@ -238,6 +236,11 @@ class _NumberBuffer {
   double parseDouble() => double.parse(getString());
 }
 
+abstract class _JsonParserWithListener {
+  final _JsonListener listener;
+  _JsonParserWithListener(this.listener);
+}
+
 /**
  * Chunked JSON parser.
  *
@@ -245,8 +248,13 @@ class _NumberBuffer {
  * and stores input state between chunks.
  *
  * Implementations include [String] and UTF-8 parsers.
+ *
+ * Note: this is a mixin instead of the base class to allow compilers
+ * to specialize applications otherwise accessing chunk characters becomes
+ * polymorphic.
+ *
  */
-abstract class _ChunkedJsonParser<T> {
+mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   // A simple non-recursive state-based parser for JSON.
   //
   // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
@@ -377,8 +385,6 @@ abstract class _ChunkedJsonParser<T> {
   // Mask used to mask off two lower bits.
   static const int TWO_BIT_MASK = 3;
 
-  final _JsonListener listener;
-
   // The current parsing state.
   int state = STATE_INITIAL;
   List<int> states = <int>[];
@@ -428,8 +434,6 @@ abstract class _ChunkedJsonParser<T> {
    * May contain a string buffer while parsing strings.
    */
   dynamic buffer = null;
-
-  _ChunkedJsonParser(this.listener);
 
   /**
    * Push the current parse [state] on a stack.
@@ -1368,7 +1372,8 @@ abstract class _ChunkedJsonParser<T> {
 /**
  * Chunked JSON parser that parses [String] chunks.
  */
-class _JsonStringParser extends _ChunkedJsonParser<String> {
+class _JsonStringParser extends _JsonParserWithListener
+    with _ChunkedJsonParser<String> {
   String chunk = '';
   int chunkEnd = 0;
 
@@ -1465,11 +1470,12 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
 /**
  * Chunked JSON parser that parses UTF-8 chunks.
  */
-class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
+class _JsonUtf8Parser extends _JsonParserWithListener
+    with _ChunkedJsonParser<U8List> {
   static final U8List emptyChunk = U8List(0);
 
   final _Utf8Decoder decoder;
-  List<int> chunk = emptyChunk;
+  U8List chunk = emptyChunk;
   int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
@@ -1480,6 +1486,21 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
   }
 
+  void parseChunk(List<int> value, int start, int end) {
+    if (value is U8List) {
+      chunk = value;
+    } else {
+      final bytes = U8List(end - start);
+      bytes.setRange(0, bytes.length, value, start);
+      end = bytes.length;
+      start = 0;
+      chunk = bytes;
+    }
+    chunkEnd = end;
+    parse(start);
+  }
+
+  @pragma('wasm:prefer-inline')
   int getChar(int position) => chunk[position];
 
   String getString(int start, int end, int bits) {
@@ -1558,9 +1579,7 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   }
 
   void _addChunk(List<int> chunk, int start, int end) {
-    _parser.chunk = chunk;
-    _parser.chunkEnd = end;
-    _parser.parse(start);
+    _parser.parseChunk(chunk, start, end);
   }
 
   void close() {
