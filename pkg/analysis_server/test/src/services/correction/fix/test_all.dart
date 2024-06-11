@@ -104,6 +104,7 @@ import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_super_parameters_test.dart' as convert_to_super_parameters;
 import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'convert_to_wildcard_pattern_test.dart' as convert_to_wildcard_pattern;
+import 'convert_to_wildcard_variable_test.dart' as convert_to_wildcard_variable;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -376,6 +377,7 @@ void main() {
     convert_to_super_parameters.main();
     convert_to_where_type.main();
     convert_to_wildcard_pattern.main();
+    convert_to_wildcard_variable.main();
     create_class.main();
     create_constructor_for_final_field.main();
     create_constructor_super.main();

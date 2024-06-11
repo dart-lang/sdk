@@ -10513,7 +10513,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isLowered = false,
       bool isSynthesized = false,
       bool isHoisted = false,
-      bool hasDeclaredInitializer = false}) {
+      bool hasDeclaredInitializer = false,
+      bool isWildcard = false}) {
     initializer?.parent = this;
     if (flags != -1) {
       this.flags = flags;
@@ -10528,6 +10529,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.hasDeclaredInitializer = hasDeclaredInitializer;
       this.isSynthesized = isSynthesized;
       this.isHoisted = isHoisted;
+      this.isWildcard = isWildcard;
     }
     assert(_name != null || this.isSynthesized,
         "Only synthesized variables can have no name.");
@@ -10576,6 +10578,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagLowered = 1 << 8;
   static const int FlagSynthesized = 1 << 9;
   static const int FlagHoisted = 1 << 10;
+  static const int FlagWildcard = 1 << 11;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -10640,6 +10643,11 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// For instance, for duplicate variable names, an invalid expression is set
   /// as the initializer of the second variable.
   bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
+
+  /// Whether this variable is a wildcard variable.
+  ///
+  /// Wildcard variables have the name `_`.
+  bool get isWildcard => flags & FlagWildcard != 0;
 
   /// Whether the variable is assignable.
   ///
@@ -10707,6 +10715,12 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value
         ? (flags | FlagHasDeclaredInitializer)
         : (flags & ~FlagHasDeclaredInitializer);
+  }
+
+  void set isWildcard(bool value) {
+    // TODO(kallentu): Change the name to be unique with other wildcard
+    // variables.
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
   }
 
   void clearAnnotations() {

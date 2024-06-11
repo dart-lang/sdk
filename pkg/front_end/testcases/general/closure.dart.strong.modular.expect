@@ -14,7 +14,7 @@ class Bar extends core::Object {
     ;
 }
 static method useCallback(dynamic callback) → dynamic {
-  dynamic _ = callback{dynamic}();
+  wildcard dynamic _ = callback{dynamic}();
 }
 static method main() → dynamic {
   dynamic x;
@@ -23,5 +23,5 @@ static method main() → dynamic {
     return new self::Foo::•();
   }
   self::useCallback(inner);
-  self::Bar _ = inner(){() → self::Foo}.{self::Foo::_field}{self::Bar};
+  wildcard self::Bar _ = inner(){() → self::Foo}.{self::Foo::_field}{self::Bar};
 }

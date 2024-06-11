@@ -5,7 +5,7 @@ import "dart:async" as asy;
 import "dart:async";
 
 static method test(asy::StreamController<void> _eventStreamController) → dynamic async /* emittedValueType= dynamic */ {
-  await for (final void _ in _eventStreamController.{asy::StreamController::stream}{asy::Stream<void>}) {
+  await for (final wildcard void _ in _eventStreamController.{asy::StreamController::stream}{asy::Stream<void>}) {
   }
 }
 static method main() → dynamic {}

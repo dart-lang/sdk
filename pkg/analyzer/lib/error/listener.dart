@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
@@ -340,8 +341,10 @@ class ErrorReporter {
     Map<String, List<_TypeToConvert>> typeGroups = {};
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
-      if (argument is DartType) {
-        String displayName = argument.getDisplayString();
+      if (argument is TypeImpl) {
+        String displayName = argument.getDisplayString(
+          preferTypeAlias: true,
+        );
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
         types.add(_TypeToConvert(i, argument, displayName));

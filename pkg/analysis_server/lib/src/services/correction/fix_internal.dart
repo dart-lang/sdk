@@ -77,6 +77,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_set_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_wildcard_pattern.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_wildcard_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
@@ -1696,6 +1697,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   WarningCode.UNUSED_LOCAL_VARIABLE: [
     RemoveUnusedLocalVariable.new,
+    ConvertToWildcardVariable.new,
   ],
   WarningCode.UNUSED_SHOWN_NAME: [
     RemoveNameFromCombinator.new,

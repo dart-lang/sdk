@@ -129,11 +129,10 @@ class _Client {
     final String uriStr = arguments.required<String>('uri');
 
     final vm.KernelCompilationResults compilationResults =
-        await vm.compileToKernel(
-      Uri.parse(uriStr),
-      compilerOptions,
-      environmentDefines: {},
-    );
+        await vm.compileToKernel(new vm.KernelCompilationArguments(
+      source: Uri.parse(uriStr),
+      options: compilerOptions,
+    ));
 
     return _serializeComponentWithoutPlatform(
       compilationResults.component!,

@@ -2486,9 +2486,11 @@ abstract class ElementImpl implements Element {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
     bool multiline = false,
+    bool preferTypeAlias = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
     );
     appendTo(builder);
     return builder.toString();
