@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:collection/collection.dart';
 import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
@@ -114,7 +113,7 @@ main() {
       // Collect paths from any OutputEvents that had them.
       final stackFramePaths = outputEvents.output
           .map((event) => event.source?.path)
-          .whereNotNull()
+          .nonNulls
           .toList();
       // Ensure we had a frame with the absolute path of the test script.
       expect(stackFramePaths, contains(testFile.path));

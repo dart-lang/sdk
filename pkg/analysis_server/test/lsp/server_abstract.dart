@@ -190,7 +190,7 @@ abstract class AbstractLspAnalysisServerTest
               (textDocEdit) => textDocEdit,
             ),
           )
-          .whereNotNull()
+          .nonNulls
           .toList();
 
   @override
