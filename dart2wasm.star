@@ -30,6 +30,14 @@ dart.ci_sandbox_builder(
 )
 
 dart.ci_sandbox_builder(
+    "dart2wasm-asserts-linux-chrome",
+    category = "d2w|ca",
+    properties = [chrome, emscripten, no_android],
+    location_filters = paths.to_location_filters(paths.dart2wasm),
+    triggered_by = ["dart2wasm-gitiles-trigger-%s"],
+)
+
+dart.ci_sandbox_builder(
     "dart2wasm-linux-chrome",
     category = "d2w|c",
     properties = [chrome, emscripten, no_android],
