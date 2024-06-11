@@ -97,6 +97,9 @@ final List<Option> options = [
   StringOption(
       "dump-kernel-after-tfa", (o, value) => o.dumpKernelAfterTfa = value,
       hide: true),
+  Flag("enable-experimental-ffi",
+      (o, value) => o.translatorOptions.enableExperimentalFfi = value,
+      defaultsTo: _d.translatorOptions.enableExperimentalFfi),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

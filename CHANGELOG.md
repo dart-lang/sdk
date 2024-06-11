@@ -1,3 +1,13 @@
+## 3.4.4
+
+This is a patch release that:
+
+- Fixes an issue where `const bool.fromEnvironment('dart.library.ffi')` is true
+  and conditional import condition `dart.library.ffi` is true in dart2wasm.
+  (issue [#55948]).
+
+[#55948]: https://github.com/dart-lang/sdk/issues/55948
+
 ## 3.4.3 - 2024-06-05
 
 This is a patch release that:

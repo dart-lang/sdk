@@ -120,6 +120,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    --extra-compiler-option=*)
+      DART2WASM_ARGS+=(${1#--extra-compiler-option=})
+      shift
+      ;;
+
     --* | -*)
       DART2WASM_ARGS+=("$1")
       shift
