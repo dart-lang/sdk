@@ -71,7 +71,7 @@ class MacroTestConfig extends CfeTestConfig {
   }
 
   @override
-  Future<void> onCompilationResult(
+  Future<void> onCompilationResult(MarkerOptions markerOptions,
       TestData testData, CfeTestResultData testResultData) async {
     Component component = testResultData.compilerResult.component!;
     StringBuffer buffer = new StringBuffer();
@@ -95,19 +95,28 @@ class MacroTestConfig extends CfeTestConfig {
           file.writeAsStringSync(actual);
         } else {
           String diff = await runDiff(expectedUri, actual);
-          throw "${testData.name} don't match ${expectedUri}\n$diff";
+          print("ERROR: ${testData.name} don't match ${expectedUri}\n$diff");
+          onFailure(generateErrorMessage(markerOptions, mismatches: {
+            testData.name: {testResultData.config.marker}
+          }));
         }
       }
     } else if (generateExpectations) {
       file.writeAsStringSync(actual);
     } else {
-      throw 'Please use -g option to create file ${expectedUri} with this '
-          'content:\n$actual';
+      print('Please use -g option to create file ${expectedUri} with this '
+          'content:\n$actual');
+      onFailure(generateErrorMessage(markerOptions, errors: {
+        testData.name: {testResultData.config.marker}
+      }));
     }
     if (offsetErrors.isNotEmpty) {
       offsetErrors.forEach(print);
       offsetErrors.clear();
-      throw "${testData.name} has macro offset errors.";
+      print("ERROR: ${testData.name} has macro offset errors.");
+      onFailure(generateErrorMessage(markerOptions, errors: {
+        testData.name: {testResultData.config.marker}
+      }));
     }
   }
 }

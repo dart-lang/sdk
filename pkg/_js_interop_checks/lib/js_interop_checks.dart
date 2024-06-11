@@ -117,7 +117,7 @@ class JsInteropChecks extends RecursiveVisitor {
   // TODO(srujzs): Help migrate some of these away. Once we're done, we can
   // remove `dart:*` interop libraries from the check as they can be moved out
   // of `libraries.json`.
-  static const _allowedInteropLibrariesInDart2WasmPackages = [
+  static const allowedInteropLibrariesInDart2WasmPackages = [
     // Both these packages re-export other interop libraries
     'js',
     'js_util',
@@ -553,7 +553,7 @@ class JsInteropChecks extends RecursiveVisitor {
         // `dart:ui`.
         final allowedToImport = uri.isScheme('dart') ||
             (uri.isScheme('package') &&
-                _allowedInteropLibrariesInDart2WasmPackages
+                allowedInteropLibrariesInDart2WasmPackages
                     .any((pkg) => uri.pathSegments.first == pkg)) ||
             _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns
                 .any((pattern) => uri.path.contains(pattern));

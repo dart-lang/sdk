@@ -61,8 +61,8 @@ class CfeTestConfig extends TestConfig {
 
   /// Called after running test on [testData] with the resulting
   /// [testResultData].
-  void onCompilationResult(
-      TestData testData, CfeTestResultData testResultData) {}
+  void onCompilationResult(MarkerOptions markerOptions, TestData testData,
+      CfeTestResultData testResultData) {}
 }
 
 abstract class CfeDataComputer<T> extends DataComputer<T, CfeTestConfig,
@@ -229,7 +229,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
 
   CfeTestResultData testResultData =
       new CfeTestResultData(config, customData, compilerResult);
-  config.onCompilationResult(testData, testResultData);
+  config.onCompilationResult(markerOptions, testData, testResultData);
   return processCompiledResult(
       markerOptions, testData, dataComputer, testResultData, errors,
       fatalErrors: fatalErrors,
