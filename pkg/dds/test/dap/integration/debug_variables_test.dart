@@ -238,6 +238,82 @@ class A {
       );
     });
 
+    test('does not duplicate getters overriding fields', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final myVariable = A();
+  print('Hello!'); $breakpointMarker
+}
+
+class Base {
+  String aaa = 'nnn';
+}
+
+class A extends Base {
+  @override
+  String get aaa => 'yyy';
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateGettersInDebugViews: true,
+        ),
+      );
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'A',
+        expectedVariables: '''
+            aaa: "yyy", eval: myVariable.aaa
+        ''',
+        ignore: {'runtimeType'},
+      );
+    });
+
+    test('does not duplicate fields overriding getters', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final myVariable = A();
+  print('Hello!'); $breakpointMarker
+}
+
+abstract class Base {
+  String get aaa => 'nnn';
+}
+
+class A extends Base {
+  @override
+  final String aaa = 'yyy';
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateGettersInDebugViews: true,
+        ),
+      );
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'A',
+        expectedVariables: '''
+            aaa: "yyy", eval: myVariable.aaa
+        ''',
+        ignore: {'runtimeType'},
+      );
+    });
+
     test('includes record fields', () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''
