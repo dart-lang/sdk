@@ -1035,6 +1035,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [
     RemoveLexeme.modifier,
   ],
+  CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER: [
+    RemoveLexeme.modifier,
+  ],
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT: [
     RemoveLexeme.keyword,
   ],

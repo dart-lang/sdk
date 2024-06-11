@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 331 "needsFix"
-# - 417 "hasFix"
+# - 330 "needsFix"
+# - 418 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -973,9 +973,7 @@ CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: hasFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
-  status: needsFix
-  notes: |-
-    Remove the modifier.
+  status: hasFix
 CompileTimeErrorCode.INVALID_OVERRIDE:
   status: hasFix
 CompileTimeErrorCode.INVALID_OVERRIDE_SETTER:
