@@ -93,7 +93,9 @@ class FormalParameterScope extends EnclosedScope {
     for (var parameter in elements) {
       if (parameter is! FieldFormalParameterElement &&
           parameter is! SuperFormalParameterElement) {
-        _addGetter(parameter);
+        if (!parameter.isWildcardVariable) {
+          _addGetter(parameter);
+        }
       }
     }
   }
@@ -174,7 +176,9 @@ class LocalScope extends EnclosedScope {
   LocalScope(super.parent);
 
   void add(Element element) {
-    _addGetter(element);
+    if (!element.isWildcardVariable) {
+      _addGetter(element);
+    }
   }
 }
 
@@ -435,4 +439,11 @@ class _LibraryOrAugmentationImportScope implements Scope {
   ScopeLookupResult lookup(String id) {
     return _nullPrefixScope.lookup(id);
   }
+}
+
+extension on Element {
+  bool get isWildcardVariable =>
+      name == '_' &&
+      (this is LocalVariableElement || this is ParameterElement) &&
+      (library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false);
 }
