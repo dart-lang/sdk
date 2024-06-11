@@ -1452,6 +1452,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.MISSING_FUNCTION_BODY: [
     ConvertIntoBlockBody.missingBody,
   ],
+  ParserErrorCode.MISSING_TYPEDEF_PARAMETERS: [
+    AddEmptyArgumentList.new,
+  ],
   ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR: [
     RemoveConstructor.new,
   ],

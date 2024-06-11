@@ -63,4 +63,13 @@ class A {
 main() {}
 ''');
   }
+
+  Future<void> test_missingTypedefParameters() async {
+    await resolveTestCode('''
+typedef F<E>;
+''');
+    await assertHasFix('''
+typedef F<E>();
+''');
+  }
 }

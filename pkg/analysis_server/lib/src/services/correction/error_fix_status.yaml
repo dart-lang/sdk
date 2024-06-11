@@ -45,7 +45,7 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 334 "needsFix"
+# - 331 "needsFix"
 # - 417 "hasFix"
 # - 516 "noFix"
 
@@ -3060,9 +3060,7 @@ ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
   notes: |-
     Add the missing terminator.
 ParserErrorCode.MISSING_TYPEDEF_PARAMETERS:
-  status: needsFix
-  notes: |-
-    Add an empty parameter list.
+  status: hasFix
 ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
   status: noFix
 ParserErrorCode.MIXED_PARAMETER_GROUPS:
