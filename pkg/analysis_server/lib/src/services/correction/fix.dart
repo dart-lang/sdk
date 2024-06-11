@@ -1582,6 +1582,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Replace ':'s with '='s everywhere in file",
   );
+  static const REPLACE_COLON_WITH_IN = FixKind(
+    'dart.fix.replace.colonWithIn',
+    DartFixKindPriority.DEFAULT,
+    "Replace ':' with 'in'",
+  );
+  static const REPLACE_COLON_WITH_IN_MULTI = FixKind(
+    'dart.fix.replace.colonWithIn.multi',
+    DartFixKindPriority.IN_FILE,
+    "Replace ':'s with 'in's everywhere in file",
+  );
   static const REPLACE_FINAL_WITH_CONST = FixKind(
     'dart.fix.replace.finalWithConst',
     DartFixKindPriority.DEFAULT,

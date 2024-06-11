@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 330 "needsFix"
-# - 418 "hasFix"
+# - 329 "needsFix"
+# - 419 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2568,9 +2568,7 @@ ParserErrorCode.CLASS_IN_CLASS:
   notes: |-
     Move the inner class to the top-level.
 ParserErrorCode.COLON_IN_PLACE_OF_IN:
-  status: needsFix
-  notes: |-
-    Replace the `:` with `in`.
+  status: hasFix
 ParserErrorCode.CONFLICTING_MODIFIERS:
   status: needsFix
   notes: |-

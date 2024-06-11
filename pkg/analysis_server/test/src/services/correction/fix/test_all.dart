@@ -240,6 +240,7 @@ import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
+import 'replace_colon_with_in_test.dart' as replace_colon_with_in;
 import 'replace_container_with_sized_box_test.dart'
     as replace_container_with_sized_box;
 import 'replace_empty_amp_pattern_test.dart' as replace_empty_amp_pattern;
@@ -497,6 +498,7 @@ void main() {
     replace_boolean_with_bool.main();
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
+    replace_colon_with_in.main();
     replace_container_with_sized_box.main();
     replace_empty_amp_pattern.main();
     replace_final_with_const.main();
