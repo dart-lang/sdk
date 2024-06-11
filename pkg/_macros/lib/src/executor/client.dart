@@ -215,8 +215,8 @@ final class MacroExpansionClient {
           remoteInstance: request.introspector,
           serializationZoneId: request.serializationZoneId);
 
-      MacroExecutionResult result =
-          await executeTypesMacro(instance, request.target, introspector);
+      MacroExecutionResult result = await runPhase(
+          () => executeTypesMacro(instance, request.target, introspector));
       return SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: result,
@@ -244,8 +244,8 @@ final class MacroExpansionClient {
               remoteInstance: request.introspector,
               serializationZoneId: request.serializationZoneId);
 
-      MacroExecutionResult result = await executeDeclarationsMacro(
-          instance, request.target, introspector);
+      MacroExecutionResult result = await runPhase(() =>
+          executeDeclarationsMacro(instance, request.target, introspector));
       return SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: result,
@@ -272,8 +272,8 @@ final class MacroExpansionClient {
               remoteInstance: request.introspector,
               serializationZoneId: request.serializationZoneId);
 
-      MacroExecutionResult result =
-          await executeDefinitionMacro(instance, request.target, introspector);
+      MacroExecutionResult result = await runPhase(
+          () => executeDefinitionMacro(instance, request.target, introspector));
       return SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: result,
@@ -339,3 +339,85 @@ void Function(Serializer) _sendIOSinkResultFactory(IOSink sink) =>
             'ProcessExecutor');
       }
     };
+
+/// Runs [phase] in a [Zone] which tracks scheduled tasks, completing with a
+/// [StateError] if [phase] returns a value while additional tasks or timers
+/// are still scheduled.
+Future<MacroExecutionResult> runPhase(
+    Future<MacroExecutionResult> Function() phase) {
+  final completer = Completer<MacroExecutionResult>();
+
+  var pendingMicrotasks = 0;
+  var activeTimers = 0;
+  Zone.current
+      .fork(
+          specification: ZoneSpecification(
+        handleUncaughtError: (self, parent, zone, error, stackTrace) {
+          if (completer.isCompleted) return;
+          completer.completeError(error, stackTrace);
+        },
+        createTimer: (self, parent, zone, duration, f) {
+          activeTimers++;
+          return _WrappedTimer(
+              parent.createTimer(zone, duration, () {
+                activeTimers--;
+                f();
+              }),
+              onCancel: () => activeTimers--);
+        },
+        createPeriodicTimer: (self, parent, zone, duration, f) {
+          activeTimers++;
+          return _WrappedTimer(parent.createPeriodicTimer(zone, duration, f),
+              onCancel: () => activeTimers--);
+        },
+        scheduleMicrotask: (self, parent, zone, f) {
+          pendingMicrotasks++;
+          parent.scheduleMicrotask(zone, () {
+            pendingMicrotasks--;
+            assert(pendingMicrotasks >= 0);
+            // This should only happen if we have previously competed with an
+            // error. Just skip this scheduled task in that case.
+            if (completer.isCompleted) return;
+            f();
+          });
+        },
+      ))
+      .runGuarded(() => phase().then((value) {
+            if (completer.isCompleted) return;
+            if (pendingMicrotasks != 0) {
+              throw StateError(
+                  'Macro completed but has $pendingMicrotasks async tasks still '
+                  'pending. Macros must complete all async work prior to '
+                  'returning.');
+            }
+            if (activeTimers != 0) {
+              throw StateError(
+                  'Macro completed but has $activeTimers active timers. '
+                  'Macros must cancel all timers prior to returning.');
+            }
+            completer.complete(value);
+          }));
+  return completer.future;
+}
+
+/// Wraps a [Timer] to track when it is cancelled and calls [onCancel], if the
+/// timer is still active.
+class _WrappedTimer implements Timer {
+  final Timer timer;
+
+  final void Function() onCancel;
+
+  _WrappedTimer(this.timer, {required this.onCancel});
+
+  @override
+  void cancel() {
+    if (isActive) onCancel();
+    timer.cancel();
+  }
+
+  @override
+  bool get isActive => timer.isActive;
+
+  @override
+  int get tick => timer.tick;
+}

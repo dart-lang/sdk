@@ -802,6 +802,75 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
   ]);
 }
 
+class DanglingTaskMacro
+    implements
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro {
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    Future.value('hello').then((_) => Future.value('world'));
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    Future.value('hello').then((_) => Future.value('world'));
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) {
+    Future.value('hello').then((_) => Future.value('world'));
+  }
+}
+
+class DanglingTimerMacro
+    implements
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro {
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    Timer.run(() {});
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    Timer.run(() {});
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) {
+    Timer.run(() {});
+  }
+}
+
+class DanglingPeriodicTimerMacro
+    implements
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro {
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    Timer.periodic(Duration(seconds: 1), (_) {});
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    Timer.periodic(Duration(seconds: 1), (_) {});
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) {
+    Timer.periodic(Duration(seconds: 1), (_) {});
+  }
+}
+
 extension on String {
   String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
 }
