@@ -3,6 +3,8 @@
   from `file_system/file_system.dart`.
 * Deprecated `package:analyzer/src/source/source_resource.dart`,
   import `package:analyzer/source/file_source.dart` instead.
+* Deprecated exports from `package:analyzer/src/source/source.dart`,
+  import `package:analyzer/source/source.dart` instead.
 
 ## 6.5.2
 * Updated constraints `macros: '>=0.1.2-0 <0.1.3'`.
