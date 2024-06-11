@@ -6,6 +6,10 @@ This is a patch release that:
   and conditional import condition `dart.library.ffi` is true in dart2wasm.
   (issue [#55948]).
 
+- Fixes an issue where FFI calls with variadic arguments on MacOS Arm64
+  would mangle the arguments. (issue [#55943]).
+
+[#55943]: https://github.com/dart-lang/sdk/issues/55943
 [#55948]: https://github.com/dart-lang/sdk/issues/55948
 
 ## 3.4.3 - 2024-06-05

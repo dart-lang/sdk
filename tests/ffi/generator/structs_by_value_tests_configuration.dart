@@ -847,6 +847,18 @@ https://github.com/dart-lang/sdk/issues/49460""",
     int64,
     "Struct stradles last argument register, variadic",
   ),
+  FunctionType(
+    varArgsIndex: 1,
+    [
+      struct12bytesInt,
+      int32,
+      int32,
+      int32,
+      int32,
+    ],
+    int32,
+    "Variadic arguments test on macos_arm64.",
+  ),
 ];
 
 final struct1byteBool = StructType([bool_]);
