@@ -42,6 +42,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     required CompletionBudget budget,
     required OperationPerformanceImpl performance,
     required DartCompletionRequest request,
+    required int maxSuggestions,
     NotImportedSuggestions? notImportedSuggestions,
     required bool useFilter,
   }) async {
@@ -66,6 +67,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         await manager.computeSuggestions(
           request,
           performance,
+          maxSuggestions: maxSuggestions,
           useFilter: useFilter,
         ),
       );
@@ -205,6 +207,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
             budget: budget,
             performance: performance,
             request: completionRequest,
+            maxSuggestions: params.maxResults,
             notImportedSuggestions: notImportedSuggestions,
             useFilter: true,
           );

@@ -167,6 +167,7 @@ class CompletionHandler
                 offset,
                 triggerCharacter,
                 token,
+                maxResults,
               );
             },
           );
@@ -360,6 +361,7 @@ class CompletionHandler
     int offset,
     String? triggerCharacter,
     CancellationToken token,
+    int maxSuggestions,
   ) async {
     var useNotImportedCompletions =
         suggestFromUnimportedLibraries && capabilities.applyEdit;
@@ -397,6 +399,7 @@ class CompletionHandler
         var suggestions = await contributor.computeSuggestions(
           completionRequest,
           performance,
+          maxSuggestions: maxSuggestions,
           useFilter: true,
         );
 

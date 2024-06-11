@@ -102,6 +102,7 @@ class CiderCompletionComputer {
               performance,
               enableOverrideContributor: false,
               enableUriContributor: false,
+              maxSuggestions: -1,
               useFilter: true,
             );
           });

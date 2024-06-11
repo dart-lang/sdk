@@ -1410,6 +1410,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     ).computeSuggestions(
       dartRequest,
       performance,
+      maxSuggestions: -1,
       useFilter: true,
     );
 

@@ -93,6 +93,7 @@ Future<void> _runForever({
       ).computeSuggestions(
         dartRequest,
         OperationPerformanceImpl('<root>'),
+        maxSuggestions: -1,
         useFilter: false,
       );
     }
