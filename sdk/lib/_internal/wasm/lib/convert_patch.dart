@@ -103,7 +103,7 @@ class _JsonListener {
   void popContainer() {
     value = currentContainer;
     currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = stack.removeLast() as String;
+    if (currentContainer is Map) key = unsafeCast<String>(stack.removeLast());
   }
 
   void handleString(String value) {
@@ -128,12 +128,12 @@ class _JsonListener {
   }
 
   void propertyName() {
-    key = value as String;
+    key = unsafeCast<String>(value);
     value = null;
   }
 
   void propertyValue() {
-    var map = currentContainer as Map;
+    var map = unsafeCast<Map>(currentContainer);
     var reviver = this.reviver;
     if (reviver != null) {
       value = reviver(key, value);
@@ -153,7 +153,7 @@ class _JsonListener {
   }
 
   void arrayElement() {
-    var list = currentContainer as List;
+    var list = unsafeCast<List>(currentContainer);
     var reviver = this.reviver;
     if (reviver != null) {
       value = reviver(list.length, value);
@@ -525,6 +525,13 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   int getChar(int index);
 
   /**
+   * Returns [true] if [getChar] is returning UTF16 code units.
+   *
+   * Otherwise it is expected that [getChar] is returning UTF8 bytes.
+   */
+  bool get isUtf16Input;
+
+  /**
    * Copy ASCII characters from start to end of chunk into a list.
    *
    * Used for number buffer (always copies ASCII, so encoding is not important).
@@ -808,16 +815,30 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       position = parsePartial(position);
       if (position == length) return;
     }
+    final OneByteString charAttributes =
+        unsafeCast<OneByteString>(_characterAttributes);
+
     int state = this.state;
+    outer:
     while (position < length) {
-      int char = getChar(position);
-      switch (char) {
-        case SPACE:
-        case CARRIAGE_RETURN:
-        case NEWLINE:
-        case TAB:
-          position++;
+      int char = 0;
+      do {
+        char = getChar(position);
+        if (isUtf16Input && char > 0xFF) {
           break;
+        }
+        if ((oneByteStringCodeUnitAtUnchecked(charAttributes, char) &
+                CHAR_WHITESPACE) ==
+            0) {
+          break;
+        }
+        position++;
+        if (position >= length) {
+          break outer;
+        }
+      } while (true);
+
+      switch (char) {
         case QUOTE:
           if ((state & ALLOW_STRING_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
@@ -977,6 +998,37 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     return length;
   }
 
+  static const int CHAR_SIMPLE_STRING_END = 1;
+  static const int CHAR_WHITESPACE = 2;
+
+  /**
+   * [_characterAttributes] string was generated using the following code:
+   *
+   * ```
+   * int $(String ch) => ch.codeUnitAt(0);
+   * final list = Uint8List(256);
+   * for (var i = 0; i < $(' '); i++) {
+   *   list[i] |= CHAR_SIMPLE_STRING_END;
+   * }
+   * list[$('"')] |= CHAR_SIMPLE_STRING_END;
+   * list[$('\\')] |= CHAR_SIMPLE_STRING_END;
+   * list[$(' ')] |= CHAR_WHITESPACE;
+   * list[$('\r')] |= CHAR_WHITESPACE;
+   * list[$('\n')] |= CHAR_WHITESPACE;
+   * list[$('\t')] |= CHAR_WHITESPACE;
+   * for (var i = 0; i < 256; i += 64) {
+   *   print("'${String.fromCharCodes([
+   *         for (var v in list.skip(i).take(64)) v + $(' '),
+   *       ])}'");
+   * }
+   * ```
+   */
+  static const String _characterAttributes =
+      '!!!!!!!!!##!!#!!!!!!!!!!!!!!!!!!" !                             '
+      '                            !                                   '
+      '                                                                '
+      '                                                                ';
+
   /**
    * Parses a string value.
    *
@@ -984,27 +1036,42 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returned position right after the final quote.
    */
   int parseString(int position) {
+    final OneByteString charAttributes =
+        unsafeCast<OneByteString>(_characterAttributes);
+
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
     int end = chunkEnd;
     int bits = 0;
-    while (position < end) {
-      int char = getChar(position++);
-      bits |= char; // Includes final '"', but that never matters.
-      // BACKSLASH is larger than QUOTE and SPACE.
-      if (char > BACKSLASH) {
-        continue;
+    int char = 0;
+    if (position < end) {
+      do {
+        // Caveat: do not combine the following two lines together. It helps
+        // compiler to generate better code (it currently can't reorder operations
+        // to reduce register pressure).
+        char = getChar(position);
+        position++;
+        bits |= char; // Includes final '"', but that never matters.
+        if (isUtf16Input && char > 0xFF) {
+          continue;
+        }
+        if ((oneByteStringCodeUnitAtUnchecked(charAttributes, char) &
+                CHAR_SIMPLE_STRING_END) !=
+            0) {
+          break;
+        }
+      } while (position < end);
+      if (char == QUOTE) {
+        int sliceEnd = position - 1;
+        listener.handleString(getString(start, sliceEnd, bits));
+        return sliceEnd + 1;
       }
       if (char == BACKSLASH) {
-        beginString();
         int sliceEnd = position - 1;
+        beginString();
         if (start < sliceEnd) addSliceToString(start, sliceEnd);
         return parseStringToBuffer(sliceEnd);
-      }
-      if (char == QUOTE) {
-        listener.handleString(getString(start, position - 1, bits));
-        return position;
       }
       if (char < SPACE) {
         fail(position - 1, "Control character in string");
@@ -1055,6 +1122,9 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * slices of non-escape characters using [addSliceToString].
    */
   int parseStringToBuffer(int position) {
+    final OneByteString charAttributes =
+        unsafeCast<OneByteString>(_characterAttributes);
+
     int end = chunkEnd;
     int start = position;
     while (true) {
@@ -1064,11 +1134,25 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         }
         return chunkString(STR_PLAIN);
       }
-      int char = getChar(position++);
-      if (char > BACKSLASH) continue;
+
+      int char = 0;
+      do {
+        char = getChar(position);
+        position++;
+        if (isUtf16Input && char > 0xFF) {
+          continue;
+        }
+        if ((oneByteStringCodeUnitAtUnchecked(charAttributes, char) &
+                CHAR_SIMPLE_STRING_END) !=
+            0) {
+          break;
+        }
+      } while (position < end);
+
       if (char < SPACE) {
         fail(position - 1); // Control character in string.
       }
+
       if (char == QUOTE) {
         int quotePosition = position - 1;
         if (quotePosition > start) {
@@ -1077,13 +1161,16 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         listener.handleString(endString());
         return position;
       }
+
       if (char != BACKSLASH) {
         continue;
       }
+
       // Handle escape.
       if (position - 1 > start) {
         addSliceToString(start, position - 1);
       }
+
       if (position == end) return chunkString(STR_ESCAPE);
       position = parseStringEscape(position);
       if (position == end) return position;
@@ -1379,6 +1466,9 @@ class _JsonStringParser extends _JsonParserWithListener
 
   _JsonStringParser(_JsonListener listener) : super(listener);
 
+  @pragma('wasm:prefer-inline')
+  bool get isUtf16Input => true;
+
   int getChar(int position) => chunk.codeUnitAt(position);
 
   String getString(int start, int end, int bits) {
@@ -1501,12 +1591,15 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   }
 
   @pragma('wasm:prefer-inline')
+  bool get isUtf16Input => false;
+
+  @pragma('wasm:prefer-inline')
   int getChar(int position) => chunk[position];
 
   String getString(int start, int end, int bits) {
     const int maxAsciiChar = 0x7f;
     if (bits <= maxAsciiChar) {
-      return new String.fromCharCodes(chunk, start, end);
+      return createOneByteStringFromCharacters(chunk, start, end);
     }
     beginString();
     if (start < end) addSliceToString(start, end);
