@@ -655,8 +655,15 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  BodyBuilderContext get bodyBuilderContext =>
-      new ProcedureBodyBuilderContext(this);
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return new ProcedureBodyBuilderContext(this,
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override

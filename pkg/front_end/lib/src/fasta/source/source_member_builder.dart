@@ -63,7 +63,10 @@ abstract class SourceMemberBuilder implements MemberBuilder {
 
   AugmentSuperTarget? get augmentSuperTarget;
 
-  BodyBuilderContext get bodyBuilderContext;
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields});
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -99,7 +102,10 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  BodyBuilderContext get bodyBuilderContext {
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
     throw new UnimplementedError('$runtimeType.bodyBuilderContext');
   }
 }

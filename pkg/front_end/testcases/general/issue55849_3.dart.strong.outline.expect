@@ -1,0 +1,69 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static factory redir() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  constructor •({self::A a = const self::B::•()}) → self::C
+    ;
+  const constructor c({self::A a = const self::B::•()}) → self::C
+    : super core::Object::•()
+    ;
+  static factory f({self::A a = const self::B::•()}) → self::C
+    ;
+  method foo({self::A a = const self::B::•()}) → dynamic
+    ;
+  static method bar({has-declared-initializer self::A a}) → dynamic
+    ;
+}
+extension E on self::C {
+  method foo = self::E|foo;
+  method tearoff foo = self::E|get#foo;
+}
+extension type ET(self::C c) {
+  abstract extension-type-member representation-field get c() → self::C;
+  method foo = self::ET|foo;
+  method tearoff foo = self::ET|get#foo;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+  constructor named = self::ET|constructor#named;
+  constructor tearoff named = self::ET|constructor#_#named#tearOff;
+}
+static extension-member method E|foo(lowered final self::C #this, {has-declared-initializer self::A a}) → dynamic
+  ;
+static extension-member method E|get#foo(lowered final self::C #this) → ({a: self::A}) → dynamic
+  return ({self::A a}) → dynamic => self::E|foo(#this, a: a);
+static extension-type-member method ET|constructor#(self::C c) → self::ET% /* erasure=self::C, declared=! */
+  ;
+static extension-type-member method ET|constructor#_#new#tearOff(self::C c) → self::ET% /* erasure=self::C, declared=! */
+  return self::ET|constructor#(c);
+static extension-type-member method ET|constructor#named(self::C c, {self::A a = const self::B::•()}) → self::ET% /* erasure=self::C, declared=! */
+  ;
+static extension-type-member method ET|constructor#_#named#tearOff(self::C c, {has-declared-initializer self::A a}) → self::ET% /* erasure=self::C, declared=! */
+  return self::ET|constructor#named(c, a: a);
+static extension-type-member method ET|foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this, {has-declared-initializer self::A a}) → dynamic
+  ;
+static extension-type-member method ET|get#foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this) → ({a: self::A}) → dynamic
+  return ({self::A a}) → dynamic => self::ET|foo(#this, a: a);
+static method foo({has-declared-initializer self::A a}) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:15:18 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:19:26 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:17:28 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:21:20 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue55849_3.dart:31:30 -> InstanceConstant(const B{})
+Extra constant evaluation: evaluated: 19, effectively constant: 5

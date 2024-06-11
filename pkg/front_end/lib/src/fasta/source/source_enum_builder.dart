@@ -659,7 +659,15 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  BodyBuilderContext get bodyBuilderContext => new EnumBodyBuilderContext(this);
+  BodyBuilderContext createBodyBuilderContext(
+      {required bool inOutlineBuildingPhase,
+      required bool inMetadata,
+      required bool inConstFields}) {
+    return new EnumBodyBuilderContext(this,
+        inOutlineBuildingPhase: inOutlineBuildingPhase,
+        inMetadata: inMetadata,
+        inConstFields: inConstFields);
+  }
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
     DartType selfType =
@@ -720,7 +728,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
       // be built via a body builder to detect potential errors.
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder, bodyBuilderContext, scope, fileUri);
+              libraryBuilder,
+              createBodyBuilderContext(
+                  inOutlineBuildingPhase: true,
+                  inMetadata: false,
+                  inConstFields: false),
+              scope,
+              fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 
       if (enumConstantInfo.argumentsBeginToken != null) {
