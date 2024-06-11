@@ -89,10 +89,14 @@ class ConstantResolver extends Transformer {
 }
 
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = false, this.mode = Mode.regular});
+  WasmTarget(
+      {this.enableExperimentalFfi = true,
+      this.removeAsserts = false,
+      this.mode = Mode.regular});
 
-  bool removeAsserts;
-  Mode mode;
+  final bool removeAsserts;
+  final Mode mode;
+  final bool enableExperimentalFfi;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -206,7 +210,7 @@ class WasmTarget extends Target {
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
-        isDart2Wasm: true);
+        isDart2Wasm: true, enableExperimentalFfi: enableExperimentalFfi);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
@@ -497,6 +501,10 @@ class WasmTarget extends Target {
   @override
   Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
       _boxedDouble ??= coreTypes.index.getClass("dart:core", "_BoxedDouble");
+
+  @override
+  DartLibrarySupport get dartLibrarySupport => CustomizedDartLibrarySupport(
+      unsupported: {if (!enableExperimentalFfi) 'ffi'});
 }
 
 class WasmVerification extends Verification {

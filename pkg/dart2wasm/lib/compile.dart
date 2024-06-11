@@ -81,7 +81,9 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     mode = wasm.Mode.regular;
   }
   final WasmTarget target = WasmTarget(
-      removeAsserts: !options.translatorOptions.enableAsserts, mode: mode);
+      enableExperimentalFfi: options.translatorOptions.enableExperimentalFfi,
+      removeAsserts: !options.translatorOptions.enableAsserts,
+      mode: mode);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     // This is a dummy directory that always exists. This option should be
