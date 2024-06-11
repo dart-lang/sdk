@@ -88,6 +88,7 @@ class DartCompletionManager {
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
+    required int maxSuggestions,
     required bool useFilter,
   }) async {
     request.checkAborted();
@@ -108,15 +109,15 @@ class DartCompletionManager {
 
     var notImportedSuggestions = this.notImportedSuggestions;
 
-    var collector = SuggestionCollector();
+    var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
     try {
       var selection = request.unit.select(offset: request.offset, length: 0);
       if (selection == null) {
         throw AbortCompletion();
       }
-      var matcher = request.targetPrefix.isEmpty
-          ? NoPrefixMatcher()
-          : FuzzyMatcher(request.targetPrefix);
+      var targetPrefix = request.targetPrefix;
+      var matcher =
+          targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
       var operations = performance.run(
         'InScopeCompletionPass',

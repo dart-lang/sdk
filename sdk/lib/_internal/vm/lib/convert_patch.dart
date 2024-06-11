@@ -1506,7 +1506,7 @@ class _JsonStringParser extends _JsonParserWithListener
     return buffer.toString();
   }
 
-  void copyCharsToList(int start, int end, List target, int offset) {
+  void copyCharsToList(int start, int end, List<int> target, int offset) {
     int length = end - start;
     for (int i = 0; i < length; i++) {
       target[offset + i] = chunk.codeUnitAt(start + i);
@@ -1641,7 +1641,7 @@ class _JsonUtf8Parser extends _JsonParserWithListener
     return buffer.toString();
   }
 
-  void copyCharsToList(int start, int end, List target, int offset) {
+  void copyCharsToList(int start, int end, List<int> target, int offset) {
     int length = end - start;
     target.setRange(offset, offset + length, chunk, start);
   }

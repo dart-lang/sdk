@@ -46,12 +46,17 @@ class DDSRunner {
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );
-    final completer = Completer<void>();
+
+    // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
+    // is changed to ensure consistency.
     const devToolsMessagePrefix =
         'The Dart DevTools debugger and profiler is available at:';
     if (debugDds) {
       late final StreamSubscription stdoutSub;
-      stdoutSub = process.stdout.transform(utf8.decoder).listen((event) {
+      stdoutSub = process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((event) {
         if (event.startsWith(devToolsMessagePrefix)) {
           final ddsDebuggingUri = event.split(' ').last;
           print(
@@ -61,21 +66,27 @@ class DDSRunner {
         }
       });
     }
-    late final StreamSubscription stderrSub;
-    stderrSub = process.stderr.transform(utf8.decoder).listen((event) {
-      final result = json.decode(event) as Map<String, dynamic>;
-      final state = result['state'];
-      if (state == 'started') {
-        if (result.containsKey('devToolsUri')) {
-          final devToolsUri = result['devToolsUri'];
+
+    // DDS will close stderr once it's finished launching.
+    final launchResult = await process.stderr.transform(utf8.decoder).join();
+
+    void printError(String details) => stderr.writeln(
+          'Could not start the VM service:\n$details',
+        );
+
+    try {
+      final result = json.decode(launchResult);
+      if (result
+          case {
+            'state': 'started',
+            'ddsUri': final String ddsUriStr,
+          }) {
+        ddsUri = Uri.parse(ddsUriStr);
+        if (result case {'devToolsUri': String devToolsUri}) {
           print('$devToolsMessagePrefix $devToolsUri');
         }
-        ddsUri = Uri.parse(result['ddsUri']);
-        stderrSub.cancel();
-        completer.complete();
       } else {
-        stderrSub.cancel();
-        final error = result['error'] ?? event;
+        final error = result['error'] ?? result;
         final stacktrace = result['stacktrace'] ?? '';
         String message = 'Could not start the VM service: ';
         if (error.contains('Failed to create server socket')) {
@@ -83,15 +94,15 @@ class DDSRunner {
         } else {
           message += '$error\n$stacktrace\n';
         }
-        completer.completeError(message);
+        printError(message);
+        return false;
       }
-    });
-    try {
-      await completer.future;
-      return true;
-    } catch (e) {
-      stderr.write(e);
+    } catch (_) {
+      // Malformed JSON was likely encountered, so output the entirety of
+      // stderr in the error message.
+      printError(launchResult);
       return false;
     }
+    return true;
   }
 }

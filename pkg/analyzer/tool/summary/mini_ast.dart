@@ -12,7 +12,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// "Mini AST" representation of a declaration which can accept annotations.
@@ -433,8 +432,8 @@ class MiniAstBuilder extends StackListener {
     var name = pop() as String;
     var metadata = popTypedList<Annotation>();
     var comment = pop() as Comment?;
-    compilationUnit.declarations.add(EnumDeclaration(
-        comment, metadata, name, constants.whereNotNull().toList()));
+    compilationUnit.declarations.add(
+        EnumDeclaration(comment, metadata, name, constants.nonNulls.toList()));
   }
 
   @override

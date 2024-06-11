@@ -1219,6 +1219,10 @@ intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
   int64_t old_value = exclusive_access_value_;
   ClearExclusive();
 
+  if ((random_.NextUInt32() % 16) == 0) {
+    return 1;  // Suprious failure.
+  }
+
   auto atomic_addr = reinterpret_cast<RelaxedAtomic<int64_t>*>(addr);
   if (atomic_addr->compare_exchange_weak(old_value, value)) {
     return 0;  // Success.
@@ -1236,6 +1240,10 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
 
   int32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
   ClearExclusive();
+
+  if ((random_.NextUInt32() % 16) == 0) {
+    return 1;  // Spurious failure.
+  }
 
   auto atomic_addr = reinterpret_cast<RelaxedAtomic<int32_t>*>(addr);
   if (atomic_addr->compare_exchange_weak(old_value, value)) {
@@ -1763,7 +1771,7 @@ void Simulator::ClobberVolatileRegisters() {
 
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     if ((kAbiVolatileCpuRegs & (1 << i)) != 0) {
-      registers_[i] = icount_;
+      registers_[i] = random_.NextUInt64();
     }
   }
 

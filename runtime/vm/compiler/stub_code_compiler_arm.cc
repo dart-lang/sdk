@@ -1720,7 +1720,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ b(&remember_card_slow, EQ);
 
     // Atomically dirty the card.
-    __ PushList((1 << R0) | (1 << R1));
+    __ PushList((1 << R0) | (1 << R1) | (1 << R2));
     __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
     __ sub(R9, R9, Operand(TMP));                 // Offset in page.
     __ Lsr(R9, R9, Operand(target::Page::kBytesPerCardLog2));  // Card index.
@@ -1735,10 +1735,10 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ Bind(&retry);
     __ ldrex(R1, TMP);
     __ orr(R1, R1, Operand(R0));
-    __ strex(R0, R1, TMP);
-    __ cmp(R0, Operand(1));
+    __ strex(R2, R1, TMP);
+    __ cmp(R2, Operand(1));
     __ b(&retry, EQ);
-    __ PopList((1 << R0) | (1 << R1));
+    __ PopList((1 << R0) | (1 << R1) | (1 << R2));
     __ Ret();
 
     // Card table not yet allocated.

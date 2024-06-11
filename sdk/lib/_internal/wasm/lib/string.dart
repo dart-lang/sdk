@@ -17,6 +17,7 @@ import 'dart:_js_helper' show JS, jsStringToDartString;
 import 'dart:_js_types' show JSStringImpl;
 import 'dart:_object_helper';
 import 'dart:_string_helper';
+import 'dart:_typed_data';
 import 'dart:_wasm';
 
 import "dart:typed_data" show Uint8List, Uint16List;
@@ -50,6 +51,15 @@ void copyRangeFromUint8ListToOneByteString(
   for (int i = 0; i < length; i++) {
     to._setAt(toStart + i, from[fromStart + i]);
   }
+}
+
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromCharacters(
+    U8List bytes, int start, int end) {
+  final len = end - start;
+  final s = OneByteString.withLength(len);
+  s._array.copy(0, bytes.data, start, len);
+  return s;
 }
 
 extension OneByteStringUnsafeExtensions on String {

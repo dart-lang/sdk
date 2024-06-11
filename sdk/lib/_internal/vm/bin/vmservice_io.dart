@@ -114,12 +114,20 @@ class _DebuggingSession {
       ],
       mode: ProcessStartMode.detachedWithStdio,
     );
-    final completer = Completer<void>();
-    late StreamSubscription<String> stderrSub;
-    stderrSub = _process!.stderr.transform(utf8.decoder).listen((event) {
-      final result = json.decode(event) as Map<String, dynamic>;
-      final state = result['state'];
-      if (state == 'started') {
+
+    // DDS will close stderr once it's finished launching.
+    final launchResult = await _process!.stderr.transform(utf8.decoder).join();
+
+    void printError(String details) => stderr.writeln(
+          'Could not start the VM service:\n$details',
+        );
+
+    try {
+      final result = json.decode(launchResult);
+      if (result
+          case {
+            'state': 'started',
+          }) {
         if (result case {'devToolsUri': String devToolsUri}) {
           // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
           // is changed to ensure consistency.
@@ -135,21 +143,17 @@ class _DebuggingSession {
             } when _printDtd) {
           print('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
         }
-        stderrSub.cancel();
-        completer.complete();
       } else {
-        final error = result['error'] ?? event;
-        stderrSub.cancel();
-        completer.completeError('Could not start the VM service:\n$error\n');
+        printError(result['error'] ?? result);
+        return false;
       }
-    });
-    try {
-      await completer.future;
-      return true;
-    } catch (e) {
-      stderr.write(e);
+    } catch (_) {
+      // Malformed JSON was likely encountered, so output the entirety of
+      // stderr in the error message.
+      printError(launchResult);
       return false;
     }
+    return true;
   }
 
   void shutdown() => _process!.kill();

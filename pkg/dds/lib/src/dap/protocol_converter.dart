@@ -296,9 +296,17 @@ class ProtocolConverter {
           }
         }
 
-        // Collect getter names for this instances class and its supers.
+        // Collect getter names for this instances class and its supers, but
+        // remove any names that have already showed up as fields because
+        // otherwise they will show up duplicated.
         final getterNames =
             await _getterNamesForClassHierarchy(thread, instance.classRef);
+
+        // Remove any existing field variables where there are getters, because
+        // otherwise we'll have dupes, and the user will generally expected to
+        // see the getters value (if not the same).
+        variables
+            .removeWhere((variable) => getterNames.contains(variable.name));
 
         final getterVariables = getterNames.mapIndexed(createVariable);
         variables.addAll(await Future.wait(getterVariables));
