@@ -2131,6 +2131,10 @@ void Simulator::InterpretSC(Instr instr) {
     set_xreg(instr.rd(), 1);
     return;
   }
+  if ((random_.NextUInt32() % 16) == 0) {  // Spurious failure.
+    set_xreg(instr.rd(), 1);
+    return;
+  }
   type expected = reserved_value_;
   type desired = get_xreg(instr.rs2());
   bool success =
