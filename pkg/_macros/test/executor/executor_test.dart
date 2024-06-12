@@ -160,13 +160,17 @@ void main() {
 
           tearDownAll(() async {
             executor.disposeMacro(diagnosticMacroInstanceId);
+            executor.disposeMacro(danglingTaskMacroId);
+            executor.disposeMacro(danglingTimerMacroId);
+            executor.disposeMacro(danglingPeriodicTimerMacroId);
             executor.disposeMacro(simpleMacroInstanceId);
             await expectLater(
                 () => executor.executeTypesPhase(simpleMacroInstanceId,
                     Fixtures.myFunction, TestTypePhaseIntrospector()),
                 throwsA(isA<UnexpectedMacroException>().having((e) => e.message,
                     'message', contains('Unrecognized macro instance'))),
-                reason: 'Should be able to dispose macro instances');
+                reason: 'Should be able to dispose macro instances',
+                skip: 'https://github.com/dart-lang/sdk/issues/55992');
             if (tmpDir.existsSync()) {
               try {
                 // Fails flakily on windows if a process still has the file open
