@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 329 "needsFix"
-# - 419 "hasFix"
+# - 328 "needsFix"
+# - 420 "hasFix"
 # - 516 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2982,9 +2982,7 @@ ParserErrorCode.LITERAL_WITH_CLASS:
   notes: |-
     Remove the `List.`.
 ParserErrorCode.LITERAL_WITH_NEW:
-  status: needsFix
-  notes: |-
-    Remove the `new`.
+  status: hasFix
 ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER:
   status: noFix
 ParserErrorCode.MEMBER_WITH_CLASS_NAME:

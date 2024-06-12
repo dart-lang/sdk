@@ -377,6 +377,15 @@ augment class A {}
 ''');
   }
 
+  Future<void> test_literalWithNew() async {
+    await resolveTestCode('''
+var f = new <int,int>{};
+''');
+    await assertHasFix('''
+var f = <int,int>{};
+''');
+  }
+
   Future<void> test_localFunctionDeclarationModifier_abstract() async {
     await resolveTestCode(r'''
 class C {

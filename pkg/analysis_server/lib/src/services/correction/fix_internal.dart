@@ -1453,6 +1453,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION: [
     RemoveLate.new,
   ],
+  ParserErrorCode.LITERAL_WITH_NEW: [
+    RemoveLexeme.keyword,
+  ],
   ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
     AddTypeAnnotation.new,
   ],
