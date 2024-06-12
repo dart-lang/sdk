@@ -45,9 +45,9 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 327 "needsFix"
+# - 326 "needsFix"
 # - 421 "hasFix"
-# - 516 "noFix"
+# - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -2605,9 +2605,10 @@ ParserErrorCode.COVARIANT_AND_STATIC:
   notes: |-
     Remove either `covariant` or `static`.
 ParserErrorCode.COVARIANT_CONSTRUCTOR:
-  status: needsFix
+  status: noFix
   notes: |-
-    Remove `covariant`.
+    This error code is currently unreported and constructors
+    are treated the same as members (see `COVARIANT_MEMBER`).
 ParserErrorCode.COVARIANT_MEMBER:
   status: hasFix
 ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
