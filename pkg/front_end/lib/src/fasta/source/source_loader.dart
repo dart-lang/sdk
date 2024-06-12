@@ -201,6 +201,7 @@ class SourceLoader extends Loader {
   bool get hasSeenError => _hasSeenError;
 
   LibraryBuilder? _coreLibrary;
+  CompilationUnit? _coreLibraryCompilationUnit;
   LibraryBuilder? typedDataLibrary;
 
   final Set<Uri> roots = {};
@@ -285,12 +286,12 @@ class SourceLoader extends Loader {
 
   Iterable<Uri> get loadedLibraryImportUris => _loadedLibraryBuilders.keys;
 
-  void registerLoadedLibraryBuilder(LibraryBuilder libraryBuilder) {
+  void registerLoadedDillLibraryBuilder(DillLibraryBuilder libraryBuilder) {
     assert(!libraryBuilder.isPart, "Unexpected part $libraryBuilder.");
     assert(!libraryBuilder.isAugmenting,
         "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
-    _markDartLibraries(uri, libraryBuilder);
+    _markDartLibraries(uri, libraryBuilder, libraryBuilder);
     _compilationUnits[uri] = libraryBuilder;
     _loadedLibraryBuilders[uri] = libraryBuilder;
   }
@@ -320,6 +321,10 @@ class SourceLoader extends Loader {
 
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;
+
+  @override
+  CompilationUnit get coreLibraryCompilationUnit =>
+      _coreLibraryCompilationUnit!;
 
   Ticker get ticker => target.ticker;
 
@@ -508,7 +513,7 @@ class SourceLoader extends Loader {
       roots.add(uri);
     }
 
-    _checkForDartCore(uri, libraryBuilder);
+    _checkForDartCore(uri, libraryBuilder, libraryBuilder);
 
     Uri libraryUri = origin?.importUri ?? uri;
     if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
@@ -527,7 +532,7 @@ class SourceLoader extends Loader {
         target.dillTarget.loader.lookupLibraryBuilder(uri);
     if (libraryBuilder != null) {
       _checkDillLibraryBuilderNnbdMode(libraryBuilder);
-      _checkForDartCore(uri, libraryBuilder);
+      _checkForDartCore(uri, libraryBuilder, libraryBuilder);
     }
     return libraryBuilder;
   }
@@ -556,18 +561,21 @@ class SourceLoader extends Loader {
     }
   }
 
-  void _markDartLibraries(Uri uri, LibraryBuilder libraryBuilder) {
+  void _markDartLibraries(
+      Uri uri, LibraryBuilder libraryBuilder, CompilationUnit compilationUnit) {
     if (uri.isScheme("dart")) {
       if (uri.path == "core") {
         _coreLibrary = libraryBuilder;
+        _coreLibraryCompilationUnit = compilationUnit;
       } else if (uri.path == "typed_data") {
         typedDataLibrary = libraryBuilder;
       }
     }
   }
 
-  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
-    _markDartLibraries(uri, libraryBuilder);
+  void _checkForDartCore(
+      Uri uri, LibraryBuilder libraryBuilder, CompilationUnit compilationUnit) {
+    _markDartLibraries(uri, libraryBuilder, compilationUnit);
 
     // TODO(johnniwinther): If we save the created library in [_builders]
     // here, i.e. before calling `target.loadExtraRequiredLibraries` below,
@@ -592,7 +600,7 @@ class SourceLoader extends Loader {
   /// compile-time error.
   CompilationUnit read(Uri uri, int charOffset,
       {Uri? fileUri,
-      required LibraryBuilder accessor,
+      required CompilationUnit accessor,
       LibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
@@ -1538,7 +1546,7 @@ severity: $severity
       return layeredComponents;
     }
 
-    Graph<Uri> graph = new BuilderGraph(_compilationUnits);
+    Graph<Uri> graph = new BuilderGraph(_loadedLibraryBuilders);
 
     /// Libraries that are considered precompiled. These are libraries that are
     /// either given as precompiled macro libraries, or libraries that these

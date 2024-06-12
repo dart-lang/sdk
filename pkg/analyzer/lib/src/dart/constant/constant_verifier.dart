@@ -963,9 +963,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var errorBuffer = SimpleDartBuffer();
         error.witnesses.first.toDart(errorBuffer, forCorrection: false);
         var correctionTextBuffer = SimpleDartBuffer();
-        var correctionDataBuffer = AnalyzerDartTemplateBuffer();
         error.witnesses.first.toDart(correctionTextBuffer, forCorrection: true);
-        error.witnesses.first.toDart(correctionDataBuffer, forCorrection: true);
+
+        var correctionData = <List<MissingPatternPart>>[];
+        for (var witness in error.witnesses) {
+          var correctionDataBuffer = AnalyzerDartTemplateBuffer();
+          witness.toDart(correctionDataBuffer, forCorrection: true);
+          if (correctionDataBuffer.isComplete) {
+            correctionData.add(correctionDataBuffer.parts);
+          }
+        }
         _errorReporter.atToken(
           switchKeyword,
           isSwitchExpression
@@ -976,9 +983,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             errorBuffer.toString(),
             correctionTextBuffer.toString(),
           ],
-          data: correctionDataBuffer.isComplete
-              ? correctionDataBuffer.parts
-              : null,
+          data: correctionData.isNotEmpty ? correctionData : null,
         );
       }
     }

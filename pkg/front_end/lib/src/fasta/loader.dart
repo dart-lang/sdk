@@ -35,5 +35,9 @@ abstract class Loader {
 
   TypeBuilder computeTypeBuilder(DartType type);
 
+  /// The [LibraryBuilder] for 'dart:core'.
   LibraryBuilder get coreLibrary;
+
+  /// The main compilation unit for 'dart:core'.
+  CompilationUnit get coreLibraryCompilationUnit;
 }

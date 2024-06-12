@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 static method main() → void {
-  for (wildcard(core::Iterable<core::int>, core::Iterable<core::int>) _ in self::split<core::int>(<core::int>[1, 2, 3])) {
+  for ((core::Iterable<core::int>, core::Iterable<core::int>) _ in self::split<core::int>(<core::int>[1, 2, 3])) {
   }
 }
 static method split<A extends core::Object? = dynamic>(core::Iterable<self::split::A%> it) → core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)>

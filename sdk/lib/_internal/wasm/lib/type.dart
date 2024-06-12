@@ -616,7 +616,8 @@ class _RecordType extends _Type {
 /// a supertype's class.
 ///
 /// The table has key for every class in the system. The value is an array of
-/// `(superClassId, canonicalSubstitutionIndex)`.
+/// `(superClassId1, ..., superClassIdN,
+///   canonicalSubstitutionIndex1, ..., canonicalSubstitutionIndexN)`.
 ///
 /// For example, let's assume we have these classes:
 ///
@@ -632,7 +633,7 @@ class _RecordType extends _Type {
 /// ```
 ///   _typeRulesSupers = [
 ///     ...
-///     @Sub.classId: [(Foo.classId, IDX-X), (Bar.classId, IDX-Y)]
+///     @Sub.classId: [(Foo.classId, Bar.classId), (IDX-X, IDX-Y)]
 ///     ...
 ///   ]
 /// ```
@@ -1033,16 +1034,46 @@ abstract class _TypeUniverse {
     final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId];
     if (sSupers.length == 0) return (-1).toWasmI32();
 
-    final int idMatchIndex = _linearSearch(sSupers, tId);
-    if (idMatchIndex == -1) return (-1).toWasmI32();
-    return sSupers[idMatchIndex + 1];
+    final int substitutionIndex = _searchSupers(sSupers, tId);
+    if (substitutionIndex == -1) return (-1).toWasmI32();
+    return sSupers[substitutionIndex];
+  }
+
+  static int _searchSupers(WasmArray<WasmI32> table, int key) {
+    final int end = table.length >> 1;
+    return (end < 8)
+        ? _linearSearch(table, end, key)
+        : _binarySearch(table, end, key);
   }
 
   @pragma('wasm:prefer-inline')
-  static int _linearSearch(WasmArray<WasmI32> table, int key) {
-    for (int i = 0; i < table.length; i += 2) {
-      if (table.readUnsigned(i) == key) return i;
+  static int _linearSearch(WasmArray<WasmI32> table, int end, int key) {
+    for (int i = 0; i < end; i++) {
+      if (table.readUnsigned(i) == key) return end + i;
     }
+    return -1;
+  }
+
+  @pragma('wasm:prefer-inline')
+  static int _binarySearch(WasmArray<WasmI32> table, int end, int key) {
+    int lower = 0;
+    int upper = end - 1;
+    while (lower <= upper) {
+      final int mid = (lower + upper) >> 1;
+      final int entry = table.readUnsigned(mid);
+      if (key < entry) {
+        upper = mid - 1;
+        continue;
+      }
+      if (entry < key) {
+        lower = mid + 1;
+        continue;
+      }
+      assert(entry == key);
+      assert(_linearSearch(table, end, key) == (end + mid));
+      return end + mid;
+    }
+    assert(_linearSearch(table, end, key) == -1);
     return -1;
   }
 

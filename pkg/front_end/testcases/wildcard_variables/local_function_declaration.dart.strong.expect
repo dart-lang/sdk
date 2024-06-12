@@ -1,0 +1,40 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:7:11: Error: Undefined name '_'.
+//     print(_);
+//           ^
+//
+// pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:15:11: Error: Undefined name '_'.
+//     print(_);
+//           ^
+//
+// pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:17:11: Error: Undefined name '_'.
+//     print(_);
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function fn(wildcard dynamic _, wildcard dynamic _) → void {
+    core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:7:11: Error: Undefined name '_'.
+    print(_);
+          ^");
+  }
+  fn(1, 2){(dynamic, dynamic) → void};
+  try {
+    throw "!";
+  }
+  on core::Exception catch(final wildcard core::Exception _, final wildcard core::StackTrace _) {
+    core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:15:11: Error: Undefined name '_'.
+    print(_);
+          ^");
+  }
+  on core::Object catch(final wildcard core::Object _, final wildcard core::StackTrace _) {
+    core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:17:11: Error: Undefined name '_'.
+    print(_);
+          ^");
+  }
+}

@@ -837,8 +837,8 @@ class RuntimeTypeInformation {
     final arrayOfI32 = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [wasmI32]);
 
-    // Maps each class id to a list of
-    // (implementedClassId, substitutionTableIndex) tuples.
+    // Maps each class id to a list of super class ids followed by a list of
+    // substitution table indices.
     final typeRulesArray = <InstanceConstant>[];
     for (int classId = 0; classId < translator.classes.length; classId++) {
       final rules = typeRules[classId];
@@ -856,8 +856,8 @@ class RuntimeTypeInformation {
         final superClassId = superclassIds[i];
         final substitutionTableIndex = rules[superClassId]!;
 
-        superClassSubstitutionTuples[2 * i + 0] = IntConstant(superClassId);
-        superClassSubstitutionTuples[2 * i + 1] =
+        superClassSubstitutionTuples[i] = IntConstant(superClassId);
+        superClassSubstitutionTuples[superclassIds.length + i] =
             IntConstant(substitutionTableIndex);
       }
       typeRulesArray.add(translator.constants

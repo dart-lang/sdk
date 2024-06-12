@@ -59,7 +59,9 @@ abstract class CompilationUnit {
 
   bool get isPart;
 
-  abstract LibraryBuilder? partOfLibrary;
+  bool get isAugmenting;
+
+  LibraryBuilder? get partOfLibrary;
 
   /// Returns the [Uri]s for the libraries that this library depend upon, either
   /// through import or export.
@@ -91,7 +93,7 @@ abstract class CompilationUnit {
       bool problemOnLibrary = false});
 }
 
-abstract class LibraryBuilder implements Builder, CompilationUnit {
+abstract class LibraryBuilder implements Builder {
   Scope get scope;
 
   Scope get exportScope;
@@ -101,17 +103,14 @@ abstract class LibraryBuilder implements Builder, CompilationUnit {
   @override
   LibraryBuilder get origin;
 
-  @override
-  abstract LibraryBuilder? partOfLibrary;
+  LibraryBuilder? get partOfLibrary;
 
   LibraryBuilder get nameOriginBuilder;
 
   abstract bool mayImplementRestrictedTypes;
 
-  @override
   bool get isPart;
 
-  @override
   Loader get loader;
 
   /// Returns the [Library] built by this builder.
@@ -122,18 +121,15 @@ abstract class LibraryBuilder implements Builder, CompilationUnit {
 
   /// Returns the [Uri]s for the libraries that this library depend upon, either
   /// through import or export.
-  @override
   Iterable<Uri> get dependencies;
 
   /// Returns the import uri for the library.
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
-  @override
   Uri get importUri;
 
   /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
-  @override
   bool get isUnsupported;
 
   /// Returns an iterator of all members (typedefs, classes and members)
@@ -151,7 +147,6 @@ abstract class LibraryBuilder implements Builder, CompilationUnit {
   ///
   /// Compared to [localMembersIterator] this also gives access to the name
   /// that the builders are mapped to.
-  @override
   NameIterator<Builder> get localMembersNameIterator;
 
   /// [Iterator] for all declarations declared in this library or any of its
@@ -166,7 +161,6 @@ abstract class LibraryBuilder implements Builder, CompilationUnit {
   /// Duplicates and augmenting members are _not_ included.
   NameIterator<T> fullMemberNameIterator<T extends Builder>();
 
-  @override
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 
@@ -176,7 +170,6 @@ abstract class LibraryBuilder implements Builder, CompilationUnit {
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
@@ -220,7 +213,6 @@ abstract class LibraryBuilder implements Builder, CompilationUnit {
   /// reported.
   Builder? lookupLocalMember(String name, {bool required = false});
 
-  @override
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
 
@@ -276,9 +268,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   final Uri fileUri;
 
   @override
-  LibraryBuilder? partOfLibrary;
-
-  @override
   bool mayImplementRestrictedTypes = false;
 
   LibraryBuilderImpl(this.fileUri, this.scope, this.exportScope)
@@ -326,7 +315,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
-    exporters.add(new Export(exporter, this, combinators, charOffset));
+    exporters.add(
+        // TODO(johnniwinther): Avoid casting to [CompilationUnit] here.
+        new Export(exporter, this as CompilationUnit, combinators, charOffset));
   }
 
   @override

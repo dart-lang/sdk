@@ -15,13 +15,17 @@ class Export {
   final LibraryBuilder exporter;
 
   /// The library being exported.
-  CompilationUnit exported;
+  CompilationUnit exportedCompilationUnit;
 
   final List<CombinatorBuilder>? combinators;
 
   final int charOffset;
 
-  Export(this.exporter, this.exported, this.combinators, this.charOffset);
+  Export(this.exporter, this.exportedCompilationUnit, this.combinators,
+      this.charOffset);
+
+  LibraryBuilder get exportedLibraryBuilder =>
+      exportedCompilationUnit.libraryBuilder;
 
   /// The [LibraryDependency] node corresponding to this import.
   ///

@@ -66,11 +66,11 @@ class DillLoader extends Loader {
 
   final Set<String> seenMessages = new Set<String>();
 
-  LibraryBuilder? _coreLibrary;
+  DillLibraryBuilder? _coreLibrary;
 
-  /// The first library loaded by this [DillLoader].
+  /// The first compilation unit loaded by this [DillLoader].
   // TODO(johnniwinther): Do we need this?
-  LibraryBuilder? first;
+  CompilationUnit? first;
 
   int byteCount = 0;
 
@@ -78,6 +78,9 @@ class DillLoader extends Loader {
 
   @override
   LibraryBuilder get coreLibrary => _coreLibrary!;
+
+  @override
+  CompilationUnit get coreLibraryCompilationUnit => _coreLibrary!;
 
   Ticker get ticker => target.ticker;
 
@@ -97,7 +100,8 @@ class DillLoader extends Loader {
   /// as part [uri], and [charOffset] is the location of the corresponding
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
-  DillLibraryBuilder read(Uri uri, int charOffset, {LibraryBuilder? accessor}) {
+  DillLibraryBuilder read(Uri uri, int charOffset,
+      {CompilationUnit? accessor}) {
     DillLibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       libraryBuilder = _knownLibraryBuilders.remove(uri);
