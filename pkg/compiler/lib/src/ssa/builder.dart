@@ -1340,6 +1340,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       push(HInvokeExternal(stubTarget, nativeInputs, returnType,
           closedWorld.nativeData.getNativeMethodBehavior(stubTarget),
           sourceInformation: sourceInformation));
+      _maybeAddInteropNullAssertionForMember(stubTarget, nativeInputs.length);
     } else if (stubTarget.isInstanceMember) {
       if (stubTarget.enclosingClass!.isClosure) {
         push(HInvokeClosure(
@@ -1904,16 +1905,27 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     push(HInvokeExternal(
         targetElement as FunctionEntity, inputs, returnType, nativeBehavior,
         sourceInformation: null));
-    HInstruction value = pop();
+    HInstruction value;
     // TODO(johnniwinther): Provide source information.
-    if (options.nativeNullAssertions) {
+    if (options.nativeNullAssertions && nodeIsInWebLibrary(functionNode)) {
+      value = pop();
       DartType type = _getDartTypeIfValid(functionNode.returnType);
-      if (dartTypes.isNonNullableIfSound(type) &&
-          nodeIsInWebLibrary(functionNode)) {
+      if (dartTypes.isNonNullableIfSound(type)) {
         push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
             sticky: true));
         value = pop();
       }
+    } else if (_nativeData.isJsInteropMember(targetElement)) {
+      if (targetElement.isInstanceMember) {
+        _maybeAddInteropNullAssertionForMember(
+            targetElement as FunctionEntity, inputs.length);
+      } else {
+        _maybeAddInteropNullAssertionForStatic(
+            _getDartTypeIfValid(functionNode.returnType));
+      }
+      value = pop();
+    } else {
+      value = pop();
     }
     if (targetElement.isSetter) {
       _closeAndGotoExit(HGoto());
@@ -5313,6 +5325,44 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     }
   }
 
+  void _maybeAddInteropNullAssertionForMember(
+      FunctionEntity member, int argumentCount) {
+    if (options.interopNullAssertions) {
+      final name =
+          PublicName(_nativeData.computeUnescapedJSInteropName(member.name!));
+      _addInteropNullAssertionForSelector(
+          Selector.call(name, CallStructure.unnamed(argumentCount)));
+    }
+  }
+
+  void _maybeAddInteropNullAssertionForSelector(Selector selector) {
+    if (options.interopNullAssertions &&
+        _nativeData.interopNullChecks[selector] ==
+            InteropNullCheckKind.callerCheck) {
+      _addInteropNullAssertion();
+    }
+  }
+
+  void _addInteropNullAssertionForSelector(Selector selector) {
+    if (_nativeData.interopNullChecks[selector] ==
+        InteropNullCheckKind.callerCheck) {
+      _addInteropNullAssertion();
+    }
+  }
+
+  void _maybeAddInteropNullAssertionForStatic(DartType returnType) {
+    if (options.interopNullAssertions &&
+        closedWorld.dartTypes.isNonNullableIfSound(returnType)) {
+      _addInteropNullAssertion();
+    }
+  }
+
+  void _addInteropNullAssertion() {
+    final value = pop();
+    _pushStaticInvocation(_commonElements.interopNullAssertion, [value],
+        value.instructionType, const <DartType>[]);
+  }
+
   void _handleJsStringConcat(
       ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
     if (_unexpectedForeignArguments(invocation,
@@ -5515,8 +5565,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       List<HInstruction?> arguments,
       AbstractValue typeMask,
       List<DartType> typeArguments) {
-    push(_invokeJsInteropFunction(target, arguments));
-    return;
+    _invokeJsInteropFunction(target, arguments);
   }
 
   void _pushDynamicInvocation(
@@ -5619,9 +5668,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       invoke.isBoundsSafe = node.isBoundsSafe;
     }
     push(invoke);
+    if (element != null) {
+      _maybeAddInteropNullAssertionForSelector(selector);
+    }
   }
 
-  HInstruction _invokeJsInteropFunction(
+  void _invokeJsInteropFunction(
       FunctionEntity element, List<HInstruction?> arguments) {
     assert(closedWorld.nativeData.isJsInteropMember(element));
 
@@ -5671,9 +5723,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       var nativeBehavior = NativeBehavior()..codeTemplate = codeTemplate;
       registry.registerNativeMethod(element);
       // TODO(efortuna): Source information.
-      return HForeignCode(
+      push(HForeignCode(
           codeTemplate, _abstractValueDomain.dynamicType, filteredArguments,
-          nativeBehavior: nativeBehavior);
+          nativeBehavior: nativeBehavior));
+      return;
     }
 
     // Strip off trailing arguments that were not specified.
@@ -5711,8 +5764,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     // TODO(efortuna): Add source information.
-    return HInvokeExternal(element, inputs, instructionType, nativeBehavior,
-        sourceInformation: null);
+    push(HInvokeExternal(element, inputs, instructionType, nativeBehavior,
+        sourceInformation: null));
+    _maybeAddInteropNullAssertionForStatic(type);
   }
 
   @override

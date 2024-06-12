@@ -1619,6 +1619,7 @@ class KernelToElementMap implements IrToElementMap {
 
 class KernelElementEnvironment extends ElementEnvironment
     implements KElementEnvironment {
+  @override
   final KernelToElementMap elementMap;
 
   KernelElementEnvironment(this.elementMap);

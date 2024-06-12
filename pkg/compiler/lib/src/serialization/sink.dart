@@ -876,6 +876,17 @@ class DataSinkWriter {
     writeMap(map, writeLocal, f);
   }
 
+  /// Writes the [map] from selectors to [V] values to this data sink, calling
+  /// [f] to write each value to the data sink.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSourceReader.readSelectorMap].
+  void writeSelectorMap<V>(Map<Selector, V> map, void f(V value)) {
+    writeMap(map, (Selector selector) {
+      selector.writeToDataSink(this);
+    }, f);
+  }
+
   /// Writes the constant [value] to this data sink.
   void writeConstant(ConstantValue value) {
     _writeDataKind(DataKind.constant);

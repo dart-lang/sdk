@@ -508,6 +508,11 @@ class CompilerOptions implements DiagnosticOptions {
   bool nativeNullAssertions = false;
   bool _noNativeNullAssertions = false;
 
+  /// Whether to generate code asserting that return values of JS-interop APIs
+  /// with non-nullable return types are not null.
+  bool interopNullAssertions = false;
+  bool _noInteropNullAssertions = false;
+
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -868,6 +873,9 @@ class CompilerOptions implements DiagnosticOptions {
       ..nativeNullAssertions = _hasOption(options, Flags.nativeNullAssertions)
       .._noNativeNullAssertions =
           _hasOption(options, Flags.noNativeNullAssertions)
+      ..interopNullAssertions = _hasOption(options, Flags.interopNullAssertions)
+      .._noInteropNullAssertions =
+          _hasOption(options, Flags.noInteropNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentStartupFunctions =
@@ -984,12 +992,18 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     if (_soundNullSafety && _noSoundNullSafety) {
-      throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
+      throw ArgumentError("'${Flags.soundNullSafety}' is incompatible with "
           "'${Flags.noSoundNullSafety}'");
     }
     if (nativeNullAssertions && _noNativeNullAssertions) {
-      throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
+      throw ArgumentError(
+          "'${Flags.nativeNullAssertions}' is incompatible with "
           "'${Flags.noNativeNullAssertions}'");
+    }
+    if (interopNullAssertions && _noInteropNullAssertions) {
+      throw ArgumentError(
+          "'${Flags.interopNullAssertions}' is incompatible with "
+          "'${Flags.noInteropNullAssertions}'");
     }
     if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
       throw ArgumentError('${Flags.experimentNullSafetyChecks} is incompatible '
@@ -1079,6 +1093,10 @@ class CompilerOptions implements DiagnosticOptions {
       nativeNullAssertions = false;
     } else {
       nativeNullAssertions = true;
+    }
+
+    if (_noInteropNullAssertions) {
+      interopNullAssertions = false;
     }
 
     if (_mergeFragmentsThreshold != null) {
