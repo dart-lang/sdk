@@ -1880,11 +1880,17 @@ class BodyBuilder extends StackListenerImpl
                     libraryBuilder,
                     formal.fileOffset,
                     fileUri: uri,
-                    hasImmediatelyDeclaredInitializer: false)
+                    hasImmediatelyDeclaredInitializer: false,
+                    isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
+                        formal.name! == '_')
                   ..variable = formal;
               }, growable: false);
     enterLocalScope(new FormalParameters(formals, fileOffset, noLength, uri)
-        .computeFormalParameterScope(scope, this));
+        .computeFormalParameterScope(
+      scope,
+      this,
+      wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
+    ));
 
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -5458,15 +5464,18 @@ class BodyBuilder extends StackListenerImpl
         return;
       }
     } else {
+      String parameterName = name?.name ?? '';
       parameter = new FormalParameterBuilder(
           kind,
           modifiers,
           type ?? const ImplicitTypeBuilder(),
-          name?.name ?? '',
+          parameterName,
           libraryBuilder,
           offsetForToken(nameToken),
           fileUri: uri,
-          hasImmediatelyDeclaredInitializer: initializerStart != null);
+          hasImmediatelyDeclaredInitializer: initializerStart != null,
+          isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
+              parameterName == '_');
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;
@@ -5640,7 +5649,11 @@ class BodyBuilder extends StackListenerImpl
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
         kind != MemberKind.GeneralizedFunctionType) {
-      enterLocalScope(formals.computeFormalParameterScope(scope, this));
+      enterLocalScope(formals.computeFormalParameterScope(
+        scope,
+        this,
+        wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
+      ));
     }
   }
 
@@ -10058,12 +10071,15 @@ class FormalParameters {
   }
 
   Scope computeFormalParameterScope(
-      Scope parent, ExpressionGeneratorHelper helper) {
+      Scope parent, ExpressionGeneratorHelper helper,
+      {bool wildcardVariablesEnabled = false}) {
     if (parameters == null) return parent;
     assert(parameters!.isNotEmpty);
     Map<String, Builder> local = <String, Builder>{};
 
     for (FormalParameterBuilder parameter in parameters!) {
+      // Avoid having wildcard parameters in scope.
+      if (wildcardVariablesEnabled && parameter.isWildcard) continue;
       Builder? existing = local[parameter.name];
       if (existing != null) {
         helper.reportDuplicatedDeclaration(

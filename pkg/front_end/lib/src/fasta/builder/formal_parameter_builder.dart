@@ -96,11 +96,15 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   final bool isExtensionThis;
 
+  /// Whether this formal parameter is a wildcard variable.
+  final bool isWildcard;
+
   FormalParameterBuilder(this.kind, this.modifiers, this.type, this.name,
       LibraryBuilder? compilationUnit, int charOffset,
       {required Uri fileUri,
       this.isExtensionThis = false,
-      required this.hasImmediatelyDeclaredInitializer})
+      required this.hasImmediatelyDeclaredInitializer,
+      this.isWildcard = false})
       : this.fileUri = fileUri,
         this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
         super(compilationUnit, charOffset) {
@@ -166,7 +170,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           isRequired: isRequiredNamed,
           hasDeclaredInitializer: hasDeclaredInitializer,
           isLowered: isExtensionThis,
-          isSynthesized: name == noNameSentinel)
+          isSynthesized: name == noNameSentinel,
+          isWildcard: isWildcard)
         ..fileOffset = charOffset;
     }
     return variable!;

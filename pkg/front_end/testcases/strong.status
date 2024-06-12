@@ -311,6 +311,7 @@ value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
 wildcard_variables/for_loop: RuntimeError # Expected
+wildcard_variables/local_function_declaration: RuntimeError # Expected
 wildcard_variables/local_var: RuntimeError # Expected
 wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies # Expected
 
