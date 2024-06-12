@@ -163,6 +163,22 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_static_getter() async {
+    await resolveTestCode('''
+class C {
+  static int get g;
+}
+''');
+    await assertHasFix('''
+class C {
+  static int get g {
+    // TODO: implement g
+    throw UnimplementedError();
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

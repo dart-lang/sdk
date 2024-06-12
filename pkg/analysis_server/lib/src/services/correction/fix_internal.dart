@@ -1489,6 +1489,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.STATIC_CONSTRUCTOR: [
     RemoveLexeme.keyword,
   ],
+  ParserErrorCode.STATIC_GETTER_WITHOUT_BODY: [
+    ConvertIntoBlockBody.missingBody,
+  ],
   ParserErrorCode.STATIC_OPERATOR: [
     RemoveLexeme.keyword,
   ],
