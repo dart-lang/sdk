@@ -27,7 +27,7 @@ import 'helpers.dart';
 
 const runTestsArg = 'run-tests';
 
-main(List<String> args, Object? message) async {
+void main(List<String> args, Object? message) async {
   return await selfInvokingTest(
     doOnOuterInvocation: selfInvokes,
     doOnProcessInvocation: () async {
@@ -50,12 +50,14 @@ Future<void> selfInvokes() async {
     kernelCombine: KernelCombine.concatenation,
     relativePath: RelativePath.same,
     arguments: [runTestsArg],
+    useSymlink: true,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
     relativePath: RelativePath.down,
     arguments: [runTestsArg],
+    useSymlink: true,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
@@ -66,6 +68,7 @@ Future<void> selfInvokes() async {
         : AotCompile.elf,
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
+    useSymlink: true,
   );
 }
 
@@ -83,6 +86,7 @@ Future<void> invokeSelf({
   KernelCombine kernelCombine = KernelCombine.source,
   AotCompile aotCompile = AotCompile.elf,
   RelativePath relativePath = RelativePath.same,
+  bool useSymlink = false,
 }) async {
   await withTempDir((Uri tempUri) async {
     final nestedUri = tempUri.resolve('nested/');
@@ -121,6 +125,7 @@ Future<void> invokeSelf({
       kernelCombine: kernelCombine,
       aotCompile: aotCompile,
       runArguments: arguments,
+      useSymlink: useSymlink,
     );
     print([
       selfSourceUri.toFilePath(),

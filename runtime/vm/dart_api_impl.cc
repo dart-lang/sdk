@@ -5942,6 +5942,14 @@ Dart_SetFfiNativeResolver(Dart_Handle library,
   return Api::Success();
 }
 
+DART_EXPORT
+void Dart_InitializeNativeAssetsResolver(NativeAssetsApi* native_assets_api) {
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  isolate_group->SetNativeAssetsCallbacks(native_assets_api);
+}
+
 // --- Peer support ---
 
 DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {

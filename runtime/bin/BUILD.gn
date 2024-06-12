@@ -16,6 +16,7 @@ import("builtin_sources.gni")
 import("cli_sources.gni")
 import("io_impl_sources.gni")
 import("io_sources.gni")
+import("native_assets_impl_sources.gni")
 
 config("libdart_builtin_config") {
   if (is_win) {
@@ -106,6 +107,35 @@ build_libdart_builtin("libdart_builtin_host_targeting_host") {
 
 build_libdart_builtin("libdart_builtin_product_host_targeting_host") {
   extra_configs = [ "..:dart_product_config" ]
+}
+
+template("build_native_assets_api") {
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  source_set(target_name) {
+    configs += [ "..:dart_config" ] + extra_configs
+    deps = []
+    include_dirs = [ ".." ]
+    sources = native_assets_impl_sources
+  }
+}
+
+build_native_assets_api("native_assets_api") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+    "..:dart_arch_config",
+  ]
+}
+
+build_native_assets_api("native_assets_api_product") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+    "..:dart_arch_config",
+  ]
 }
 
 static_library("crashpad") {
@@ -845,6 +875,11 @@ dart_executable("dart") {
   if (!exclude_kernel_service) {
     extra_deps += [ ":dart_kernel_platform_cc" ]
   }
+  if (dart_runtime_mode == "release") {
+    extra_deps += [ ":native_assets_api_product" ]
+  } else {
+    extra_deps += [ ":native_assets_api" ]
+  }
 }
 
 dart_executable("dart_precompiled_runtime") {
@@ -871,9 +906,15 @@ dart_executable("dart_precompiled_runtime") {
   ]
 
   if (dart_runtime_mode == "release") {
-    extra_deps += [ ":elf_loader_product" ]
+    extra_deps += [
+      ":elf_loader_product",
+      ":native_assets_api_product",
+    ]
   } else {
-    extra_deps += [ ":elf_loader" ]
+    extra_deps += [
+      ":elf_loader",
+      ":native_assets_api",
+    ]
   }
 
   if (dart_runtime_mode == "release") {
@@ -903,7 +944,10 @@ dart_executable("dart_precompiled_runtime_product") {
     "snapshot_empty.cc",
   ]
 
-  extra_deps += [ ":elf_loader_product" ]
+  extra_deps += [
+    ":elf_loader_product",
+    ":native_assets_api_product",
+  ]
 }
 
 # This flag is set in runtime/runtime_args.gni

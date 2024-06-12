@@ -75,15 +75,25 @@ void main(List<String> args) async {
           final relativeExeUri = Uri.file('./bin/dart_app/dart_app.exe');
           final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
           expect(await File.fromUri(absoluteExeUri).exists(), true);
-          for (final exeUri in [absoluteExeUri, relativeExeUri]) {
-            final result = await runProcess(
-              executable: exeUri,
-              arguments: [],
-              workingDirectory: dartAppUri,
-              logger: logger,
-            );
-            expectDartAppStdout(result.stdout);
-          }
+          await _withTempDir((tempUri) async {
+            // The link needs to have the same extension as the executable on
+            // Windows to be able to be executable.
+            final link = Link.fromUri(tempUri.resolve('my_link.exe'));
+            await link.create(absoluteExeUri.toFilePath());
+            for (final exeUri in [
+              absoluteExeUri,
+              relativeExeUri,
+              link.uri,
+            ]) {
+              final result = await runProcess(
+                executable: exeUri,
+                arguments: [],
+                workingDirectory: dartAppUri,
+                logger: logger,
+              );
+              expectDartAppStdout(result.stdout);
+            }
+          });
         });
       });
     }
@@ -176,4 +186,17 @@ void main(List<String> args) {
       );
     });
   });
+}
+
+Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
+  final tempDir = await Directory.systemTemp.createTemp('link_dir');
+  final tempDirResolved = Directory(await tempDir.resolveSymbolicLinks());
+  try {
+    await fun(tempDirResolved.uri);
+  } finally {
+    if (!Platform.environment.containsKey(keepTempKey) ||
+        Platform.environment[keepTempKey]!.isEmpty) {
+      await tempDirResolved.delete(recursive: true);
+    }
+  }
 }

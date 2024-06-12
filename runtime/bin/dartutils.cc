@@ -8,16 +8,12 @@
 #include "bin/directory.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
-#include "bin/namespace.h"
-#include "bin/platform.h"
 #include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
-#include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 
 // Return the error from the containing function if handle is in error handle.

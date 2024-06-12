@@ -18,7 +18,6 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
-#include "bin/eventhandler.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
@@ -28,18 +27,15 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/snapshot_utils.h"
-#include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "include/bin/dart_io_api.h"
+#include "include/bin/native_assets_api.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/globals.h"
-#include "platform/growable_array.h"
-#include "platform/hashmap.h"
 #include "platform/syslog.h"
-#include "platform/text_buffer.h"
 #include "platform/utils.h"
 
 extern "C" {
@@ -251,6 +247,13 @@ failed:
   return false;
 }
 
+static void* NativeAssetsDlopenRelative(const char* path, char** error) {
+  auto isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  const char* script_uri = isolate_group_data->script_url;
+  return NativeAssets::DlopenRelative(path, script_uri, error);
+}
+
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        bool is_main_isolate,
                                        const char* script_uri,
@@ -384,6 +387,18 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Dart_SetShouldPauseOnExit(false);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILER)
+  NativeAssetsApi native_assets;
+  memset(&native_assets, 0, sizeof(native_assets));
+  native_assets.dlopen_absolute = &NativeAssets::DlopenAbsolute;
+  native_assets.dlopen_relative = &NativeAssetsDlopenRelative;
+  native_assets.dlopen_system = &NativeAssets::DlopenSystem;
+  native_assets.dlopen_executable = &NativeAssets::DlopenExecutable;
+  native_assets.dlopen_process = &NativeAssets::DlopenProcess;
+  native_assets.dlsym = &NativeAssets::Dlsym;
+  Dart_InitializeNativeAssetsResolver(&native_assets);
+#endif  // !defined(DART_PRECOMPILER)
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();

@@ -3338,6 +3338,77 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
 DART_EXPORT Dart_Handle
 Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 
+/**
+ * Callback provided by the embedder that is used by the VM to resolve asset
+ * paths.
+ * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
+ * fail.
+ *
+ * The VM is responsible for looking up the asset path with the asset id in the
+ * kernel mapping.
+ * The embedder is responsible for providing the asset mapping during kernel
+ * compilation and using the asset path to return a library handle in this
+ * function.
+ *
+ * \param path The string in the asset path as passed in native_assets.yaml
+ *             during kernel compilation.
+ *
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
+ *
+ * \return The library handle. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlopenCallback)(const char* path,
+                                                 char** error);
+typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
+
+/**
+ * Callback provided by the embedder that is used by the VM to lookup symbols
+ * in native code assets.
+ * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
+ * fail.
+ *
+ * \param handle The library handle returned from a
+ *               `Dart_NativeAssetsDlopenCallback` or
+ *               `Dart_NativeAssetsDlopenCallbackNoPath`.
+ *
+ * \param symbol The symbol to look up. Is a string.
+ *
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
+ *
+ * \return The symbol address. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlsymCallback)(void* handle,
+                                                const char* symbol,
+                                                char** error);
+
+typedef struct {
+  Dart_NativeAssetsDlopenCallback dlopen_absolute;
+  Dart_NativeAssetsDlopenCallback dlopen_relative;
+  Dart_NativeAssetsDlopenCallback dlopen_system;
+  Dart_NativeAssetsDlopenCallbackNoPath dlopen_process;
+  Dart_NativeAssetsDlopenCallbackNoPath dlopen_executable;
+  Dart_NativeAssetsDlsymCallback dlsym;
+} NativeAssetsApi;
+
+/**
+ * Initializes native asset resolution for the current isolate group.
+ *
+ * The caller is responsible for ensuring this is called right after isolate
+ * group creation, and before running any dart code (or spawning isolates).
+ *
+ * @param native_assets_api The callbacks used by native assets resolution.
+ *                          The VM does not take ownership of the parameter,
+ *                          it can be freed immediately after the call.
+ */
+DART_EXPORT void Dart_InitializeNativeAssetsResolver(
+    NativeAssetsApi* native_assets_api);
+
 /*
  * =====================
  * Scripts and Libraries

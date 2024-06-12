@@ -742,6 +742,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* EnterTemporaryIsolate();
   static void ExitTemporaryIsolate();
 
+  void SetNativeAssetsCallbacks(NativeAssetsApi* native_assets_api) {
+    native_assets_api_ = *native_assets_api;
+  }
+  NativeAssetsApi* native_assets_api() { return &native_assets_api_; }
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -883,6 +888,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t max_active_mutators_ = 0;
 
   NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
+
+  NativeAssetsApi native_assets_api_;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
