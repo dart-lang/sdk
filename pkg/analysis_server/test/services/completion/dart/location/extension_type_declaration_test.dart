@@ -122,15 +122,30 @@ suggestions
 ''');
   }
 
-  Future<void> test_name() async {
-    allowedIdentifiers = {'Test'};
+  Future<void> test_name_withBody() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    printerConfiguration.withSelection = true;
     await computeSuggestions('''
-extension type ^
+extension type ^ {}
 ''');
     assertResponse(r'''
 suggestions
   Test
     kind: identifier
+''');
+  }
+
+  Future<void> test_name_withoutBody() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    printerConfiguration.withSelection = true;
+    await computeSuggestions('''
+extension type ^
+''');
+    assertResponse(r'''
+suggestions
+  Test {}
+    kind: identifier
+    selection: 6
 ''');
   }
 

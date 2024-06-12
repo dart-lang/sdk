@@ -54,10 +54,28 @@ suggestions
 ''');
   }
 
-  Future<void> test_name() async {
-    allowedIdentifiers = {'Test'};
+  Future<void> test_name_partial() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    printerConfiguration.withSelection = true;
     await computeSuggestions('''
-extension ^
+extension T^
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  Test
+    kind: identifier
+  type
+    kind: keyword
+''');
+  }
+
+  Future<void> test_name_withBody() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    printerConfiguration.withSelection = true;
+    await computeSuggestions('''
+extension ^ {}
 ''');
     assertResponse(r'''
 suggestions
@@ -70,17 +88,18 @@ suggestions
 ''');
   }
 
-  Future<void> test_name_partial() async {
-    allowedIdentifiers = {'Test'};
+  Future<void> test_name_withoutBody() async {
+    allowedIdentifiers = {'Test', 'Test {}'};
+    printerConfiguration.withSelection = true;
     await computeSuggestions('''
-extension T^
+extension ^
 ''');
     assertResponse(r'''
-replacement
-  left: 1
 suggestions
   Test
     kind: identifier
+  on
+    kind: keyword
   type
     kind: keyword
 ''');

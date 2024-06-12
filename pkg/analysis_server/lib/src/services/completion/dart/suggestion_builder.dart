@@ -834,11 +834,11 @@ class SuggestionBuilder {
   }
 
   /// Add a suggestion to use the [name] at a declaration site.
-  void suggestName(String name) {
+  void suggestName(String name, {int? selectionOffset}) {
     // TODO(brianwilkerson): Explore whether there are any features of the name
     //  that can be used to provide better relevance scores.
     _addSuggestion(CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
-        500, name, name.length, 0, false, false));
+        500, name, selectionOffset ?? name.length, 0, false, false));
   }
 
   /// Add a suggestion to add a named argument corresponding to the [parameter].
