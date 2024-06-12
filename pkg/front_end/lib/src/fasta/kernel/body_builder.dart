@@ -3885,7 +3885,8 @@ class BodyBuilder extends StackListenerImpl
         isRequired: isRequired,
         hasDeclaredInitializer: initializer != null,
         isStaticLate: isFinal && initializer == null,
-        isWildcard: identifier.name == '_')
+        isWildcard: identifier.name == '_' &&
+            libraryFeatures.wildcardVariables.isEnabled)
       ..fileOffset = identifier.nameOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer.assignedVariables.declare(variable);
