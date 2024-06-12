@@ -1,3 +1,7 @@
+## 0.1.2-main.1
+
+- Make it an error for macros to complete with pending async work scheduled.
+
 ## 0.1.2-main.0
 
 - Remove type parameter on internal `StaticType` implementation.

@@ -21,8 +21,14 @@ import '../util.dart';
 void main() {
   late MacroExecutor executor;
   late File kernelOutputFile;
+  final danglingTaskMacroName = 'DanglingTaskMacro';
+  final danglingTimerMacroName = 'DanglingTimerMacro';
+  final danglingPeriodicTimerMacroName = 'DanglingPeriodicTimerMacro';
   final diagnosticMacroName = 'DiagnosticMacro';
   final simpleMacroName = 'SimpleMacro';
+  late MacroInstanceIdentifier danglingTaskMacroId;
+  late MacroInstanceIdentifier danglingTimerMacroId;
+  late MacroInstanceIdentifier danglingPeriodicTimerMacroId;
   late MacroInstanceIdentifier diagnosticMacroInstanceId;
   late MacroInstanceIdentifier simpleMacroInstanceId;
   late Uri macroUri;
@@ -46,6 +52,9 @@ void main() {
             var bootstrapContent = bootstrapMacroIsolate({
               macroUri.toString(): {
                 simpleMacroName: ['', 'named'],
+                danglingTaskMacroName: [''],
+                danglingTimerMacroName: [''],
+                danglingPeriodicTimerMacroName: [''],
                 diagnosticMacroName: [''],
               }
             }, mode);
@@ -128,6 +137,21 @@ void main() {
                 }));
             expect(simpleMacroInstanceId, isNotNull,
                 reason: 'Can create an instance with named arguments.');
+
+            danglingTaskMacroId = await executor.instantiateMacro(
+                macroUri, danglingTaskMacroName, '', Arguments([], {}));
+            expect(danglingTaskMacroId, isNotNull);
+
+            danglingTimerMacroId = await executor.instantiateMacro(
+                macroUri, danglingTimerMacroName, '', Arguments([], {}));
+            expect(danglingTimerMacroId, isNotNull);
+
+            danglingPeriodicTimerMacroId = await executor.instantiateMacro(
+                macroUri,
+                danglingPeriodicTimerMacroName,
+                '',
+                Arguments([], {}));
+            expect(danglingPeriodicTimerMacroId, isNotNull);
 
             diagnosticMacroInstanceId = await executor.instantiateMacro(
                 macroUri, diagnosticMacroName, '', Arguments([], {}));
@@ -401,6 +425,36 @@ class LibraryInfo {
 '''),
                 );
               });
+
+              test('Cannot leave dangling tasks', () async {
+                expect(
+                    () => executor.executeTypesPhase(danglingTaskMacroId,
+                        Fixtures.library, TestTypePhaseIntrospector()),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 async tasks still pending')),
+                    ));
+              });
+
+              test('Cannot leave dangling timers', () async {
+                expect(
+                    () => executor.executeTypesPhase(danglingTimerMacroId,
+                        Fixtures.library, TestTypePhaseIntrospector()),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 active timers')),
+                    ));
+
+                expect(
+                    () => executor.executeTypesPhase(
+                        danglingPeriodicTimerMacroId,
+                        Fixtures.library,
+                        TestTypePhaseIntrospector()),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 active timers')),
+                    ));
+              });
             });
 
             group('in the declaration phase', () {
@@ -665,6 +719,40 @@ class LibraryInfo {
                   result.libraryAugmentations.single.debugString().toString(),
                   equalsIgnoringWhitespace('final LibraryInfo library;'),
                 );
+              });
+
+              test('Cannot leave dangling tasks', () async {
+                expect(
+                    () => executor.executeDeclarationsPhase(
+                        danglingTaskMacroId,
+                        Fixtures.library,
+                        Fixtures.testDeclarationPhaseIntrospector),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 async tasks still pending')),
+                    ));
+              });
+
+              test('Cannot leave dangling timers', () async {
+                expect(
+                    () => executor.executeDeclarationsPhase(
+                        danglingTimerMacroId,
+                        Fixtures.library,
+                        Fixtures.testDeclarationPhaseIntrospector),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 active timers')),
+                    ));
+
+                expect(
+                    () => executor.executeDeclarationsPhase(
+                        danglingPeriodicTimerMacroId,
+                        Fixtures.library,
+                        Fixtures.testDeclarationPhaseIntrospector),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 active timers')),
+                    ));
               });
             });
 
@@ -960,6 +1048,40 @@ class LibraryInfo {
                     equalsIgnoringWhitespace('''
 augment final LibraryInfo library = LibraryInfo(Uri.parse('package:foo/bar.dart'), '3.0', [MyClass, MyEnum, MyMixin, ]);
 '''));
+              });
+
+              test('Cannot leave dangling tasks', () async {
+                expect(
+                    () => executor.executeDefinitionsPhase(
+                        danglingTaskMacroId,
+                        Fixtures.library,
+                        Fixtures.testDefinitionPhaseIntrospector),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 async tasks still pending')),
+                    ));
+              });
+
+              test('Cannot leave dangling timers', () async {
+                expect(
+                    () => executor.executeDefinitionsPhase(
+                        danglingTimerMacroId,
+                        Fixtures.library,
+                        Fixtures.testDefinitionPhaseIntrospector),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 active timers')),
+                    ));
+
+                expect(
+                    () => executor.executeDefinitionsPhase(
+                        danglingPeriodicTimerMacroId,
+                        Fixtures.library,
+                        Fixtures.testDefinitionPhaseIntrospector),
+                    throwsA(
+                      isA<UnexpectedMacroException>().having((e) => e.message,
+                          'message', contains('1 active timers')),
+                    ));
               });
             });
 
