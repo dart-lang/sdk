@@ -298,6 +298,9 @@ class _ClassVerifier {
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
+          if (_isNotImplementedInConcreteSuperClass(classElement, name)) {
+            continue;
+          }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
           if (classElement is EnumElement &&
               const {'values', 'values='}.contains(name.name)) {
@@ -721,6 +724,20 @@ class _ClassVerifier {
     }
 
     return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS;
+  }
+
+  /// If [name] is not implemented in the extended concrete class, the
+  /// issue should be fixed there, and then [element] will not have it too.
+  bool _isNotImplementedInConcreteSuperClass(
+    InterfaceElement element,
+    Name name,
+  ) {
+    var superElement = classElement.supertype?.element;
+    if (superElement is ClassElement && !superElement.isAbstract) {
+      var superInterface = inheritance.getInterface(superElement);
+      return superInterface.map.containsKey(name);
+    }
+    return false;
   }
 
   /// We identified that the current non-abstract class does not have the
