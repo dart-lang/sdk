@@ -1,4 +1,4 @@
-## 3.4.4
+## 3.4.4 - 2024-06-12
 
 This is a patch release that:
 
@@ -21,20 +21,20 @@ This is a patch release that:
 This is a patch release that:
 
 - Fixes an issue where `DART_VM_OPTIONS` were not correctly parsed for
-  standalone Dart executables created with `dart compile exe` (issue 
+  standalone Dart executables created with `dart compile exe` (issue
   [#55818]).
 
 - Fixes a bug in dart2wasm that can result in a runtime error that says
   `array.new_fixed()` has a constant larger than 10000 (issue [#55873]).
 
-- Adds support for `--enable-experiment` flag to `dart compile` wasm 
+- Adds support for `--enable-experiment` flag to `dart compile` wasm
   (issue [#55894]).
 
-- Fixes an issue in dart2wasm compiler that can result in incorrect 
+- Fixes an issue in dart2wasm compiler that can result in incorrect
   nullability of type parameter (see [#55895]).
 
-- Disallows `dart:ffi` imports in user code in dart2wasm (e.g. issue 
-  [#53910]) as dart2wasm's currently only supports a small subset of 
+- Disallows `dart:ffi` imports in user code in dart2wasm (e.g. issue
+  [#53910]) as dart2wasm's currently only supports a small subset of
   `dart:ffi` (issue [#55890]).
 
 [#55818]: https://github.com/dart-lang/sdk/issues/55818
