@@ -120,7 +120,8 @@ import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
-class SourceLibraryBuilder extends LibraryBuilderImpl {
+class SourceLibraryBuilder extends LibraryBuilderImpl
+    implements CompilationUnit {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
   @override
@@ -163,6 +164,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   String? partOfName;
 
   Uri? partOfUri;
+
+  @override
+  LibraryBuilder? partOfLibrary;
 
   /// Offset of the first script tag (`#!...`) in this library or part.
   int? _scriptTokenOffset;
@@ -748,10 +752,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   Iterable<Uri> get dependencies sync* {
     for (Export export in exports) {
-      yield export.exported.importUri;
+      yield export.exportedCompilationUnit.importUri;
     }
     for (Import import in imports) {
-      CompilationUnit? imported = import.imported;
+      CompilationUnit? imported = import.importedCompilationUnit;
       if (imported != null) {
         yield imported.importUri;
       }
@@ -1239,17 +1243,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         export.exporter.addProblem(
             messagePartExport, export.charOffset, "export".length, null,
             context: context);
-        if (library != null) {
-          // Recovery: Export the main library instead.
-          export.exported = library;
-          SourceLibraryBuilder exporter =
-              export.exporter as SourceLibraryBuilder;
-          for (Export export2 in exporter.exports) {
-            if (export2.exported == this) {
-              export2.exported = library;
-            }
-          }
-        }
       }
     }
   }
@@ -1491,20 +1484,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     bool explicitCoreImport = this == loader.coreLibrary;
     for (Import import in imports) {
-      if (import.imported?.isPart ?? false) {
+      if (import.importedCompilationUnit?.isPart ?? false) {
         addProblem(
-            templatePartOfInLibrary.withArguments(import.imported!.fileUri),
+            templatePartOfInLibrary
+                .withArguments(import.importedCompilationUnit!.fileUri),
             import.charOffset,
             noLength,
             fileUri);
-        if (import.imported?.partOfLibrary != null) {
-          // Recovery: Rewrite to import the "part owner" library.
-          // Note that the part will not have a partOfLibrary if it claims to be
-          // a part, but isn't mentioned as a part by the (would-be) "parent".
-          import.imported = import.imported?.partOfLibrary;
-        }
       }
-      if (import.imported == loader.coreLibrary) {
+      if (import.importedLibraryBuilder == loader.coreLibrary) {
         explicitCoreImport = true;
       }
       import.finalizeImports(this);
@@ -3910,7 +3898,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (import.deferred && import.prefixBuilder?.dependency != null) {
           libraryDependency = import.prefixBuilder!.dependency!;
         } else {
-          LibraryBuilder imported = import.imported!.libraryBuilder.origin;
+          LibraryBuilder imported = import.importedLibraryBuilder!.origin;
           Library targetLibrary = imported.library;
           libraryDependency = new LibraryDependency.import(targetLibrary,
               name: import.prefix,
@@ -3923,7 +3911,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Add export
         Export export = exports[exportIndex++];
         LibraryDependency libraryDependency = new LibraryDependency.export(
-            export.exported.libraryBuilder.library,
+            export.exportedLibraryBuilder.library,
             combinators: toKernelCombinators(export.combinators))
           ..fileOffset = export.charOffset;
         library.addDependency(libraryDependency);

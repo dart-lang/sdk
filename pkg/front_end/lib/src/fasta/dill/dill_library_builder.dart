@@ -42,7 +42,7 @@ class LazyLibraryScope extends LazyScope {
   }
 }
 
-class DillLibraryBuilder extends LibraryBuilderImpl {
+class DillLibraryBuilder extends LibraryBuilderImpl implements CompilationUnit {
   @override
   final Library library;
 
@@ -77,6 +77,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   LibraryBuilder get origin => this;
+
+  @override
+  Null get partOfLibrary => null;
 
   @override
   Iterable<Uri> get dependencies => library.dependencies.map(

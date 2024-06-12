@@ -25,7 +25,7 @@ class Import {
   final SourceLibraryBuilder importer;
 
   /// The library being imported.
-  CompilationUnit? imported;
+  CompilationUnit? importedCompilationUnit;
 
   final PrefixBuilder? prefixBuilder;
 
@@ -54,7 +54,7 @@ class Import {
 
   Import(
       this.importer,
-      this.imported,
+      this.importedCompilationUnit,
       this.isAugmentationImport,
       this.deferred,
       this.prefix,
@@ -64,8 +64,18 @@ class Import {
       this.prefixCharOffset,
       int importIndex,
       {this.nativeImportPath})
-      : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
-            combinators, deferred, charOffset, prefixCharOffset, importIndex);
+      : prefixBuilder = createPrefixBuilder(
+            prefix,
+            importer,
+            importedCompilationUnit,
+            combinators,
+            deferred,
+            charOffset,
+            prefixCharOffset,
+            importIndex);
+
+  LibraryBuilder? get importedLibraryBuilder =>
+      importedCompilationUnit?.libraryBuilder;
 
   void finalizeImports(SourceLibraryBuilder importer) {
     if (nativeImportPath != null) return;
@@ -79,7 +89,7 @@ class Import {
         prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    NameIterator<Builder> iterator = imported!.libraryBuilder.exportScope
+    NameIterator<Builder> iterator = importedLibraryBuilder!.exportScope
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
