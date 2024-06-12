@@ -1033,6 +1033,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
   ],
+  CompileTimeErrorCode.INVALID_CONSTANT: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR: [
     RemoveLexeme.modifier,
   ],
