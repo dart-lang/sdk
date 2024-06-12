@@ -7,7 +7,6 @@ class/large_class_declaration_test: Skip # JVM stack overflow.
 closure/type_test: Pass # Marked as RuntimeError for all in language_2.status.
 const/native_factory_test: Skip # Uses `native`.
 double/invalid_test: Skip # Contains illegally formatted double.
-nnbd/syntax/opt_out_nnbd_modifiers_test: Skip # Requires opt-out of NNBD.
 regress/regress1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
 syntax/deep_nesting_expression_test: Skip # JVM stack overflow.
 syntax/deep_nesting_statement_test: Skip # JVM stack overflow.

@@ -16,6 +16,10 @@ ArgParser buildParser() {
       negatable: false,
       defaultsTo: false,
       help: "Warn if a status header expression contains '||'.");
+  parser.addFlag("check-for-non-existing",
+      negatable: true,
+      defaultsTo: true,
+      help: "Check for and error on non-existing test entries.");
   parser.addFlag("text",
       abbr: "t",
       negatable: false,
@@ -43,19 +47,25 @@ void main(List<String> arguments) {
     return;
   }
   bool checkForDisjunctions = results["check-for-disjunctions"];
+  bool checkForNonExisting = results["check-for-non-existing"];
   bool usePipe = results["text"];
   if (usePipe) {
-    lintStdIn(checkForDisjunctions: checkForDisjunctions);
+    lintStdIn(
+        checkForDisjunctions: checkForDisjunctions,
+        checkForNonExisting: checkForNonExisting);
   } else {
     if (results.rest.length != 1) {
       printHelp(parser);
       exit(1);
     }
-    lintPath(results.rest.first, checkForDisjunctions: checkForDisjunctions);
+    lintPath(results.rest.first,
+        checkForDisjunctions: checkForDisjunctions,
+        checkForNonExisting: checkForNonExisting);
   }
 }
 
-void lintStdIn({bool checkForDisjunctions = false}) {
+void lintStdIn(
+    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
   var strings = <String>[];
   try {
     while (true) {
@@ -66,15 +76,18 @@ void lintStdIn({bool checkForDisjunctions = false}) {
   } on StdinException {
     // I do not know why this happens.
   }
-  if (!lintText(strings)) {
+  if (!lintText(strings, checkForNonExisting: checkForNonExisting)) {
     exit(1);
   }
 }
 
-void lintPath(path, {bool checkForDisjunctions = false}) {
+void lintPath(path,
+    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
   var filesWithErrors = <String>[];
   if (FileSystemEntity.isFileSync(path)) {
-    if (!lintFile(path, checkForDisjunctions: checkForDisjunctions)) {
+    if (!lintFile(path,
+        checkForDisjunctions: checkForDisjunctions,
+        checkForNonExisting: checkForNonExisting)) {
       filesWithErrors.add(path);
     }
   } else if (FileSystemEntity.isDirectorySync(path)) {
@@ -82,7 +95,9 @@ void lintPath(path, {bool checkForDisjunctions = false}) {
       if (!canLint(entry.path)) {
         return;
       }
-      if (!lintFile(entry.path, checkForDisjunctions: checkForDisjunctions)) {
+      if (!lintFile(entry.path,
+          checkForDisjunctions: checkForDisjunctions,
+          checkForNonExisting: checkForNonExisting)) {
         filesWithErrors.add(entry.path);
       }
     });
@@ -96,22 +111,26 @@ void lintPath(path, {bool checkForDisjunctions = false}) {
   }
 }
 
-bool lintText(List<String> text, {bool checkForDisjunctions = false}) {
+bool lintText(List<String> text,
+    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
   try {
     var statusFile = StatusFile.parse("stdin", text);
     return lintStatusFile(statusFile,
-        checkForDisjunctions: checkForDisjunctions);
+        checkForDisjunctions: checkForDisjunctions,
+        checkForNonExisting: checkForNonExisting);
   } on status_file.SyntaxError {
     stderr.writeln("Could not parse stdin.");
   }
   return false;
 }
 
-bool lintFile(String path, {bool checkForDisjunctions = false}) {
+bool lintFile(String path,
+    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
   try {
     var statusFile = StatusFile.read(path);
     return lintStatusFile(statusFile,
-        checkForDisjunctions: checkForDisjunctions);
+        checkForDisjunctions: checkForDisjunctions,
+        checkForNonExisting: checkForNonExisting);
   } on status_file.SyntaxError catch (error) {
     stderr.writeln("Could not parse $path:\n$error");
   }
@@ -119,9 +138,10 @@ bool lintFile(String path, {bool checkForDisjunctions = false}) {
 }
 
 bool lintStatusFile(StatusFile statusFile,
-    {bool checkForDisjunctions = false}) {
-  var lintingErrors =
-      lint(statusFile, checkForDisjunctions: checkForDisjunctions);
+    {bool checkForDisjunctions = false, required bool checkForNonExisting}) {
+  var lintingErrors = lint(statusFile,
+      checkForDisjunctions: checkForDisjunctions,
+      checkForNonExisting: checkForNonExisting);
   if (lintingErrors.isEmpty) {
     print("${statusFile.path}\n Status file passed all tests");
     print("");

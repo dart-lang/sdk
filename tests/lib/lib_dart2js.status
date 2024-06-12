@@ -5,13 +5,7 @@
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
-developer/metrics_num_test: Skip # Because of an int / double type test.
 developer/timeline_test: Skip # Not supported
-html/custom/document_register_basic_test: Slow, Pass
-html/custom/document_register_type_extensions_test/construction: Slow, Pass
-html/custom/document_register_type_extensions_test/registration: Slow, Pass
-html/custom/entered_left_view/shadow_dom_test: Slow, Pass
-html/custom_elements_test: Slow, Pass # Issue 26789
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 html/isolates_test: SkipByDesign
 html/worker_api_test: SkipByDesign
@@ -51,11 +45,7 @@ convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/utf85_test: Slow, Pass
 html/callback_list_test: SkipByDesign # FileSystem not supported in FireFox.
-html/custom/attribute_changed_callback_test: Skip # Times out
-html/custom/created_callback_test: Skip # Times out
-html/custom/document_register_basic_test: Skip # Times out, or unittest times out
 html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
-html/file_sample_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
 html/history_test: Skip # Issue 22050
@@ -65,7 +55,6 @@ html/request_animation_frame_test: Skip # Async test hangs.
 [ $compiler == dart2js && $runtime == safari ]
 html/audiocontext_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 html/callback_list_test: SkipByDesign # FileSystem not supported in Safari.
-html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
 html/input_element_date_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 html/input_element_datetime_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718

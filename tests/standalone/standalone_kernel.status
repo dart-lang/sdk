@@ -6,10 +6,6 @@
 
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
-[ $system == android ]
-io/http_ban_http_embedder_test: Skip # Requires http server bound to non-loopback; not provided by system.
-io/http_ban_http_normal_test: Skip # Requires http server bound to non-loopback; not provided by system.
-
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
 
@@ -28,7 +24,6 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 [ $compiler == dartk && $system == windows ]
 io/dart_std_io_pipe_test: Slow, Pass
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
-io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $compiler == dartk && $hot_reload ]

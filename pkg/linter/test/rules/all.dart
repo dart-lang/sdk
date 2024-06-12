@@ -33,6 +33,7 @@ import 'avoid_function_literals_in_foreach_calls_test.dart'
 import 'avoid_implementing_value_types_test.dart'
     as avoid_implementing_value_types;
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
+import 'avoid_js_rounded_ints_test.dart' as avoid_js_rounded_ints;
 import 'avoid_multiple_declarations_per_line_test.dart'
     as avoid_multiple_declarations_per_line;
 import 'avoid_positional_boolean_parameters_test.dart'
@@ -308,6 +309,7 @@ void main() {
   avoid_function_literals_in_foreach_calls.main();
   avoid_implementing_value_types.main();
   avoid_init_to_null.main();
+  avoid_js_rounded_ints.main();
   avoid_multiple_declarations_per_line.main();
   avoid_positional_boolean_parameters.main();
   avoid_print.main();

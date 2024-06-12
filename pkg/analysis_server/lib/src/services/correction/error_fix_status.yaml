@@ -45,9 +45,9 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 329 "needsFix"
-# - 419 "hasFix"
-# - 516 "noFix"
+# - 326 "needsFix"
+# - 421 "hasFix"
+# - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -2605,9 +2605,10 @@ ParserErrorCode.COVARIANT_AND_STATIC:
   notes: |-
     Remove either `covariant` or `static`.
 ParserErrorCode.COVARIANT_CONSTRUCTOR:
-  status: needsFix
+  status: noFix
   notes: |-
-    Remove `covariant`.
+    This error code is currently unreported and constructors
+    are treated the same as members (see `COVARIANT_MEMBER`).
 ParserErrorCode.COVARIANT_MEMBER:
   status: hasFix
 ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
@@ -2982,9 +2983,7 @@ ParserErrorCode.LITERAL_WITH_CLASS:
   notes: |-
     Remove the `List.`.
 ParserErrorCode.LITERAL_WITH_NEW:
-  status: needsFix
-  notes: |-
-    Remove the `new`.
+  status: hasFix
 ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER:
   status: noFix
 ParserErrorCode.MEMBER_WITH_CLASS_NAME:
@@ -3211,9 +3210,7 @@ ParserErrorCode.STACK_OVERFLOW:
 ParserErrorCode.STATIC_CONSTRUCTOR:
   status: hasFix
 ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.STATIC_OPERATOR:
   status: hasFix
 ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:

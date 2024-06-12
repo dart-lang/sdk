@@ -26,7 +26,8 @@ void normalizeCheck() {
   for (var file in files) {
     print("------- ${file.path} -------");
     var statusFile = StatusFile.read(file.path);
-    var statusFileOther = normalizeStatusFile(StatusFile.read(file.path));
+    var statusFileOther = normalizeStatusFile(StatusFile.read(file.path),
+        deleteNonExisting: false);
     checkSemanticallyEqual(statusFile, statusFileOther,
         warnOnDuplicateHeader: true);
     checkFileHeaderIntact(statusFile, statusFileOther);
