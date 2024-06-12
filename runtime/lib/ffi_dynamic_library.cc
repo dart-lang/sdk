@@ -5,6 +5,7 @@
 #include "lib/ffi_dynamic_library.h"
 
 #include "platform/globals.h"
+#include "platform/utils.h"
 #if defined(DART_HOST_OS_WINDOWS)
 #include <Psapi.h>
 #include <Windows.h>
@@ -13,13 +14,13 @@
 #include <tchar.h>
 #endif
 
+#include "platform/uri.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/ffi/native_assets.h"
 #include "vm/native_entry.h"
 #include "vm/symbols.h"
-#include "vm/uri.h"
 #include "vm/zone_text_buffer.h"
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
@@ -376,26 +377,15 @@ static char* AvailableAssetsToCString(Thread* const thread) {
   return buffer.buffer();
 }
 
-// If an error occurs populates |error| with an error message
-// (caller must free this message when it is no longer needed).
-//
-// The |asset_location| is formatted as follows:
-// ['<path_type>', '<path (optional)>']
-// The |asset_location| is conform to: pkg/vm/lib/native_assets/validator.dart
-static void* FfiResolveAsset(Thread* const thread,
-                             const Array& asset_location,
-                             const String& symbol,
-                             char** error) {
+// Fall back to old implementation temporarily to ease the roll into flutter.
+// TODO(https://dartbug.com/55523): Remove fallback and throw errors that
+// native assets API is not initialized.
+static void* FfiResolveAssetFallback(Thread* const thread,
+                                     const String& asset_type,
+                                     const String& path,
+                                     const String& symbol,
+                                     char** error) {
   Zone* const zone = thread->zone();
-
-  const auto& asset_type =
-      String::Cast(Object::Handle(zone, asset_location.At(0)));
-  String& path = String::Handle(zone);
-  if (asset_type.Equals(Symbols::absolute()) ||
-      asset_type.Equals(Symbols::relative()) ||
-      asset_type.Equals(Symbols::system())) {
-    path = String::RawCast(asset_location.At(1));
-  }
   void* handle = nullptr;
   if (asset_type.Equals(Symbols::absolute())) {
     handle = LoadDynamicLibrary(path.ToCString(), error);
@@ -405,20 +395,21 @@ static void* FfiResolveAsset(Thread* const thread,
         String::NewFormatted(
             "%s%s", file_schema,
             String::Handle(zone, GetPlatformScriptPath(thread)).ToCString()));
-    const char* target_uri = nullptr;
     char* path_cstr = path.ToMallocCString();
 #if defined(DART_TARGET_OS_WINDOWS)
     ReplaceBackSlashes(path_cstr);
 #endif
-    const bool resolved =
-        ResolveUri(path_cstr, platform_script_uri.ToCString(), &target_uri);
+    CStringUniquePtr target_uri =
+        ResolveUri(path_cstr, platform_script_uri.ToCString());
     free(path_cstr);
-    if (!resolved) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "Failed to resolve '%s' relative to '%s'.",
-                           path.ToCString(), platform_script_uri.ToCString());
+    if (!target_uri) {
+      *error = OS::SCreate(
+          /*use malloc*/ nullptr,
+          "Failed to resolve '%s' relative to "
+          "'%s'.",
+          path.ToCString(), platform_script_uri.ToCString());
     } else {
-      const char* target_path = target_uri + file_schema_length;
+      const char* target_path = target_uri.get() + file_schema_length;
       handle = LoadDynamicLibrary(target_path, error);
     }
   } else if (asset_type.Equals(Symbols::system())) {
@@ -455,6 +446,76 @@ static void* FfiResolveAsset(Thread* const thread,
   }
   ASSERT(*error != nullptr);
   return nullptr;
+}
+
+// If an error occurs populates |error| with an error message
+// (caller must free this message when it is no longer needed).
+//
+// The |asset_location| is formatted as follows:
+// ['<path_type>', '<path (optional)>']
+// The |asset_location| is conform to: pkg/vm/lib/native_assets/validator.dart
+static void* FfiResolveAsset(Thread* const thread,
+                             const Array& asset_location,
+                             const String& symbol,
+                             char** error) {
+  Zone* const zone = thread->zone();
+
+  const auto& asset_type =
+      String::Cast(Object::Handle(zone, asset_location.At(0)));
+  String& path = String::Handle(zone);
+  const char* path_cstr = nullptr;
+  if (asset_type.Equals(Symbols::absolute()) ||
+      asset_type.Equals(Symbols::relative()) ||
+      asset_type.Equals(Symbols::system())) {
+    path = String::RawCast(asset_location.At(1));
+    path_cstr = path.ToCString();
+  }
+
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
+  void* handle;
+  if (asset_type.Equals(Symbols::absolute())) {
+    if (native_assets_api->dlopen_absolute == nullptr) {
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    handle = native_assets_api->dlopen_absolute(path_cstr, error);
+  } else if (asset_type.Equals(Symbols::relative())) {
+    if (native_assets_api->dlopen_relative == nullptr) {
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    handle = native_assets_api->dlopen_relative(path_cstr, error);
+  } else if (asset_type.Equals(Symbols::system())) {
+    if (native_assets_api->dlopen_system == nullptr) {
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    handle = native_assets_api->dlopen_system(path_cstr, error);
+  } else if (asset_type.Equals(Symbols::executable())) {
+    if (native_assets_api->dlopen_executable == nullptr) {
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    handle = native_assets_api->dlopen_executable(error);
+  } else {
+    RELEASE_ASSERT(asset_type.Equals(Symbols::process()));
+    if (native_assets_api->dlopen_process == nullptr) {
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    handle = native_assets_api->dlopen_process(error);
+  }
+
+  if (*error != nullptr) {
+    return nullptr;
+  }
+  if (native_assets_api->dlsym == nullptr) {
+    return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
+  }
+  void* const result =
+      native_assets_api->dlsym(handle, symbol.ToCString(), error);
+  return result;
 }
 
 // Frees |error|.

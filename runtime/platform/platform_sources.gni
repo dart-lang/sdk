@@ -35,6 +35,8 @@ platform_sources = [
   "unwinding_records.cc",
   "unwinding_records.h",
   "unwinding_records_win.cc",
+  "uri.cc",
+  "uri.h",
   "utils.cc",
   "utils.h",
   "utils_android.cc",
@@ -43,3 +45,5 @@ platform_sources = [
   "utils_macos.cc",
   "utils_win.cc",
 ]
+
+platform_sources_tests = [ "uri_test.cc" ]

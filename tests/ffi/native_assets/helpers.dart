@@ -337,6 +337,7 @@ Future<void> compileAndRun({
   required KernelCombine kernelCombine,
   AotCompile aotCompile = AotCompile.elf,
   required List<String> runArguments,
+  bool useSymlink = false,
 }) async {
   final nativeAssetsUri = tempUri.resolve('native_assets.yaml');
   await File(nativeAssetsUri.toFilePath()).writeAsString(nativeAssetsYaml);
@@ -360,8 +361,21 @@ Future<void> compileAndRun({
         outputUri: snapshotUri,
         aotCompile: aotCompile,
       );
-      await runDartAotRuntime(
-          aotSnapshotUri: snapshotUri, arguments: runArguments);
+      if (useSymlink) {
+        await withTempDir(prefix: 'link_dir', (tempDir) async {
+          final link = Link.fromUri(tempDir.resolve('my_link'));
+          await link.create(snapshotUri.toFilePath());
+          await runDartAotRuntime(
+            aotSnapshotUri: link.uri,
+            arguments: runArguments,
+          );
+        });
+      } else {
+        await runDartAotRuntime(
+          aotSnapshotUri: snapshotUri,
+          arguments: runArguments,
+        );
+      }
     case Runtime.appjit:
       final outJitUri = tempUri.resolve('out.jit');
       await runDart(
@@ -372,12 +386,37 @@ Future<void> compileAndRun({
         scriptUri: outDillUri,
         arguments: runArguments,
       );
-      await runDart(
-        scriptUri: outJitUri,
-        arguments: runArguments,
-      );
+      if (useSymlink) {
+        await withTempDir(prefix: 'link_dir', (tempDir) async {
+          final link = Link.fromUri(tempDir.resolve('my_link'));
+          await link.create(outDillUri.toFilePath());
+          await runDart(
+            scriptUri: link.uri,
+            arguments: runArguments,
+          );
+        });
+      } else {
+        await runDart(
+          scriptUri: outJitUri,
+          arguments: runArguments,
+        );
+      }
     case Runtime.jit:
-      await runDart(scriptUri: outDillUri, arguments: runArguments);
+      if (useSymlink) {
+        await withTempDir(prefix: 'link_dir', (tempDir) async {
+          final link = Link.fromUri(tempDir.resolve('my_link'));
+          await link.create(outDillUri.toFilePath());
+          await runDart(
+            scriptUri: link.uri,
+            arguments: runArguments,
+          );
+        });
+      } else {
+        await runDart(
+          scriptUri: outDillUri,
+          arguments: runArguments,
+        );
+      }
   }
 }
 

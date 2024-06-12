@@ -3338,6 +3338,77 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
 DART_EXPORT Dart_Handle
 Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 
+/**
+ * Callback provided by the embedder that is used by the VM to resolve asset
+ * paths.
+ * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
+ * fail.
+ *
+ * The VM is responsible for looking up the asset path with the asset id in the
+ * kernel mapping.
+ * The embedder is responsible for providing the asset mapping during kernel
+ * compilation and using the asset path to return a library handle in this
+ * function.
+ *
+ * \param path The string in the asset path as passed in native_assets.yaml
+ *             during kernel compilation.
+ *
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
+ *
+ * \return The library handle. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlopenCallback)(const char* path,
+                                                 char** error);
+typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
+
+/**
+ * Callback provided by the embedder that is used by the VM to lookup symbols
+ * in native code assets.
+ * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
+ * fail.
+ *
+ * \param handle The library handle returned from a
+ *               `Dart_NativeAssetsDlopenCallback` or
+ *               `Dart_NativeAssetsDlopenCallbackNoPath`.
+ *
+ * \param symbol The symbol to look up. Is a string.
+ *
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
+ *
+ * \return The symbol address. If |error| is not-null, the return value is
+ *         undefined.
+ */
+typedef void* (*Dart_NativeAssetsDlsymCallback)(void* handle,
+                                                const char* symbol,
+                                                char** error);
+
+typedef struct {
+  Dart_NativeAssetsDlopenCallback dlopen_absolute;
+  Dart_NativeAssetsDlopenCallback dlopen_relative;
+  Dart_NativeAssetsDlopenCallback dlopen_system;
+  Dart_NativeAssetsDlopenCallbackNoPath dlopen_process;
+  Dart_NativeAssetsDlopenCallbackNoPath dlopen_executable;
+  Dart_NativeAssetsDlsymCallback dlsym;
+} NativeAssetsApi;
+
+/**
+ * Initializes native asset resolution for the current isolate group.
+ *
+ * The caller is responsible for ensuring this is called right after isolate
+ * group creation, and before running any dart code (or spawning isolates).
+ *
+ * @param native_assets_api The callbacks used by native assets resolution.
+ *                          The VM does not take ownership of the parameter,
+ *                          it can be freed immediately after the call.
+ */
+DART_EXPORT void Dart_InitializeNativeAssetsResolver(
+    NativeAssetsApi* native_assets_api);
+
 /*
  * =====================
  * Scripts and Libraries
@@ -3360,10 +3431,8 @@ typedef enum {
  * Dart_kCanonicalizeUrl
  *
  * This tag indicates that the embedder should canonicalize 'url' with
- * respect to 'library'.  For most embedders, the
- * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
- * of this tag.  The return value should be a string holding the
- * canonicalized url.
+ * respect to 'library'.  For most embedders, this is resolving the `url`
+ * relative to the `library`s url (see `Dart_LibraryUrl`).
  *
  * Dart_kImportTag
  *
@@ -3456,26 +3525,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
                                const char* error_message,
                                bool transient);
-
-/**
- * Canonicalizes a url with respect to some library.
- *
- * The url is resolved with respect to the library's url and some url
- * normalizations are performed.
- *
- * This canonicalization function should be sufficient for most
- * embedders to implement the Dart_kCanonicalizeUrl tag.
- *
- * \param base_url The base url relative to which the url is
- *                being resolved.
- * \param url The url being resolved and canonicalized.  This
- *            parameter is a string handle.
- *
- * \return If no error occurs, a String object is returned.  Otherwise
- *   an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
-                                                    Dart_Handle url);
 
 /**
  * Loads the root library for the current isolate.

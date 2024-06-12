@@ -63,6 +63,8 @@
 - `Dart_NewListOf` and `Dart_IsLegacyType` functions are
   removed from Dart C API.
 
+- `Dart_DefaultCanonicalizeUrl` is removed from the Dart C API.
+
 ## 3.4.0
 
 ### Language

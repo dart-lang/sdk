@@ -75,7 +75,7 @@ class DDSRunner {
         );
 
     try {
-      final result = json.decode(launchResult);
+      final result = json.decode(launchResult) as Map<String, dynamic>;
       if (result
           case {
             'state': 'started',

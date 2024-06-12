@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:expect/expect.dart';
 
-typedef R = (String _, String _);
+typedef R = (int _, int _);
 
 void main() {
   (int _, int _) record;
@@ -18,9 +18,9 @@ void main() {
   Expect.equals(1, record.$1);
   Expect.equals(2, record.$2);
 
-  R rType = ('1', '2');
-  Expect.equals('1', rType.$1);
-  Expect.equals('2', rType.$2);
+  R rType = (1, 2);
+  Expect.equals(1, rType.$1);
+  Expect.equals(2, rType.$2);
 
   // Has a named field (which cannot be `_`).
   (int _, int _, {int x}) recordX;

@@ -35,4 +35,4 @@ jobs:
           ISSUE_URL: ${{ github.event.issue.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: dart bin/triage.dart $ISSUE_URL --dry-run
+        run: dart bin/triage.dart $ISSUE_URL
