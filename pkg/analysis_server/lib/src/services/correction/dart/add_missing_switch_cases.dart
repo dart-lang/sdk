@@ -31,8 +31,8 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       return;
     }
 
-    var patternParts = diagnostic.data;
-    if (patternParts is! List<MissingPatternPart>) {
+    var patternPartsList = diagnostic.data;
+    if (patternPartsList is! List<List<MissingPatternPart>>) {
       return;
     }
 
@@ -40,7 +40,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       await _switchExpression(
         builder: builder,
         node: node,
-        patternParts: patternParts,
+        patternPartsList: patternPartsList,
       );
     }
 
@@ -48,7 +48,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       await _switchStatement(
         builder: builder,
         node: node,
-        patternParts: patternParts,
+        patternPartsList: patternPartsList,
       );
     }
   }
@@ -56,7 +56,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   Future<void> _switchExpression({
     required ChangeBuilder builder,
     required SwitchExpression node,
-    required List<MissingPatternPart> patternParts,
+    required List<List<MissingPatternPart>> patternPartsList,
   }) async {
     var lineIndent = utils.getLinePrefix(node.offset);
     var singleIndent = utils.oneIndent;
@@ -67,13 +67,15 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
           rightParenthesis: node.rightParenthesis,
           leftBracket: node.leftBracket,
           rightBracket: node.rightBracket, (builder) {
-        builder.write(lineIndent);
-        builder.write(singleIndent);
-        builder.writeln('// TODO: Handle this case.');
-        builder.write(lineIndent);
-        builder.write(singleIndent);
-        _writePatternParts(builder, patternParts);
-        builder.writeln(' => throw UnimplementedError(),');
+        for (var patternParts in patternPartsList) {
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.writeln('// TODO: Handle this case.');
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          _writePatternPart(builder, patternParts);
+          builder.writeln(' => throw UnimplementedError(),');
+        }
       });
     });
   }
@@ -81,7 +83,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   Future<void> _switchStatement({
     required ChangeBuilder builder,
     required SwitchStatement node,
-    required List<MissingPatternPart> patternParts,
+    required List<List<MissingPatternPart>> patternPartsList,
   }) async {
     var lineIndent = utils.getLinePrefix(node.offset);
     var singleIndent = utils.oneIndent;
@@ -92,20 +94,22 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
           rightParenthesis: node.rightParenthesis,
           leftBracket: node.leftBracket,
           rightBracket: node.rightBracket, (builder) {
-        builder.write(lineIndent);
-        builder.write(singleIndent);
-        builder.write('case ');
-        _writePatternParts(builder, patternParts);
-        builder.writeln(':');
-        builder.write(lineIndent);
-        builder.write(singleIndent);
-        builder.write(singleIndent);
-        builder.writeln('// TODO: Handle this case.');
+        for (var patternParts in patternPartsList) {
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.write('case ');
+          _writePatternPart(builder, patternParts);
+          builder.writeln(':');
+          builder.write(lineIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('// TODO: Handle this case.');
+        }
       });
     });
   }
 
-  void _writePatternParts(
+  void _writePatternPart(
     DartEditBuilder builder,
     List<MissingPatternPart> parts,
   ) {

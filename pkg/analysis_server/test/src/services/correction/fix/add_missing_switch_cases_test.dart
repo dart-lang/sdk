@@ -81,6 +81,8 @@ int f(E x) {
     E.first => 0,
     // TODO: Handle this case.
     E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    E.third => throw UnimplementedError(),
   };
 }
 ''');
@@ -108,6 +110,10 @@ int f(prefix.E x) {
   return switch (x) {
     // TODO: Handle this case.
     prefix.E.first => throw UnimplementedError(),
+    // TODO: Handle this case.
+    prefix.E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    prefix.E.third => throw UnimplementedError(),
   };
 }
 ''');
@@ -148,6 +154,10 @@ int f() {
   return switch (value) {
     // TODO: Handle this case.
     E.first => throw UnimplementedError(),
+    // TODO: Handle this case.
+    E.second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    E.third => throw UnimplementedError(),
   };
 }
 ''');
@@ -248,6 +258,8 @@ int f(num x) {
   return switch (x) {
     // TODO: Handle this case.
     double() => throw UnimplementedError(),
+    // TODO: Handle this case.
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -315,6 +327,8 @@ void f(num x) {
 void f(num x) {
   switch (x) {
     case double():
+      // TODO: Handle this case.
+    case int():
       // TODO: Handle this case.
   }
 }
