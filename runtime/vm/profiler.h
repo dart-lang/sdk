@@ -366,36 +366,6 @@ class Sample {
   uword* GetStackBuffer() { return &stack_buffer_[0]; }
 
  private:
-  enum StateBits {
-    kHeadSampleBit = 0,
-    kLeafFrameIsDartBit = 1,
-    kIgnoreBit = 2,
-    kExitFrameBit = 3,
-    kMissingFrameInsertedBit = 4,
-    kTruncatedTraceBit = 5,
-    kClassAllocationSampleBit = 6,
-    kContinuationSampleBit = 7,
-    kThreadTaskBit = 8,  // 7 bits.
-    kMetadataBit = 15,   // 16 bits.
-    kNextFreeBit = 31,
-  };
-  class HeadSampleBit : public BitField<uint32_t, bool, kHeadSampleBit, 1> {};
-  class LeafFrameIsDart
-      : public BitField<uint32_t, bool, kLeafFrameIsDartBit, 1> {};
-  class IgnoreBit : public BitField<uint32_t, bool, kIgnoreBit, 1> {};
-  class ExitFrameBit : public BitField<uint32_t, bool, kExitFrameBit, 1> {};
-  class MissingFrameInsertedBit
-      : public BitField<uint32_t, bool, kMissingFrameInsertedBit, 1> {};
-  class TruncatedTraceBit
-      : public BitField<uint32_t, bool, kTruncatedTraceBit, 1> {};
-  class ClassAllocationSampleBit
-      : public BitField<uint32_t, bool, kClassAllocationSampleBit, 1> {};
-  class ContinuationSampleBit
-      : public BitField<uint32_t, bool, kContinuationSampleBit, 1> {};
-  class ThreadTaskBit
-      : public BitField<uint32_t, Thread::TaskKind, kThreadTaskBit, 7> {};
-  class MetadataBits : public BitField<uint32_t, intptr_t, kMetadataBit, 16> {};
-
   int64_t timestamp_;
   Dart_Port port_;
   ThreadId tid_;
@@ -406,6 +376,29 @@ class Sample {
   uint32_t state_;
   Sample* next_;
   uint32_t allocation_identity_hash_;
+
+  using HeadSampleBit = BitField<decltype(state_), bool, 0, 1>;
+  using LeafFrameIsDart =
+      BitField<decltype(state_), bool, HeadSampleBit::kNextBit, 1>;
+  using IgnoreBit =
+      BitField<decltype(state_), bool, LeafFrameIsDart::kNextBit, 1>;
+  using ExitFrameBit = BitField<uint32_t, bool, IgnoreBit::kNextBit, 1>;
+  using MissingFrameInsertedBit =
+      BitField<decltype(state_), bool, ExitFrameBit::kNextBit, 1>;
+  using TruncatedTraceBit =
+      BitField<decltype(state_), bool, MissingFrameInsertedBit::kNextBit, 1>;
+  using ClassAllocationSampleBit =
+      BitField<decltype(state_), bool, TruncatedTraceBit::kNextBit, 1>;
+  using ContinuationSampleBit =
+      BitField<decltype(state_), bool, ClassAllocationSampleBit::kNextBit, 1>;
+  using ThreadTaskBit = BitField<decltype(state_),
+                                 Thread::TaskKind,
+                                 ContinuationSampleBit::kNextBit,
+                                 4>;
+  using MetadataBits = BitField<decltype(state_),
+                                intptr_t,
+                                ThreadTaskBit::kNextBit,
+                                UntaggedObject::kClassIdTagSize>;
 
   DISALLOW_COPY_AND_ASSIGN(Sample);
 };
