@@ -55,10 +55,15 @@ void copyRangeFromUint8ListToOneByteString(
 
 @pragma("wasm:prefer-inline")
 OneByteString createOneByteStringFromCharacters(
-    U8List bytes, int start, int end) {
+        U8List bytes, int start, int end) =>
+    createOneByteStringFromCharactersArray(bytes.data, start, end);
+
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromCharactersArray(
+    WasmArray<WasmI8> bytes, int start, int end) {
   final len = end - start;
   final s = OneByteString.withLength(len);
-  s._array.copy(0, bytes.data, start, len);
+  s._array.copy(0, bytes, start, len);
   return s;
 }
 
