@@ -46,7 +46,6 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 
 [ $compiler == dartk && $hot_reload_rollback ]
-isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]

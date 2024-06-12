@@ -10,13 +10,11 @@
 */*/packages/*/*: Skip
 */packages/*/*: Skip
 analyzer/test/src/summary/macro_test: Slow, Pass
-analyzer/test/src/task/strong/checker_test: Slow, Pass
-analyzer/test/verify_diagnostics_test.dart: Slow, Pass
-analyzer/test/verify_docs_test.dart: Slow, Pass
+analyzer/test/verify_diagnostics_test: Slow, Pass
+analyzer/test/verify_docs_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 compiler/test/analyses/analyze_test: Slow, Pass
 compiler/test/analyses/api_dynamic_test: Slow, Pass
-compiler/test/analyses/dart2js_dynamic_test: Slow, Pass
 compiler/test/closure/closure_test: Slow, Pass
 compiler/test/codegen/load_elimination_test: Slow, Pass
 compiler/test/codegen/model_test: Slow, Pass
@@ -77,7 +75,6 @@ wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
-testing/test/dart_sdk_negative_test: SkipByDesign
 
 [ $compiler == dart2js ]
 _fe_analyzer_shared/test/*: SkipByDesign # Only meant to run on vm
@@ -118,13 +115,11 @@ vm_service/test/async_scope_test: SkipByDesign # Debugger is disabled in AOT mod
 vm_service/test/async_single_step_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/awaiter_async_stack_contents_2_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/awaiter_async_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mode.
-vm_service/test/bad_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/branch_coverage_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/break*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/capture_stdio_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/causal_async*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/code_test: SkipByDesign # Debugger is disabled in AOT mode.
-vm_service/test/complex_reload_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/coverage_async_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/coverage_closure_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 vm_service/test/coverage_closure_call_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
@@ -141,7 +136,6 @@ vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/external_compilation_service_test: SkipByDesign # Spawns a secondary process.
 vm_service/test/field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
-vm_service/test/get_allocation_samples_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -190,7 +184,6 @@ vm_service/test/reload_sources_test: SkipByDesign # Hot reload is disabled in AO
 vm_service/test/resume_shutdown_race_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/rewind*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/sdk_break_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
-vm_service/test/set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/set_sdk_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 vm_service/test/simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
@@ -222,12 +215,6 @@ analysis_server/test/benchmarks_test: Slow, Pass
 analysis_server/test/domain_completion_test: Slow, Pass
 analysis_server/test/edit/refactoring_test: Slow, Pass
 analysis_server/test/integration/*: Slow, Pass
-analysis_server/test/services/completion/dart/imported_reference_contributor_test: Slow, Pass
-analysis_server/test/services/completion/dart/keyword_contributor_test: Slow, Pass
-analysis_server/test/services/completion/dart/local_reference_contributor_test: Slow, Pass
-analysis_server/test/services/completion/dart/type_member_contributor_test: Slow, Pass
-analysis_server/test/services/refactoring/extract_method_test: Slow, Pass
-analysis_server/test/services/refactoring/inline_method_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_test: Slow, Pass
@@ -253,7 +240,6 @@ vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
-front_end/test/fasta/strong_test: Pass, Slow, Timeout
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
 vm_service/test/private_rpcs/dev_fs_http_put_weird_char_test: Skip # Windows disallows "\r" in paths
@@ -277,7 +263,6 @@ testing/test/analyze_test: SkipByDesign
 compiler/test/codegen/value_range_test: Slow, Pass
 compiler/test/end_to_end/exit_code_test: Slow, Pass
 compiler/test/end_to_end/output_type_test: Slow, Pass
-compiler/test/end_to_end/uri_retention_test: Slow, Pass
 compiler/test/jsinterop/declaration_test: Slow, Pass
 compiler/test/jsinterop/interop_anonymous_unreachable_test: Slow, Pass
 compiler/test/jsinterop/world_test: Slow, Pass
@@ -320,26 +305,12 @@ modular_test/test/loader/loader_test: SkipByDesign
 modular_test/test/specification_parser_test: SkipByDesign
 modular_test/test/src/find_sdk_root2_test: SkipByDesign
 
-[ $compiler == dart2js && $runtime == d8 ]
-front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to file system
-
 [ $compiler == dart2js && $runtime != d8 ]
 front_end/test/mixin_export_test: RuntimeError # Issue 30576
-
-[ $compiler == dart2js && $browser ]
-crypto/test/sha1_test: Slow, Pass
-crypto/test/sha256_test: Slow, Pass
-
-[ $compiler == dart2js && $checked ]
-crypto/test/base64_test: Slow, Pass
 
 [ $compiler == dart2js && $host_asserts ]
 js_ast/test/printer_callback_test: Slow, Pass
 js_ast/test/string_escape_test: Slow, Pass
-
-[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
-async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
-collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == vm && $system != linux ]
 dartdev/test/commands/info_linux_test: SkipByDesign
@@ -350,8 +321,6 @@ dartdev/test/commands/info_macos_test: SkipByDesign
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass # Issue 34231
-analyzer/test/src/task/strong/checker_test: Slow, Pass
-analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $runtime == vm && $system == windows && $checked ]
 front_end/tool/perf_test: Slow, Pass
@@ -360,7 +329,6 @@ front_end/tool/perf_test: Slow, Pass
 dartdev/test/commands/info_windows_test: SkipByDesign
 
 [ $runtime == vm && $checked ]
-analysis_server/test/completion_test: Slow, Pass
 analysis_server/test/integration/edit/sort_members_test: Slow, Pass
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 

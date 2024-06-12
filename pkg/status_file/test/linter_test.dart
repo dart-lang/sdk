@@ -43,13 +43,16 @@ StatusFile createFromString(String text) {
 
 expectError(String text, String expectedError, {bool disjunctions = false}) {
   var statusFile = createFromString(text);
-  var errors = lint(statusFile, checkForDisjunctions: disjunctions).toList();
+  var errors = lint(statusFile,
+          checkForDisjunctions: disjunctions, checkForNonExisting: false)
+      .toList();
   Expect.equals(expectedError, errors.first.toString());
 }
 
 expectNoError(String text, {bool disjunctions = true}) {
-  var errors =
-      lint(createFromString(text), checkForDisjunctions: disjunctions).toList();
+  var errors = lint(createFromString(text),
+          checkForDisjunctions: disjunctions, checkForNonExisting: false)
+      .toList();
   Expect.listEquals([], errors);
 }
 

@@ -20,7 +20,6 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
 js/*: SkipByDesign
-mirrors/deferred_type_test: CompileTimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError

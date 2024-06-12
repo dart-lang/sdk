@@ -73,7 +73,6 @@ causal_async_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mod
 causal_async_stack_presence_test: SkipByDesign # Debugger is disabled in AOT mode.
 causal_async_star_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mode.
 causal_async_star_stack_presence_test: SkipByDesign # Debugger is disabled in AOT mode.
-client_resume_approvals_reload_test: SkipByDesign # Debugger is disabled in AOT mode.
 code_test: SkipByDesign # Debugger is disabled in AOT mode.
 column_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
 complex_reload_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -109,7 +108,6 @@ issue_25465_test: SkipByDesign # Debugger is disabled in AOT mode.
 issue_27238_test: SkipByDesign # Debugger is disabled in AOT mode.
 issue_27287_test: SkipByDesign # Debugger is disabled in AOT mode.
 issue_30555_test: SkipByDesign # Debugger is disabled in AOT mode.
-kill_paused_test: SkipByDesign # Debugger is disabled in AOT mode.
 library_dependency_test: SkipByDesign # Uses 'dart:mirrors' library.
 local_variable_declaration_test: SkipByDesign # Debugger is disabled in AOT mode.
 local_variable_in_awaiter_async_frame_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -166,7 +164,6 @@ set_breakpoint_state_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
 sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
-steal_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
 step_into_async_no_await_test: SkipByDesign # Debugger is disabled in AOT mode.
 step_over_await_test: SkipByDesign # Debugger is disabled in AOT mode.
 step_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -264,7 +261,6 @@ async_generator_breakpoint_test: SkipByDesign # No incremental compiler availabl
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #34736
 breakpoint_in_package_parts_class_file_uri_test: RuntimeError # Issue #34736
-dds_log_history_size_gigantic_test: SkipSlow # Involves hundreds of thousands of log messages
 debugger_inspect_test: RuntimeError, Timeout # Issue #34736
 eval_internal_class_test: RuntimeError # Issue #34736
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
