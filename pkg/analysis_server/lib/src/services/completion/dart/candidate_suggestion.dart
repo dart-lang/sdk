@@ -258,12 +258,25 @@ final class IdentifierSuggestion extends CandidateSuggestion {
   /// The identifier to be inserted.
   final String identifier;
 
+  /// Whether an empty body should be included in the completion string.
+  final bool includeBody;
+
   /// Initialize a newly created candidate suggestion to suggest the
   /// [identifier].
-  IdentifierSuggestion({required this.identifier, required super.matcherScore});
+  ///
+  /// If [includeBody] is `true`, then empty curly braces will be included in
+  /// the suggestion.
+  IdentifierSuggestion(
+      {required this.identifier,
+      required this.includeBody,
+      required super.matcherScore});
 
   @override
-  String get completion => identifier;
+  String get completion => identifier + (includeBody ? ' {}' : '');
+
+  /// The offset, from the beginning of the inserted text, where the cursor
+  /// should be positioned.
+  int get selectionOffset => identifier.length + (includeBody ? 2 : 0);
 }
 
 /// The information about a candidate suggestion based on a declaration that can
@@ -843,7 +856,10 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case FunctionCall():
         suggestFunctionCall();
       case IdentifierSuggestion():
-        suggestName(suggestion.identifier);
+        suggestName(
+          suggestion.completion,
+          selectionOffset: suggestion.selectionOffset,
+        );
       case ImportPrefixSuggestion():
         suggestPrefix(
           suggestion.libraryElement,

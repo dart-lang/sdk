@@ -618,7 +618,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset <= node.classKeyword.end) {
       keywordHelper.addKeyword(Keyword.CLASS);
     } else if (offset <= node.name.end) {
-      identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
+      var hasSyntheticBody =
+          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: hasSyntheticBody);
     } else if (offset <= node.leftBracket.offset) {
       keywordHelper.addClassDeclarationKeywords(node);
     } else if (offset >= node.leftBracket.end &&
@@ -944,7 +947,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset <= node.name.end) {
-      identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
+      var hasSyntheticBody =
+          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: hasSyntheticBody);
       return;
     }
     if (offset <= node.leftBracket.offset) {
@@ -1103,10 +1109,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (featureSet.isEnabled(Feature.inline_class)) {
         keywordHelper.addText('type');
       }
-      identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
+      // TODO(brianwilkerson): Consider adding both an `on` keyword and a body
+      //  when none of them already exist.
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: false);
       return;
     } else {
-      identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
+      // TODO(brianwilkerson): Consider adding both an `on` keyword and a body
+      //  when none of them already exist.
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: false);
     }
     if (offset <= node.leftBracket.offset) {
       collector.completionLocation = 'ExtensionDeclaration_onClause';
@@ -1144,7 +1156,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
     } else if (offset <= node.name.end) {
-      identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
+      var hasSyntheticBody =
+          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: hasSyntheticBody);
     } else if (offset >= node.representation.end &&
         (offset <= node.leftBracket.offset || node.leftBracket.isSynthetic)) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
@@ -1838,7 +1853,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset <= node.name.end) {
-      identifierHelper(includePrivateIdentifiers: false).addTopLevelName();
+      var hasSyntheticBody =
+          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: hasSyntheticBody);
       return;
     }
     if (offset <= node.leftBracket.offset) {
