@@ -862,6 +862,12 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
 
+  // When enabled, prefer the incremental/evacuating compactor over the
+  // full/sliding compactor.
+  if (FLAG_use_incremental_compactor) {
+    return false;
+  }
+
   // Discount two pages to account for the newest data and code pages, whose
   // partial use doesn't indicate fragmentation.
   const intptr_t excess_in_words =
