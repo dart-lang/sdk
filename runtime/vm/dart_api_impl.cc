@@ -53,7 +53,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/uri.h"
 #include "vm/version.h"
 #include "vm/zone_text_buffer.h"
 
@@ -5385,29 +5384,6 @@ Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler) {
   CHECK_ISOLATE(isolate);
   isolate->group()->set_library_tag_handler(handler);
   return Api::Success();
-}
-
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
-                                                    Dart_Handle url) {
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  CHECK_CALLBACK_STATE(T);
-
-  const String& base_uri = Api::UnwrapStringHandle(Z, base_url);
-  if (base_uri.IsNull()) {
-    RETURN_TYPE_ERROR(Z, base_url, String);
-  }
-  const String& uri = Api::UnwrapStringHandle(Z, url);
-  if (uri.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-
-  const char* resolved_uri;
-  if (!ResolveUri(uri.ToCString(), base_uri.ToCString(), &resolved_uri)) {
-    return Api::NewError("%s: Unable to canonicalize uri '%s'.", CURRENT_FUNC,
-                         uri.ToCString());
-  }
-  return Api::NewHandle(T, String::New(resolved_uri));
 }
 
 DART_EXPORT Dart_Handle

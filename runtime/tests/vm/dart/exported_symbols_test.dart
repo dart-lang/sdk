@@ -83,7 +83,6 @@ main() {
     "Dart_CurrentIsolateGroupId",
     "Dart_DebugName",
     "Dart_DebugNameToCString",
-    "Dart_DefaultCanonicalizeUrl",
     "Dart_DeferredLoadComplete",
     "Dart_DeferredLoadCompleteError",
     "Dart_DeleteFinalizableHandle",

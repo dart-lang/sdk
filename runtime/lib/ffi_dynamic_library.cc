@@ -5,6 +5,7 @@
 #include "lib/ffi_dynamic_library.h"
 
 #include "platform/globals.h"
+#include "platform/utils.h"
 #if defined(DART_HOST_OS_WINDOWS)
 #include <Psapi.h>
 #include <Windows.h>
@@ -13,13 +14,13 @@
 #include <tchar.h>
 #endif
 
+#include "platform/uri.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/ffi/native_assets.h"
 #include "vm/native_entry.h"
 #include "vm/symbols.h"
-#include "vm/uri.h"
 #include "vm/zone_text_buffer.h"
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
@@ -405,20 +406,19 @@ static void* FfiResolveAsset(Thread* const thread,
         String::NewFormatted(
             "%s%s", file_schema,
             String::Handle(zone, GetPlatformScriptPath(thread)).ToCString()));
-    const char* target_uri = nullptr;
     char* path_cstr = path.ToMallocCString();
 #if defined(DART_TARGET_OS_WINDOWS)
     ReplaceBackSlashes(path_cstr);
 #endif
-    const bool resolved =
-        ResolveUri(path_cstr, platform_script_uri.ToCString(), &target_uri);
+    CStringUniquePtr target_uri =
+        ResolveUri(path_cstr, platform_script_uri.ToCString());
     free(path_cstr);
-    if (!resolved) {
+    if (!target_uri) {
       *error = OS::SCreate(/*use malloc*/ nullptr,
                            "Failed to resolve '%s' relative to '%s'.",
                            path.ToCString(), platform_script_uri.ToCString());
     } else {
-      const char* target_path = target_uri + file_schema_length;
+      const char* target_path = target_uri.get() + file_schema_length;
       handle = LoadDynamicLibrary(target_path, error);
     }
   } else if (asset_type.Equals(Symbols::system())) {

@@ -3360,10 +3360,8 @@ typedef enum {
  * Dart_kCanonicalizeUrl
  *
  * This tag indicates that the embedder should canonicalize 'url' with
- * respect to 'library'.  For most embedders, the
- * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
- * of this tag.  The return value should be a string holding the
- * canonicalized url.
+ * respect to 'library'.  For most embedders, this is resolving the `url`
+ * relative to the `library`s url (see `Dart_LibraryUrl`).
  *
  * Dart_kImportTag
  *
@@ -3456,26 +3454,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
                                const char* error_message,
                                bool transient);
-
-/**
- * Canonicalizes a url with respect to some library.
- *
- * The url is resolved with respect to the library's url and some url
- * normalizations are performed.
- *
- * This canonicalization function should be sufficient for most
- * embedders to implement the Dart_kCanonicalizeUrl tag.
- *
- * \param base_url The base url relative to which the url is
- *                being resolved.
- * \param url The url being resolved and canonicalized.  This
- *            parameter is a string handle.
- *
- * \return If no error occurs, a String object is returned.  Otherwise
- *   an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
-                                                    Dart_Handle url);
 
 /**
  * Loads the root library for the current isolate.

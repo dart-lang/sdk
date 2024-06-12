@@ -11,6 +11,7 @@
 #include "bin/isolate_data.h"
 
 #include "platform/globals.h"
+#include "platform/uri.h"
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
@@ -379,7 +380,24 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (Dart_IsError(library_url)) {
       return library_url;
     }
-    return Dart_DefaultCanonicalizeUrl(library_url, url);
+
+    const char* library_url_cstr;
+    Dart_Handle result = Dart_StringToCString(library_url, &library_url_cstr);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    const char* url_cstr;
+    result = Dart_StringToCString(url, &url_cstr);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    CStringUniquePtr resolved_uri = ResolveUri(url_cstr, library_url_cstr);
+    if (!resolved_uri) {
+      return DartUtils::NewError("%s: Unable to canonicalize uri '%s'.",
+                                 __FUNCTION__, url_cstr);
+    }
+    result = Dart_NewStringFromCString(resolved_uri.get());
+    return result;
   }
   UNREACHABLE();
   return Dart_Null();

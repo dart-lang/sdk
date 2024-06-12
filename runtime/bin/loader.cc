@@ -15,6 +15,8 @@
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
 #include "platform/growable_array.h"
+#include "platform/uri.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -87,7 +89,18 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     if (is_dart_scheme_url || is_dart_library) {
       return url;
     }
-    return Dart_DefaultCanonicalizeUrl(library_url, url);
+    const char* url_cstr;
+    result = Dart_StringToCString(url, &url_cstr);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    CStringUniquePtr resolved_uri = ResolveUri(url_cstr, library_url_string);
+    if (!resolved_uri) {
+      return DartUtils::NewError("%s: Unable to canonicalize uri '%s'.",
+                                 __FUNCTION__, url_cstr);
+    }
+    result = Dart_NewStringFromCString(resolved_uri.get());
+    return result;
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (tag == Dart_kKernelTag) {
