@@ -172,6 +172,7 @@ class Page {
 
   // 1 card = 32 slots.
   static constexpr intptr_t kSlotsPerCardLog2 = 5;
+  static constexpr intptr_t kSlotsPerCard = 1 << kSlotsPerCardLog2;
   static constexpr intptr_t kBytesPerCardLog2 =
       kCompressedWordSizeLog2 + kSlotsPerCardLog2;
 
@@ -354,6 +355,10 @@ class Page {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Page);
 };
+
+static constexpr intptr_t kSlotsPerInterruptCheck = KB;
+static constexpr intptr_t kCardsPerInterruptCheck =
+    kSlotsPerInterruptCheck / Page::kSlotsPerCard;
 
 }  // namespace dart
 
