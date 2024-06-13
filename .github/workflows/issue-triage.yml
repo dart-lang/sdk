@@ -33,6 +33,6 @@ jobs:
         working-directory: pkgs/sdk_triage_bot
         env:
           ISSUE_URL: ${{ github.event.issue.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DARTBOT_GITHUB_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: dart bin/triage.dart $ISSUE_URL
