@@ -9069,6 +9069,9 @@ import^
 replacement
   left: 6
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
 ''');
   }
 
@@ -10213,6 +10216,8 @@ replacement
   left: 3
   right: 6
 suggestions
+  Sunflower
+    kind: class
 ''');
   }
 
