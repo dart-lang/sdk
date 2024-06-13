@@ -68,18 +68,25 @@ class ElementReferencesComputer {
   ///
   /// Otherwise, only references to [element] should be searched.
   Future<Iterable<Element>> _getRefElements(
-      Element element, OperationPerformanceImpl performance) {
+      Element element, OperationPerformanceImpl performance) async {
     if (element is ParameterElement && element.isNamed) {
-      return performance.runAsync('getHierarchyNamedParameters',
+      return await performance.runAsync('getHierarchyNamedParameters',
           (_) => getHierarchyNamedParameters(searchEngine, element));
     }
     if (element is ClassMemberElement) {
-      return performance.runAsync(
-          'getHierarchyMembers',
-          (performance) => getHierarchyMembers(searchEngine, element,
-              performance: performance));
+      var (members, parameters) = await performance.runAsync(
+        'getHierarchyMembers',
+        (performance) => getHierarchyMembersAndParameters(
+          searchEngine,
+          element,
+          performance: performance,
+          includeParametersForFields: true,
+        ),
+      );
+
+      return {...members, ...parameters};
     }
-    return Future.value([element]);
+    return [element];
   }
 
   static SearchResult toResult(SearchMatch match) {
