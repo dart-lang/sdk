@@ -167,6 +167,7 @@ class _OverlayFile extends _OverlayResource implements File {
     }
   }
 
+  @Deprecated('Get Source instances from analysis results')
   @override
   Source createSource([Uri? uri]) =>
       FileSource(this, uri ?? provider.pathContext.toUri(path));
