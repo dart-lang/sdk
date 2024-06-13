@@ -1004,16 +1004,24 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   HInstruction maybeAddNativeReturnNullCheck(
       HInstruction node, HInstruction replacement, FunctionEntity method) {
-    if (_options.nativeNullAssertions) {
+    if (_options.nativeNullAssertions && memberEntityIsInWebLibrary(method)) {
       FunctionType type =
           _closedWorld.elementEnvironment.getFunctionType(method);
-      if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType) &&
-          memberEntityIsInWebLibrary(method)) {
+      if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
         node.block!.addBefore(node, replacement);
         replacement = HNullCheck(replacement,
             _abstractValueDomain.excludeNull(replacement.instructionType),
             sticky: true);
       }
+    } else if (_options.interopNullAssertions &&
+        _nativeData.interopNullChecks.containsKey(Selector.getter(PublicName(
+            _nativeData.computeUnescapedJSInteropName(method.name!))))) {
+      node.block!.addBefore(node, replacement);
+      final replacementType = _options.experimentNullSafetyChecks
+          ? replacement.instructionType
+          : _abstractValueDomain.excludeNull(replacement.instructionType);
+      replacement = HInvokeStatic(commonElements.interopNullAssertion,
+          [replacement], replacementType, const <DartType>[]);
     }
     return replacement;
   }

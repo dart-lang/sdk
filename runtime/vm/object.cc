@@ -24778,7 +24778,7 @@ ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
   result.SetTypeArguments(Object::null_type_arguments());
   for (intptr_t i = 0; i < len; i++) {
     result.SetAt(i, Object::null_object(), thread);
-    if (((i + 1) % KB) == 0) {
+    if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
       thread->CheckForSafepoint();
     }
   }
@@ -24804,7 +24804,7 @@ ArrayPtr Array::Slice(intptr_t start,
   } else {
     for (int i = 0; i < count; i++) {
       dest.untag()->set_element(i, untag()->element(i + start), thread);
-      if (((i + 1) % KB) == 0) {
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
         thread->CheckForSafepoint();
       }
     }
@@ -24855,13 +24855,13 @@ ArrayPtr Array::Grow(const Array& source,
   } else {
     for (intptr_t i = 0; i < old_length; i++) {
       result.untag()->set_element(i, source.untag()->element(i), thread);
-      if (((i + 1) % KB) == 0) {
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
         thread->CheckForSafepoint();
       }
     }
     for (intptr_t i = old_length; i < new_length; i++) {
       result.untag()->set_element(i, Object::null(), thread);
-      if (((i + 1) % KB) == 0) {
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
         thread->CheckForSafepoint();
       }
     }

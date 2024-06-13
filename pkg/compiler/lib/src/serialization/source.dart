@@ -1152,6 +1152,31 @@ class DataSourceReader {
     return map;
   }
 
+  /// Reads a map from selectors to [V] values from this data source, calling
+  /// [f] to read each value from the data source.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeSelectorMap].
+  Map<Selector, V> readSelectorMap<V>(V f(Selector selector)) =>
+      readSelectorMapOrNull<V>(f) ?? {};
+
+  /// Reads a map from selectors to [V] values from this data source, calling
+  /// [f] to read each value from the data source.
+  /// 'null' is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeSelectorMap].
+  Map<Selector, V>? readSelectorMapOrNull<V>(V f(Selector selector)) {
+    int count = readInt();
+    if (count == 0) return null;
+    Map<Selector, V> map = {};
+    for (int i = 0; i < count; i++) {
+      final selector = Selector.readFromDataSource(this);
+      map[selector] = f(selector);
+    }
+    return map;
+  }
+
   /// Reads a constant value from this data source.
   ConstantValue readConstant() {
     _checkDataKind(DataKind.constant);

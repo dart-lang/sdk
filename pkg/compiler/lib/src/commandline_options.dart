@@ -89,6 +89,9 @@ class Flags {
   static const String nativeNullAssertions = '--native-null-assertions';
   static const String noNativeNullAssertions = '--no-native-null-assertions';
 
+  static const String interopNullAssertions = '--interop-null-assertions';
+  static const String noInteropNullAssertions = '--no-interop-null-assertions';
+
   static const String noSourceMaps = '--no-source-maps';
 
   static const String omitLateNames = '--omit-late-names';

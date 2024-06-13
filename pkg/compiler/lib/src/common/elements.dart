@@ -11,6 +11,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../ir/element_map.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/locals.dart';
 import '../universe/selector.dart' show Selector;
@@ -863,6 +864,9 @@ abstract class CommonElements {
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name)!;
 
+  late final FunctionEntity interopNullAssertion =
+      _findRtiFunction('_interopNullAssertion');
+
   late final FunctionEntity setArrayType = _findRtiFunction('_setArrayType');
 
   late final FunctionEntity findType = _findRtiFunction('findType');
@@ -1279,6 +1283,8 @@ class JCommonElements extends CommonElements {
 // interface, the first should only be used during resolution and the latter in
 // both resolution and codegen.
 abstract class ElementEnvironment {
+  IrToElementMap get elementMap;
+
   /// Returns the main library for the compilation.
   LibraryEntity? get mainLibrary;
 

@@ -5,11 +5,11 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -40,35 +40,46 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var switchStatement = node;
-    if (switchStatement is! SwitchStatement) return;
+    if (switchStatement is! SwitchStatementImpl) {
+      return;
+    }
 
     ThrowStatement? followingThrow;
     var expression = switchStatement.expression;
-    if (!isEffectivelyExhaustive(switchStatement, expression.typeOrThrow)) {
+    if (!_isEffectivelyExhaustive(switchStatement, expression.typeOrThrow)) {
       followingThrow = switchStatement.followingThrow;
       if (followingThrow == null) {
         return;
       }
     }
 
-    switch (_getSupportedSwitchType(switchStatement)) {
-      case _SupportedSwitchType.returnValue:
-        await convertReturnSwitchExpression(
-            builder, switchStatement, followingThrow);
-      case _SupportedSwitchType.assignment:
-        await convertAssignmentSwitchExpression(builder, switchStatement);
-      case _SupportedSwitchType.argument:
-        await convertArgumentSwitchExpression(builder, switchStatement);
+    var switchType = _getSupportedSwitchType(switchStatement);
+    switch (switchType) {
+      case _SwitchTypeReturn():
+        await _convertReturnSwitchExpression(
+            builder, switchStatement, switchType, followingThrow);
+      case _SwitchTypeAssignment():
+        await _convertAssignmentSwitchExpression(
+            builder, switchStatement, switchType);
+      case _SwitchTypeArgument():
+        await _convertArgumentSwitchExpression(
+            builder, switchStatement, switchType);
       case null:
         return;
     }
   }
 
-  Future<void> convertArgumentSwitchExpression(
-      ChangeBuilder builder, SwitchStatement node) async {
-    void convertArgumentStatements(DartFileEditBuilder builder,
-        NodeList<Statement> statements, SourceRange colonRange,
-        {String endToken = ''}) {
+  Future<void> _convertArgumentSwitchExpression(
+    ChangeBuilder builder,
+    SwitchStatement node,
+    _SwitchTypeArgument switchType,
+  ) async {
+    void convertArgumentStatements(
+      DartFileEditBuilder builder,
+      List<Statement> statements,
+      Token lastColon, {
+      required bool withTrailingComma,
+    }) {
       for (var statement in statements) {
         var hasComment = statement.beginToken.precedingComments != null;
 
@@ -77,8 +88,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           if (invocation is MethodInvocation) {
             var deletion = !hasComment
                 ? range.startOffsetEndOffset(
-                    range.offsetBy(colonRange, 1).offset,
-                    invocation.argumentList.leftParenthesis.end)
+                    lastColon.end, invocation.argumentList.leftParenthesis.end)
                 : range.startOffsetEndOffset(invocation.offset,
                     invocation.argumentList.leftParenthesis.end);
             builder.addDeletion(deletion);
@@ -88,17 +98,19 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         }
 
         if (!hasComment && statement.isThrowExpressionStatement) {
-          var deletionRange = range.startOffsetEndOffset(
-              range.offsetBy(colonRange, 1).offset, statement.offset - 1);
+          var deletionRange =
+              range.startOffsetEndOffset(lastColon.end, statement.offset - 1);
           builder.addDeletion(deletionRange);
         }
 
         if (statement is BreakStatement) {
-          var deletion = getBreakRange(statement);
+          var deletion = _getBreakRange(statement);
           builder.addDeletion(deletion);
         } else {
           builder.addSimpleReplacement(
-              range.entity(statement.endToken), endToken);
+            range.entity(statement.endToken),
+            withTrailingComma ? ',' : '',
+          );
         }
       }
     }
@@ -106,36 +118,56 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, '${functionElement!.name}(');
 
-      var memberCount = node.members.length;
-      for (var i = 0; i < memberCount; ++i) {
-        var member = node.members[i];
-        if (member is SwitchDefault) {
-          convertSwitchDefault(builder, member);
-          convertArgumentStatements(
-              builder, member.statements, range.entity(member.colon));
-          continue;
-        }
-        // Sure to be a SwitchPatternCase
-        var patternCase = member as SwitchPatternCase;
-        builder.addDeletion(
-            range.startStart(patternCase.keyword, patternCase.guardedPattern));
-        var colonRange = range.entity(patternCase.colon);
-        builder.addSimpleReplacement(colonRange, ' => ');
+      var groupCount = switchType.groups.length;
+      for (var i = 0; i < groupCount; ++i) {
+        var group = switchType.groups[i];
+        switch (group) {
+          case _DefaultGroup():
+            _convertSwitchDefault(builder, group.node);
+            convertArgumentStatements(
+              builder,
+              group.statements,
+              group.node.colon,
+              withTrailingComma: false,
+            );
+          case _JoinedCaseGroup():
+            var firstCase = group.patternCases.first;
+            var lastCase = group.patternCases.last;
+            var lastColon = lastCase.colon;
 
-        var endToken = i < memberCount - 1 ? ',' : '';
-        convertArgumentStatements(builder, patternCase.statements, colonRange,
-            endToken: endToken);
+            var patternCode = group.patternCases
+                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((pattern) => utils.getNodeText(pattern))
+                .join(' || ');
+            builder.addSimpleReplacement(
+              range.startEnd(firstCase.keyword, lastColon),
+              '$patternCode => ',
+            );
+
+            convertArgumentStatements(
+              builder,
+              group.statements,
+              lastColon,
+              withTrailingComma: i < groupCount - 1,
+            );
+        }
       }
 
       builder.addSimpleInsertion(node.end, ');');
     });
   }
 
-  Future<void> convertAssignmentSwitchExpression(
-      ChangeBuilder builder, SwitchStatement node) async {
-    void convertAssignmentStatements(DartFileEditBuilder builder,
-        NodeList<Statement> statements, SourceRange colonRange,
-        {String endToken = ''}) {
+  Future<void> _convertAssignmentSwitchExpression(
+    ChangeBuilder builder,
+    SwitchStatement node,
+    _SwitchTypeAssignment switchType,
+  ) async {
+    void convertAssignmentStatements(
+      DartFileEditBuilder builder,
+      NodeList<Statement> statements,
+      Token lastColon, {
+      required bool withTrailingComma,
+    }) {
       for (var statement in statements) {
         if (statement is ExpressionStatement) {
           var expression = statement.expression;
@@ -143,24 +175,25 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var hasComment = statement.beginToken.precedingComments != null;
             var deletion = !hasComment
                 ? range.startOffsetEndOffset(
-                    range.offsetBy(colonRange, 1).offset,
-                    expression.operator.end)
+                    lastColon.end, expression.operator.end)
                 : range.startOffsetEndOffset(expression.beginToken.offset,
                     expression.rightHandSide.offset);
             builder.addDeletion(deletion);
           } else if (expression is ThrowExpression) {
-            var deletionRange = range.startOffsetEndOffset(
-                range.offsetBy(colonRange, 1).offset, statement.offset - 1);
+            var deletionRange =
+                range.startOffsetEndOffset(lastColon.end, statement.offset - 1);
             builder.addDeletion(deletionRange);
           }
         }
 
         if (statement is BreakStatement) {
-          var deletion = getBreakRange(statement);
+          var deletion = _getBreakRange(statement);
           builder.addDeletion(deletion);
         } else {
           builder.addSimpleReplacement(
-              range.entity(statement.endToken), endToken);
+            range.entity(statement.endToken),
+            withTrailingComma ? ',' : '',
+          );
         }
       }
     }
@@ -169,93 +202,137 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       builder.addSimpleInsertion(
           node.offset, '${writeElement!.name} ${assignmentOperator!.lexeme} ');
 
-      var memberCount = node.members.length;
-      for (var i = 0; i < memberCount; ++i) {
+      var groupCount = switchType.groups.length;
+      for (var i = 0; i < groupCount; ++i) {
         // TODO(pq): extract shared replacement logic
-        var member = node.members[i];
-        if (member is SwitchDefault) {
-          convertSwitchDefault(builder, member);
-          convertAssignmentStatements(
-              builder, member.statements, range.entity(member.colon));
-          continue;
+        var group = switchType.groups[i];
+        switch (group) {
+          case _DefaultGroup():
+            _convertSwitchDefault(builder, group.node);
+            convertAssignmentStatements(
+              builder,
+              group.node.statements,
+              group.node.colon,
+              withTrailingComma: false,
+            );
+          case _JoinedCaseGroup():
+            var firstCase = group.patternCases.first;
+            var lastCase = group.patternCases.last;
+            var lastColon = lastCase.colon;
+
+            var patternCode = group.patternCases
+                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((pattern) => utils.getNodeText(pattern))
+                .join(' || ');
+            builder.addSimpleReplacement(
+              range.startEnd(firstCase.keyword, lastColon),
+              '$patternCode =>',
+            );
+
+            convertAssignmentStatements(
+              builder,
+              lastCase.statements,
+              lastColon,
+              withTrailingComma: i < groupCount - 1,
+            );
         }
-
-        // Sure to be a SwitchPatternCase
-        var patternCase = member as SwitchPatternCase;
-        builder.addDeletion(
-            range.startStart(patternCase.keyword, patternCase.guardedPattern));
-        var colonRange = range.entity(patternCase.colon);
-        builder.addSimpleReplacement(colonRange, ' =>');
-
-        var endToken = i < memberCount - 1 ? ',' : '';
-        convertAssignmentStatements(builder, patternCase.statements, colonRange,
-            endToken: endToken);
       }
 
       builder.addSimpleInsertion(node.end, ';');
     });
   }
 
-  Future<void> convertReturnSwitchExpression(
+  Future<void> _convertReturnSwitchExpression(
     ChangeBuilder builder,
-    SwitchStatement node,
+    SwitchStatement node2,
+    _SwitchTypeReturn switchType,
     ThrowStatement? followingThrow,
   ) async {
-    void convertReturnStatement(DartFileEditBuilder builder,
-        Statement statement, SourceRange colonRange,
-        {String endToken = ''}) {
+    void convertReturnStatement(
+      DartFileEditBuilder builder,
+      Statement statement,
+      Token lastColon, {
+      required bool withTrailingComma,
+    }) {
       var hasComment = statement.beginToken.precedingComments != null;
 
-      if (statement is ReturnStatement) {
-        // Return expression is sure to be non-null
-        var deletion = !hasComment
-            ? range.startOffsetEndOffset(range.offsetBy(colonRange, 1).offset,
-                statement.expression!.offset - 1)
-            : range.startStart(statement.returnKeyword, statement.expression!);
-        builder.addDeletion(deletion);
+      switch (statement) {
+        case ReturnStatement():
+          // Return expression is sure to be non-null
+          var expression = statement.expression!;
+          if (!hasComment) {
+            builder.addSimpleReplacement(
+              range.endStart(lastColon, expression),
+              ' ',
+            );
+          } else {
+            builder.addDeletion(
+              range.startStart(statement.returnKeyword, expression),
+            );
+          }
+        case ExpressionStatement(expression: ThrowExpression throw_):
+          if (!hasComment) {
+            builder.addSimpleReplacement(
+              range.endStart(lastColon, throw_),
+              ' ',
+            );
+          }
       }
 
-      if (!hasComment && statement.isThrowExpressionStatement) {
-        var deletionRange = range.startOffsetEndOffset(
-            range.offsetBy(colonRange, 1).offset, statement.offset - 1);
-        builder.addDeletion(deletionRange);
-      }
-
-      builder.addSimpleReplacement(range.entity(statement.endToken), endToken);
+      builder.addSimpleReplacement(
+        range.entity(statement.endToken),
+        withTrailingComma ? ',' : '',
+      );
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, 'return ');
       builder.addSimpleInsertion(node.end, ';');
 
-      var memberCount = node.members.length;
-      for (var i = 0; i < memberCount; ++i) {
+      var groupCount = switchType.groups.length;
+      for (var i = 0; i < groupCount; ++i) {
         // TODO(pq): extract shared replacement logic
-        var member = node.members[i];
-        if (member is SwitchDefault) {
-          convertSwitchDefault(builder, member);
-          convertReturnStatement(
-              builder, member.statements.first, range.entity(member.colon));
-          continue;
-        }
-        // Sure to be a SwitchPatternCase
-        var patternCase = member as SwitchPatternCase;
-        builder.addDeletion(
-            range.startStart(patternCase.keyword, patternCase.guardedPattern));
-        var colonRange = range.entity(patternCase.colon);
-        builder.addSimpleReplacement(colonRange, ' =>');
+        var group = switchType.groups[i];
+        switch (group) {
+          case _DefaultGroup():
+            _convertSwitchDefault(builder, group.node);
+            convertReturnStatement(
+              builder,
+              group.statements.first,
+              group.node.colon,
+              withTrailingComma: false,
+            );
+          case _JoinedCaseGroup():
+            var firstCase = group.patternCases.first;
+            var lastCase = group.patternCases.last;
 
-        var statement = patternCase.statements.first;
-        var endToken = i < memberCount - 1 || followingThrow != null ? ',' : '';
-        convertReturnStatement(builder, statement, colonRange,
-            endToken: endToken);
+            var patternCode = group.patternCases
+                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((pattern) => utils.getNodeText(pattern))
+                .join(' || ');
+            builder.addSimpleReplacement(
+              range.startEnd(
+                firstCase.keyword,
+                lastCase.colon,
+              ),
+              '$patternCode =>',
+            );
+
+            var statement = group.statements.first;
+            convertReturnStatement(
+              builder,
+              statement,
+              lastCase.colon,
+              withTrailingComma: i < groupCount - 1 || followingThrow != null,
+            );
+        }
       }
 
       if (followingThrow != null) {
         var throwText = utils.getNodeText(followingThrow.expression);
         _insertLinesBefore(
           builder: builder,
-          nextLineOffset: node.rightBracket.offset,
+          nextLineOffset: node2.rightBracket.offset,
           text: '_ => $throwText,',
           indentation: _IndentationFullFirstRightAll(level: 1),
         );
@@ -264,45 +341,10 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     });
   }
 
-  void convertSwitchDefault(DartFileEditBuilder builder, SwitchDefault member) {
+  void _convertSwitchDefault(
+      DartFileEditBuilder builder, SwitchDefault member) {
     var defaultClauseRange = range.startEnd(member.keyword, member.colon);
     builder.addSimpleReplacement(defaultClauseRange, '_ =>');
-  }
-
-  SourceRange getBreakRange(BreakStatement statement) {
-    var previous = (statement.beginToken.precedingComments ??
-        statement.beginToken.previous)!;
-    var deletion =
-        range.startOffsetEndOffset(previous.end, statement.endToken.end);
-    return deletion;
-  }
-
-  /// Adds [level] indents to each line.
-  String indentRight(String text, {int level = 1}) {
-    var buffer = StringBuffer();
-    var indent = utils.oneIndent * level;
-    var eol = utils.endOfLine;
-    var lines = text.split(eol);
-    for (var line in lines) {
-      if (buffer.isNotEmpty) {
-        buffer.write(eol);
-      }
-      buffer.write('$indent$line');
-    }
-    return buffer.toString();
-  }
-
-  bool isEffectivelyExhaustive(SwitchStatement node, DartType? expressionType) {
-    if (expressionType == null) return false;
-    if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(expressionType)) {
-      return true;
-    }
-    var last = node.members.lastOrNull;
-    if (last is SwitchPatternCase) {
-      var pattern = last.guardedPattern.pattern;
-      return pattern is WildcardPattern;
-    }
-    return last is SwitchDefault;
   }
 
   void _deleteStatements(
@@ -313,25 +355,65 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     builder.addDeletion(range);
   }
 
-  _SupportedSwitchType? _getSupportedSwitchType(SwitchStatement node) {
-    var members = node.members;
-    if (members.isEmpty) {
+  _SwitchType? _getSupportedSwitchType(SwitchStatementImpl node) {
+    var memberGroups = node.memberGroups;
+    if (memberGroups.isEmpty) {
       return null;
     }
 
+    var hasValidGroups = true;
     var canBeReturn = true;
     var canBeAssignment = true;
     var canBeArgument = true;
+    var result = <_Group>[];
 
-    for (var member in members) {
-      // Each member must be a pattern-based case or a default.
-      if (member is! SwitchPatternCase && member is! SwitchDefault) {
+    for (var group in memberGroups) {
+      var members = group.members;
+
+      if (members.any((e) => e.labels.isNotEmpty)) {
         return null;
       }
 
-      if (member.labels.isNotEmpty) return null;
+      // Build groups.
+      () {
+        // Support `default`, if alone.
+        if (members.singleOrNull case SwitchDefault switchDefault) {
+          result.add(
+            _DefaultGroup(
+              node: switchDefault,
+              statements: group.statements,
+            ),
+          );
+          return;
+        }
 
-      var statements = member.statements;
+        var patternCases = members.whereType<SwitchPatternCase>().toList();
+        if (patternCases.length != members.length) {
+          hasValidGroups = false;
+          return;
+        }
+
+        // For single `GuardedPattern` we allow `when`.
+        // For joined `GuardedPattern`s, we cannot support any `when`.
+        if (patternCases.length != 1) {
+          if (patternCases.hasWhen) {
+            hasValidGroups = false;
+            return;
+          }
+        }
+
+        result.add(
+          _JoinedCaseGroup(
+            patternCases: patternCases,
+            statements: group.statements,
+          ),
+        );
+      }();
+      if (!hasValidGroups) {
+        return null;
+      }
+
+      var statements = group.statements;
       // We currently only support converting switch members
       // with one non-break statement.
       if (statements.isEmpty || statements.length > 2) {
@@ -347,11 +429,11 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       }
 
       var statement = statements.first;
-      if (statement is ExpressionStatement) {
+      if (statement is ExpressionStatementImpl) {
         var expression = statement.expression;
         // Any type of switch can have a throw expression as a statement.
         if (expression is ThrowExpression) {
-          if (members.length == 1) {
+          if (memberGroups.length == 1) {
             // If there is only one case and it's a throw expression,
             // then assume it's a return switch.
             canBeAssignment = false;
@@ -363,7 +445,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         // A return switch case's statement can't be a non-throw expression.
         canBeReturn = false;
 
-        if (canBeArgument && expression is MethodInvocation) {
+        if (canBeArgument && expression is MethodInvocationImpl) {
           // An assignment switch case's statement can't be a method invocation.
           canBeAssignment = false;
 
@@ -375,12 +457,12 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             // The function invoked in each case must be the same.
             return null;
           }
-        } else if (canBeAssignment && expression is AssignmentExpression) {
+        } else if (canBeAssignment && expression is AssignmentExpressionImpl) {
           // An argument switch case's statement can't be an assignment.
           canBeArgument = false;
 
           var leftHandSide = expression.leftHandSide;
-          if (leftHandSide is! SimpleIdentifier) return null;
+          if (leftHandSide is! SimpleIdentifierImpl) return null;
           if (writeElement == null) {
             var element = leftHandSide.staticElement;
             if (element is! LocalVariableElement) return null;
@@ -401,7 +483,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         // it must be a return statement with a
         // non-null expression as part of a return switch.
         if (!canBeReturn ||
-            statement is! ReturnStatement ||
+            statement is! ReturnStatementImpl ||
             statement.expression == null) {
           return null;
         }
@@ -417,15 +499,36 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
     if (canBeReturn) {
       assert(!canBeAssignment && !canBeArgument);
-      return _SupportedSwitchType.returnValue;
+      return _SwitchTypeReturn(
+        groups: result,
+      );
     } else if (canBeAssignment) {
       assert(!canBeArgument);
-      return _SupportedSwitchType.assignment;
+      return _SwitchTypeAssignment(
+        groups: result,
+      );
     } else if (canBeArgument) {
-      return _SupportedSwitchType.argument;
+      return _SwitchTypeArgument(
+        groups: result,
+      );
     }
 
     return null;
+  }
+
+  /// Adds [level] indents to each line.
+  String _indentRight(String text, {int level = 1}) {
+    var buffer = StringBuffer();
+    var indent = utils.oneIndent * level;
+    var eol = utils.endOfLine;
+    var lines = text.split(eol);
+    for (var line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      buffer.write('$indent$line');
+    }
+    return buffer.toString();
   }
 
   /// Given [nextLineOffset] that is an offset on the next line (the line
@@ -442,7 +545,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
     switch (indentation) {
       case _IndentationFullFirstRightAll():
-        var indentedText = indentRight(
+        var indentedText = _indentRight(
           nextLinePrefix + text,
           level: indentation.level,
         );
@@ -450,6 +553,47 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         builder.addSimpleInsertion(insertOffset, withEol);
     }
   }
+
+  bool _isEffectivelyExhaustive(
+    SwitchStatement node,
+    DartType? expressionType,
+  ) {
+    if (expressionType == null) return false;
+    if ((typeSystem as TypeSystemImpl).isAlwaysExhaustive(expressionType)) {
+      return true;
+    }
+    var last = node.members.lastOrNull;
+    if (last is SwitchPatternCase) {
+      var pattern = last.guardedPattern.pattern;
+      return pattern is WildcardPattern;
+    }
+    return last is SwitchDefault;
+  }
+
+  static SourceRange _getBreakRange(BreakStatement statement) {
+    var previous = (statement.beginToken.precedingComments ??
+        statement.beginToken.previous)!;
+    var deletion =
+        range.startOffsetEndOffset(previous.end, statement.endToken.end);
+    return deletion;
+  }
+}
+
+class _DefaultGroup extends _Group {
+  final SwitchDefault node;
+
+  _DefaultGroup({
+    required super.statements,
+    required this.node,
+  });
+}
+
+sealed class _Group {
+  final List<Statement> statements;
+
+  _Group({
+    required this.statements,
+  });
 }
 
 /// Superclass for all indentation strategies.
@@ -466,16 +610,43 @@ final class _IndentationFullFirstRightAll extends _Indentation {
   });
 }
 
-/// The different switch types supported by this conversion.
-enum _SupportedSwitchType {
-  /// Each case statement returns a value.
-  returnValue,
+/// Joined [Pattern]s, without `when`, before statements.
+class _JoinedCaseGroup extends _Group {
+  final List<SwitchPatternCase> patternCases;
 
-  /// Each case statement assigns to a local variable.
-  assignment,
+  _JoinedCaseGroup({
+    required this.patternCases,
+    required super.statements,
+  });
+}
 
-  /// Each case statement passes a value to the same function.
-  argument,
+sealed class _SwitchType {
+  final List<_Group> groups;
+
+  _SwitchType({
+    required this.groups,
+  });
+}
+
+/// Each case statement passes a value to the same function.
+final class _SwitchTypeArgument extends _SwitchType {
+  _SwitchTypeArgument({
+    required super.groups,
+  });
+}
+
+/// Each case statement assigns to a local variable.
+final class _SwitchTypeAssignment extends _SwitchType {
+  _SwitchTypeAssignment({
+    required super.groups,
+  });
+}
+
+/// Each case statement returns a value.
+final class _SwitchTypeReturn extends _SwitchType {
+  _SwitchTypeReturn({
+    required super.groups,
+  });
 }
 
 extension on Statement {
@@ -483,5 +654,11 @@ extension on Statement {
     var self = this;
     if (self is! ExpressionStatement) return false;
     return self.expression is ThrowExpression;
+  }
+}
+
+extension on List<SwitchPatternCase> {
+  bool get hasWhen {
+    return any((e) => e.guardedPattern.whenClause != null);
   }
 }

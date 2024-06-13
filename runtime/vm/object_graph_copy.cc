@@ -497,7 +497,7 @@ class IdentityMap {
         malloc(hash_table_capacity_ * sizeof(uint32_t)));
     for (intptr_t i = 0; i < hash_table_capacity_; i++) {
       hash_table_[i] = 0;
-      if (check_for_safepoint && (((i + 1) % KB) == 0)) {
+      if (check_for_safepoint && (((i + 1) % kSlotsPerInterruptCheck) == 0)) {
         thread_->CheckForSafepoint();
       }
     }
@@ -513,7 +513,7 @@ class IdentityMap {
         }
         probe = (probe + 1) & mask;
       }
-      if (check_for_safepoint && (((id + 2) % KB) == 0)) {
+      if (check_for_safepoint && (((id + 2) % kSlotsPerInterruptCheck) == 0)) {
         thread_->CheckForSafepoint();
       }
     }

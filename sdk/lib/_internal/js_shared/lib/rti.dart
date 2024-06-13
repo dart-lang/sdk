@@ -52,6 +52,23 @@ void _onExtraNullSafetyError(TypeError error, StackTrace trace) {
   }
 }
 
+class _InteropNullAssertionError extends _Error implements TypeError {
+  _InteropNullAssertionError()
+      : super('Non-nullable interop API returned null value.');
+}
+
+/// Called from generated code.
+Object? _interopNullAssertion(Object? value) {
+  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
+    if (value == null) {
+      _onExtraNullSafetyError(_InteropNullAssertionError(), StackTrace.current);
+    }
+    return value;
+  } else {
+    return value!;
+  }
+}
+
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
 const constructorRtiCachePropertyName = r'$ccache';

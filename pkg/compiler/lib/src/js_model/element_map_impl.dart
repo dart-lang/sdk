@@ -2074,6 +2074,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
 class JsElementEnvironment extends ElementEnvironment
     implements JElementEnvironment {
+  @override
   final JsKernelToElementMap elementMap;
 
   JsElementEnvironment(this.elementMap);

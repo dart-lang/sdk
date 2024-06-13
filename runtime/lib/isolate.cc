@@ -225,11 +225,10 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       case kArrayCid: {
         array ^= Array::RawCast(raw);
         visitor.VisitObject(array.GetTypeArguments());
-        const intptr_t batch_size = (2 << 14) - 1;
         for (intptr_t i = 0; i < array.Length(); ++i) {
           ObjectPtr ptr = array.At(i);
           visitor.VisitObject(ptr);
-          if ((i & batch_size) == batch_size) {
+          if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
             thread->CheckForSafepoint();
           }
         }

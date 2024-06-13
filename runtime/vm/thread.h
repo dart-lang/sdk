@@ -343,15 +343,15 @@ class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
   enum TaskKind {
-    kUnknownTask = 0x0,
-    kMutatorTask = 0x1,
-    kCompilerTask = 0x2,
-    kMarkerTask = 0x4,
-    kSweeperTask = 0x8,
-    kCompactorTask = 0x10,
-    kScavengerTask = 0x20,
-    kSampleBlockTask = 0x40,
-    kIncrementalCompactorTask = 0x80,
+    kUnknownTask = 0,
+    kMutatorTask,
+    kCompilerTask,
+    kMarkerTask,
+    kSweeperTask,
+    kCompactorTask,
+    kScavengerTask,
+    kSampleBlockTask,
+    kIncrementalCompactorTask,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);

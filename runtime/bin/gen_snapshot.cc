@@ -112,16 +112,13 @@ static const char* const kSnapshotKindNames[] = {
   V(save_debugging_info, debugging_info_filename)                              \
   V(save_obfuscation_map, obfuscation_map_filename)
 
-// We define sound_null_safety as an unused option here just to make sure
-// scripts that were passing in this option do not break.
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(compile_all, compile_all)                                                  \
   V(help, help)                                                                \
   V(obfuscate, obfuscate)                                                      \
   V(strip, strip)                                                              \
   V(verbose, verbose)                                                          \
-  V(version, version)                                                          \
-  V(sound_null_safety, sound_null_safety)
+  V(version, version)
 
 #define STRING_OPTION_DEFINITION(flag, variable)                               \
   static const char* variable = nullptr;                                       \

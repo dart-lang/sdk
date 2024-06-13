@@ -1000,7 +1000,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         elementEnvironment: elementEnvironment as KElementEnvironment,
         dartTypes: _dartTypes,
         commonElements: _commonElements as KCommonElements,
-        nativeData: _nativeDataBuilder.close(),
+        nativeData: _nativeDataBuilder.close(reporter),
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: backendUsage,
         noSuchMethodData: _noSuchMethodRegistry.close(),

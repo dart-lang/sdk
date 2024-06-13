@@ -935,7 +935,7 @@ CompileTimeErrorCode.INVALID_CAST_NEW_EXPR:
   notes: |-
     Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CONSTANT:
-  status: noFix
+  status: hasFix
   notes: |-
     The diagnostic is too general. It needs to be replaced with multiple more
     specific diagnostics.

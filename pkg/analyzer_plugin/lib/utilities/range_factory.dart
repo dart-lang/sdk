@@ -205,6 +205,13 @@ class RangeFactory {
     return SourceRange(startOffset, length);
   }
 
+  /// Returns the source range that starts at [startOffset] and ends at the
+  /// start of [rightEntity].
+  SourceRange startOffsetStart(int startOffset, SyntacticEntity rightEntity) {
+    var length = rightEntity.offset - startOffset;
+    return SourceRange(startOffset, length);
+  }
+
   /// Return a source range that starts at the start of [leftEntity] and ends at
   /// the start of [rightEntity].
   SourceRange startStart(

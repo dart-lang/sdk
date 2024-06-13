@@ -426,6 +426,9 @@ class ProgramBuilder {
     interceptorClass?.isChecks.addAll(_jsInteropIsChecks);
     interceptorTypeData?.classChecks.addAll(_jsInteropTypeChecks);
 
+    late final interopNullAssert = _task.emitter
+        .staticFunctionAccess(_commonElements.interopNullAssertion);
+
     Set<String> stubNames = {};
     librariesMap.forEach((LibraryEntity library,
         List<ClassEntity> classElements, _memberElement, _typeElement) {
@@ -443,9 +446,14 @@ class ProgramBuilder {
                 for (Selector selector in selectors) {
                   js.Name stubName = _namer.invocationName(selector);
                   if (stubNames.add(stubName.key)) {
-                    interceptorClass!.callStubs.add(_buildStubMethod(stubName,
-                        js.js('function(obj) { return obj.# }', [jsName]),
-                        element: member));
+                    final code = _options.interopNullAssertions &&
+                            _nativeData.interopNullChecks[selector] ==
+                                InteropNullCheckKind.calleeCheck
+                        ? js.js('function(obj) { return #(obj.#) }',
+                            [interopNullAssert, jsName])
+                        : js.js('function(obj) { return obj.# }', [jsName]);
+                    interceptorClass!.callStubs
+                        .add(_buildStubMethod(stubName, code, element: member));
                   }
                 }
               }
@@ -511,11 +519,16 @@ class ProgramBuilder {
                   // functions. The behavior of this solution matches JavaScript
                   // behavior implicitly binding this only when JavaScript
                   // would.
-                  interceptorClass!.callStubs.add(_buildStubMethod(
-                      stubName,
-                      js.js('function(receiver, #) { return receiver.#(#) }',
-                          [parameters, jsName, parameters]),
-                      element: member));
+                  final code = _options.interopNullAssertions &&
+                          _nativeData.interopNullChecks[selector] ==
+                              InteropNullCheckKind.calleeCheck
+                      ? js.js(
+                          'function(receiver, #) { return #(receiver.#(#)) }',
+                          [parameters, interopNullAssert, jsName, parameters])
+                      : js.js('function(receiver, #) { return receiver.#(#) }',
+                          [parameters, jsName, parameters]);
+                  interceptorClass!.callStubs
+                      .add(_buildStubMethod(stubName, code, element: member));
                 }
               }
             }

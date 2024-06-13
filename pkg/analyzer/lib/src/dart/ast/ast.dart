@@ -5996,46 +5996,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   bool get inConstantContext {
-    AstNode child = this;
-    while (child is Expression ||
-        child is ArgumentList ||
-        child is MapLiteralEntry ||
-        child is SpreadElement ||
-        child is IfElement ||
-        child is ForElement) {
-      var parent = child.parent;
-      if (parent is ConstantContextForExpressionImpl) {
-        return true;
-      } else if (parent is ConstantPatternImpl) {
-        return parent.constKeyword != null;
-      } else if (parent is EnumConstantArguments) {
-        return true;
-      } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {
-        // Inside an explicitly `const` list or map literal.
-        return true;
-      } else if (parent is InstanceCreationExpression &&
-          parent.keyword?.keyword == Keyword.CONST) {
-        // Inside an explicitly `const` instance creation expression.
-        return true;
-      } else if (parent is Annotation) {
-        // Inside an annotation.
-        return true;
-      } else if (parent is RecordLiteral && parent.constKeyword != null) {
-        return true;
-      } else if (parent is VariableDeclaration) {
-        var grandParent = parent.parent;
-        // Inside the initializer for a `const` variable declaration.
-        return grandParent is VariableDeclarationList &&
-            grandParent.keyword?.keyword == Keyword.CONST;
-      } else if (parent is SwitchCase) {
-        // Inside a switch case.
-        return true;
-      } else if (parent == null) {
-        break;
-      }
-      child = parent;
-    }
-    return false;
+    return constantContext(includeSelf: false) != null;
   }
 
   @override
@@ -6080,6 +6041,68 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   ExpressionImpl get unParenthesized => this;
+
+  /// Returns the [AstNode] that puts node into the constant context, and
+  /// the explicit `const` keyword of that node. The keyword might be absent
+  /// if the constness is implicit.
+  ///
+  /// Returns `null` if node is not in the constant context.
+  (AstNode, Token?)? constantContext({
+    required bool includeSelf,
+  }) {
+    AstNode? current = this;
+    if (!includeSelf) {
+      current = current.parent;
+    }
+
+    while (true) {
+      switch (current) {
+        case Annotation():
+          return (current, null);
+        case ConstantContextForExpressionImpl():
+          return (current, null);
+        case ConstantPatternImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
+        case EnumConstantArguments():
+          return (current, null);
+        case InstanceCreationExpression():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+        case RecordLiteral():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case SwitchCase():
+          return (current, null);
+        case TypedLiteralImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case VariableDeclarationList():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+          return null;
+        case ArgumentList():
+        case Expression():
+        case IfElement():
+        case ForElement():
+        case MapLiteralEntry():
+        case SpreadElement():
+        case VariableDeclaration():
+          break;
+        default:
+          return null;
+      }
+      current = current?.parent;
+    }
+  }
 
   /// Record that the static type of the given node is the given type.
   ///

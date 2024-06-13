@@ -213,6 +213,12 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         has_evacuation_candidate_ = false;
         page->RememberCard(card_from);
       }
+
+      if (((i + 1) % kCardsPerInterruptCheck) == 0) {
+        if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+          YieldConcurrentMarking();
+        }
+      }
     }
 
     return obj->untag()->HeapSize();
