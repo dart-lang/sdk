@@ -8,6 +8,9 @@ analyzer:
   errors:
     export_internal_library: ignore
 
+topics:
+ - interop
+
 environment:
   sdk: ^3.1.0
 
