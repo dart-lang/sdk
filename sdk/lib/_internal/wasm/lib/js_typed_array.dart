@@ -240,8 +240,7 @@ final class JSDataViewImpl implements ByteData {
   int get elementSizeInBytes => 1;
 
   @override
-  UnmodifiableByteDataView asUnmodifiableView() =>
-      UnmodifiableByteDataView(this);
+  ByteData asUnmodifiableView() => throw UnimplementedError();
 
   @override
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
@@ -752,8 +751,7 @@ final class _JSUint8ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSUint8Array extends JSUint8ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint8ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint8Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -836,8 +834,7 @@ final class _JSInt8ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSInt8Array extends JSInt8ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt8ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSInt8Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -907,8 +904,7 @@ final class JSUint8ClampedArrayImpl extends JSArrayBase
 }
 
 final class UnmodifiableJSUint8ClampedArray extends JSUint8ClampedArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint8ClampedListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint8ClampedArray._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -998,8 +994,7 @@ final class _JSUint16ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSUint16Array extends JSUint16ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint16ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint16Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1089,8 +1084,7 @@ final class _JSInt16ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSInt16Array extends JSInt16ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt16ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSInt16Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1180,8 +1174,7 @@ final class _JSUint32ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSUint32Array extends JSUint32ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint32ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint32Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1271,8 +1264,7 @@ final class _JSInt32ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSInt32Array extends JSInt32ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt32ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSInt32Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1323,8 +1315,7 @@ final class JSInt32x4ArrayImpl
   }
 
   @override
-  UnmodifiableInt32x4ListView asUnmodifiableView() =>
-      UnmodifiableInt32x4ListView(this);
+  Int32x4List asUnmodifiableView() => NaiveUnmodifiableInt32x4List(this);
 
   @override
   JSInt32x4ArrayImpl sublist(int start, [int? end]) {
@@ -1448,8 +1439,7 @@ final class _JSUint64ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSBigUint64Array extends JSBigUint64ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint64ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSBigUint64Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1539,8 +1529,7 @@ final class _JSInt64ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSBigInt64Array extends JSBigInt64ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt64ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSBigInt64Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1972,8 +1961,7 @@ final class _JSFloat32ArrayIterator extends _DoubleArrayIteratorBase {
 }
 
 final class UnmodifiableJSFloat32Array extends JSFloat32ArrayImpl
-    with _UnmodifiableDoubleListMixin
-    implements UnmodifiableFloat32ListView {
+    with _UnmodifiableDoubleListMixin {
   UnmodifiableJSFloat32Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -2063,8 +2051,7 @@ final class _JSFloat64ArrayIterator extends _DoubleArrayIteratorBase {
 }
 
 final class UnmodifiableJSFloat64Array extends JSFloat64ArrayImpl
-    with _UnmodifiableDoubleListMixin
-    implements UnmodifiableFloat64ListView {
+    with _UnmodifiableDoubleListMixin {
   UnmodifiableJSFloat64Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -2115,8 +2102,7 @@ final class JSFloat32x4ArrayImpl
   }
 
   @override
-  UnmodifiableFloat32x4ListView asUnmodifiableView() =>
-      UnmodifiableFloat32x4ListView(this);
+  Float32x4List asUnmodifiableView() => NaiveUnmodifiableFloat32x4List(this);
 
   @override
   JSFloat32x4ArrayImpl sublist(int start, [int? end]) {
@@ -2198,8 +2184,7 @@ final class JSFloat64x2ArrayImpl
   }
 
   @override
-  UnmodifiableFloat64x2ListView asUnmodifiableView() =>
-      UnmodifiableFloat64x2ListView(this);
+  Float64x2List asUnmodifiableView() => NaiveUnmodifiableFloat64x2List(this);
 
   @override
   JSFloat64x2ArrayImpl sublist(int start, [int? end]) {
