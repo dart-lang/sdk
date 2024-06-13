@@ -1388,7 +1388,10 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveLexeme.modifier,
   ],
   ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA: [
-    RemoveComma.new,
+    RemoveComma.emptyRecordLiteral,
+  ],
+  ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA: [
+    RemoveComma.emptyRecordType,
   ],
   ParserErrorCode.EXPECTED_TOKEN: [
     InsertSemicolon.new,

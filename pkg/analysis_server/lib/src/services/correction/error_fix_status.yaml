@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 324 "needsFix"
-# - 423 "hasFix"
+# - 323 "needsFix"
+# - 424 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2646,17 +2646,13 @@ ParserErrorCode.EMPTY_ENUM_BODY:
     added.
 ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA:
   status: hasFix
-  notes: |-
-    Remove the comma.
 ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
   status: noFix
   notes: |-
     It's likely that the user just hasn't provided a named field yet, and
     offering to remove the braces would be counter-productive.
 ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA:
-  status: needsFix
-  notes: |-
-    Remove the comma.
+  status: hasFix
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsFix
   notes: |-

@@ -50,4 +50,13 @@ f() {
 }
 ''');
   }
+
+  Future<void> test_emptyRecordType() async {
+    await resolveTestCode('''
+(,)? f() => null;
+''');
+    await assertHasFix('''
+()? f() => null;
+''');
+  }
 }
