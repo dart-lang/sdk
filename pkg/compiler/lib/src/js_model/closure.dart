@@ -226,55 +226,56 @@ class ClosureDataBuilder {
       MemberEntity outermostEntity) {
     bool includeForRti(Set<VariableUse> useSet) {
       for (VariableUse usage in useSet) {
-        switch (usage.kind) {
-          case VariableUseKind.explicit:
+        switch (usage) {
+          case SimpleVariableUse.explicit:
             return true;
-          case VariableUseKind.implicitCast:
+          case SimpleVariableUse.implicitCast:
             if (_annotationsData
                 .getImplicitDowncastCheckPolicy(outermostEntity)
                 .isEmitted) {
               return true;
             }
             break;
-          case VariableUseKind.localType:
+          case SimpleVariableUse.localType:
             break;
-          case VariableUseKind.constructorTypeArgument:
-            ConstructorEntity constructor =
-                _elementMap.getConstructor(usage.member!);
+          case ConstructorTypeArgumentVariableUse(:final member):
+            ConstructorEntity constructor = _elementMap.getConstructor(member);
             if (rtiNeed.classNeedsTypeArguments(constructor.enclosingClass)) {
               return true;
             }
             break;
-          case VariableUseKind.staticTypeArgument:
-            FunctionEntity method =
-                _elementMap.getMethod(usage.member as ir.Procedure);
+          case StaticTypeArgumentVariableUse(:final procedure):
+            FunctionEntity method = _elementMap.getMethod(procedure);
             if (rtiNeed.methodNeedsTypeArguments(method)) {
               return true;
             }
             break;
-          case VariableUseKind.instanceTypeArgument:
-            Selector selector = _elementMap.getSelector(usage.invocation!);
+          case InstanceTypeArgumentVariableUse(:final invocation):
+            Selector selector = _elementMap.getSelector(invocation);
             if (rtiNeed.selectorNeedsTypeArguments(selector)) {
               return true;
             }
             break;
-          case VariableUseKind.localTypeArgument:
+          case LocalTypeArgumentVariableUse(
+              :final localFunction,
+              :final invocation
+            ):
             // TODO(johnniwinther): We should be able to track direct local
             // function invocations and not have to use the selector here.
-            Selector selector = _elementMap.getSelector(usage.invocation!);
-            if (rtiNeed.localFunctionNeedsTypeArguments(usage.localFunction!) ||
+            Selector selector = _elementMap.getSelector(invocation);
+            if (rtiNeed.localFunctionNeedsTypeArguments(localFunction) ||
                 rtiNeed.selectorNeedsTypeArguments(selector)) {
               return true;
             }
             break;
-          case VariableUseKind.memberParameter:
+          case MemberParameterVariableUse(:final member):
             if (_annotationsData
                 .getParameterCheckPolicy(outermostEntity)
                 .isEmitted) {
               return true;
             } else {
               FunctionEntity method =
-                  _elementMap.getMethod(usage.member as ir.Procedure);
+                  _elementMap.getMethod(member as ir.Procedure);
               if (rtiNeed.methodNeedsSignature(method)) {
                 return true;
               }
@@ -285,67 +286,64 @@ class ClosureDataBuilder {
               }
             }
             break;
-          case VariableUseKind.localParameter:
+          case LocalParameterVariableUse(:final localFunction):
             if (_annotationsData
                 .getParameterCheckPolicy(outermostEntity)
                 .isEmitted) {
               return true;
-            } else if (rtiNeed
-                .localFunctionNeedsSignature(usage.localFunction!)) {
+            } else if (rtiNeed.localFunctionNeedsSignature(localFunction)) {
               return true;
-            } else if (rtiNeed
-                .localFunctionNeedsTypeArguments(usage.localFunction!)) {
+            } else if (rtiNeed.localFunctionNeedsTypeArguments(localFunction)) {
               // Stubs generated for this local function might make use of this
               // type parameter for default type arguments.
               return true;
             }
             break;
-          case VariableUseKind.memberReturnType:
+          case MemberReturnTypeVariableUse(:final member):
             FunctionEntity method =
-                _elementMap.getMethod(usage.member as ir.Procedure);
+                _elementMap.getMethod(member as ir.Procedure);
             if (rtiNeed.methodNeedsSignature(method)) {
               return true;
             }
             break;
-          case VariableUseKind.localReturnType:
-            if (usage.localFunction!.function.asyncMarker !=
-                ir.AsyncMarker.Sync) {
+          case LocalReturnTypeVariableUse(:final localFunction):
+            if (localFunction.function.asyncMarker != ir.AsyncMarker.Sync) {
               // The Future/Iterator/Stream implementation requires the type.
               return true;
             }
-            if (rtiNeed.localFunctionNeedsSignature(usage.localFunction!)) {
+            if (rtiNeed.localFunctionNeedsSignature(localFunction)) {
               return true;
             }
             break;
-          case VariableUseKind.fieldType:
+          case SimpleVariableUse.fieldType:
             if (_annotationsData
                 .getParameterCheckPolicy(outermostEntity)
                 .isEmitted) {
               return true;
             }
             break;
-          case VariableUseKind.listLiteral:
+          case SimpleVariableUse.listLiteral:
             if (rtiNeed.classNeedsTypeArguments(
                 _elementMap.commonElements.jsArrayClass)) {
               return true;
             }
             break;
-          case VariableUseKind.setLiteral:
+          case SimpleVariableUse.setLiteral:
             if (rtiNeed.classNeedsTypeArguments(
                 _elementMap.commonElements.setLiteralClass)) {
               return true;
             }
             break;
-          case VariableUseKind.mapLiteral:
+          case SimpleVariableUse.mapLiteral:
             if (rtiNeed.classNeedsTypeArguments(
                 _elementMap.commonElements.mapLiteralClass)) {
               return true;
             }
             break;
-          case VariableUseKind.instantiationTypeArgument:
+          case InstantiationTypeArgumentVariableUse(:final instantiation):
             // TODO(johnniwinther): Use the static type of the expression.
             if (rtiNeed.instantiationNeedsTypeArguments(
-                null, usage.instantiation!.typeArguments.length)) {
+                null, instantiation.typeArguments.length)) {
               return true;
             }
             break;
