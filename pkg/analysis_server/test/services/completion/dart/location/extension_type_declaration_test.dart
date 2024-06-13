@@ -124,7 +124,6 @@ suggestions
 
   Future<void> test_name_withBody() async {
     allowedIdentifiers = {'Test', 'Test {}'};
-    printerConfiguration.withSelection = true;
     await computeSuggestions('''
 extension type ^ {}
 ''');
@@ -137,7 +136,6 @@ suggestions
 
   Future<void> test_name_withoutBody() async {
     allowedIdentifiers = {'Test', 'Test {}'};
-    printerConfiguration.withSelection = true;
     await computeSuggestions('''
 extension type ^
 ''');
