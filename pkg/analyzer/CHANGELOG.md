@@ -1,4 +1,4 @@
-## 6.6.0-dev
+## 6.6.0
 * Stop exporting `src/file_system/file_system.dart`
   from `file_system/file_system.dart`.
 * Deprecated `package:analyzer/src/source/source_resource.dart`,
