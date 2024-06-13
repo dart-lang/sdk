@@ -484,15 +484,14 @@ class Types {
   InterfaceType? _canUseTypeCheckHelper(
       DartType testedAgainstType, DartType operandType) {
     // The is/as check helpers are for cid-range checks of interface types.
-    if (testedAgainstType is! InterfaceType || operandType is! InterfaceType) {
-      return null;
-    }
+    if (testedAgainstType is! InterfaceType) return null;
 
     if (_hasOnlyDefaultTypeArguments(testedAgainstType)) {
       return testedAgainstType;
     }
 
-    if (_staticTypesEnsureTypeArgumentsMatch(testedAgainstType, operandType)) {
+    if (operandType is InterfaceType &&
+        _staticTypesEnsureTypeArgumentsMatch(testedAgainstType, operandType)) {
       // We only need to check whether the nullability and the class itself fits
       // (the [testedAgainstType] arguments are guaranteed to fit statically)
       final parameters = testedAgainstType.classNode.typeParameters;

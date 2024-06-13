@@ -1,3 +1,7 @@
+## 0.1.2-main.2
+
+- Re-publish of `0.1.2-main.1` which was retracted due to a corrupted tar file.
+
 ## 0.1.2-main.1
 
 - Make it an error for macros to complete with pending async work scheduled.

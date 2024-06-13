@@ -166,6 +166,7 @@ import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_break_test.dart' as remove_break;
 import 'remove_character_test.dart' as remove_character;
+import 'remove_comma_test.dart' as remove_comma;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
@@ -435,6 +436,7 @@ void main() {
     remove_await.main();
     remove_break.main();
     remove_character.main();
+    remove_comma.main();
     remove_comparison.main();
     remove_const.main();
     remove_constructor.main();

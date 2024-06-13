@@ -1624,11 +1624,6 @@ _Type _getMasqueradedRuntimeType(Object object) {
     return _Closure._getClosureRuntimeType(unsafeCast<_Closure>(object));
   }
 
-  // The object is a normal instance of a class (not function or record).
-
-  const bool isJsCompatibility =
-      bool.fromEnvironment('dart.wasm.js_compatibility');
-
   // This method is not used in the RTT implementation, it's purely used for
   // producing `Type` objects for `<obj>.runtimeType`.
   //
@@ -1644,7 +1639,7 @@ _Type _getMasqueradedRuntimeType(Object object) {
         ClassID.cidList, false, Object._getTypeArguments(object));
   }
 
-  if (isJsCompatibility) {
+  if (_isJsCompatibility) {
     if (object is String) return _literal<String>();
     if (object is TypedData) {
       if (object is ByteData) return _literal<ByteData>();
@@ -1695,6 +1690,9 @@ _Type _getMasqueradedRuntimeType(Object object) {
   // Non-masqueraded interface type.
   return _InterfaceType(classId, false, Object._getTypeArguments(object));
 }
+
+const bool _isJsCompatibility =
+    bool.fromEnvironment('dart.wasm.js_compatibility');
 
 @pragma("wasm:prefer-inline")
 _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>

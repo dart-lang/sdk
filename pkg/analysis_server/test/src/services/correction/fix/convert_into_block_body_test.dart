@@ -179,6 +179,22 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_static_setter() async {
+    await resolveTestCode('''
+class C {
+  static set(int i);
+}
+''');
+    await assertHasFix('''
+class C {
+  static set(int i) {
+    // TODO: implement set
+    throw UnimplementedError();
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

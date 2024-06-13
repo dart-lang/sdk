@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 326 "needsFix"
-# - 421 "hasFix"
+# - 324 "needsFix"
+# - 423 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2645,7 +2645,7 @@ ParserErrorCode.EMPTY_ENUM_BODY:
     We can't guess at the names or number of the enum constants that should be
     added.
 ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the comma.
 ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
@@ -2656,7 +2656,7 @@ ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
 ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA:
   status: needsFix
   notes: |-
-    Remove the comma
+    Remove the comma.
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsFix
   notes: |-
@@ -3214,9 +3214,7 @@ ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
 ParserErrorCode.STATIC_OPERATOR:
   status: hasFix
 ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
   status: needsFix
   notes: |-

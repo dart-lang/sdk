@@ -169,7 +169,7 @@ vars = {
   "path_rev": "8fc4c72415f254b953b17929b56283cceb3dc5c4",
   "pool_rev": "88e463600c636a0d8cdb5dc306524ebf04b06baf",
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
-  "pub_rev": "df3664d17fd146ccd19b32820a022404da91f6d3", # disable tools/rev_sdk_deps.dart
+  "pub_rev": "9ab905a24e36ef339c99f73bfb6683874feed8ce", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "a9025f3cc23ebb0f86c0af8759d95306b9133ce0",
   "shelf_rev": "ea3c983a1e721acf5e7e42a4d3ade65b9ccf51a9",
   "source_map_stack_trace_rev": "96a8213dacf7cd42aefb1311491a4169826f98d2",
