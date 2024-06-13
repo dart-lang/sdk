@@ -52,7 +52,7 @@ OPT_FLAGS_L4=($(find_flags 'optimizationLevel4Flags'))
 RUN_BINARYEN=1
 RUN_SRC=0
 COMPILE_BENCHMARK_BASE_NAME=""
-PLATFORM_FILENAME="dart2wasm_platform.dill"
+PLATFORM_FILENAME="$BIN_DIR/dart2wasm_platform.dill"
 SNAPSHOT_NAME="dart2wasm"
 
 # All arguments will be passed along to dart2wasm except specially recognized
@@ -74,7 +74,7 @@ while [ $# -gt 0 ]; do
       ;;
 
     --js-compatibility)
-      PLATFORM_FILENAME="dart2wasm_js_compatibility_platform.dill"
+      PLATFORM_FILENAME="$BIN_DIR/dart2wasm_js_compatibility_platform.dill"
       DART2WASM_ARGS+=("--js-compatibility")
       shift
       ;;
@@ -120,8 +120,19 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    --extra-compiler-option=--platform=*)
+      PLATFORM_FILENAME="${1#--extra-compiler-option=--platform=}"
+      shift
+      ;;
+
     --extra-compiler-option=*)
       DART2WASM_ARGS+=(${1#--extra-compiler-option=})
+      shift
+      ;;
+
+    -o)
+      shift
+      WASM_FILE="$1"
       shift
       ;;
 
@@ -153,7 +164,7 @@ if [ -z "$DART_FILE" -o -z "$WASM_FILE" ]; then
 fi
 
 
-PLATFORM_ARG="--platform=$BIN_DIR/$PLATFORM_FILENAME"
+PLATFORM_ARG="--platform=$PLATFORM_FILENAME"
 DART2WASM_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
 DART2WASM_SRC="$SDK_DIR/pkg/dart2wasm/bin/dart2wasm.dart"
 
