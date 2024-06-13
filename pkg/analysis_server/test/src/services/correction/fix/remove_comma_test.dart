@@ -50,4 +50,22 @@ f() {
 }
 ''');
   }
+
+  Future<void> test_emptyRecordType() async {
+    await resolveTestCode('''
+(,)? f() => null;
+''');
+    await assertHasFix('''
+()? f() => null;
+''');
+  }
+
+  Future<void> test_representationFieldTrailingComma() async {
+    await resolveTestCode('''
+extension type A(int i,) {}
+''');
+    await assertHasFix('''
+extension type A(int i) {}
+''');
+  }
 }

@@ -100,6 +100,13 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
   }
 
   Future<T> _call<T>(String method, [Map args = const {}]) {
+    if (_disposed) {
+      throw RPCError(
+        method,
+        RPCErrorKind.kServerError.code,
+        'Service connection disposed',
+      );
+    }
     return wrapFuture<T>(
       method,
       () {

@@ -57,6 +57,6 @@ void f() {
   var v = 42;
   print('v: $v');
 }
-''', length: 4);
+''');
   }
 }

@@ -3495,9 +3495,12 @@ void f(a0) {
   for (int f0 in bar) ^
 }
 ''');
-    // This should suggest 'a0' and 'f0'.
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  a0
+    kind: parameter
 ''');
   }
 
@@ -3507,9 +3510,12 @@ void f(a0) {
   for (var f0 in bar) ^
 }
 ''');
-    // This should suggest 'a0' and 'f0'.
     assertResponse(r'''
 suggestions
+  f0
+    kind: localVariable
+  a0
+    kind: parameter
 ''');
   }
 

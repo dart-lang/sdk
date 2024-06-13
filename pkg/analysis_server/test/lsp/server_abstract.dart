@@ -903,6 +903,14 @@ mixin LspAnalysisServerTestMixin
 
   Stream<Message> get serverToClient;
 
+  /// A stream of [ShowMessageParams] for any `window/logMessage` notifications.
+  Stream<ShowMessageParams> get showMessageNotifications =>
+      notificationsFromServer
+          .where((notification) =>
+              notification.method == Method.window_showMessage)
+          .map((message) => ShowMessageParams.fromJson(
+              message.params as Map<String, Object?>));
+
   String get testPackageRootPath => projectFolderPath;
 
   Future<void> changeFile(
@@ -1598,7 +1606,14 @@ mixin LspAnalysisServerTestMixin
   /// ensure no errors come from the server in response to notifications (which
   /// don't have their own responses).
   bool _isErrorNotification(NotificationMessage notification) {
-    return notification.method == Method.window_logMessage ||
-        notification.method == Method.window_showMessage;
+    var method = notification.method;
+    var params = notification.params as Map<String, Object?>?;
+    if (method == Method.window_logMessage && params != null) {
+      return LogMessageParams.fromJson(params).type == MessageType.Error;
+    } else if (method == Method.window_showMessage && params != null) {
+      return ShowMessageParams.fromJson(params).type == MessageType.Error;
+    } else {
+      return false;
+    }
   }
 }

@@ -43,7 +43,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
   Future<AnalysisError> _findErrorToFix(
-      {bool Function(AnalysisError)? errorFilter, int? length}) async {
+      {bool Function(AnalysisError)? errorFilter}) async {
     var errors = testAnalysisResult.errors;
     if (errorFilter != null) {
       if (errors.length == 1) {
@@ -304,7 +304,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// [expected] output.
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
-      int? length,
       String? target,
       int? expectedNumberOfFixesForKind,
       String? matchFixMessage,
@@ -312,7 +311,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     expected = normalizeSource(expected);
     var error = await _findErrorToFix(
       errorFilter: errorFilter,
-      length: length,
     );
     var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,

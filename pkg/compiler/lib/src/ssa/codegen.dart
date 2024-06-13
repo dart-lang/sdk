@@ -28,7 +28,7 @@ import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
-import '../js_backend/specialized_checks.dart' show IsTestSpecializationKind;
+import '../js_backend/specialized_checks.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -3201,34 +3201,33 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     }
 
     late js.Expression test;
-    switch (node.specialization.kind) {
-      case IsTestSpecializationKind.isNull:
-      case IsTestSpecializationKind.isNotNull:
+    switch (node.specialization) {
+      case SimpleIsTestSpecialization.isNull:
+      case SimpleIsTestSpecialization.isNotNull:
         // These cases should be lowered using [HIdentity] during optimization.
         failedAt(node, 'Missing lowering');
 
-      case IsTestSpecializationKind.isString:
+      case SimpleIsTestSpecialization.isString:
         test = typeof("string");
         break;
 
-      case IsTestSpecializationKind.isBool:
+      case SimpleIsTestSpecialization.isBool:
         test = isTest(_commonElements.specializedIsBool);
         break;
 
-      case IsTestSpecializationKind.isNum:
+      case SimpleIsTestSpecialization.isNum:
         test = typeof("number");
         break;
 
-      case IsTestSpecializationKind.isInt:
+      case SimpleIsTestSpecialization.isInt:
         test = isTest(_commonElements.specializedIsInt);
         break;
 
-      case IsTestSpecializationKind.isArrayTop:
+      case SimpleIsTestSpecialization.isArrayTop:
         test = handleNegative(js.js('Array.isArray(#)', [value]));
         break;
 
-      case IsTestSpecializationKind.isInstanceof:
-        InterfaceType type = node.specialization.interfaceType;
+      case InstanceOfIsTestSpecialization(interfaceType: final type):
         _registry.registerTypeUse(TypeUse.constructorReference(type));
         test = handleNegative(js.js('# instanceof #',
             [value, _emitter.constructorAccess(type.element)]));

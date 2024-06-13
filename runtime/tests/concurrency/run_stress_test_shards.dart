@@ -138,12 +138,10 @@ const int tsanShards = 200;
 final configurations = <TestRunner>[
   JitTestRunner('out/DebugX64', [
     '--disable-dart-dev',
-    '--sound-null-safety',
     'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
   ]),
   JitTestRunner('out/ReleaseX64', [
     '--disable-dart-dev',
-    '--sound-null-safety',
     '--no-inline-alloc',
     '--use-slow-path',
     '--deoptimize-on-runtime-call-every=3',
@@ -155,21 +153,18 @@ final configurations = <TestRunner>[
       '-Drepeat=4',
       '-Dshard=$i',
       '-Dshards=$tsanShards',
-      '--sound-null-safety',
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
-  AotTestRunner('out/ReleaseX64', [
-    '--sound-null-safety',
-    'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
-  ], [
-    '--sound-null-safety',
-  ]),
-  AotTestRunner('out/DebugX64', [
-    '--sound-null-safety',
-    'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
-  ], [
-    '--sound-null-safety',
-  ]),
+  AotTestRunner(
+    'out/ReleaseX64',
+    ['runtime/tests/concurrency/generated_stress_test.dart.aot.dill'],
+    [],
+  ),
+  AotTestRunner(
+    'out/DebugX64',
+    ['runtime/tests/concurrency/generated_stress_test.dart.aot.dill'],
+    [],
+  ),
 ];
 
 main(List<String> arguments) async {

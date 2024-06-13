@@ -10,7 +10,9 @@ import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
 
-enum IsTestSpecializationKind {
+sealed class IsTestSpecialization {}
+
+enum SimpleIsTestSpecialization implements IsTestSpecialization {
   isNull,
   isNotNull,
   isString,
@@ -18,36 +20,12 @@ enum IsTestSpecializationKind {
   isNum,
   isInt,
   isArrayTop,
-  isInstanceof,
 }
 
-class IsTestSpecialization {
-  static const isNull = IsTestSpecialization._(IsTestSpecializationKind.isNull);
-  static const isNotNull =
-      IsTestSpecialization._(IsTestSpecializationKind.isNotNull);
-  static const isString =
-      IsTestSpecialization._(IsTestSpecializationKind.isString);
-  static const isBool = IsTestSpecialization._(IsTestSpecializationKind.isBool);
-  static const isNum = IsTestSpecialization._(IsTestSpecializationKind.isNum);
-  static const isInt = IsTestSpecialization._(IsTestSpecializationKind.isInt);
-  static const isArrayTop =
-      IsTestSpecialization._(IsTestSpecializationKind.isArrayTop);
+class InstanceOfIsTestSpecialization implements IsTestSpecialization {
+  final InterfaceType interfaceType;
 
-  final IsTestSpecializationKind kind;
-  final InterfaceType? _type;
-
-  const IsTestSpecialization._(this.kind) : _type = null;
-
-  const IsTestSpecialization._instanceof(InterfaceType type)
-      : kind = IsTestSpecializationKind.isInstanceof,
-        _type = type;
-
-  bool get isInstanceof => kind == IsTestSpecializationKind.isInstanceof;
-
-  InterfaceType get interfaceType {
-    assert(kind == IsTestSpecializationKind.isInstanceof);
-    return _type!;
-  }
+  const InstanceOfIsTestSpecialization(this.interfaceType);
 }
 
 class SpecializedChecks {
@@ -56,7 +34,7 @@ class SpecializedChecks {
     if (dartType is LegacyType) {
       DartType base = dartType.baseType;
       // `Never*` accepts only `null`.
-      if (base is NeverType) return IsTestSpecialization.isNull;
+      if (base is NeverType) return SimpleIsTestSpecialization.isNull;
       // `Object*` is top and should be handled by constant folding.
       if (base.isObject) return null;
       return _findIsTestSpecialization(base, compiland, closedWorld);
@@ -72,23 +50,23 @@ class SpecializedChecks {
 
       if (element == commonElements.nullClass ||
           element == commonElements.jsNullClass) {
-        return IsTestSpecialization.isNull;
+        return SimpleIsTestSpecialization.isNull;
       }
 
       if (element == commonElements.jsStringClass ||
           element == commonElements.stringClass) {
-        return IsTestSpecialization.isString;
+        return SimpleIsTestSpecialization.isString;
       }
 
       if (element == commonElements.jsBoolClass ||
           element == commonElements.boolClass) {
-        return IsTestSpecialization.isBool;
+        return SimpleIsTestSpecialization.isBool;
       }
 
       if (element == commonElements.doubleClass ||
           element == commonElements.jsNumberClass ||
           element == commonElements.numClass) {
-        return IsTestSpecialization.isNum;
+        return SimpleIsTestSpecialization.isNum;
       }
 
       if (element == commonElements.jsIntClass ||
@@ -96,7 +74,7 @@ class SpecializedChecks {
           element == commonElements.jsUInt32Class ||
           element == commonElements.jsUInt31Class ||
           element == commonElements.jsPositiveIntClass) {
-        return IsTestSpecialization.isInt;
+        return SimpleIsTestSpecialization.isInt;
       }
 
       DartTypes dartTypes = closedWorld.dartTypes;
@@ -112,12 +90,12 @@ class SpecializedChecks {
       }
 
       if (element == commonElements.jsArrayClass) {
-        return IsTestSpecialization.isArrayTop;
+        return SimpleIsTestSpecialization.isArrayTop;
       }
 
       if (dartType.isObject) {
         assert(!dartTypes.isTopType(dartType)); // Checked above.
-        return IsTestSpecialization.isNotNull;
+        return SimpleIsTestSpecialization.isNotNull;
       }
 
       ClassHierarchy classHierarchy = closedWorld.classHierarchy;
@@ -135,7 +113,7 @@ class SpecializedChecks {
           outputUnitData.hasOnlyNonDeferredImportPathsToClass(
               compiland, topmost)) {
         assert(!dartType.isObject); // Checked above.
-        return IsTestSpecialization._instanceof(
+        return InstanceOfIsTestSpecialization(
             elementEnvironment.getClassInstantiationToBounds(topmost));
       }
 
