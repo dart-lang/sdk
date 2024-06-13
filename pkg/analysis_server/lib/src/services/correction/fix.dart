@@ -1018,6 +1018,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove the 'U+{0}' code point",
   );
+  static const REMOVE_COMMA = FixKind(
+    'dart.fix.remove.comma',
+    DartFixKindPriority.DEFAULT,
+    'Remove the comma',
+  );
+  static const REMOVE_COMMA_MULTI = FixKind(
+    'dart.fix.remove.comma.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove commas everywhere in file',
+  );
   static const REMOVE_COMPARISON = FixKind(
     'dart.fix.remove.comparison',
     DartFixKindPriority.DEFAULT,
