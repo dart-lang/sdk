@@ -1,3 +1,7 @@
+## 0.1.2-main.3
+
+- Re-export 'package:_macros/src/executor/response_impls.dart'.
+
 ## 0.1.2-main.2
 
 - Re-publish of `0.1.2-main.1` which was retracted due to a corrupted tar file.
