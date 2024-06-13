@@ -1026,7 +1026,7 @@ class DartFixKind {
   static const REMOVE_COMMA_MULTI = FixKind(
     'dart.fix.remove.comma.multi',
     DartFixKindPriority.IN_FILE,
-    'Remove commas from {0} everywhere in file',
+    'Remove {0}commas from {1} everywhere in file',
   );
   static const REMOVE_COMPARISON = FixKind(
     'dart.fix.remove.comparison',

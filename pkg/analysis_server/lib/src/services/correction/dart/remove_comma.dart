@@ -9,15 +9,23 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class RemoveComma extends ResolvedCorrectionProducer {
+  final String commaKind;
   final String targetDescription;
 
   RemoveComma.emptyRecordLiteral({required CorrectionProducerContext context})
       : this._(context: context, targetDescription: 'empty record literals');
-
   RemoveComma.emptyRecordType({required CorrectionProducerContext context})
       : this._(context: context, targetDescription: 'empty record types');
+  RemoveComma.representationField({required CorrectionProducerContext context})
+      : this._(
+            context: context,
+            commaKind: 'trailing ',
+            targetDescription: 'representation fields');
 
-  RemoveComma._({required super.context, required this.targetDescription});
+  RemoveComma._(
+      {required super.context,
+      this.commaKind = '',
+      required this.targetDescription});
 
   @override
   CorrectionApplicability get applicability =>
@@ -27,7 +35,7 @@ class RemoveComma extends ResolvedCorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_COMMA;
 
   @override
-  List<String>? get multiFixArguments => [targetDescription];
+  List<String>? get multiFixArguments => [commaKind, targetDescription];
 
   @override
   FixKind get multiFixKind => DartFixKind.REMOVE_COMMA_MULTI;

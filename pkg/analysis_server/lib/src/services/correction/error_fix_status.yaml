@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 323 "needsFix"
-# - 424 "hasFix"
+# - 322 "needsFix"
+# - 425 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3186,9 +3186,7 @@ ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
 ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
-  status: needsFix
-  notes: |-
-    Remove the comma.
+  status: hasFix
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
