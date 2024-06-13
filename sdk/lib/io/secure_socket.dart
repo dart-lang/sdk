@@ -82,7 +82,7 @@ abstract interface class SecureSocket implements Socket {
         .then((rawState) {
       Future<SecureSocket> socket =
           rawState.socket.then((rawSocket) => new SecureSocket._(rawSocket));
-      return new ConnectionTask<SecureSocket>._(socket, rawState._onCancel);
+      return new ConnectionTask<SecureSocket>(socket, rawState._onCancel);
     });
   }
 
@@ -305,7 +305,7 @@ abstract interface class RawSecureSocket implements RawSocket {
             keyLog: keyLog,
             supportedProtocols: supportedProtocols);
       });
-      return new ConnectionTask<RawSecureSocket>._(socket, rawState._onCancel);
+      return new ConnectionTask<RawSecureSocket>(socket, rawState._onCancel);
     });
   }
 

@@ -539,7 +539,11 @@ final class ConnectionTask<S> {
   final Future<S> socket;
   final void Function() _onCancel;
 
+  @Deprecated("Use public constructor instead.")
   ConnectionTask._(Future<S> this.socket, void Function() onCancel)
+      : _onCancel = onCancel;
+
+  ConnectionTask(Future<S> this.socket, void Function() onCancel)
       : _onCancel = onCancel;
 
   /// Cancels the connection attempt.

@@ -1927,7 +1927,7 @@ class _RawSocket extends Stream<RawSocketEvent>
         }
         return _RawSocket(nativeSocket);
       });
-      return ConnectionTask<_RawSocket>._(raw, nativeTask._onCancel);
+      return ConnectionTask<_RawSocket>(raw, nativeTask._onCancel);
     });
   }
 
@@ -2146,7 +2146,7 @@ class Socket {
         .then((rawTask) {
       Future<Socket> socket =
           rawTask.socket.then((rawSocket) => new _Socket(rawSocket));
-      return new ConnectionTask<Socket>._(socket, rawTask._onCancel);
+      return new ConnectionTask<Socket>(socket, rawTask._onCancel);
     });
   }
 }
