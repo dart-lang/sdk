@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 326 "needsFix"
-# - 421 "hasFix"
+# - 325 "needsFix"
+# - 422 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3214,9 +3214,7 @@ ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
 ParserErrorCode.STATIC_OPERATOR:
   status: hasFix
 ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
   status: needsFix
   notes: |-
