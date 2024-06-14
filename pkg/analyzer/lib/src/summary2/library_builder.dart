@@ -929,7 +929,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         uri = DirectiveUriWithSourceImpl(
           relativeUriString: state.uri.relativeUriStr,
           relativeUri: state.uri.relativeUri,
-          source: state.importedSource,
+          source: state.importedFile.source,
         );
       }
     } else {
