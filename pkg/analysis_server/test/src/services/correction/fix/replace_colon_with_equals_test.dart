@@ -52,6 +52,15 @@ class B extends A {
 }
 ''');
   }
+
+  Future<void> test_wrongSeparatorForPositionalParameter() async {
+    await resolveTestCode('''
+void f(int a, [int b : 0]) {}
+''');
+    await assertHasFix('''
+void f(int a, [int b = 0]) {}
+''');
+  }
 }
 
 @reflectiveTest

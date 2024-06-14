@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 322 "needsFix"
-# - 425 "hasFix"
+# - 321 "needsFix"
+# - 426 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3276,9 +3276,7 @@ ParserErrorCode.WITH_BEFORE_EXTENDS:
   notes: |-
     Move the extends clause.
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
-  status: needsFix
-  notes: |-
-    Replace the `:` with an '='.
+  status: hasFix
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-

@@ -1521,6 +1521,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.VAR_RETURN_TYPE: [
     RemoveVar.new,
   ],
+  ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER: [
+    ReplaceColonWithEquals.new,
+  ],
   StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
     RemoveDeadIfNull.new,
   ],
