@@ -519,6 +519,49 @@ main2/*[1*/() {
     });
   }
 
+  Future<void> test_function_expression_underscore_preWildcards() async {
+    var content = '''
+// /*[0*/
+// @dart = 3.4
+// (pre wildcard-variables)/*0]*/
+
+// Content before
+
+void f/*[1*/() {
+  _/*[2*/(){
+  }/*2]*/
+}/*1]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FILE_HEADER,
+      1: FoldingKind.FUNCTION_BODY,
+      2: FoldingKind.FUNCTION_BODY,
+    });
+  }
+
+  Future<void> test_function_expression_wildcard() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  _/*[1*/(){
+  }/*1]*/
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+    });
+  }
+
   Future<void> test_function_with_dart_doc() async {
     var content = '''
 // Content before
