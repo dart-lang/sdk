@@ -429,8 +429,10 @@ class BulkFixProcessor {
           for (var fix in result) {
             fixes.addAll(fix.change.edits);
           }
-          details.add(BulkFix(pubspecFile.path,
-              [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
+          details.add(BulkFix(pubspecFile.path, [
+            BulkFixDetail(
+                PubspecWarningCode.MISSING_DEPENDENCY.name.toLowerCase(), 1)
+          ]));
         }
       }
     }
