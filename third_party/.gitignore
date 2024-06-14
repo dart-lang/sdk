@@ -9,7 +9,7 @@
 !.gitignore
 !binaryen
 !/d8/README.google
-!firefox_jsshell
+!/firefox_jsshell/README.google
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1
 !update.sh
