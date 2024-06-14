@@ -58,12 +58,39 @@ OneByteString createOneByteStringFromCharacters(
         U8List bytes, int start, int end) =>
     createOneByteStringFromCharactersArray(bytes.data, start, end);
 
+/// Create a [OneByteString] with the [array] contents in the range from
+/// [start] to [end] (exclusive).
 @pragma("wasm:prefer-inline")
 OneByteString createOneByteStringFromCharactersArray(
-    WasmArray<WasmI8> bytes, int start, int end) {
+    WasmArray<WasmI8> array, int start, int end) {
   final len = end - start;
   final s = OneByteString.withLength(len);
-  s._array.copy(0, bytes, start, len);
+  s._array.copy(0, array, start, len);
+  return s;
+}
+
+/// Same as [createOneByteStringFromCharactersArray], but the one-byte
+/// character array is an `i16 array` instead of `i8 array`.
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromTwoByteCharactersArray(
+    WasmArray<WasmI16> array, int start, int end) {
+  final len = end - start;
+  final s = OneByteString.withLength(len);
+  for (int i = 0; i < len; i += 1) {
+    final i16 = array.readUnsigned(start + i);
+    s._array.write(i, i16);
+  }
+  return s;
+}
+
+/// Create a [TwoByteString] with the [array] contents in the range from
+/// [start] to [end] (exclusive).
+@pragma("wasm:prefer-inline")
+TwoByteString createTwoByteStringFromCharactersArray(
+    WasmArray<WasmI16> array, int start, int end) {
+  final len = end - start;
+  final s = TwoByteString.withLength(len);
+  s._array.copy(0, array, start, len);
   return s;
 }
 
