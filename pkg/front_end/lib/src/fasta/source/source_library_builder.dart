@@ -2109,7 +2109,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     FormalParameterBuilder formal = new FormalParameterBuilder(
         kind, modifiers, type, name, _sourceLibraryBuilder, charOffset,
         fileUri: fileUri,
-        hasImmediatelyDeclaredInitializer: initializerToken != null)
+        hasImmediatelyDeclaredInitializer: initializerToken != null,
+        isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_')
       ..initializerToken = initializerToken;
     return formal;
   }
@@ -5242,6 +5243,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (isOptional &&
           formal.variable!.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
+        // Wildcard optional parameters can't be used so we allow having no
+        // initializer.
+        if (libraryFeatures.wildcardVariables.isEnabled &&
+            formal.isWildcard &&
+            !formal.isSuperInitializingFormal &&
+            !formal.isInitializingFormal) {
+          continue;
+        }
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
                 formal.name, formal.variable!.type),
