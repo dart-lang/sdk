@@ -644,6 +644,7 @@ mixin OverrideTestCases on AbstractCompletionDriverTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
+    writeTestPackageConfig(meta: true);
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
@@ -1234,6 +1235,37 @@ suggestions
     await computeSuggestions('''
 class A {
   void foo01() {}
+}
+
+class B extends A {
+  @override
+  foo^
+}
+''');
+
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  void foo01() {
+    // TODO: implement foo01
+    super.foo01();
+  }
+    kind: override
+    displayText: foo01() { … }
+    selection: 48 14
+''');
+  }
+
+  Future<void> test_class_method_fromExtends_withOverride_nonVirtual() async {
+    await computeSuggestions('''
+import 'package:meta/meta.dart';
+
+class A {
+  void foo01() {}
+
+  @nonVirtual
+  void foo02() {}
 }
 
 class B extends A {
