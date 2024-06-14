@@ -646,14 +646,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
             'takes precedence over the optimization-level option.',
         hide: !verbose,
       )
-      // TODO(kustermann): Remove this flag once flutter no longer uses it.
-      ..addFlag(
-        'name-section',
-        defaultsTo: true,
-        negatable: true,
-        help: 'Include a name section with printable function names.',
-        hide: !verbose,
-      )
       ..addFlag(
         'strip-wasm',
         defaultsTo: true,
@@ -850,13 +842,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       return compileErrorExitCode;
     }
 
-    bool strip = true;
-    if (args.wasParsed('name-section')) {
-      strip = !args.flag('name-section');
-    }
-    if (args.wasParsed('strip-wasm')) {
-      strip = args.flag('strip-wasm');
-    }
+    final bool strip = args.flag('strip-wasm');
 
     if (runWasmOpt) {
       final unoptFile = '$outputFileBasename.unopt.wasm';
