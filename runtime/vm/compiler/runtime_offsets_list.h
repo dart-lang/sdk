@@ -315,6 +315,7 @@
   FIELD(Thread, resume_pc_offset)                                              \
   FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
+  FIELD(Thread, shared_field_table_values_offset)                              \
   FIELD(Thread, slow_type_test_stub_offset)                                    \
   FIELD(Thread, slow_type_test_entry_point_offset)                             \
   FIELD(Thread, stack_limit_offset)                                            \

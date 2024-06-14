@@ -235,6 +235,7 @@ class KernelLoader : public ValueObject {
       BitField<uint32_t, bool, IsolateUnsendablePragma::kNextBit, 1>;
   using FfiNativePragma =
       BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit, 1>;
+  using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit, 1>;
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,

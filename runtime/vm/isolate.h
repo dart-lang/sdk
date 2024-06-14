@@ -733,6 +733,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     initial_field_table_ = field_table;
   }
 
+  FieldTable* shared_field_table() const { return shared_field_table_.get(); }
+  std::shared_ptr<FieldTable> shared_field_table_shareable() {
+    return shared_field_table_;
+  }
+  void set_shared_field_table(std::shared_ptr<FieldTable> field_table) {
+    shared_field_table_ = field_table;
+  }
+
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
   void RegisterClass(const Class& cls);
@@ -847,6 +855,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
+  std::shared_ptr<FieldTable> shared_field_table_;
   uint32_t isolate_group_flags_ = 0;
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);

@@ -2247,7 +2247,8 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch);
+                              Register scratch,
+                              bool is_shared);
 
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadCompressedFieldAddressForRegOffset(

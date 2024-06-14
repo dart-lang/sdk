@@ -188,9 +188,10 @@ class StubCodeCompiler {
   // stubs. Check architecture-specific version for inputs/outputs.
   static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n);
 
-  // Common function for generating InitLateStaticField and
-  // InitLateFinalStaticField stubs.
-  void GenerateInitLateStaticFieldStub(bool is_final);
+  // Common function for generating InitLateStaticField,
+  // InitLateFinalStaticField, InitSharedLateStaticField,
+  // InitSharedLateFinalStaticField,
+  void GenerateInitLateStaticFieldStub(bool is_final, bool is_shared);
 
   // Common function for generating InitLateInstanceField and
   // InitLateFinalInstanceField stubs.

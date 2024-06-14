@@ -4462,6 +4462,11 @@ class Field : public Object {
     set_kind_bits(GenericCovariantImplBit::update(value, untag()->kind_bits_));
   }
 
+  void set_is_shared(bool value) const {
+    set_kind_bits(SharedBit::update(value, untag()->kind_bits_));
+  }
+  bool is_shared() const { return SharedBit::decode(kind_bits()); }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -4831,6 +4836,7 @@ class Field : public Object {
     kIsExtensionTypeMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
+    kSharedBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -4857,6 +4863,7 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
+  class SharedBit : public BitField<uint16_t, bool, kSharedBit, 1> {};
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;

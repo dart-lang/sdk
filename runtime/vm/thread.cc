@@ -339,6 +339,7 @@ void Thread::AssertEmptyThreadInvariants() {
   // Avoid running these asserts for `vm-isolate`.
   if (active_stacktrace_.untag() != 0) {
     ASSERT(field_table_values_ == nullptr);
+    ASSERT(shared_field_table_values_ == nullptr);
     ASSERT(global_object_pool_ == Object::null());
 #define CHECK_REUSABLE_HANDLE(object) ASSERT(object##_handle_->IsNull());
     REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
@@ -1401,6 +1402,8 @@ void Thread::SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group) {
 #undef INIT_ENTRY_POINT
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+  shared_field_table_values_ = group->shared_field_table()->table();
 }
 
 void Thread::ResetDartMutatorState(Isolate* isolate) {
@@ -1410,6 +1413,7 @@ void Thread::ResetDartMutatorState(Isolate* isolate) {
   is_unwind_in_progress_ = false;
 
   field_table_values_ = nullptr;
+  shared_field_table_values_ = nullptr;
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
 }

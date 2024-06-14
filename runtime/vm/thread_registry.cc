@@ -165,6 +165,7 @@ void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread->isolate_ == nullptr);
   ASSERT(thread->isolate_group_ == nullptr);
   ASSERT(thread->field_table_values_ == nullptr);
+  ASSERT(thread->shared_field_table_values_ == nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Add thread to the free list.
   thread->next_ = free_list_;

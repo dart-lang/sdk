@@ -12146,11 +12146,12 @@ const char* Field::ToCString() const {
   const char* kF1 = is_late() ? " late" : "";
   const char* kF2 = is_final() ? " final" : "";
   const char* kF3 = is_const() ? " const" : "";
+  const char* kF4 = is_shared() ? " shared" : "";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(Owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s",
-                     cls_name, field_name, kF0, kF1, kF2, kF3);
+  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s%s",
+                     cls_name, field_name, kF0, kF1, kF2, kF3, kF4);
 }
 
 // Build a closure object that gets (or sets) the contents of a static
@@ -12407,6 +12408,7 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
   // We can safely cache the value of the static const field in the initial
   // field table.
+  ASSERT(!is_shared());
   auto& value = Object::Handle(
       zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
@@ -12428,6 +12430,7 @@ ObjectPtr Field::StaticConstFieldValue() const {
 void Field::SetStaticConstFieldValue(const Instance& value,
                                      bool assert_initializing_store) const {
   ASSERT(is_static());
+  ASSERT(!is_shared());
   auto thread = Thread::Current();
   auto initial_field_table = thread->isolate_group()->initial_field_table();
 
@@ -12747,6 +12750,7 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 }
 
 void Field::SetStaticValue(const Object& value) const {
+  ASSERT(!is_shared());
   auto thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
   ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());

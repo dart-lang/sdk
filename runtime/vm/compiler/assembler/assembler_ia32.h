@@ -952,11 +952,13 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch) {
+                              Register scratch,
+                              bool is_shared) {
     LoadFieldFromOffset(scratch, field,
                         target::Field::host_offset_or_field_id_offset());
     const intptr_t field_table_offset =
-        compiler::target::Thread::field_table_values_offset();
+        is_shared ? compiler::target::Thread::shared_field_table_values_offset()
+                  : compiler::target::Thread::field_table_values_offset();
     LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leal(address, Address(address, scratch, TIMES_HALF_WORD_SIZE, 0));

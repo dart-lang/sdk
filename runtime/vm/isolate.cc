@@ -351,6 +351,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
+      shared_field_table_(new FieldTable(/*isolate=*/nullptr, /*shared=*/true)),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
@@ -786,6 +787,18 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());
+  if (field.is_shared()) {
+    GcSafepointOperationScope scope(Thread::Current());
+    if (shared_field_table()->Register(field)) {
+      for (auto isolate : isolates_) {
+        isolate->mutator_thread()->shared_field_table_values_ =
+            shared_field_table()->table();
+      }
+    }
+    const intptr_t field_id = field.field_id();
+    shared_field_table()->SetAt(field_id, initial_value.ptr());
+    return;
+  }
   const bool need_to_grow_backing_store =
       initial_field_table()->Register(field);
   const intptr_t field_id = field.field_id();
@@ -821,16 +834,20 @@ void IsolateGroup::FreeStaticField(const Field& field) {
 #endif
 
   const intptr_t field_id = field.field_id();
-  initial_field_table()->Free(field_id);
-  ForEachIsolate([&](Isolate* isolate) {
-    auto field_table = isolate->field_table();
-    // The isolate might've just been created and is now participating in
-    // the reload request inside `IsolateGroup::RegisterIsolate()`.
-    // At that point it doesn't have the field table setup yet.
-    if (field_table->IsReadyToUse()) {
-      field_table->Free(field_id);
-    }
-  });
+  if (field.is_shared()) {
+    shared_field_table()->Free(field_id);
+  } else {
+    initial_field_table()->Free(field_id);
+    ForEachIsolate([&](Isolate* isolate) {
+      auto field_table = isolate->field_table();
+      // The isolate might've just been created and is now participating in
+      // the reload request inside `IsolateGroup::RegisterIsolate()`.
+      // At that point it doesn't have the field table setup yet.
+      if (field_table->IsReadyToUse()) {
+        field_table->Free(field_id);
+      }
+    });
+  }
 }
 
 Isolate* IsolateGroup::EnterTemporaryIsolate() {
@@ -2889,6 +2906,7 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
+  shared_field_table()->VisitObjectPointers(visitor);
 
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads
