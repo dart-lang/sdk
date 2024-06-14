@@ -156,8 +156,8 @@ class SourceLoader extends Loader {
 
   List<SourceLibraryBuilder>? _sourceLibraryBuilders;
 
-  final Queue<SourceLibraryBuilder> _unparsedLibraries =
-      new Queue<SourceLibraryBuilder>();
+  final Queue<SourceCompilationUnit> _unparsedLibraries =
+      new Queue<SourceCompilationUnit>();
 
   final List<Library> libraries = <Library>[];
 
@@ -523,7 +523,7 @@ class SourceLoader extends Loader {
     if (uri.isScheme("dart")) {
       target.readPatchFiles(libraryBuilder);
     }
-    _unparsedLibraries.addLast(libraryBuilder);
+    _unparsedLibraries.addLast(libraryBuilder.compilationUnit);
 
     return libraryBuilder;
   }
@@ -876,8 +876,9 @@ severity: $severity
   /// part of the error message.
   Set<SourceLibraryBuilder> _unavailableDartLibraries = {};
 
-  Future<Token> tokenize(SourceLibraryBuilder libraryBuilder,
+  Future<Token> tokenize(SourceCompilationUnit compilationUnit,
       {bool suppressLexicalErrors = false}) async {
+    SourceLibraryBuilder libraryBuilder = compilationUnit.sourceLibraryBuilder;
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
     Uri fileUri = libraryBuilder.fileUri;
 
@@ -1040,26 +1041,26 @@ severity: $severity
     _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
-  /// Registers the [library] as unparsed with the given [source] code.
+  /// Registers the [compilationUnit] as unparsed with the given [source] code.
   ///
   /// This is used for creating synthesized augmentation libraries.
   void registerUnparsedLibrarySource(
-      SourceLibraryBuilder library, String source) {
+      SourceCompilationUnit compilationUnit, String source) {
     List<int> codeUnits = source.codeUnits;
     Uint8List bytes = new Uint8List(codeUnits.length + 1);
     bytes.setRange(0, codeUnits.length, codeUnits);
-    sourceBytes[library.fileUri] = bytes;
-    _unparsedLibraries.addLast(library);
+    sourceBytes[compilationUnit.fileUri] = bytes;
+    _unparsedLibraries.addLast(compilationUnit);
   }
 
   /// Runs the [OutlineBuilder] on the source of all [_unparsedLibraries].
   Future<void> buildOutlines() async {
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
-      SourceLibraryBuilder library = _unparsedLibraries.removeFirst();
+      SourceCompilationUnit compilationUnit = _unparsedLibraries.removeFirst();
       currentUriForCrashReporting =
-          new UriOffset(library.importUri, TreeNode.noOffset);
-      await buildOutline(library);
+          new UriOffset(compilationUnit.importUri, TreeNode.noOffset);
+      await buildOutline(compilationUnit);
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
@@ -1150,14 +1151,14 @@ severity: $severity
     return bytes.sublist(0, bytes.length - 1);
   }
 
-  Future<Null> buildOutline(SourceLibraryBuilder library) async {
-    Token tokens = await tokenize(library);
-    OffsetMap offsetMap = new OffsetMap(library.fileUri);
-    OutlineBuilder listener = new OutlineBuilder(library, offsetMap);
+  Future<Null> buildOutline(SourceCompilationUnit compilationUnit) async {
+    Token tokens = await tokenize(compilationUnit);
+    OffsetMap offsetMap = new OffsetMap(compilationUnit.fileUri);
+    OutlineBuilder listener = new OutlineBuilder(compilationUnit, offsetMap);
     new ClassMemberParser(listener,
-            allowPatterns: library.libraryFeatures.patterns.isEnabled)
+            allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled)
         .parseUnit(tokens);
-    library.offsetMap = offsetMap;
+    compilationUnit.offsetMap = offsetMap;
   }
 
   /// Builds all the method bodies found in the given [library].
@@ -1176,7 +1177,8 @@ severity: $severity
     // We tokenize source files twice to keep memory usage low. This is the
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
-    Token tokens = await tokenize(library, suppressLexicalErrors: true);
+    SourceCompilationUnit compilationUnit = library.compilationUnit;
+    Token tokens = await tokenize(compilationUnit, suppressLexicalErrors: true);
 
     if (target.benchmarker != null) {
       // When benchmarking we do extra parsing on it's own to get a timing of
@@ -1204,17 +1206,20 @@ severity: $severity
       }
     }
 
-    DietListener listener = createDietListener(library, library.offsetMap);
+    DietListener listener =
+        createDietListener(library, compilationUnit.offsetMap);
     DietParser parser = new DietParser(listener,
         allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
     for (Part part in library.parts) {
       assert(part.compilationUnit.partOfLibrary == library,
           "Part ${part.compilationUnit} is not part of ${library}.");
-      Token tokens = await tokenize(
-          (part.compilationUnit as SourceCompilationUnit).sourceLibraryBuilder,
-          suppressLexicalErrors: true);
-      DietListener listener = createDietListener(library, part.offsetMap);
+      SourceCompilationUnit compilationUnit =
+          part.compilationUnit as SourceCompilationUnit;
+      Token tokens =
+          await tokenize(compilationUnit, suppressLexicalErrors: true);
+      DietListener listener =
+          createDietListener(library, compilationUnit.offsetMap);
       DietParser parser = new DietParser(listener,
           allowPatterns: library.libraryFeatures.patterns.isEnabled);
       parser.parseUnit(tokens);
@@ -1227,7 +1232,8 @@ severity: $severity
       bool isClassInstanceMember,
       FunctionNode parameters,
       VariableDeclaration? extensionThis) async {
-    Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
+    Token token = await tokenize(libraryBuilder.compilationUnit,
+        suppressLexicalErrors: false);
     DietListener dietListener = createDietListener(
         libraryBuilder,
         // Expression compilation doesn't build an outline, and thus doesn't

@@ -33,6 +33,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -504,6 +505,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
+  final SourceCompilationUnit compilationUnit;
+
   final bool enableNative;
   bool inAbstractOrSealedClass = false;
   bool inConstructor = false;
@@ -540,9 +543,10 @@ class OutlineBuilder extends StackListenerImpl {
 
   OffsetMap _offsetMap;
 
-  OutlineBuilder(this.libraryBuilder, this._offsetMap)
-      : enableNative = libraryBuilder.loader.target.backendTarget
-            .enableNative(libraryBuilder.importUri);
+  OutlineBuilder(this.compilationUnit, this._offsetMap)
+      : enableNative = compilationUnit.loader.target.backendTarget
+            .enableNative(compilationUnit.importUri),
+        libraryBuilder = compilationUnit.sourceLibraryBuilder;
 
   DeclarationContext get declarationContext => _declarationContext.head;
 
@@ -559,7 +563,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  Uri get uri => libraryBuilder.fileUri;
+  Uri get uri => compilationUnit.fileUri;
 
   int popCharOffset() => pop() as int;
 
@@ -638,7 +642,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(names);
     } else {
       push(new CombinatorBuilder.hide(names as Iterable<String>,
-          hideKeyword.charOffset, libraryBuilder.fileUri));
+          hideKeyword.charOffset, compilationUnit.fileUri));
     }
   }
 
@@ -650,7 +654,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(names);
     } else {
       push(new CombinatorBuilder.show(names as Iterable<String>,
-          showKeyword.charOffset, libraryBuilder.fileUri));
+          showKeyword.charOffset, compilationUnit.fileUri));
     }
   }
 
@@ -680,7 +684,7 @@ class OutlineBuilder extends StackListenerImpl {
     int uriOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    libraryBuilder.addExport(_offsetMap, exportKeyword, metadata, uri,
+    compilationUnit.addExport(_offsetMap, exportKeyword, metadata, uri,
         configurations, combinators, exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
   }
@@ -734,7 +738,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     bool isAugmentationImport = augmentToken != null;
-    libraryBuilder.addImport(
+    compilationUnit.addImport(
         offsetMap: _offsetMap,
         importKeyword: importKeyword,
         metadata: metadata,
@@ -815,7 +819,7 @@ class OutlineBuilder extends StackListenerImpl {
     int charOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    libraryBuilder.addPart(_offsetMap, partKeyword, metadata, uri, charOffset);
+    compilationUnit.addPart(_offsetMap, partKeyword, metadata, uri, charOffset);
     checkEmpty(partKeyword.charOffset);
   }
 
@@ -955,13 +959,13 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (name != null && name is! ParserRecovery) {
-      libraryBuilder.name =
+      compilationUnit.name =
           flattenName(name, offsetForToken(libraryKeyword), uri);
     } else {
       reportIfNotEnabled(
           libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
     }
-    libraryBuilder.metadata = metadata;
+    compilationUnit.metadata = metadata;
   }
 
   @override
@@ -977,7 +981,7 @@ class OutlineBuilder extends StackListenerImpl {
     pop() as int;
     pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    libraryBuilder.metadata = metadata;
+    compilationUnit.metadata = metadata;
   }
 
   @override
@@ -985,7 +989,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("beginClassOrNamedMixinApplicationPrelude");
     pushDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.classOrNamedMixinApplication,
         "class or mixin application");
   }
@@ -1045,9 +1049,9 @@ class OutlineBuilder extends StackListenerImpl {
         mixinToken = null;
       }
     }
-    libraryBuilder.currentTypeParameterScopeBuilder
+    compilationUnit.currentTypeParameterScopeBuilder
         .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
-    libraryBuilder.beginIndexedContainer(name.lexeme,
+    compilationUnit.beginIndexedContainer(name.lexeme,
         isExtensionTypeDeclaration: false);
     inAbstractOrSealedClass = abstractToken != null || sealedToken != null;
     push(abstractToken != null ? abstractMask : 0);
@@ -1078,9 +1082,9 @@ class OutlineBuilder extends StackListenerImpl {
     push(augmentToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(typeVariables ?? NullValues.NominalVariables);
-    libraryBuilder.currentTypeParameterScopeBuilder
+    compilationUnit.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
-    libraryBuilder.beginIndexedContainer(name.lexeme,
+    compilationUnit.beginIndexedContainer(name.lexeme,
         isExtensionTypeDeclaration: false);
   }
 
@@ -1115,7 +1119,7 @@ class OutlineBuilder extends StackListenerImpl {
       Object? extensionThisType = peek();
 
       if (extensionThisType is TypeBuilder) {
-        libraryBuilder.currentTypeParameterScopeBuilder
+        compilationUnit.currentTypeParameterScopeBuilder
             .registerExtensionThisType(extensionThisType);
       } else {
         // TODO(johnniwinther): Supply an invalid type as the extension on type.
@@ -1125,8 +1129,8 @@ class OutlineBuilder extends StackListenerImpl {
     // Resolve unresolved types from the class header (i.e., superclass, mixins,
     // and implemented types) before adding members from the class body which
     // should not shadow these unresolved types.
-    libraryBuilder.currentTypeParameterScopeBuilder.resolveNamedTypes(
-        libraryBuilder.currentTypeParameterScopeBuilder.typeVariables,
+    compilationUnit.currentTypeParameterScopeBuilder.resolveNamedTypes(
+        compilationUnit.currentTypeParameterScopeBuilder.typeVariables,
         libraryBuilder);
   }
 
@@ -1149,8 +1153,9 @@ class OutlineBuilder extends StackListenerImpl {
     List<NominalVariableBuilder>? typeVariables =
         pop() as List<NominalVariableBuilder>?;
     push(typeVariables ?? NullValues.NominalVariables);
-    libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
-        name.lexeme, name.charOffset, typeVariables);
+    compilationUnit.currentTypeParameterScopeBuilder
+        .markAsNamedMixinApplication(
+            name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
     if (macroToken != null) {
       if (reportIfNotEnabled(
@@ -1316,7 +1321,7 @@ class OutlineBuilder extends StackListenerImpl {
     inAbstractOrSealedClass = false;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
-      libraryBuilder
+      compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.classDeclaration, "<syntax-error>")
           .resolveNamedTypes(typeVariables, libraryBuilder);
@@ -1328,7 +1333,7 @@ class OutlineBuilder extends StackListenerImpl {
       String classNameForErrors = identifier.name;
       if (supertype != null) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               templateNullableSuperclassError
                   .withArguments(supertype.fullNameForErrors),
               identifier.nameOffset,
@@ -1340,7 +1345,7 @@ class OutlineBuilder extends StackListenerImpl {
         List<TypeBuilder>? mixins = mixinApplication.mixins;
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 templateNullableMixinError
                     .withArguments(mixin.fullNameForErrors),
                 identifier.nameOffset,
@@ -1352,7 +1357,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
@@ -1365,7 +1370,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (sealedToken != null) {
         modifiers |= abstractMask;
       }
-      libraryBuilder.addClass(
+      compilationUnit.addClass(
           _offsetMap,
           metadata,
           modifiers,
@@ -1386,7 +1391,7 @@ class OutlineBuilder extends StackListenerImpl {
           isAugmentation: augmentToken != null,
           isMixinClass: mixinToken != null);
     }
-    libraryBuilder.endIndexedContainer();
+    compilationUnit.endIndexedContainer();
     popDeclarationContext(DeclarationContext.Class);
   }
 
@@ -1423,7 +1428,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
-      libraryBuilder
+      compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.mixinDeclaration, "<syntax-error>")
           .resolveNamedTypes(typeVariables, libraryBuilder);
@@ -1435,7 +1440,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertypeConstraints != null) {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 templateNullableSuperclassError
                     .withArguments(supertype.fullNameForErrors),
                 identifier.nameOffset,
@@ -1447,7 +1452,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
@@ -1457,7 +1462,7 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
 
-      libraryBuilder.addMixinDeclaration(
+      compilationUnit.addMixinDeclaration(
           _offsetMap,
           metadata,
           mixinDeclarationMask,
@@ -1472,7 +1477,7 @@ class OutlineBuilder extends StackListenerImpl {
           isBase: baseToken != null,
           isAugmentation: augmentToken != null);
     }
-    libraryBuilder.endIndexedContainer();
+    compilationUnit.endIndexedContainer();
     popDeclarationContext(DeclarationContext.Mixin);
   }
 
@@ -1481,7 +1486,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(checkState(extensionKeyword, [ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
     pushDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         "extension");
   }
@@ -1501,7 +1506,7 @@ class OutlineBuilder extends StackListenerImpl {
         ? new SimpleIdentifier(nameToken)
         : NullValues.Identifier);
     push(typeVariables ?? NullValues.NominalVariables);
-    libraryBuilder.currentTypeParameterScopeBuilder
+    compilationUnit.currentTypeParameterScopeBuilder
         .markAsExtensionDeclaration(nameToken?.lexeme, offset, typeVariables);
   }
 
@@ -1532,7 +1537,7 @@ class OutlineBuilder extends StackListenerImpl {
     int startOffset = metadata == null
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
-    libraryBuilder.addExtensionDeclaration(
+    compilationUnit.addExtensionDeclaration(
         _offsetMap,
         beginToken,
         metadata,
@@ -1561,9 +1566,9 @@ class OutlineBuilder extends StackListenerImpl {
     int offset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
     push(typeVariables ?? NullValues.NominalVariables);
-    libraryBuilder.currentTypeParameterScopeBuilder
+    compilationUnit.currentTypeParameterScopeBuilder
         .markAsExtensionTypeDeclaration(name, offset, typeVariables);
-    libraryBuilder.beginIndexedContainer(name,
+    compilationUnit.beginIndexedContainer(name,
         isExtensionTypeDeclaration: true);
   }
 
@@ -1593,7 +1598,7 @@ class OutlineBuilder extends StackListenerImpl {
     int startOffset = metadata == null
         ? extensionKeyword.charOffset
         : metadata.first.charOffset;
-    libraryBuilder.addExtensionTypeDeclaration(
+    compilationUnit.addExtensionTypeDeclaration(
         _offsetMap,
         metadata,
         // TODO(johnniwinther): Support modifiers on extension types?
@@ -1604,7 +1609,7 @@ class OutlineBuilder extends StackListenerImpl {
         startOffset,
         endToken.charOffset);
 
-    libraryBuilder.endIndexedContainer();
+    compilationUnit.endIndexedContainer();
     popDeclarationContext(DeclarationContext.ExtensionType);
   }
 
@@ -1641,7 +1646,7 @@ class OutlineBuilder extends StackListenerImpl {
           TypeBuilder type = formal.type;
           if (type is FunctionTypeBuilder &&
               type.hasFunctionFormalParameterSyntax) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 // ignore: lines_longer_than_80_chars
                 messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
                 formal.charOffset,
@@ -1649,7 +1654,7 @@ class OutlineBuilder extends StackListenerImpl {
                 formal.fileUri);
           }
           if (type is ImplicitTypeBuilder) {
-            libraryBuilder.addProblem(messageExpectedRepresentationType,
+            compilationUnit.addProblem(messageExpectedRepresentationType,
                 formal.charOffset, formal.name.length, formal.fileUri);
             formal.type =
                 new InvalidTypeBuilderImpl(formal.fileUri, formal.charOffset);
@@ -1659,11 +1664,11 @@ class OutlineBuilder extends StackListenerImpl {
               Modifier.removeCovariantMask(
                   // 'required' is reported in the parser.
                   Modifier.removeRequiredMask(formal.modifiers)))) {
-            libraryBuilder.addProblem(messageRepresentationFieldModifier,
+            compilationUnit.addProblem(messageRepresentationFieldModifier,
                 formal.charOffset, formal.name.length, formal.fileUri);
           }
           if (formal.isInitializingFormal) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 messageExtensionTypePrimaryConstructorWithInitializingFormal,
                 formal.charOffset,
                 formal.name.length,
@@ -1681,7 +1686,7 @@ class OutlineBuilder extends StackListenerImpl {
         if (formal.isNamed) {
           firstNamedParameterOffset = formal.charOffset;
         }
-        libraryBuilder.addPrimaryConstructorField(
+        compilationUnit.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
             // defined through a primary constructor. This is not needed for
             // extension types where the field is not part of the AST but will
@@ -1694,40 +1699,40 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (inExtensionType) {
         if (firstOptionalPositionalParameterOffset != null) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               messageOptionalParametersInExtensionTypeDeclaration,
               firstOptionalPositionalParameterOffset,
               1,
               uri);
         } else if (firstNamedParameterOffset != null) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               messageNamedParametersInExtensionTypeDeclaration,
               firstNamedParameterOffset,
               1,
               uri);
         } else if (requiredPositionalCount == 0) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               messageExpectedRepresentationField, charOffset, 1, uri);
         } else if (formals.length > 1) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               messageMultipleRepresentationFields, charOffset, 1, uri);
         }
       }
     }
 
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.constructor, "#method",
         hasMembers: false);
-    TypeParameterScopeBuilder scopeBuilder = libraryBuilder
+    TypeParameterScopeBuilder scopeBuilder = compilationUnit
         .endNestedDeclaration(TypeParameterScopeKind.constructor, "#method");
     var (
       List<NominalVariableBuilder>? typeVariables,
       _
     ) = _createSyntheticTypeVariables(
-        libraryBuilder.currentTypeParameterScopeBuilder, scopeBuilder, null);
+        compilationUnit.currentTypeParameterScopeBuilder, scopeBuilder, null);
     scopeBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
 
-    libraryBuilder.addPrimaryConstructor(
+    compilationUnit.addPrimaryConstructor(
         offsetMap: _offsetMap,
         beginToken: beginToken,
         constructorName: constructorName == "new" ? "" : constructorName,
@@ -1749,7 +1754,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginTopLevelMethod(
       Token lastConsumed, Token? augmentToken, Token? externalToken) {
     pushDeclarationContext(DeclarationContext.TopLevelMethod);
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.topLevelMethod, "#method",
         hasMembers: false);
     int modifiers = 0;
@@ -1806,13 +1811,13 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
-    libraryBuilder
+    compilationUnit
         .endNestedDeclaration(TypeParameterScopeKind.topLevelMethod, "#method")
         .resolveNamedTypes(typeVariables, libraryBuilder);
     if (identifier is Identifier) {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-      libraryBuilder.addProcedure(
+      compilationUnit.addProcedure(
           _offsetMap,
           metadata,
           modifiers,
@@ -1887,7 +1892,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token? getOrSet,
       Token name) {
     inConstructor =
-        name.lexeme == libraryBuilder.currentTypeParameterScopeBuilder.name &&
+        name.lexeme == compilationUnit.currentTypeParameterScopeBuilder.name &&
             getOrSet == null;
     DeclarationContext declarationContext;
     switch (declarationKind) {
@@ -1987,7 +1992,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       kind = TypeParameterScopeKind.instanceMethod;
     }
-    libraryBuilder.beginNestedDeclaration(kind, "#method", hasMembers: false);
+    compilationUnit.beginNestedDeclaration(kind, "#method", hasMembers: false);
   }
 
   @override
@@ -2065,7 +2070,7 @@ class OutlineBuilder extends StackListenerImpl {
       // rename 'T' to '#T'. We cannot do it on the builders because their
       // names are used to create the scope.
       List<NominalVariableBuilder> synthesizedTypeVariables =
-          libraryBuilder.copyTypeVariables(
+          compilationUnit.copyTypeVariables(
               enclosingDeclarationScopeBuilder.typeVariables!,
               memberScopeBuilder,
               kind: TypeVariableKind.extensionSynthesized);
@@ -2127,7 +2132,7 @@ class OutlineBuilder extends StackListenerImpl {
       scopeKind = TypeParameterScopeKind.instanceMethod;
     }
     TypeParameterScopeBuilder declarationBuilder =
-        libraryBuilder.endNestedDeclaration(scopeKind, "#method");
+        compilationUnit.endNestedDeclaration(scopeKind, "#method");
 
     if (identifier is! Identifier) {
       assert(identifier is ParserRecovery,
@@ -2236,7 +2241,7 @@ class OutlineBuilder extends StackListenerImpl {
       case _MethodKind.extensionTypeConstructor:
       case _MethodKind.enumConstructor:
         constructorName =
-            libraryBuilder.computeAndValidateConstructorName(identifier) ??
+            compilationUnit.computeAndValidateConstructorName(identifier) ??
                 name;
         break;
       case _MethodKind.classMethod:
@@ -2249,7 +2254,7 @@ class OutlineBuilder extends StackListenerImpl {
     bool isStatic = (modifiers & staticMask) != 0;
     bool isConstructor = constructorName != null;
     bool cloneTypeVariablesFromEnclosingDeclaration;
-    switch (libraryBuilder.currentTypeParameterScopeBuilder.kind) {
+    switch (compilationUnit.currentTypeParameterScopeBuilder.kind) {
       case TypeParameterScopeKind.extensionDeclaration:
       case TypeParameterScopeKind.extensionTypeDeclaration:
         cloneTypeVariablesFromEnclosingDeclaration = !isStatic;
@@ -2272,7 +2277,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     if (cloneTypeVariablesFromEnclosingDeclaration) {
       TypeParameterScopeBuilder declaration =
-          libraryBuilder.currentTypeParameterScopeBuilder;
+          compilationUnit.currentTypeParameterScopeBuilder;
       Map<NominalVariableBuilder, TypeBuilder>? substitution;
       (typeVariables, substitution) = _createSyntheticTypeVariables(
           declaration, declarationBuilder, typeVariables);
@@ -2282,7 +2287,7 @@ class OutlineBuilder extends StackListenerImpl {
         if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
           thisType = declaration.extensionThisType;
         } else {
-          thisType = libraryBuilder.addNamedType(
+          thisType = compilationUnit.addNamedType(
               new SyntheticTypeName(declaration.name, charOffset),
               const NullabilityBuilder.omitted(),
               declaration.typeVariables != null
@@ -2308,7 +2313,7 @@ class OutlineBuilder extends StackListenerImpl {
           for (NamedTypeBuilder unboundType in unboundTypes) {
             declaration.registerUnresolvedNamedType(unboundType);
           }
-          libraryBuilder.unboundStructuralVariables
+          compilationUnit.unboundStructuralVariables
               .addAll(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
@@ -2343,7 +2348,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-      libraryBuilder.addConstructor(
+      compilationUnit.addConstructor(
           _offsetMap,
           metadata,
           modifiers,
@@ -2370,7 +2375,7 @@ class OutlineBuilder extends StackListenerImpl {
       bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
       bool isExtensionTypeMember =
           methodKind == _MethodKind.extensionTypeMethod;
-      libraryBuilder.addProcedure(
+      compilationUnit.addProcedure(
           _offsetMap,
           metadata,
           modifiers,
@@ -2412,7 +2417,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (mixins is ParserRecovery) {
       push(mixins);
     } else {
-      push(libraryBuilder.addMixinApplication(
+      push(compilationUnit.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
     assert(checkState(withKeyword, [
@@ -2499,7 +2504,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is ParserRecovery ||
         supertype is ParserRecovery ||
         mixinApplication is ParserRecovery) {
-      libraryBuilder
+      compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
           .resolveNamedTypes(typeVariables, libraryBuilder);
@@ -2511,7 +2516,7 @@ class OutlineBuilder extends StackListenerImpl {
       List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
       if (supertype is TypeBuilder && supertype is! MixinApplicationBuilder) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               templateNullableSuperclassError
                   .withArguments(supertype.fullNameForErrors),
               identifier.nameOffset,
@@ -2521,7 +2526,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               templateNullableMixinError.withArguments(mixin.fullNameForErrors),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -2531,7 +2536,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
@@ -2547,7 +2552,7 @@ class OutlineBuilder extends StackListenerImpl {
 
       int startCharOffset = beginToken.charOffset;
       int charEndOffset = endToken.charOffset;
-      libraryBuilder.addNamedMixinApplication(
+      compilationUnit.addNamedMixinApplication(
           metadata,
           identifier.name,
           typeVariables,
@@ -2592,7 +2597,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleScript(Token token) {
     debugEvent("handleScript");
-    libraryBuilder.addScriptToken(token.charOffset);
+    compilationUnit.addScriptToken(token.charOffset);
   }
 
   @override
@@ -2612,7 +2617,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       Identifier identifier = name as Identifier;
-      push(libraryBuilder.addNamedType(
+      push(compilationUnit.addNamedType(
           identifier.typeName,
           isMarkedAsNullable
               ? const NullabilityBuilder.nullable()
@@ -2659,14 +2664,14 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
-    push(libraryBuilder.addVoidType(token.charOffset));
+    push(compilationUnit.addVoidType(token.charOffset));
   }
 
   @override
   void handleVoidKeywordWithTypeArguments(Token token) {
     debugEvent("VoidKeyword");
     /*List<TypeBuilder> arguments =*/ pop();
-    push(libraryBuilder.addVoidType(token.charOffset));
+    push(compilationUnit.addVoidType(token.charOffset));
   }
 
   @override
@@ -2714,13 +2719,13 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       Identifier? identifier = name as Identifier?;
-      push(libraryBuilder.addFormalParameter(
+      push(compilationUnit.addFormalParameter(
           metadata,
           kind,
           modifiers,
           type ??
               (memberKind.isParameterInferable
-                  ? libraryBuilder.addInferableType()
+                  ? compilationUnit.addInferableType()
                   : const ImplicitTypeBuilder()),
           identifier == null
               ? FormalParameterBuilder.noNameSentinel
@@ -2793,7 +2798,7 @@ class OutlineBuilder extends StackListenerImpl {
           optional(",", tokenBeforeEnd) &&
           kind == MemberKind.PrimaryConstructor &&
           declarationContext == DeclarationContext.ExtensionType) {
-        libraryBuilder.addProblem(messageRepresentationFieldTrailingComma,
+        compilationUnit.addProblem(messageRepresentationFieldTrailingComma,
             tokenBeforeEnd.charOffset, 1, uri);
       }
     } else if (count > 1) {
@@ -2871,7 +2876,7 @@ class OutlineBuilder extends StackListenerImpl {
         formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isSuperInitializingFormal) {
-          libraryBuilder.addProblem(
+          compilationUnit.addProblem(
               messageExtensionTypeConstructorWithSuperFormalParameter,
               formal.charOffset,
               formal.name.length,
@@ -2909,10 +2914,10 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       declarationName = '#enum';
     }
-    libraryBuilder.beginIndexedContainer(declarationName,
+    compilationUnit.beginIndexedContainer(declarationName,
         isExtensionTypeDeclaration: false);
     pushDeclarationContext(DeclarationContext.Enum);
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.enumDeclaration, declarationName);
   }
 
@@ -2963,11 +2968,11 @@ class OutlineBuilder extends StackListenerImpl {
 
     Object? identifier = peek();
     if (identifier is Identifier) {
-      libraryBuilder.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
+      compilationUnit.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
           identifier.name, identifier.nameOffset, typeVariables);
     } else {
       identifier as ParserRecovery;
-      libraryBuilder.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
+      compilationUnit.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
           "<syntax-error>", identifier.charOffset, typeVariables);
     }
 
@@ -3054,7 +3059,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
-            libraryBuilder.addProblem(
+            compilationUnit.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 interface.charOffset ?? startCharOffset,
@@ -3064,7 +3069,7 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
 
-      libraryBuilder.addEnum(
+      compilationUnit.addEnum(
           _offsetMap,
           metadata,
           identifier,
@@ -3075,13 +3080,13 @@ class OutlineBuilder extends StackListenerImpl {
           startCharOffset,
           endCharOffset);
     } else {
-      libraryBuilder
+      compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.enumDeclaration, "<syntax-error>")
           .resolveNamedTypes(typeVariables, libraryBuilder);
     }
 
-    libraryBuilder.endIndexedContainer();
+    compilationUnit.endIndexedContainer();
     checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }
@@ -3089,7 +3094,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginTypedef(Token token) {
     pushDeclarationContext(DeclarationContext.Typedef);
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.typedef, "#typedef",
         hasMembers: false);
   }
@@ -3098,7 +3103,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFunctionType(Token beginToken) {
     debugEvent("beginFunctionType");
     _structuralParameterDepthLevel++;
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.functionType, "#function_type",
         hasMembers: false);
   }
@@ -3107,7 +3112,7 @@ class OutlineBuilder extends StackListenerImpl {
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     _insideOfFormalParameterType = false;
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.functionType, "#function_type",
         hasMembers: false);
   }
@@ -3197,7 +3202,7 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
         pop() as List<StructuralVariableBuilder>?;
-    push(libraryBuilder.addFunctionType(
+    push(compilationUnit.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
@@ -3218,7 +3223,7 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? returnType = pop() as TypeBuilder?;
     List<StructuralVariableBuilder>? typeVariables =
         pop() as List<StructuralVariableBuilder>?;
-    push(libraryBuilder.addFunctionType(
+    push(compilationUnit.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
@@ -3271,7 +3276,7 @@ class OutlineBuilder extends StackListenerImpl {
       // `library.addFunctionType`.
       if (name is ParserRecovery) {
         pop(NullValues.Metadata); // Metadata.
-        libraryBuilder
+        compilationUnit
             .endNestedDeclaration(
                 TypeParameterScopeKind.typedef, "<syntax-error>")
             .resolveNamedTypes(typeVariables, libraryBuilder);
@@ -3279,11 +3284,11 @@ class OutlineBuilder extends StackListenerImpl {
         return;
       }
       identifier = name as Identifier;
-      libraryBuilder.beginNestedDeclaration(
+      compilationUnit.beginNestedDeclaration(
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
       // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
-      aliasedType = libraryBuilder.addFunctionType(
+      aliasedType = compilationUnit.addFunctionType(
           returnType ?? const ImplicitTypeBuilder(),
           null,
           formals,
@@ -3298,7 +3303,7 @@ class OutlineBuilder extends StackListenerImpl {
       name = pop();
       if (name is ParserRecovery) {
         pop(NullValues.Metadata); // Metadata.
-        libraryBuilder
+        compilationUnit
             .endNestedDeclaration(
                 TypeParameterScopeKind.functionType, "<syntax-error>")
             .resolveNamedTypes(typeVariables, libraryBuilder);
@@ -3309,9 +3314,6 @@ class OutlineBuilder extends StackListenerImpl {
       if (type is FunctionTypeBuilder &&
           !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build() == Nullability.nullable) {
-          // The error is reported when the non-nullable experiment is enabled.
-          // Otherwise, the attempt to use a nullable type will be reported
-          // elsewhere.
           addProblem(
               messageTypedefNullableType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
@@ -3375,7 +3377,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(typedefKeyword.charOffset);
 
-    libraryBuilder.addFunctionTypeAlias(metadata, identifier.name,
+    compilationUnit.addFunctionTypeAlias(metadata, identifier.name,
         typeVariables, aliasedType, identifier.nameOffset);
     popDeclarationContext(DeclarationContext.Typedef);
   }
@@ -3478,7 +3480,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
     if (fieldInfos != null) {
-      libraryBuilder.addFields(_offsetMap, metadata, modifiers,
+      compilationUnit.addFields(_offsetMap, metadata, modifiers,
           /* isTopLevel = */ true, type, fieldInfos);
     }
     popDeclarationContext();
@@ -3541,7 +3543,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (fieldInfos != null) {
-      libraryBuilder.addFields(_offsetMap, metadata, modifiers,
+      compilationUnit.addFields(_offsetMap, metadata, modifiers,
           /* isTopLevel = */ false, type, fieldInfos);
     }
     popDeclarationContext();
@@ -3591,10 +3593,10 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       Identifier identifier = name as Identifier;
       if (inFunctionType) {
-        push(libraryBuilder.addStructuralTypeVariable(
+        push(compilationUnit.addStructuralTypeVariable(
             metadata, identifier.name, null, identifier.nameOffset, uri));
       } else {
-        push(libraryBuilder.addNominalTypeVariable(
+        push(compilationUnit.addNominalTypeVariable(
             metadata, identifier.name, null, identifier.nameOffset, uri,
             kind: declarationContext.typeVariableKind));
       }
@@ -3672,7 +3674,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (hasName) {
       Identifier containingLibrary = pop() as Identifier;
       List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-      libraryBuilder.addPartOf(
+      compilationUnit.addPartOf(
           metadata,
           flattenName(containingLibrary, containingLibrary.firstOffset, uri),
           null,
@@ -3681,7 +3683,7 @@ class OutlineBuilder extends StackListenerImpl {
       int charOffset = popCharOffset();
       String uriString = pop() as String;
       List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-      libraryBuilder.addPartOf(metadata, null, uriString, charOffset);
+      compilationUnit.addPartOf(metadata, null, uriString, charOffset);
     }
   }
 
@@ -3702,19 +3704,19 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is ParserRecovery) {
       push(name);
     } else if (name is Identifier) {
-      push(libraryBuilder.addConstructorReference(
+      push(compilationUnit.addConstructorReference(
           name.typeName, typeArguments, suffix?.name, name.qualifierOffset));
     } else {
       assert(name == null);
       // At the moment, the name of the type in a constructor reference can be
       // omitted only within an enum element declaration.
-      if (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
+      if (compilationUnit.currentTypeParameterScopeBuilder.kind ==
           TypeParameterScopeKind.enumDeclaration) {
         if (libraryFeatures.enhancedEnums.isEnabled) {
           int constructorNameOffset = suffix?.nameOffset ?? charOffset;
-          push(libraryBuilder.addConstructorReference(
+          push(compilationUnit.addConstructorReference(
               new SyntheticTypeName(
-                  libraryBuilder.currentTypeParameterScopeBuilder.name,
+                  compilationUnit.currentTypeParameterScopeBuilder.name,
                   constructorNameOffset),
               typeArguments,
               suffix?.name,
@@ -3723,7 +3725,7 @@ class OutlineBuilder extends StackListenerImpl {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.
           if (typeArguments != null || suffix != null) {
-            libraryBuilder.reportFeatureNotEnabled(
+            compilationUnit.reportFeatureNotEnabled(
                 libraryFeatures.enhancedEnums, uri, charOffset, noLength);
           }
           push(NullValues.ConstructorReference);
@@ -3763,7 +3765,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     pushDeclarationContext(declarationContext);
     inConstructor = true;
-    libraryBuilder.beginNestedDeclaration(
+    compilationUnit.beginNestedDeclaration(
         TypeParameterScopeKind.factoryMethod, "#factory_method",
         hasMembers: false);
     push((externalToken != null ? externalMask : 0) |
@@ -3812,10 +3814,10 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is! Identifier) {
       assert(name is ParserRecovery,
           "Unexpected name $name (${name.runtimeType}).");
-      libraryBuilder.endNestedDeclaration(
+      compilationUnit.endNestedDeclaration(
           TypeParameterScopeKind.factoryMethod, "<syntax-error>");
     } else {
-      libraryBuilder.addFactoryMethod(
+      compilationUnit.addFactoryMethod(
         _offsetMap,
         metadata,
         modifiers,
@@ -3999,7 +4001,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (supertype is ParserRecovery || mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      push(libraryBuilder.addMixinApplication(
+      push(compilationUnit.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
     assert(checkState(withKeyword, [
@@ -4053,7 +4055,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      push(libraryBuilder.addMixinApplication(
+      push(compilationUnit.addMixinApplication(
           mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
     assert(checkState(withKeyword, [
@@ -4113,7 +4115,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled = false, List<LocatedMessage>? context}) {
-    libraryBuilder.addProblem(message, charOffset, length, uri,
+    compilationUnit.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
   }
 
