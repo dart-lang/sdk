@@ -341,6 +341,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+        case CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
         case CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
