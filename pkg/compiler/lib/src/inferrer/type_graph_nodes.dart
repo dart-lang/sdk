@@ -2173,12 +2173,13 @@ class RecordTypeInformation extends TypeInformation with TracedTypeInformation {
 /// statically be typed as a record then lookups will be dynamic calls handled
 /// via [DynamicCallSiteTypeInformation].
 class RecordFieldAccessTypeInformation extends TypeInformation {
+  final MemberEntity caller;
   final String getterName;
   final TypeInformation receiver;
   final ir.TreeNode node;
 
-  RecordFieldAccessTypeInformation(AbstractValueDomain domain, this.getterName,
-      this.node, this.receiver, MemberTypeInformation? context)
+  RecordFieldAccessTypeInformation(AbstractValueDomain domain, this.caller,
+      this.getterName, this.node, this.receiver, MemberTypeInformation? context)
       : super(domain.uncomputedType, context) {
     receiver.addUser(this);
   }
@@ -2205,7 +2206,7 @@ class RecordFieldAccessTypeInformation extends TypeInformation {
     }
     final getterType = inferrer.abstractValueDomain
         .getGetterTypeInRecord(recordType, getterName);
-    inferrer.dataOfMember(contextMember!).setReceiverTypeMask(node, recordType);
+    inferrer.dataOfMember(caller).setReceiverTypeMask(node, recordType);
     return getterType;
   }
 }

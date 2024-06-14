@@ -572,10 +572,11 @@ class TypeSystem {
             const []));
   }
 
-  TypeInformation allocateRecordFieldGet(
-      ir.TreeNode node, String fieldName, TypeInformation receiverType) {
+  TypeInformation allocateRecordFieldGet(ir.TreeNode node, String fieldName,
+      TypeInformation receiverType, MemberEntity caller) {
     final accessType = RecordFieldAccessTypeInformation(
         _closedWorld.abstractValueDomain,
+        caller,
         fieldName,
         node,
         receiverType,
