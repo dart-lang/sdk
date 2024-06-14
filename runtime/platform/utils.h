@@ -22,7 +22,7 @@ class CAllocUniquePtr : public std::unique_ptr<T, decltype(std::free)*> {
       : std::unique_ptr<T, decltype(std::free)*>(nullptr, std::free) {}
   explicit CAllocUniquePtr(T* value)
       : std::unique_ptr<T, decltype(std::free)*>(value, std::free) {}
-  CAllocUniquePtr& operator=(nullptr_t value) {
+  CAllocUniquePtr& operator=(std::nullptr_t value) {
     std::unique_ptr<T, decltype(std::free)*>::operator=(value);
     return *this;
   }
