@@ -18,8 +18,6 @@ import "dart:_internal" show Since, UnmodifiableListBase;
 @Since("2.10")
 export "dart:_internal" show BytesBuilder;
 
-part "unmodifiable_typed_data.dart";
-
 /// A sequence of bytes underlying a typed data object.
 ///
 /// Used to process large quantities of binary or numerical data

@@ -484,6 +484,36 @@ FunctionExpressionInvocation
 ''');
   }
 
+  test_getter_functionTyped_withSetterDeclaredLocally() async {
+    await assertNoErrorsInCode('''
+class A {
+  Function get foo => () {};
+}
+class B extends A {
+  set foo(Function _) {}
+
+  void f() {
+    foo();
+  }
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: Function
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_invalidConst_topLevelVariable() async {
     await assertErrorsInCode(r'''
 const id = identical;

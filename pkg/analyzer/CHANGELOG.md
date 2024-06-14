@@ -1,6 +1,7 @@
 ## 6.7.0-dev
 * Deprecated `File.createSource()`, it violates levels of abstraction.
   You can get `Source` instances from `AnalysisResult`s.
+* Deprecated unused static members of `AnalysisError`.
 
 ## 6.6.0
 * Stop exporting `src/file_system/file_system.dart`

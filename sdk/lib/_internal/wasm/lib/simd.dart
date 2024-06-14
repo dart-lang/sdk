@@ -68,7 +68,7 @@ final class NaiveInt32x4List extends WasmTypedDataBase
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
+  Int32x4List asUnmodifiableView() => NaiveUnmodifiableInt32x4List(this);
 
   Int32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
@@ -100,8 +100,7 @@ final class NaiveInt32x4List extends WasmTypedDataBase
   }
 }
 
-final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List
-    implements UnmodifiableInt32x4ListView {
+final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List {
   NaiveUnmodifiableInt32x4List(Int32x4List list)
       : super.externalStorage(unsafeCast<NaiveInt32x4List>(list)._storage);
 
@@ -114,7 +113,7 @@ final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List
   }
 
   @override
-  ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
+  ByteBuffer get buffer => _storage.asUnmodifiableView().buffer;
 }
 
 final class NaiveFloat32x4List extends WasmTypedDataBase
@@ -173,7 +172,7 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
+  Float32x4List asUnmodifiableView() => NaiveUnmodifiableFloat32x4List(this);
 
   Float32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
@@ -206,8 +205,7 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
   }
 }
 
-final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List
-    implements UnmodifiableFloat32x4ListView {
+final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List {
   NaiveUnmodifiableFloat32x4List(Float32x4List list)
       : super.externalStorage(unsafeCast<NaiveFloat32x4List>(list)._storage);
 
@@ -220,7 +218,7 @@ final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List
   }
 
   @override
-  ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
+  ByteBuffer get buffer => _storage.asUnmodifiableView().buffer;
 }
 
 final class NaiveFloat64x2List extends WasmTypedDataBase
@@ -273,7 +271,7 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
     _storage[(index * 2) + 1] = value.y;
   }
 
-  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
+  Float64x2List asUnmodifiableView() => NaiveUnmodifiableFloat64x2List(this);
 
   Float64x2List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
@@ -306,8 +304,7 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
   }
 }
 
-final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List
-    implements UnmodifiableFloat64x2ListView {
+final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List {
   NaiveUnmodifiableFloat64x2List(Float64x2List list)
       : super.externalStorage(unsafeCast<NaiveFloat64x2List>(list)._storage);
 
@@ -320,7 +317,7 @@ final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List
   }
 
   @override
-  ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
+  ByteBuffer get buffer => _storage.asUnmodifiableView().buffer;
 }
 
 final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {

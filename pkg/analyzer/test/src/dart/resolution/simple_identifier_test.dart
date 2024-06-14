@@ -347,6 +347,29 @@ int Function() foo(A? a) {
     assertType(identifier, 'A?');
   }
 
+  test_inClass_getterInherited_setterDeclaredLocally() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 7;
+}
+class B extends A {
+  set foo(int _) {}
+
+  void f() {
+    foo;
+  }
+}
+''');
+
+    var node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
   test_inClass_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart'

@@ -48,16 +48,19 @@ HashMap<String, ErrorCode> _computeUniqueNameToCodeMap() {
 /// See `AnalysisErrorListener`.
 class AnalysisError implements Diagnostic {
   /// An empty array of errors used when no errors are expected.
+  @Deprecated('Not used')
   static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
 
   /// A [Comparator] that sorts by the name of the file that the [AnalysisError]
   /// was found.
+  @Deprecated('Not used')
   static Comparator<AnalysisError> FILE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) =>
           o1.source.shortName.compareTo(o2.source.shortName);
 
   /// A [Comparator] that sorts error codes first by their severity (errors
   /// first, warnings second), and then by the error code type.
+  @Deprecated('Not used')
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) {
     ErrorCode errorCode1 = o1.errorCode;
@@ -267,6 +270,7 @@ class AnalysisError implements Diagnostic {
 
   /// Merge all of the errors in the lists in the given list of [errorLists]
   /// into a single list of errors.
+  @Deprecated('Not used')
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
     Set<AnalysisError> errors = HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {

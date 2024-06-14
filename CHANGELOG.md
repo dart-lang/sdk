@@ -36,6 +36,16 @@
 
 [#44876]: https://github.com/dart-lang/sdk/issues/44876
 
+#### `dart:typed_data`
+
+- **BREAKING CHANGE** [#53785][]: The unmodifiable view classes for typed data
+  have been removed. These classes were deprecated in Dart 3.4.
+
+  To create an unmodifiable view of a typed-data object, use the
+  `asUnmodifiableView()` methods added in Dart 3.3.
+
+[#53785]: https://github.com/dart-lang/sdk/issues/53785
+
 ### Tools
 
 #### Linter

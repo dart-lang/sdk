@@ -186,7 +186,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       foundImport = true;
       var instantiatedExtensions = importedLibrary.exportedExtensions
-          .hasMemberWithBaseName(memberName)
+          .havingMemberWithBaseName(memberName)
           .applicableTo(targetLibrary: libraryElement, targetType: targetType);
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
@@ -482,7 +482,7 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var instantiatedExtensions = library.exportedExtensions
-        .hasMemberWithBaseName(memberName)
+        .havingMemberWithBaseName(memberName)
         .applicableTo(targetLibrary: libraryElement, targetType: targetType);
     if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {

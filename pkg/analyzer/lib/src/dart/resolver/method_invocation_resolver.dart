@@ -574,6 +574,39 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
+    element = scopeLookupResult.setter;
+    if (element != null) {
+      // If the scope lookup reveals a setter, but no getter, then we may still
+      // find the getter by looking up the inheritence chain (via
+      // TypePropertyResolver, via `_resolveReceiverType`). However, if the
+      // setter that was found is either top-level, or declared in an extension,
+      // or is static, then we do not keep searching for the getter; this
+      // setter represents the property being accessed (erroneously).
+      var noGetterIsPossible =
+          element.enclosingElement is CompilationUnitElement ||
+              element.enclosingElement is ExtensionElement ||
+              (element is ExecutableElement && element.isStatic);
+      if (noGetterIsPossible) {
+        nameNode.staticElement = element;
+
+        _setInvalidTypeResolution(node,
+            setNameTypeToDynamic: false,
+            whyNotPromotedList: whyNotPromotedList,
+            contextType: contextType);
+        var receiverTypeName = switch (receiverType) {
+          InterfaceType() => receiverType.element.name,
+          FunctionType() => 'Function',
+          _ => '<unknown>',
+        };
+        _resolver.errorReporter.atNode(
+          nameNode,
+          CompileTimeErrorCode.UNDEFINED_METHOD,
+          arguments: [name, receiverTypeName],
+        );
+        return null;
+      }
+    }
+
     return _resolveReceiverType(
       node: node,
       receiver: null,

@@ -2064,7 +2064,7 @@ TEST_CASE(DartAPI_UnmodifiableTypedDataViewListIsTypedData) {
       "import 'dart:typed_data';\n"
       "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
-      "  var view = new UnmodifiableInt8ListView(a);\n"
+      "  var view = a.asUnmodifiableView();\n"
       "  return view;\n"
       "}\n";
   // Create a test library and Load up a test script in it.
@@ -2709,7 +2709,7 @@ static void TestUnmodifiableTypedDataViewDirectAccess() {
       "  for (var i = 0; i < 100; i++) {"
       "    list[i] = i;"
       "  }"
-      "  return new UnmodifiableInt8ListView(list);"
+      "  return list.asUnmodifiableView();"
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);

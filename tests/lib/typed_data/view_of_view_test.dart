@@ -60,14 +60,14 @@ void main() {
     readDynamic(view);
   }
 
-  var unmodifiableView1 = new UnmodifiableUint8ListView(array);
+  var unmodifiableView1 = array.asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readUnmodifiableView(unmodifiableView1);
     readPolymorphic(unmodifiableView1);
     readDynamic(unmodifiableView1);
   }
 
-  var unmodifiableView2 = new UnmodifiableUint8ListView(view);
+  var unmodifiableView2 = view.asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readUnmodifiableView(unmodifiableView2);
     readPolymorphic(unmodifiableView2);

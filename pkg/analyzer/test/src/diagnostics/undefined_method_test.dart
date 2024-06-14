@@ -75,6 +75,42 @@ f(C c) {
     ]);
   }
 
+  test_extensionMethodHiddenByStaticSetter() async {
+    await assertErrorsInCode('''
+class C {
+  void f() {
+    foo();
+  }
+  static set foo(int x) {}
+}
+
+extension E on C {
+  int foo() => 1;
+}
+
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 27, 3),
+    ]);
+  }
+
+  test_extensionMethodShadowingTopLevelSetter() async {
+    await assertErrorsInCode('''
+class C {
+  void f() {
+    foo();
+  }
+}
+
+extension E on C {
+  int foo() => 1;
+}
+
+set foo(int x) {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 27, 3),
+    ]);
+  }
+
   test_functionAlias_notInstantiated() async {
     await assertNoErrorsInCode('''
 typedef Fn<T> = void Function(T);
@@ -152,6 +188,26 @@ class C {
     ]);
   }
 
+  test_localSetterShadowingExtensionMethod() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension E1 on C {
+  int foo(int x) => 1;
+}
+
+extension E2 on C {
+  static set foo(int x) {}
+
+  void f() {
+    foo();
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 123, 3),
+    ]);
+  }
+
   test_method_undefined() async {
     await assertErrorsInCode(r'''
 class C {
@@ -214,6 +270,22 @@ class A {
 f() { A?.m(); }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 40, 2),
+    ]);
+  }
+
+  test_static_extension_instanceAccess() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension E on C {
+  static void a() {}
+}
+
+f(C c) {
+  c.a();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 68, 1),
     ]);
   }
 

@@ -232,6 +232,49 @@ f(var p) {
     ]);
   }
 
+  test_static_extension_instanceAccess() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension E on C {
+  static set a(int v) {}
+}
+
+f(C c) {
+  c.a = 2;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 72, 1),
+    ]);
+
+    assertResolvedNodeText(findNode.assignment('a ='), r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      staticElement: self::@function::f::@parameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_static_undefined() async {
     await assertErrorsInCode(r'''
 class A {}
