@@ -1664,16 +1664,17 @@ class KernelTarget {
     return loader.libraries.contains(library);
   }
 
-  void readPatchFiles(SourceLibraryBuilder library) {
-    assert(library.importUri.isScheme("dart"));
-    List<Uri>? patches = uriTranslator.getDartPatches(library.importUri.path);
+  void readPatchFiles(SourceLibraryBuilder libraryBuilder) {
+    assert(libraryBuilder.importUri.isScheme("dart"));
+    List<Uri>? patches =
+        uriTranslator.getDartPatches(libraryBuilder.importUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        library.loader.read(patch, -1,
+        libraryBuilder.loader.read(patch, -1,
             fileUri: patch,
-            origin: library,
-            accessor: library,
-            isPatch: true) as SourceLibraryBuilder;
+            origin: libraryBuilder,
+            accessor: libraryBuilder.compilationUnit,
+            isPatch: true);
       }
     }
   }

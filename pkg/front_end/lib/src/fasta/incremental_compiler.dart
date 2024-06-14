@@ -546,7 +546,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       changed = true;
       if (experimentalInvalidation != null) {
         convertedLibraries ??= new Map<LibraryBuilder, List<CompilationUnit>>();
-        convertedLibraries[builder] = [dillBuilder];
+        convertedLibraries[builder] = [dillBuilder.mainCompilationUnit];
       }
     }
     nextGoodKernelTarget.loader.clearSourceLibraryBuilders();

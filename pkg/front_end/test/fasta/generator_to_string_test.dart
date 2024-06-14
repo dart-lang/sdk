@@ -89,7 +89,7 @@ Future<void> main() async {
     LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(
         libraryBuilder,
         /*dummyLibraryDependency,*/ -1,
-        libraryBuilder,
+        libraryBuilder.compilationUnit,
         'prefix',
         -1,
         null);

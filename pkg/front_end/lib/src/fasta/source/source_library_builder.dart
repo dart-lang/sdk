@@ -60,7 +60,6 @@ import '../builder/void_type_declaration_builder.dart';
 import '../codes/fasta_codes.dart';
 import '../combinator.dart' show CombinatorBuilder;
 import '../configuration.dart' show Configuration;
-import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../export.dart' show Export;
 import '../identifiers.dart' show Identifier, QualifiedName;
 import '../import.dart' show Import;
@@ -120,9 +119,168 @@ import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
-class SourceLibraryBuilder extends LibraryBuilderImpl
-    implements CompilationUnit {
+class SourceCompilationUnitImpl implements SourceCompilationUnit {
+  final SourceLibraryBuilder _sourceLibraryBuilder;
+
+  LibraryBuilder? _libraryBuilder;
+
+  SourceCompilationUnitImpl(this._sourceLibraryBuilder);
+
+  @override
+  SourceLibraryBuilder get sourceLibraryBuilder => _sourceLibraryBuilder;
+
+  @override
+  OffsetMap get offsetMap => _sourceLibraryBuilder.offsetMap;
+
+  @override
+  LibraryBuilder get libraryBuilder {
+    assert(_libraryBuilder != null,
+        "Library builder for $this has not been computed yet.");
+    return _libraryBuilder!;
+  }
+
+  @override
+  void addExporter(LibraryBuilder exporter,
+      List<CombinatorBuilder>? combinators, int charOffset) {
+    _sourceLibraryBuilder.exporters
+        .add(new Export(exporter, this, combinators, charOffset));
+  }
+
+  @override
+  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
+      {bool wasHandled = false,
+      List<LocatedMessage>? context,
+      Severity? severity,
+      bool problemOnLibrary = false}) {
+    _sourceLibraryBuilder.addProblem(message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: problemOnLibrary);
+  }
+
+  @override
+  Iterable<Uri> get dependencies => _sourceLibraryBuilder.dependencies;
+
+  @override
+  Uri get fileUri => _sourceLibraryBuilder.fileUri;
+
+  @override
+  Uri get importUri => _sourceLibraryBuilder.importUri;
+
+  @override
+  bool get isAugmenting => _sourceLibraryBuilder.isAugmenting;
+
+  @override
+  bool get isPart => _sourceLibraryBuilder.isPart;
+
+  @override
+  bool get isSynthetic => _sourceLibraryBuilder.isSynthetic;
+
+  @override
+  bool get isUnsupported => _sourceLibraryBuilder.isUnsupported;
+
+  @override
+  SourceLoader get loader => _sourceLibraryBuilder.loader;
+
+  @override
+  NameIterator<Builder> get localMembersNameIterator =>
+      _sourceLibraryBuilder.localMembersNameIterator;
+
+  @override
+  LibraryBuilder? get partOfLibrary => _sourceLibraryBuilder.partOfLibrary;
+
+  @override
+  set partOfLibrary(LibraryBuilder? value) {
+    _sourceLibraryBuilder.partOfLibrary = value;
+  }
+
+  @override
+  void recordAccess(
+      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {
+    _sourceLibraryBuilder.recordAccess(accessor, charOffset, length, fileUri);
+  }
+
+  @override
+  SourceLibraryBuilder createLibrary() {
+    assert(_libraryBuilder == null,
+        "Source library builder as already been created for $this.");
+    _libraryBuilder = _sourceLibraryBuilder;
+    return _sourceLibraryBuilder;
+  }
+
+  @override
+  String toString() => 'SourceCompilationUnitImpl($fileUri)';
+
+  @override
+  void addDependencies(Library library, Set<SourceLibraryBuilder> seen) {
+    _sourceLibraryBuilder.addDependencies(library, seen);
+  }
+
+  @override
+  void collectInferableTypes(List<InferableType> inferableTypes) {
+    _sourceLibraryBuilder.collectInferableTypes(inferableTypes);
+  }
+
+  @override
+  List<ConstructorReferenceBuilder> get constructorReferences =>
+      _sourceLibraryBuilder.constructorReferences;
+
+  @override
+  List<Export> get exporters => _sourceLibraryBuilder.exporters;
+
+  @override
+  LanguageVersion get languageVersion => _sourceLibraryBuilder.languageVersion;
+
+  @override
+  Library get library => _sourceLibraryBuilder.library;
+
+  @override
+  LibraryName get libraryName => _sourceLibraryBuilder.libraryName;
+
+  @override
+  List<SourceFunctionBuilder> get nativeMethods =>
+      _sourceLibraryBuilder.nativeMethods;
+
+  @override
+  String? get partOfName => _sourceLibraryBuilder.partOfName;
+
+  @override
+  Uri? get partOfUri => _sourceLibraryBuilder.partOfUri;
+
+  @override
+  Scope get scope => _sourceLibraryBuilder.scope;
+
+  @override
+  void takeMixinApplications(
+      Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
+    _sourceLibraryBuilder.takeMixinApplications(mixinApplications);
+  }
+
+  @override
+  List<NominalVariableBuilder> get unboundNominalVariables =>
+      _sourceLibraryBuilder.unboundNominalVariables;
+
+  @override
+  List<StructuralVariableBuilder> get unboundStructuralVariables =>
+      _sourceLibraryBuilder.unboundStructuralVariables;
+
+  @override
+  List<NamedTypeBuilder> get unresolvedNamedTypes =>
+      _sourceLibraryBuilder.unresolvedNamedTypes;
+
+  @override
+  void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts) {
+    _libraryBuilder = library ?? _sourceLibraryBuilder;
+    _sourceLibraryBuilder.validatePart(library, usedParts);
+  }
+}
+
+class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
+
+  late final SourceCompilationUnit compilationUnit =
+      new SourceCompilationUnitImpl(this);
 
   @override
   final SourceLoader loader;
@@ -783,7 +941,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
 
     CompilationUnit exportedLibrary = loader.read(
         resolve(this.importUri, uri, uriOffset), charOffset,
-        accessor: this);
+        accessor: compilationUnit);
     exportedLibrary.addExporter(this, combinators, charOffset);
     Export export = new Export(this, exportedLibrary, combinators, charOffset);
     exports.add(export);
@@ -834,7 +992,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
       resolvedUri = resolve(this.importUri, uri, uriOffset);
       compilationUnit = loader.read(resolvedUri, uriOffset,
           origin: isAugmentationImport ? this : null,
-          accessor: this,
+          accessor: this.compilationUnit,
           isAugmentation: isAugmentationImport,
           referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
     }
@@ -868,7 +1026,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
         origin: isAugmenting ? origin : null,
         fileUri: newFileUri,
-        accessor: this,
+        accessor: this.compilationUnit,
         isPatch: isAugmenting);
     parts.add(new Part(charOffset, compilationUnit));
 
@@ -889,7 +1047,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
       // resolving through the file uri of this library. See issue #52964.
       Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
           resolve(fileUri, uri, uriOffset);
-      loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
+      loader.read(partOfUri!, uriOffset,
+          fileUri: newFileUri, accessor: compilationUnit);
     }
     if (_scriptTokenOffset != null) {
       addProblem(
@@ -1218,7 +1377,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
   }
 
   void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts) {
-    _libraryBuilder = library ?? this;
     if (library != null && parts.isNotEmpty) {
       // If [library] is null, we have already reported a problem that this
       // part is orphaned.
@@ -1247,24 +1405,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
     }
   }
 
-  LibraryBuilder? _libraryBuilder;
-
-  @override
-  LibraryBuilder get libraryBuilder {
-    assert(_libraryBuilder != null,
-        "Library builder for $this has not been computed yet.");
-    return _libraryBuilder!;
-  }
-
   void includeParts(Set<Uri> usedParts) {
-    _libraryBuilder = this;
     Set<Uri> seenParts = new Set<Uri>();
     int index = 0;
     while (index < parts.length) {
       Part part = parts[index];
       bool keepPart = true;
       // TODO(johnniwinther): Use [part.offset] in messages.
-      if (part.compilationUnit == this) {
+      if (part.compilationUnit == compilationUnit) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
         keepPart = false;
       } else if (seenParts.add(part.compilationUnit.fileUri)) {
@@ -1299,27 +1447,39 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
   }
 
   bool _includePart(CompilationUnit part, Set<Uri> usedParts, int partOffset) {
-    if (part is SourceLibraryBuilder) {
-      if (part.partOfUri != null) {
-        if (uriIsValid(part.partOfUri!) && part.partOfUri != importUri) {
-          // This is an error, but the part is not removed from the list of
-          // parts, so that metadata annotations can be associated with it.
-          addProblem(
-              templatePartOfUriMismatch.withArguments(
-                  part.fileUri, importUri, part.partOfUri!),
-              partOffset,
-              noLength,
-              fileUri);
-          return false;
-        }
-      } else if (part.partOfName != null) {
-        if (name != null) {
-          if (part.partOfName != name) {
+    switch (part) {
+      case SourceCompilationUnit():
+        if (part.partOfUri != null) {
+          if (uriIsValid(part.partOfUri!) && part.partOfUri != importUri) {
             // This is an error, but the part is not removed from the list of
             // parts, so that metadata annotations can be associated with it.
             addProblem(
-                templatePartOfLibraryNameMismatch.withArguments(
-                    part.fileUri, name!, part.partOfName!),
+                templatePartOfUriMismatch.withArguments(
+                    part.fileUri, importUri, part.partOfUri!),
+                partOffset,
+                noLength,
+                fileUri);
+            return false;
+          }
+        } else if (part.partOfName != null) {
+          if (name != null) {
+            if (part.partOfName != name) {
+              // This is an error, but the part is not removed from the list of
+              // parts, so that metadata annotations can be associated with it.
+              addProblem(
+                  templatePartOfLibraryNameMismatch.withArguments(
+                      part.fileUri, name!, part.partOfName!),
+                  partOffset,
+                  noLength,
+                  fileUri);
+              return false;
+            }
+          } else {
+            // This is an error, but the part is not removed from the list of
+            // parts, so that metadata annotations can be associated with it.
+            addProblem(
+                templatePartOfUseUri.withArguments(
+                    part.fileUri, fileUri, part.partOfName!),
                 partOffset,
                 noLength,
                 fileUri);
@@ -1328,140 +1488,128 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
         } else {
           // This is an error, but the part is not removed from the list of
           // parts, so that metadata annotations can be associated with it.
-          addProblem(
-              templatePartOfUseUri.withArguments(
-                  part.fileUri, fileUri, part.partOfName!),
-              partOffset,
-              noLength,
-              fileUri);
+          assert(!part.isPart);
+          if (uriIsValid(part.fileUri)) {
+            addProblem(templateMissingPartOf.withArguments(part.fileUri),
+                partOffset, noLength, fileUri);
+          }
           return false;
         }
-      } else {
-        // This is an error, but the part is not removed from the list of parts,
-        // so that metadata annotations can be associated with it.
-        assert(!part.isPart);
+
+        // Language versions have to match. Except if (at least) one of them is
+        // invalid in which case we've already gotten an error about this.
+        if (languageVersion != part.languageVersion &&
+            languageVersion.valid &&
+            part.languageVersion.valid) {
+          // This is an error, but the part is not removed from the list of
+          // parts, so that metadata annotations can be associated with it.
+          List<LocatedMessage> context = <LocatedMessage>[];
+          if (languageVersion.isExplicit) {
+            context.add(messageLanguageVersionLibraryContext.withLocation(
+                languageVersion.fileUri!,
+                languageVersion.charOffset,
+                languageVersion.charCount));
+          }
+          if (part.languageVersion.isExplicit) {
+            context.add(messageLanguageVersionPartContext.withLocation(
+                part.languageVersion.fileUri!,
+                part.languageVersion.charOffset,
+                part.languageVersion.charCount));
+          }
+          addProblem(messageLanguageVersionMismatchInPart, partOffset, noLength,
+              fileUri,
+              context: context);
+        }
+
+        part.validatePart(this, usedParts);
+        NameIterator partDeclarations = part.localMembersNameIterator;
+        while (partDeclarations.moveNext()) {
+          String name = partDeclarations.name;
+          Builder declaration = partDeclarations.current;
+
+          if (declaration.next != null) {
+            List<Builder> duplicated = <Builder>[];
+            while (declaration.next != null) {
+              duplicated.add(declaration);
+              partDeclarations.moveNext();
+              declaration = partDeclarations.current;
+            }
+            duplicated.add(declaration);
+            // Handle duplicated declarations in the part.
+            //
+            // Duplicated declarations are handled by creating a linked list
+            // using the `next` field. This is preferred over making all scope
+            // entries be a `List<Declaration>`.
+            //
+            // We maintain the linked list so that the last entry is easy to
+            // recognize (it's `next` field is null). This means that it is
+            // reversed with respect to source code order. Since kernel doesn't
+            // allow duplicated declarations, we ensure that we only add the
+            // first declaration to the kernel tree.
+            //
+            // Since the duplicated declarations are stored in reverse order, we
+            // iterate over them in reverse order as this is simpler and
+            // normally not a problem. However, in this case we need to call
+            // [addBuilder] in source order as it would otherwise create cycles.
+            //
+            // We also need to be careful preserving the order of the links. The
+            // part library still keeps these declarations in its scope so that
+            // DietListener can find them.
+            for (int i = duplicated.length; i > 0; i--) {
+              Builder declaration = duplicated[i - 1];
+              // No reference: There should be no duplicates when using
+              // references.
+              addBuilder(name, declaration, declaration.charOffset);
+            }
+          } else {
+            // No reference: The part is in the same loader so the reference
+            // - if needed - was already added.
+            addBuilder(name, declaration, declaration.charOffset);
+          }
+        }
+        unresolvedNamedTypes.addAll(part.unresolvedNamedTypes);
+        constructorReferences.addAll(part.constructorReferences);
+        part.libraryName.reference = libraryName.reference;
+        part.partOfLibrary = this;
+        part.scope.becomePartOf(scope);
+        // TODO(ahe): Include metadata from part?
+
+        // Recovery: Take on all exporters (i.e. if a library has erroneously
+        // exported the part it has (in validatePart) been recovered to import
+        // the main library (this) instead --- to make it complete (and set up
+        // scopes correctly) the exporters in this has to be updated too).
+        exporters.addAll(part.exporters);
+
+        nativeMethods.addAll(part.nativeMethods);
+        unboundNominalVariables.addAll(part.unboundNominalVariables);
+        unboundStructuralVariables.addAll(part.unboundStructuralVariables);
+        // Check that the targets are different. This is not normally a problem
+        // but is for augmentation libraries.
+        if (library != part.library && part.library.problemsAsJson != null) {
+          (library.problemsAsJson ??= <String>[])
+              .addAll(part.library.problemsAsJson!);
+        }
+        part.collectInferableTypes(_inferableTypes!);
+        part.takeMixinApplications(_mixinApplications!);
+        if (library != part.library) {
+          // Mark the part library as synthetic as it's not an actual library
+          // (anymore).
+          part.library.isSynthetic = true;
+        }
+        return true;
+      case DillCompilationUnit():
+        // Trying to add a dill library builder as a part means that it exists
+        // as a stand-alone library in the dill file.
+        // This means, that it's not a part (if it had been it would be been
+        // "merged in" to the real library and thus not been a library on its
+        // own) so we behave like if it's a library with a missing "part of"
+        // declaration (i.e. as it was a SourceLibraryBuilder without a
+        // "part of" declaration).
         if (uriIsValid(part.fileUri)) {
           addProblem(templateMissingPartOf.withArguments(part.fileUri),
               partOffset, noLength, fileUri);
         }
         return false;
-      }
-
-      // Language versions have to match. Except if (at least) one of them is
-      // invalid in which case we've already gotten an error about this.
-      if (languageVersion != part.languageVersion &&
-          languageVersion.valid &&
-          part.languageVersion.valid) {
-        // This is an error, but the part is not removed from the list of
-        // parts, so that metadata annotations can be associated with it.
-        List<LocatedMessage> context = <LocatedMessage>[];
-        if (languageVersion.isExplicit) {
-          context.add(messageLanguageVersionLibraryContext.withLocation(
-              languageVersion.fileUri!,
-              languageVersion.charOffset,
-              languageVersion.charCount));
-        }
-        if (part.languageVersion.isExplicit) {
-          context.add(messageLanguageVersionPartContext.withLocation(
-              part.languageVersion.fileUri!,
-              part.languageVersion.charOffset,
-              part.languageVersion.charCount));
-        }
-        addProblem(
-            messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri,
-            context: context);
-      }
-
-      part.validatePart(this, usedParts);
-      NameIterator partDeclarations = part.localMembersNameIterator;
-      while (partDeclarations.moveNext()) {
-        String name = partDeclarations.name;
-        Builder declaration = partDeclarations.current;
-
-        if (declaration.next != null) {
-          List<Builder> duplicated = <Builder>[];
-          while (declaration.next != null) {
-            duplicated.add(declaration);
-            partDeclarations.moveNext();
-            declaration = partDeclarations.current;
-          }
-          duplicated.add(declaration);
-          // Handle duplicated declarations in the part.
-          //
-          // Duplicated declarations are handled by creating a linked list using
-          // the `next` field. This is preferred over making all scope entries
-          // be a `List<Declaration>`.
-          //
-          // We maintain the linked list so that the last entry is easy to
-          // recognize (it's `next` field is null). This means that it is
-          // reversed with respect to source code order. Since kernel doesn't
-          // allow duplicated declarations, we ensure that we only add the first
-          // declaration to the kernel tree.
-          //
-          // Since the duplicated declarations are stored in reverse order, we
-          // iterate over them in reverse order as this is simpler and normally
-          // not a problem. However, in this case we need to call [addBuilder]
-          // in source order as it would otherwise create cycles.
-          //
-          // We also need to be careful preserving the order of the links. The
-          // part library still keeps these declarations in its scope so that
-          // DietListener can find them.
-          for (int i = duplicated.length; i > 0; i--) {
-            Builder declaration = duplicated[i - 1];
-            // No reference: There should be no duplicates when using
-            // references.
-            addBuilder(name, declaration, declaration.charOffset);
-          }
-        } else {
-          // No reference: The part is in the same loader so the reference
-          // - if needed - was already added.
-          addBuilder(name, declaration, declaration.charOffset);
-        }
-      }
-      unresolvedNamedTypes.addAll(part.unresolvedNamedTypes);
-      constructorReferences.addAll(part.constructorReferences);
-      part.libraryName.reference = libraryName.reference;
-      part.partOfLibrary = this;
-      part.scope.becomePartOf(scope);
-      // TODO(ahe): Include metadata from part?
-
-      // Recovery: Take on all exporters (i.e. if a library has erroneously
-      // exported the part it has (in validatePart) been recovered to import the
-      // main library (this) instead --- to make it complete (and set up scopes
-      // correctly) the exporters in this has to be updated too).
-      exporters.addAll(part.exporters);
-
-      nativeMethods.addAll(part.nativeMethods);
-      unboundNominalVariables.addAll(part.unboundNominalVariables);
-      unboundStructuralVariables.addAll(part.unboundStructuralVariables);
-      // Check that the targets are different. This is not normally a problem
-      // but is for augmentation libraries.
-      if (library != part.library && part.library.problemsAsJson != null) {
-        (library.problemsAsJson ??= <String>[])
-            .addAll(part.library.problemsAsJson!);
-      }
-      part.collectInferableTypes(_inferableTypes!);
-      part.takeMixinApplications(_mixinApplications!);
-      if (library != part.library) {
-        // Mark the part library as synthetic as it's not an actual library
-        // (anymore).
-        part.library.isSynthetic = true;
-      }
-      return true;
-    } else {
-      assert(part is DillLibraryBuilder);
-      // Trying to add a dill library builder as a part means that it exists
-      // as a stand-alone library in the dill file.
-      // This means, that it's not a part (if it had been it would be been
-      // "merged in" to the real library and thus not been a library on its own)
-      // so we behave like if it's a library with a missing "part of"
-      // declaration (i.e. as it was a SourceLibraryBuilder without a "part of"
-      // declaration).
-      if (uriIsValid(part.fileUri)) {
-        addProblem(templateMissingPartOf.withArguments(part.fileUri),
-            partOffset, noLength, fileUri);
-      }
-      return false;
     }
   }
 
@@ -3921,7 +4069,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl
 
     for (Part part in parts) {
       CompilationUnit compilationUnit = part.compilationUnit;
-      if (compilationUnit is SourceLibraryBuilder) {
+      if (compilationUnit is SourceCompilationUnit) {
         compilationUnit.addDependencies(library, seen);
       }
     }
@@ -6361,8 +6509,8 @@ class Part {
   Part(this.offset, this.compilationUnit);
 
   OffsetMap get offsetMap {
-    if (compilationUnit is SourceLibraryBuilder) {
-      return (compilationUnit as SourceLibraryBuilder).offsetMap;
+    if (compilationUnit is SourceCompilationUnit) {
+      return (compilationUnit as SourceCompilationUnit).offsetMap;
     }
     assert(false, "No offset map for $compilationUnit.");
     return new OffsetMap(compilationUnit.fileUri);

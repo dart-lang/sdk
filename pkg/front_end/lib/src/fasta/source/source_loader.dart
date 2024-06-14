@@ -291,8 +291,8 @@ class SourceLoader extends Loader {
     assert(!libraryBuilder.isAugmenting,
         "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
-    _markDartLibraries(uri, libraryBuilder, libraryBuilder);
-    _compilationUnits[uri] = libraryBuilder;
+    _markDartLibraries(uri, libraryBuilder, libraryBuilder.mainCompilationUnit);
+    _compilationUnits[uri] = libraryBuilder.mainCompilationUnit;
     _loadedLibraryBuilders[uri] = libraryBuilder;
   }
 
@@ -396,14 +396,15 @@ class SourceLoader extends Loader {
     String libraryName = DartLibrarySupport.getDartLibraryName(dottedName);
     Uri uri = new Uri(scheme: "dart", path: libraryName);
     // TODO(johnniwinther): This should really be libraries only.
-    CompilationUnit? library = lookupCompilationUnit(uri);
+    CompilationUnit? compilationUnit = lookupCompilationUnit(uri);
     // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
     // point? And does it matter?
-    library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
+    compilationUnit ??=
+        target.dillTarget.loader.lookupLibraryBuilder(uri)?.mainCompilationUnit;
     return DartLibrarySupport.isDartLibrarySupported(libraryName,
-            libraryExists: library != null,
-            isSynthetic: library?.isSynthetic ?? true,
-            isUnsupported: library?.isUnsupported ?? true,
+            libraryExists: compilationUnit != null,
+            isSynthetic: compilationUnit?.isSynthetic ?? true,
+            isUnsupported: compilationUnit?.isUnsupported ?? true,
             dartLibrarySupport: target.backendTarget.dartLibrarySupport)
         ? "true"
         : null;
@@ -513,7 +514,7 @@ class SourceLoader extends Loader {
       roots.add(uri);
     }
 
-    _checkForDartCore(uri, libraryBuilder, libraryBuilder);
+    _checkForDartCore(uri, libraryBuilder, libraryBuilder.compilationUnit);
 
     Uri libraryUri = origin?.importUri ?? uri;
     if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
@@ -532,7 +533,8 @@ class SourceLoader extends Loader {
         target.dillTarget.loader.lookupLibraryBuilder(uri);
     if (libraryBuilder != null) {
       _checkDillLibraryBuilderNnbdMode(libraryBuilder);
-      _checkForDartCore(uri, libraryBuilder, libraryBuilder);
+      _checkForDartCore(
+          uri, libraryBuilder, libraryBuilder.mainCompilationUnit);
     }
     return libraryBuilder;
   }
@@ -685,18 +687,19 @@ class SourceLoader extends Loader {
     CompilationUnit? compilationUnit = _compilationUnits[uri];
     if (compilationUnit == null) {
       if (target.dillTarget.isLoaded) {
-        compilationUnit = _lookupDillLibraryBuilder(uri);
+        compilationUnit = _lookupDillLibraryBuilder(uri)?.mainCompilationUnit;
       }
       if (compilationUnit == null) {
         compilationUnit = _createSourceLibraryBuilder(
-            uri,
-            fileUri,
-            origin as SourceLibraryBuilder?,
-            referencesFromIndex,
-            referenceIsPartOwner,
-            isAugmentation,
-            isPatch,
-            addAsRoot);
+                uri,
+                fileUri,
+                origin as SourceLibraryBuilder?,
+                referencesFromIndex,
+                referenceIsPartOwner,
+                isAugmentation,
+                isPatch,
+                addAsRoot)
+            .compilationUnit;
       }
       _compilationUnits[uri] = compilationUnit;
     }
@@ -1209,7 +1212,7 @@ severity: $severity
       assert(part.compilationUnit.partOfLibrary == library,
           "Part ${part.compilationUnit} is not part of ${library}.");
       Token tokens = await tokenize(
-          part.compilationUnit as SourceLibraryBuilder,
+          (part.compilationUnit as SourceCompilationUnit).sourceLibraryBuilder,
           suppressLexicalErrors: true);
       DietListener listener = createDietListener(library, part.offsetMap);
       DietParser parser = new DietParser(listener,
@@ -1314,34 +1317,39 @@ severity: $severity
   }
 
   void resolveParts() {
-    Map<Uri, SourceLibraryBuilder> parts = {};
+    Map<Uri, SourceCompilationUnit> parts = {};
     List<SourceLibraryBuilder> libraries = [];
     List<SourceLibraryBuilder> sourceLibraries = [];
     List<SourceLibraryBuilder> augmentationLibraries = [];
-    _compilationUnits.forEach((Uri uri, CompilationUnit library) {
-      if (library.loader == this && library is SourceLibraryBuilder) {
-        if (library.isPart) {
-          parts[uri] = library;
-        } else {
-          if (library.isAugmenting) {
-            augmentationLibraries.add(library);
+    _compilationUnits.forEach((Uri uri, CompilationUnit compilationUnit) {
+      switch (compilationUnit) {
+        case SourceCompilationUnit():
+          if (compilationUnit.isPart) {
+            parts[uri] = compilationUnit;
           } else {
-            sourceLibraries.add(library);
-            _loadedLibraryBuilders[uri] = library;
+            SourceLibraryBuilder sourceLibraryBuilder =
+                compilationUnit.createLibrary();
+            if (compilationUnit.isAugmenting) {
+              // TODO(johnniwinther): Avoid creating a [SourceLibraryBuilder]
+              // for augmentation libraries.
+              augmentationLibraries.add(sourceLibraryBuilder);
+            } else {
+              sourceLibraries.add(sourceLibraryBuilder);
+              _loadedLibraryBuilders[uri] = sourceLibraryBuilder;
+            }
+            libraries.add(sourceLibraryBuilder);
           }
-          libraries.add(library);
-        }
-      } else {
-        _loadedLibraryBuilders[uri] = library as DillLibraryBuilder;
+        case DillCompilationUnit():
+          _loadedLibraryBuilders[uri] = compilationUnit.libraryBuilder;
       }
     });
     Set<Uri> usedParts = new Set<Uri>();
     for (SourceLibraryBuilder library in libraries) {
       library.includeParts(usedParts);
     }
-    for (MapEntry<Uri, SourceLibraryBuilder> entry in parts.entries) {
+    for (MapEntry<Uri, SourceCompilationUnit> entry in parts.entries) {
       Uri uri = entry.key;
-      SourceLibraryBuilder part = entry.value;
+      SourceCompilationUnit part = entry.value;
       if (usedParts.contains(uri)) {
         _compilationUnits.remove(uri);
         if (roots.contains(uri)) {
@@ -1350,9 +1358,10 @@ severity: $severity
         }
       } else {
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
-        part.validatePart(null, null);
-        sourceLibraries.add(part);
-        _loadedLibraryBuilders[uri] = part;
+        SourceLibraryBuilder sourceLibraryBuilder = part.createLibrary();
+        sourceLibraryBuilder.validatePart(null, null);
+        sourceLibraries.add(sourceLibraryBuilder);
+        _loadedLibraryBuilders[uri] = sourceLibraryBuilder;
       }
     }
     ticker.logMs("Resolved parts");
@@ -1366,19 +1375,28 @@ severity: $severity
     assert(
         _compilationUnits.values.every((library) =>
             !(library is SourceLibraryBuilder && library.isAugmenting)),
-        "Augmentation library found in libraryBuilders: "
-        // ignore: lines_longer_than_80_chars
-        "${_compilationUnits.values.where((library) => !(library is SourceLibraryBuilder && library.isAugmenting))}.");
+        "Augmentation library found in libraryBuilders: " +
+            _compilationUnits.values
+                .where((compilationUnit) =>
+                    !(compilationUnit is SourceCompilationUnit &&
+                        compilationUnit.isAugmenting))
+                .join(', ') +
+            ".");
     assert(
         sourceLibraries.every((library) => !library.isAugmenting),
         "Augmentation library found in sourceLibraryBuilders: "
         "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
-        _compilationUnits.values.every((library) =>
-            library.loader != this || sourceLibraries.contains(library)),
-        "Source library not found in sourceLibraryBuilders:"
-        "${_compilationUnits.values.where((library) => // force line break
-            library.loader == this && !sourceLibraries.contains(library))}");
+        _compilationUnits.values.every((compilationUnit) =>
+            compilationUnit.loader != this ||
+            sourceLibraries.contains(compilationUnit.libraryBuilder)),
+        "Source library not found in sourceLibraryBuilders:" +
+            _compilationUnits.values
+                .where((compilationUnit) =>
+                    compilationUnit.loader == this &&
+                    !sourceLibraries.contains(compilationUnit.libraryBuilder))
+                .join(', ') +
+            ".");
     ticker.logMs("Applied augmentations");
   }
 

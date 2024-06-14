@@ -80,7 +80,8 @@ class DillLoader extends Loader {
   LibraryBuilder get coreLibrary => _coreLibrary!;
 
   @override
-  CompilationUnit get coreLibraryCompilationUnit => _coreLibrary!;
+  CompilationUnit get coreLibraryCompilationUnit =>
+      _coreLibrary!.mainCompilationUnit;
 
   Ticker get ticker => target.ticker;
 
@@ -118,7 +119,7 @@ class DillLoader extends Loader {
         // firstSourceUri and first library should be done as early as
         // possible.
         firstSourceUri ??= uri;
-        first ??= libraryBuilder;
+        first ??= libraryBuilder.mainCompilationUnit;
       }
       if (_coreLibrary == libraryBuilder) {
         target.loadExtraRequiredLibraries(this);
