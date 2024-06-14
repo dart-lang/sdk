@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 318 "needsFix"
-# - 429 "hasFix"
+# - 316 "needsFix"
+# - 431 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -645,9 +645,7 @@ CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
-  status: needsFix
-  notes: |-
-    Offer to delete the invalid member.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
@@ -667,9 +665,7 @@ CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
-  status: needsFix
-  notes: |-
-    Offer to delete the invalid member.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:

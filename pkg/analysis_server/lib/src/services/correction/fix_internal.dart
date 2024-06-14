@@ -944,6 +944,12 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
     RemoveNameFromDeclarationClause.new,
   ],
+  CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT: [
+    RemoveMethodDeclaration.new,
+  ],
+  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT: [
+    RemoveMethodDeclaration.new,
+  ],
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
     ReplaceWithExtensionName.new,
   ],
