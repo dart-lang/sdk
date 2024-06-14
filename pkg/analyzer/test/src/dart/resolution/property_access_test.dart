@@ -311,6 +311,34 @@ PropertyAccess
 ''');
   }
 
+  test_inClass_superExpression_identifier_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set foo(int _) {}
+
+  void f() {
+    super.foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3),
+    ]);
+
+    var node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_inClass_superQualifier_identifier_getter() async {
     await assertNoErrorsInCode('''
 class A {
@@ -452,34 +480,6 @@ PropertyAccess
     staticElement: self::@class::A::@method::foo
     staticType: void Function(int)
   staticType: void Function(int)
-''');
-  }
-
-  test_inClass_thisExpression_identifier_setter() async {
-    await assertErrorsInCode('''
-class A {
-  set foo(int _) {}
-
-  void f() {
-    super.foo;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3),
-    ]);
-
-    var node = findNode.propertyAccess('foo;');
-    assertResolvedNodeText(node, r'''
-PropertyAccess
-  target: SuperExpression
-    superKeyword: super
-    staticType: A
-  operator: .
-  propertyName: SimpleIdentifier
-    token: foo
-    staticElement: <null>
-    staticType: InvalidType
-  staticType: InvalidType
 ''');
   }
 

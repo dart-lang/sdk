@@ -899,6 +899,13 @@ class DeclarationBuilderFromElement {
     }
   }
 
+  List<macro.TypeAnnotationImpl> _dartTypes(List<DartType> types) {
+    return List.generate(types.length, (index) {
+      var type = types[index];
+      return _dartType(type);
+    }, growable: false);
+  }
+
   EnumValueDeclarationImpl _enumConstantElement(
     FieldElementImpl element,
   ) {
@@ -1028,7 +1035,7 @@ class DeclarationBuilderFromElement {
       id: macro.RemoteInstance.uniqueId,
       isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
       identifier: identifier(type.element),
-      typeArguments: type.typeArguments.map(_dartType).toList(),
+      typeArguments: _dartTypes(type.typeArguments),
     );
   }
 
@@ -1457,7 +1464,30 @@ class DeclarationBuilderFromNode {
   macro.MethodDeclarationImpl methodDeclaration(
     ast.MethodDeclarationImpl node,
   ) {
-    return _methodDeclaration(node);
+    var definingType = _definingType(node);
+    var element = node.declaredElement!;
+
+    var (namedParameters, positionalParameters) =
+        _executableFormalParameters(element, node.parameters);
+
+    return MethodDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      definingType: definingType,
+      element: element,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasBody: node.body is! ast.EmptyFunctionBody,
+      hasExternal: node.externalKeyword != null,
+      hasStatic: node.isStatic,
+      isGetter: node.isGetter,
+      isOperator: node.isOperator,
+      isSetter: node.isSetter,
+      namedParameters: namedParameters,
+      positionalParameters: positionalParameters,
+      returnType: _typeAnnotationMethodReturnType(node),
+      typeParameters: _typeParameterDeclarations(node.typeParameters),
+    );
   }
 
   MixinDeclarationImpl mixinDeclaration(
@@ -1809,47 +1839,28 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  MethodDeclarationImpl _methodDeclaration(
-    ast.MethodDeclarationImpl node,
-  ) {
-    var definingType = _definingType(node);
-    var element = node.declaredElement!;
-
-    var (namedParameters, positionalParameters) =
-        _executableFormalParameters(element, node.parameters);
-
-    return MethodDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      definingType: definingType,
-      element: element,
-      identifier: _declaredIdentifier(node.name, element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      hasBody: node.body is! ast.EmptyFunctionBody,
-      hasExternal: node.externalKeyword != null,
-      hasStatic: node.isStatic,
-      isGetter: node.isGetter,
-      isOperator: node.isOperator,
-      isSetter: node.isSetter,
-      namedParameters: namedParameters,
-      positionalParameters: positionalParameters,
-      returnType: _typeAnnotationMethodReturnType(node),
-      typeParameters: _typeParameterDeclarations(node.typeParameters),
-    );
-  }
-
   macro.NamedTypeAnnotationImpl _namedType(
     ast.NamedType node,
     TypeAnnotationLocation location,
   ) {
+    var typeArguments = _typeAnnotations(
+      node.typeArguments?.arguments,
+      location,
+    );
+
+    // If the named type does not have type arguments, or has the wrong
+    // number of type arguments, replace them from the actual type.
+    if (node.type case InterfaceType type) {
+      if (typeArguments.length != type.element.typeParameters.length) {
+        typeArguments = builder.fromElement._dartTypes(type.typeArguments);
+      }
+    }
+
     return _NamedTypeAnnotation(
       id: macro.RemoteInstance.uniqueId,
       identifier: _namedTypeIdentifier(node),
       isNullable: node.question != null,
-      typeArguments: _typeAnnotations(
-        node.typeArguments?.arguments,
-        location,
-      ),
+      typeArguments: typeArguments,
       location: location,
     );
   }
