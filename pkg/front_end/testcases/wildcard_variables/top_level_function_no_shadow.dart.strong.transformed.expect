@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method _() → void {}
+static method test() → dynamic {
+  function wildcard _(core::int x) → core::int
+    return x;
+  core::print(#C1);
+}
+
+constants  {
+  #C1 = static-tearoff self::_
+}

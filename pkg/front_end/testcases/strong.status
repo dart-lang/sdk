@@ -314,6 +314,7 @@ wildcard_variables/for_loop: RuntimeError # Expected
 wildcard_variables/local_function_declaration: RuntimeError # Expected
 wildcard_variables/local_var: RuntimeError # Expected
 wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies # Expected
+wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
 
 # Verifier crashes in semi-fuzzing
 macros/extend_augmented: SemiFuzzCrash

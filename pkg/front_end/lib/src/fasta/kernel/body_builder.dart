@@ -7211,7 +7211,9 @@ class BodyBuilder extends StackListenerImpl
     VariableDeclaration variable = new VariableDeclarationImpl(name.name,
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
-        isLocalFunction: true)
+        isLocalFunction: true,
+        isWildcard:
+            libraryFeatures.wildcardVariables.isEnabled && name.name == '_')
       ..fileOffset = name.nameOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
@@ -7224,7 +7226,9 @@ class BodyBuilder extends StackListenerImpl
         // The real function node is created later.
         dummyFunctionNode)
       ..fileOffset = beginToken.charOffset);
-    declareVariable(variable, scope.parent!);
+    if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
+      declareVariable(variable, scope.parent!);
+    }
   }
 
   void enterFunction() {
