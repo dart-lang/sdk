@@ -35,7 +35,19 @@ if [ $need_runhooks = true ]; then
   # referencing.
   # Normally gclient sync would update the cache - but we are bypassing
   # it here.
-  git_cache=$(python3 -c 'import imp; config = imp.load_source("config", ".gclient"); print(getattr(config, "cache_dir", ""))')
+  git_cache=$(python3 -c '\
+import importlib.util
+import importlib.machinery
+
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+config = load_source("config", ".gclient");
+print(getattr(config, "cache_dir", ""))')
 
   # DEPS file might have been patched with new version of packages that
   # Dart SDK depends on. Get information about dependencies from the
