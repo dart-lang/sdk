@@ -82,6 +82,8 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   }
   final WasmTarget target = WasmTarget(
       enableExperimentalFfi: options.translatorOptions.enableExperimentalFfi,
+      enableExperimentalWasmInterop:
+          options.translatorOptions.enableExperimentalWasmInterop,
       removeAsserts: !options.translatorOptions.enableAsserts,
       mode: mode);
   CompilerOptions compilerOptions = CompilerOptions()
