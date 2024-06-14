@@ -5213,13 +5213,17 @@ class BodyBuilder extends StackListenerImpl
     Object? type = pop();
     // TODO(johnniwinther): How should we handle annotations?
     pop(NullValues.Metadata); // Annotations.
+
+    String? fieldName = name is Identifier ? name.name : null;
     push(new RecordTypeFieldBuilder(
         [],
         type is ParserRecovery
             ? new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
-        name is Identifier ? name.name : null,
-        name is Identifier ? name.nameOffset : TreeNode.noOffset));
+        fieldName,
+        name is Identifier ? name.nameOffset : TreeNode.noOffset,
+        isWildcard:
+            libraryFeatures.wildcardVariables.isEnabled && fieldName == '_'));
   }
 
   @override

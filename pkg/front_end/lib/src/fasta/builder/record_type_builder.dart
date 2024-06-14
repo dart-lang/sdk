@@ -149,6 +149,9 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         positionalEntries.add(type);
         String? fieldName = field.name;
         if (fieldName != null) {
+          if (library is SourceLibraryBuilder && field.isWildcard) {
+            continue;
+          }
           if (fieldName.startsWith("_")) {
             library.addProblem(messageRecordFieldsCantBePrivate,
                 field.charOffset, fieldName.length, fileUri);
@@ -380,7 +383,10 @@ class RecordTypeFieldBuilder {
 
   final int charOffset;
 
-  RecordTypeFieldBuilder(this.metadata, this.type, this.name, this.charOffset);
+  final bool isWildcard;
+
+  RecordTypeFieldBuilder(this.metadata, this.type, this.name, this.charOffset,
+      {this.isWildcard = false});
 
   RecordTypeFieldBuilder clone(
       List<NamedTypeBuilder> newTypes,
@@ -392,7 +398,8 @@ class RecordTypeFieldBuilder {
         metadata,
         type.clone(newTypes, contextLibrary, contextDeclaration),
         name,
-        charOffset);
+        charOffset,
+        isWildcard: isWildcard);
   }
 
   @override
