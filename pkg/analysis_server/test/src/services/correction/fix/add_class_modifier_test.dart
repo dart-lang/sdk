@@ -10,14 +10,16 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddClassModifierTest);
+    defineReflectiveTests(AddClassModifierBaseTest);
+    defineReflectiveTests(AddClassModifierFinalTest);
+    defineReflectiveTests(AddClassModifierSealedTest);
   });
 }
 
 @reflectiveTest
-class AddClassModifierTest extends FixProcessorTest {
+class AddClassModifierBaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER;
+  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER_BASE;
 
   Future<void> test_mixinSubtypeOfBaseIsNotBase() async {
     await resolveTestCode('''
@@ -51,6 +53,84 @@ mixin B implements A {}
     await assertHasFix('''
 final class A {}
 base mixin B implements A {}
+''');
+  }
+
+  Future<void> test_subtypeOfBaseIsNotBaseFinalOrSealed() async {
+    await resolveTestCode('''
+base class A {}
+class B extends A {}
+''');
+    await assertHasFix('''
+base class A {}
+base class B extends A {}
+''');
+  }
+
+  Future<void> test_subtypeOfFinalIsNotBaseFinalOrSealed() async {
+    await resolveTestCode('''
+final class A {}
+class B extends A {}
+''');
+    await assertHasFix('''
+final class A {}
+base class B extends A {}
+''');
+  }
+}
+
+@reflectiveTest
+class AddClassModifierFinalTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER_FINAL;
+
+  Future<void> test_subtypeOfBaseIsNotBaseFinalOrSealed() async {
+    await resolveTestCode('''
+base class A {}
+class B extends A {}
+''');
+    await assertHasFix('''
+base class A {}
+final class B extends A {}
+''');
+  }
+
+  Future<void> test_subtypeOfFinalIsNotBaseFinalOrSealed() async {
+    await resolveTestCode('''
+final class A {}
+class B extends A {}
+''');
+    await assertHasFix('''
+final class A {}
+final class B extends A {}
+''');
+  }
+}
+
+@reflectiveTest
+class AddClassModifierSealedTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER_SEALED;
+
+  Future<void> test_subtypeOfBaseIsNotBaseFinalOrSealed() async {
+    await resolveTestCode('''
+base class A {}
+class B extends A {}
+''');
+    await assertHasFix('''
+base class A {}
+sealed class B extends A {}
+''');
+  }
+
+  Future<void> test_subtypeOfFinalIsNotBaseFinalOrSealed() async {
+    await resolveTestCode('''
+final class A {}
+class B extends A {}
+''');
+    await assertHasFix('''
+final class A {}
+sealed class B extends A {}
 ''');
   }
 }

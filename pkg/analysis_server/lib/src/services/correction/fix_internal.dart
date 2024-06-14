@@ -1072,10 +1072,10 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveExtendsClause.new,
   ],
   CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE: [
-    AddClassModifier.base,
+    AddClassModifier.baseModifier,
   ],
   CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE: [
-    AddClassModifier.base,
+    AddClassModifier.baseModifier,
   ],
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS: [
     RemoveNameFromDeclarationClause.new,
@@ -1184,6 +1184,16 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+  ],
+  CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
+    AddClassModifier.baseModifier,
+    AddClassModifier.finalModifier,
+    AddClassModifier.sealedModifier,
+  ],
+  CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED: [
+    AddClassModifier.baseModifier,
+    AddClassModifier.finalModifier,
+    AddClassModifier.sealedModifier,
   ],
   CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
       [

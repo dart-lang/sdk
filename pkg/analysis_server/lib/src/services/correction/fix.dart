@@ -61,15 +61,35 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Add empty argument lists everywhere in file',
   );
-  static const ADD_CLASS_MODIFIER = FixKind(
-    'dart.fix.add.class.modifier',
+  static const ADD_CLASS_MODIFIER_BASE = FixKind(
+    'dart.fix.add.class.modifier.base',
     DartFixKindPriority.DEFAULT,
-    "Add ''{0}'' modifier",
+    "Add 'base' modifier",
   );
-  static const ADD_CLASS_MODIFIER_MULTI = FixKind(
-    'dart.fix.add.class.modifier.multi',
+  static const ADD_CLASS_MODIFIER_BASE_MULTI = FixKind(
+    'dart.fix.add.class.modifier.base.multi',
     DartFixKindPriority.IN_FILE,
-    "Add ''{0}'' modifier everywhere in file",
+    "Add 'base' modifier everywhere in file",
+  );
+  static const ADD_CLASS_MODIFIER_FINAL = FixKind(
+    'dart.fix.add.class.modifier.final',
+    DartFixKindPriority.DEFAULT,
+    "Add 'final' modifier",
+  );
+  static const ADD_CLASS_MODIFIER_FINAL_MULTI = FixKind(
+    'dart.fix.add.class.modifier.final.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add 'final' modifier everywhere in file",
+  );
+  static const ADD_CLASS_MODIFIER_SEALED = FixKind(
+    'dart.fix.add.class.modifier.sealed',
+    DartFixKindPriority.DEFAULT,
+    "Add 'sealed' modifier",
+  );
+  static const ADD_CLASS_MODIFIER_SEALED_MULTI = FixKind(
+    'dart.fix.add.class.modifier.sealed.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add 'sealed' modifier everywhere in file",
   );
   static const ADD_CONST = FixKind(
     'dart.fix.add.const',

@@ -9,25 +9,42 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddClassModifier extends ResolvedCorrectionProducer {
-  final String _modifier;
+  final String modifier;
 
-  AddClassModifier.base({required CorrectionProducerContext context})
-      : this._('base', context: context);
+  @override
+  final FixKind fixKind;
 
-  AddClassModifier._(this._modifier, {required super.context});
+  @override
+  final FixKind multiFixKind;
+
+  AddClassModifier.baseModifier({required CorrectionProducerContext context})
+      : this._(
+            context: context,
+            modifier: 'base',
+            fixKind: DartFixKind.ADD_CLASS_MODIFIER_BASE,
+            multiFixKind: DartFixKind.ADD_CLASS_MODIFIER_BASE_MULTI);
+  AddClassModifier.finalModifier({required CorrectionProducerContext context})
+      : this._(
+            context: context,
+            modifier: 'final',
+            fixKind: DartFixKind.ADD_CLASS_MODIFIER_FINAL,
+            multiFixKind: DartFixKind.ADD_CLASS_MODIFIER_FINAL_MULTI);
+  AddClassModifier.sealedModifier({required CorrectionProducerContext context})
+      : this._(
+            context: context,
+            modifier: 'sealed',
+            fixKind: DartFixKind.ADD_CLASS_MODIFIER_SEALED,
+            multiFixKind: DartFixKind.ADD_CLASS_MODIFIER_SEALED_MULTI);
+
+  AddClassModifier._(
+      {required super.context,
+      required this.modifier,
+      required this.fixKind,
+      required this.multiFixKind});
 
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.acrossSingleFile;
-
-  @override
-  List<String> get fixArguments => [_modifier];
-
-  @override
-  FixKind get fixKind => DartFixKind.ADD_CLASS_MODIFIER;
-
-  @override
-  FixKind get multiFixKind => DartFixKind.ADD_CLASS_MODIFIER_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -36,7 +53,7 @@ class AddClassModifier extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-          node.firstTokenAfterCommentAndMetadata.offset, '$_modifier ');
+          node.firstTokenAfterCommentAndMetadata.offset, '$modifier ');
     });
   }
 }
