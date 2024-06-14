@@ -6,6 +6,8 @@ library fasta.dill_library_builder;
 
 import 'dart:convert' show jsonDecode;
 
+import 'package:front_end/src/fasta/combinator.dart';
+import 'package:front_end/src/fasta/loader.dart';
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
@@ -16,7 +18,14 @@ import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../codes/fasta_codes.dart'
-    show Message, noLength, templateDuplicatedDeclaration, templateUnspecified;
+    show
+        LocatedMessage,
+        Message,
+        Severity,
+        noLength,
+        templateDuplicatedDeclaration,
+        templateUnspecified;
+import '../export.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../problems.dart' show internalProblem, unhandled;
@@ -42,12 +51,81 @@ class LazyLibraryScope extends LazyScope {
   }
 }
 
-class DillLibraryBuilder extends LibraryBuilderImpl implements CompilationUnit {
+class DillCompilationUnitImpl extends DillCompilationUnit {
+  final DillLibraryBuilder _dillLibraryBuilder;
+
+  DillCompilationUnitImpl(this._dillLibraryBuilder);
+
+  @override
+  void addExporter(LibraryBuilder exporter,
+      List<CombinatorBuilder>? combinators, int charOffset) {
+    _dillLibraryBuilder.exporters
+        .add(new Export(exporter, this, combinators, charOffset));
+  }
+
+  @override
+  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
+      {bool wasHandled = false,
+      List<LocatedMessage>? context,
+      Severity? severity,
+      bool problemOnLibrary = false}) {
+    _dillLibraryBuilder.addProblem(message, charOffset, length, fileUri,
+        wasHandled: wasHandled,
+        context: context,
+        severity: severity,
+        problemOnLibrary: problemOnLibrary);
+  }
+
+  @override
+  Iterable<Uri> get dependencies => _dillLibraryBuilder.dependencies;
+
+  @override
+  Uri get fileUri => _dillLibraryBuilder.fileUri;
+
+  @override
+  Uri get importUri => _dillLibraryBuilder.importUri;
+
+  @override
+  bool get isAugmenting => _dillLibraryBuilder.isAugmenting;
+
+  @override
+  bool get isPart => _dillLibraryBuilder.isPart;
+
+  @override
+  bool get isSynthetic => _dillLibraryBuilder.isSynthetic;
+
+  @override
+  bool get isUnsupported => _dillLibraryBuilder.isUnsupported;
+
+  @override
+  LibraryBuilder get libraryBuilder => _dillLibraryBuilder;
+
+  @override
+  Loader get loader => _dillLibraryBuilder.loader;
+
+  @override
+  NameIterator<Builder> get localMembersNameIterator =>
+      _dillLibraryBuilder.localMembersNameIterator;
+
+  @override
+  Null get partOfLibrary => _dillLibraryBuilder.partOfLibrary;
+
+  @override
+  void recordAccess(
+      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {
+    _dillLibraryBuilder.recordAccess(accessor, charOffset, length, fileUri);
+  }
+}
+
+class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   final Library library;
 
   @override
   DillLoader loader;
+
+  late final CompilationUnit mainCompilationUnit =
+      new DillCompilationUnitImpl(this);
 
   /// Exports that can't be serialized.
   ///
@@ -71,9 +149,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl implements CompilationUnit {
     LazyLibraryScope lazyExportScope = exportScope as LazyLibraryScope;
     lazyExportScope.libraryBuilder = this;
   }
-
-  @override
-  LibraryBuilder get libraryBuilder => this;
 
   @override
   LibraryBuilder get origin => this;

@@ -5052,7 +5052,9 @@ class BodyBuilder extends StackListenerImpl
       if (prefix is ParserErrorGenerator) {
         // An error have already been issued.
         push(prefix.buildTypeWithResolvedArgumentsDoNotAddProblem(
-            libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable)));
+            isMarkedAsNullable
+                ? const NullabilityBuilder.nullable()
+                : const NullabilityBuilder.omitted()));
         return;
       } else if (prefix is Generator) {
         name = prefix.qualifiedLookup(suffix);
@@ -5065,7 +5067,9 @@ class BodyBuilder extends StackListenerImpl
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new NamedTypeBuilderImpl.forInvalidType(
             name,
-            libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+            isMarkedAsNullable
+                ? const NullabilityBuilder.nullable()
+                : const NullabilityBuilder.omitted(),
             message.withLocation(
                 uri, offset, lengthOfSpan(beginToken, suffix))));
         return;
@@ -5080,7 +5084,10 @@ class BodyBuilder extends StackListenerImpl
         allowPotentiallyConstantType = inIsOrAsOperatorType;
       }
       result = name.buildTypeWithResolvedArguments(
-          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments,
+          isMarkedAsNullable
+              ? const NullabilityBuilder.nullable()
+              : const NullabilityBuilder.omitted(),
+          arguments,
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
     } else if (name is ProblemBuilder) {
@@ -5089,7 +5096,9 @@ class BodyBuilder extends StackListenerImpl
           name.message, name.charOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
-          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+          isMarkedAsNullable
+              ? const NullabilityBuilder.nullable()
+              : const NullabilityBuilder.omitted(),
           name.message
               .withLocation(name.fileUri, name.charOffset, name.name.length));
     } else {
@@ -5178,8 +5187,8 @@ class BodyBuilder extends StackListenerImpl
       positionalFields,
       namedFields,
       questionMark != null
-          ? libraryBuilder.nullableBuilder
-          : libraryBuilder.nonNullableBuilder,
+          ? const NullabilityBuilder.nullable()
+          : const NullabilityBuilder.omitted(),
       uri,
       leftBracket.charOffset,
     ));
@@ -5235,7 +5244,9 @@ class BodyBuilder extends StackListenerImpl
         pop() as List<StructuralVariableBuilder>?;
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
-        libraryBuilder.nullableBuilderIfTrue(questionMark != null),
+        questionMark != null
+            ? const NullabilityBuilder.nullable()
+            : const NullabilityBuilder.omitted(),
         structuralVariableBuilders: typeVariables,
         hasFunctionFormalParameterSyntax: false);
     exitLocalScope();
@@ -5547,7 +5558,9 @@ class BodyBuilder extends StackListenerImpl
         pop() as List<StructuralVariableBuilder>?;
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
-        libraryBuilder.nullableBuilderIfTrue(question != null),
+        question != null
+            ? const NullabilityBuilder.nullable()
+            : const NullabilityBuilder.omitted(),
         structuralVariableBuilders: typeVariables,
         hasFunctionFormalParameterSyntax: true);
     exitLocalScope();
@@ -9297,7 +9310,7 @@ class BodyBuilder extends StackListenerImpl
       expression = new Let(
           new VariableDeclaration.forValue(argument,
               isFinal: true,
-              type: coreTypes.objectRawType(libraryBuilder.nullable)),
+              type: coreTypes.objectRawType(Nullability.nullable)),
           expression);
     }
     return expression;

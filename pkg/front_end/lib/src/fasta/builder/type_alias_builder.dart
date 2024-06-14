@@ -182,7 +182,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
 
-    Nullability nullability = nullabilityBuilder.build(library);
+    Nullability nullability = nullabilityBuilder.build();
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullability,
@@ -373,7 +373,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             if (typeVariables != null)
               for (NominalVariableBuilder typeVariable in typeVariables!)
                 new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                    typeVariable, libraryBuilder.nonNullableBuilder,
+                    typeVariable, const NullabilityBuilder.omitted(),
                     arguments: const [],
                     fileUri: fileUri,
                     charOffset: charOffset,

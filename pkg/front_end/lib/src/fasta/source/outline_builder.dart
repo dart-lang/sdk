@@ -1327,8 +1327,7 @@ class OutlineBuilder extends StackListenerImpl {
 
       String classNameForErrors = identifier.name;
       if (supertype != null) {
-        if (supertype.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
+        if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           libraryBuilder.addProblem(
               templateNullableSuperclassError
                   .withArguments(supertype.fullNameForErrors),
@@ -1340,8 +1339,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (mixinApplication != null) {
         List<TypeBuilder>? mixins = mixinApplication.mixins;
         for (TypeBuilder mixin in mixins) {
-          if (mixin.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
+          if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableMixinError
                     .withArguments(mixin.fullNameForErrors),
@@ -1353,8 +1351,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
+          if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
@@ -1437,8 +1434,7 @@ class OutlineBuilder extends StackListenerImpl {
       String classNameForErrors = identifier.name;
       if (supertypeConstraints != null) {
         for (TypeBuilder supertype in supertypeConstraints) {
-          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
+          if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableSuperclassError
                     .withArguments(supertype.fullNameForErrors),
@@ -1450,8 +1446,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
+          if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
@@ -2515,8 +2510,7 @@ class OutlineBuilder extends StackListenerImpl {
           mixinApplication as MixinApplicationBuilder;
       List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
       if (supertype is TypeBuilder && supertype is! MixinApplicationBuilder) {
-        if (supertype.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
+        if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           libraryBuilder.addProblem(
               templateNullableSuperclassError
                   .withArguments(supertype.fullNameForErrors),
@@ -2526,8 +2520,7 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
       for (TypeBuilder mixin in mixins) {
-        if (mixin.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
+        if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
           libraryBuilder.addProblem(
               templateNullableMixinError.withArguments(mixin.fullNameForErrors),
               identifier.nameOffset,
@@ -2537,8 +2530,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
+          if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
@@ -2622,7 +2614,9 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       push(libraryBuilder.addNamedType(
           identifier.typeName,
-          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+          isMarkedAsNullable
+              ? const NullabilityBuilder.nullable()
+              : const NullabilityBuilder.omitted(),
           arguments,
           identifier.qualifierOffset,
           instanceTypeVariableAccess:
@@ -3059,8 +3053,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
+          if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             libraryBuilder.addProblem(
                 templateNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
@@ -3150,8 +3143,8 @@ class OutlineBuilder extends StackListenerImpl {
       positionalFields,
       namedFields,
       questionMark != null
-          ? libraryBuilder.nullableBuilder
-          : libraryBuilder.nonNullableBuilder,
+          ? const NullabilityBuilder.nullable()
+          : const NullabilityBuilder.omitted(),
       uri,
       leftBracket.charOffset,
     ));
@@ -3208,7 +3201,9 @@ class OutlineBuilder extends StackListenerImpl {
         returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
-        libraryBuilder.nullableBuilderIfTrue(questionMark != null),
+        questionMark != null
+            ? const NullabilityBuilder.nullable()
+            : const NullabilityBuilder.omitted(),
         uri,
         functionToken.charOffset,
         hasFunctionFormalParameterSyntax: false));
@@ -3227,7 +3222,9 @@ class OutlineBuilder extends StackListenerImpl {
         returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
-        libraryBuilder.nullableBuilderIfTrue(question != null),
+        question != null
+            ? const NullabilityBuilder.nullable()
+            : const NullabilityBuilder.omitted(),
         uri,
         formalsOffset,
         hasFunctionFormalParameterSyntax: true));
@@ -3311,8 +3308,7 @@ class OutlineBuilder extends StackListenerImpl {
       identifier = name as Identifier;
       if (type is FunctionTypeBuilder &&
           !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
-        if (type.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
+        if (type.nullabilityBuilder.build() == Nullability.nullable) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.

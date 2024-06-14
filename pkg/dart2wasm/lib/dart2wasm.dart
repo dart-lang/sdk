@@ -55,6 +55,9 @@ final List<Option> options = [
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
+  Flag("enable-experimental-wasm-interop",
+      (o, value) => o.translatorOptions.enableExperimentalWasmInterop = value,
+      defaultsTo: _d.translatorOptions.enableExperimentalWasmInterop),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),

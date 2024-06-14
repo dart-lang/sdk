@@ -4,8 +4,6 @@
 
 import 'package:kernel/ast.dart';
 
-import 'library_builder.dart';
-
 /// Represents the nullability modifiers encountered while parsing the types.
 ///
 /// The syntactic nullability needs to be interpreted, that is, built, into the
@@ -48,7 +46,7 @@ class NullabilityBuilder {
     }
   }
 
-  Nullability build(LibraryBuilder libraryBuilder) {
+  Nullability build() {
     switch (_syntacticNullability) {
       case SyntacticNullability.nullable:
         return Nullability.nullable;

@@ -33,7 +33,7 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
     return new FutureOrType(
         arguments!.single
             .buildAliased(library, TypeUse.typeArgument, hierarchy),
-        nullabilityBuilder.build(library));
+        nullabilityBuilder.build());
   }
 
   @override

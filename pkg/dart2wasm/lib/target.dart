@@ -91,12 +91,14 @@ class ConstantResolver extends Transformer {
 class WasmTarget extends Target {
   WasmTarget(
       {this.enableExperimentalFfi = true,
+      this.enableExperimentalWasmInterop = true,
       this.removeAsserts = false,
       this.mode = Mode.regular});
 
   final bool removeAsserts;
   final Mode mode;
   final bool enableExperimentalFfi;
+  final bool enableExperimentalWasmInterop;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -175,13 +177,28 @@ class WasmTarget extends Target {
   bool mayDefineRestrictedType(Uri uri) => uri.isScheme('dart');
 
   @override
-  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
-      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('tests/web/wasm') ||
-      importer.isScheme('package') &&
-          (importer.path == 'js/js.dart' ||
-              importer.path.startsWith('ui/') &&
-                  imported.toString() == 'dart:_wasm');
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) {
+    if (super.allowPlatformPrivateLibraryAccess(importer, imported)) {
+      return true;
+    }
+
+    if (imported.toString() == 'dart:_wasm') {
+      return enableExperimentalWasmInterop;
+    }
+
+    final importerString = importer.toString();
+
+    // We have some tests that import dart:js*
+    if (importerString.contains('tests/web/wasm')) return true;
+
+    // Flutter's dart:ui is also package:ui (in test mode)
+    if (importerString.startsWith('package:ui/')) return true;
+
+    // package:js can import dart:js* & dart:_js_*
+    if (importerString.startsWith('package:js/')) return true;
+
+    return false;
+  }
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -247,10 +264,12 @@ class WasmTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    // Check `wasm:import` and `wasm:export` pragmas before FFI transforms as
-    // FFI transforms convert JS interop annotations to these pragmas.
-    _checkWasmImportExportPragmas(libraries, coreTypes,
-        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
+    if (!enableExperimentalWasmInterop) {
+      // Check `wasm:import` and `wasm:export` pragmas before FFI transforms as
+      // FFI transforms convert JS interop annotations to these pragmas.
+      _checkWasmImportExportPragmas(libraries, coreTypes,
+          diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
+    }
 
     Set<Library> transitiveImportingJSInterop = {
       ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
@@ -545,9 +564,7 @@ void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
     if (importUri.isScheme('dart') ||
         (importUri.isScheme('package') &&
             JsInteropChecks.allowedInteropLibrariesInDart2WasmPackages
-                .any((pkg) => importUri.pathSegments.first == pkg)) ||
-        (importUri.path.contains('tests/web/wasm') &&
-            !importUri.path.contains('reject_import_export_pragmas'))) {
+                .any((pkg) => importUri.pathSegments.first == pkg))) {
       continue;
     }
 

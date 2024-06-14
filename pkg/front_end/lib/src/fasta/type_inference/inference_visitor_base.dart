@@ -2097,7 +2097,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   formalTypesFromContext[i]!);
           if (typeSchemaEnvironment.isSubtypeOf(inferredType, const NullType(),
               SubtypeCheckMode.withNullabilities)) {
-            inferredType = coreTypes.objectRawType(libraryBuilder.nullable);
+            inferredType = coreTypes.objectRawType(Nullability.nullable);
           }
         } else {
           inferredType = const DynamicType();
@@ -3381,7 +3381,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // operator == always allows nullable arguments.
       functionType = new FunctionType([
         functionType.positionalParameters.single
-            .withDeclaredNullability(libraryBuilder.nullable)
+            .withDeclaredNullability(Nullability.nullable)
       ], functionType.returnType, functionType.declaredNullability);
     }
     InvocationInferenceResult result = inferInvocation(
