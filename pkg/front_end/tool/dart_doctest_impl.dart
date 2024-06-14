@@ -847,7 +847,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
                   combinator.fileOffset, libraryBuilder.fileUri));
         }
 
-        dartDocTestLibrary.addImport(
+        dartDocTestLibrary.compilationUnit.addImport(
             metadata: null,
             isAugmentationImport: false,
             uri: dependency.importedLibraryReference.asLibrary.importUri
@@ -862,7 +862,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
             importIndex: -1);
       }
 
-      dartDocTestLibrary.addImport(
+      dartDocTestLibrary.compilationUnit.addImport(
           metadata: null,
           isAugmentationImport: false,
           uri: libraryBuilder.importUri.toString(),

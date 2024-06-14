@@ -124,13 +124,96 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   LibraryBuilder? _libraryBuilder;
 
+  /// Map used to find objects created in the [OutlineBuilder] from within
+  /// the [DietListener].
+  ///
+  /// This is meant to be written once and read once.
+  OffsetMap? _offsetMap;
+
   SourceCompilationUnitImpl(this._sourceLibraryBuilder);
 
   @override
   SourceLibraryBuilder get sourceLibraryBuilder => _sourceLibraryBuilder;
 
   @override
-  OffsetMap get offsetMap => _sourceLibraryBuilder.offsetMap;
+  LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
+
+  /// Returns the map of objects created in the [OutlineBuilder].
+  ///
+  /// This should only be called once.
+  @override
+  OffsetMap get offsetMap {
+    assert(_offsetMap != null, "No OffsetMap for $this");
+    OffsetMap map = _offsetMap!;
+    _offsetMap = null;
+    return map;
+  }
+
+  /// Registers the map of objects created in the [OutlineBuilder].
+  ///
+  /// This should only be called once.
+  @override
+  void set offsetMap(OffsetMap value) {
+    assert(_offsetMap == null, "OffsetMap has already been set for $this");
+    _offsetMap = value;
+  }
+
+  @override
+  TypeParameterScopeBuilder get currentTypeParameterScopeBuilder =>
+      _sourceLibraryBuilder.currentTypeParameterScopeBuilder;
+
+  @override
+  void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
+      {bool hasMembers = true}) {
+    _sourceLibraryBuilder.currentTypeParameterScopeBuilder =
+        currentTypeParameterScopeBuilder.createNested(kind, name, hasMembers);
+  }
+
+  @override
+  TypeParameterScopeBuilder endNestedDeclaration(
+      TypeParameterScopeKind kind, String? name) {
+    assert(
+        currentTypeParameterScopeBuilder.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
+    assert(
+        (name?.startsWith(currentTypeParameterScopeBuilder.name) ??
+                (name == currentTypeParameterScopeBuilder.name)) ||
+            currentTypeParameterScopeBuilder.name == "operator" ||
+            (name == null &&
+                currentTypeParameterScopeBuilder.name ==
+                    UnnamedExtensionName.unnamedExtensionSentinel) ||
+            identical(name, "<syntax-error>"),
+        "${name} != ${currentTypeParameterScopeBuilder.name}");
+    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
+    _sourceLibraryBuilder.currentTypeParameterScopeBuilder =
+        currentTypeParameterScopeBuilder.parent!;
+    return previous;
+  }
+
+  IndexedLibrary? get indexedLibrary => _sourceLibraryBuilder.indexedLibrary;
+
+  // TODO(johnniwinther): Use [_indexedContainer] for library members and make
+  // it [null] when there is null corresponding [IndexedContainer].
+  IndexedContainer? _indexedContainer;
+
+  @override
+  void beginIndexedContainer(String name,
+      {required bool isExtensionTypeDeclaration}) {
+    if (_sourceLibraryBuilder.indexedLibrary != null) {
+      if (isExtensionTypeDeclaration) {
+        _indexedContainer =
+            indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
+      } else {
+        _indexedContainer = indexedLibrary!.lookupIndexedClass(name);
+      }
+    }
+  }
+
+  @override
+  void endIndexedContainer() {
+    _indexedContainer = null;
+  }
 
   @override
   LibraryBuilder get libraryBuilder {
@@ -274,6 +357,2002 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _libraryBuilder = library ?? _sourceLibraryBuilder;
     _sourceLibraryBuilder.validatePart(library, usedParts);
   }
+
+  @override
+  void addPart(OffsetMap offsetMap, Token partKeyword,
+      List<MetadataBuilder>? metadata, String uri, int charOffset) {
+    Uri resolvedUri = _sourceLibraryBuilder
+        .resolve(this.importUri, uri, charOffset, isPart: true);
+    // To support absolute paths from within packages in the part uri, we try to
+    // translate the file uri from the resolved import uri before resolving
+    // through the file uri of this library. See issue #52964.
+    Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
+        _sourceLibraryBuilder.resolve(fileUri, uri, charOffset);
+    // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
+    // [LibraryBuilder] to represent both libraries and parts.
+    CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
+        origin: isAugmenting ? _sourceLibraryBuilder.origin : null,
+        fileUri: newFileUri,
+        accessor: this,
+        isPatch: isAugmenting);
+    _sourceLibraryBuilder.parts.add(new Part(charOffset, compilationUnit));
+
+    // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
+    LibraryPart part = new LibraryPart(<Expression>[], uri)
+      ..fileOffset = charOffset;
+    library.addPart(part);
+    offsetMap.registerPart(partKeyword, part);
+  }
+
+  @override
+  void addPartOf(List<MetadataBuilder>? metadata, String? name, String? uri,
+      int uriOffset) {
+    _sourceLibraryBuilder.partOfName = name;
+    if (uri != null) {
+      Uri resolvedUri = _sourceLibraryBuilder.partOfUri =
+          _sourceLibraryBuilder.resolve(this.importUri, uri, uriOffset);
+      // To support absolute paths from within packages in the part of uri, we
+      // try to translate the file uri from the resolved import uri before
+      // resolving through the file uri of this library. See issue #52964.
+      Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
+          _sourceLibraryBuilder.resolve(fileUri, uri, uriOffset);
+      loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
+    }
+    if (_scriptTokenOffset != null) {
+      addProblem(
+          messageScriptTagInPartFile, _scriptTokenOffset!, noLength, fileUri);
+    }
+  }
+
+  /// Offset of the first script tag (`#!...`) in this library or part.
+  int? _scriptTokenOffset;
+
+  @override
+  void addScriptToken(int charOffset) {
+    _scriptTokenOffset ??= charOffset;
+  }
+
+  @override
+  void addImport(
+      {OffsetMap? offsetMap,
+      Token? importKeyword,
+      required List<MetadataBuilder>? metadata,
+      required bool isAugmentationImport,
+      required String uri,
+      required List<Configuration>? configurations,
+      required String? prefix,
+      required List<CombinatorBuilder>? combinators,
+      required bool deferred,
+      required int charOffset,
+      required int prefixCharOffset,
+      required int uriOffset,
+      required int importIndex}) {
+    if (configurations != null) {
+      for (Configuration config in configurations) {
+        if (loader.getLibrarySupportValue(config.dottedName) ==
+            config.condition) {
+          uri = config.importUri;
+          break;
+        }
+      }
+    }
+
+    CompilationUnit? compilationUnit = null;
+    Uri? resolvedUri;
+    String? nativePath;
+    const String nativeExtensionScheme = "dart-ext:";
+    if (uri.startsWith(nativeExtensionScheme)) {
+      addProblem(messageUnsupportedDartExt, charOffset, noLength, fileUri);
+      String strippedUri = uri.substring(nativeExtensionScheme.length);
+      if (strippedUri.startsWith("package")) {
+        resolvedUri = _sourceLibraryBuilder.resolve(this.importUri, strippedUri,
+            uriOffset + nativeExtensionScheme.length);
+        resolvedUri = loader.target.translateUri(resolvedUri);
+        nativePath = resolvedUri.toString();
+      } else {
+        resolvedUri = new Uri(scheme: "dart-ext", pathSegments: [uri]);
+        nativePath = uri;
+      }
+    } else {
+      resolvedUri =
+          _sourceLibraryBuilder.resolve(this.importUri, uri, uriOffset);
+      compilationUnit = loader.read(resolvedUri, uriOffset,
+          origin: isAugmentationImport ? _sourceLibraryBuilder : null,
+          accessor: this,
+          isAugmentation: isAugmentationImport,
+          referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
+    }
+
+    Import import = new Import(
+        _sourceLibraryBuilder,
+        compilationUnit,
+        isAugmentationImport,
+        deferred,
+        prefix,
+        combinators,
+        configurations,
+        charOffset,
+        prefixCharOffset,
+        importIndex,
+        nativeImportPath: nativePath);
+    _sourceLibraryBuilder.imports.add(import);
+    offsetMap?.registerImport(importKeyword!, import);
+  }
+
+  @override
+  void addExport(
+      OffsetMap offsetMap,
+      Token exportKeyword,
+      List<MetadataBuilder>? metadata,
+      String uri,
+      List<Configuration>? configurations,
+      List<CombinatorBuilder>? combinators,
+      int charOffset,
+      int uriOffset) {
+    if (configurations != null) {
+      for (Configuration config in configurations) {
+        if (loader.getLibrarySupportValue(config.dottedName) ==
+            config.condition) {
+          uri = config.importUri;
+          break;
+        }
+      }
+    }
+
+    CompilationUnit exportedLibrary = loader.read(
+        _sourceLibraryBuilder.resolve(this.importUri, uri, uriOffset),
+        charOffset,
+        accessor: this);
+    exportedLibrary.addExporter(_sourceLibraryBuilder, combinators, charOffset);
+    Export export = new Export(
+        _sourceLibraryBuilder, exportedLibrary, combinators, charOffset);
+    _sourceLibraryBuilder.exports.add(export);
+    offsetMap.registerExport(exportKeyword, export);
+  }
+
+  @override
+  void addClass(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier identifier,
+      List<NominalVariableBuilder>? typeVariables,
+      TypeBuilder? supertype,
+      MixinApplicationBuilder? mixins,
+      List<TypeBuilder>? interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
+      int supertypeOffset,
+      {required bool isMacro,
+      required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
+    _addClass(
+        offsetMap,
+        TypeParameterScopeKind.classDeclaration,
+        metadata,
+        modifiers,
+        identifier,
+        typeVariables,
+        supertype,
+        mixins,
+        interfaces,
+        startOffset,
+        nameOffset,
+        endOffset,
+        supertypeOffset,
+        isMacro: isMacro,
+        isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass);
+  }
+
+  @override
+  void addEnum(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      Identifier identifier,
+      List<NominalVariableBuilder>? typeVariables,
+      MixinApplicationBuilder? supertypeBuilder,
+      List<TypeBuilder>? interfaceBuilders,
+      List<EnumConstantInfo?>? enumConstantInfos,
+      int startCharOffset,
+      int charEndOffset) {
+    String name = identifier.name;
+    int charOffset = identifier.nameOffset;
+
+    IndexedClass? referencesFromIndexedClass;
+    if (indexedLibrary != null) {
+      referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
+    }
+    // Nested declaration began in `OutlineBuilder.beginEnum`.
+    TypeParameterScopeBuilder declaration =
+        endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
+          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
+        metadata,
+        name,
+        typeVariables,
+        _applyMixins(
+            loader.target.underscoreEnumType,
+            supertypeBuilder,
+            startCharOffset,
+            charOffset,
+            charEndOffset,
+            name,
+            /* isMixinDeclaration = */
+            false,
+            typeVariables: typeVariables,
+            isMacro: false,
+            isSealed: false,
+            isBase: false,
+            isInterface: false,
+            isFinal: false,
+            isAugmentation: false,
+            isMixinClass: false),
+        interfaceBuilders,
+        enumConstantInfos,
+        _sourceLibraryBuilder,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        startCharOffset,
+        charOffset,
+        charEndOffset,
+        referencesFromIndexedClass,
+        new Scope(
+            kind: ScopeKind.declaration,
+            local: members,
+            setters: setters,
+            parent: scope.withTypeVariables(typeVariables),
+            debugName: "enum $name",
+            isModifiable: false),
+        new ConstructorScope(name, constructors),
+        loader.coreLibrary);
+    constructorReferences.clear();
+
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables, enumBuilder);
+
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = enumBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        NominalVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          enumBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    _sourceLibraryBuilder.addBuilder(name, enumBuilder, charOffset,
+        getterReference: referencesFromIndexedClass?.cls.reference);
+
+    offsetMap.registerNamedDeclaration(identifier, enumBuilder);
+  }
+
+  @override
+  void addMixinDeclaration(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier identifier,
+      List<NominalVariableBuilder>? typeVariables,
+      List<TypeBuilder>? supertypeConstraints,
+      List<TypeBuilder>? interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
+      int supertypeOffset,
+      {required bool isBase,
+      required bool isAugmentation}) {
+    TypeBuilder? supertype;
+    MixinApplicationBuilder? mixinApplication;
+    if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
+      supertype = supertypeConstraints.first;
+      if (supertypeConstraints.length > 1) {
+        mixinApplication = new MixinApplicationBuilder(
+            supertypeConstraints.skip(1).toList(),
+            supertype.fileUri!,
+            supertype.charOffset!);
+      }
+    }
+    _addClass(
+        offsetMap,
+        TypeParameterScopeKind.mixinDeclaration,
+        metadata,
+        modifiers,
+        identifier,
+        typeVariables,
+        supertype,
+        mixinApplication,
+        interfaces,
+        startOffset,
+        nameOffset,
+        endOffset,
+        supertypeOffset,
+        isMacro: false,
+        isSealed: false,
+        isBase: isBase,
+        isInterface: false,
+        isFinal: false,
+        isAugmentation: isAugmentation,
+        isMixinClass: false);
+  }
+
+  void _addClass(
+      OffsetMap offsetMap,
+      TypeParameterScopeKind kind,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier identifier,
+      List<NominalVariableBuilder>? typeVariables,
+      TypeBuilder? supertype,
+      MixinApplicationBuilder? mixins,
+      List<TypeBuilder>? interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
+      int supertypeOffset,
+      {required bool isMacro,
+      required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
+    String className = identifier.name;
+    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
+    TypeParameterScopeBuilder declaration =
+        endNestedDeclaration(kind, className)
+          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+    assert(declaration.parent ==
+        _sourceLibraryBuilder._libraryTypeParameterScopeBuilder);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    Scope classScope = new Scope(
+        kind: ScopeKind.declaration,
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "class $className",
+        isModifiable: false);
+
+    // When looking up a constructor, we don't consider type variables or the
+    // library scope.
+    ConstructorScope constructorScope =
+        new ConstructorScope(className, constructors);
+    bool isMixinDeclaration = false;
+    if (modifiers & mixinDeclarationMask != 0) {
+      isMixinDeclaration = true;
+      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
+    if (declaration.declaresConstConstructor) {
+      modifiers |= declaresConstConstructorMask;
+    }
+    SourceClassBuilder classBuilder = new SourceClassBuilder(
+        metadata,
+        modifiers,
+        className,
+        typeVariables,
+        _applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
+            className, isMixinDeclaration,
+            typeVariables: typeVariables,
+            isMacro: false,
+            isSealed: false,
+            isBase: false,
+            isInterface: false,
+            isFinal: false,
+            // TODO(johnniwinther): How can we support class with mixins?
+            isAugmentation: false,
+            isMixinClass: false),
+        interfaces,
+        // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
+        // here.
+        null,
+        classScope,
+        constructorScope,
+        _sourceLibraryBuilder,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        startOffset,
+        nameOffset,
+        endOffset,
+        _indexedContainer,
+        isMixinDeclaration: isMixinDeclaration,
+        isMacro: isMacro,
+        isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass);
+
+    constructorReferences.clear();
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables, classBuilder);
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = classBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        NominalVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          classBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    _sourceLibraryBuilder.addBuilder(className, classBuilder, nameOffset,
+        getterReference: _indexedContainer?.reference);
+    offsetMap.registerNamedDeclaration(identifier, classBuilder);
+  }
+
+  @override
+  MixinApplicationBuilder addMixinApplication(
+      List<TypeBuilder> mixins, int charOffset) {
+    return new MixinApplicationBuilder(mixins, fileUri, charOffset);
+  }
+
+  @override
+  void addNamedMixinApplication(
+      List<MetadataBuilder>? metadata,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      int modifiers,
+      TypeBuilder? supertype,
+      MixinApplicationBuilder mixinApplication,
+      List<TypeBuilder>? interfaces,
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset,
+      {required bool isMacro,
+      required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
+    // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
+    endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
+        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+    supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
+        charOffset, charEndOffset, name, false,
+        metadata: metadata,
+        name: name,
+        typeVariables: typeVariables,
+        modifiers: modifiers,
+        interfaces: interfaces,
+        isMacro: isMacro,
+        isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass)!;
+    _checkTypeVariables(typeVariables, supertype.declaration);
+  }
+
+  TypeBuilder? _applyMixins(
+      TypeBuilder? supertype,
+      MixinApplicationBuilder? mixinApplications,
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset,
+      String subclassName,
+      bool isMixinDeclaration,
+      {List<MetadataBuilder>? metadata,
+      String? name,
+      List<NominalVariableBuilder>? typeVariables,
+      int modifiers = 0,
+      List<TypeBuilder>? interfaces,
+      required bool isMacro,
+      required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
+      required bool isAugmentation,
+      required bool isMixinClass}) {
+    if (name == null) {
+      // The following parameters should only be used when building a named
+      // mixin application.
+      if (metadata != null) {
+        unhandled("metadata", "unnamed mixin application", charOffset, fileUri);
+      } else if (interfaces != null) {
+        unhandled(
+            "interfaces", "unnamed mixin application", charOffset, fileUri);
+      }
+    }
+    if (mixinApplications != null) {
+      // Documentation below assumes the given mixin application is in one of
+      // these forms:
+      //
+      //     class C extends S with M1, M2, M3;
+      //     class Named = S with M1, M2, M3;
+      //
+      // When we refer to the subclass, we mean `C` or `Named`.
+
+      /// The current supertype.
+      ///
+      /// Starts out having the value `S` and on each iteration of the loop
+      /// below, it will take on the value corresponding to:
+      ///
+      /// 1. `S with M1`.
+      /// 2. `(S with M1) with M2`.
+      /// 3. `((S with M1) with M2) with M3`.
+      supertype ??= loader.target.objectType;
+
+      /// The variable part of the mixin application's synthetic name. It
+      /// starts out as the name of the superclass, but is only used after it
+      /// has been combined with the name of the current mixin. In the examples
+      /// from above, it will take these values:
+      ///
+      /// 1. `S&M1`
+      /// 2. `S&M1&M2`
+      /// 3. `S&M1&M2&M3`.
+      ///
+      /// The full name of the mixin application is obtained by prepending the
+      /// name of the subclass (`C` or `Named` in the above examples) to the
+      /// running name. For the example `C`, that leads to these full names:
+      ///
+      /// 1. `_C&S&M1`
+      /// 2. `_C&S&M1&M2`
+      /// 3. `_C&S&M1&M2&M3`.
+      ///
+      /// For a named mixin application, the last name has been given by the
+      /// programmer, so for the example `Named` we see these full names:
+      ///
+      /// 1. `_Named&S&M1`
+      /// 2. `_Named&S&M1&M2`
+      /// 3. `Named`.
+      String runningName;
+      if (supertype.typeName == null) {
+        assert(supertype is FunctionTypeBuilder);
+
+        // Function types don't have names, and we can supply any string that
+        // doesn't have to be unique. The actual supertype of the mixin will
+        // not be built in that case.
+        runningName = "";
+      } else {
+        runningName = supertype.typeName!.name;
+      }
+
+      /// True when we're building a named mixin application. Notice that for
+      /// the `Named` example above, this is only true on the last
+      /// iteration because only the full mixin application is named.
+      bool isNamedMixinApplication;
+
+      /// The names of the type variables of the subclass.
+      Set<String>? typeVariableNames;
+      if (typeVariables != null) {
+        typeVariableNames = new Set<String>();
+        for (NominalVariableBuilder typeVariable in typeVariables) {
+          typeVariableNames.add(typeVariable.name);
+        }
+      }
+
+      /// Helper function that returns `true` if a type variable with a name
+      /// from [typeVariableNames] is referenced in [type].
+      bool usesTypeVariables(TypeBuilder? type) {
+        switch (type) {
+          case NamedTypeBuilder(
+              :TypeDeclarationBuilder? declaration,
+              typeArguments: List<TypeBuilder>? arguments
+            ):
+            if (declaration is NominalVariableBuilder) {
+              return typeVariableNames!.contains(declaration.name);
+            }
+            if (declaration is StructuralVariableBuilder) {
+              return typeVariableNames!.contains(declaration.name);
+            }
+
+            if (arguments != null && typeVariables != null) {
+              for (TypeBuilder argument in arguments) {
+                if (usesTypeVariables(argument)) {
+                  return true;
+                }
+              }
+            }
+          case FunctionTypeBuilder(
+              :List<ParameterBuilder>? formals,
+              :List<StructuralVariableBuilder>? typeVariables
+            ):
+            if (formals != null) {
+              for (ParameterBuilder formal in formals) {
+                if (usesTypeVariables(formal.type)) {
+                  return true;
+                }
+              }
+            }
+            if (typeVariables != null) {
+              for (StructuralVariableBuilder variable in typeVariables) {
+                if (usesTypeVariables(variable.bound)) {
+                  return true;
+                }
+              }
+            }
+            return usesTypeVariables(type.returnType);
+          case RecordTypeBuilder(
+              :List<RecordTypeFieldBuilder>? positionalFields,
+              :List<RecordTypeFieldBuilder>? namedFields
+            ):
+            if (positionalFields != null) {
+              for (RecordTypeFieldBuilder fieldBuilder in positionalFields) {
+                if (usesTypeVariables(fieldBuilder.type)) {
+                  return true;
+                }
+              }
+            }
+            if (namedFields != null) {
+              for (RecordTypeFieldBuilder fieldBuilder in namedFields) {
+                if (usesTypeVariables(fieldBuilder.type)) {
+                  return true;
+                }
+              }
+            }
+          case FixedTypeBuilder():
+          case InvalidTypeBuilder():
+          case OmittedTypeBuilder():
+          case null:
+            return false;
+        }
+        return false;
+      }
+
+      /// Iterate over the mixins from left to right. At the end of each
+      /// iteration, a new [supertype] is computed that is the mixin
+      /// application of [supertype] with the current mixin.
+      for (int i = 0; i < mixinApplications.mixins.length; i++) {
+        TypeBuilder mixin = mixinApplications.mixins[i];
+        isNamedMixinApplication =
+            name != null && mixin == mixinApplications.mixins.last;
+        bool isGeneric = false;
+        if (!isNamedMixinApplication) {
+          if (supertype is NamedTypeBuilder) {
+            isGeneric = isGeneric || usesTypeVariables(supertype);
+          }
+          if (mixin is NamedTypeBuilder) {
+            runningName += "&${mixin.typeName.name}";
+            isGeneric = isGeneric || usesTypeVariables(mixin);
+          }
+        }
+        String fullname =
+            isNamedMixinApplication ? name : "_$subclassName&$runningName";
+        List<NominalVariableBuilder>? applicationTypeVariables;
+        List<TypeBuilder>? applicationTypeArguments;
+        if (isNamedMixinApplication) {
+          // If this is a named mixin application, it must be given all the
+          // declared type variables.
+          applicationTypeVariables = typeVariables;
+        } else {
+          // Otherwise, we pass the fresh type variables to the mixin
+          // application in the same order as they're declared on the subclass.
+          if (isGeneric) {
+            this.beginNestedDeclaration(
+                TypeParameterScopeKind.unnamedMixinApplication,
+                "mixin application");
+
+            applicationTypeVariables = copyTypeVariables(
+                typeVariables!, currentTypeParameterScopeBuilder,
+                kind: TypeVariableKind.extensionSynthesized);
+
+            List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
+            if (supertype is NamedTypeBuilder &&
+                supertype.typeArguments != null) {
+              for (int i = 0; i < supertype.typeArguments!.length; ++i) {
+                supertype.typeArguments![i] = supertype.typeArguments![i].clone(
+                    newTypes,
+                    _sourceLibraryBuilder,
+                    currentTypeParameterScopeBuilder);
+              }
+            }
+            if (mixin is NamedTypeBuilder && mixin.typeArguments != null) {
+              for (int i = 0; i < mixin.typeArguments!.length; ++i) {
+                mixin.typeArguments![i] = mixin.typeArguments![i].clone(
+                    newTypes,
+                    _sourceLibraryBuilder,
+                    currentTypeParameterScopeBuilder);
+              }
+            }
+            for (NamedTypeBuilder newType in newTypes) {
+              currentTypeParameterScopeBuilder
+                  .registerUnresolvedNamedType(newType);
+            }
+
+            TypeParameterScopeBuilder mixinDeclaration = this
+                .endNestedDeclaration(
+                    TypeParameterScopeKind.unnamedMixinApplication,
+                    "mixin application");
+            mixinDeclaration.resolveNamedTypes(
+                applicationTypeVariables, _sourceLibraryBuilder);
+
+            applicationTypeArguments = <TypeBuilder>[];
+            for (NominalVariableBuilder typeVariable in typeVariables) {
+              applicationTypeArguments.add(
+                  new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                      // The type variable types passed as arguments to the
+                      // generic class representing the anonymous mixin
+                      // application should refer back to the type variables of
+                      // the class that extend the anonymous mixin application.
+                      typeVariable,
+                      const NullabilityBuilder.omitted(),
+                      fileUri: fileUri,
+                      charOffset: charOffset,
+                      instanceTypeVariableAccess:
+                          InstanceTypeVariableAccessState.Allowed));
+            }
+          }
+        }
+        final int computedStartCharOffset =
+            !isNamedMixinApplication || metadata == null
+                ? startCharOffset
+                : metadata.first.charOffset;
+
+        IndexedClass? referencesFromIndexedClass;
+        if (indexedLibrary != null) {
+          referencesFromIndexedClass =
+              indexedLibrary!.lookupIndexedClass(fullname);
+        }
+
+        SourceClassBuilder application = new SourceClassBuilder(
+            isNamedMixinApplication ? metadata : null,
+            isNamedMixinApplication
+                ? modifiers | namedMixinApplicationMask
+                : abstractMask,
+            fullname,
+            applicationTypeVariables,
+            isMixinDeclaration ? null : supertype,
+            isNamedMixinApplication
+                ? interfaces
+                : isMixinDeclaration
+                    ? [supertype!, mixin]
+                    : null,
+            null,
+            // No `on` clause types.
+            new Scope(
+                kind: ScopeKind.declaration,
+                local: <String, MemberBuilder>{},
+                setters: <String, MemberBuilder>{},
+                parent: scope.withTypeVariables(typeVariables),
+                debugName: "mixin $fullname ",
+                isModifiable: false),
+            new ConstructorScope(fullname, <String, MemberBuilder>{}),
+            _sourceLibraryBuilder,
+            <ConstructorReferenceBuilder>[],
+            computedStartCharOffset,
+            charOffset,
+            charEndOffset,
+            referencesFromIndexedClass,
+            mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
+            isMacro: isNamedMixinApplication && isMacro,
+            isSealed: isNamedMixinApplication && isSealed,
+            isBase: isNamedMixinApplication && isBase,
+            isInterface: isNamedMixinApplication && isInterface,
+            isFinal: isNamedMixinApplication && isFinal,
+            isAugmentation: isNamedMixinApplication && isAugmentation,
+            isMixinClass: isNamedMixinApplication && isMixinClass);
+        // TODO(ahe, kmillikin): Should always be true?
+        // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
+        // handle that :(
+        application.cls.isAnonymousMixin = !isNamedMixinApplication;
+        _sourceLibraryBuilder.addBuilder(fullname, application, charOffset,
+            getterReference: referencesFromIndexedClass?.cls.reference);
+        supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+            application, const NullabilityBuilder.omitted(),
+            arguments: applicationTypeArguments,
+            fileUri: fileUri,
+            charOffset: charOffset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
+        _registerMixinApplication(application, mixin);
+      }
+      return supertype;
+    } else {
+      return supertype;
+    }
+  }
+
+  /// Registers that [mixinApplication] is a mixin application introduced by
+  /// the [mixedInType] in a with-clause.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
+  void _registerMixinApplication(
+      SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
+    assert(_sourceLibraryBuilder._mixinApplications != null,
+        "Late registration of mixin application.");
+    _sourceLibraryBuilder._mixinApplications![mixinApplication] = mixedInType;
+  }
+
+  @override
+  void addExtensionDeclaration(
+      OffsetMap offsetMap,
+      Token beginToken,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier? identifier,
+      List<NominalVariableBuilder>? typeVariables,
+      TypeBuilder type,
+      int startOffset,
+      int nameOffset,
+      int endOffset) {
+    String? name = identifier?.name;
+    // Nested declaration began in
+    // `OutlineBuilder.beginExtensionDeclarationPrelude`.
+    TypeParameterScopeBuilder declaration =
+        endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
+          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+    assert(declaration.parent ==
+        _sourceLibraryBuilder._libraryTypeParameterScopeBuilder);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    Scope classScope = new Scope(
+        kind: ScopeKind.declaration,
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "extension $name",
+        isModifiable: false);
+
+    Extension? referenceFrom;
+    ExtensionName extensionName = declaration.extensionName!;
+    if (name != null) {
+      referenceFrom = indexedLibrary?.lookupExtension(name);
+    }
+
+    ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
+        metadata,
+        modifiers,
+        extensionName,
+        typeVariables,
+        type,
+        classScope,
+        _sourceLibraryBuilder,
+        startOffset,
+        nameOffset,
+        endOffset,
+        referenceFrom);
+    constructorReferences.clear();
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables, extensionBuilder);
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = extensionBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        NominalVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          extensionBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    _sourceLibraryBuilder.addBuilder(
+        extensionBuilder.name, extensionBuilder, nameOffset,
+        getterReference: referenceFrom?.reference);
+    if (identifier != null) {
+      offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
+    } else {
+      offsetMap.registerUnnamedDeclaration(beginToken, extensionBuilder);
+    }
+  }
+
+  @override
+  void addExtensionTypeDeclaration(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier identifier,
+      List<NominalVariableBuilder>? typeVariables,
+      List<TypeBuilder>? interfaces,
+      int startOffset,
+      int endOffset) {
+    String name = identifier.name;
+    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
+    TypeParameterScopeBuilder declaration = endNestedDeclaration(
+        TypeParameterScopeKind.extensionTypeDeclaration, name)
+      ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+    assert(declaration.parent ==
+        _sourceLibraryBuilder._libraryTypeParameterScopeBuilder);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    Scope memberScope = new Scope(
+        kind: ScopeKind.declaration,
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "extension type $name",
+        isModifiable: false);
+    ConstructorScope constructorScope =
+        new ConstructorScope(name, constructors);
+
+    IndexedContainer? indexedContainer =
+        indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
+
+    SourceFieldBuilder? representationFieldBuilder;
+    outer:
+    for (Builder? member in members.values) {
+      while (member != null) {
+        if (!member.isDuplicate &&
+            member is SourceFieldBuilder &&
+            !member.isStatic) {
+          representationFieldBuilder = member;
+          break outer;
+        }
+        member = member.next;
+      }
+    }
+
+    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new SourceExtensionTypeDeclarationBuilder(
+            metadata,
+            modifiers,
+            declaration.name,
+            typeVariables,
+            interfaces,
+            memberScope,
+            constructorScope,
+            _sourceLibraryBuilder,
+            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            startOffset,
+            identifier.nameOffset,
+            endOffset,
+            indexedContainer,
+            representationFieldBuilder);
+    constructorReferences.clear();
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = extensionTypeDeclarationBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        NominalVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          extensionTypeDeclarationBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    _sourceLibraryBuilder.addBuilder(extensionTypeDeclarationBuilder.name,
+        extensionTypeDeclarationBuilder, identifier.nameOffset,
+        getterReference: indexedContainer?.reference);
+    offsetMap.registerNamedDeclaration(
+        identifier, extensionTypeDeclarationBuilder);
+  }
+
+  @override
+  void addFunctionTypeAlias(
+      List<MetadataBuilder>? metadata,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      TypeBuilder type,
+      int charOffset) {
+    if (typeVariables != null) {
+      for (NominalVariableBuilder typeVariable in typeVariables) {
+        typeVariable.varianceCalculationValue =
+            VarianceCalculationValue.pending;
+      }
+    }
+    Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
+    TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
+        metadata, name, typeVariables, type, _sourceLibraryBuilder, charOffset,
+        referenceFrom: referenceFrom);
+    _checkTypeVariables(typeVariables, typedefBuilder);
+    // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
+    endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
+        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+    _sourceLibraryBuilder.addBuilder(name, typedefBuilder, charOffset,
+        getterReference: referenceFrom?.reference);
+  }
+
+  @override
+  void addConstructor(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier identifier,
+      String constructorName,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      {Token? beginInitializers,
+      required bool forAbstractClassOrMixin}) {
+    SourceFunctionBuilder builder = _addConstructor(
+        metadata,
+        modifiers,
+        constructorName,
+        typeVariables,
+        formals,
+        startCharOffset,
+        charOffset,
+        charOpenParenOffset,
+        charEndOffset,
+        nativeMethodName,
+        beginInitializers: beginInitializers,
+        forAbstractClassOrMixin: forAbstractClassOrMixin);
+    offsetMap.registerConstructor(identifier, builder);
+  }
+
+  @override
+  void addPrimaryConstructor(
+      {required OffsetMap offsetMap,
+      required Token beginToken,
+      required String constructorName,
+      required List<NominalVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required int charOffset,
+      required bool isConst}) {
+    SourceFunctionBuilder builder = _addConstructor(
+        null,
+        isConst ? constMask : 0,
+        constructorName,
+        typeVariables,
+        formals,
+        /* startCharOffset = */ charOffset,
+        charOffset,
+        /* charOpenParenOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* nativeMethodName = */ null,
+        forAbstractClassOrMixin: false);
+    offsetMap.registerPrimaryConstructor(beginToken, builder);
+  }
+
+  @override
+  void addPrimaryConstructorField(
+      {required List<MetadataBuilder>? metadata,
+      required TypeBuilder type,
+      required String name,
+      required int charOffset}) {
+    _addField(
+        metadata,
+        finalMask,
+        /* isTopLevel = */ false,
+        type,
+        name,
+        /* charOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* initializerToken = */ null,
+        /* hasInitializer = */ false);
+  }
+
+  SourceFunctionBuilder _addConstructor(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String constructorName,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      {Token? beginInitializers,
+      required bool forAbstractClassOrMixin}) {
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: containerName,
+        containerType: containerType,
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.library.reference)
+            : libraryName);
+
+    Reference? constructorReference;
+    Reference? tearOffReference;
+
+    IndexedContainer? indexedContainer = _indexedContainer;
+    if (indexedContainer != null) {
+      constructorReference = indexedContainer.lookupConstructorReference(
+          nameScheme
+              .getConstructorMemberName(constructorName, isTearOff: false)
+              .name);
+      tearOffReference = indexedContainer.lookupGetterReference(nameScheme
+          .getConstructorMemberName(constructorName, isTearOff: true)
+          .name);
+    }
+    AbstractSourceConstructorBuilder constructorBuilder;
+
+    if (currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.extensionTypeDeclaration) {
+      constructorBuilder = new SourceExtensionTypeConstructorBuilder(
+          metadata,
+          modifiers & ~abstractMask,
+          addInferableType(),
+          constructorName,
+          typeVariables,
+          formals,
+          _sourceLibraryBuilder,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          nameScheme,
+          nativeMethodName: nativeMethodName,
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
+    } else {
+      constructorBuilder = new DeclaredSourceConstructorBuilder(
+          metadata,
+          modifiers & ~abstractMask,
+          addInferableType(),
+          constructorName,
+          typeVariables,
+          formals,
+          _sourceLibraryBuilder,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          nameScheme,
+          nativeMethodName: nativeMethodName,
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
+    }
+    _checkTypeVariables(typeVariables, constructorBuilder);
+    // TODO(johnniwinther): There is no way to pass the tear off reference here.
+    _sourceLibraryBuilder.addBuilder(
+        constructorName, constructorBuilder, charOffset,
+        getterReference: constructorReference);
+    if (nativeMethodName != null) {
+      _addNativeMethod(constructorBuilder);
+    }
+    if (constructorBuilder.isConst) {
+      currentTypeParameterScopeBuilder.declaresConstConstructor = true;
+    }
+    if (constructorBuilder.isConst ||
+        libraryFeatures.superParameters.isEnabled) {
+      // const constructors will have their initializers compiled and written
+      // into the outline. In case of super-parameters language feature, the
+      // super initializers are required to infer the types of super parameters.
+      constructorBuilder.beginInitializers =
+          beginInitializers ?? new Token.eof(-1);
+    }
+    return constructorBuilder;
+  }
+
+  @override
+  void addFactoryMethod(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      Identifier identifier,
+      List<FormalParameterBuilder>? formals,
+      ConstructorReferenceBuilder? redirectionTarget,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      AsyncMarker asyncModifier) {
+    TypeBuilder returnType;
+    if (currentTypeParameterScopeBuilder.parent?.kind ==
+        TypeParameterScopeKind.extensionDeclaration) {
+      // Make the synthesized return type invalid for extensions.
+      String name = currentTypeParameterScopeBuilder.parent!.name;
+      returnType = new NamedTypeBuilderImpl.forInvalidType(
+          currentTypeParameterScopeBuilder.parent!.name,
+          const NullabilityBuilder.omitted(),
+          messageExtensionDeclaresConstructor.withLocation(
+              fileUri, charOffset, name.length));
+    } else {
+      returnType = addNamedType(
+          new SyntheticTypeName(
+              currentTypeParameterScopeBuilder.parent!.name, charOffset),
+          const NullabilityBuilder.omitted(),
+          <TypeBuilder>[],
+          charOffset,
+          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
+    }
+    // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
+    TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
+        TypeParameterScopeKind.factoryMethod, "#factory_method");
+
+    // Prepare the simple procedure name.
+    String procedureName;
+    String? constructorName =
+        computeAndValidateConstructorName(identifier, isFactory: true);
+    if (constructorName != null) {
+      procedureName = constructorName;
+    } else {
+      procedureName = identifier.name;
+    }
+
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
+
+    NameScheme procedureNameScheme = new NameScheme(
+        containerName: containerName,
+        containerType: containerType,
+        isInstanceMember: false,
+        libraryName: indexedLibrary != null
+            ? new LibraryName(
+                (_indexedContainer ?? indexedLibrary)!.library.reference)
+            : libraryName);
+
+    Reference? constructorReference;
+    Reference? tearOffReference;
+    if (_indexedContainer != null) {
+      constructorReference = _indexedContainer!.lookupConstructorReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
+      tearOffReference = _indexedContainer!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
+    } else if (indexedLibrary != null) {
+      constructorReference = indexedLibrary!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
+      tearOffReference = indexedLibrary!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
+    }
+
+    SourceFactoryBuilder procedureBuilder;
+    List<NominalVariableBuilder> typeVariables;
+    if (redirectionTarget != null) {
+      procedureBuilder = new RedirectingFactoryBuilder(
+          metadata,
+          staticMask | modifiers,
+          returnType,
+          procedureName,
+          typeVariables = copyTypeVariables(
+              currentTypeParameterScopeBuilder.typeVariables ??
+                  const <NominalVariableBuilder>[],
+              factoryDeclaration,
+              kind: TypeVariableKind.function),
+          formals,
+          _sourceLibraryBuilder,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          procedureNameScheme,
+          nativeMethodName,
+          redirectionTarget);
+    } else {
+      procedureBuilder = new SourceFactoryBuilder(
+          metadata,
+          staticMask | modifiers,
+          returnType,
+          procedureName,
+          typeVariables = copyTypeVariables(
+              currentTypeParameterScopeBuilder.typeVariables ??
+                  const <NominalVariableBuilder>[],
+              factoryDeclaration,
+              kind: TypeVariableKind.function),
+          formals,
+          _sourceLibraryBuilder,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          asyncModifier,
+          procedureNameScheme,
+          nativeMethodName: nativeMethodName);
+    }
+
+    TypeParameterScopeBuilder savedDeclaration =
+        currentTypeParameterScopeBuilder;
+    _sourceLibraryBuilder.currentTypeParameterScopeBuilder = factoryDeclaration;
+    if (returnType is NamedTypeBuilderImpl && !typeVariables.isEmpty) {
+      returnType.typeArguments =
+          new List<TypeBuilder>.generate(typeVariables.length, (int index) {
+        return addNamedType(
+            new SyntheticTypeName(
+                typeVariables[index].name, procedureBuilder.charOffset),
+            const NullabilityBuilder.omitted(),
+            null,
+            procedureBuilder.charOffset,
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
+      });
+    }
+    _sourceLibraryBuilder.currentTypeParameterScopeBuilder = savedDeclaration;
+
+    factoryDeclaration.resolveNamedTypes(
+        procedureBuilder.typeVariables, _sourceLibraryBuilder);
+    _sourceLibraryBuilder.addBuilder(
+        procedureName, procedureBuilder, charOffset,
+        getterReference: constructorReference);
+    if (nativeMethodName != null) {
+      _addNativeMethod(procedureBuilder);
+    }
+    offsetMap.registerConstructor(identifier, procedureBuilder);
+  }
+
+  void _addNativeMethod(SourceFunctionBuilder method) {
+    nativeMethods.add(method);
+  }
+
+  @override
+  String? computeAndValidateConstructorName(Identifier identifier,
+      {isFactory = false}) {
+    String className = currentTypeParameterScopeBuilder.name;
+    String prefix;
+    String? suffix;
+    int charOffset;
+    if (identifier is QualifiedName) {
+      Identifier qualifier = identifier.qualifier as Identifier;
+      prefix = qualifier.name;
+      suffix = identifier.name;
+      charOffset = qualifier.nameOffset;
+    } else {
+      prefix = identifier.name;
+      suffix = null;
+      charOffset = identifier.nameOffset;
+    }
+    if (libraryFeatures.constructorTearoffs.isEnabled) {
+      suffix = suffix == "new" ? "" : suffix;
+    }
+    if (prefix == className) {
+      return suffix ?? "";
+    }
+    if (suffix == null && !isFactory) {
+      // A legal name for a regular method, but not for a constructor.
+      return null;
+    }
+
+    addProblem(
+        messageConstructorWithWrongName, charOffset, prefix.length, fileUri,
+        context: [
+          templateConstructorWithWrongNameContext
+              .withArguments(currentTypeParameterScopeBuilder.name)
+              .withLocation(
+                  importUri,
+                  currentTypeParameterScopeBuilder.charOffset,
+                  currentTypeParameterScopeBuilder.name.length)
+        ]);
+
+    return suffix;
+  }
+
+  @override
+  ConstructorReferenceBuilder addConstructorReference(TypeName name,
+      List<TypeBuilder>? typeArguments, String? suffix, int charOffset) {
+    ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
+        name, typeArguments, suffix, fileUri, charOffset);
+    constructorReferences.add(ref);
+    return ref;
+  }
+
+  @override
+  void addProcedure(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      TypeBuilder? returnType,
+      Identifier identifier,
+      String name,
+      List<NominalVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      ProcedureKind kind,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String? nativeMethodName,
+      AsyncMarker asyncModifier,
+      {required bool isInstanceMember,
+      required bool isExtensionMember,
+      required bool isExtensionTypeMember}) {
+    assert(!isExtensionMember ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionDeclaration);
+    assert(!isExtensionTypeMember ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionTypeDeclaration);
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
+    NameScheme nameScheme = new NameScheme(
+        containerName: containerName,
+        containerType: containerType,
+        isInstanceMember: isInstanceMember,
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.library.reference)
+            : libraryName);
+
+    if (returnType == null) {
+      if (kind == ProcedureKind.Operator &&
+          identical(name, indexSetName.text)) {
+        returnType = addVoidType(charOffset);
+      } else if (kind == ProcedureKind.Setter) {
+        returnType = addVoidType(charOffset);
+      }
+    }
+    Reference? procedureReference;
+    Reference? tearOffReference;
+    IndexedContainer? indexedContainer =
+        _indexedContainer ?? _sourceLibraryBuilder.indexedLibrary;
+
+    bool isAugmentation = isAugmenting && (modifiers & augmentMask) != 0;
+    if (indexedContainer != null && !isAugmentation) {
+      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
+      if (kind == ProcedureKind.Setter) {
+        if ((isExtensionMember || isExtensionTypeMember) && isInstanceMember) {
+          // Extension (type) instance setters are encoded as methods.
+          procedureReference =
+              indexedContainer.lookupGetterReference(nameToLookup);
+        } else {
+          procedureReference =
+              indexedContainer.lookupSetterReference(nameToLookup);
+        }
+      } else {
+        procedureReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
+        if ((isExtensionMember || isExtensionTypeMember) &&
+            kind == ProcedureKind.Method) {
+          tearOffReference = indexedContainer.lookupGetterReference(nameScheme
+              .getProcedureMemberName(ProcedureKind.Getter, name)
+              .name);
+        }
+      }
+    }
+    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+        metadata,
+        modifiers,
+        returnType ?? addInferableType(),
+        name,
+        typeVariables,
+        formals,
+        kind,
+        _sourceLibraryBuilder,
+        startCharOffset,
+        charOffset,
+        charOpenParenOffset,
+        charEndOffset,
+        procedureReference,
+        tearOffReference,
+        asyncModifier,
+        nameScheme,
+        nativeMethodName: nativeMethodName);
+    _checkTypeVariables(typeVariables, procedureBuilder);
+    _sourceLibraryBuilder.addBuilder(name, procedureBuilder, charOffset,
+        getterReference: procedureReference);
+    if (nativeMethodName != null) {
+      _addNativeMethod(procedureBuilder);
+    }
+    offsetMap.registerProcedure(identifier, procedureBuilder);
+  }
+
+  @override
+  void addFields(
+      OffsetMap offsetMap,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      bool isTopLevel,
+      TypeBuilder? type,
+      List<FieldInfo> fieldInfos) {
+    for (FieldInfo info in fieldInfos) {
+      bool isConst = modifiers & constMask != 0;
+      bool isFinal = modifiers & finalMask != 0;
+      bool potentiallyNeedInitializerInOutline = isConst || isFinal;
+      Token? startToken;
+      if (potentiallyNeedInitializerInOutline || type == null) {
+        startToken = info.initializerToken;
+      }
+      if (startToken != null) {
+        // Extract only the tokens for the initializer expression from the
+        // token stream.
+        Token endToken = info.beforeLast!;
+        endToken.setNext(new Token.eof(endToken.next!.offset));
+        new Token.eof(startToken.previous!.offset).setNext(startToken);
+      }
+      bool hasInitializer = info.initializerToken != null;
+      offsetMap.registerField(
+          info.identifier,
+          _addField(
+              metadata,
+              modifiers,
+              isTopLevel,
+              type ?? addInferableType(),
+              info.identifier.name,
+              info.identifier.nameOffset,
+              info.charEndOffset,
+              startToken,
+              hasInitializer,
+              constInitializerToken:
+                  potentiallyNeedInitializerInOutline ? startToken : null));
+    }
+  }
+
+  SourceFieldBuilder _addField(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      bool isTopLevel,
+      TypeBuilder type,
+      String name,
+      int charOffset,
+      int charEndOffset,
+      Token? initializerToken,
+      bool hasInitializer,
+      {Token? constInitializerToken}) {
+    if (hasInitializer) {
+      modifiers |= hasInitializerMask;
+    }
+    bool isLate = (modifiers & lateMask) != 0;
+    bool isFinal = (modifiers & finalMask) != 0;
+    bool isStatic = (modifiers & staticMask) != 0;
+    bool isExternal = (modifiers & externalMask) != 0;
+    final bool fieldIsLateWithLowering = isLate &&
+        (loader.target.backendTarget.isLateFieldLoweringEnabled(
+                hasInitializer: hasInitializer,
+                isFinal: isFinal,
+                isStatic: isTopLevel || isStatic) ||
+            (loader.target.backendTarget.useStaticFieldLowering &&
+                (isStatic || isTopLevel)));
+
+    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
+            TypeParameterScopeKind.library &&
+        (modifiers & staticMask) == 0;
+    final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.extensionDeclaration;
+    final bool isExtensionTypeMember = currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.extensionTypeDeclaration;
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
+
+    Reference? fieldReference;
+    Reference? fieldGetterReference;
+    Reference? fieldSetterReference;
+    Reference? lateIsSetFieldReference;
+    Reference? lateIsSetGetterReference;
+    Reference? lateIsSetSetterReference;
+    Reference? lateGetterReference;
+    Reference? lateSetterReference;
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: isInstanceMember,
+        containerName: containerName,
+        containerType: containerType,
+        libraryName: _sourceLibraryBuilder.indexedLibrary != null
+            ? new LibraryName(_sourceLibraryBuilder.indexedLibrary!.reference)
+            : libraryName);
+    IndexedContainer? indexedContainer =
+        _indexedContainer ?? _sourceLibraryBuilder.indexedLibrary;
+    if (indexedContainer != null) {
+      if ((isExtensionMember || isExtensionTypeMember) &&
+          isInstanceMember &&
+          isExternal) {
+        /// An external extension (type) instance field is special. It is
+        /// treated as an external getter/setter pair and is therefore encoded
+        /// as a pair of top level methods using the extension instance member
+        /// naming convention.
+        fieldGetterReference = indexedContainer.lookupGetterReference(
+            nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name);
+        fieldSetterReference = indexedContainer.lookupGetterReference(
+            nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name);
+      } else if (isExtensionTypeMember && isInstanceMember) {
+        Name nameToLookup = nameScheme
+            .getFieldMemberName(FieldNameType.RepresentationField, name,
+                isSynthesized: true)
+            .name;
+        fieldGetterReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
+      } else {
+        Name nameToLookup = nameScheme
+            .getFieldMemberName(FieldNameType.Field, name,
+                isSynthesized: fieldIsLateWithLowering)
+            .name;
+        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
+        fieldGetterReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
+        fieldSetterReference =
+            indexedContainer.lookupSetterReference(nameToLookup);
+      }
+
+      if (fieldIsLateWithLowering) {
+        Name lateIsSetName = nameScheme
+            .getFieldMemberName(FieldNameType.IsSetField, name,
+                isSynthesized: fieldIsLateWithLowering)
+            .name;
+        lateIsSetFieldReference =
+            indexedContainer.lookupFieldReference(lateIsSetName);
+        lateIsSetGetterReference =
+            indexedContainer.lookupGetterReference(lateIsSetName);
+        lateIsSetSetterReference =
+            indexedContainer.lookupSetterReference(lateIsSetName);
+        lateGetterReference = indexedContainer.lookupGetterReference(nameScheme
+            .getFieldMemberName(FieldNameType.Getter, name,
+                isSynthesized: fieldIsLateWithLowering)
+            .name);
+        lateSetterReference = indexedContainer.lookupSetterReference(nameScheme
+            .getFieldMemberName(FieldNameType.Setter, name,
+                isSynthesized: fieldIsLateWithLowering)
+            .name);
+      }
+    }
+
+    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
+        metadata,
+        type,
+        name,
+        modifiers,
+        isTopLevel,
+        _sourceLibraryBuilder,
+        charOffset,
+        charEndOffset,
+        nameScheme,
+        fieldReference: fieldReference,
+        fieldGetterReference: fieldGetterReference,
+        fieldSetterReference: fieldSetterReference,
+        lateIsSetFieldReference: lateIsSetFieldReference,
+        lateIsSetGetterReference: lateIsSetGetterReference,
+        lateIsSetSetterReference: lateIsSetSetterReference,
+        lateGetterReference: lateGetterReference,
+        lateSetterReference: lateSetterReference,
+        initializerToken: initializerToken,
+        constInitializerToken: constInitializerToken);
+    _sourceLibraryBuilder.addBuilder(name, fieldBuilder, charOffset,
+        getterReference: fieldGetterReference,
+        setterReference: fieldSetterReference);
+    return fieldBuilder;
+  }
+
+  @override
+  FormalParameterBuilder addFormalParameter(
+      List<MetadataBuilder>? metadata,
+      FormalParameterKind kind,
+      int modifiers,
+      TypeBuilder type,
+      String name,
+      bool hasThis,
+      bool hasSuper,
+      int charOffset,
+      Token? initializerToken) {
+    assert(!hasThis || !hasSuper,
+        "Formal parameter '${name}' has both 'this' and 'super' prefixes.");
+    if (hasThis) {
+      modifiers |= initializingFormalMask;
+    }
+    if (hasSuper) {
+      modifiers |= superInitializingFormalMask;
+    }
+    FormalParameterBuilder formal = new FormalParameterBuilder(
+        kind, modifiers, type, name, _sourceLibraryBuilder, charOffset,
+        fileUri: fileUri,
+        hasImmediatelyDeclaredInitializer: initializerToken != null)
+      ..initializerToken = initializerToken;
+    return formal;
+  }
+
+  @override
+  TypeBuilder addNamedType(
+      TypeName typeName,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      int charOffset,
+      {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
+    if (_sourceLibraryBuilder._omittedTypeDeclarationBuilders != null) {
+      Builder? builder =
+          _sourceLibraryBuilder._omittedTypeDeclarationBuilders[typeName.name];
+      if (builder is OmittedTypeDeclarationBuilder) {
+        return new DependentTypeBuilder(builder.omittedTypeBuilder);
+      }
+    }
+    return _registerUnresolvedNamedType(new NamedTypeBuilderImpl(
+        typeName, nullabilityBuilder,
+        arguments: arguments,
+        fileUri: fileUri,
+        charOffset: charOffset,
+        instanceTypeVariableAccess: instanceTypeVariableAccess));
+  }
+
+  NamedTypeBuilder _registerUnresolvedNamedType(NamedTypeBuilder type) {
+    currentTypeParameterScopeBuilder.registerUnresolvedNamedType(type);
+    return type;
+  }
+
+  @override
+  FunctionTypeBuilder addFunctionType(
+      TypeBuilder returnType,
+      List<StructuralVariableBuilder>? structuralVariableBuilders,
+      List<FormalParameterBuilder>? formals,
+      NullabilityBuilder nullabilityBuilder,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasFunctionFormalParameterSyntax}) {
+    FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(
+        returnType,
+        structuralVariableBuilders,
+        formals,
+        nullabilityBuilder,
+        fileUri,
+        charOffset,
+        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
+    _checkStructuralVariables(structuralVariableBuilders, null);
+    if (structuralVariableBuilders != null) {
+      for (StructuralVariableBuilder builder in structuralVariableBuilders) {
+        if (builder.metadata != null) {
+          if (!libraryFeatures.genericMetadata.isEnabled) {
+            addProblem(messageAnnotationOnFunctionTypeTypeVariable,
+                builder.charOffset, builder.name.length, builder.fileUri);
+          }
+        }
+      }
+    }
+    // Nested declaration began in `OutlineBuilder.beginFunctionType` or
+    // `OutlineBuilder.beginFunctionTypedFormalParameter`.
+    endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
+        .resolveNamedTypesWithStructuralVariables(
+            structuralVariableBuilders, _sourceLibraryBuilder);
+    return builder;
+  }
+
+  Map<String, StructuralVariableBuilder>? _checkStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables, Builder? owner) {
+    if (typeVariables == null || typeVariables.isEmpty) return null;
+    Map<String, StructuralVariableBuilder> typeVariablesByName =
+        <String, StructuralVariableBuilder>{};
+    for (StructuralVariableBuilder tv in typeVariables) {
+      StructuralVariableBuilder? existing = typeVariablesByName[tv.name];
+      if (existing != null) {
+        addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
+            tv.name.length, fileUri,
+            context: [
+              templateTypeVariableDuplicatedNameCause
+                  .withArguments(tv.name)
+                  .withLocation(
+                      fileUri, existing.charOffset, existing.name.length)
+            ]);
+      } else {
+        typeVariablesByName[tv.name] = tv;
+        if (owner is ClassBuilder) {
+          // Only classes and type variables can't have the same name. See
+          // [#29555](https://github.com/dart-lang/sdk/issues/29555).
+          if (tv.name == owner.name) {
+            addProblem(messageTypeVariableSameNameAsEnclosing, tv.charOffset,
+                tv.name.length, fileUri);
+          }
+        }
+      }
+    }
+    return typeVariablesByName;
+  }
+
+  @override
+  TypeBuilder addVoidType(int charOffset) {
+    // 'void' is always nullable.
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        new VoidTypeDeclarationBuilder(
+            const VoidType(), _sourceLibraryBuilder, charOffset),
+        const NullabilityBuilder.inherent(),
+        charOffset: charOffset,
+        fileUri: fileUri,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+  }
+
+  @override
+  NominalVariableBuilder addNominalTypeVariable(List<MetadataBuilder>? metadata,
+      String name, TypeBuilder? bound, int charOffset, Uri fileUri,
+      {required TypeVariableKind kind}) {
+    NominalVariableBuilder builder = new NominalVariableBuilder(
+        name, _sourceLibraryBuilder, charOffset, fileUri,
+        bound: bound, metadata: metadata, kind: kind);
+
+    unboundNominalVariables.add(builder);
+    return builder;
+  }
+
+  @override
+  StructuralVariableBuilder addStructuralTypeVariable(
+      List<MetadataBuilder>? metadata,
+      String name,
+      TypeBuilder? bound,
+      int charOffset,
+      Uri fileUri) {
+    StructuralVariableBuilder builder = new StructuralVariableBuilder(
+        name, _sourceLibraryBuilder, charOffset, fileUri,
+        bound: bound, metadata: metadata);
+
+    unboundStructuralVariables.add(builder);
+    return builder;
+  }
+
+  Map<String, NominalVariableBuilder>? _checkTypeVariables(
+      List<NominalVariableBuilder>? typeVariables, Builder? owner) {
+    if (typeVariables == null || typeVariables.isEmpty) return null;
+    Map<String, NominalVariableBuilder> typeVariablesByName =
+        <String, NominalVariableBuilder>{};
+    for (NominalVariableBuilder tv in typeVariables) {
+      NominalVariableBuilder? existing = typeVariablesByName[tv.name];
+      if (existing != null) {
+        if (existing.kind == TypeVariableKind.extensionSynthesized) {
+          // The type parameter from the extension is shadowed by the type
+          // parameter from the member. Rename the shadowed type parameter.
+          existing.parameter.name = '#${existing.name}';
+          typeVariablesByName[tv.name] = tv;
+        } else {
+          addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
+              tv.name.length, fileUri,
+              context: [
+                templateTypeVariableDuplicatedNameCause
+                    .withArguments(tv.name)
+                    .withLocation(
+                        fileUri, existing.charOffset, existing.name.length)
+              ]);
+        }
+      } else {
+        typeVariablesByName[tv.name] = tv;
+        if (owner is TypeDeclarationBuilder) {
+          // Only classes and extension types and type variables can't have the
+          // same name. See
+          // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
+          // [#54602](https://github.com/dart-lang/sdk/issues/54602).
+          switch (owner) {
+            case ClassBuilder():
+            case ExtensionBuilder():
+            case ExtensionTypeDeclarationBuilder():
+              if (tv.name == owner.name) {
+                addProblem(messageTypeVariableSameNameAsEnclosing,
+                    tv.charOffset, tv.name.length, fileUri);
+              }
+            case TypeAliasBuilder():
+            case NominalVariableBuilder():
+            case StructuralVariableBuilder():
+            case InvalidTypeDeclarationBuilder():
+            case BuiltinTypeDeclarationBuilder():
+            // TODO(johnniwinther): How should we handle this case?
+            case OmittedTypeDeclarationBuilder():
+          }
+        }
+      }
+    }
+    return typeVariablesByName;
+  }
+
+  @override
+  List<NominalVariableBuilder> copyTypeVariables(
+      List<NominalVariableBuilder> original,
+      TypeParameterScopeBuilder declaration,
+      {required TypeVariableKind kind}) {
+    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
+    List<NominalVariableBuilder> copy = <NominalVariableBuilder>[];
+    for (NominalVariableBuilder variable in original) {
+      NominalVariableBuilder newVariable = new NominalVariableBuilder(
+          variable.name,
+          _sourceLibraryBuilder,
+          variable.charOffset,
+          variable.fileUri,
+          bound: variable.bound
+              ?.clone(newTypes, _sourceLibraryBuilder, declaration),
+          kind: kind,
+          variableVariance:
+              variable.parameter.isLegacyCovariant ? null : variable.variance);
+      copy.add(newVariable);
+      unboundNominalVariables.add(newVariable);
+    }
+    for (NamedTypeBuilder newType in newTypes) {
+      declaration.registerUnresolvedNamedType(newType);
+    }
+    return copy;
+  }
+
+  @override
+  List<MetadataBuilder>? get metadata => _sourceLibraryBuilder.metadata;
+
+  @override
+  void set metadata(List<MetadataBuilder>? value) {
+    _sourceLibraryBuilder.metadata = value;
+  }
+
+  @override
+  String? get name => _sourceLibraryBuilder.name;
+
+  @override
+  void set name(String? value) {
+    _sourceLibraryBuilder.name = value;
+  }
+
+  @override
+  InferableTypeBuilder addInferableType() {
+    return _sourceLibraryBuilder.addInferableType();
+  }
+
+  @override
+  Message reportFeatureNotEnabled(
+      LibraryFeature feature, Uri fileUri, int charOffset, int length) {
+    return _sourceLibraryBuilder.reportFeatureNotEnabled(
+        feature, fileUri, charOffset, length);
+  }
 }
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
@@ -285,12 +2364,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final SourceLoader loader;
 
-  /// Map used to find objects created in the [OutlineBuilder] from within
-  /// the [DietListener].
-  ///
-  /// This is meant to be written once and read once.
-  OffsetMap? _offsetMap;
-
+  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
   final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
 
   final List<ConstructorReferenceBuilder> constructorReferences =
@@ -326,15 +2400,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   LibraryBuilder? partOfLibrary;
 
-  /// Offset of the first script tag (`#!...`) in this library or part.
-  int? _scriptTokenOffset;
-
   List<MetadataBuilder>? metadata;
 
   /// The current declaration that is being built. When we start parsing a
   /// declaration (class, method, and so on), we don't have enough information
   /// to create a builder and this object records its members and types until,
   /// for example, [addClass] is called.
+  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
   TypeParameterScopeBuilder currentTypeParameterScopeBuilder;
 
   /// Non-null if this library causes an error upon access, that is, there was
@@ -381,11 +2453,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final LibraryBuilder? _nameOrigin;
 
   /// Index of the library we use references for.
+  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
   final IndexedLibrary? indexedLibrary;
-
-  // TODO(johnniwinther): Use [_indexedContainer] for library members and make
-  // it [null] when there is null corresponding [IndexedContainer].
-  IndexedContainer? _indexedContainer;
 
   /// Exports that can't be serialized.
   ///
@@ -437,6 +2506,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   ///
   /// This is used in macro generated code to create type annotations from
   /// inferred types in the original code.
+  // TODO(johnniwinther): Move to [SourceCompilationUnitImpl].
   final Map<String, Builder>? _omittedTypeDeclarationBuilders;
 
   MergedLibraryScope? _mergedScope;
@@ -518,24 +2588,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         !importUri.isScheme('dart') || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-  }
-
-  /// Returns the map of objects created in the [OutlineBuilder].
-  ///
-  /// This should only be called once.
-  OffsetMap get offsetMap {
-    assert(_offsetMap != null, "No OffsetMap for $this");
-    OffsetMap map = _offsetMap!;
-    _offsetMap = null;
-    return map;
-  }
-
-  /// Registers the map of objects created in the [OutlineBuilder].
-  ///
-  /// This should only be called once.
-  void set offsetMap(OffsetMap value) {
-    assert(_offsetMap == null, "OffsetMap has already been set for $this");
-    _offsetMap = value;
   }
 
   MergedLibraryScope get mergedScope {
@@ -723,7 +2775,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referencesFromIndex: indexedLibrary,
         omittedTypes: omittedTypeDeclarationBuilders);
     addAugmentationLibrary(augmentationLibrary);
-    loader.registerUnparsedLibrarySource(augmentationLibrary, source);
+    loader.registerUnparsedLibrarySource(
+        augmentationLibrary.compilationUnit, source);
     return augmentationLibrary;
   }
 
@@ -732,11 +2785,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool get isSynthetic => accessProblem != null;
-
-  NamedTypeBuilder registerUnresolvedNamedType(NamedTypeBuilder type) {
-    currentTypeParameterScopeBuilder.registerUnresolvedNamedType(type);
-    return type;
-  }
 
   bool get isInferenceUpdate1Enabled =>
       libraryFeatures.inferenceUpdate1.isSupported &&
@@ -805,42 +2853,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _languageVersion.isFinal = true;
   }
 
-  ConstructorReferenceBuilder addConstructorReference(TypeName name,
-      List<TypeBuilder>? typeArguments, String? suffix, int charOffset) {
-    ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
-        name, typeArguments, suffix, fileUri, charOffset);
-    constructorReferences.add(ref);
-    return ref;
-  }
-
-  void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
-      {bool hasMembers = true}) {
-    currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.createNested(kind, name, hasMembers);
-  }
-
-  TypeParameterScopeBuilder endNestedDeclaration(
-      TypeParameterScopeKind kind, String? name) {
-    assert(
-        currentTypeParameterScopeBuilder.kind == kind,
-        "Unexpected declaration. "
-        "Trying to end a ${currentTypeParameterScopeBuilder.kind} as a $kind.");
-    assert(
-        (name?.startsWith(currentTypeParameterScopeBuilder.name) ??
-                (name == currentTypeParameterScopeBuilder.name)) ||
-            currentTypeParameterScopeBuilder.name == "operator" ||
-            (name == null &&
-                currentTypeParameterScopeBuilder.name ==
-                    UnnamedExtensionName.unnamedExtensionSentinel) ||
-            identical(name, "<syntax-error>"),
-        "${name} != ${currentTypeParameterScopeBuilder.name}");
-    TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
-    return previous;
-  }
-
   bool uriIsValid(Uri uri) => !uri.isScheme(MALFORMED_URI_SCHEME);
 
+  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
   Uri resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
     if (uri == null) {
       addProblem(messageExpectedUri, uriOffset, noLength, fileUri);
@@ -866,47 +2881,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  String? computeAndValidateConstructorName(Identifier identifier,
-      {isFactory = false}) {
-    String className = currentTypeParameterScopeBuilder.name;
-    String prefix;
-    String? suffix;
-    int charOffset;
-    if (identifier is QualifiedName) {
-      Identifier qualifier = identifier.qualifier as Identifier;
-      prefix = qualifier.name;
-      suffix = identifier.name;
-      charOffset = qualifier.nameOffset;
-    } else {
-      prefix = identifier.name;
-      suffix = null;
-      charOffset = identifier.nameOffset;
-    }
-    if (libraryFeatures.constructorTearoffs.isEnabled) {
-      suffix = suffix == "new" ? "" : suffix;
-    }
-    if (prefix == className) {
-      return suffix ?? "";
-    }
-    if (suffix == null && !isFactory) {
-      // A legal name for a regular method, but not for a constructor.
-      return null;
-    }
-
-    addProblem(
-        messageConstructorWithWrongName, charOffset, prefix.length, fileUri,
-        context: [
-          templateConstructorWithWrongNameContext
-              .withArguments(currentTypeParameterScopeBuilder.name)
-              .withLocation(
-                  importUri,
-                  currentTypeParameterScopeBuilder.charOffset,
-                  currentTypeParameterScopeBuilder.name.length)
-        ]);
-
-    return suffix;
-  }
-
   @override
   Iterable<Uri> get dependencies sync* {
     for (Export export in exports) {
@@ -917,186 +2891,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (imported != null) {
         yield imported.importUri;
       }
-    }
-  }
-
-  void addExport(
-      OffsetMap offsetMap,
-      Token exportKeyword,
-      List<MetadataBuilder>? metadata,
-      String uri,
-      List<Configuration>? configurations,
-      List<CombinatorBuilder>? combinators,
-      int charOffset,
-      int uriOffset) {
-    if (configurations != null) {
-      for (Configuration config in configurations) {
-        if (loader.getLibrarySupportValue(config.dottedName) ==
-            config.condition) {
-          uri = config.importUri;
-          break;
-        }
-      }
-    }
-
-    CompilationUnit exportedLibrary = loader.read(
-        resolve(this.importUri, uri, uriOffset), charOffset,
-        accessor: compilationUnit);
-    exportedLibrary.addExporter(this, combinators, charOffset);
-    Export export = new Export(this, exportedLibrary, combinators, charOffset);
-    exports.add(export);
-    offsetMap.registerExport(exportKeyword, export);
-  }
-
-  void addImport(
-      {OffsetMap? offsetMap,
-      Token? importKeyword,
-      required List<MetadataBuilder>? metadata,
-      required bool isAugmentationImport,
-      required String uri,
-      required List<Configuration>? configurations,
-      required String? prefix,
-      required List<CombinatorBuilder>? combinators,
-      required bool deferred,
-      required int charOffset,
-      required int prefixCharOffset,
-      required int uriOffset,
-      required int importIndex}) {
-    if (configurations != null) {
-      for (Configuration config in configurations) {
-        if (loader.getLibrarySupportValue(config.dottedName) ==
-            config.condition) {
-          uri = config.importUri;
-          break;
-        }
-      }
-    }
-
-    CompilationUnit? compilationUnit = null;
-    Uri? resolvedUri;
-    String? nativePath;
-    const String nativeExtensionScheme = "dart-ext:";
-    if (uri.startsWith(nativeExtensionScheme)) {
-      addProblem(messageUnsupportedDartExt, charOffset, noLength, fileUri);
-      String strippedUri = uri.substring(nativeExtensionScheme.length);
-      if (strippedUri.startsWith("package")) {
-        resolvedUri = resolve(this.importUri, strippedUri,
-            uriOffset + nativeExtensionScheme.length);
-        resolvedUri = loader.target.translateUri(resolvedUri);
-        nativePath = resolvedUri.toString();
-      } else {
-        resolvedUri = new Uri(scheme: "dart-ext", pathSegments: [uri]);
-        nativePath = uri;
-      }
-    } else {
-      resolvedUri = resolve(this.importUri, uri, uriOffset);
-      compilationUnit = loader.read(resolvedUri, uriOffset,
-          origin: isAugmentationImport ? this : null,
-          accessor: this.compilationUnit,
-          isAugmentation: isAugmentationImport,
-          referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
-    }
-
-    Import import = new Import(
-        this,
-        compilationUnit,
-        isAugmentationImport,
-        deferred,
-        prefix,
-        combinators,
-        configurations,
-        charOffset,
-        prefixCharOffset,
-        importIndex,
-        nativeImportPath: nativePath);
-    imports.add(import);
-    offsetMap?.registerImport(importKeyword!, import);
-  }
-
-  void addPart(OffsetMap offsetMap, Token partKeyword,
-      List<MetadataBuilder>? metadata, String uri, int charOffset) {
-    Uri resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
-    // To support absolute paths from within packages in the part uri, we try to
-    // translate the file uri from the resolved import uri before resolving
-    // through the file uri of this library. See issue #52964.
-    Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
-        resolve(fileUri, uri, charOffset);
-    // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
-    // [LibraryBuilder] to represent both libraries and parts.
-    CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
-        origin: isAugmenting ? origin : null,
-        fileUri: newFileUri,
-        accessor: this.compilationUnit,
-        isPatch: isAugmenting);
-    parts.add(new Part(charOffset, compilationUnit));
-
-    // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
-    LibraryPart part = new LibraryPart(<Expression>[], uri)
-      ..fileOffset = charOffset;
-    library.addPart(part);
-    offsetMap.registerPart(partKeyword, part);
-  }
-
-  void addPartOf(List<MetadataBuilder>? metadata, String? name, String? uri,
-      int uriOffset) {
-    partOfName = name;
-    if (uri != null) {
-      Uri resolvedUri = partOfUri = resolve(this.importUri, uri, uriOffset);
-      // To support absolute paths from within packages in the part of uri, we
-      // try to translate the file uri from the resolved import uri before
-      // resolving through the file uri of this library. See issue #52964.
-      Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
-          resolve(fileUri, uri, uriOffset);
-      loader.read(partOfUri!, uriOffset,
-          fileUri: newFileUri, accessor: compilationUnit);
-    }
-    if (_scriptTokenOffset != null) {
-      addProblem(
-          messageScriptTagInPartFile, _scriptTokenOffset!, noLength, fileUri);
-    }
-  }
-
-  void addScriptToken(int charOffset) {
-    _scriptTokenOffset ??= charOffset;
-  }
-
-  void addFields(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      bool isTopLevel,
-      TypeBuilder? type,
-      List<FieldInfo> fieldInfos) {
-    for (FieldInfo info in fieldInfos) {
-      bool isConst = modifiers & constMask != 0;
-      bool isFinal = modifiers & finalMask != 0;
-      bool potentiallyNeedInitializerInOutline = isConst || isFinal;
-      Token? startToken;
-      if (potentiallyNeedInitializerInOutline || type == null) {
-        startToken = info.initializerToken;
-      }
-      if (startToken != null) {
-        // Extract only the tokens for the initializer expression from the
-        // token stream.
-        Token endToken = info.beforeLast!;
-        endToken.setNext(new Token.eof(endToken.next!.offset));
-        new Token.eof(startToken.previous!.offset).setNext(startToken);
-      }
-      bool hasInitializer = info.initializerToken != null;
-      offsetMap.registerField(
-          info.identifier,
-          addField(
-              metadata,
-              modifiers,
-              isTopLevel,
-              type ?? addInferableType(),
-              info.identifier.name,
-              info.identifier.nameOffset,
-              info.charEndOffset,
-              startToken,
-              hasInitializer,
-              constInitializerToken:
-                  potentiallyNeedInitializerInOutline ? startToken : null));
     }
   }
 
@@ -2018,41 +3812,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _inferableTypes = null;
   }
 
-  TypeBuilder addNamedType(
-      TypeName typeName,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      int charOffset,
-      {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
-    if (_omittedTypeDeclarationBuilders != null) {
-      Builder? builder = _omittedTypeDeclarationBuilders[typeName.name];
-      if (builder is OmittedTypeDeclarationBuilder) {
-        return new DependentTypeBuilder(builder.omittedTypeBuilder);
-      }
-    }
-    return registerUnresolvedNamedType(new NamedTypeBuilderImpl(
-        typeName, nullabilityBuilder,
-        arguments: arguments,
-        fileUri: fileUri,
-        charOffset: charOffset,
-        instanceTypeVariableAccess: instanceTypeVariableAccess));
-  }
-
-  MixinApplicationBuilder addMixinApplication(
-      List<TypeBuilder> mixins, int charOffset) {
-    return new MixinApplicationBuilder(mixins, fileUri, charOffset);
-  }
-
-  TypeBuilder addVoidType(int charOffset) {
-    // 'void' is always nullable.
-    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset),
-        const NullabilityBuilder.inherent(),
-        charOffset: charOffset,
-        fileUri: fileUri,
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-  }
-
   /// Add a problem that might not be reported immediately.
   ///
   /// Problems will be issued after source information has been added.
@@ -2108,303 +3867,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             message.withLocation(fileUri, charOffset, length), Severity.error)
         .plain;
     factory.setRedirectingFactoryError(text);
-  }
-
-  void addClass(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixins,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass}) {
-    _addClass(
-        offsetMap,
-        TypeParameterScopeKind.classDeclaration,
-        metadata,
-        modifiers,
-        identifier,
-        typeVariables,
-        supertype,
-        mixins,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endOffset,
-        supertypeOffset,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass);
-  }
-
-  void addMixinDeclaration(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      List<TypeBuilder>? supertypeConstraints,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset,
-      {required bool isBase,
-      required bool isAugmentation}) {
-    TypeBuilder? supertype;
-    MixinApplicationBuilder? mixinApplication;
-    if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
-      supertype = supertypeConstraints.first;
-      if (supertypeConstraints.length > 1) {
-        mixinApplication = new MixinApplicationBuilder(
-            supertypeConstraints.skip(1).toList(),
-            supertype.fileUri!,
-            supertype.charOffset!);
-      }
-    }
-    _addClass(
-        offsetMap,
-        TypeParameterScopeKind.mixinDeclaration,
-        metadata,
-        modifiers,
-        identifier,
-        typeVariables,
-        supertype,
-        mixinApplication,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endOffset,
-        supertypeOffset,
-        isMacro: false,
-        isSealed: false,
-        isBase: isBase,
-        isInterface: false,
-        isFinal: false,
-        isAugmentation: isAugmentation,
-        isMixinClass: false);
-  }
-
-  void _addClass(
-      OffsetMap offsetMap,
-      TypeParameterScopeKind kind,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixins,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset,
-      int supertypeOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass}) {
-    String className = identifier.name;
-    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(kind, className)
-          ..resolveNamedTypes(typeVariables, this);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
-
-    Scope classScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
-        debugName: "class $className",
-        isModifiable: false);
-
-    // When looking up a constructor, we don't consider type variables or the
-    // library scope.
-    ConstructorScope constructorScope =
-        new ConstructorScope(className, constructors);
-    bool isMixinDeclaration = false;
-    if (modifiers & mixinDeclarationMask != 0) {
-      isMixinDeclaration = true;
-      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
-    }
-    if (declaration.declaresConstConstructor) {
-      modifiers |= declaresConstConstructorMask;
-    }
-    SourceClassBuilder classBuilder = new SourceClassBuilder(
-        metadata,
-        modifiers,
-        className,
-        typeVariables,
-        _applyMixins(supertype, mixins, startOffset, nameOffset, endOffset,
-            className, isMixinDeclaration,
-            typeVariables: typeVariables,
-            isMacro: false,
-            isSealed: false,
-            isBase: false,
-            isInterface: false,
-            isFinal: false,
-            // TODO(johnniwinther): How can we support class with mixins?
-            isAugmentation: false,
-            isMixinClass: false),
-        interfaces,
-        // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
-        // here.
-        null,
-        classScope,
-        constructorScope,
-        this,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
-        startOffset,
-        nameOffset,
-        endOffset,
-        _indexedContainer,
-        isMixinDeclaration: isMixinDeclaration,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass);
-
-    constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, classBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = classBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          classBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
-    addBuilder(className, classBuilder, nameOffset,
-        getterReference: _indexedContainer?.reference);
-    offsetMap.registerNamedDeclaration(identifier, classBuilder);
-  }
-
-  Map<String, NominalVariableBuilder>? checkTypeVariables(
-      List<NominalVariableBuilder>? typeVariables, Builder? owner) {
-    if (typeVariables == null || typeVariables.isEmpty) return null;
-    Map<String, NominalVariableBuilder> typeVariablesByName =
-        <String, NominalVariableBuilder>{};
-    for (NominalVariableBuilder tv in typeVariables) {
-      NominalVariableBuilder? existing = typeVariablesByName[tv.name];
-      if (existing != null) {
-        if (existing.kind == TypeVariableKind.extensionSynthesized) {
-          // The type parameter from the extension is shadowed by the type
-          // parameter from the member. Rename the shadowed type parameter.
-          existing.parameter.name = '#${existing.name}';
-          typeVariablesByName[tv.name] = tv;
-        } else {
-          addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
-              tv.name.length, fileUri,
-              context: [
-                templateTypeVariableDuplicatedNameCause
-                    .withArguments(tv.name)
-                    .withLocation(
-                        fileUri, existing.charOffset, existing.name.length)
-              ]);
-        }
-      } else {
-        typeVariablesByName[tv.name] = tv;
-        if (owner is TypeDeclarationBuilder) {
-          // Only classes and extension types and type variables can't have the
-          // same name. See
-          // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
-          // [#54602](https://github.com/dart-lang/sdk/issues/54602).
-          switch (owner) {
-            case ClassBuilder():
-            case ExtensionBuilder():
-            case ExtensionTypeDeclarationBuilder():
-              if (tv.name == owner.name) {
-                addProblem(messageTypeVariableSameNameAsEnclosing,
-                    tv.charOffset, tv.name.length, fileUri);
-              }
-            case TypeAliasBuilder():
-            case NominalVariableBuilder():
-            case StructuralVariableBuilder():
-            case InvalidTypeDeclarationBuilder():
-            case BuiltinTypeDeclarationBuilder():
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
-          }
-        }
-      }
-    }
-    return typeVariablesByName;
-  }
-
-  Map<String, StructuralVariableBuilder>? checkStructuralVariables(
-      List<StructuralVariableBuilder>? typeVariables, Builder? owner) {
-    if (typeVariables == null || typeVariables.isEmpty) return null;
-    Map<String, StructuralVariableBuilder> typeVariablesByName =
-        <String, StructuralVariableBuilder>{};
-    for (StructuralVariableBuilder tv in typeVariables) {
-      StructuralVariableBuilder? existing = typeVariablesByName[tv.name];
-      if (existing != null) {
-        addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
-            tv.name.length, fileUri,
-            context: [
-              templateTypeVariableDuplicatedNameCause
-                  .withArguments(tv.name)
-                  .withLocation(
-                      fileUri, existing.charOffset, existing.name.length)
-            ]);
-      } else {
-        typeVariablesByName[tv.name] = tv;
-        if (owner is ClassBuilder) {
-          // Only classes and type variables can't have the same name. See
-          // [#29555](https://github.com/dart-lang/sdk/issues/29555).
-          if (tv.name == owner.name) {
-            addProblem(messageTypeVariableSameNameAsEnclosing, tv.charOffset,
-                tv.name.length, fileUri);
-          }
-        }
-      }
-    }
-    return typeVariablesByName;
   }
 
   void checkGetterSetterTypes(ProcedureBuilder getterBuilder,
@@ -2494,520 +3956,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void addExtensionDeclaration(
-      OffsetMap offsetMap,
-      Token beginToken,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier? identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder type,
-      int startOffset,
-      int nameOffset,
-      int endOffset) {
-    String? name = identifier?.name;
-    // Nested declaration began in
-    // `OutlineBuilder.beginExtensionDeclarationPrelude`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
-          ..resolveNamedTypes(typeVariables, this);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
-
-    Scope classScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
-        debugName: "extension $name",
-        isModifiable: false);
-
-    Extension? referenceFrom;
-    ExtensionName extensionName = declaration.extensionName!;
-    if (name != null) {
-      referenceFrom = indexedLibrary?.lookupExtension(name);
-    }
-
-    ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
-        metadata,
-        modifiers,
-        extensionName,
-        typeVariables,
-        type,
-        classScope,
-        this,
-        startOffset,
-        nameOffset,
-        endOffset,
-        referenceFrom);
-    constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, extensionBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = extensionBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          extensionBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
-        getterReference: referenceFrom?.reference);
-    if (identifier != null) {
-      offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
-    } else {
-      offsetMap.registerUnnamedDeclaration(beginToken, extensionBuilder);
-    }
-  }
-
-  void addExtensionTypeDeclaration(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int endOffset) {
-    String name = identifier.name;
-    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration = endNestedDeclaration(
-        TypeParameterScopeKind.extensionTypeDeclaration, name)
-      ..resolveNamedTypes(typeVariables, this);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
-
-    Scope memberScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
-        debugName: "extension type $name",
-        isModifiable: false);
-    ConstructorScope constructorScope =
-        new ConstructorScope(name, constructors);
-
-    IndexedContainer? indexedContainer =
-        indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
-
-    SourceFieldBuilder? representationFieldBuilder;
-    outer:
-    for (Builder? member in members.values) {
-      while (member != null) {
-        if (!member.isDuplicate &&
-            member is SourceFieldBuilder &&
-            !member.isStatic) {
-          representationFieldBuilder = member;
-          break outer;
-        }
-        member = member.next;
-      }
-    }
-
-    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-        new SourceExtensionTypeDeclarationBuilder(
-            metadata,
-            modifiers,
-            declaration.name,
-            typeVariables,
-            interfaces,
-            memberScope,
-            constructorScope,
-            this,
-            new List<ConstructorReferenceBuilder>.of(constructorReferences),
-            startOffset,
-            identifier.nameOffset,
-            endOffset,
-            indexedContainer,
-            representationFieldBuilder);
-    constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = extensionTypeDeclarationBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          extensionTypeDeclarationBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionTypeDeclarationBuilder.name,
-        extensionTypeDeclarationBuilder, identifier.nameOffset,
-        getterReference: indexedContainer?.reference);
-    offsetMap.registerNamedDeclaration(
-        identifier, extensionTypeDeclarationBuilder);
-  }
-
-  TypeBuilder? _applyMixins(
-      TypeBuilder? supertype,
-      MixinApplicationBuilder? mixinApplications,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
-      String subclassName,
-      bool isMixinDeclaration,
-      {List<MetadataBuilder>? metadata,
-      String? name,
-      List<NominalVariableBuilder>? typeVariables,
-      int modifiers = 0,
-      List<TypeBuilder>? interfaces,
-      required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass}) {
-    if (name == null) {
-      // The following parameters should only be used when building a named
-      // mixin application.
-      if (metadata != null) {
-        unhandled("metadata", "unnamed mixin application", charOffset, fileUri);
-      } else if (interfaces != null) {
-        unhandled(
-            "interfaces", "unnamed mixin application", charOffset, fileUri);
-      }
-    }
-    if (mixinApplications != null) {
-      // Documentation below assumes the given mixin application is in one of
-      // these forms:
-      //
-      //     class C extends S with M1, M2, M3;
-      //     class Named = S with M1, M2, M3;
-      //
-      // When we refer to the subclass, we mean `C` or `Named`.
-
-      /// The current supertype.
-      ///
-      /// Starts out having the value `S` and on each iteration of the loop
-      /// below, it will take on the value corresponding to:
-      ///
-      /// 1. `S with M1`.
-      /// 2. `(S with M1) with M2`.
-      /// 3. `((S with M1) with M2) with M3`.
-      supertype ??= loader.target.objectType;
-
-      /// The variable part of the mixin application's synthetic name. It
-      /// starts out as the name of the superclass, but is only used after it
-      /// has been combined with the name of the current mixin. In the examples
-      /// from above, it will take these values:
-      ///
-      /// 1. `S&M1`
-      /// 2. `S&M1&M2`
-      /// 3. `S&M1&M2&M3`.
-      ///
-      /// The full name of the mixin application is obtained by prepending the
-      /// name of the subclass (`C` or `Named` in the above examples) to the
-      /// running name. For the example `C`, that leads to these full names:
-      ///
-      /// 1. `_C&S&M1`
-      /// 2. `_C&S&M1&M2`
-      /// 3. `_C&S&M1&M2&M3`.
-      ///
-      /// For a named mixin application, the last name has been given by the
-      /// programmer, so for the example `Named` we see these full names:
-      ///
-      /// 1. `_Named&S&M1`
-      /// 2. `_Named&S&M1&M2`
-      /// 3. `Named`.
-      String runningName;
-      if (supertype.typeName == null) {
-        assert(supertype is FunctionTypeBuilder);
-
-        // Function types don't have names, and we can supply any string that
-        // doesn't have to be unique. The actual supertype of the mixin will
-        // not be built in that case.
-        runningName = "";
-      } else {
-        runningName = supertype.typeName!.name;
-      }
-
-      /// True when we're building a named mixin application. Notice that for
-      /// the `Named` example above, this is only true on the last
-      /// iteration because only the full mixin application is named.
-      bool isNamedMixinApplication;
-
-      /// The names of the type variables of the subclass.
-      Set<String>? typeVariableNames;
-      if (typeVariables != null) {
-        typeVariableNames = new Set<String>();
-        for (NominalVariableBuilder typeVariable in typeVariables) {
-          typeVariableNames.add(typeVariable.name);
-        }
-      }
-
-      /// Helper function that returns `true` if a type variable with a name
-      /// from [typeVariableNames] is referenced in [type].
-      bool usesTypeVariables(TypeBuilder? type) {
-        switch (type) {
-          case NamedTypeBuilder(
-              :TypeDeclarationBuilder? declaration,
-              typeArguments: List<TypeBuilder>? arguments
-            ):
-            if (declaration is NominalVariableBuilder) {
-              return typeVariableNames!.contains(declaration.name);
-            }
-            if (declaration is StructuralVariableBuilder) {
-              return typeVariableNames!.contains(declaration.name);
-            }
-
-            if (arguments != null && typeVariables != null) {
-              for (TypeBuilder argument in arguments) {
-                if (usesTypeVariables(argument)) {
-                  return true;
-                }
-              }
-            }
-          case FunctionTypeBuilder(
-              :List<ParameterBuilder>? formals,
-              :List<StructuralVariableBuilder>? typeVariables
-            ):
-            if (formals != null) {
-              for (ParameterBuilder formal in formals) {
-                if (usesTypeVariables(formal.type)) {
-                  return true;
-                }
-              }
-            }
-            if (typeVariables != null) {
-              for (StructuralVariableBuilder variable in typeVariables) {
-                if (usesTypeVariables(variable.bound)) {
-                  return true;
-                }
-              }
-            }
-            return usesTypeVariables(type.returnType);
-          case RecordTypeBuilder(
-              :List<RecordTypeFieldBuilder>? positionalFields,
-              :List<RecordTypeFieldBuilder>? namedFields
-            ):
-            if (positionalFields != null) {
-              for (RecordTypeFieldBuilder fieldBuilder in positionalFields) {
-                if (usesTypeVariables(fieldBuilder.type)) {
-                  return true;
-                }
-              }
-            }
-            if (namedFields != null) {
-              for (RecordTypeFieldBuilder fieldBuilder in namedFields) {
-                if (usesTypeVariables(fieldBuilder.type)) {
-                  return true;
-                }
-              }
-            }
-          case FixedTypeBuilder():
-          case InvalidTypeBuilder():
-          case OmittedTypeBuilder():
-          case null:
-            return false;
-        }
-        return false;
-      }
-
-      /// Iterate over the mixins from left to right. At the end of each
-      /// iteration, a new [supertype] is computed that is the mixin
-      /// application of [supertype] with the current mixin.
-      for (int i = 0; i < mixinApplications.mixins.length; i++) {
-        TypeBuilder mixin = mixinApplications.mixins[i];
-        isNamedMixinApplication =
-            name != null && mixin == mixinApplications.mixins.last;
-        bool isGeneric = false;
-        if (!isNamedMixinApplication) {
-          if (supertype is NamedTypeBuilder) {
-            isGeneric = isGeneric || usesTypeVariables(supertype);
-          }
-          if (mixin is NamedTypeBuilder) {
-            runningName += "&${mixin.typeName.name}";
-            isGeneric = isGeneric || usesTypeVariables(mixin);
-          }
-        }
-        String fullname =
-            isNamedMixinApplication ? name : "_$subclassName&$runningName";
-        List<NominalVariableBuilder>? applicationTypeVariables;
-        List<TypeBuilder>? applicationTypeArguments;
-        if (isNamedMixinApplication) {
-          // If this is a named mixin application, it must be given all the
-          // declared type variables.
-          applicationTypeVariables = typeVariables;
-        } else {
-          // Otherwise, we pass the fresh type variables to the mixin
-          // application in the same order as they're declared on the subclass.
-          if (isGeneric) {
-            this.beginNestedDeclaration(
-                TypeParameterScopeKind.unnamedMixinApplication,
-                "mixin application");
-
-            applicationTypeVariables = copyTypeVariables(
-                typeVariables!, currentTypeParameterScopeBuilder,
-                kind: TypeVariableKind.extensionSynthesized);
-
-            List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-            if (supertype is NamedTypeBuilder &&
-                supertype.typeArguments != null) {
-              for (int i = 0; i < supertype.typeArguments!.length; ++i) {
-                supertype.typeArguments![i] = supertype.typeArguments![i]
-                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
-              }
-            }
-            if (mixin is NamedTypeBuilder && mixin.typeArguments != null) {
-              for (int i = 0; i < mixin.typeArguments!.length; ++i) {
-                mixin.typeArguments![i] = mixin.typeArguments![i]
-                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
-              }
-            }
-            for (NamedTypeBuilder newType in newTypes) {
-              currentTypeParameterScopeBuilder
-                  .registerUnresolvedNamedType(newType);
-            }
-
-            TypeParameterScopeBuilder mixinDeclaration = this
-                .endNestedDeclaration(
-                    TypeParameterScopeKind.unnamedMixinApplication,
-                    "mixin application");
-            mixinDeclaration.resolveNamedTypes(applicationTypeVariables, this);
-
-            applicationTypeArguments = <TypeBuilder>[];
-            for (NominalVariableBuilder typeVariable in typeVariables) {
-              applicationTypeArguments.add(
-                  new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                      // The type variable types passed as arguments to the
-                      // generic class representing the anonymous mixin
-                      // application should refer back to the type variables of
-                      // the class that extend the anonymous mixin application.
-                      typeVariable,
-                      const NullabilityBuilder.omitted(),
-                      fileUri: fileUri,
-                      charOffset: charOffset,
-                      instanceTypeVariableAccess:
-                          InstanceTypeVariableAccessState.Allowed));
-            }
-          }
-        }
-        final int computedStartCharOffset =
-            !isNamedMixinApplication || metadata == null
-                ? startCharOffset
-                : metadata.first.charOffset;
-
-        IndexedClass? referencesFromIndexedClass;
-        if (indexedLibrary != null) {
-          referencesFromIndexedClass =
-              indexedLibrary!.lookupIndexedClass(fullname);
-        }
-
-        SourceClassBuilder application = new SourceClassBuilder(
-            isNamedMixinApplication ? metadata : null,
-            isNamedMixinApplication
-                ? modifiers | namedMixinApplicationMask
-                : abstractMask,
-            fullname,
-            applicationTypeVariables,
-            isMixinDeclaration ? null : supertype,
-            isNamedMixinApplication
-                ? interfaces
-                : isMixinDeclaration
-                    ? [supertype!, mixin]
-                    : null,
-            null,
-            // No `on` clause types.
-            new Scope(
-                kind: ScopeKind.declaration,
-                local: <String, MemberBuilder>{},
-                setters: <String, MemberBuilder>{},
-                parent: scope.withTypeVariables(typeVariables),
-                debugName: "mixin $fullname ",
-                isModifiable: false),
-            new ConstructorScope(fullname, <String, MemberBuilder>{}),
-            this,
-            <ConstructorReferenceBuilder>[],
-            computedStartCharOffset,
-            charOffset,
-            charEndOffset,
-            referencesFromIndexedClass,
-            mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
-            isMacro: isNamedMixinApplication && isMacro,
-            isSealed: isNamedMixinApplication && isSealed,
-            isBase: isNamedMixinApplication && isBase,
-            isInterface: isNamedMixinApplication && isInterface,
-            isFinal: isNamedMixinApplication && isFinal,
-            isAugmentation: isNamedMixinApplication && isAugmentation,
-            isMixinClass: isNamedMixinApplication && isMixinClass);
-        // TODO(ahe, kmillikin): Should always be true?
-        // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
-        // handle that :(
-        application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        addBuilder(fullname, application, charOffset,
-            getterReference: referencesFromIndexedClass?.cls.reference);
-        supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-            application, const NullabilityBuilder.omitted(),
-            arguments: applicationTypeArguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Allowed);
-        registerMixinApplication(application, mixin);
-      }
-      return supertype;
-    } else {
-      return supertype;
-    }
-  }
-
+  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
   Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
 
-  /// Registers that [mixinApplication] is a mixin application introduced by
-  /// the [mixedInType] in a with-clause.
-  ///
-  /// This is used to check that super access in mixin declarations have a
-  /// concrete target.
-  void registerMixinApplication(
-      SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
-    assert(
-        _mixinApplications != null, "Late registration of mixin application.");
-    _mixinApplications![mixinApplication] = mixedInType;
-  }
-
+  // TODO(johnniwinther): Move access to [_mixinApplications] to
+  //  [SourceCompilationUnitImpl].
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
     assert(_mixinApplications != null,
@@ -3021,815 +3974,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         augmentationLibrary.takeMixinApplications(mixinApplications);
       }
     }
-  }
-
-  void addNamedMixinApplication(
-      List<MetadataBuilder>? metadata,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      int modifiers,
-      TypeBuilder? supertype,
-      MixinApplicationBuilder mixinApplication,
-      List<TypeBuilder>? interfaces,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
-      {required bool isMacro,
-      required bool isSealed,
-      required bool isBase,
-      required bool isInterface,
-      required bool isFinal,
-      required bool isAugmentation,
-      required bool isMixinClass}) {
-    // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
-        .resolveNamedTypes(typeVariables, this);
-    supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
-        charOffset, charEndOffset, name, false,
-        metadata: metadata,
-        name: name,
-        typeVariables: typeVariables,
-        modifiers: modifiers,
-        interfaces: interfaces,
-        isMacro: isMacro,
-        isSealed: isSealed,
-        isBase: isBase,
-        isInterface: isInterface,
-        isFinal: isFinal,
-        isAugmentation: isAugmentation,
-        isMixinClass: isMixinClass)!;
-    checkTypeVariables(typeVariables, supertype.declaration);
-  }
-
-  SourceFieldBuilder addField(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      bool isTopLevel,
-      TypeBuilder type,
-      String name,
-      int charOffset,
-      int charEndOffset,
-      Token? initializerToken,
-      bool hasInitializer,
-      {Token? constInitializerToken}) {
-    if (hasInitializer) {
-      modifiers |= hasInitializerMask;
-    }
-    bool isLate = (modifiers & lateMask) != 0;
-    bool isFinal = (modifiers & finalMask) != 0;
-    bool isStatic = (modifiers & staticMask) != 0;
-    bool isExternal = (modifiers & externalMask) != 0;
-    final bool fieldIsLateWithLowering = isLate &&
-        (loader.target.backendTarget.isLateFieldLoweringEnabled(
-                hasInitializer: hasInitializer,
-                isFinal: isFinal,
-                isStatic: isTopLevel || isStatic) ||
-            (loader.target.backendTarget.useStaticFieldLowering &&
-                (isStatic || isTopLevel)));
-
-    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind !=
-            TypeParameterScopeKind.library &&
-        (modifiers & staticMask) == 0;
-    final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionDeclaration;
-    final bool isExtensionTypeMember = currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionTypeDeclaration;
-    ContainerType containerType =
-        currentTypeParameterScopeBuilder.containerType;
-    ContainerName? containerName =
-        currentTypeParameterScopeBuilder.containerName;
-
-    Reference? fieldReference;
-    Reference? fieldGetterReference;
-    Reference? fieldSetterReference;
-    Reference? lateIsSetFieldReference;
-    Reference? lateIsSetGetterReference;
-    Reference? lateIsSetSetterReference;
-    Reference? lateGetterReference;
-    Reference? lateSetterReference;
-
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: isInstanceMember,
-        containerName: containerName,
-        containerType: containerType,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.reference)
-            : libraryName);
-    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
-    if (indexedContainer != null) {
-      if ((isExtensionMember || isExtensionTypeMember) &&
-          isInstanceMember &&
-          isExternal) {
-        /// An external extension (type) instance field is special. It is
-        /// treated as an external getter/setter pair and is therefore encoded
-        /// as a pair of top level methods using the extension instance member
-        /// naming convention.
-        fieldGetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name);
-        fieldSetterReference = indexedContainer.lookupGetterReference(
-            nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name);
-      } else if (isExtensionTypeMember && isInstanceMember) {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.RepresentationField, name,
-                isSynthesized: true)
-            .name;
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-      } else {
-        Name nameToLookup = nameScheme
-            .getFieldMemberName(FieldNameType.Field, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        fieldReference = indexedContainer.lookupFieldReference(nameToLookup);
-        fieldGetterReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        fieldSetterReference =
-            indexedContainer.lookupSetterReference(nameToLookup);
-      }
-
-      if (fieldIsLateWithLowering) {
-        Name lateIsSetName = nameScheme
-            .getFieldMemberName(FieldNameType.IsSetField, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name;
-        lateIsSetFieldReference =
-            indexedContainer.lookupFieldReference(lateIsSetName);
-        lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetName);
-        lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetName);
-        lateGetterReference = indexedContainer.lookupGetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Getter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-        lateSetterReference = indexedContainer.lookupSetterReference(nameScheme
-            .getFieldMemberName(FieldNameType.Setter, name,
-                isSynthesized: fieldIsLateWithLowering)
-            .name);
-      }
-    }
-
-    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-        metadata,
-        type,
-        name,
-        modifiers,
-        isTopLevel,
-        this,
-        charOffset,
-        charEndOffset,
-        nameScheme,
-        fieldReference: fieldReference,
-        fieldGetterReference: fieldGetterReference,
-        fieldSetterReference: fieldSetterReference,
-        lateIsSetFieldReference: lateIsSetFieldReference,
-        lateIsSetGetterReference: lateIsSetGetterReference,
-        lateIsSetSetterReference: lateIsSetSetterReference,
-        lateGetterReference: lateGetterReference,
-        lateSetterReference: lateSetterReference,
-        initializerToken: initializerToken,
-        constInitializerToken: constInitializerToken);
-    addBuilder(name, fieldBuilder, charOffset,
-        getterReference: fieldGetterReference,
-        setterReference: fieldSetterReference);
-    return fieldBuilder;
-  }
-
-  void addPrimaryConstructorField(
-      {required List<MetadataBuilder>? metadata,
-      required TypeBuilder type,
-      required String name,
-      required int charOffset}) {
-    addField(
-        metadata,
-        finalMask,
-        /* isTopLevel = */ false,
-        type,
-        name,
-        /* charOffset = */ charOffset,
-        /* charEndOffset = */ charOffset,
-        /* initializerToken = */ null,
-        /* hasInitializer = */ false);
-  }
-
-  void addPrimaryConstructor(
-      {required OffsetMap offsetMap,
-      required Token beginToken,
-      required String constructorName,
-      required List<NominalVariableBuilder>? typeVariables,
-      required List<FormalParameterBuilder>? formals,
-      required int charOffset,
-      required bool isConst}) {
-    SourceFunctionBuilder builder = _addConstructor(
-        null,
-        isConst ? constMask : 0,
-        constructorName,
-        typeVariables,
-        formals,
-        /* startCharOffset = */ charOffset,
-        charOffset,
-        /* charOpenParenOffset = */ charOffset,
-        /* charEndOffset = */ charOffset,
-        /* nativeMethodName = */ null,
-        forAbstractClassOrMixin: false);
-    offsetMap.registerPrimaryConstructor(beginToken, builder);
-  }
-
-  void addConstructor(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      String constructorName,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      {Token? beginInitializers,
-      required bool forAbstractClassOrMixin}) {
-    SourceFunctionBuilder builder = _addConstructor(
-        metadata,
-        modifiers,
-        constructorName,
-        typeVariables,
-        formals,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        nativeMethodName,
-        beginInitializers: beginInitializers,
-        forAbstractClassOrMixin: forAbstractClassOrMixin);
-    offsetMap.registerConstructor(identifier, builder);
-  }
-
-  SourceFunctionBuilder _addConstructor(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String constructorName,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      {Token? beginInitializers,
-      required bool forAbstractClassOrMixin}) {
-    ContainerType containerType =
-        currentTypeParameterScopeBuilder.containerType;
-    ContainerName? containerName =
-        currentTypeParameterScopeBuilder.containerName;
-    NameScheme nameScheme = new NameScheme(
-        isInstanceMember: false,
-        containerName: containerName,
-        containerType: containerType,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.library.reference)
-            : libraryName);
-
-    Reference? constructorReference;
-    Reference? tearOffReference;
-
-    IndexedContainer? indexedContainer = _indexedContainer;
-    if (indexedContainer != null) {
-      constructorReference = indexedContainer.lookupConstructorReference(
-          nameScheme
-              .getConstructorMemberName(constructorName, isTearOff: false)
-              .name);
-      tearOffReference = indexedContainer.lookupGetterReference(nameScheme
-          .getConstructorMemberName(constructorName, isTearOff: true)
-          .name);
-    }
-    AbstractSourceConstructorBuilder constructorBuilder;
-
-    if (currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.extensionTypeDeclaration) {
-      constructorBuilder = new SourceExtensionTypeConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          addInferableType(),
-          constructorName,
-          typeVariables,
-          formals,
-          this,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          nameScheme,
-          nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
-    } else {
-      constructorBuilder = new DeclaredSourceConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          addInferableType(),
-          constructorName,
-          typeVariables,
-          formals,
-          this,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          nameScheme,
-          nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
-    }
-    checkTypeVariables(typeVariables, constructorBuilder);
-    // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    addBuilder(constructorName, constructorBuilder, charOffset,
-        getterReference: constructorReference);
-    if (nativeMethodName != null) {
-      addNativeMethod(constructorBuilder);
-    }
-    if (constructorBuilder.isConst) {
-      currentTypeParameterScopeBuilder.declaresConstConstructor = true;
-    }
-    if (constructorBuilder.isConst ||
-        libraryFeatures.superParameters.isEnabled) {
-      // const constructors will have their initializers compiled and written
-      // into the outline. In case of super-parameters language feature, the
-      // super initializers are required to infer the types of super parameters.
-      constructorBuilder.beginInitializers =
-          beginInitializers ?? new Token.eof(-1);
-    }
-    return constructorBuilder;
-  }
-
-  void addProcedure(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      TypeBuilder? returnType,
-      Identifier identifier,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      ProcedureKind kind,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      AsyncMarker asyncModifier,
-      {required bool isInstanceMember,
-      required bool isExtensionMember,
-      required bool isExtensionTypeMember}) {
-    assert(!isExtensionMember ||
-        currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionDeclaration);
-    assert(!isExtensionTypeMember ||
-        currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionTypeDeclaration);
-    ContainerType containerType =
-        currentTypeParameterScopeBuilder.containerType;
-    ContainerName? containerName =
-        currentTypeParameterScopeBuilder.containerName;
-    NameScheme nameScheme = new NameScheme(
-        containerName: containerName,
-        containerType: containerType,
-        isInstanceMember: isInstanceMember,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(indexedLibrary!.library.reference)
-            : libraryName);
-
-    if (returnType == null) {
-      if (kind == ProcedureKind.Operator &&
-          identical(name, indexSetName.text)) {
-        returnType = addVoidType(charOffset);
-      } else if (kind == ProcedureKind.Setter) {
-        returnType = addVoidType(charOffset);
-      }
-    }
-    Reference? procedureReference;
-    Reference? tearOffReference;
-    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
-
-    bool isAugmentation = isAugmenting && (modifiers & augmentMask) != 0;
-    if (indexedContainer != null && !isAugmentation) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      if (kind == ProcedureKind.Setter) {
-        if ((isExtensionMember || isExtensionTypeMember) && isInstanceMember) {
-          // Extension (type) instance setters are encoded as methods.
-          procedureReference =
-              indexedContainer.lookupGetterReference(nameToLookup);
-        } else {
-          procedureReference =
-              indexedContainer.lookupSetterReference(nameToLookup);
-        }
-      } else {
-        procedureReference =
-            indexedContainer.lookupGetterReference(nameToLookup);
-        if ((isExtensionMember || isExtensionTypeMember) &&
-            kind == ProcedureKind.Method) {
-          tearOffReference = indexedContainer.lookupGetterReference(nameScheme
-              .getProcedureMemberName(ProcedureKind.Getter, name)
-              .name);
-        }
-      }
-    }
-    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
-        metadata,
-        modifiers,
-        returnType ?? addInferableType(),
-        name,
-        typeVariables,
-        formals,
-        kind,
-        this,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        procedureReference,
-        tearOffReference,
-        asyncModifier,
-        nameScheme,
-        nativeMethodName: nativeMethodName);
-    checkTypeVariables(typeVariables, procedureBuilder);
-    addBuilder(name, procedureBuilder, charOffset,
-        getterReference: procedureReference);
-    if (nativeMethodName != null) {
-      addNativeMethod(procedureBuilder);
-    }
-    offsetMap.registerProcedure(identifier, procedureBuilder);
-  }
-
-  void addFactoryMethod(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      Identifier identifier,
-      List<FormalParameterBuilder>? formals,
-      ConstructorReferenceBuilder? redirectionTarget,
-      int startCharOffset,
-      int charOffset,
-      int charOpenParenOffset,
-      int charEndOffset,
-      String? nativeMethodName,
-      AsyncMarker asyncModifier) {
-    TypeBuilder returnType;
-    if (currentTypeParameterScopeBuilder.parent?.kind ==
-        TypeParameterScopeKind.extensionDeclaration) {
-      // Make the synthesized return type invalid for extensions.
-      String name = currentTypeParameterScopeBuilder.parent!.name;
-      returnType = new NamedTypeBuilderImpl.forInvalidType(
-          currentTypeParameterScopeBuilder.parent!.name,
-          const NullabilityBuilder.omitted(),
-          messageExtensionDeclaresConstructor.withLocation(
-              fileUri, charOffset, name.length));
-    } else {
-      returnType = addNamedType(
-          new SyntheticTypeName(
-              currentTypeParameterScopeBuilder.parent!.name, charOffset),
-          const NullabilityBuilder.omitted(),
-          <TypeBuilder>[],
-          charOffset,
-          instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
-    }
-    // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
-    TypeParameterScopeBuilder factoryDeclaration = endNestedDeclaration(
-        TypeParameterScopeKind.factoryMethod, "#factory_method");
-
-    // Prepare the simple procedure name.
-    String procedureName;
-    String? constructorName =
-        computeAndValidateConstructorName(identifier, isFactory: true);
-    if (constructorName != null) {
-      procedureName = constructorName;
-    } else {
-      procedureName = identifier.name;
-    }
-
-    ContainerType containerType =
-        currentTypeParameterScopeBuilder.containerType;
-    ContainerName? containerName =
-        currentTypeParameterScopeBuilder.containerName;
-
-    NameScheme procedureNameScheme = new NameScheme(
-        containerName: containerName,
-        containerType: containerType,
-        isInstanceMember: false,
-        libraryName: indexedLibrary != null
-            ? new LibraryName(
-                (_indexedContainer ?? indexedLibrary)!.library.reference)
-            : libraryName);
-
-    Reference? constructorReference;
-    Reference? tearOffReference;
-    if (_indexedContainer != null) {
-      constructorReference = _indexedContainer!.lookupConstructorReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = _indexedContainer!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    } else if (indexedLibrary != null) {
-      constructorReference = indexedLibrary!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = indexedLibrary!.lookupGetterReference(
-          procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    }
-
-    SourceFactoryBuilder procedureBuilder;
-    List<NominalVariableBuilder> typeVariables;
-    if (redirectionTarget != null) {
-      procedureBuilder = new RedirectingFactoryBuilder(
-          metadata,
-          staticMask | modifiers,
-          returnType,
-          procedureName,
-          typeVariables = copyTypeVariables(
-              currentTypeParameterScopeBuilder.typeVariables ??
-                  const <NominalVariableBuilder>[],
-              factoryDeclaration,
-              kind: TypeVariableKind.function),
-          formals,
-          this,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          procedureNameScheme,
-          nativeMethodName,
-          redirectionTarget);
-    } else {
-      procedureBuilder = new SourceFactoryBuilder(
-          metadata,
-          staticMask | modifiers,
-          returnType,
-          procedureName,
-          typeVariables = copyTypeVariables(
-              currentTypeParameterScopeBuilder.typeVariables ??
-                  const <NominalVariableBuilder>[],
-              factoryDeclaration,
-              kind: TypeVariableKind.function),
-          formals,
-          this,
-          startCharOffset,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          asyncModifier,
-          procedureNameScheme,
-          nativeMethodName: nativeMethodName);
-    }
-
-    TypeParameterScopeBuilder savedDeclaration =
-        currentTypeParameterScopeBuilder;
-    currentTypeParameterScopeBuilder = factoryDeclaration;
-    if (returnType is NamedTypeBuilderImpl && !typeVariables.isEmpty) {
-      returnType.typeArguments =
-          new List<TypeBuilder>.generate(typeVariables.length, (int index) {
-        return addNamedType(
-            new SyntheticTypeName(
-                typeVariables[index].name, procedureBuilder.charOffset),
-            const NullabilityBuilder.omitted(),
-            null,
-            procedureBuilder.charOffset,
-            instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Allowed);
-      });
-    }
-    currentTypeParameterScopeBuilder = savedDeclaration;
-
-    factoryDeclaration.resolveNamedTypes(procedureBuilder.typeVariables, this);
-    addBuilder(procedureName, procedureBuilder, charOffset,
-        getterReference: constructorReference);
-    if (nativeMethodName != null) {
-      addNativeMethod(procedureBuilder);
-    }
-    offsetMap.registerConstructor(identifier, procedureBuilder);
-  }
-
-  void addEnum(
-      OffsetMap offsetMap,
-      List<MetadataBuilder>? metadata,
-      Identifier identifier,
-      List<NominalVariableBuilder>? typeVariables,
-      MixinApplicationBuilder? supertypeBuilder,
-      List<TypeBuilder>? interfaceBuilders,
-      List<EnumConstantInfo?>? enumConstantInfos,
-      int startCharOffset,
-      int charEndOffset) {
-    String name = identifier.name;
-    int charOffset = identifier.nameOffset;
-
-    IndexedClass? referencesFromIndexedClass;
-    if (indexedLibrary != null) {
-      referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
-    }
-    // Nested declaration began in `OutlineBuilder.beginEnum`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
-          ..resolveNamedTypes(typeVariables, this);
-    Map<String, Builder> members = declaration.members!;
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
-
-    SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
-        metadata,
-        name,
-        typeVariables,
-        _applyMixins(
-            loader.target.underscoreEnumType,
-            supertypeBuilder,
-            startCharOffset,
-            charOffset,
-            charEndOffset,
-            name,
-            /* isMixinDeclaration = */
-            false,
-            typeVariables: typeVariables,
-            isMacro: false,
-            isSealed: false,
-            isBase: false,
-            isInterface: false,
-            isFinal: false,
-            isAugmentation: false,
-            isMixinClass: false),
-        interfaceBuilders,
-        enumConstantInfos,
-        this,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
-        startCharOffset,
-        charOffset,
-        charEndOffset,
-        referencesFromIndexedClass,
-        new Scope(
-            kind: ScopeKind.declaration,
-            local: members,
-            setters: setters,
-            parent: scope.withTypeVariables(typeVariables),
-            debugName: "enum $name",
-            isModifiable: false),
-        new ConstructorScope(name, constructors),
-        loader.coreLibrary);
-    constructorReferences.clear();
-
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, enumBuilder);
-
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = enumBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          enumBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
-    addBuilder(name, enumBuilder, charOffset,
-        getterReference: referencesFromIndexedClass?.cls.reference);
-
-    offsetMap.registerNamedDeclaration(identifier, enumBuilder);
-  }
-
-  void addFunctionTypeAlias(
-      List<MetadataBuilder>? metadata,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder type,
-      int charOffset) {
-    if (typeVariables != null) {
-      for (NominalVariableBuilder typeVariable in typeVariables) {
-        typeVariable.varianceCalculationValue =
-            VarianceCalculationValue.pending;
-      }
-    }
-    Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
-    TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
-        metadata, name, typeVariables, type, this, charOffset,
-        referenceFrom: referenceFrom);
-    checkTypeVariables(typeVariables, typedefBuilder);
-    // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
-        .resolveNamedTypes(typeVariables, this);
-    addBuilder(name, typedefBuilder, charOffset,
-        getterReference: referenceFrom?.reference);
-  }
-
-  FunctionTypeBuilder addFunctionType(
-      TypeBuilder returnType,
-      List<StructuralVariableBuilder>? structuralVariableBuilders,
-      List<FormalParameterBuilder>? formals,
-      NullabilityBuilder nullabilityBuilder,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasFunctionFormalParameterSyntax}) {
-    FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(
-        returnType,
-        structuralVariableBuilders,
-        formals,
-        nullabilityBuilder,
-        fileUri,
-        charOffset,
-        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
-    checkStructuralVariables(structuralVariableBuilders, null);
-    if (structuralVariableBuilders != null) {
-      for (StructuralVariableBuilder builder in structuralVariableBuilders) {
-        if (builder.metadata != null) {
-          if (!libraryFeatures.genericMetadata.isEnabled) {
-            addProblem(messageAnnotationOnFunctionTypeTypeVariable,
-                builder.charOffset, builder.name.length, builder.fileUri);
-          }
-        }
-      }
-    }
-    // Nested declaration began in `OutlineBuilder.beginFunctionType` or
-    // `OutlineBuilder.beginFunctionTypedFormalParameter`.
-    endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
-        .resolveNamedTypesWithStructuralVariables(
-            structuralVariableBuilders, this);
-    return builder;
-  }
-
-  FormalParameterBuilder addFormalParameter(
-      List<MetadataBuilder>? metadata,
-      FormalParameterKind kind,
-      int modifiers,
-      TypeBuilder type,
-      String name,
-      bool hasThis,
-      bool hasSuper,
-      int charOffset,
-      Token? initializerToken) {
-    assert(!hasThis || !hasSuper,
-        "Formal parameter '${name}' has both 'this' and 'super' prefixes.");
-    if (hasThis) {
-      modifiers |= initializingFormalMask;
-    }
-    if (hasSuper) {
-      modifiers |= superInitializingFormalMask;
-    }
-    FormalParameterBuilder formal = new FormalParameterBuilder(
-        kind, modifiers, type, name, this, charOffset,
-        fileUri: fileUri,
-        hasImmediatelyDeclaredInitializer: initializerToken != null)
-      ..initializerToken = initializerToken;
-    return formal;
-  }
-
-  NominalVariableBuilder addNominalTypeVariable(List<MetadataBuilder>? metadata,
-      String name, TypeBuilder? bound, int charOffset, Uri fileUri,
-      {required TypeVariableKind kind}) {
-    NominalVariableBuilder builder = new NominalVariableBuilder(
-        name, this, charOffset, fileUri,
-        bound: bound, metadata: metadata, kind: kind);
-
-    unboundNominalVariables.add(builder);
-    return builder;
-  }
-
-  StructuralVariableBuilder addStructuralTypeVariable(
-      List<MetadataBuilder>? metadata,
-      String name,
-      TypeBuilder? bound,
-      int charOffset,
-      Uri fileUri) {
-    StructuralVariableBuilder builder = new StructuralVariableBuilder(
-        name, this, charOffset, fileUri,
-        bound: bound, metadata: metadata);
-
-    unboundStructuralVariables.add(builder);
-    return builder;
   }
 
   BodyBuilderContext createBodyBuilderContext(
@@ -4238,10 +4382,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  void addNativeMethod(SourceFunctionBuilder method) {
-    nativeMethods.add(method);
-  }
-
   int finishNativeMethods() {
     int count = 0;
 
@@ -4259,36 +4399,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     count += nativeMethods.length;
 
     return count;
-  }
-
-  /// Creates a copy of [original] into the scope of [declaration].
-  ///
-  /// This is used for adding copies of class type parameters to factory
-  /// methods and unnamed mixin applications, and for adding copies of
-  /// extension type parameters to extension instance methods.
-  ///
-  /// If [synthesizeTypeParameterNames] is `true` the names of the
-  /// [TypeParameter] are prefix with '#' to indicate that their synthesized.
-  List<NominalVariableBuilder> copyTypeVariables(
-      List<NominalVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind}) {
-    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-    List<NominalVariableBuilder> copy = <NominalVariableBuilder>[];
-    for (NominalVariableBuilder variable in original) {
-      NominalVariableBuilder newVariable = new NominalVariableBuilder(
-          variable.name, this, variable.charOffset, variable.fileUri,
-          bound: variable.bound?.clone(newTypes, this, declaration),
-          kind: kind,
-          variableVariance:
-              variable.parameter.isLegacyCovariant ? null : variable.variance);
-      copy.add(newVariable);
-      unboundNominalVariables.add(newVariable);
-    }
-    for (NamedTypeBuilder newType in newTypes) {
-      declaration.registerUnresolvedNamedType(newType);
-    }
-    return copy;
   }
 
   List<StructuralVariableBuilder> copyStructuralVariables(
@@ -5534,37 +5644,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _extensionsInScope = null;
   }
 
-  /// Call this when entering a class, mixin, enum, or extension type
-  /// declaration.
-  ///
-  /// This is done to set up the current [_indexedContainer] used to lookup
-  /// references of members from a previous incremental compilation.
-  ///
-  /// Called in `OutlineBuilder.beginClassDeclaration`,
-  /// `OutlineBuilder.beginEnum`, `OutlineBuilder.beginMixinDeclaration` and
-  /// `OutlineBuilder.beginExtensionTypeDeclaration`.
-  void beginIndexedContainer(String name,
-      {required bool isExtensionTypeDeclaration}) {
-    if (indexedLibrary != null) {
-      if (isExtensionTypeDeclaration) {
-        _indexedContainer =
-            indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
-      } else {
-        _indexedContainer = indexedLibrary!.lookupIndexedClass(name);
-      }
-    }
-  }
-
-  /// Call this when leaving a class, mixin, enum, or extension type
-  /// declaration.
-  ///
-  /// Called in `OutlineBuilder.endClassDeclaration`,
-  /// `OutlineBuilder.endEnum`, `OutlineBuilder.endMixinDeclaration` and
-  /// `OutlineBuilder.endExtensionTypeDeclaration`.
-  void endIndexedContainer() {
-    _indexedContainer = null;
-  }
-
   void registerPendingNullability(
       Uri fileUri, int charOffset, TypeParameterType type) {
     _pendingNullabilities
@@ -6507,12 +6586,4 @@ class Part {
   final CompilationUnit compilationUnit;
 
   Part(this.offset, this.compilationUnit);
-
-  OffsetMap get offsetMap {
-    if (compilationUnit is SourceCompilationUnit) {
-      return (compilationUnit as SourceCompilationUnit).offsetMap;
-    }
-    assert(false, "No offset map for $compilationUnit.");
-    return new OffsetMap(compilationUnit.fileUri);
-  }
 }

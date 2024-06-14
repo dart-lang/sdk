@@ -58,12 +58,39 @@ OneByteString createOneByteStringFromCharacters(
         U8List bytes, int start, int end) =>
     createOneByteStringFromCharactersArray(bytes.data, start, end);
 
+/// Create a [OneByteString] with the [array] contents in the range from
+/// [start] to [end] (exclusive).
 @pragma("wasm:prefer-inline")
 OneByteString createOneByteStringFromCharactersArray(
-    WasmArray<WasmI8> bytes, int start, int end) {
+    WasmArray<WasmI8> array, int start, int end) {
   final len = end - start;
   final s = OneByteString.withLength(len);
-  s._array.copy(0, bytes, start, len);
+  s._array.copy(0, array, start, len);
+  return s;
+}
+
+/// Same as [createOneByteStringFromCharactersArray], but the one-byte
+/// character array is an `i16 array` instead of `i8 array`.
+@pragma("wasm:prefer-inline")
+OneByteString createOneByteStringFromTwoByteCharactersArray(
+    WasmArray<WasmI16> array, int start, int end) {
+  final len = end - start;
+  final s = OneByteString.withLength(len);
+  for (int i = 0; i < len; i += 1) {
+    final i16 = array.readUnsigned(start + i);
+    s._array.write(i, i16);
+  }
+  return s;
+}
+
+/// Create a [TwoByteString] with the [array] contents in the range from
+/// [start] to [end] (exclusive).
+@pragma("wasm:prefer-inline")
+TwoByteString createTwoByteStringFromCharactersArray(
+    WasmArray<WasmI16> array, int start, int end) {
+  final len = end - start;
+  final s = TwoByteString.withLength(len);
+  s._array.copy(0, array, start, len);
   return s;
 }
 
@@ -918,6 +945,53 @@ abstract final class StringBase extends WasmStringBase {
     return StringBase._concatAllFallback(values, totalLength);
   }
 
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate1(Object? value) {
+    return value is String ? value : value.toString();
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate2(Object? value1, Object? value2) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    if (string1 is OneByteString && string2 is OneByteString) {
+      return OneByteString._concat2(string1, string2);
+    }
+    return StringBase._interpolate(
+        WasmArray<Object?>.literal([string1, string2]));
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate3(Object? value1, Object? value2, Object? value3) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    final String string3 = value3 is String ? value3 : value3.toString();
+    if (string1 is OneByteString &&
+        string2 is OneByteString &&
+        string3 is OneByteString) {
+      return OneByteString._concat3(string1, string2, string3);
+    }
+    return StringBase._interpolate(
+        WasmArray<Object?>.literal([string1, string2, string3]));
+  }
+
+  @pragma("wasm:entry-point", "call")
+  static String _interpolate4(
+      Object? value1, Object? value2, Object? value3, Object? value4) {
+    final String string1 = value1 is String ? value1 : value1.toString();
+    final String string2 = value2 is String ? value2 : value2.toString();
+    final String string3 = value3 is String ? value3 : value3.toString();
+    final String string4 = value4 is String ? value4 : value4.toString();
+    if (string1 is OneByteString &&
+        string2 is OneByteString &&
+        string3 is OneByteString &&
+        string4 is OneByteString) {
+      return OneByteString._concat4(string1, string2, string3, string4);
+    }
+    return StringBase._interpolate(
+        WasmArray<Object?>.literal([string1, string2, string3, string4]));
+  }
+
   @pragma('wasm:entry-point')
   static bool _equals(String left, String? right) {
     return left == right;
@@ -1151,6 +1225,64 @@ final class OneByteString extends StringBase {
       resultBytes.copy(resultOffset, bytes, 0, bytes.length);
       resultOffset += bytes.length;
     }
+    return result;
+  }
+
+  static OneByteString _concat2(OneByteString string1, OneByteString string2) {
+    final bytes1 = string1._array;
+    final bytes2 = string2._array;
+
+    final result = OneByteString.withLength(bytes1.length + bytes2.length);
+    final resultBytes = result._array;
+
+    int resultOffset = 0;
+    resultBytes.copy(resultOffset, bytes1, 0, bytes1.length);
+    resultOffset += bytes1.length;
+    resultBytes.copy(resultOffset, bytes2, 0, bytes2.length);
+
+    return result;
+  }
+
+  static OneByteString _concat3(
+      OneByteString string1, OneByteString string2, OneByteString string3) {
+    final bytes1 = string1._array;
+    final bytes2 = string2._array;
+    final bytes3 = string3._array;
+
+    final result =
+        OneByteString.withLength(bytes1.length + bytes2.length + bytes3.length);
+    final resultBytes = result._array;
+
+    int resultOffset = 0;
+    resultBytes.copy(resultOffset, bytes1, 0, bytes1.length);
+    resultOffset += bytes1.length;
+    resultBytes.copy(resultOffset, bytes2, 0, bytes2.length);
+    resultOffset += bytes2.length;
+    resultBytes.copy(resultOffset, bytes3, 0, bytes3.length);
+
+    return result;
+  }
+
+  static OneByteString _concat4(OneByteString string1, OneByteString string2,
+      OneByteString string3, OneByteString string4) {
+    final bytes1 = string1._array;
+    final bytes2 = string2._array;
+    final bytes3 = string3._array;
+    final bytes4 = string4._array;
+
+    final result = OneByteString.withLength(
+        bytes1.length + bytes2.length + bytes3.length + bytes4.length);
+    final resultBytes = result._array;
+
+    int resultOffset = 0;
+    resultBytes.copy(resultOffset, bytes1, 0, bytes1.length);
+    resultOffset += bytes1.length;
+    resultBytes.copy(resultOffset, bytes2, 0, bytes2.length);
+    resultOffset += bytes2.length;
+    resultBytes.copy(resultOffset, bytes3, 0, bytes3.length);
+    resultOffset += bytes3.length;
+    resultBytes.copy(resultOffset, bytes4, 0, bytes4.length);
+
     return result;
   }
 

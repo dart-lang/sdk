@@ -2876,11 +2876,35 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return visitStringLiteral(expr, expectedType);
     }
 
-    makeArrayFromExpressions(node.expressions,
-        translator.coreTypes.objectRawType(Nullability.nullable));
-    return translator.outputOrVoid(call(translator.options.jsCompatibility
-        ? translator.jsStringInterpolate.reference
-        : translator.stringInterpolate.reference));
+    late final Procedure target;
+
+    final expressions = node.expressions;
+    // We have special cases for 1/2/3/4 arguments in non-JSCM mode.
+    if (!translator.options.jsCompatibility && expressions.length <= 4) {
+      final nullableObjectType =
+          translator.translateType(translator.coreTypes.objectNullableRawType);
+      for (final expression in expressions) {
+        wrap(expression, nullableObjectType);
+      }
+      if (expressions.length == 1) {
+        target = translator.stringInterpolate1;
+      } else if (expressions.length == 2) {
+        target = translator.stringInterpolate2;
+      } else if (expressions.length == 3) {
+        target = translator.stringInterpolate3;
+      } else {
+        assert(expressions.length == 4);
+        target = translator.stringInterpolate4;
+      }
+    } else {
+      final nullableObjectType = translator.coreTypes.objectNullableRawType;
+      makeArrayFromExpressions(node.expressions, nullableObjectType);
+      target = translator.options.jsCompatibility
+          ? translator.jsStringInterpolate
+          : translator.stringInterpolate;
+    }
+
+    return translator.outputOrVoid(call(target.reference));
   }
 
   @override

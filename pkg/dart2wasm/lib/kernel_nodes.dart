@@ -240,6 +240,14 @@ mixin KernelNodes {
       index.getProcedure("dart:_string", "StringBase", "_equals");
   late final Procedure stringInterpolate =
       index.getProcedure("dart:_string", "StringBase", "_interpolate");
+  late final Procedure stringInterpolate1 =
+      index.getProcedure("dart:_string", "StringBase", "_interpolate1");
+  late final Procedure stringInterpolate2 =
+      index.getProcedure("dart:_string", "StringBase", "_interpolate2");
+  late final Procedure stringInterpolate3 =
+      index.getProcedure("dart:_string", "StringBase", "_interpolate3");
+  late final Procedure stringInterpolate4 =
+      index.getProcedure("dart:_string", "StringBase", "_interpolate4");
   late final Procedure truncDiv =
       index.getProcedure("dart:core", "_BoxedInt", "_truncDiv");
   late final Procedure runtimeTypeEquals =
