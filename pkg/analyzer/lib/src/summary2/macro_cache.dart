@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:_macros/src/executor/response_impls.dart' as macro;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:macros/macros.dart' as macro;
 import 'package:macros/src/executor.dart' as macro;
 import 'package:macros/src/executor/introspection_impls.dart' as macro;
+import 'package:macros/src/executor/response_impls.dart' as macro;
 
 macro.MacroExecutionResult readMacroExecutionResult({
   required DeclarationBuilder declarationBuilder,

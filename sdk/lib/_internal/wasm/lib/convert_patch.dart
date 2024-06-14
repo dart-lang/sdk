@@ -519,7 +519,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Get character/code unit of current chunk.
    *
    * The [index] must be non-negative and less than `chunkEnd`.
-   * In practive, [index] will be no smaller than the `start` argument passed
+   * In practice, [index] will be no smaller than the `start` argument passed
    * to [parse].
    */
   int getChar(int index);
@@ -2072,7 +2072,10 @@ class _Utf8Decoder {
 
   String decode16(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    final String transitionTable = _Utf8Decoder.transitionTable;
+    final OneByteString transitionTable =
+        unsafeCast<OneByteString>(_Utf8Decoder.transitionTable);
+    final OneByteString typeTable =
+        unsafeCast<OneByteString>(_Utf8Decoder.typeTable);
     TwoByteString result = TwoByteString.withLength(size);
     int i = start;
     int j = 0;
@@ -2083,21 +2086,19 @@ class _Utf8Decoder {
     assert(!isErrorState(state));
     final int byte = bytes[i++];
     final int type =
-        _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
-            typeMask;
+        oneByteStringCodeUnitAtUnchecked(typeTable, byte) & typeMask;
     if (state == accept) {
       char = byte & (shiftedByteMask >> type);
-      state = transitionTable.codeUnitAt(type);
+      state = oneByteStringCodeUnitAtUnchecked(transitionTable, type);
     } else {
       char = (byte & 0x3F) | (_charOrIndex << 6);
-      state = transitionTable.codeUnitAt(state + type);
+      state = oneByteStringCodeUnitAtUnchecked(transitionTable, state + type);
     }
 
     while (i < end) {
       final int byte = bytes[i++];
       final int type =
-          _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
-              typeMask;
+          oneByteStringCodeUnitAtUnchecked(typeTable, byte) & typeMask;
       if (state == accept) {
         if (char >= 0x10000) {
           assert(char < 0x110000);
@@ -2107,14 +2108,14 @@ class _Utf8Decoder {
           writeIntoTwoByteString(result, j++, char);
         }
         char = byte & (shiftedByteMask >> type);
-        state = transitionTable.codeUnitAt(type);
+        state = oneByteStringCodeUnitAtUnchecked(transitionTable, type);
       } else if (isErrorState(state)) {
         _state = state;
         _charOrIndex = i - 2;
         return "";
       } else {
         char = (byte & 0x3F) | (char << 6);
-        state = transitionTable.codeUnitAt(state + type);
+        state = oneByteStringCodeUnitAtUnchecked(transitionTable, state + type);
       }
     }
 

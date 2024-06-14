@@ -354,6 +354,7 @@ class _MemoryFile extends _MemoryResource implements File {
     return destination;
   }
 
+  @Deprecated('Get Source instances from analysis results')
   @override
   Source createSource([Uri? uri]) {
     uri ??= provider.pathContext.toUri(path);

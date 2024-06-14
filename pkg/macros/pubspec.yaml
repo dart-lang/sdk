@@ -1,5 +1,5 @@
 name: macros
-version: 0.1.2-main.2
+version: 0.1.2-main.3
 description: >-
   This package is for macro authors, and exposes the APIs necessary to write
   a macro. It exports the APIs from the private `_macros` SDK vendored package.

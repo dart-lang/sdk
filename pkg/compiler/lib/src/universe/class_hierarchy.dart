@@ -402,61 +402,61 @@ class ClassHierarchyImpl implements ClassHierarchy {
       // Exact classes [cls1] and [cls2] must be identical to have any classes
       // in common.
       if (cls1 != cls2) {
-        return SubclassResult.EMPTY;
+        return SimpleSubclassResult.empty;
       }
-      return SubclassResult.EXACT1;
+      return SimpleSubclassResult.exact1;
     } else if (query1 == ClassQuery.EXACT) {
       if (query2 == ClassQuery.SUBCLASS) {
         // Exact [cls1] must be a subclass of [cls2] to have any classes in
         // common.
         if (isSubclassOf(cls1, cls2)) {
-          return SubclassResult.EXACT1;
+          return SimpleSubclassResult.exact1;
         }
       } else if (query2 == ClassQuery.SUBTYPE) {
         // Exact [cls1] must be a subtype of [cls2] to have any classes in
         // common.
         if (isSubtypeOf(cls1, cls2)) {
-          return SubclassResult.EXACT1;
+          return SimpleSubclassResult.exact1;
         }
       }
-      return SubclassResult.EMPTY;
+      return SimpleSubclassResult.empty;
     } else if (query2 == ClassQuery.EXACT) {
       if (query1 == ClassQuery.SUBCLASS) {
         // Exact [cls2] must be a subclass of [cls1] to have any classes in
         // common.
         if (isSubclassOf(cls2, cls1)) {
-          return SubclassResult.EXACT2;
+          return SimpleSubclassResult.exact2;
         }
       } else if (query1 == ClassQuery.SUBTYPE) {
         // Exact [cls2] must be a subtype of [cls1] to have any classes in
         // common.
         if (isSubtypeOf(cls2, cls1)) {
-          return SubclassResult.EXACT2;
+          return SimpleSubclassResult.exact2;
         }
       }
-      return SubclassResult.EMPTY;
+      return SimpleSubclassResult.empty;
     } else if (query1 == ClassQuery.SUBCLASS && query2 == ClassQuery.SUBCLASS) {
       // [cls1] must be a subclass of [cls2] or vice versa to have any classes
       // in common.
       if (cls1 == cls2 || isSubclassOf(cls1, cls2)) {
         // The subclasses of [cls1] are contained within the subclasses of
         // [cls2].
-        return SubclassResult.SUBCLASS1;
+        return SimpleSubclassResult.subclass1;
       } else if (isSubclassOf(cls2, cls1)) {
         // The subclasses of [cls2] are contained within the subclasses of
         // [cls1].
-        return SubclassResult.SUBCLASS2;
+        return SimpleSubclassResult.subclass2;
       }
-      return SubclassResult.EMPTY;
+      return SimpleSubclassResult.empty;
     } else if (query1 == ClassQuery.SUBCLASS) {
       if (isSubtypeOf(cls1, cls2)) {
         // The subclasses of [cls1] are all subtypes of [cls2].
-        return SubclassResult.SUBCLASS1;
+        return SimpleSubclassResult.subclass1;
       }
       if (cls1 == _commonElements.objectClass) {
         // Since [cls1] is `Object` all subtypes of [cls2] are contained within
         // the subclasses of [cls1].
-        return SubclassResult.SUBTYPE2;
+        return SimpleSubclassResult.subtype2;
       }
       // Find all the root subclasses of [cls1] of that implement [cls2].
       //
@@ -481,16 +481,16 @@ class ClassHierarchyImpl implements ClassHierarchy {
         }
         return IterationStep.CONTINUE;
       });
-      return SubclassResult(classes);
+      return SetSubclassResult(classes);
     } else if (query2 == ClassQuery.SUBCLASS) {
       if (isSubtypeOf(cls2, cls1)) {
         // The subclasses of [cls2] are all subtypes of [cls1].
-        return SubclassResult.SUBCLASS2;
+        return SimpleSubclassResult.subclass2;
       }
       if (cls2 == _commonElements.objectClass) {
         // Since [cls2] is `Object` all subtypes of [cls1] are contained within
         // the subclasses of [cls2].
-        return SubclassResult.SUBTYPE1;
+        return SimpleSubclassResult.subtype1;
       }
       // Find all the root subclasses of [cls2] of that implement [cls1].
       List<ClassEntity> classes = [];
@@ -503,14 +503,14 @@ class ClassHierarchyImpl implements ClassHierarchy {
         }
         return IterationStep.CONTINUE;
       });
-      return SubclassResult(classes);
+      return SetSubclassResult(classes);
     } else {
       if (cls1 == cls2 || isSubtypeOf(cls1, cls2)) {
         // The subtypes of [cls1] are contained within the subtypes of [cls2].
-        return SubclassResult.SUBTYPE1;
+        return SimpleSubclassResult.subtype1;
       } else if (isSubtypeOf(cls2, cls1)) {
         // The subtypes of [cls2] are contained within the subtypes of [cls1].
-        return SubclassResult.SUBTYPE2;
+        return SimpleSubclassResult.subtype2;
       }
       // Find all the root subclasses of [cls1] of that implement [cls2].
       //
@@ -537,7 +537,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         }
         return IterationStep.CONTINUE;
       });
-      return SubclassResult(classes);
+      return SetSubclassResult(classes);
     }
   }
 
@@ -935,59 +935,38 @@ enum ClassQuery {
   SUBTYPE,
 }
 
-/// Result kind for [ClassHierarchy.commonSubclasses].
-enum SubclassResultKind {
+/// Result computed in [ClassHierarchy.commonSubclasses].
+sealed class SubclassResult {}
+
+enum SimpleSubclassResult implements SubclassResult {
   /// No common subclasses.
-  EMPTY,
+  empty,
 
   /// Exactly the first class in common.
-  EXACT1,
+  exact1,
 
   /// Exactly the second class in common.
-  EXACT2,
+  exact2,
 
   /// Subclasses of the first class in common.
-  SUBCLASS1,
+  subclass1,
 
   /// Subclasses of the second class in common.
-  SUBCLASS2,
+  subclass2,
 
   /// Subtypes of the first class in common.
-  SUBTYPE1,
+  subtype1,
 
   /// Subtypes of the second class in common.
-  SUBTYPE2,
-
-  /// Subclasses of a set of classes in common.
-  SET
+  subtype2,
 }
 
-/// Result computed in [ClassHierarchy.commonSubclasses].
-class SubclassResult {
-  final SubclassResultKind kind;
-  final List<ClassEntity>? _classes;
+/// Subclasses of a set of classes in common.
+class SetSubclassResult implements SubclassResult {
+  final List<ClassEntity> classes;
 
-  List<ClassEntity> get classes => _classes!;
-
-  SubclassResult(this._classes) : kind = SubclassResultKind.SET;
-
-  const SubclassResult.internal(this.kind) : _classes = null;
-
-  static const SubclassResult EMPTY =
-      SubclassResult.internal(SubclassResultKind.EMPTY);
-  static const SubclassResult EXACT1 =
-      SubclassResult.internal(SubclassResultKind.EXACT1);
-  static const SubclassResult EXACT2 =
-      SubclassResult.internal(SubclassResultKind.EXACT2);
-  static const SubclassResult SUBCLASS1 =
-      SubclassResult.internal(SubclassResultKind.SUBCLASS1);
-  static const SubclassResult SUBCLASS2 =
-      SubclassResult.internal(SubclassResultKind.SUBCLASS2);
-  static const SubclassResult SUBTYPE1 =
-      SubclassResult.internal(SubclassResultKind.SUBTYPE1);
-  static const SubclassResult SUBTYPE2 =
-      SubclassResult.internal(SubclassResultKind.SUBTYPE2);
+  SetSubclassResult(this.classes);
 
   @override
-  String toString() => 'SubclassResult($kind,classes=$_classes)';
+  String toString() => 'SetSubclassResult(classes=$classes)';
 }

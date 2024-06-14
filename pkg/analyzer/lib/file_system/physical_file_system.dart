@@ -136,6 +136,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     return destination;
   }
 
+  @Deprecated('Get Source instances from analysis results')
   @override
   Source createSource([Uri? uri]) {
     return FileSource(this, uri ?? pathContext.toUri(path));

@@ -31,6 +31,7 @@ abstract class File implements Resource {
   File copyTo(Folder parentFolder);
 
   /// Create a new [Source] instance that serves this file.
+  @Deprecated('Get Source instances from analysis results')
   Source createSource([Uri? uri]);
 
   /// Synchronously read the entire file contents as a list of bytes.
