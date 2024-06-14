@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -271,12 +273,315 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
 
+  bool Function(AnalysisError) get _filter {
+    var hasError = false;
+    return (error) {
+      if (!hasError &&
+          error.errorCode ==
+              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT) {
+        hasError = true;
+        return true;
+      }
+      return false;
+    };
+  }
+
+  Future<void> assertHasFixWithFilter(String expected) async {
+    await assertHasFix(expected, errorFilter: _filter);
+  }
+
+  Future<void> test_empty() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+    case E.b:
+      // TODO: Handle this case.
+    case E.c:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_empty_singleLine() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {}
+}
+''');
+    await assertHasFix('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+    case E.b:
+      // TODO: Handle this case.
+    case E.c:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_final() async {
+    await resolveTestCode('''
+enum E {
+  a(0),
+  b(1);
+
+  final int f;
+  const E(this.f);
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+enum E {
+  a(0),
+  b(1);
+
+  final int f;
+  const E(this.f);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+    case E.b:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+    case my.E.b:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix_hideDefault() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart' hide E;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart' hide E;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+    case my.E.b:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/49759',
+    reason: 'Fails because we use the wrong import (dream) in the cases',
+  )
+  Future<void> test_import_prefix_multiple() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart' as dream;
+import 'a.dart' as big;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart' as dream;
+import 'a.dart' as big;
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case my.E.a:
+      // TODO: Handle this case.
+    case my.E.b:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_import_prefix_twice() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E {a, b}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+import 'a.dart';
+import 'a.dart' as my;
+
+void f(my.E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+    case E.b:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/49759',
+    reason: 'Expects no fix but produces a fix that adds the cases '
+        '(but does not fix the incomplete code)',
+  )
+  Future<void> test_incomplete_switchStatement() async {
+    await resolveTestCode(r'''
+enum E {a, b, c}
+void f(E e) {
+  switch(e
+}
+''');
+    await assertNoFix(errorFilter: _filter);
+  }
+
+  Future<void> test_notBrackets() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e)
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+    case E.b:
+      // TODO: Handle this case.
+    case E.c:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_nullable_handledNull() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+    case null:
+  }
+}
+''');
+    await assertHasFix('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+    case null:
+    case E.b:
+      // TODO: Handle this case.
+    case E.c:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/49759',
+    reason: 'Puts the null case second-to-last instead of last',
+  )
+  Future<void> test_nullable_unhandledNull() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+    case E.b:
+  }
+}
+''');
+    await assertHasFix('''
+enum E {a, b, c}
+void f(E? e) {
+  switch (e) {
+    case E.a:
+    case E.b:
+    case E.c:
+      // TODO: Handle this case.
+    case null:
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
   Future<void> test_num_doubleAny() async {
     await resolveTestCode('''
 void f(num x) {
   switch (x) {
     case double():
-      break;
   }
 }
 ''');
@@ -284,7 +589,6 @@ void f(num x) {
 void f(num x) {
   switch (x) {
     case double():
-      break;
     case int():
       // TODO: Handle this case.
   }
@@ -297,9 +601,7 @@ void f(num x) {
 void f(num x) {
   switch (x) {
     case double():
-      break;
     case int(hashCode: 5):
-      break;
   }
 }
 ''');
@@ -307,9 +609,7 @@ void f(num x) {
 void f(num x) {
   switch (x) {
     case double():
-      break;
     case int(hashCode: 5):
-      break;
     case int():
       // TODO: Handle this case.
   }
@@ -329,6 +629,39 @@ void f(num x) {
     case double():
       // TODO: Handle this case.
     case int():
+      // TODO: Handle this case.
+  }
+}
+''');
+  }
+
+  Future<void> test_static() async {
+    await resolveTestCode('''
+enum E {
+  a,
+  b;
+
+  static int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+  }
+}
+''');
+    await assertHasFix('''
+enum E {
+  a,
+  b;
+
+  static int s = 1;
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+    case E.b:
       // TODO: Handle this case.
   }
 }
