@@ -5,17 +5,11 @@
 library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
-import 'package:kernel/ast.dart' show Class, Library, Nullability;
+import 'package:kernel/ast.dart' show Class, Library;
 
 import '../combinator.dart' show CombinatorBuilder;
-
-import '../problems.dart' show internalProblem;
-
 import '../export.dart' show Export;
-
 import '../loader.dart' show Loader;
-
 import '../messages.dart'
     show
         FormattedMessage,
@@ -24,9 +18,8 @@ import '../messages.dart'
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
-
+import '../problems.dart' show internalProblem;
 import '../scope.dart';
-
 import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/source_class_builder.dart';
@@ -39,7 +32,6 @@ import 'inferable_type_builder.dart';
 import 'member_builder.dart';
 import 'modifier_builder.dart';
 import 'name_iterator.dart';
-import 'nullability_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
@@ -268,17 +260,6 @@ abstract class LibraryBuilder implements Builder {
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
 
-  Nullability get nullable;
-
-  Nullability nullableIfTrue(bool isNullable);
-
-  NullabilityBuilder get nullableBuilder;
-
-  NullabilityBuilder get nonNullableBuilder;
-
-  /// Unused in interface; left in on purpose.
-  NullabilityBuilder nullableBuilderIfTrue(bool isNullable);
-
   /// Returns `true` if [cls] is the 'Function' class defined in [coreLibrary].
   static bool isFunction(Class cls, LibraryBuilder coreLibrary) {
     return cls.name == 'Function' && _isCoreClass(cls, coreLibrary);
@@ -473,33 +454,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   @override
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
-
-  @override
-  Nullability get nullable {
-    return Nullability.nullable;
-  }
-
-  @override
-  Nullability nullableIfTrue(bool isNullable) {
-    return isNullable ? Nullability.nullable : Nullability.nonNullable;
-  }
-
-  @override
-  NullabilityBuilder get nullableBuilder {
-    return const NullabilityBuilder.nullable();
-  }
-
-  @override
-  NullabilityBuilder get nonNullableBuilder {
-    return const NullabilityBuilder.omitted();
-  }
-
-  @override
-  NullabilityBuilder nullableBuilderIfTrue(bool isNullable) {
-    return isNullable
-        ? const NullabilityBuilder.nullable()
-        : const NullabilityBuilder.omitted();
-  }
 
   @override
   StringBuffer printOn(StringBuffer buffer) {

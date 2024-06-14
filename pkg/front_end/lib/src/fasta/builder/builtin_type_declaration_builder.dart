@@ -26,7 +26,7 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       int charOffset,
       ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
-    return type.withDeclaredNullability(nullabilityBuilder.build(library));
+    return type.withDeclaredNullability(nullabilityBuilder.build());
   }
 
   @override

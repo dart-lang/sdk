@@ -379,7 +379,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     return buildAliasedTypeWithBuiltArguments(
         library,
-        nullabilityBuilder.build(library),
+        nullabilityBuilder.build(),
         buildAliasedTypeArguments(library, arguments, hierarchy),
         typeUse,
         fileUri,

@@ -175,8 +175,8 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         t.bound?.build(library, TypeUse.typeParameterBound);
       }
     }
-    return new FunctionType(positionalParameters, builtReturnType,
-        nullabilityBuilder.build(library),
+    return new FunctionType(
+        positionalParameters, builtReturnType, nullabilityBuilder.build(),
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <StructuralParameter>[],
         requiredParameterCount: requiredParameterCount);

@@ -3064,7 +3064,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             offsetForToken(token),
             _helper.buildDartType(
                 buildTypeWithResolvedArguments(
-                    _helper.libraryBuilder.nonNullableBuilder, typeArguments,
+                    const NullabilityBuilder.omitted(), typeArguments,
                     allowPotentiallyConstantType: true,
                     performTypeCanonicalization: true),
                 TypeUse.typeLiteral,

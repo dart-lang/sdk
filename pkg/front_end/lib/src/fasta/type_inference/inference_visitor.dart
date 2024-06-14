@@ -2194,7 +2194,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         element.expression,
         new InterfaceType(
             coreTypes.iterableClass,
-            libraryBuilder.nullableIfTrue(element.isNullAware),
+            element.isNullAware
+                ? Nullability.nullable
+                : Nullability.nonNullable,
             <DartType>[inferredTypeArgument]),
         isVoidAllowed: true);
     element.expression = spreadResult.expression..parent = element;
@@ -2601,8 +2603,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType? spreadType = inferredSpreadTypes[item.expression];
       if (spreadType is DynamicType) {
         Expression expression = ensureAssignable(
-            coreTypes.iterableRawType(
-                libraryBuilder.nullableIfTrue(item.isNullAware)),
+            coreTypes.iterableRawType(item.isNullAware
+                ? Nullability.nullable
+                : Nullability.nonNullable),
             spreadType,
             item.expression);
         item.expression = expression..parent = item;
@@ -3032,7 +3035,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.iterableType(
-                elementType, libraryBuilder.nullable));
+                elementType, Nullability.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3059,7 +3062,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.iterableType(
-                const DynamicType(), libraryBuilder.nullable));
+                const DynamicType(), Nullability.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3382,7 +3385,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.mapType(
-                keyType, valueType, libraryBuilder.nullable));
+                keyType, valueType, Nullability.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3408,7 +3411,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.mapType(const DynamicType(),
-                const DynamicType(), libraryBuilder.nullable));
+                const DynamicType(), Nullability.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3510,7 +3513,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           VariableDeclaration temp = _createVariable(
               spreadExpression,
               typeSchemaEnvironment.iterableType(
-                  elementType, libraryBuilder.nullable));
+                  elementType, Nullability.nullable));
           parts.add(_createNullAwareGuard(element.fileOffset, temp,
               makeLiteral(element.fileOffset, []), iterableType));
         } else {
@@ -3584,7 +3587,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression spreadExpression = entry.expression;
         if (entry.isNullAware) {
           VariableDeclaration temp = _createVariable(spreadExpression,
-              collectionType.withDeclaredNullability(libraryBuilder.nullable));
+              collectionType.withDeclaredNullability(Nullability.nullable));
           parts.add(_createNullAwareGuard(entry.fileOffset, temp,
               makeLiteral(entry.fileOffset, []), collectionType));
         } else {
@@ -4045,11 +4048,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     bool isMap = typeSchemaEnvironment.isSubtypeOf(
         spreadType,
-        coreTypes.mapRawType(libraryBuilder.nullable),
+        coreTypes.mapRawType(Nullability.nullable),
         SubtypeCheckMode.withNullabilities);
     bool isIterable = typeSchemaEnvironment.isSubtypeOf(
         spreadType,
-        coreTypes.iterableRawType(libraryBuilder.nullable),
+        coreTypes.iterableRawType(Nullability.nullable),
         SubtypeCheckMode.withNullabilities);
     if (isMap && !isIterable) {
       offsets.mapSpreadOffset = entry.fileOffset;
@@ -4530,8 +4533,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType? spreadType = inferredSpreadTypes[entry.expression];
       if (spreadType is DynamicType) {
         Expression expression = ensureAssignable(
-            coreTypes
-                .mapRawType(libraryBuilder.nullableIfTrue(entry.isNullAware)),
+            coreTypes.mapRawType(entry.isNullAware
+                ? Nullability.nullable
+                : Nullability.nonNullable),
             spreadType,
             entry.expression);
         entry.expression = expression..parent = entry;
@@ -6072,7 +6076,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType rightType =
         operations.getNullableType(equalsTarget.getBinaryOperandType(this));
     DartType contextType =
-        rightType.withDeclaredNullability(libraryBuilder.nullable);
+        rightType.withDeclaredNullability(Nullability.nullable);
     rightResult = ensureAssignableResult(contextType, rightResult,
         errorTemplate: templateArgumentTypeNotAssignable,
         nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
@@ -8986,7 +8990,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       CheckLibraryIsLoaded node, DartType typeContext) {
     // TODO(cstefantsova): Figure out the suitable nullability for that.
     return new ExpressionInferenceResult(
-        coreTypes.objectRawType(libraryBuilder.nullable), node);
+        coreTypes.objectRawType(Nullability.nullable), node);
   }
 
   ExpressionInferenceResult visitEquals(

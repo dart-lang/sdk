@@ -118,7 +118,7 @@ class TypeBuilderIdentifier extends IdentifierImpl {
       NullabilityBuilder nullabilityBuilder, List<DartType> typeArguments) {
     return typeBuilder.declaration!.buildAliasedTypeWithBuiltArguments(
         libraryBuilder,
-        nullabilityBuilder.build(libraryBuilder),
+        nullabilityBuilder.build(),
         typeArguments,
         TypeUse.macroTypeArgument,
         // TODO(johnniwinther): How should handle malbounded types here? Should
@@ -180,7 +180,7 @@ class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
       NullabilityBuilder nullabilityBuilder, List<DartType> typeArguments) {
     return typeDeclarationBuilder.buildAliasedTypeWithBuiltArguments(
         libraryBuilder,
-        nullabilityBuilder.build(libraryBuilder),
+        nullabilityBuilder.build(),
         // TODO(johnniwinther): How should handle malbounded types here? Should
         // we report an error on the annotation?
         typeArguments,

@@ -256,8 +256,8 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
     // TODO(johnniwinther): Should we create an [InvalidType] if there is <= 1
     // entries?
-    return new RecordType(positionalEntries, namedEntries ?? [],
-        nullabilityBuilder.build(library));
+    return new RecordType(
+        positionalEntries, namedEntries ?? [], nullabilityBuilder.build());
   }
 
   @override

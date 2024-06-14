@@ -34,7 +34,7 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       int charOffset,
       ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
-    return type.withDeclaredNullability(nullabilityBuilder.build(library));
+    return type.withDeclaredNullability(nullabilityBuilder.build());
   }
 
   @override

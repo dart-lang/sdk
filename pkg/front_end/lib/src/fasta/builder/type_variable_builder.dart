@@ -366,7 +366,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
         nullability = nullabilityFromParameterBound;
       }
     } else {
-      nullability = nullabilityBuilder.build(library);
+      nullability = nullabilityBuilder.build();
     }
     TypeParameterType type = buildAliasedTypeWithBuiltArguments(
         library, nullability, null, typeUse, fileUri, charOffset,
@@ -403,7 +403,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
     if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
-        library.nullableBuilder,
+        const NullabilityBuilder.nullable(),
         /* arguments = */ null,
         TypeUse.typeParameterBound,
         fileUri ?? missingUri,
@@ -705,7 +705,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
             StructuralParameterType.computeNullabilityFromBound(parameter);
       }
     } else {
-      nullability = nullabilityBuilder.build(library);
+      nullability = nullabilityBuilder.build();
     }
     StructuralParameterType type = buildAliasedTypeWithBuiltArguments(
         library, nullability, null, typeUse, fileUri, charOffset,
@@ -753,7 +753,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
     if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
-        library.nullableBuilder,
+        const NullabilityBuilder.nullable(),
         /* arguments = */ null,
         TypeUse.typeParameterBound,
         fileUri ?? missingUri,
