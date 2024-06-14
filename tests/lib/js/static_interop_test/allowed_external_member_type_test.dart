@@ -240,6 +240,16 @@ void functionToJSTest<T extends JSAny, U extends ExtensionType,
   //                                ^
   // [web] Function converted via 'toJS' contains invalid types in its function signature: '*T* Function(*T*)'.
   // [web] Functions converted via `toJS` cannot declare type parameters.
+
+  (({JSNumber? n}) => n).toJS;
+  //                     ^
+  // [web] Functions converted via `toJS` cannot declare named parameters.
+  ((JSString _, {int n = 0}) => n).toJS;
+  //                               ^
+  // [web] Functions converted via `toJS` cannot declare named parameters.
+  (({int n = 0, JSArray? a}) => n).toJS;
+  //                               ^
+  // [web] Functions converted via `toJS` cannot declare named parameters.
 }
 
 void main() {}

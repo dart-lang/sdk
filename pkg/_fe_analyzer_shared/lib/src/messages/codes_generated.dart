@@ -10509,6 +10509,20 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropFunctionToJSNamedParameters =
+    messageJsInteropFunctionToJSNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropFunctionToJSNamedParameters =
+    const MessageCode(
+  "JsInteropFunctionToJSNamedParameters",
+  problemMessage:
+      r"""Functions converted via `toJS` cannot declare named parameters.""",
+  correctionMessage:
+      r"""Remove the declared named parameters from the function.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropFunctionToJSTypeParameters =
     messageJsInteropFunctionToJSTypeParameters;
 

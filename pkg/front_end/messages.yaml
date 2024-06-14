@@ -5724,6 +5724,10 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropFunctionToJSNamedParameters:
+  problemMessage: "Functions converted via `toJS` cannot declare named parameters."
+  correctionMessage: "Remove the declared named parameters from the function."
+
 JsInteropFunctionToJSRequiresStaticType:
   problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
   correctionMessage: "Insert an explicit cast to the expected function type."
