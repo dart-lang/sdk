@@ -13792,6 +13792,28 @@ class A
 ''');
   }
 
+  test_namedTypeAnnotation_typeArguments_absent() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+Map get foo => {};
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: Map<dynamic, dynamic>
+''');
+  }
+
+  test_namedTypeAnnotation_typeArguments_wrongCount() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+Map<int> get foo => {};
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: Map<dynamic, dynamic>
+''');
+  }
+
   test_typeAlias_namedType() async {
     await _assertIntrospectText(r'''
 @Introspect()
