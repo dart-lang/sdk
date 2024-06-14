@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=--enable-experimental-wasm-interop
+// dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
 
 // Test that importing `dart:_wasm` and using import/export pragmas works if the
 // compiler is given the `--enable-experimental-wasm-interop` flag.
