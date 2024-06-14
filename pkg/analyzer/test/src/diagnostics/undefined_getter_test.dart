@@ -481,6 +481,23 @@ f(var p) {
     ]);
   }
 
+  test_static_extension_InstanceAccess() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension E on C {
+  static int get a => 0;
+}
+
+C g(C c) => C();
+f(C c) {
+  g(c).a;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 92, 1),
+    ]);
+  }
+
   test_static_undefined() async {
     await assertErrorsInCode('''
 class C {}

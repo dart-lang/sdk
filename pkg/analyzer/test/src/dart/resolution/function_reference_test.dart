@@ -1030,15 +1030,11 @@ void bar() {
   foo.m<int>;
 }
 
-extension on Function {
+extension E on Function {
   static void m<T>(T t) {}
 }
 ''', [
-      error(
-          CompileTimeErrorCode
-              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
-          40,
-          1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
     ]);
 
     assertResolvedNodeText(findNode.functionReference('foo.m<int>;'), r'''
@@ -1051,10 +1047,10 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: m
-      staticElement: self::@extension::0::@method::m
-      staticType: null
-    staticElement: self::@extension::0::@method::m
-    staticType: void Function<T>(T)
+      staticElement: <null>
+      staticType: InvalidType
+    staticElement: <null>
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -1063,9 +1059,7 @@ FunctionReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: void Function(int)
-  typeArgumentTypes
-    int
+  staticType: InvalidType
 ''');
   }
 

@@ -114,7 +114,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
 
-  List<_NotInstantiatedExtensionWithMember> hasMemberWithBaseName(
+  /// Returns the sublist of [ExtensionElement]s that have an instance member
+  /// named [baseName].
+  List<_NotInstantiatedExtensionWithMember> havingMemberWithBaseName(
     String baseName,
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
@@ -140,6 +142,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         }
       } else {
         for (var field in extension.augmented.fields) {
+          if (field.isStatic) {
+            continue;
+          }
           if (field.name == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
@@ -152,6 +157,9 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           }
         }
         for (var method in extension.augmented.methods) {
+          if (method.isStatic) {
+            continue;
+          }
           if (method.name == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(

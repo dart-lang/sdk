@@ -22,7 +22,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     if (target == null) return const [];
 
     var extensions =
-        libraryElement.accessibleExtensions.hasMemberWithBaseName(node.name);
+        libraryElement.accessibleExtensions.havingMemberWithBaseName(node.name);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;

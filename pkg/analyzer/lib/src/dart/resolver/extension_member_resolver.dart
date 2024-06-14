@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class ExtensionMemberResolver {
@@ -74,20 +73,17 @@ class ExtensionMemberResolver {
     ).substituteType(element.extendedType);
   }
 
-  /// Return the most specific extension in the current scope for this [type],
+  /// Returns the most specific accessible extension, applicable to [type],
   /// that defines the member with the given [name].
   ///
-  /// If no applicable extensions, return [ResolutionResult.none].
+  /// If no applicable extensions are found, returns [ResolutionResult.none].
   ///
-  /// If the match is ambiguous, report an error on the [nameEntity], and
-  /// return [ResolutionResult.ambiguous].
+  /// If the match is ambiguous, reports an error on the [nameEntity], and
+  /// returns [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
-    DartType type,
-    SyntacticEntity nameEntity,
-    String name,
-  ) {
+      DartType type, SyntacticEntity nameEntity, String name) {
     var extensions = _resolver.definingLibrary.accessibleExtensions
-        .hasMemberWithBaseName(name)
+        .havingMemberWithBaseName(name)
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
           targetType: type,
@@ -102,29 +98,27 @@ class ExtensionMemberResolver {
     }
 
     var mostSpecific = _chooseMostSpecific(extensions);
-    return mostSpecific.map(
-      (extension) {
-        return extension.asResolutionResult;
-      },
-      (noneMoreSpecific) {
-        _errorReporter.atEntity(
-          nameEntity,
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-          arguments: [
-            name,
-            noneMoreSpecific.map((e) {
-              var name = e.extension.name;
-              if (name != null) {
-                return "extension '$name'";
-              }
-              var type = e.extension.extendedType.getDisplayString();
-              return "unnamed extension on '$type'";
-            }).commaSeparatedWithAnd,
-          ],
-        );
-        return ResolutionResult.ambiguous;
-      },
+    if (mostSpecific.length == 1) {
+      return mostSpecific.first.asResolutionResult;
+    }
+
+    // The most specific extension is ambiguous.
+    _errorReporter.atEntity(
+      nameEntity,
+      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
+      arguments: [
+        name,
+        mostSpecific.map((e) {
+          var name = e.extension.name;
+          if (name != null) {
+            return "extension '$name'";
+          }
+          var type = e.extension.extendedType.getDisplayString();
+          return "unnamed extension on '$type'";
+        }).commaSeparatedWithAnd,
+      ],
     );
+    return ResolutionResult.ambiguous;
   }
 
   /// Resolve the [name] (without `=`) to the corresponding getter and setter
@@ -260,11 +254,10 @@ class ExtensionMemberResolver {
     }
   }
 
-  /// Return either the most specific extension, or a list of the extensions
-  /// that are ambiguous.
-  Either2<InstantiatedExtensionWithMember,
-          List<InstantiatedExtensionWithMember>>
-      _chooseMostSpecific(List<InstantiatedExtensionWithMember> extensions) {
+  /// Returns a list with either the most specific extension, or, if the most
+  /// specific is ambiguous, then the extensions that are ambiguous.
+  List<InstantiatedExtensionWithMember> _chooseMostSpecific(
+      List<InstantiatedExtensionWithMember> extensions) {
     InstantiatedExtensionWithMember? bestSoFar;
     var noneMoreSpecific = <InstantiatedExtensionWithMember>[];
     for (var candidate in extensions) {
@@ -299,18 +292,17 @@ class ExtensionMemberResolver {
     }
 
     if (bestSoFar != null) {
-      return Either2.t1(bestSoFar);
-    } else {
-      return Either2.t2(noneMoreSpecific);
+      return [bestSoFar];
     }
+
+    return noneMoreSpecific;
   }
 
-  /// Given the generic [element] element, either return types specified
-  /// explicitly in [typeArguments], or infer type arguments from the given
-  /// [receiverType].
+  /// Given the generic [node], either returns types specified explicitly in its
+  /// type arguments, or infer type arguments from the given [receiverType].
   ///
   /// If the number of explicit type arguments is different than the number
-  /// of extension's type parameters, or inference fails, return `dynamic`
+  /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
   List<DartType>? _inferTypeArguments(
       ExtensionOverride node, DartType receiverType,
