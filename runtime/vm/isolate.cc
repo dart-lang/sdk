@@ -403,6 +403,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
   heap_walk_class_table_ = class_table_ =
       new ClassTable(&class_table_allocator_);
   cached_class_table_table_.store(class_table_->table());
+  memset(&native_assets_api_, 0, sizeof(NativeAssetsApi));
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
