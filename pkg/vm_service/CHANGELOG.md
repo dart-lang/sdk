@@ -1,3 +1,7 @@
+## 14.2.4
+- Improved deserialization performance by utilizing a combination of `Utf8Decoder` and
+  `JsonDecoder` to avoid extra type conversions.
+
 ## 14.2.3
 - An instance of RPCError is now thrown when attempting to invoke an RPC after the
   `VmService` instance has been disposed.
