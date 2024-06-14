@@ -28,14 +28,14 @@ void workspaceValidator(PubspecValidationContext ctx) {
       if (entry is! String) {
         ctx.reportErrorForNode(
           directoryField,
-          PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING,
+          PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING,
         );
         return;
       }
       _validateDirectoryPath(ctx, entry, directoryField);
     } else {
       ctx.reportErrorForNode(
-          directoryField, PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING);
+          directoryField, PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING);
     }
   }
 }
@@ -53,7 +53,7 @@ void _validateDirectoryPath(
   // Check if given path is a sub directory of the package root.
   if (!packageRootFolder.contains(dirPath)) {
     ctx.reportErrorForNode(errorField,
-        PubspecWarningCode.WORKSPACE_VAUE_NOT_SUBDIRECTORY, [packageRoot]);
+        PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY, [packageRoot]);
     return;
   }
   var subDirectory = ctx.provider.getFolder(dirPath);
