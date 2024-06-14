@@ -79,7 +79,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
-    -g | --no-strip-wasm | --name-section)
+    -g | --no-strip-wasm)
       BINARYEN_FLAGS+=("-g")
       shift
       ;;
