@@ -638,6 +638,8 @@ JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web co
 JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropFunctionToJSNamedParameters/analyzerCode: Fail # Web compiler specific
+JsInteropFunctionToJSNamedParameters/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
 JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific

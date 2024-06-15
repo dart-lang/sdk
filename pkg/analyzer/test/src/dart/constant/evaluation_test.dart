@@ -3176,6 +3176,21 @@ void Function(int, {int? b})
 ''');
   }
 
+  test_visitUnaryExpression_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(int it) {
+  int operator -() => 0;
+}
+
+const v1 = A(1);
+const v2 = -v1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3),
+    ]);
+    var result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
   void _assertHasPrimitiveEqualityFalse(String name) {
     var value = _evaluateConstant(name);
     var featureSet = result.libraryElement.featureSet;

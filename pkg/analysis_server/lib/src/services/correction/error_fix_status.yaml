@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 322 "needsFix"
-# - 425 "hasFix"
+# - 316 "needsFix"
+# - 431 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -645,9 +645,7 @@ CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
-  status: needsFix
-  notes: |-
-    Offer to delete the invalid member.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
@@ -667,9 +665,7 @@ CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
-  status: needsFix
-  notes: |-
-    Offer to delete the invalid member.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:
@@ -1457,13 +1453,9 @@ CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
   status: noFix
 CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
-  status: needsFix
-  notes: |-
-    Add `base`, `final`, or `sealed`.
+  status: hasFix
 CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
-  status: needsFix
-  notes: |-
-    Add `base`, `final`, or `sealed`.
+  status: hasFix
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: hasFix
   since: 2.17
@@ -3276,9 +3268,7 @@ ParserErrorCode.WITH_BEFORE_EXTENDS:
   notes: |-
     Move the extends clause.
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
-  status: needsFix
-  notes: |-
-    Replace the `:` with an '='.
+  status: hasFix
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-
@@ -3345,9 +3335,9 @@ PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
     The fix is to remove the dependency
 PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST:
   status: needsEvaluation
-PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING:
+PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING:
   status: needsEvaluation
-PubspecWarningCode.WORKSPACE_VAUE_NOT_SUBDIRECTORY:
+PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
   status: needsEvaluation
 ScannerErrorCode.EXPECTED_TOKEN:
   status: noFix

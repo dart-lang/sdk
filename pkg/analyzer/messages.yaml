@@ -22517,7 +22517,7 @@ PubspecWarningCode:
           - pkg/package_2
       ```
 
-  WORKSPACE_VAUE_NOT_STRING:
+  WORKSPACE_VALUE_NOT_STRING:
     problemMessage: Workspace entries are required to be directory paths (strings).
     correctionMessage: Try converting the value to be a string.
     hasPublishedDocs: false
@@ -22555,7 +22555,7 @@ PubspecWarningCode:
           - pkg/package_2
       ```
 
-  WORKSPACE_VAUE_NOT_SUBDIRECTORY:
+  WORKSPACE_VALUE_NOT_SUBDIRECTORY:
     problemMessage: Workspace values must be a relative path of a subdirectory of '{0}'.
     correctionMessage: Try using a subdirectory of the directory containing the 'pubspec.yaml' file.
     hasPublishedDocs: false

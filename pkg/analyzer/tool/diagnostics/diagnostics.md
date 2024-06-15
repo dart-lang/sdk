@@ -23746,7 +23746,7 @@ workspace:
     - pkg/package_2
 ```
 
-### workspace_vaue_not_string
+### workspace_value_not_string
 
 _Workspace entries are required to be directory paths (strings)._
 
@@ -23778,7 +23778,7 @@ workspace:
     - pkg/package_2
 ```
 
-### workspace_vaue_not_subdirectory
+### workspace_value_not_subdirectory
 
 _Workspace values must be a relative path of a subdirectory of '{0}'._
 

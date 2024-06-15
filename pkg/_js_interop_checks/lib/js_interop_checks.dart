@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalExtensionMemberWithStaticDisallowed,
         messageJsInteropExternalMemberNotJSAnnotated,
+        messageJsInteropFunctionToJSNamedParameters,
         messageJsInteropFunctionToJSTypeParameters,
         messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
@@ -755,6 +756,9 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       if (functionType.typeParameters.isNotEmpty) {
         report(messageJsInteropFunctionToJSTypeParameters);
+      }
+      if (functionType.namedParameters.isNotEmpty) {
+        report(messageJsInteropFunctionToJSNamedParameters);
       }
       _reportFunctionToJSInvocationIfNotAllowedFunctionType(functionType, node);
     }

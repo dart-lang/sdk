@@ -675,7 +675,7 @@ class LibraryAnalyzer {
       importedAugmentationKind = state.importedAugmentation;
       if (!state.importedFile.exists) {
         reportOnDirective(
-          isGeneratedSource(state.importedSource)
+          isGeneratedSource(state.importedFile.source)
               ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
               : CompileTimeErrorCode.URI_DOES_NOT_EXIST,
           [state.importedFile.uriStr],

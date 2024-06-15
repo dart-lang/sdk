@@ -944,6 +944,12 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
     RemoveNameFromDeclarationClause.new,
   ],
+  CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT: [
+    RemoveMethodDeclaration.new,
+  ],
+  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT: [
+    RemoveMethodDeclaration.new,
+  ],
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
     ReplaceWithExtensionName.new,
   ],
@@ -1072,10 +1078,10 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveExtendsClause.new,
   ],
   CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE: [
-    AddClassModifier.base,
+    AddClassModifier.baseModifier,
   ],
   CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE: [
-    AddClassModifier.base,
+    AddClassModifier.baseModifier,
   ],
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS: [
     RemoveNameFromDeclarationClause.new,
@@ -1184,6 +1190,16 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+  ],
+  CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
+    AddClassModifier.baseModifier,
+    AddClassModifier.finalModifier,
+    AddClassModifier.sealedModifier,
+  ],
+  CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED: [
+    AddClassModifier.baseModifier,
+    AddClassModifier.finalModifier,
+    AddClassModifier.sealedModifier,
   ],
   CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
       [
@@ -1520,6 +1536,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   ParserErrorCode.VAR_RETURN_TYPE: [
     RemoveVar.new,
+  ],
+  ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER: [
+    ReplaceColonWithEquals.new,
   ],
   StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
     RemoveDeadIfNull.new,

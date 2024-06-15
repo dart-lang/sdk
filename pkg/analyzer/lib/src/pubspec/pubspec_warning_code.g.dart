@@ -229,18 +229,18 @@ class PubspecWarningCode extends ErrorCode {
   );
 
   ///  No parameters.
-  static const PubspecWarningCode WORKSPACE_VAUE_NOT_STRING =
+  static const PubspecWarningCode WORKSPACE_VALUE_NOT_STRING =
       PubspecWarningCode(
-    'WORKSPACE_VAUE_NOT_STRING',
+    'WORKSPACE_VALUE_NOT_STRING',
     "Workspace entries are required to be directory paths (strings).",
     correctionMessage: "Try converting the value to be a string.",
   );
 
   ///  Parameters:
   ///  0: the path of the directory that contains the pubspec.yaml file.
-  static const PubspecWarningCode WORKSPACE_VAUE_NOT_SUBDIRECTORY =
+  static const PubspecWarningCode WORKSPACE_VALUE_NOT_SUBDIRECTORY =
       PubspecWarningCode(
-    'WORKSPACE_VAUE_NOT_SUBDIRECTORY',
+    'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
     "Workspace values must be a relative path of a subdirectory of '{0}'.",
     correctionMessage:
         "Try using a subdirectory of the directory containing the "

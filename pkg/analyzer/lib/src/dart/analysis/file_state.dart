@@ -74,11 +74,6 @@ final class AugmentationImportState<U extends DirectiveUri>
     required this.unlinked,
     required this.uri,
   });
-
-  /// Returns a [Source] that is referenced by this directive.
-  ///
-  /// Returns `null` if the URI cannot be resolved into a [Source].
-  Source? get importedSource => null;
 }
 
 /// [AugmentationImportWithUri] that has a valid URI that references a file.
@@ -105,9 +100,6 @@ final class AugmentationImportWithFile
   }
 
   FileState get importedFile => uri.file;
-
-  @override
-  Source get importedSource => importedFile.source;
 
   @override
   void dispose() {
@@ -239,7 +231,7 @@ final class DirectiveUriWithFile extends DirectiveUriWithSource {
   });
 
   @override
-  Source get source => file.source;
+  FileSource get source => file.source;
 
   @override
   String toString() => '$file';
@@ -387,8 +379,8 @@ class FileState {
   /// Properties of the [uri].
   final FileUriProperties uriProperties;
 
-  /// The [Source] of the file with the [uri].
-  final Source source;
+  /// The [FileSource] of the file with the [uri].
+  final FileSource source;
 
   /// The [WorkspacePackage] that contains this file.
   ///
@@ -1659,7 +1651,7 @@ final class LibraryExportWithFile
   }
 
   @override
-  Source? get exportedLibrarySource {
+  FileSource? get exportedLibrarySource {
     if (exportedFile.kind is LibraryFileKind) {
       return exportedSource;
     }
@@ -1667,7 +1659,7 @@ final class LibraryExportWithFile
   }
 
   @override
-  Source get exportedSource => exportedFile.source;
+  FileSource get exportedSource => exportedFile.source;
 
   @override
   void dispose() {
@@ -1685,7 +1677,7 @@ final class LibraryExportWithInSummarySource
   });
 
   @override
-  Source? get exportedLibrarySource {
+  InSummarySource? get exportedLibrarySource {
     if (exportedSource.kind == InSummarySourceKind.library) {
       return exportedSource;
     } else {
@@ -2043,7 +2035,7 @@ final class LibraryImportWithFile
   }
 
   @override
-  Source? get importedLibrarySource {
+  FileSource? get importedLibrarySource {
     if (importedFile.kind is LibraryFileKind) {
       return importedSource;
     }
@@ -2051,7 +2043,7 @@ final class LibraryImportWithFile
   }
 
   @override
-  Source get importedSource => importedFile.source;
+  FileSource get importedSource => importedFile.source;
 
   @override
   void dispose() {
@@ -2069,7 +2061,7 @@ final class LibraryImportWithInSummarySource
   });
 
   @override
-  Source? get importedLibrarySource {
+  InSummarySource? get importedLibrarySource {
     if (importedSource.kind == InSummarySourceKind.library) {
       return importedSource;
     } else {
@@ -2473,11 +2465,6 @@ final class PartState<U extends DirectiveUri> extends DirectiveState {
     required this.unlinked,
     required this.uri,
   });
-
-  /// Returns a [Source] that is referenced by this directive.
-  ///
-  /// Returns `null` if the URI cannot be resolved into a [Source].
-  Source? get includedSource => null;
 }
 
 /// [PartWithUri] that has a valid URI that references a file.
@@ -2501,9 +2488,6 @@ final class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
     }
     return null;
   }
-
-  @override
-  Source? get includedSource => includedFile.source;
 
   @override
   void dispose() {

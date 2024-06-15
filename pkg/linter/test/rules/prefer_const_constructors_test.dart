@@ -180,6 +180,23 @@ A f(int i) => A('adjacent' '$i');
 ''');
   }
 
+  test_cannotBeConst_argumentIsExtensionTypeMethodCall() async {
+    await assertNoDiagnostics(r'''
+final class A {
+  final Ex f;
+  const A(this.f);
+
+  void foo() {
+    var a = A(-f);
+  }
+}
+
+extension type const Ex(int i) implements int {
+  Ex operator -() => Ex(-i);
+}
+''');
+  }
+
   test_cannotBeConst_argumentIsListLiteral_nonLiteralElement() async {
     await assertNoDiagnostics(r'''
 class A {

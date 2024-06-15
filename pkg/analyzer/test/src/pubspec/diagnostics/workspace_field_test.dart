@@ -28,7 +28,7 @@ workspace: package1
 name: sample
 workspace:
     - 23
-''', [PubspecWarningCode.WORKSPACE_VAUE_NOT_STRING]);
+''', [PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING]);
   }
 
   test_workspaceValueIsNotSubDirectory() {
@@ -37,7 +37,7 @@ workspace:
 name: sample
 workspace:
     - /sample2
-''', [PubspecWarningCode.WORKSPACE_VAUE_NOT_SUBDIRECTORY]);
+''', [PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY]);
   }
 
   test_workspaceValueIsString() {

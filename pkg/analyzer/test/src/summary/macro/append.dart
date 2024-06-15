@@ -182,10 +182,11 @@ Future<List<Object>> resolveIdentifiers(
   const DeclareType.named(this.name, this.code);
 
   @override
-  buildTypesForClass(clazz, builder) {
+  buildTypesForClass(clazz, builder) async {
+    var parts = await resolveIdentifiers(builder, code);
     builder.declareType(
       name,
-      DeclarationCode.fromString(code),
+      DeclarationCode.fromParts(parts),
     );
   }
 }
