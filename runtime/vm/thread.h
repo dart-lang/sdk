@@ -544,6 +544,10 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, field_table_values_);
   }
 
+  static intptr_t shared_field_table_values_offset() {
+    return OFFSET_OF(Thread, shared_field_table_values_);
+  }
+
   bool IsDartMutatorThread() const {
     return scheduled_dart_mutator_isolate_ != nullptr;
   }
@@ -1177,6 +1181,7 @@ class Thread : public ThreadState {
   uword end_ = 0;
   const uword* dispatch_table_array_ = nullptr;
   ObjectPtr* field_table_values_ = nullptr;
+  ObjectPtr* shared_field_table_values_ = nullptr;
 
   // Offsets up to this point can all fit in a byte on X64. All of the above
   // fields are very abundantly accessed from code. Thus, keeping them first
@@ -1319,6 +1324,9 @@ class Thread : public ThreadState {
   ErrorPtr sticky_error_;
 
   ObjectPtr* field_table_values() const { return field_table_values_; }
+  ObjectPtr* shared_field_table_values() const {
+    return shared_field_table_values_;
+  }
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;

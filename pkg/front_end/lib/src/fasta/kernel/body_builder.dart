@@ -5213,13 +5213,17 @@ class BodyBuilder extends StackListenerImpl
     Object? type = pop();
     // TODO(johnniwinther): How should we handle annotations?
     pop(NullValues.Metadata); // Annotations.
+
+    String? fieldName = name is Identifier ? name.name : null;
     push(new RecordTypeFieldBuilder(
         [],
         type is ParserRecovery
             ? new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
-        name is Identifier ? name.name : null,
-        name is Identifier ? name.nameOffset : TreeNode.noOffset));
+        fieldName,
+        name is Identifier ? name.nameOffset : TreeNode.noOffset,
+        isWildcard:
+            libraryFeatures.wildcardVariables.isEnabled && fieldName == '_'));
   }
 
   @override
@@ -7207,7 +7211,9 @@ class BodyBuilder extends StackListenerImpl
     VariableDeclaration variable = new VariableDeclarationImpl(name.name,
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
-        isLocalFunction: true)
+        isLocalFunction: true,
+        isWildcard:
+            libraryFeatures.wildcardVariables.isEnabled && name.name == '_')
       ..fileOffset = name.nameOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
@@ -7220,7 +7226,9 @@ class BodyBuilder extends StackListenerImpl
         // The real function node is created later.
         dummyFunctionNode)
       ..fileOffset = beginToken.charOffset);
-    declareVariable(variable, scope.parent!);
+    if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
+      declareVariable(variable, scope.parent!);
+    }
   }
 
   void enterFunction() {

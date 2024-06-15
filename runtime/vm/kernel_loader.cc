@@ -24,6 +24,7 @@
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
+#include "vm/version.h"
 
 namespace dart {
 namespace kernel {
@@ -35,6 +36,24 @@ namespace kernel {
 #define H (translation_helper_)
 
 static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
+
+static bool IsMainOrDevChannel() {
+  return strstr("|main|dev|", Version::Channel()) != nullptr;
+}
+
+static bool is_experimental_shared_data_enabled = false;
+static void EnableExperimentSharedData(bool value) {
+  if (value && !IsMainOrDevChannel()) {
+    FATAL(
+        "Shared memory multithreading in only available for "
+        "experimentation in dev or main");
+  }
+  is_experimental_shared_data_enabled = value;
+}
+
+DEFINE_FLAG_HANDLER(EnableExperimentSharedData,
+                    experimental_shared_data,
+                    "Enable experiment to share data between isolates.");
 
 class SimpleExpressionConverter {
  public:
@@ -1051,6 +1070,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_has_pragma(HasPragma::decode(pragma_bits));
     field.set_is_extension_member(is_extension_member);
     field.set_is_extension_type_member(is_extension_type_member);
+    field.set_is_shared(SharedPragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1460,6 +1480,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           field_helper.IsGenericCovariantImpl());
       field.set_is_extension_member(is_extension_member);
       field.set_is_extension_type_member(is_extension_type_member);
+      field.set_is_shared(SharedPragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
@@ -1754,6 +1775,14 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
         }
         if (constant_reader.IsStringConstant(name_index, "vm:ffi:native")) {
           *pragma_bits = FfiNativePragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index, "vm:shared")) {
+          if (!is_experimental_shared_data_enabled) {
+            FATAL(
+                "Encountered vm:shared when functionality is disabled. "
+                "Pass --experimental-shared-data");
+          }
+          *pragma_bits = SharedPragma::update(true, *pragma_bits);
         }
       }
     } else {

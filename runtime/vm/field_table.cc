@@ -55,6 +55,7 @@ intptr_t FieldTable::FieldOffsetFor(intptr_t field_id) {
 bool FieldTable::Register(const Field& field, intptr_t expected_field_id) {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(is_shared_ == field.is_shared());
   ASSERT(is_ready_to_use_);
 
   if (free_head_ < 0) {
@@ -119,7 +120,11 @@ void FieldTable::Grow(intptr_t new_capacity) {
   // via store to table_.
   reinterpret_cast<AcqRelAtomic<ObjectPtr*>*>(&table_)->store(new_table);
   if (isolate_ != nullptr && isolate_->mutator_thread() != nullptr) {
-    isolate_->mutator_thread()->field_table_values_ = table_;
+    if (is_shared_) {
+      isolate_->mutator_thread()->shared_field_table_values_ = table_;
+    } else {
+      isolate_->mutator_thread()->field_table_values_ = table_;
+    }
   }
 }
 

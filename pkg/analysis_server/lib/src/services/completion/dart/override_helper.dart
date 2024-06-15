@@ -43,6 +43,10 @@ class OverrideHelper {
       var element = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
       if (element != null) {
+        if (_hasNonVirtualAnnotation(element)) {
+          continue;
+        }
+
         var invokeSuper = interface.isSuperImplemented(name);
         var matcherScore = math.max(
             math.max(state.matcher.score('override'),
@@ -61,6 +65,17 @@ class OverrideHelper {
         }
       }
     }
+  }
+
+  /// Checks if the [element] has the `@nonVirtual` annotation.
+  bool _hasNonVirtualAnnotation(ExecutableElement element) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
+      var variable = element.variable2;
+      if (variable != null && variable.hasNonVirtual) {
+        return true;
+      }
+    }
+    return element.hasNonVirtual;
   }
 
   /// Return the list of names that belong to the [interface] of a class, but

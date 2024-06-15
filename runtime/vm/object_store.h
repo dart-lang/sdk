@@ -259,6 +259,8 @@ class ObjectPointerVisitor;
   RW(Code, init_instance_field_stub)                                           \
   RW(Code, init_late_instance_field_stub)                                      \
   RW(Code, init_late_final_instance_field_stub)                                \
+  RW(Code, init_shared_late_static_field_stub)                                 \
+  RW(Code, init_shared_late_final_static_field_stub)                           \
   RW(Code, call_closure_no_such_method_stub)                                   \
   RW(Code, default_tts_stub)                                                   \
   RW(Code, default_nullable_tts_stub)                                          \
@@ -368,6 +370,8 @@ class ObjectPointerVisitor;
   DO(init_instance_field_stub, InitInstanceField)                              \
   DO(init_late_instance_field_stub, InitLateInstanceField)                     \
   DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
+  DO(init_shared_late_static_field_stub, InitSharedLateStaticField)            \
+  DO(init_shared_late_final_static_field_stub, InitSharedLateFinalStaticField) \
   DO(await_stub, Await)                                                        \
   DO(await_with_type_check_stub, AwaitWithTypeCheck)                           \
   DO(clone_suspend_state_stub, CloneSuspendState)                              \

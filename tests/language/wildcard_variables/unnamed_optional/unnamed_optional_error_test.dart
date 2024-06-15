@@ -10,11 +10,9 @@
 
 class SuperClass {
   SuperClass([int _]);
-  //              ^
-  // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  // [cfe] The parameter '_' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
   SuperClass.nullable([int? _]);
 }
+
 class SubClass extends SuperClass {
   final int _;
   SubClass([
@@ -31,6 +29,7 @@ class SubClass extends SuperClass {
   // [cfe] Type 'int' of the optional super-initializer parameter '_' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
   ]);
 }
+
 class TypedSubClass extends SuperClass {
   final int? _;
   TypedSubClass([

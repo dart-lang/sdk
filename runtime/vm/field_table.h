@@ -22,14 +22,15 @@ class FieldInvalidator;
 
 class FieldTable {
  public:
-  explicit FieldTable(Isolate* isolate)
+  explicit FieldTable(Isolate* isolate, bool is_shared = false)
       : top_(0),
         capacity_(0),
         free_head_(-1),
         table_(nullptr),
         old_tables_(new MallocGrowableArray<ObjectPtr*>()),
         isolate_(isolate),
-        is_ready_to_use_(isolate == nullptr) {}
+        is_ready_to_use_(isolate == nullptr),
+        is_shared_(is_shared) {}
 
   ~FieldTable();
 
@@ -117,6 +118,10 @@ class FieldTable {
   // Whether this field table is ready to use by e.g. registering new static
   // fields.
   bool is_ready_to_use_ = false;
+
+  // Is this the shared field table? Need to know what is the isolate's property
+  // that have to be updated.
+  bool is_shared_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(FieldTable);
 };

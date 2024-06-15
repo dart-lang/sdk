@@ -1504,7 +1504,8 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch);
+                              Register scratch,
+                              bool is_shared);
 
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,

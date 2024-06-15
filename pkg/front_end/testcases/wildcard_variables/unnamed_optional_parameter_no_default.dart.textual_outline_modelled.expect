@@ -1,0 +1,3 @@
+void foo([int _]) {}
+
+void main() {}

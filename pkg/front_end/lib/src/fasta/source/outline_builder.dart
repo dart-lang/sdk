@@ -3172,13 +3172,17 @@ class OutlineBuilder extends StackListenerImpl {
     Object? type = pop();
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
+
+    String? fieldName = identifier is Identifier ? identifier.name : null;
     push(new RecordTypeFieldBuilder(
         metadata,
         type is ParserRecovery
             ? new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
-        identifier is Identifier ? identifier.name : null,
-        identifier is Identifier ? identifier.nameOffset : -1));
+        fieldName,
+        identifier is Identifier ? identifier.nameOffset : -1,
+        isWildcard:
+            libraryFeatures.wildcardVariables.isEnabled && fieldName == '_'));
   }
 
   @override

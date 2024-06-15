@@ -2435,6 +2435,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
+    writeModifier(node.variable.isWildcard, 'wildcard');
     writeFunction(node.function, name: getVariableName(node.variable));
   }
 

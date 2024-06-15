@@ -2120,6 +2120,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if ((isOptionalPositional || isOptionalNamed) &&
           formal.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
+        // Wildcard optional parameters can't be used so we allow having no
+        // initializer.
+        if (libraryFeatures.wildcardVariables.isEnabled &&
+            formal.isWildcard &&
+            !formal.isInitializingFormal) {
+          continue;
+        }
         libraryBuilder.addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
                 formal.name!, formal.type),
