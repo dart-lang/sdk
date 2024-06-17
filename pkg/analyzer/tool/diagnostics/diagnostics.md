@@ -7146,8 +7146,8 @@ annotated as being `@Native`, but the function isn't marked as `external`:
 ```dart
 import 'dart:ffi';
 
-[!@Native<Void Function(Pointer<Void>)>()
-void free(Pointer<Void> ptr) {}!]
+@Native<Void Function(Pointer<Void>)>()
+void [!free!](Pointer<Void> ptr) {}
 ```
 
 #### Common fixes
@@ -7182,8 +7182,8 @@ has one argument and the type of the annotated function
 ```dart
 import 'dart:ffi';
 
-[!@Native<Void Function(Double)>(symbol: 'f')
-external void f(double x, double y);!]
+@Native<Void Function(Double)>(symbol: 'f')
+external void [!f!](double x, double y);
 ```
 
 #### Common fixes
@@ -7229,8 +7229,8 @@ for the receiver of the method:
 import 'dart:ffi';
 
 class C {
-  [!@Native<Void Function(Double)>()
-  external void f(double x);!]
+  @Native<Void Function(Double)>()
+  external void [!f!](double x);
 }
 ```
 
@@ -12219,7 +12219,7 @@ returns a `Handle`, but the `isLeaf` argument is `true`:
 import 'dart:ffi';
 
 void f(Pointer<NativeFunction<Handle Function()>> p) {
-  [!p.asFunction<Object Function()>(isLeaf: true)!];
+  p.[!asFunction!]<Object Function()>(isLeaf: true);
 }
 ```
 
@@ -12268,7 +12268,7 @@ parameter of type `Handle`, but the `isLeaf` argument is `true`:
 import 'dart:ffi';
 
 void f(Pointer<NativeFunction<Void Function(Handle)>> p) {
-  [!p.asFunction<void Function(Object)>(isLeaf: true)!];
+  p.[!asFunction!]<void Function(Object)>(isLeaf: true);
 }
 ```
 
