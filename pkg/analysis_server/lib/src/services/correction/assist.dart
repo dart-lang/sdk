@@ -40,7 +40,7 @@ class DartAssistContextImpl implements DartAssistContext {
 }
 
 /// An enumeration of possible assist kinds.
-class DartAssistKind {
+abstract final class DartAssistKind {
   static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = AssistKind(
     'dart.assist.add.diagnosticPropertyReference',
     DartAssistKindPriority.DEFAULT,
@@ -455,7 +455,7 @@ class DartAssistKind {
 }
 
 /// The priorities associated with various groups of assists.
-class DartAssistKindPriority {
+abstract final class DartAssistKindPriority {
   static const int FLUTTER_REMOVE = 25;
   static const int FLUTTER_MOVE = 26;
   static const int FLUTTER_SWAP = 27;

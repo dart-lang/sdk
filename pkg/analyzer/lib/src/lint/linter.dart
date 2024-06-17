@@ -35,7 +35,7 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-final class Category {
+abstract final class Category {
   /// A category representing possible coding errors.
   static const String errors = 'errors';
 
