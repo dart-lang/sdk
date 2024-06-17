@@ -1930,10 +1930,6 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-static bool CanUnboxDouble() {
-  return FlowGraphCompiler::SupportsUnboxedDoubles();
-}
-
 static bool CanConvertInt64ToDouble() {
   return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
@@ -1975,7 +1971,6 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != nullptr)
                                   ? deopt_target->DeoptimizationTarget()
                                   : DeoptId::kNone;
-    ASSERT(CanUnboxDouble());
     converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != nullptr)
@@ -2129,18 +2124,16 @@ class PhiUnboxingHeuristic : public ValueObject {
     auto new_representation = phi->representation();
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
-        if (CanUnboxDouble()) {
-          new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
-                                   ? kUnboxedFloat
-                                   : kUnboxedDouble;
+        new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
+                                 ? kUnboxedFloat
+                                 : kUnboxedDouble;
 #if defined(DEBUG)
-          if (new_representation == kUnboxedFloat) {
-            for (auto input : phi->inputs()) {
-              ASSERT(input->representation() != kUnboxedDouble);
-            }
+        if (new_representation == kUnboxedFloat) {
+          for (auto input : phi->inputs()) {
+            ASSERT(input->representation() != kUnboxedDouble);
           }
-#endif
         }
+#endif
         break;
       case kFloat32x4Cid:
         if (ShouldInlineSimd()) {

@@ -30,10 +30,6 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-static bool CanUnboxDouble() {
-  return FlowGraphCompiler::SupportsUnboxedDoubles();
-}
-
 static bool CanConvertInt64ToDouble() {
   return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
@@ -43,11 +39,6 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 static bool ShouldSpecializeForDouble(const BinaryFeedback& binary_feedback) {
-  // Don't specialize for double if we can't unbox them.
-  if (!CanUnboxDouble()) {
-    return false;
-  }
-
   // Unboxed double operation can't handle case of two smis.
   if (binary_feedback.IncludesOperands(kSmiCid)) {
     return false;
@@ -394,7 +385,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     cid = kSmiCid;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
-  } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
+  } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
@@ -469,7 +460,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
     cid = kSmiCid;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
-  } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
+  } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
@@ -605,9 +596,6 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   if (operands_type == kDoubleCid) {
-    if (!CanUnboxDouble()) {
-      return false;
-    }
     // Check that either left or right are not a smi.  Result of a
     // binary operation with two smis is a smi not a double, except '/' which
     // returns a double for two smis.
@@ -704,7 +692,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (call->Targets().ReceiverIs(kDoubleCid) &&
-             (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
+             (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
     unary_op = new (Z) UnaryDoubleOpInstr(Token::kNEGATE, new (Z) Value(input),
                                           call->deopt_id());
@@ -976,8 +964,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   intptr_t receiver_cid = targets.MonomorphicReceiverCid();
   MethodRecognizer::Kind recognized_kind = target.recognized_kind();
 
-  if (CanUnboxDouble() &&
-      (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
+  if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
     if (receiver_cid == kSmiCid) {
       AddReceiverCheck(call);
       ReplaceCall(call,
@@ -994,9 +981,6 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (receiver_cid == kDoubleCid) {
-    if (!CanUnboxDouble()) {
-      return false;
-    }
     switch (recognized_kind) {
       case MethodRecognizer::kDoubleToInteger: {
         AddReceiverCheck(call);
@@ -1292,8 +1276,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
       case MethodRecognizer::kMathMax: {
         // We can handle only monomorphic min/max call sites with both arguments
         // being either doubles or smis.
-        if (CanUnboxDouble() && targets.IsMonomorphic() &&
-            (call->FirstArgIndex() == 0)) {
+        if (targets.IsMonomorphic() && (call->FirstArgIndex() == 0)) {
           intptr_t result_cid = kIllegalCid;
           if (binary_feedback.IncludesOperands(kDoubleCid)) {
             result_cid = kDoubleCid;
@@ -1319,20 +1302,18 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
       case MethodRecognizer::kDoubleFromInteger: {
         if (call->HasICData() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
-          if (CanUnboxDouble()) {
-            if (binary_feedback.ArgumentIs(kSmiCid)) {
-              Definition* arg = call->ArgumentAt(1);
-              AddCheckSmi(arg, call->deopt_id(), call->env(), call);
-              ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
-                                                         call->source()));
-              return;
-            } else if (binary_feedback.ArgumentIs(kMintCid) &&
-                       CanConvertInt64ToDouble()) {
-              Definition* arg = call->ArgumentAt(1);
-              ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
-                                                           call->deopt_id()));
-              return;
-            }
+          if (binary_feedback.ArgumentIs(kSmiCid)) {
+            Definition* arg = call->ArgumentAt(1);
+            AddCheckSmi(arg, call->deopt_id(), call->env(), call);
+            ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
+                                                       call->source()));
+            return;
+          } else if (binary_feedback.ArgumentIs(kMintCid) &&
+                     CanConvertInt64ToDouble()) {
+            Definition* arg = call->ArgumentAt(1);
+            ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
+                                                         call->deopt_id()));
+            return;
           }
         }
         break;
@@ -1521,14 +1502,9 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
 
     auto const rep =
         RepresentationUtils::RepresentationOfArrayElement(variant.array_cid);
-    const bool is_float_access = rep == kUnboxedFloat || rep == kUnboxedDouble;
     const bool is_simd_access = rep == kUnboxedInt32x4 ||
                                 rep == kUnboxedFloat32x4 ||
                                 rep == kUnboxedFloat64x2;
-
-    if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) {
-      return;
-    }
 
     if (is_simd_access && !FlowGraphCompiler::SupportsUnboxedSimd128()) {
       return;
@@ -1984,9 +1960,6 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
                            FunctionEntryInstr** entry,
                            Instruction** last,
                            Definition** result) {
-  if (!CanUnboxDouble()) {
-    return false;
-  }
   Definition* left = receiver;
   Definition* right = call->ArgumentAt(1);
 
@@ -2013,10 +1986,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
                                FunctionEntryInstr** entry,
                                Instruction** last,
                                Definition** result) {
-  if (!CanUnboxDouble()) {
-    return false;
-  }
-
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -3183,9 +3152,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
@@ -3241,9 +3207,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
 
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed: {
-      if (!CanUnboxDouble()) {
-        return false;
-      }
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               exactness, graph_entry, entry, last, result);
     }

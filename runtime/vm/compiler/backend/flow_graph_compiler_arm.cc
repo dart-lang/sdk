@@ -26,7 +26,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
@@ -64,10 +63,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   for (int i = 0; i < block_info_.length(); ++i) {
     ASSERT(!block_info_[i]->jump_label()->IsLinked());
   }
-}
-
-bool FlowGraphCompiler::SupportsUnboxedDoubles() {
-  return FLAG_unbox_doubles;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {

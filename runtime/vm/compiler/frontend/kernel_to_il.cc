@@ -869,9 +869,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
 
 static bool CanUnboxElements(classid_t cid) {
   switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
     case kUnboxedInt32x4:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
@@ -1142,10 +1139,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathExp:
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
+      return true;
     case MethodRecognizer::kDoubleCeilToInt:
     case MethodRecognizer::kDoubleFloorToInt:
-      if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
       return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
 #elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \

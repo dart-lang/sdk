@@ -916,8 +916,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
         (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
-        (checked_type.IsDoubleType() && (rep == kUnboxedDouble) &&
-         FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+        (checked_type.IsDoubleType() && (rep == kUnboxedDouble)) ||
         (checked_type.IsIntType() && (rep == kUnboxedInt64))) {
       // Ensure that compile time type matches representation.
       ASSERT(((rep == kUnboxedFloat32x4) && (value_cid == kFloat32x4Cid)) ||

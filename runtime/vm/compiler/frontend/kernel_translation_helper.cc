@@ -3851,9 +3851,7 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
         function.set_unboxed_integer_parameter_at(param_pos);
         break;
       case UnboxingInfoMetadata::kDouble:
-        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-          function.set_unboxed_double_parameter_at(param_pos);
-        }
+        function.set_unboxed_double_parameter_at(param_pos);
         break;
       case UnboxingInfoMetadata::kRecord:
         UNREACHABLE();
@@ -3875,9 +3873,7 @@ static void SetupUnboxingInfoOfReturnValue(
       function.set_unboxed_integer_return();
       break;
     case UnboxingInfoMetadata::kDouble:
-      if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-        function.set_unboxed_double_return();
-      }
+      function.set_unboxed_double_return();
       break;
     case UnboxingInfoMetadata::kRecord:
       function.set_unboxed_record_return();
