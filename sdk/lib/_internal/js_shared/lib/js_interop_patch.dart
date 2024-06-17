@@ -58,7 +58,7 @@ extension JSAnyUtilityExtension on JSAny? {
 extension NullableObjectUtilExtension on Object? {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSAny? jsify() => js_util.jsify(this) as JSAny?;
+  JSAny? jsify() => js_util.jsify(this);
 }
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -68,7 +68,7 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   // to be called in Dart.
   @patch
   @pragma('dart2js:prefer-inline')
-  Function get toDart => this as Function;
+  Function get toDart => this._jsFunction;
 }
 
 @patch
@@ -93,12 +93,12 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   @pragma('dart2js:prefer-inline')
   Object get toDart {
-    final val = js_util.getProperty(this, _jsBoxedDartObjectProperty);
+    final val = js_util.getProperty<Object?>(this, _jsBoxedDartObjectProperty);
     if (val == null) {
       throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
           'Dart object from a separate runtime instead.';
     }
-    return val as Object;
+    return val;
   }
 }
 
@@ -114,7 +114,7 @@ extension ObjectToJSBoxedDartObject on Object {
     // Use JS foreign function to avoid assertInterop check when `this` is a
     // `Function` for `setProperty`.
     foreign_helper.JS('', '#[#]=#', box, _jsBoxedDartObjectProperty, this);
-    return box as JSBoxedDartObject;
+    return JSBoxedDartObject._(box);
   }
 }
 
@@ -131,7 +131,7 @@ extension ObjectToExternalDartReference on Object {
   @patch
   @pragma('dart2js:prefer-inline')
   ExternalDartReference get toExternalReference =>
-      this as ExternalDartReference;
+      ExternalDartReference._(this);
 }
 
 /// [JSPromise] -> [Future].
@@ -147,7 +147,7 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   @patch
   @pragma('dart2js:prefer-inline')
-  ByteBuffer get toDart => this as ByteBuffer;
+  ByteBuffer get toDart => this._jsArrayBuffer;
 }
 
 @patch
@@ -162,7 +162,7 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
 extension JSDataViewToByteData on JSDataView {
   @patch
   @pragma('dart2js:prefer-inline')
-  ByteData get toDart => this as ByteData;
+  ByteData get toDart => this._jsDataView;
 }
 
 @patch
@@ -177,7 +177,7 @@ extension ByteDataToJSDataView on ByteData {
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Int8List get toDart => this as Int8List;
+  Int8List get toDart => this._jsInt8Array;
 }
 
 @patch
@@ -192,7 +192,7 @@ extension Int8ListToJSInt8Array on Int8List {
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Uint8List get toDart => this as Uint8List;
+  Uint8List get toDart => this._jsUint8Array;
 }
 
 @patch
@@ -207,7 +207,7 @@ extension Uint8ListToJSUint8Array on Uint8List {
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
   @pragma('dart2js:prefer-inline')
-  Uint8ClampedList get toDart => this as Uint8ClampedList;
+  Uint8ClampedList get toDart => this._jsUint8ClampedArray;
 }
 
 @patch
@@ -222,7 +222,7 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Int16List get toDart => this as Int16List;
+  Int16List get toDart => this._jsInt16Array;
 }
 
 @patch
@@ -237,7 +237,7 @@ extension Int16ListToJSInt16Array on Int16List {
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Uint16List get toDart => this as Uint16List;
+  Uint16List get toDart => this._jsUint16Array;
 }
 
 @patch
@@ -252,7 +252,7 @@ extension Uint16ListToJSInt16Array on Uint16List {
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Int32List get toDart => this as Int32List;
+  Int32List get toDart => this._jsInt32Array;
 }
 
 @patch
@@ -267,7 +267,7 @@ extension Int32ListToJSInt32Array on Int32List {
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Uint32List get toDart => this as Uint32List;
+  Uint32List get toDart => this._jsUint32Array;
 }
 
 @patch
@@ -282,7 +282,7 @@ extension Uint32ListToJSUint32Array on Uint32List {
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Float32List get toDart => this as Float32List;
+  Float32List get toDart => this._jsFloat32Array;
 }
 
 @patch
@@ -297,7 +297,7 @@ extension Float32ListToJSFloat32Array on Float32List {
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
   @pragma('dart2js:prefer-inline')
-  Float64List get toDart => this as Float64List;
+  Float64List get toDart => this._jsFloat64Array;
 }
 
 @patch
@@ -344,7 +344,7 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
 extension JSNumberToNumber on JSNumber {
   @patch
   @pragma('dart2js:prefer-inline')
-  double get toDartDouble => this as double;
+  double get toDartDouble => this._jsNumber;
 
   @patch
   @pragma('dart2js:prefer-inline')
@@ -356,7 +356,7 @@ extension JSNumberToNumber on JSNumber {
 extension DoubleToJSNumber on double {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSNumber get toJS => this as JSNumber;
+  JSNumber get toJS => JSNumber._(this);
 }
 
 /// [JSBoolean] <-> [bool]
@@ -364,14 +364,14 @@ extension DoubleToJSNumber on double {
 extension JSBooleanToBool on JSBoolean {
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get toDart => this as bool;
+  bool get toDart => this._jsBoolean;
 }
 
 @patch
 extension BoolToJSBoolean on bool {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean get toJS => this as JSBoolean;
+  JSBoolean get toJS => JSBoolean._(this);
 }
 
 /// [JSString] <-> [String]
@@ -379,14 +379,14 @@ extension BoolToJSBoolean on bool {
 extension JSStringToString on JSString {
   @patch
   @pragma('dart2js:prefer-inline')
-  String get toDart => this as String;
+  String get toDart => this._jsString;
 }
 
 @patch
 extension StringToJSString on String {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSString get toJS => this as JSString;
+  JSString get toJS => JSString._(this);
 }
 
 @patch
@@ -418,39 +418,39 @@ extension JSAnyOperatorExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoolean greaterThan(JSAny? any) =>
-      js_util.greaterThan(this, any) as JSBoolean;
+      JSBoolean._(js_util.greaterThan(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoolean greaterThanOrEqualTo(JSAny? any) =>
-      js_util.greaterThanOrEqual(this, any) as JSBoolean;
+      JSBoolean._(js_util.greaterThanOrEqual(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean lessThan(JSAny? any) => js_util.lessThan(this, any) as JSBoolean;
+  JSBoolean lessThan(JSAny? any) => JSBoolean._(js_util.lessThan(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoolean lessThanOrEqualTo(JSAny? any) =>
-      js_util.lessThanOrEqual(this, any) as JSBoolean;
+      JSBoolean._(js_util.lessThanOrEqual(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean equals(JSAny? any) => js_util.equal(this, any) as JSBoolean;
+  JSBoolean equals(JSAny? any) => JSBoolean._(js_util.equal(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean notEquals(JSAny? any) => js_util.notEqual(this, any) as JSBoolean;
+  JSBoolean notEquals(JSAny? any) => JSBoolean._(js_util.notEqual(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoolean strictEquals(JSAny? any) =>
-      js_util.strictEqual(this, any) as JSBoolean;
+      JSBoolean._(js_util.strictEqual(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoolean strictNotEquals(JSAny? any) =>
-      js_util.strictNotEqual(this, any) as JSBoolean;
+      JSBoolean._(js_util.strictNotEqual(this, any));
 
   @patch
   @pragma('dart2js:prefer-inline')
