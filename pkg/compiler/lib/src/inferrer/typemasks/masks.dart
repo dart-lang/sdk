@@ -122,7 +122,7 @@ class CommonMasks with AbstractValueDomain {
   // subtypes of Record or (2) several live subtypes of Record. Everything
   // 'works' for the similar interface `Function` because there are multiple
   // live subclasses of `Closure`.
-  late final TypeMask recordType = dynamicType;
+  late final TypeMask recordType = nonNullType;
 
   @override
   late final TypeMask listType =
