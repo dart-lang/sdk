@@ -38,7 +38,9 @@ Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == nullptr);
   ASSERT(store_buffer_block_ == nullptr);
-  ASSERT(marking_stack_block_ == nullptr);
+  ASSERT(old_marking_stack_block_ == nullptr);
+  ASSERT(new_marking_stack_block_ == nullptr);
+  ASSERT(deferred_marking_stack_block_ == nullptr);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == nullptr);
   // Delete the reusable api scope if there is one.
@@ -268,7 +270,8 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
 void Thread::AssertNonMutatorInvariants() {
   ASSERT(BypassSafepoints());
   ASSERT(store_buffer_block_ == nullptr);
-  ASSERT(marking_stack_block_ == nullptr);
+  ASSERT(old_marking_stack_block_ == nullptr);
+  ASSERT(new_marking_stack_block_ == nullptr);
   ASSERT(deferred_marking_stack_block_ == nullptr);
   AssertNonDartMutatorInvariants();
 }
@@ -328,7 +331,8 @@ void Thread::AssertEmptyThreadInvariants() {
 
   ASSERT(write_barrier_mask_ == UntaggedObject::kGenerationalBarrierMask);
   ASSERT(store_buffer_block_ == nullptr);
-  ASSERT(marking_stack_block_ == nullptr);
+  ASSERT(old_marking_stack_block_ == nullptr);
+  ASSERT(new_marking_stack_block_ == nullptr);
   ASSERT(deferred_marking_stack_block_ == nullptr);
   ASSERT(!is_unwind_in_progress_);
 
@@ -825,9 +829,14 @@ void Thread::StoreBufferAcquireGC() {
   store_buffer_block_ = isolate_group()->store_buffer()->PopNonFullBlock();
 }
 
-void Thread::MarkingStackBlockProcess() {
-  MarkingStackRelease();
-  MarkingStackAcquire();
+void Thread::OldMarkingStackBlockProcess() {
+  OldMarkingStackRelease();
+  OldMarkingStackAcquire();
+}
+
+void Thread::NewMarkingStackBlockProcess() {
+  NewMarkingStackRelease();
+  NewMarkingStackAcquire();
 }
 
 void Thread::DeferredMarkingStackBlockProcess() {
@@ -836,9 +845,26 @@ void Thread::DeferredMarkingStackBlockProcess() {
 }
 
 void Thread::MarkingStackAddObject(ObjectPtr obj) {
-  marking_stack_block_->Push(obj);
-  if (marking_stack_block_->IsFull()) {
-    MarkingStackBlockProcess();
+  if (obj->IsNewObject()) {
+    NewMarkingStackAddObject(obj);
+  } else {
+    OldMarkingStackAddObject(obj);
+  }
+}
+
+void Thread::OldMarkingStackAddObject(ObjectPtr obj) {
+  ASSERT(obj->IsOldObject());
+  old_marking_stack_block_->Push(obj);
+  if (old_marking_stack_block_->IsFull()) {
+    OldMarkingStackBlockProcess();
+  }
+}
+
+void Thread::NewMarkingStackAddObject(ObjectPtr obj) {
+  ASSERT(obj->IsNewObject());
+  new_marking_stack_block_->Push(obj);
+  if (new_marking_stack_block_->IsFull()) {
+    NewMarkingStackBlockProcess();
   }
 }
 
@@ -849,22 +875,31 @@ void Thread::DeferredMarkingStackAddObject(ObjectPtr obj) {
   }
 }
 
-void Thread::MarkingStackRelease() {
-  MarkingStackBlock* block = marking_stack_block_;
-  marking_stack_block_ = nullptr;
+void Thread::OldMarkingStackRelease() {
+  MarkingStackBlock* old_block = old_marking_stack_block_;
+  old_marking_stack_block_ = nullptr;
+  isolate_group()->old_marking_stack()->PushBlock(old_block);
+
   write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask;
-  isolate_group()->marking_stack()->PushBlock(block);
 }
 
-void Thread::MarkingStackAcquire() {
-  marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
+void Thread::NewMarkingStackRelease() {
+  MarkingStackBlock* new_block = new_marking_stack_block_;
+  new_marking_stack_block_ = nullptr;
+  isolate_group()->new_marking_stack()->PushBlock(new_block);
+}
+
+void Thread::OldMarkingStackAcquire() {
+  old_marking_stack_block_ =
+      isolate_group()->old_marking_stack()->PopEmptyBlock();
+
   write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask |
                         UntaggedObject::kIncrementalBarrierMask;
 }
 
-void Thread::MarkingStackFlush() {
-  isolate_group()->marking_stack()->PushBlock(marking_stack_block_);
-  marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
+void Thread::NewMarkingStackAcquire() {
+  new_marking_stack_block_ =
+      isolate_group()->new_marking_stack()->PopEmptyBlock();
 }
 
 void Thread::DeferredMarkingStackRelease() {
@@ -878,7 +913,27 @@ void Thread::DeferredMarkingStackAcquire() {
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
 
-void Thread::DeferredMarkingStackFlush() {
+void Thread::AcquireMarkingStacks() {
+  OldMarkingStackAcquire();
+  NewMarkingStackAcquire();
+  DeferredMarkingStackAcquire();
+}
+
+void Thread::ReleaseMarkingStacks() {
+  OldMarkingStackRelease();
+  NewMarkingStackRelease();
+  DeferredMarkingStackRelease();
+}
+
+void Thread::FlushMarkingStacks() {
+  isolate_group()->old_marking_stack()->PushBlock(old_marking_stack_block_);
+  old_marking_stack_block_ =
+      isolate_group()->old_marking_stack()->PopEmptyBlock();
+
+  isolate_group()->new_marking_stack()->PushBlock(new_marking_stack_block_);
+  new_marking_stack_block_ =
+      isolate_group()->new_marking_stack()->PopEmptyBlock();
+
   isolate_group()->deferred_marking_stack()->PushBlock(
       deferred_marking_stack_block_);
   deferred_marking_stack_block_ =
@@ -1345,9 +1400,12 @@ void Thread::ResetState() {
 void Thread::SetupMutatorState(TaskKind kind) {
   ASSERT(store_buffer_block_ == nullptr);
 
-  if (isolate_group()->marking_stack() != nullptr) {
+  if (isolate_group()->old_marking_stack() != nullptr) {
+    ASSERT(isolate_group()->new_marking_stack() != nullptr);
+    ASSERT(isolate_group()->deferred_marking_stack() != nullptr);
     // Concurrent mark in progress. Enable barrier for this thread.
-    MarkingStackAcquire();
+    OldMarkingStackAcquire();
+    NewMarkingStackAcquire();
     DeferredMarkingStackAcquire();
   }
 
@@ -1365,7 +1423,8 @@ void Thread::ResetMutatorState() {
   ASSERT(store_buffer_block_ != nullptr);
 
   if (is_marking()) {
-    MarkingStackRelease();
+    OldMarkingStackRelease();
+    NewMarkingStackRelease();
     DeferredMarkingStackRelease();
   }
   StoreBufferRelease();

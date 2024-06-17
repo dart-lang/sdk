@@ -1421,7 +1421,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
     __ Bind(&retry);
     __ movl(ECX, EAX);
@@ -1433,23 +1433,37 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
     __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
-    __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
-    __ movl(Address(EAX, ECX, TIMES_4,
-                    target::MarkingStackBlock::pointers_offset()),
-            EBX);
-    __ incl(ECX);
-    __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
-    __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
-    __ j(NOT_EQUAL, &done);
+    __ testl(EBX,
+             Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ j(NOT_ZERO, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/1 * target::kWordSize,
-                          /*preserve_registers=*/true);
-      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ movl(EAX, Address(THR, offset));
+      __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+      __ movl(Address(EAX, ECX, TIMES_4,
+                      target::MarkingStackBlock::pointers_offset()),
+              EBX);
+      __ incl(ECX);
+      __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+      __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+      __ j(NOT_EQUAL, &done);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/1 * target::kWordSize,
+                            /*preserve_registers=*/true);
+        __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ jmp(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
   }

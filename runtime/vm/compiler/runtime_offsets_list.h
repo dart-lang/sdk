@@ -289,7 +289,8 @@
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
   FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
-  FIELD(Thread, marking_stack_block_offset)                                    \
+  FIELD(Thread, old_marking_stack_block_offset)                                \
+  FIELD(Thread, new_marking_stack_block_offset)                                \
   FIELD(Thread, megamorphic_call_checked_entry_offset)                         \
   FIELD(Thread, switchable_call_miss_entry_offset)                             \
   FIELD(Thread, switchable_call_miss_stub_offset)                              \

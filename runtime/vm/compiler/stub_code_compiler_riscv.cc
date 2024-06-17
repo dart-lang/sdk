@@ -1721,7 +1721,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label done;
+    Label is_new, done;
     __ PushRegisters(spill_set);
     __ addi(T3, A1, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
@@ -1734,22 +1734,35 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kNotMarkedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
-    __ lx(T4, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ lw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
-    __ slli(T3, T2, target::kWordSizeLog2);
-    __ add(T3, T4, T3);
-    __ sx(A1, Address(T3, target::MarkingStackBlock::pointers_offset()));
-    __ addi(T2, T2, 1);
-    __ sw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
-    __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
-    __ BranchIf(NE, &done);
+    __ andi(TMP2, A1, 1 << target::ObjectAlignment::kNewObjectBitPosition);
+    __ bnez(TMP2, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mv(A0, THR);
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ lx(T4, Address(THR, offset));
+      __ lw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
+      __ slli(T3, T2, target::kWordSizeLog2);
+      __ add(T3, T4, T3);
+      __ sx(A1, Address(T3, target::MarkingStackBlock::pointers_offset()));
+      __ addi(T2, T2, 1);
+      __ sw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
+      __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
+      __ BranchIf(NE, &done);
+
+      {
+        LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ mv(A0, THR);
+        rt.Call(entry, /*argument_count=*/1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ j(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ PopRegisters(spill_set);

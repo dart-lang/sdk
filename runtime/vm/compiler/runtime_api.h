@@ -1155,7 +1155,8 @@ class Thread : public AllStatic {
   static word active_stacktrace_offset();
   static word resume_pc_offset();
   static word saved_shadow_call_stack_offset();
-  static word marking_stack_block_offset();
+  static word old_marking_stack_block_offset();
+  static word new_marking_stack_block_offset();
   static word top_exit_frame_info_offset();
   static word top_resource_offset();
   static word global_object_pool_offset();

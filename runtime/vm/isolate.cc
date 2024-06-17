@@ -424,7 +424,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
-  ASSERT(marking_stack_ == nullptr);
+  ASSERT(old_marking_stack_ == nullptr);
+  ASSERT(new_marking_stack_ == nullptr);
+  ASSERT(deferred_marking_stack_ == nullptr);
 
   if (obfuscation_map_ != nullptr) {
     for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
@@ -2797,10 +2799,14 @@ void Isolate::SetPrefixIsLoaded(const LibraryPrefix& prefix) {
 }
 
 void IsolateGroup::EnableIncrementalBarrier(
-    MarkingStack* marking_stack,
+    MarkingStack* old_marking_stack,
+    MarkingStack* new_marking_stack,
     MarkingStack* deferred_marking_stack) {
-  ASSERT(marking_stack_ == nullptr);
-  marking_stack_ = marking_stack;
+  ASSERT(old_marking_stack_ == nullptr);
+  old_marking_stack_ = old_marking_stack;
+  ASSERT(new_marking_stack_ == nullptr);
+  new_marking_stack_ = new_marking_stack;
+  ASSERT(deferred_marking_stack_ == nullptr);
   deferred_marking_stack_ = deferred_marking_stack;
   thread_registry()->AcquireMarkingStacks();
   ASSERT(Thread::Current()->is_marking());
@@ -2808,8 +2814,11 @@ void IsolateGroup::EnableIncrementalBarrier(
 
 void IsolateGroup::DisableIncrementalBarrier() {
   thread_registry()->ReleaseMarkingStacks();
-  ASSERT(marking_stack_ != nullptr);
-  marking_stack_ = nullptr;
+  ASSERT(old_marking_stack_ != nullptr);
+  old_marking_stack_ = nullptr;
+  ASSERT(new_marking_stack_ != nullptr);
+  new_marking_stack_ = nullptr;
+  ASSERT(deferred_marking_stack_ != nullptr);
   deferred_marking_stack_ = nullptr;
 }
 

@@ -236,8 +236,10 @@ class Scavenger {
 
   Page* head() const { return to_->head(); }
 
-  void Prune(MarkingStackBlock** from, MarkingStack* to);
-  void Forward(MarkingStack* stack);
+  void PruneNew();
+  void PruneDeferred();
+  void Forward(MarkingStackBlock* blocks);
+  void ForwardDeferred();
   void PruneWeak(GCLinkedLists* delayed);
   template <typename Type, typename PtrType>
   void PruneWeak(GCLinkedList<Type, PtrType>* list);
@@ -309,7 +311,6 @@ class Scavenger {
   RelaxedAtomic<intptr_t> root_slices_started_ = {0};
   RelaxedAtomic<intptr_t> weak_slices_started_ = {0};
   StoreBufferBlock* blocks_ = nullptr;
-  MarkingStackBlock* mark_blocks_ = nullptr;
   MarkingStackBlock* new_blocks_ = nullptr;
   MarkingStackBlock* deferred_blocks_ = nullptr;
 
