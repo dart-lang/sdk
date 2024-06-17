@@ -62,7 +62,8 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
   static const LintCode code = LintCode(
       'avoid_function_literals_in_foreach_calls',
       "Function literals shouldn't be passed to 'forEach'.",
-      correctionMessage: "Try using a 'for' loop.");
+      correctionMessage: "Try using a 'for' loop.",
+      hasPublishedDocs: true);
 
   AvoidFunctionLiteralsInForeachCalls()
       : super(

@@ -34,7 +34,8 @@ m(){
 class UnnecessaryNew extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_new', "Unnecessary 'new' keyword.",
-      correctionMessage: "Try removing the 'new' keyword.");
+      correctionMessage: "Try removing the 'new' keyword.",
+      hasPublishedDocs: true);
 
   UnnecessaryNew()
       : super(

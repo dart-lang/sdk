@@ -26,32 +26,41 @@ import 'src/service/unified_analytics_service.dart';
 enum DartToolingDaemonOptions {
   // Used when executing a training run while generating an AppJIT snapshot as
   // part of an SDK build.
-  train(isFlag: true, negatable: false, hide: true),
-  machine(
-    isFlag: true,
+  train.flag(negatable: false, hide: true),
+  machine.flag(
     negatable: false,
     help: 'Sets output format to JSON for consumption in tools.',
   ),
-  unrestricted(
-    isFlag: true,
+  port.option(
+    defaultsTo: '0',
+    help: 'Sets the port to bind DTD to (0 for automatic port).',
+  ),
+  unrestricted.flag(
     negatable: false,
     help: 'Disables restrictions on services registered by DTD.',
   ),
-  fakeAnalytics(
-    isFlag: true,
+  fakeAnalytics.flag(
     negatable: false,
     help: 'Uses fake analytics instances for the UnifiedAnalytics service.',
     hide: true,
   );
 
-  const DartToolingDaemonOptions({
-    required this.isFlag,
+  const DartToolingDaemonOptions.flag({
     this.negatable = true,
     this.hide = false,
     this.help,
-  });
+  })  : _kind = _DartToolingDaemonOptionKind.flag,
+        defaultsTo = null;
 
-  final bool isFlag;
+  const DartToolingDaemonOptions.option({
+    this.defaultsTo,
+    this.help,
+  })  : _kind = _DartToolingDaemonOptionKind.option,
+        negatable = false,
+        hide = false;
+
+  final _DartToolingDaemonOptionKind _kind;
+  final String? defaultsTo;
   final bool negatable;
   final bool hide;
   final String? help;
@@ -62,19 +71,31 @@ enum DartToolingDaemonOptions {
   }) {
     final argParser = ArgParser(usageLineLength: usageLineLength);
     for (final entry in DartToolingDaemonOptions.values) {
-      if (entry.isFlag) {
-        argParser.addFlag(
-          entry.name,
-          negatable: entry.negatable,
-          hide: entry.hide,
-          help: entry.help,
-        );
-      } else {
-        throw UnimplementedError('Add support for options');
+      switch (entry._kind) {
+        case _DartToolingDaemonOptionKind.flag:
+          argParser.addFlag(
+            entry.name,
+            negatable: entry.negatable,
+            hide: entry.hide,
+            help: entry.help,
+          );
+        case _DartToolingDaemonOptionKind.option:
+          argParser.addOption(
+            entry.name,
+            hide: entry.hide,
+            help: entry.help,
+            defaultsTo: entry.defaultsTo,
+          );
       }
     }
     return argParser;
   }
+}
+
+/// The kind of command line argument.
+enum _DartToolingDaemonOptionKind {
+  flag,
+  option,
 }
 
 /// TODO(https://github.com/dart-lang/sdk/issues/54429): Add shutdown behavior.
@@ -182,7 +203,6 @@ class DartToolingDaemon {
     List<String> args, {
     bool ipv6 = false,
     bool shouldLogRequests = false,
-    int port = 0,
     SendPort? sendPort,
   }) async {
     final argParser = DartToolingDaemonOptions.createArgParser();
@@ -195,6 +215,8 @@ class DartToolingDaemon {
         parsedArgs[DartToolingDaemonOptions.unrestricted.name];
     final useFakeAnalytics =
         parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name];
+    final port =
+        int.tryParse(parsedArgs[DartToolingDaemonOptions.port.name]) ?? 0;
 
     final secret = _generateSecret();
     final dtd = DartToolingDaemon._(

@@ -48,7 +48,8 @@ import 'package:foo/src/baz.dart';
 class AlwaysUsePackageImports extends LintRule {
   static const LintCode code = LintCode('always_use_package_imports',
       "Use 'package:' imports for files in the 'lib' directory.",
-      correctionMessage: "Try converting the URI to a 'package:' URI.");
+      correctionMessage: "Try converting the URI to a 'package:' URI.",
+      hasPublishedDocs: true);
 
   AlwaysUsePackageImports()
       : super(

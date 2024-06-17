@@ -13,16 +13,9 @@ import 'dart:js_interop_unsafe' as unsafe;
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
-/// Some helpers for working with JS types internally. If we implement the JS
-/// types as inline classes then these should go away. We avoid doing a
-/// null-check check if we know the value is guaranteed to be non-nullable.
-/// TODO(joshualitt): Find a way to get rid of the explicit casts.
-T _boxNonNullable<T>(WasmExternRef? ref) => JSValue(ref) as T;
-T _boxNullable<T>(WasmExternRef? ref) => JSValue.box(ref) as T;
-
 @patch
 js_types.JSObjectRepType _createObjectLiteral() =>
-    _boxNonNullable<js_types.JSObjectRepType>(js_helper.newObjectRaw());
+    JSValue(js_helper.newObjectRaw());
 
 // This should match the global context we use in our static interop lowerings.
 @patch
@@ -74,7 +67,7 @@ extension JSAnyUtilityExtension on JSAny? {
 @patch
 extension NullableObjectUtilExtension on Object? {
   @patch
-  JSAny? jsify() => js_util.jsify(this) as JSAny?;
+  JSAny? jsify() => js_util.jsify(this);
 }
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -104,8 +97,8 @@ extension FunctionToJSExportedDartFunction on Function {
 /// This is a Symbol so that different Dart applications don't share Dart
 /// objects from different Dart runtimes. We expect all [JSBoxedDartObject]s to
 /// have this Symbol.
-final JSSymbol _jsBoxedDartObjectProperty = _boxNonNullable<JSSymbol>(
-    js_helper.JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")'));
+final JSSymbol _jsBoxedDartObjectProperty = JSSymbol._(JSValue(
+    js_helper.JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")')));
 
 /// [JSBoxedDartObject] <-> [Object]
 @patch
@@ -132,7 +125,7 @@ extension ObjectToJSBoxedDartObject on Object {
     final box = JSObject();
     js_helper.JS<WasmExternRef?>('(o,s,v) => o[s] = v', box.toExternRef,
         _jsBoxedDartObjectProperty.toExternRef, jsObjectFromDartObject(this));
-    return box as JSBoxedDartObject;
+    return JSBoxedDartObject._(box._jsObject);
   }
 }
 
@@ -141,14 +134,14 @@ extension ObjectToJSBoxedDartObject on Object {
 extension ExternalDartReferenceToObject on ExternalDartReference {
   @patch
   Object get toDartObject =>
-      jsObjectToDartObject((this as JSValue).toExternRef);
+      jsObjectToDartObject(this._externalDartReference.toExternRef);
 }
 
 @patch
 extension ObjectToExternalDartReference on Object {
   @patch
   ExternalDartReference get toExternalReference =>
-      _boxNonNullable<ExternalDartReference>(jsObjectFromDartObject(this));
+      ExternalDartReference._(JSValue(jsObjectFromDartObject(this)));
 }
 
 /// [JSPromise] -> [Future].
@@ -202,9 +195,9 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   @patch
   JSArrayBuffer get toJS {
     final t = this;
-    return _boxNonNullable<JSArrayBuffer>(t is js_types.JSArrayBufferImpl
+    return JSArrayBuffer._(JSValue(t is js_types.JSArrayBufferImpl
         ? t.toExternRef
-        : jsArrayBufferFromDartByteBuffer(t));
+        : jsArrayBufferFromDartByteBuffer(t)));
   }
 }
 
@@ -220,9 +213,9 @@ extension ByteDataToJSDataView on ByteData {
   @patch
   JSDataView get toJS {
     final t = this;
-    return _boxNonNullable<JSDataView>(t is js_types.JSDataViewImpl
+    return JSDataView._(JSValue(t is js_types.JSDataViewImpl
         ? t.toExternRef
-        : jsDataViewFromDartByteData(t, lengthInBytes.toDouble()));
+        : jsDataViewFromDartByteData(t, lengthInBytes.toDouble())));
   }
 }
 
@@ -238,9 +231,9 @@ extension Int8ListToJSInt8Array on Int8List {
   @patch
   JSInt8Array get toJS {
     final t = this;
-    return _boxNonNullable<JSInt8Array>(t is js_types.JSInt8ArrayImpl
+    return JSInt8Array._(JSValue(t is js_types.JSInt8ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsInt8ArrayFromDartInt8List(t));
+        : jsInt8ArrayFromDartInt8List(t)));
   }
 }
 
@@ -256,9 +249,9 @@ extension Uint8ListToJSUint8Array on Uint8List {
   @patch
   JSUint8Array get toJS {
     final t = this;
-    return _boxNonNullable<JSUint8Array>(t is js_types.JSUint8ArrayImpl
+    return JSUint8Array._(JSValue(t is js_types.JSUint8ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsUint8ArrayFromDartUint8List(t));
+        : jsUint8ArrayFromDartUint8List(t)));
   }
 }
 
@@ -275,10 +268,9 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
   @patch
   JSUint8ClampedArray get toJS {
     final t = this;
-    return _boxNonNullable<JSUint8ClampedArray>(
-        t is js_types.JSUint8ClampedArrayImpl
-            ? t.toJSArrayExternRef()
-            : jsUint8ClampedArrayFromDartUint8ClampedList(t));
+    return JSUint8ClampedArray._(JSValue(t is js_types.JSUint8ClampedArrayImpl
+        ? t.toJSArrayExternRef()
+        : jsUint8ClampedArrayFromDartUint8ClampedList(t)));
   }
 }
 
@@ -294,9 +286,9 @@ extension Int16ListToJSInt16Array on Int16List {
   @patch
   JSInt16Array get toJS {
     final t = this;
-    return _boxNonNullable<JSInt16Array>(t is js_types.JSInt16ArrayImpl
+    return JSInt16Array._(JSValue(t is js_types.JSInt16ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsInt16ArrayFromDartInt16List(t));
+        : jsInt16ArrayFromDartInt16List(t)));
   }
 }
 
@@ -312,9 +304,9 @@ extension Uint16ListToJSInt16Array on Uint16List {
   @patch
   JSUint16Array get toJS {
     final t = this;
-    return _boxNonNullable<JSUint16Array>(t is js_types.JSUint16ArrayImpl
+    return JSUint16Array._(JSValue(t is js_types.JSUint16ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsUint16ArrayFromDartUint16List(t));
+        : jsUint16ArrayFromDartUint16List(t)));
   }
 }
 
@@ -330,9 +322,9 @@ extension Int32ListToJSInt32Array on Int32List {
   @patch
   JSInt32Array get toJS {
     final t = this;
-    return _boxNonNullable<JSInt32Array>(t is js_types.JSInt32ArrayImpl
+    return JSInt32Array._(JSValue(t is js_types.JSInt32ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsInt32ArrayFromDartInt32List(t));
+        : jsInt32ArrayFromDartInt32List(t)));
   }
 }
 
@@ -348,9 +340,9 @@ extension Uint32ListToJSUint32Array on Uint32List {
   @patch
   JSUint32Array get toJS {
     final t = this;
-    return _boxNonNullable<JSUint32Array>(t is js_types.JSUint32ArrayImpl
+    return JSUint32Array._(JSValue(t is js_types.JSUint32ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsUint32ArrayFromDartUint32List(t));
+        : jsUint32ArrayFromDartUint32List(t)));
   }
 }
 
@@ -367,9 +359,9 @@ extension Float32ListToJSFloat32Array on Float32List {
   @patch
   JSFloat32Array get toJS {
     final t = this;
-    return _boxNonNullable<JSFloat32Array>(t is js_types.JSFloat32ArrayImpl
+    return JSFloat32Array._(JSValue(t is js_types.JSFloat32ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsFloat32ArrayFromDartFloat32List(t));
+        : jsFloat32ArrayFromDartFloat32List(t)));
   }
 }
 
@@ -386,9 +378,9 @@ extension Float64ListToJSFloat64Array on Float64List {
   @patch
   JSFloat64Array get toJS {
     final t = this;
-    return _boxNonNullable<JSFloat64Array>(t is js_types.JSFloat64ArrayImpl
+    return JSFloat64Array._(JSValue(t is js_types.JSFloat64ArrayImpl
         ? t.toJSArrayExternRef()
-        : jsFloat64ArrayFromDartFloat64List(t));
+        : jsFloat64ArrayFromDartFloat64List(t)));
   }
 }
 
@@ -405,7 +397,7 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
     final t = this;
     return t is js_types.JSArrayImpl
         // Explicit cast to avoid using the extension method.
-        ? JSValue.boxT<JSArray<T>>((t as js_types.JSArrayImpl).toExternRef)
+        ? JSArray<T>._(JSValue((t as js_types.JSArrayImpl).toExternRef))
         : null;
   }
 
@@ -438,7 +430,7 @@ extension JSNumberToNumber on JSNumber {
 @patch
 extension DoubleToJSNumber on double {
   @patch
-  JSNumber get toJS => _boxNonNullable<JSNumber>(toJSNumber(this));
+  JSNumber get toJS => JSNumber._(JSValue(toJSNumber(this)));
 }
 
 /// [JSBoolean] <-> [bool]
@@ -451,7 +443,7 @@ extension JSBooleanToBool on JSBoolean {
 @patch
 extension BoolToJSBoolean on bool {
   @patch
-  JSBoolean get toJS => _boxNonNullable<JSBoolean>(toJSBoolean(this));
+  JSBoolean get toJS => JSBoolean._(JSValue(toJSBoolean(this)));
 }
 
 /// [JSString] <-> [String]
@@ -466,110 +458,107 @@ extension StringToJSString on String {
   @patch
   JSString get toJS {
     final t = this;
-    return _boxNonNullable<JSString>(
-        t is js_types.JSStringImpl ? t.toExternRef : jsStringFromDartString(t));
+    return JSString._(JSValue(t is js_types.JSStringImpl
+        ? t.toExternRef
+        : jsStringFromDartString(t)));
   }
 }
 
 @patch
 extension JSAnyOperatorExtension on JSAny? {
   @patch
-  JSAny add(JSAny? any) => _boxNonNullable<JSAny>(js_helper.JS<WasmExternRef?>(
-      '(o, a) => o + a', this.toExternRef, any.toExternRef));
+  JSAny add(JSAny? any) => JSAny._(JSValue(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o + a', this.toExternRef, any.toExternRef)));
 
   @patch
-  JSAny subtract(JSAny? any) =>
-      _boxNonNullable<JSAny>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o - a', this.toExternRef, any.toExternRef));
+  JSAny subtract(JSAny? any) => JSAny._(JSValue(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o - a', this.toExternRef, any.toExternRef)));
 
   @patch
-  JSAny multiply(JSAny? any) =>
-      _boxNonNullable<JSAny>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o * a', this.toExternRef, any.toExternRef));
+  JSAny multiply(JSAny? any) => JSAny._(JSValue(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o * a', this.toExternRef, any.toExternRef)));
 
   @patch
-  JSAny divide(JSAny? any) =>
-      _boxNonNullable<JSAny>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o / a', this.toExternRef, any.toExternRef));
+  JSAny divide(JSAny? any) => JSAny._(JSValue(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o / a', this.toExternRef, any.toExternRef)));
 
   @patch
-  JSAny modulo(JSAny? any) =>
-      _boxNonNullable<JSAny>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o % a', this.toExternRef, any.toExternRef));
+  JSAny modulo(JSAny? any) => JSAny._(JSValue(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o % a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSAny exponentiate(JSAny? any) =>
-      _boxNonNullable<JSAny>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o ** a', this.toExternRef, any.toExternRef));
+      JSAny._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o ** a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean greaterThan(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o > a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o > a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean greaterThanOrEqualTo(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o >= a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o >= a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean lessThan(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o < a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o < a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean lessThanOrEqualTo(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o <= a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o <= a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean equals(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o == a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o == a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean notEquals(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o != a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o != a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean strictEquals(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o === a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o === a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSBoolean strictNotEquals(JSAny? any) =>
-      _boxNonNullable<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o !== a', this.toExternRef, any.toExternRef));
+      JSBoolean._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o !== a', this.toExternRef, any.toExternRef)));
 
   @patch
   JSNumber unsignedRightShift(JSAny? any) =>
-      _boxNonNullable<JSNumber>(js_helper.JS<WasmExternRef?>(
-          '(o, a) => o >>> a', this.toExternRef, any.toExternRef));
+      JSNumber._(JSValue(js_helper.JS<WasmExternRef?>(
+          '(o, a) => o >>> a', this.toExternRef, any.toExternRef)));
 
   @patch
-  JSAny? and(JSAny? any) => _boxNullable<JSAny?>(js_helper.JS<WasmExternRef?>(
-      '(o, a) => o && a', this.toExternRef, any.toExternRef));
+  JSAny? and(JSAny? any) => JSValue.box(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o && a', this.toExternRef, any.toExternRef)) as JSAny?;
 
   @patch
-  JSAny? or(JSAny? any) => _boxNullable<JSAny?>(js_helper.JS<WasmExternRef?>(
-      '(o, a) => o || a', this.toExternRef, any.toExternRef));
+  JSAny? or(JSAny? any) => JSValue.box(js_helper.JS<WasmExternRef?>(
+      '(o, a) => o || a', this.toExternRef, any.toExternRef)) as JSAny?;
 
   @patch
-  bool get not => _boxNonNullable<JSBoolean>(
-          js_helper.JS<WasmExternRef?>('(o) => !o', this.toExternRef))
+  bool get not => JSBoolean._(
+          JSValue(js_helper.JS<WasmExternRef?>('(o) => !o', this.toExternRef)))
       .toDart;
 
   @patch
-  bool get isTruthy => _boxNonNullable<JSBoolean>(
-          js_helper.JS<WasmExternRef?>('(o) => !!o', this.toExternRef))
+  bool get isTruthy => JSBoolean._(
+          JSValue(js_helper.JS<WasmExternRef?>('(o) => !!o', this.toExternRef)))
       .toDart;
 }
 
 @patch
 JSPromise<JSObject> importModule(String moduleName) =>
-    _boxNonNullable<JSPromise<JSObject>>(js_helper.JS<WasmExternRef?>(
-        '(m) => import(m)', moduleName.toJS.toExternRef));
+    JSPromise<JSObject>._(JSValue(js_helper.JS<WasmExternRef?>(
+        '(m) => import(m)', moduleName.toJS.toExternRef)));
 
 @JS('Array')
 @staticInterop
@@ -652,7 +641,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
   final hasIndex = jsExportWrapper['_hasIndex']!.toExternRef;
   final deleteIndex = jsExportWrapper['_deleteIndex']!.toExternRef;
 
-  final proxy = _boxNonNullable<JSArray<T>>(js_helper.JS<WasmExternRef?>('''
+  final proxy = JSArray<T>._(JSValue(js_helper.JS<WasmExternRef?>('''
     (wrapper, getIndex, setIndex, hasIndex, deleteIndex) => new Proxy(wrapper, {
       'get': function (target, prop, receiver) {
         if (typeof prop == 'string') {
@@ -703,7 +692,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         return Reflect.deleteProperty(target, prop);
       }
     })''', jsExportWrapper.toExternRef, getIndex, setIndex, hasIndex,
-      deleteIndex));
+      deleteIndex)));
   wrapper.proxy = proxy;
   return proxy;
 }

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -117,11 +118,11 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   /// Returns the sublist of [ExtensionElement]s that have an instance member
   /// named [baseName].
   List<_NotInstantiatedExtensionWithMember> havingMemberWithBaseName(
-    String baseName,
+    Name baseName,
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in this) {
-      if (baseName == '[]') {
+      if (baseName.name == '[]') {
         ExecutableElement? getter;
         ExecutableElement? setter;
         for (var method in extension.augmented.methods) {
@@ -145,7 +146,8 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           if (field.isStatic) {
             continue;
           }
-          if (field.name == baseName) {
+          var fieldName = Name(extension.librarySource.uri, field.name);
+          if (fieldName == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
                 extension,
@@ -160,7 +162,8 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           if (method.isStatic) {
             continue;
           }
-          if (method.name == baseName) {
+          var methodName = Name(extension.librarySource.uri, method.name);
+          if (methodName == baseName) {
             result.add(
               _NotInstantiatedExtensionWithMember(
                 extension,

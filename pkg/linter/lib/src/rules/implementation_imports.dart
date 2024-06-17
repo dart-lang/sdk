@@ -63,7 +63,8 @@ class ImplementationImports extends LintRule {
       "Import of a library in the 'lib/src' directory of another package.",
       correctionMessage:
           'Try importing a public library that exports this library, or '
-          'removing the import.');
+          'removing the import.',
+      hasPublishedDocs: true);
 
   ImplementationImports()
       : super(

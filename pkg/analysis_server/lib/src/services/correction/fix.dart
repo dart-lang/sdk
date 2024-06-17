@@ -6,7 +6,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
-class AnalysisOptionsFixKind {
+abstract final class AnalysisOptionsFixKind {
   static const REMOVE_LINT = FixKind(
     'analysisOptions.fix.removeLint',
     50,
@@ -30,7 +30,7 @@ class AnalysisOptionsFixKind {
 }
 
 /// An enumeration of quick fix kinds found in a Dart file.
-class DartFixKind {
+abstract final class DartFixKind {
   static const ADD_ASYNC = FixKind(
     'dart.fix.add.async',
     DartFixKindPriority.DEFAULT,
@@ -2003,7 +2003,7 @@ class DartFixKind {
   );
 }
 
-class DartFixKindPriority {
+abstract final class DartFixKindPriority {
   static const int DEFAULT = 50;
   static const int IN_FILE = 40;
   static const int IGNORE = 30;

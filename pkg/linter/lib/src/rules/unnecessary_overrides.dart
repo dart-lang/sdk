@@ -54,7 +54,8 @@ class UnnecessaryOverrides extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_overrides', 'Unnecessary override.',
       correctionMessage:
-          'Try adding behavior in the overriding member or removing the override.');
+          'Try adding behavior in the overriding member or removing the override.',
+      hasPublishedDocs: true);
 
   UnnecessaryOverrides()
       : super(

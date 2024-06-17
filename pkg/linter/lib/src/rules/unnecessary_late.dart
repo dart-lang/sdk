@@ -44,7 +44,7 @@ class GoodExample {
 class UnnecessaryLate extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_late', "Unnecessary 'late' modifier.",
-      correctionMessage: "Try removing the 'late'.");
+      correctionMessage: "Try removing the 'late'.", hasPublishedDocs: true);
 
   UnnecessaryLate()
       : super(

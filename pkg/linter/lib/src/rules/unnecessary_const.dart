@@ -36,7 +36,7 @@ m(){
 class UnnecessaryConst extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_const', "Unnecessary 'const' keyword.",
-      correctionMessage: 'Try removing the keyword.');
+      correctionMessage: 'Try removing the keyword.', hasPublishedDocs: true);
 
   UnnecessaryConst()
       : super(

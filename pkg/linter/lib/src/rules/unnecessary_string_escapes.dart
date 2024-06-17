@@ -30,7 +30,7 @@ Remove unnecessary backslashes in strings.
 class UnnecessaryStringEscapes extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_string_escapes', 'Unnecessary escape in string literal.',
-      correctionMessage: "Remove the '\\' escape.");
+      correctionMessage: "Remove the '\\' escape.", hasPublishedDocs: true);
 
   UnnecessaryStringEscapes()
       : super(

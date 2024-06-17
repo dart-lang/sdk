@@ -50,7 +50,8 @@ class AvoidRenamingMethodParameters extends LintRule {
       'avoid_renaming_method_parameters',
       "The parameter name '{0}' doesn't match the name '{1}' in the overridden "
           'method.',
-      correctionMessage: "Try changing the name to '{1}'.");
+      correctionMessage: "Try changing the name to '{1}'.",
+      hasPublishedDocs: true);
 
   AvoidRenamingMethodParameters()
       : super(

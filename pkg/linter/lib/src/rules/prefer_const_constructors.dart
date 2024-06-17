@@ -58,7 +58,8 @@ class PreferConstConstructors extends LintRule {
   static const LintCode code = LintCode('prefer_const_constructors',
       "Use 'const' with the constructor to improve performance.",
       correctionMessage:
-          "Try adding the 'const' keyword to the constructor invocation.");
+          "Try adding the 'const' keyword to the constructor invocation.",
+      hasPublishedDocs: true);
 
   PreferConstConstructors()
       : super(

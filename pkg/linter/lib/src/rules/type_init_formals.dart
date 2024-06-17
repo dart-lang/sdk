@@ -69,7 +69,7 @@ class B extends A {
 class TypeInitFormals extends LintRule {
   static const LintCode code = LintCode('type_init_formals',
       "Don't needlessly type annotate initializing formals.",
-      correctionMessage: 'Try removing the type.');
+      correctionMessage: 'Try removing the type.', hasPublishedDocs: true);
 
   TypeInitFormals()
       : super(

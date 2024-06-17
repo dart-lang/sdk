@@ -37,7 +37,8 @@ class NonConstantIdentifierNames extends LintRule {
   static const LintCode code = LintCode('non_constant_identifier_names',
       "The variable name '{0}' isn't a lowerCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the lowerCamelCase style.');
+          'Try changing the name to follow the lowerCamelCase style.',
+      hasPublishedDocs: true);
 
   NonConstantIdentifierNames()
       : super(

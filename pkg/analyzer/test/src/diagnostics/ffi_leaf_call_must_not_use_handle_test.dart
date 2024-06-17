@@ -26,7 +26,7 @@ doThings() {
   f();
 }
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 222, 25),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 224, 10),
     ]);
   }
 
@@ -42,7 +42,7 @@ doThings() {
   f(MyClass());
 }
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 239, 25),
+      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 241, 10),
     ]);
   }
 
@@ -57,7 +57,7 @@ base class A extends NativeFieldWrapperClass1 {
   external Object get foo;
 }
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 110, 94),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 200, 3),
     ]);
   }
 
@@ -97,7 +97,7 @@ import 'dart:ffi';
 @Native<Handle Function()>(symbol: 'foo', isLeaf:true)
 external Object get foo;
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 20, 79),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 95, 3),
     ]);
   }
 }

@@ -30,11 +30,13 @@ var l2 = ['a', 'b', 'c'];
 class PreferInlinedAdds extends LintRule {
   static const LintCode single = LintCode(
       'prefer_inlined_adds', 'The addition of a list item could be inlined.',
-      correctionMessage: 'Try adding the item to the list literal directly.');
+      correctionMessage: 'Try adding the item to the list literal directly.',
+      hasPublishedDocs: true);
 
   static const LintCode multiple = LintCode('prefer_inlined_adds',
       'The addition of multiple list items could be inlined.',
-      correctionMessage: 'Try adding the items to the list literal directly.');
+      correctionMessage: 'Try adding the items to the list literal directly.',
+      hasPublishedDocs: true);
 
   PreferInlinedAdds()
       : super(

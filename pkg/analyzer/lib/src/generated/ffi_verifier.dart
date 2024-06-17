@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -218,7 +219,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var declaredElement = declared.declaredElement;
       if (declaredElement != null) {
         _checkFfiNative(
-          errorNode: declared,
+          errorNode: declared.name,
           declarationElement: declaredElement,
           formalParameterList: null,
           isExternal: node.externalKeyword != null,
@@ -233,7 +234,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _checkFfiNative(
-      errorNode: node,
+      errorNode: node.name,
       declarationElement: node.declaredElement!,
       formalParameterList: node.functionExpression.parameters,
       metadata: node.metadata,
@@ -317,7 +318,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _checkFfiNative(
-      errorNode: node,
+      errorNode: node.name,
       declarationElement: node.declaredElement!,
       formalParameterList: node.parameters,
       isExternal: node.externalKeyword != null,
@@ -411,7 +412,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var declaredElement = declared.declaredElement;
       if (declaredElement != null) {
         _checkFfiNative(
-          errorNode: declared,
+          errorNode: declared.name,
           declarationElement: declaredElement,
           formalParameterList: null,
           isExternal: node.externalKeyword != null,
@@ -431,7 +432,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkFfiNative({
-    required Declaration errorNode,
+    required Token errorNode,
     required Element declarationElement,
     required NodeList<Annotation> metadata,
     required FormalParameterList? formalParameterList,
@@ -463,7 +464,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       hadNativeAnnotation = true;
 
       if (!isExternal) {
-        _errorReporter.atNode(
+        _errorReporter.atToken(
           errorNode,
           FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL,
         );
@@ -482,7 +483,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           );
         } else {
           // Field annotated with a function type, that can't work.
-          _errorReporter.atNode(
+          _errorReporter.atToken(
             errorNode,
             FfiCode.NATIVE_FIELD_INVALID_TYPE,
             arguments: [ffiSignature],
@@ -492,7 +493,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (declarationElement is MethodElement ||
             declarationElement is FunctionElement) {
           // Function annotated with something that isn't a function type.
-          _errorReporter.atNode(
+          _errorReporter.atToken(
             errorNode,
             FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
             arguments: ['T', 'Native'],
@@ -509,7 +510,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkFfiNativeField(
-    Declaration errorNode,
+    Token errorToken,
     Element declarationElement,
     NodeList<Annotation> metadata,
     DartType ffiSignature,
@@ -519,8 +520,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (declarationElement is FieldElement) {
       if (!declarationElement.isStatic) {
-        _errorReporter.atNode(
-          errorNode,
+        _errorReporter.atToken(
+          errorToken,
           FfiCode.NATIVE_FIELD_NOT_STATIC,
         );
       }
@@ -534,8 +535,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       type = variable.type;
     } else {
-      _errorReporter.atNode(
-        errorNode,
+      _errorReporter.atToken(
+        errorToken,
         FfiCode.NATIVE_FIELD_NOT_STATIC,
       );
       return;
@@ -546,8 +547,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var canonical = _canonicalFfiTypeForDartType(type);
 
       if (canonical == null) {
-        _errorReporter.atNode(
-          errorNode,
+        _errorReporter.atToken(
+          errorToken,
           FfiCode.NATIVE_FIELD_MISSING_TYPE,
         );
         return;
@@ -565,18 +566,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // invalid field type.
       allowFunctions: true,
     )) {
-      _errorReporter.atNode(
-        errorNode,
+      _errorReporter.atToken(
+        errorToken,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [type, ffiSignature, 'Native'],
       );
     } else if (ffiSignature.isArray) {
       // Array fields need an `@Array` size annotation.
       _validateSizeOfAnnotation(
-          errorNode, metadata, ffiSignature.arrayDimensions);
+          errorToken, metadata, ffiSignature.arrayDimensions);
     } else if (ffiSignature.isHandle || ffiSignature.isNativeFunction) {
-      _errorReporter.atNode(
-        errorNode,
+      _errorReporter.atToken(
+        errorToken,
         FfiCode.NATIVE_FIELD_INVALID_TYPE,
         arguments: [ffiSignature],
       );
@@ -584,7 +585,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkFfiNativeFunction(
-    Declaration errorNode,
+    Token errorToken,
     ExecutableElement declarationElement,
     FunctionType ffiSignature,
     DartObject annotationValue,
@@ -594,7 +595,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var isLeaf =
         annotationValue.getField(_isLeafParamName)?.toBoolValue() ?? false;
     if (isLeaf) {
-      _validateFfiLeafCallUsesNoHandles(ffiSignature, errorNode);
+      _validateFfiLeafCallUsesNoHandles(ffiSignature, errorToken);
     }
 
     var ffiParameterTypes = ffiSignature.normalParameterTypes.flattenVarArgs();
@@ -606,8 +607,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Instance methods must have the receiver as an extra parameter in the
       // Native annotation.
       if (formalParameters.length + 1 != ffiParameterTypes.length) {
-        _errorReporter.atNode(
-          errorNode,
+        _errorReporter.atToken(
+          errorToken,
           FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
           arguments: [formalParameters.length + 1, ffiParameterTypes.length],
         );
@@ -619,8 +620,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (ffiSignature.normalParameterTypes[0].isPointer) {
         var cls = declarationElement.enclosingElement as InterfaceElement;
         if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
-          _errorReporter.atNode(
-            errorNode,
+          _errorReporter.atToken(
+            errorToken,
             FfiCode
                 .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
           );
@@ -633,8 +634,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Number of parameters in the Native annotation must match the
       // annotated declaration.
       if (formalParameters.length != ffiParameterTypes.length) {
-        _errorReporter.atNode(
-          errorNode,
+        _errorReporter.atToken(
+          errorToken,
           FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS,
           arguments: [ffiParameterTypes.length, formalParameters.length],
         );
@@ -651,8 +652,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             (!type.isPointer &&
                 !_extendsNativeFieldWrapperClass1(type) &&
                 !type.isTypedData)) {
-          _errorReporter.atNode(
-            errorNode,
+          _errorReporter.atToken(
+            errorToken,
             FfiCode
                 .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
           );
@@ -668,8 +669,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       nullabilitySuffix: ffiSignature.nullabilitySuffix,
     );
     if (!_isValidFfiNativeFunctionType(nativeType)) {
-      _errorReporter.atNode(
-        errorNode,
+      _errorReporter.atToken(
+        errorToken,
         FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
         arguments: [nativeType, 'Native'],
       );
@@ -678,8 +679,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_validateCompatibleFunctionTypes(
         _FfiTypeCheckDirection.nativeToDart, dartType, nativeType,
         nativeFieldWrappersAsPointer: true, permissiveReturnType: true)) {
-      _errorReporter.atNode(
-        errorNode,
+      _errorReporter.atToken(
+        errorToken,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [nativeType, dartType, 'Native'],
       );
@@ -1215,7 +1216,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         );
       }
       if (isLeaf) {
-        _validateFfiLeafCallUsesNoHandles(TPrime, node);
+        _validateFfiLeafCallUsesNoHandles(TPrime, node.methodName.token);
       }
     }
     _validateIsLeafIsConst(node);
@@ -1389,19 +1390,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateFfiLeafCallUsesNoHandles(
-      DartType nativeType, AstNode errorNode) {
+      DartType nativeType, SyntacticEntity errorEntity) {
     if (nativeType is FunctionType) {
       if (_primitiveNativeType(nativeType.returnType) ==
           _PrimitiveDartType.handle) {
-        _errorReporter.atNode(
-          errorNode,
+        _errorReporter.atEntity(
+          errorEntity,
           FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE,
         );
       }
       for (var param in nativeType.normalParameterTypes) {
         if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
-          _errorReporter.atNode(
-            errorNode,
+          _errorReporter.atEntity(
+            errorEntity,
             FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE,
           );
         }
@@ -1901,15 +1902,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Validate that the [annotations] include exactly one size annotation. If
   /// an error is produced that cannot be associated with an annotation,
-  /// associate it with the [errorNode].
-  void _validateSizeOfAnnotation(AstNode errorNode,
+  /// associate it with the [errorEntity].
+  void _validateSizeOfAnnotation(SyntacticEntity errorEntity,
       NodeList<Annotation> annotations, int arrayDimensions) {
     var ffiSizeAnnotations =
         annotations.where((annotation) => annotation.isArray).toList();
 
     if (ffiSizeAnnotations.isEmpty) {
-      _errorReporter.atNode(
-        errorNode,
+      _errorReporter.atEntity(
+        errorEntity,
         FfiCode.MISSING_SIZE_ANNOTATION_CARRAY,
       );
       return;

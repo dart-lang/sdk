@@ -24,7 +24,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 /// An enumeration of possible statement completion kinds.
-class DartStatementCompletion {
+abstract final class DartStatementCompletion {
   static const NO_COMPLETION =
       StatementCompletionKind('No_COMPLETION', 'No completion available');
   static const SIMPLE_ENTER = StatementCompletionKind(

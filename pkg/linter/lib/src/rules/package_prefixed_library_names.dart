@@ -55,7 +55,8 @@ class PackagePrefixedLibraryNames extends LintRule {
       'package_prefixed_library_names',
       'The library name is not a dot-separated path prefixed by the package '
           'name.',
-      correctionMessage: "Try changing the name to '{0}'.");
+      correctionMessage: "Try changing the name to '{0}'.",
+      hasPublishedDocs: true);
 
   PackagePrefixedLibraryNames()
       : super(

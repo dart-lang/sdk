@@ -31,7 +31,8 @@ class PreferNullAwareOperators extends LintRule {
       'prefer_null_aware_operators',
       "Use the null-aware operator '?.' rather than an explicit 'null' "
           'comparison.',
-      correctionMessage: "Try using '?.'.");
+      correctionMessage: "Try using '?.'.",
+      hasPublishedDocs: true);
 
   PreferNullAwareOperators()
       : super(

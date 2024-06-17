@@ -40,7 +40,8 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
       'Required named parameters should be before optional named parameters.',
       correctionMessage:
           'Try moving the required named parameter to be before any optional '
-          'named parameters.');
+          'named parameters.',
+      hasPublishedDocs: true);
 
   AlwaysPutRequiredNamedParametersFirst()
       : super(

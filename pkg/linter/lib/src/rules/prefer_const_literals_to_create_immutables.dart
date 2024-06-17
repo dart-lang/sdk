@@ -41,7 +41,8 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
       'prefer_const_literals_to_create_immutables',
       "Use 'const' literals as arguments to constructors of '@immutable' "
           'classes.',
-      correctionMessage: "Try adding 'const' before the literal.");
+      correctionMessage: "Try adding 'const' before the literal.",
+      hasPublishedDocs: true);
 
   PreferConstLiteralsToCreateImmutables()
       : super(

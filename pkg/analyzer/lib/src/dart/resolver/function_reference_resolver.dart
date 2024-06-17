@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -153,20 +154,20 @@ class FunctionReferenceResolver {
     if (type is! InterfaceType) {
       return null;
     }
+    var callMethodName = Name(
+        _resolver.definingLibrary.source.uri, FunctionElement.CALL_METHOD_NAME);
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       // If the interface type is nullable, only an applicable extension method
       // applies.
       return _extensionResolver
-          .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
+          .findExtension(type, node, callMethodName)
           .getter;
     }
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
     return type.lookUpMethod2(
             FunctionElement.CALL_METHOD_NAME, type.element.library) ??
-        _extensionResolver
-            .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
-            .getter;
+        _extensionResolver.findExtension(type, node, callMethodName).getter;
   }
 
   void _reportInvalidAccessToStaticMember(

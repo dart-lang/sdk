@@ -11,6 +11,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -81,7 +82,7 @@ class ExtensionMemberResolver {
   /// If the match is ambiguous, reports an error on the [nameEntity], and
   /// returns [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
-      DartType type, SyntacticEntity nameEntity, String name) {
+      DartType type, SyntacticEntity nameEntity, Name name) {
     var extensions = _resolver.definingLibrary.accessibleExtensions
         .havingMemberWithBaseName(name)
         .applicableTo(
@@ -107,7 +108,7 @@ class ExtensionMemberResolver {
       nameEntity,
       CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
       arguments: [
-        name,
+        name.name,
         mostSpecific.map((e) {
           var name = e.extension.name;
           if (name != null) {

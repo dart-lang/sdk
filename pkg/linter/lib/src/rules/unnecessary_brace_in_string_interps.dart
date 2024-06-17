@@ -36,7 +36,7 @@ bool isIdentifierPart(Token? token) =>
 class UnnecessaryBraceInStringInterps extends LintRule {
   static const LintCode code = LintCode('unnecessary_brace_in_string_interps',
       'Unnecessary braces in a string interpolation.',
-      correctionMessage: 'Try removing the braces.');
+      correctionMessage: 'Try removing the braces.', hasPublishedDocs: true);
 
   UnnecessaryBraceInStringInterps()
       : super(

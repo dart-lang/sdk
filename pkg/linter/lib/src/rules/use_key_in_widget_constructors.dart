@@ -36,7 +36,8 @@ class MyPublicWidget extends StatelessWidget {
 class UseKeyInWidgetConstructors extends LintRule {
   static const LintCode code = LintCode('use_key_in_widget_constructors',
       "Constructors for public widgets should have a named 'key' parameter.",
-      correctionMessage: 'Try adding a named parameter to the constructor.');
+      correctionMessage: 'Try adding a named parameter to the constructor.',
+      hasPublishedDocs: true);
 
   UseKeyInWidgetConstructors()
       : super(

@@ -50,7 +50,8 @@ Widget buildRow() {
 class SizedBoxForWhitespace extends LintRule {
   static const LintCode code = LintCode('sized_box_for_whitespace',
       "Use a 'SizedBox' to add whitespace to a layout.",
-      correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.");
+      correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.",
+      hasPublishedDocs: true);
 
   SizedBoxForWhitespace()
       : super(

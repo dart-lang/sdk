@@ -1315,7 +1315,8 @@ final class JSInt32x4ArrayImpl
   }
 
   @override
-  Int32x4List asUnmodifiableView() => NaiveUnmodifiableInt32x4List(this);
+  Int32x4List asUnmodifiableView() =>
+      NaiveUnmodifiableInt32x4List.externalStorage(_storage);
 
   @override
   JSInt32x4ArrayImpl sublist(int start, [int? end]) {
@@ -2102,7 +2103,8 @@ final class JSFloat32x4ArrayImpl
   }
 
   @override
-  Float32x4List asUnmodifiableView() => NaiveUnmodifiableFloat32x4List(this);
+  Float32x4List asUnmodifiableView() =>
+      NaiveUnmodifiableFloat32x4List.externalStorage(_storage);
 
   @override
   JSFloat32x4ArrayImpl sublist(int start, [int? end]) {
@@ -2184,7 +2186,8 @@ final class JSFloat64x2ArrayImpl
   }
 
   @override
-  Float64x2List asUnmodifiableView() => NaiveUnmodifiableFloat64x2List(this);
+  Float64x2List asUnmodifiableView() =>
+      NaiveUnmodifiableFloat64x2List.externalStorage(_storage);
 
   @override
   JSFloat64x2ArrayImpl sublist(int start, [int? end]) {

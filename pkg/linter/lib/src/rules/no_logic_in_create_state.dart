@@ -61,7 +61,8 @@ class MyStateful extends StatefulWidget {
 class NoLogicInCreateState extends LintRule {
   static const LintCode code = LintCode(
       'no_logic_in_create_state', "Don't put any logic in 'createState'.",
-      correctionMessage: "Try moving the logic out of 'createState'.");
+      correctionMessage: "Try moving the logic out of 'createState'.",
+      hasPublishedDocs: true);
 
   NoLogicInCreateState()
       : super(

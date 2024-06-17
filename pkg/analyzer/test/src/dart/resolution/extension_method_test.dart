@@ -187,6 +187,24 @@ f(C c) {
     ]);
   }
 
+  test_visibility_private() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int _a = 1;
+}
+''');
+    await assertErrorsInCode('''
+import 'lib.dart';
+
+f(C c) {
+  c._a;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 33, 2),
+    ]);
+  }
+
   test_visibility_shadowed_byClass() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}

@@ -1275,9 +1275,8 @@ void testLookupFunctionTakesHandle() {
 void testAsFunctionTakesHandle() {
   Pointer<NativeFunction<NativeTakesHandle>> p = Pointer.fromAddress(1337);
   TakesHandle f = p.asFunction(isLeaf: true);
-  //              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  //                ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_TAKE_HANDLE
-  //                ^
   // [cfe] FFI leaf call must not have Handle argument types.
 }
 
@@ -1297,9 +1296,8 @@ void testLookupFunctionReturnsHandle() {
 void testAsFunctionReturnsHandle() {
   Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337);
   ReturnsHandle f = p.asFunction(isLeaf: true);
-  //                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  //                  ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_RETURN_HANDLE
-  //                  ^
   // [cfe] FFI leaf call must not have Handle return type.
 }
 

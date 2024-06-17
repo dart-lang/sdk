@@ -47,7 +47,8 @@ class FileNames extends LintRule {
       "The file name '{0}' isn't a lower_case_with_underscores identifier.",
       correctionMessage:
           'Try changing the name to follow the lower_case_with_underscores '
-          'style.');
+          'style.',
+      hasPublishedDocs: true);
 
   FileNames()
       : super(

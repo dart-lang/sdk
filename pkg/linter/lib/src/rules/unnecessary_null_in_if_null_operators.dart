@@ -34,7 +34,8 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
   static const LintCode code = LintCode('unnecessary_null_in_if_null_operators',
       "Unnecessary use of '??' with 'null'.",
       correctionMessage:
-          "Try removing the '??' operator and the 'null' operand.");
+          "Try removing the '??' operator and the 'null' operand.",
+      hasPublishedDocs: true);
 
   UnnecessaryNullInIfNullOperators()
       : super(

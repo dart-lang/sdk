@@ -41,7 +41,8 @@ try {
 class UseRethrowWhenPossible extends LintRule {
   static const LintCode code = LintCode('use_rethrow_when_possible',
       "Use 'rethrow' to rethrow a caught exception.",
-      correctionMessage: "Try replacing the 'throw' with a 'rethrow'.");
+      correctionMessage: "Try replacing the 'throw' with a 'rethrow'.",
+      hasPublishedDocs: true);
 
   UseRethrowWhenPossible()
       : super(

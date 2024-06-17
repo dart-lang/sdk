@@ -39,7 +39,8 @@ class LibraryNames extends LintRule {
       "The library name '{0}' isn't a lower_case_with_underscores identifier.",
       correctionMessage:
           'Try changing the name to follow the lower_case_with_underscores '
-          'style.');
+          'style.',
+      hasPublishedDocs: true);
 
   LibraryNames()
       : super(

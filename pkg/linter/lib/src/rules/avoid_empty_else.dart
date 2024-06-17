@@ -56,7 +56,8 @@ class AvoidEmptyElse extends LintRule {
   static const LintCode code = LintCode('avoid_empty_else',
       "Empty statements are not allowed in an 'else' clause.",
       correctionMessage:
-          'Try removing the empty statement or removing the else clause.');
+          'Try removing the empty statement or removing the else clause.',
+      hasPublishedDocs: true);
 
   AvoidEmptyElse()
       : super(

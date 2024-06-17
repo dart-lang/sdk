@@ -48,7 +48,8 @@ class DependOnReferencedPackages extends LintRule {
   static const LintCode code = LintCode('depend_on_referenced_packages',
       "The imported package '{0}' isn't a dependency of the importing package.",
       correctionMessage:
-          "Try adding a dependency for '{0}' in the 'pubspec.yaml' file.");
+          "Try adding a dependency for '{0}' in the 'pubspec.yaml' file.",
+      hasPublishedDocs: true);
 
   DependOnReferencedPackages()
       : super(

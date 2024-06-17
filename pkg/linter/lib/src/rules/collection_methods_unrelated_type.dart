@@ -70,7 +70,8 @@ void someFunction() {
 
 class CollectionMethodsUnrelatedType extends LintRule {
   static const LintCode code = LintCode('collection_methods_unrelated_type',
-      "The argument type '{0}' isn't related to '{1}'.");
+      "The argument type '{0}' isn't related to '{1}'.",
+      hasPublishedDocs: true);
 
   CollectionMethodsUnrelatedType()
       : super(

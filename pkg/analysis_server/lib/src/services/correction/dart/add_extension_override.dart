@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -20,9 +21,13 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     if (parent is! PropertyAccess) return const [];
     var target = parent.target;
     if (target == null) return const [];
+    var dartFixContext = context.dartFixContext;
+    if (dartFixContext == null) return const [];
 
+    var nodeName = Name(
+        dartFixContext.resolvedResult.libraryElement.source.uri, node.name);
     var extensions =
-        libraryElement.accessibleExtensions.havingMemberWithBaseName(node.name);
+        libraryElement.accessibleExtensions.havingMemberWithBaseName(nodeName);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;

@@ -19,7 +19,8 @@ class SortPubDependencies extends LintRule {
   static const LintCode code = LintCode(
       'sort_pub_dependencies', 'Dependencies not sorted alphabetically.',
       correctionMessage:
-          'Try sorting the dependencies alphabetically (A to Z).');
+          'Try sorting the dependencies alphabetically (A to Z).',
+      hasPublishedDocs: true);
 
   SortPubDependencies()
       : super(

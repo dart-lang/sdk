@@ -33,7 +33,8 @@ class VoidChecks extends LintRule {
   static const LintCode code = LintCode(
       'void_checks', "Assignment to a variable of type 'void'.",
       correctionMessage:
-          'Try removing the assignment or changing the type of the variable.');
+          'Try removing the assignment or changing the type of the variable.',
+      hasPublishedDocs: true);
 
   VoidChecks()
       : super(
