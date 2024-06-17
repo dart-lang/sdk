@@ -71,6 +71,7 @@ import '../modifier.dart'
         staticMask;
 import '../operator.dart' show Operator;
 import '../problems.dart' show unhandled;
+import '../uris.dart';
 import 'offset_map.dart';
 import 'source_enum_builder.dart';
 import 'source_library_builder.dart'
@@ -876,7 +877,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       Token beginToken = pop() as Token;
       int charOffset = beginToken.charOffset;
-      push("${SourceLibraryBuilder.MALFORMED_URI_SCHEME}:bad${charOffset}");
+      push("${MALFORMED_URI_SCHEME}:bad${charOffset}");
       push(charOffset);
       // Point to dollar sign
       int interpolationOffset = charOffset + beginToken.lexeme.length;

@@ -29,7 +29,7 @@ class Export {
 
   /// The [LibraryDependency] node corresponding to this import.
   ///
-  /// This set in [SourceLibraryBuilder.addDependencies].
+  /// This set in [SourceLibraryBuilder._addDependencies].
   late final LibraryDependency libraryDependency;
 
   bool addToExportScope(String name, Builder member) {

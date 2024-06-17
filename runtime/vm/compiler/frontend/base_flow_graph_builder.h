@@ -535,7 +535,9 @@ class BaseFlowGraphBuilder {
   const bool inlining_unchecked_entry_;
   const Array& saved_args_desc_array_;
 
-  GrowableArray<intptr_t> coverage_array_positions_;
+  // Mapping from token position to the index in the coverage array at which
+  // coverage state is stored.
+  IntMap<intptr_t> coverage_state_index_for_position_;
   Array& coverage_array_;
 
   friend class StreamingFlowGraphBuilder;

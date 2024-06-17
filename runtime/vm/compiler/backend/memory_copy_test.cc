@@ -209,8 +209,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
 
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer},
+          kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &pointer2},
+          kMatchAndMoveRecordCoverage,
           {kMatchAndMoveStaticCall, &another_function_call},
       }));
     }
@@ -243,8 +246,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
       ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
       EXPECT(cursor.TryMatch({
           kMoveGlob,
+          kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
+          kMatchAndMoveRecordCoverage,
           kMatchAndMoveStaticCall,
+          kMatchAndMoveRecordCoverage,
           kMatchAndMoveMemoryCopy,
       }));
     }

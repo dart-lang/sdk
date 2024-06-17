@@ -93,7 +93,6 @@ import 'source_library_builder.dart'
         InvalidLanguageVersion,
         LanguageVersion,
         LibraryAccess,
-        Part,
         SourceLibraryBuilder;
 import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
@@ -903,7 +902,7 @@ severity: $severity
             templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
             libraryBuilder.importUri);
-      } else if (fileUri.isScheme(SourceLibraryBuilder.MALFORMED_URI_SCHEME)) {
+      } else if (fileUri.isScheme(MALFORMED_URI_SCHEME)) {
         libraryBuilder.addProblemAtAccessors(messageExpectedUri);
         bytes = synthesizeSourceForMissingFile(libraryBuilder.importUri, null);
       }
@@ -1211,11 +1210,7 @@ severity: $severity
     DietParser parser = new DietParser(listener,
         allowPatterns: library.libraryFeatures.patterns.isEnabled);
     parser.parseUnit(tokens);
-    for (Part part in library.parts) {
-      assert(part.compilationUnit.partOfLibrary == library,
-          "Part ${part.compilationUnit} is not part of ${library}.");
-      SourceCompilationUnit compilationUnit =
-          part.compilationUnit as SourceCompilationUnit;
+    for (SourceCompilationUnit compilationUnit in library.parts) {
       Token tokens =
           await tokenize(compilationUnit, suppressLexicalErrors: true);
       DietListener listener =
@@ -1365,7 +1360,7 @@ severity: $severity
       } else {
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         SourceLibraryBuilder sourceLibraryBuilder = part.createLibrary();
-        sourceLibraryBuilder.validatePart(null, null);
+        part.validatePart(null, null);
         sourceLibraries.add(sourceLibraryBuilder);
         _loadedLibraryBuilders[uri] = sourceLibraryBuilder;
       }
