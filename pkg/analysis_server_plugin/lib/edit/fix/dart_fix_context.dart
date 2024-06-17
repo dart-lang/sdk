@@ -58,6 +58,7 @@ class DartFixContext implements FixContext {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
+  // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
   Stream<LibraryElement> librariesWithExtensions(String memberName) async* {
     var analysisContext = resolvedResult.session.analysisContext;
     var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;

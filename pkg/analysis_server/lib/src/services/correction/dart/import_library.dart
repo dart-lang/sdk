@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
@@ -73,9 +74,17 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (targetType == null) {
           return;
         }
+
+        var dartFixContext = context.dartFixContext;
+        if (dartFixContext == null) {
+          return;
+        }
+
+        var name = Name(dartFixContext.resolvedResult.libraryElement.source.uri,
+            memberName);
         await for (var libraryToImport in librariesWithExtensions(memberName)) {
           _importExtensionInLibrary(
-              producers, libraryToImport, targetType, memberName);
+              producers, libraryToImport, targetType, name);
         }
       }
 
@@ -172,15 +181,15 @@ class ImportLibrary extends MultiCorrectionProducer {
     List<ResolvedCorrectionProducer> producers,
     LibraryElement libraryToImport,
     DartType targetType,
-    String memberName,
+    Name memberName,
   ) {
     // Look to see whether the library at the [uri] is already imported. If it
     // is, then we can check the extension elements without needing to perform
     // additional analysis.
     var foundImport = false;
-    for (var imp in libraryElement.libraryImports) {
+    for (var import in libraryElement.libraryImports) {
       // prepare element
-      var importedLibrary = imp.importedLibrary;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
         continue;
       }
@@ -191,7 +200,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
-        var combinators = imp.combinators;
+        var combinators = import.combinators;
         if (combinators.length == 1) {
           var combinator = combinators[0];
           if (combinator is HideElementCombinator) {
@@ -456,7 +465,7 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   DartType targetType;
 
   /// The name of the member that the extension must declare.
-  String memberName;
+  Name memberName;
 
   /// The URI that is being proposed for the import directive.
   String _uriText = '';
