@@ -1368,6 +1368,166 @@ class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
   }
 }
 
+/// 'Condition' phis by hoisting common constants to before the control flow.
+/// The default pattern is to assign to a variable on all edges into a phi.
+///
+///     if (condition1) {
+///       if (condition2) {
+///         ...
+///         t1 = ...;
+///       } else
+///         t1 = false;
+///     } else
+///       t1 = false;
+///
+/// Hoisting `t1 = false` is smaller due to not needing `else`:
+///
+///     t1 = false;
+///     if (condition1) {
+///       if (condition1) {
+///         ...
+///         t1 = ...;
+///       }
+///     }
+///
+/// This transformation introduces partial redundancy, and increases live-ranges
+/// and may require more temporary variables.
+class SsaPhiConditioning extends HGraphVisitor implements CodegenPhase {
+  @override
+  String get name => 'SsaPhiConditioning';
+
+  final Set<HInstruction> generateAtUseSite;
+  final Set<HIf> controlFlowOperators;
+
+  final Set<HPhi> _handled = {};
+
+  SsaPhiConditioning(this.generateAtUseSite, this.controlFlowOperators);
+
+  @override
+  void visitGraph(HGraph graph) {
+    visitPostDominatorTree(graph);
+  }
+
+  @override
+  void visitBasicBlock(HBasicBlock block) {
+    final dominator = block.dominator;
+    if (dominator == null) return; // Entry block.
+
+    // The algorithm scans backwards, inspecting the tree of phi nodes rooted at
+    // this block, stopping at this block's dominator. The dominator is a place
+    // to which the assignment can legally be hoisted and used by the phi nodes.
+    // The nodes of the tree are marked as handled. If we don't find an
+    // optimization opportunity in the phi tree, there won't be an opportunity
+    // in the smaller subtree, and re-scanning subtrees could be non-linear.
+
+    // If this region of the CFG is a control-flow operation (&&, ?:, etc),
+    // the inputs of the participating phi nodes must not be changed.
+    if (controlFlowOperators.contains(dominator.last)) {
+      for (var phi = block.phis.firstPhi; phi != null; phi = phi.nextPhi) {
+        _markHandled(phi, dominator);
+      }
+      return;
+    }
+
+    for (var phi = block.phis.firstPhi; phi != null; phi = phi.nextPhi) {
+      if (_handled.contains(phi)) continue;
+      handlePhi(block, dominator, phi);
+    }
+  }
+
+  void handlePhi(HBasicBlock block, HBasicBlock dominator, HPhi root) {
+    final Map<HInstruction, List<(HPhi, int)>> phiTreeInputs = {};
+    final List<HPhi> phiTreeNodes = [];
+
+    void collect(HPhi phi) {
+      if (dominator == phi.block) return;
+      if (!dominator.dominates(phi.block!)) return;
+      if (generateAtUseSite.contains(phi)) return;
+      phiTreeNodes.add(phi);
+      for (int i = 0; i < phi.inputs.length; i++) {
+        final input = phi.inputs[i];
+        if (input is HPhi) {
+          // Ignore back-edges.
+          if (input.block!.id >= phi.block!.id) continue;
+
+          // Ignore subtrees from control flow operators.
+          final dom = input.block!.dominator!;
+          if (controlFlowOperators.contains(dom.last)) continue;
+          collect(input);
+        } else if (input is HConstant) {
+          // UnreachableConstantValue means that this 'phi' input corresponds to
+          // dead control flow.
+          if (input.constant is UnreachableConstantValue) continue;
+
+          // Only primitives are cheap enough to add the partial redundancy.
+          if (input.isConstantBoolean() ||
+              input.isConstantNull() ||
+              input.isConstantString() ||
+              input.isConstantNumber()) {
+            (phiTreeInputs[input] ??= []).add((phi, i));
+          }
+        }
+      }
+    }
+
+    collect(root);
+
+    late HInstruction best;
+    List<(HPhi, int)> bestReferences = const [];
+    for (final MapEntry(key: instruction, value: references)
+        in phiTreeInputs.entries) {
+      if (references.length > bestReferences.length) {
+        bestReferences = references;
+        best = instruction;
+      }
+    }
+
+    // At least two paths with the same constant.
+    if (bestReferences.length >= 2) {
+      final value = HLateValue(best);
+      value.sourceElement = root.sourceElement;
+
+      // To minimize the live range, [value] should be inserted at the common
+      // dominator of all the references. This is usually just [dominator], so
+      // it is faster on average to search down the successors than to compute
+      // the common dominator.
+
+      SINK_DOMINATOR:
+      while (true) {
+        BLOCKS:
+        for (final HBasicBlock block in dominator.successors) {
+          if (block.id < dominator.id) continue;
+          for (final (phi, _) in bestReferences) {
+            if (!block.dominates(phi.block!)) continue BLOCKS;
+            // Insertion point can't be the phi block since phis come first.
+            if (block == phi.block) continue BLOCKS;
+          }
+          dominator = block;
+          continue SINK_DOMINATOR;
+        }
+        break;
+      }
+
+      dominator.addBefore(dominator.last, value);
+
+      for (final (phi, index) in bestReferences) {
+        phi.replaceInput(index, value);
+      }
+    }
+
+    _handled.addAll(phiTreeNodes);
+  }
+
+  void _markHandled(HPhi phi, HBasicBlock dominator) {
+    if (_handled.add(phi)) {
+      for (final input in phi.inputs) {
+        if (input is HPhi && dominator.dominates(input.block!))
+          _markHandled(input, dominator);
+      }
+    }
+  }
+}
+
 /// Insert 'caches' for whole-function region-constants when the local minified
 /// name would be shorter than repeated references.  These are caches for 'this'
 /// and constant values.
@@ -1477,6 +1637,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
       if (instruction is HCreate) return true;
       if (instruction is HReturn) return true;
       if (instruction is HPhi) return true;
+      if (instruction is HLateValue) return true;
 
       // JavaScript `x == null` is more efficient than `x == _null`.
       if (instruction is HIdentity) return false;
@@ -1502,6 +1663,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
       if (instruction is HCreate) return true;
       if (instruction is HReturn) return true;
       if (instruction is HPhi) return true;
+      if (instruction is HLateValue) return true;
 
       // JavaScript `x === 5` is more efficient than `x === _5`.
       if (instruction is HIdentity) return false;
@@ -1535,6 +1697,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void>
       if (instruction is HCreate) return true;
       if (instruction is HReturn) return true;
       if (instruction is HPhi) return true;
+      if (instruction is HLateValue) return true;
 
       // TODO(sra): Check if a.x="s" can avoid or specialize a write barrier.
       if (instruction is HFieldSet) return true;

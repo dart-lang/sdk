@@ -144,11 +144,9 @@ bool constantFoldedControlFlow1(bool a, bool b) {
 }
 
 /*member: constantFoldedControlFlow2:function(a, b) {
-  var t1;
+  var t1 = false;
   if (a)
     t1 = b;
-  else
-    t1 = false;
   return t1;
 }*/
 bool constantFoldedControlFlow2(bool a, bool b) {
