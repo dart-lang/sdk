@@ -196,6 +196,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   void addDependencies(Library library, Set<SourceLibraryBuilder> seen);
 
+  void includeParts(SourceLibraryBuilder libraryBuilder,
+      List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
+
   void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts);
 
   void addScriptToken(int charOffset);

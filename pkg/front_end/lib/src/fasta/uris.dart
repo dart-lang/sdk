@@ -4,3 +4,7 @@
 
 final Uri dartCore = Uri.parse('dart:core');
 final Uri missingUri = Uri.parse('org-dartlang-internal:missing');
+
+const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
+
+bool isNotMalformedUriScheme(Uri uri) => !uri.isScheme(MALFORMED_URI_SCHEME);

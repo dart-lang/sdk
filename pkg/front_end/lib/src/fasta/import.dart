@@ -49,7 +49,7 @@ class Import {
 
   /// The [LibraryDependency] node corresponding to this import.
   ///
-  /// This set in [SourceLibraryBuilder.addDependencies].
+  /// This set in [SourceLibraryBuilder._addDependencies].
   LibraryDependency? libraryDependency;
 
   Import(

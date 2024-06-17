@@ -101,7 +101,7 @@ import 'source/source_library_builder.dart'
 import 'source/source_loader.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
-import 'uris.dart' show dartCore;
+import 'uris.dart' show MALFORMED_URI_SCHEME, dartCore;
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 import 'util/experiment_environment_getter.dart'
     show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
@@ -2268,7 +2268,7 @@ class _ExtensionTypeFinder extends VisitorDefault<void> with VisitorVoidMixin {
 ///     Uri.parse("file://path/to/parent.dart"),
 ///     new LibraryPart([], ":hello")
 ///   ),
-///   new Uri(scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
+///   new Uri(scheme: MALFORMED_URI_SCHEME,
 ///     query: Uri.encodeQueryComponent(":hello"))
 /// )
 /// ```
@@ -2278,7 +2278,7 @@ Uri getPartUri(Uri parentUri, LibraryPart part) {
   } on FormatException {
     // This is also done in [SourceLibraryBuilder.resolve]
     return new Uri(
-        scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
+        scheme: MALFORMED_URI_SCHEME,
         query: Uri.encodeQueryComponent(part.partUri));
   }
 }
