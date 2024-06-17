@@ -129,7 +129,6 @@ ${argParser.usage}
           'uri': dtdInfo.uri,
         },
     }));
-    stderr.close();
   } catch (e, st) {
     writeErrorResponse(e, st);
   } finally {

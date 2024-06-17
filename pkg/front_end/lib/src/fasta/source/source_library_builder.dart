@@ -4195,49 +4195,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return;
     }
 
-    // Merge import and export lists to have the dependencies in source order.
-    // This is required for the DietListener to correctly match up metadata.
-    int importIndex = 0;
-    int exportIndex = 0;
-    while (importIndex < imports.length || exportIndex < exports.length) {
-      if (exportIndex >= exports.length ||
-          (importIndex < imports.length &&
-              imports[importIndex].charOffset <
-                  exports[exportIndex].charOffset)) {
-        // Add import
-        Import import = imports[importIndex++];
-
-        // Rather than add a LibraryDependency, we attach an annotation.
-        if (import.nativeImportPath != null) {
-          addNativeDependency(import.nativeImportPath!);
-          continue;
-        }
-
-        LibraryDependency libraryDependency;
-        if (import.deferred && import.prefixBuilder?.dependency != null) {
-          libraryDependency = import.prefixBuilder!.dependency!;
-        } else {
-          LibraryBuilder imported = import.importedLibraryBuilder!.origin;
-          Library targetLibrary = imported.library;
-          libraryDependency = new LibraryDependency.import(targetLibrary,
-              name: import.prefix,
-              combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset;
-        }
-        library.addDependency(libraryDependency);
-        import.libraryDependency = libraryDependency;
-      } else {
-        // Add export
-        Export export = exports[exportIndex++];
-        LibraryDependency libraryDependency = new LibraryDependency.export(
-            export.exportedLibraryBuilder.library,
-            combinators: toKernelCombinators(export.combinators))
-          ..fileOffset = export.charOffset;
-        library.addDependency(libraryDependency);
-        export.libraryDependency = libraryDependency;
+    for (Import import in imports) {
+      // Rather than add a LibraryDependency, we attach an annotation.
+      if (import.nativeImportPath != null) {
+        addNativeDependency(import.nativeImportPath!);
+        continue;
       }
-    }
 
+      LibraryDependency libraryDependency;
+      if (import.deferred && import.prefixBuilder?.dependency != null) {
+        libraryDependency = import.prefixBuilder!.dependency!;
+      } else {
+        LibraryBuilder imported = import.importedLibraryBuilder!.origin;
+        Library targetLibrary = imported.library;
+        libraryDependency = new LibraryDependency.import(targetLibrary,
+            name: import.prefix,
+            combinators: toKernelCombinators(import.combinators))
+          ..fileOffset = import.charOffset;
+      }
+      library.addDependency(libraryDependency);
+      import.libraryDependency = libraryDependency;
+    }
+    for (Export export in exports) {
+      LibraryDependency libraryDependency = new LibraryDependency.export(
+          export.exportedLibraryBuilder.library,
+          combinators: toKernelCombinators(export.combinators))
+        ..fileOffset = export.charOffset;
+      library.addDependency(libraryDependency);
+      export.libraryDependency = libraryDependency;
+    }
     for (SourceCompilationUnit part in parts) {
       part.addDependencies(library, seen);
     }

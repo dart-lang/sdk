@@ -4,9 +4,9 @@ additionalExports = (main::Class,
   main::Extension,
   main::main)
 
-  export "org-dartlang-test:///main.dart";
   import "org-dartlang-test:///main.dart";
   import "org-dartlang-test:///main.dart" as m;
+  export "org-dartlang-test:///main.dart";
 
   extension Extension2 on main::Class {
     method method2 = lib1::Extension2|method2;
