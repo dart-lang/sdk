@@ -26,7 +26,7 @@ class _HttpHeaders implements HttpHeaders {
   _HttpHeaders(this.protocolVersion,
       {int defaultPortForScheme = HttpClient.defaultHttpPort,
       _HttpHeaders? initialHeaders})
-      : _headers = HashMap<String, List<String>>(),
+      : _headers = LinkedHashMap<String, List<String>>(),
         _defaultPortForScheme = defaultPortForScheme {
     if (initialHeaders != null) {
       initialHeaders._headers.forEach((name, value) => _headers[name] = value);

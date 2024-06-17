@@ -19,6 +19,7 @@ import 'dart:collection'
         ListQueue,
         LinkedList,
         LinkedListEntry,
+        LinkedHashMap,
         UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
