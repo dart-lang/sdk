@@ -45,7 +45,8 @@ callIt(Callable().call);
 class ImplicitCallTearoffs extends LintRule {
   static const LintCode code = LintCode(
       'implicit_call_tearoffs', "Implicit tear-off of the 'call' method.",
-      correctionMessage: "Try explicitly tearing off the 'call' method.");
+      correctionMessage: "Try explicitly tearing off the 'call' method.",
+      hasPublishedDocs: true);
 
   ImplicitCallTearoffs()
       : super(

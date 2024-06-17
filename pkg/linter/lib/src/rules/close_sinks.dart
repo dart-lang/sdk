@@ -67,7 +67,8 @@ class CloseSinks extends LintRule {
       'close_sinks', "Unclosed instance of 'Sink'.",
       correctionMessage:
           "Try invoking 'close' in the function in which the 'Sink' was "
-          'created.');
+          'created.',
+      hasPublishedDocs: true);
 
   CloseSinks()
       : super(

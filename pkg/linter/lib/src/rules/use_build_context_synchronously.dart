@@ -958,6 +958,7 @@ class UseBuildContextSynchronously extends LintRule {
         "Try rewriting the code to not use the 'BuildContext', or guard the "
         "use with a 'mounted' check.",
     uniqueName: 'LintCode.use_build_context_synchronously_async_use',
+    hasPublishedDocs: true,
   );
 
   static const LintCode wrongMountedCode = LintCode(
@@ -968,6 +969,7 @@ class UseBuildContextSynchronously extends LintRule {
         "Guard a 'State.context' use with a 'mounted' check on the State, and "
         "other BuildContext use with a 'mounted' check on the BuildContext.",
     uniqueName: 'LintCode.use_build_context_synchronously_wrong_mounted',
+    hasPublishedDocs: true,
   );
 
   UseBuildContextSynchronously()

@@ -52,7 +52,8 @@ class EmptyCatches extends LintRule {
   static const LintCode code = LintCode('empty_catches', 'Empty catch block.',
       correctionMessage:
           'Try adding statements to the block, adding a comment to the block, '
-          "or removing the 'catch' clause.");
+          "or removing the 'catch' clause.",
+      hasPublishedDocs: true);
 
   EmptyCatches()
       : super(

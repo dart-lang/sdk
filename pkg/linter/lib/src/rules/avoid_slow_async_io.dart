@@ -71,7 +71,8 @@ const List<String> _fileSystemEntityMethodNames = <String>[
 class AvoidSlowAsyncIo extends LintRule {
   static const LintCode code = LintCode(
       'avoid_slow_async_io', "Use of an async 'dart:io' method.",
-      correctionMessage: 'Try using the synchronous version of the method.');
+      correctionMessage: 'Try using the synchronous version of the method.',
+      hasPublishedDocs: true);
 
   AvoidSlowAsyncIo()
       : super(

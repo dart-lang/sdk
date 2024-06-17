@@ -48,7 +48,8 @@ class NullCheckOnNullableTypeParameter extends LintRule {
       'null_check_on_nullable_type_parameter',
       "The null check operator shouldn't be used on a variable whose type is a "
           'potentially nullable type parameter.',
-      correctionMessage: "Try explicitly testing for 'null'.");
+      correctionMessage: "Try explicitly testing for 'null'.",
+      hasPublishedDocs: true);
 
   NullCheckOnNullableTypeParameter()
       : super(

@@ -46,9 +46,15 @@ typedef predicate = bool Function(Object o);
 ''';
 
 class AlwaysDeclareReturnTypes extends LintRule {
-  static const LintCode code = LintCode(
-      'always_declare_return_types', 'Missing return type on method.',
-      correctionMessage: 'Try adding a return type.');
+  static const LintCode functionCode = LintCode('always_declare_return_types',
+      "The function '{0}' should have a return type but doesn't.",
+      correctionMessage: 'Try adding a return type to the function.',
+      hasPublishedDocs: true);
+
+  static const LintCode methodCode = LintCode('always_declare_return_types',
+      "The method '{0}' should have a return type but doesn't.",
+      correctionMessage: 'Try adding a return type to the method.',
+      hasPublishedDocs: true);
 
   AlwaysDeclareReturnTypes()
       : super(
@@ -58,7 +64,7 @@ class AlwaysDeclareReturnTypes extends LintRule {
             categories: {Category.style});
 
   @override
-  LintCode get lintCode => code;
+  List<LintCode> get lintCodes => [functionCode, methodCode];
 
   @override
   void registerNodeProcessors(
@@ -71,18 +77,6 @@ class AlwaysDeclareReturnTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode functionCode = LintCode(
-      "always_declare_return_types", // ignore: prefer_single_quotes
-      "The function '{0}' should have a return type but doesn't.",
-      correctionMessage:
-          "Try adding a return type to the function."); // ignore: prefer_single_quotes
-
-  static const LintCode methodCode = LintCode(
-      "always_declare_return_types", // ignore: prefer_single_quotes
-      "The method '{0}' should have a return type but doesn't.",
-      correctionMessage:
-          "Try adding a return type to the method."); // ignore: prefer_single_quotes
-
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -91,7 +85,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null && !node.isAugmentation) {
       rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme], errorCode: functionCode);
+          arguments: [node.name.lexeme],
+          errorCode: AlwaysDeclareReturnTypes.functionCode);
     }
   }
 
@@ -99,7 +94,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
       rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme], errorCode: functionCode);
+          arguments: [node.name.lexeme],
+          errorCode: AlwaysDeclareReturnTypes.functionCode);
     }
   }
 
@@ -110,7 +106,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.name.type != TokenType.INDEX_EQ &&
         !node.isAugmentation) {
       rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme], errorCode: methodCode);
+          arguments: [node.name.lexeme],
+          errorCode: AlwaysDeclareReturnTypes.methodCode);
     }
   }
 }

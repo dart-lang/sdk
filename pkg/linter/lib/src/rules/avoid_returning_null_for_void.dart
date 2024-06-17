@@ -48,7 +48,7 @@ class AvoidReturningNullForVoid extends LintRule {
 
   static const LintCode fromMethod = LintCode('avoid_returning_null_for_void',
       "Don't return 'null' from a method with a return type of 'void'.",
-      correctionMessage: "Try removing the 'null'.");
+      correctionMessage: "Try removing the 'null'.", hasPublishedDocs: true);
 
   AvoidReturningNullForVoid()
       : super(

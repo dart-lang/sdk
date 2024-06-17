@@ -32,7 +32,8 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_nullable_for_final_variable_declarations',
       'Type could be non-nullable.',
-      correctionMessage: 'Try changing the type to be non-nullable.');
+      correctionMessage: 'Try changing the type to be non-nullable.',
+      hasPublishedDocs: true);
 
   UnnecessaryNullableForFinalVariableDeclarations()
       : super(

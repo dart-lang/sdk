@@ -52,7 +52,7 @@ class Box {
 class UnnecessaryThis extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_this', "Unnecessary 'this.' qualifier.",
-      correctionMessage: "Try removing 'this.'.");
+      correctionMessage: "Try removing 'this.'.", hasPublishedDocs: true);
 
   UnnecessaryThis()
       : super(

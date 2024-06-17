@@ -52,10 +52,12 @@ Set<ParameterElement> _referencedParameters(
 }
 
 class UseSuperParameters extends LintRule {
-  static const LintCode singleParam =
-      LintCode('use_super_parameters', "Convert '{0}' to a super parameter.");
-  static const LintCode multipleParams =
-      LintCode('use_super_parameters', 'Convert {0} to super parameters.');
+  static const LintCode singleParam = LintCode(
+      'use_super_parameters', "Convert '{0}' to a super parameter.",
+      hasPublishedDocs: true);
+  static const LintCode multipleParams = LintCode(
+      'use_super_parameters', 'Convert {0} to super parameters.',
+      hasPublishedDocs: true);
 
   UseSuperParameters()
       : super(

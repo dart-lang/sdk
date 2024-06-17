@@ -37,7 +37,8 @@ List<String> list = <String>[
 class NoAdjacentStringsInList extends LintRule {
   static const LintCode code = LintCode('no_adjacent_strings_in_list',
       "Don't use adjacent strings in a list literal.",
-      correctionMessage: 'Try adding a comma between the strings.');
+      correctionMessage: 'Try adding a comma between the strings.',
+      hasPublishedDocs: true);
 
   NoAdjacentStringsInList()
       : super(

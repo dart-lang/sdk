@@ -135,7 +135,8 @@ class UnrelatedTypeEqualityChecks extends LintRule {
       uniqueName: 'LintCode.unrelated_type_equality_checks_expression',
       "The type of the right operand ('{0}') isn't a subtype or a supertype of "
           "the left operand ('{1}').",
-      correctionMessage: 'Try changing one or both of the operands.');
+      correctionMessage: 'Try changing one or both of the operands.',
+      hasPublishedDocs: true);
 
   static const LintCode patternCode = LintCode(
       'unrelated_type_equality_checks',

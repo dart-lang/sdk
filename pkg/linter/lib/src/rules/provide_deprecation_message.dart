@@ -35,7 +35,8 @@ class ProvideDeprecationMessage extends LintRule {
   static const LintCode code = LintCode(
       'provide_deprecation_message', 'Missing a deprecation message.',
       correctionMessage:
-          "Try using the constructor to provide a message ('@Deprecated(\"message\")').");
+          "Try using the constructor to provide a message ('@Deprecated(\"message\")').",
+      hasPublishedDocs: true);
 
   ProvideDeprecationMessage()
       : super(

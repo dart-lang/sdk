@@ -34,7 +34,8 @@ class CamelCaseExtensions extends LintRule {
   static const LintCode code = LintCode('camel_case_extensions',
       "The extension name '{0}' isn't an UpperCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the UpperCamelCase style.');
+          'Try changing the name to follow the UpperCamelCase style.',
+      hasPublishedDocs: true);
 
   CamelCaseExtensions()
       : super(

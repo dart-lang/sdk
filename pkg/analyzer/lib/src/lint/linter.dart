@@ -211,10 +211,6 @@ abstract class LintRule {
   /// `bin`.
   final String? documentation;
 
-  /// A flag indicating whether this lint has documentation on the Diagnostic
-  /// messages page.
-  final bool hasDocumentation;
-
   /// The state of a lint, and optionally since when the state began.
   final State state;
 
@@ -225,7 +221,6 @@ abstract class LintRule {
     required this.details,
     State? state,
     this.documentation,
-    this.hasDocumentation = false,
   }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information

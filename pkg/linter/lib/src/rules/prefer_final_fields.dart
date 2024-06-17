@@ -84,7 +84,8 @@ class NotAssignedInAllConstructors {
 class PreferFinalFields extends LintRule {
   static const LintCode code = LintCode(
       'prefer_final_fields', "The private field {0} could be 'final'.",
-      correctionMessage: "Try making the field 'final'.");
+      correctionMessage: "Try making the field 'final'.",
+      hasPublishedDocs: true);
 
   PreferFinalFields()
       : super(

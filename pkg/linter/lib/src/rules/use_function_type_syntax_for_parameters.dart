@@ -28,7 +28,8 @@ class UseFunctionTypeSyntaxForParameters extends LintRule {
   static const LintCode code = LintCode(
       'use_function_type_syntax_for_parameters',
       "Use the generic function type syntax to declare the parameter '{0}'.",
-      correctionMessage: 'Try using the generic function type syntax.');
+      correctionMessage: 'Try using the generic function type syntax.',
+      hasPublishedDocs: true);
 
   UseFunctionTypeSyntaxForParameters()
       : super(

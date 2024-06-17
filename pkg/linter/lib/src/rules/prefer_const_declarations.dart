@@ -40,7 +40,8 @@ class A {
 class PreferConstDeclarations extends LintRule {
   static const LintCode code = LintCode('prefer_const_declarations',
       "Use 'const' for final variables initialized to a constant value.",
-      correctionMessage: "Try replacing 'final' with 'const'.");
+      correctionMessage: "Try replacing 'final' with 'const'.",
+      hasPublishedDocs: true);
 
   PreferConstDeclarations()
       : super(

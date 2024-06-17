@@ -29,7 +29,8 @@ set speed(int ms);
 class AvoidReturnTypesOnSetters extends LintRule {
   static const LintCode code = LintCode(
       'avoid_return_types_on_setters', 'Unnecessary return type on a setter.',
-      correctionMessage: 'Try removing the return type.');
+      correctionMessage: 'Try removing the return type.',
+      hasPublishedDocs: true);
 
   AvoidReturnTypesOnSetters()
       : super(

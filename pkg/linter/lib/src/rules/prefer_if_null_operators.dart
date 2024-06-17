@@ -29,7 +29,8 @@ v = a ?? b;
 class PreferIfNullOperators extends LintRule {
   static const LintCode code = LintCode('prefer_if_null_operators',
       "Use the '??' operator rather than '?:' when testing for 'null'.",
-      correctionMessage: "Try rewriting the code to use '??'.");
+      correctionMessage: "Try rewriting the code to use '??'.",
+      hasPublishedDocs: true);
 
   PreferIfNullOperators()
       : super(

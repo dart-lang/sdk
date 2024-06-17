@@ -49,7 +49,7 @@ for any type of map or list:
 class PreferVoidToNull extends LintRule {
   static const LintCode code = LintCode(
       'prefer_void_to_null', "Unnecessary use of the type 'Null'.",
-      correctionMessage: "Try using 'void' instead.");
+      correctionMessage: "Try using 'void' instead.", hasPublishedDocs: true);
 
   PreferVoidToNull()
       : super(

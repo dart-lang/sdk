@@ -35,7 +35,8 @@ class PreferIsNotOperator extends LintRule {
       "Use the 'is!' operator rather than negating the value of the 'is' "
           'operator.',
       correctionMessage:
-          "Try rewriting the condition to use the 'is!' operator.");
+          "Try rewriting the condition to use the 'is!' operator.",
+      hasPublishedDocs: true);
 
   PreferIsNotOperator()
       : super(

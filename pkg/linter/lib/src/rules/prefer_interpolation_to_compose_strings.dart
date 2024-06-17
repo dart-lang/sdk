@@ -34,7 +34,8 @@ class PreferInterpolationToComposeStrings extends LintRule {
       'prefer_interpolation_to_compose_strings',
       'Use interpolation to compose strings and values.',
       correctionMessage:
-          'Try using string interpolation to build the composite string.');
+          'Try using string interpolation to build the composite string.',
+      hasPublishedDocs: true);
 
   PreferInterpolationToComposeStrings()
       : super(

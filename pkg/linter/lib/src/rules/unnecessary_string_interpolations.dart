@@ -31,7 +31,8 @@ class UnnecessaryStringInterpolations extends LintRule {
   static const LintCode code = LintCode('unnecessary_string_interpolations',
       'Unnecessary use of string interpolation.',
       correctionMessage:
-          'Try replacing the string literal with the variable name.');
+          'Try replacing the string literal with the variable name.',
+      hasPublishedDocs: true);
 
   UnnecessaryStringInterpolations()
       : super(

@@ -67,7 +67,8 @@ class CancelSubscriptions extends LintRule {
   static const LintCode code = LintCode(
       'cancel_subscriptions', "Uncancelled instance of 'StreamSubscription'.",
       correctionMessage: "Try invoking 'cancel' in the function in which the "
-          "'StreamSubscription' was created.");
+          "'StreamSubscription' was created.",
+      hasPublishedDocs: true);
 
   CancelSubscriptions()
       : super(

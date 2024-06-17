@@ -41,7 +41,8 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
       'Use a function declaration rather than a variable assignment to bind a '
           'function to a name.',
       correctionMessage:
-          'Try rewriting the closure assignment as a function declaration.');
+          'Try rewriting the closure assignment as a function declaration.',
+      hasPublishedDocs: true);
 
   PreferFunctionDeclarationsOverVariables()
       : super(

@@ -47,7 +47,8 @@ var [a, _, b, _] = [1, 2, 3, 4];
 class NoWildcardVariableUses extends LintRule {
   static const LintCode code = LintCode(
       'no_wildcard_variable_uses', 'The referenced identifier is a wildcard.',
-      correctionMessage: 'Use an identifier name that is not a wildcard.');
+      correctionMessage: 'Use an identifier name that is not a wildcard.',
+      hasPublishedDocs: true);
 
   NoWildcardVariableUses()
       : super(

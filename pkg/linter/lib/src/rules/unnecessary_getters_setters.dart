@@ -52,7 +52,8 @@ class UnnecessaryGettersSetters extends LintRule {
   static const LintCode code = LintCode('unnecessary_getters_setters',
       'Unnecessary use of getter and setter to wrap a field.',
       correctionMessage:
-          'Try removing the getter and setter and renaming the field.');
+          'Try removing the getter and setter and renaming the field.',
+      hasPublishedDocs: true);
 
   UnnecessaryGettersSetters()
       : super(

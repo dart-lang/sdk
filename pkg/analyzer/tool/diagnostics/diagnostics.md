@@ -24204,7 +24204,9 @@ Iterable<String> get zero sync* {
 
 ### always_declare_return_types
 
-_Missing return type on method._
+_The function '{0}' should have a return type but doesn't._
+
+_The method '{0}' should have a return type but doesn't._
 
 #### Description
 

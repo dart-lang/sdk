@@ -51,7 +51,8 @@ class Ok {
 class ThrowInFinally extends LintRule {
   static const LintCode code = LintCode(
       'throw_in_finally', "Use of '{0}' in 'finally' block.",
-      correctionMessage: "Try moving the '{0}' outside the 'finally' block.");
+      correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
+      hasPublishedDocs: true);
 
   ThrowInFinally()
       : super(
