@@ -24,7 +24,8 @@ class AnalysisOptionsProvider {
   /// [root]/[file_paths.analysisOptionsYaml].
   /// Recursively merge options referenced by an include directive
   /// and remove the include directive from the resulting options map.
-  /// Return an empty options map if the file does not exist.
+  /// Return an empty options map if the file does not exist or cannot be
+  /// parsed.
   YamlMap getOptions(Folder root) {
     File? optionsFile = getOptionsFile(root);
     if (optionsFile == null) {
@@ -51,7 +52,8 @@ class AnalysisOptionsProvider {
   /// Provide the options found in [file].
   /// Recursively merge options referenced by an include directive
   /// and remove the include directive from the resulting options map.
-  /// Return an empty options map if the file does not exist.
+  /// Return an empty options map if the file does not exist or cannot be
+  /// parsed.
   YamlMap getOptionsFromFile(File file) {
     return getOptionsFromSource(FileSource(file));
   }
@@ -60,21 +62,25 @@ class AnalysisOptionsProvider {
   ///
   /// Recursively merge options referenced by an `include` directive and remove
   /// the `include` directive from the resulting options map. Return an empty
-  /// options map if the file does not exist.
+  /// options map if the file does not exist or cannot be parsed.
   YamlMap getOptionsFromSource(Source source) {
-    YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
-    var node = options.valueAt(AnalyzerOptions.include);
-    var sourceFactory = this.sourceFactory;
-    if (sourceFactory != null && node is YamlScalar) {
-      var path = node.value;
-      if (path is String) {
-        var parent = sourceFactory.resolveUri(source, path);
-        if (parent != null) {
-          options = merge(getOptionsFromSource(parent), options);
+    try {
+      YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
+      var node = options.valueAt(AnalyzerOptions.include);
+      var sourceFactory = this.sourceFactory;
+      if (sourceFactory != null && node is YamlScalar) {
+        var path = node.value;
+        if (path is String) {
+          var parent = sourceFactory.resolveUri(source, path);
+          if (parent != null) {
+            options = merge(getOptionsFromSource(parent), options);
+          }
         }
       }
+      return options;
+    } on OptionsFormatException {
+      return YamlMap();
     }
-    return options;
   }
 
   /// Provide the options found in [content].

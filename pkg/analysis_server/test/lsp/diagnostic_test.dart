@@ -135,6 +135,26 @@ include: package:pedantic/analysis_options.yaml
     // expect(updatedDiagnostics, hasLength(0));
   }
 
+  /// Ensure the server can initialize correctly and send diagnostics when the
+  /// analysis_options file throws errors during parsing.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/55987
+  Future<void> test_analysisOptionsFile_parseError() async {
+    newFile(analysisOptionsPath, '''
+include: package:lints/recommended.yaml
+f
+
+''');
+
+    var firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    await initialize();
+    var initialDiagnostics = await firstDiagnosticsUpdate;
+    var diagnostic = initialDiagnostics!.first;
+    expect(diagnostic.severity, DiagnosticSeverity.Error);
+    expect(diagnostic.code, 'parse_error');
+    expect(diagnostic.message, "Expected ':'.");
+  }
+
   Future<void> test_contextMessage() async {
     newFile(mainFilePath, '''
 void f() {

@@ -295,8 +295,12 @@ class AnalysisServer {
   void _handleServerError(Map<String, dynamic>? error) {
     _serverErrorReceived = true;
     final err = error!;
+    log.stderr('An unexpected error was encountered by the Analysis Server.');
+    log.stderr('Please file an issue at '
+        'https://github.com/dart-lang/sdk/issues/new/choose with the following '
+        'details:\n');
     // Fields are 'isFatal', 'message', and 'stackTrace'.
-    log.stderr('Error from the analysis server: ${err['message']}');
+    log.stderr(err['message']);
     if (err['stackTrace'] != null) {
       log.stderr(err['stackTrace'] as String);
     }
