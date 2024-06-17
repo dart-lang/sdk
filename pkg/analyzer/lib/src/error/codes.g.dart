@@ -4876,8 +4876,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CLOSURE =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
-    "The return type '{0}' isn't a '{1}', as required by the closure's "
-        "context.",
+    "The returned type '{0}' isn't returnable from a '{1}' function, as "
+        "required by the closure's context.",
     hasPublishedDocs: true,
   );
 
@@ -4908,7 +4908,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the return type as declared in the return statement
+  ///  0: the type of the expression in the return statement
   ///  1: the expected return type as defined by the method
   ///  2: the name of the method
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =

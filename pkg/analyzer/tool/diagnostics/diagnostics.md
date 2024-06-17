@@ -19027,7 +19027,8 @@ int f() => 3;
 
 ### return_of_invalid_type_from_closure
 
-_The return type '{0}' isn't a '{1}', as required by the closure's context._
+_The returned type '{0}' isn't returnable from a '{1}' function, as required by
+the closure's context._
 
 #### Description
 
