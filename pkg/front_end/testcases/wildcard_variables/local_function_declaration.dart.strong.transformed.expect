@@ -17,7 +17,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic {
+static method test() → dynamic {
   function fn(wildcard dynamic _, wildcard dynamic _) → void {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/local_function_declaration.dart:7:11: Error: Undefined name '_'.
     print(_);
