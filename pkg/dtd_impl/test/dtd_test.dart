@@ -297,6 +297,15 @@ void main() {
       });
     });
   });
+
+  group('dtd arguments', () {
+    test('allow explicit port', () async {
+      const testPort = 8123;
+      dtd = await DartToolingDaemon.startService(['--port=$testPort']);
+      uri = dtd!.uri!.toString();
+      expect(Uri.parse(uri).port, testPort);
+    });
+  });
 }
 
 Peer _createClient(String uri) {
