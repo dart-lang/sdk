@@ -1321,6 +1321,14 @@ void main(int argc, char** argv) {
     vm_options.AddArgument("--link_natives_lazily");
 #endif
   }
+  if (app_snapshot != nullptr && app_snapshot->IsJIT()) {
+    // App-jit snapshot was created with this flag, it also has to be added
+    // when running the snapshot when it is depended upon by the graph builder
+    // (see e.g. FlowGraphBuilder::IsRecognizedMethodForFlowGraph).
+    // TODO(dartbug.com/56018) Better fix leaving less performance on the table.
+    vm_options.AddArgument("--target-unknown-cpu");
+  }
+
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||

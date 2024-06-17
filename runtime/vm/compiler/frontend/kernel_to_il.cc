@@ -365,6 +365,7 @@ Fragment FlowGraphBuilder::InstanceCall(
     const CallSiteAttributesMetadata* call_site_attrs,
     bool receiver_is_not_smi,
     bool is_call_on_this) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
@@ -391,13 +392,12 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   call->set_receiver_is_not_smi(receiver_is_not_smi);
   Push(call);
+  instructions <<= call;
   if (result_type != nullptr && result_type->IsConstant()) {
-    Fragment instructions(call);
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
-    return instructions;
   }
-  return Fragment(call);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::FfiCall(
@@ -629,6 +629,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const InferredTypeMetadata* result_type,
                                       intptr_t type_args_count,
                                       bool use_unchecked_entry) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   InputsArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z) StaticCallInstr(
@@ -639,13 +640,12 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
   Push(call);
+  instructions <<= call;
   if (result_type != nullptr && result_type->IsConstant()) {
-    Fragment instructions(call);
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
-    return instructions;
   }
-  return Fragment(call);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::CachableIdempotentCall(TokenPosition position,
