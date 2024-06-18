@@ -673,13 +673,19 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
-  bool is_marking() const { return marking_stack_block_ != nullptr; }
+  bool is_marking() const { return old_marking_stack_block_ != nullptr; }
   void MarkingStackAddObject(ObjectPtr obj);
+  void OldMarkingStackAddObject(ObjectPtr obj);
+  void NewMarkingStackAddObject(ObjectPtr obj);
   void DeferredMarkingStackAddObject(ObjectPtr obj);
-  void MarkingStackBlockProcess();
+  void OldMarkingStackBlockProcess();
+  void NewMarkingStackBlockProcess();
   void DeferredMarkingStackBlockProcess();
-  static intptr_t marking_stack_block_offset() {
-    return OFFSET_OF(Thread, marking_stack_block_);
+  static intptr_t old_marking_stack_block_offset() {
+    return OFFSET_OF(Thread, old_marking_stack_block_);
+  }
+  static intptr_t new_marking_stack_block_offset() {
+    return OFFSET_OF(Thread, new_marking_stack_block_);
   }
 
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
@@ -1217,7 +1223,8 @@ class Thread : public ThreadState {
   uword stack_overflow_flags_ = 0;
   uword volatile top_exit_frame_info_ = 0;
   StoreBufferBlock* store_buffer_block_ = nullptr;
-  MarkingStackBlock* marking_stack_block_ = nullptr;
+  MarkingStackBlock* old_marking_stack_block_ = nullptr;
+  MarkingStackBlock* new_marking_stack_block_ = nullptr;
   MarkingStackBlock* deferred_marking_stack_block_ = nullptr;
   uword volatile vm_tag_ = 0;
   // Memory locations dedicated for passing unboxed int64 and double
@@ -1406,12 +1413,16 @@ class Thread : public ThreadState {
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
-  void MarkingStackRelease();
-  void MarkingStackAcquire();
-  void MarkingStackFlush();
+  void OldMarkingStackRelease();
+  void OldMarkingStackAcquire();
+  void NewMarkingStackRelease();
+  void NewMarkingStackAcquire();
   void DeferredMarkingStackRelease();
   void DeferredMarkingStackAcquire();
-  void DeferredMarkingStackFlush();
+
+  void AcquireMarkingStacks();
+  void ReleaseMarkingStacks();
+  void FlushMarkingStacks();
 
   void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();

@@ -1062,7 +1062,8 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   blocks_ = heap_->isolate_group()->store_buffer()->PopAll();
   GCMarker* marker = heap_->old_space()->marker();
   if (marker != nullptr) {
-    mark_blocks_ = marker->marking_stack_.PopAll();
+    marker->new_marking_stack_.PushAll(
+        marker->tlab_deferred_marking_stack_.PopAll());
     new_blocks_ = marker->new_marking_stack_.PopAll();
     deferred_blocks_ = marker->deferred_marking_stack_.PopAll();
   }
@@ -1312,9 +1313,8 @@ void Scavenger::IterateWeak() {
 
   GCMarker* marker = heap_->old_space()->marker();
   if (marker != nullptr) {
-    Prune(&mark_blocks_, &marker->marking_stack_);
-    Prune(&new_blocks_, &marker->marking_stack_);
-    Prune(&deferred_blocks_, &marker->deferred_marking_stack_);
+    PruneNew();
+    PruneDeferred();
   }
 }
 
@@ -1521,7 +1521,58 @@ void Scavenger::MournWeakTables() {
       /*at_safepoint=*/true);
 }
 
-void Scavenger::Forward(MarkingStack* marking_stack) {
+void Scavenger::Forward(MarkingStackBlock* reading) {
+  ASSERT(abort_);
+
+  GCMarker* marker = heap_->old_space()->marker();
+  MarkingStack* old_marking_stack = &marker->old_marking_stack_;
+  MarkingStack* new_marking_stack = &marker->new_marking_stack_;
+  MarkingStackBlock* old_writing = old_marking_stack->PopNonFullBlock();
+  MarkingStackBlock* new_writing = new_marking_stack->PopNonFullBlock();
+  while (reading != nullptr) {
+    // Generated code appends to marking stacks; tell MemorySanitizer.
+    MSAN_UNPOISON(reading, sizeof(*reading));
+    while (!reading->IsEmpty()) {
+      ObjectPtr obj = reading->Pop();
+      ASSERT(obj->IsHeapObject());
+#if defined(DEBUG)
+      if (obj->IsNewObject()) {
+        uword header = ReadHeaderRelaxed(obj);
+        ASSERT(!IsForwarding(header));
+      }
+#endif
+      if (obj->IsForwardingCorpse()) {
+        // Promoted object was pushed to mark list but reversed.
+        obj = reinterpret_cast<ForwardingCorpse*>(UntaggedObject::ToAddr(obj))
+                  ->target();
+      }
+      ASSERT(!obj->IsForwardingCorpse());
+      ASSERT(!obj->IsFreeListElement());
+      if (obj->IsNewObject()) {
+        new_writing->Push(obj);
+        if (new_writing->IsFull()) {
+          new_marking_stack->PushBlock(new_writing);
+          new_writing = new_marking_stack->PopNonFullBlock();
+        }
+      } else {
+        old_writing->Push(obj);
+        if (old_writing->IsFull()) {
+          old_marking_stack->PushBlock(old_writing);
+          old_writing = old_marking_stack->PopNonFullBlock();
+        }
+      }
+    }
+
+    MarkingStackBlock* next = reading->next();
+    reading->Reset();
+    old_marking_stack->PushBlock(reading);
+    reading = next;
+  }
+  old_marking_stack->PushBlock(old_writing);
+  new_marking_stack->PushBlock(new_writing);
+}
+
+void Scavenger::ForwardDeferred() {
   ASSERT(abort_);
 
   class ReverseMarkStack : public ObjectPointerVisitor {
@@ -1555,20 +1606,72 @@ void Scavenger::Forward(MarkingStack* marking_stack) {
   };
 
   ReverseMarkStack visitor(heap_->isolate_group());
-  marking_stack->VisitObjectPointers(&visitor);
+  heap_->old_space()->marker()->deferred_marking_stack_.VisitObjectPointers(
+      &visitor);
 }
 
-void Scavenger::Prune(MarkingStackBlock** source, MarkingStack* marking_stack) {
+void Scavenger::PruneNew() {
   ASSERT(!abort_);
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "PruneMarkingStack");
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "PruneNewMarkingStack");
   MarkingStackBlock* reading;
+  GCMarker* marker = heap_->old_space()->marker();
+  MarkingStack* old_marking_stack = &marker->old_marking_stack_;
+  MarkingStack* new_marking_stack = &marker->new_marking_stack_;
+  MarkingStackBlock* old_writing = old_marking_stack->PopNonFullBlock();
+  MarkingStackBlock* new_writing = new_marking_stack->PopNonFullBlock();
+  for (;;) {
+    {
+      MutexLocker ml(&space_lock_);
+      reading = new_blocks_;
+      if (reading == nullptr) break;
+      new_blocks_ = reading->next();
+    }
+    // Generated code appends to marking stacks; tell MemorySanitizer.
+    MSAN_UNPOISON(reading, sizeof(*reading));
+    while (!reading->IsEmpty()) {
+      ObjectPtr obj = reading->Pop();
+      ASSERT(obj->IsHeapObject());
+      if (obj->IsNewObject()) {
+        uword header = ReadHeaderRelaxed(obj);
+        if (!IsForwarding(header)) continue;
+        obj = ForwardedObj(header);
+      }
+      ASSERT(!obj->IsForwardingCorpse());
+      ASSERT(!obj->IsFreeListElement());
+      if (obj->IsNewObject()) {
+        new_writing->Push(obj);
+        if (new_writing->IsFull()) {
+          new_marking_stack->PushBlock(new_writing);
+          new_writing = new_marking_stack->PopNonFullBlock();
+        }
+      } else {
+        old_writing->Push(obj);
+        if (old_writing->IsFull()) {
+          old_marking_stack->PushBlock(old_writing);
+          old_writing = old_marking_stack->PopNonFullBlock();
+        }
+      }
+    }
+    reading->Reset();
+    new_marking_stack->PushBlock(reading);
+  }
+  old_marking_stack->PushBlock(old_writing);
+  new_marking_stack->PushBlock(new_writing);
+}
+
+void Scavenger::PruneDeferred() {
+  ASSERT(!abort_);
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "PruneDeferredMarkingStack");
+  MarkingStackBlock* reading;
+  GCMarker* marker = heap_->old_space()->marker();
+  MarkingStack* marking_stack = &marker->deferred_marking_stack_;
   MarkingStackBlock* writing = marking_stack->PopNonFullBlock();
   for (;;) {
     {
       MutexLocker ml(&space_lock_);
-      reading = *source;
+      reading = deferred_blocks_;
       if (reading == nullptr) break;
-      *source = reading->next();
+      deferred_blocks_ = reading->next();
     }
     // Generated code appends to marking stacks; tell MemorySanitizer.
     MSAN_UNPOISON(reading, sizeof(*reading));
@@ -1995,9 +2098,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   GCMarker* marker = heap_->old_space()->marker();
   if (marker != nullptr) {
-    marker->marking_stack_.PushAll(mark_blocks_);
-    mark_blocks_ = nullptr;
-    marker->marking_stack_.PushAll(new_blocks_);
+    marker->new_marking_stack_.PushAll(new_blocks_);
     new_blocks_ = nullptr;
     marker->deferred_marking_stack_.PushAll(deferred_blocks_);
     deferred_blocks_ = nullptr;
@@ -2005,9 +2106,13 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
     // the scavenge workers may add promoted objects to the mark stack.
     heap_->isolate_group()->FlushMarkingStacks();
 
-    Forward(&marker->marking_stack_);
-    ASSERT(marker->new_marking_stack_.IsEmpty());
-    Forward(&marker->deferred_marking_stack_);
+    MarkingStackBlock* old = marker->old_marking_stack_.PopAll();
+    MarkingStackBlock* neu = marker->old_marking_stack_.PopAll();
+    MarkingStackBlock* tlab = marker->old_marking_stack_.PopAll();
+    Forward(old);
+    Forward(neu);
+    Forward(tlab);
+    ForwardDeferred();
   }
 
   // Restore write-barrier assumptions. Must occur after mark list fixups.

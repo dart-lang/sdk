@@ -15,8 +15,19 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
 }
 END_LEAF_RUNTIME_ENTRY
 
-DEFINE_LEAF_RUNTIME_ENTRY(void, MarkingStackBlockProcess, 1, Thread* thread) {
-  thread->MarkingStackBlockProcess();
+DEFINE_LEAF_RUNTIME_ENTRY(void,
+                          OldMarkingStackBlockProcess,
+                          1,
+                          Thread* thread) {
+  thread->OldMarkingStackBlockProcess();
+}
+END_LEAF_RUNTIME_ENTRY
+
+DEFINE_LEAF_RUNTIME_ENTRY(void,
+                          NewMarkingStackBlockProcess,
+                          1,
+                          Thread* thread) {
+  thread->NewMarkingStackBlockProcess();
 }
 END_LEAF_RUNTIME_ENTRY
 

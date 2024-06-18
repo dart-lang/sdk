@@ -18,7 +18,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method main() → dynamic async /* emittedValueType= dynamic */ {
+static method test() → dynamic async /* emittedValueType= dynamic */ {
   for (wildcard core::int _ = 0, wildcard core::int _ = 2; ; ) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:8:11: Error: Undefined name '_'.
     print(_);

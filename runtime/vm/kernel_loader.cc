@@ -764,8 +764,7 @@ void KernelLoader::ReadInferredType(const Field& field,
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&
                          !field.is_nullable() &&
-                         ((field.guarded_cid() == kDoubleCid &&
-                           FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+                         ((field.guarded_cid() == kDoubleCid) ||
                           (field.guarded_cid() == kFloat32x4Cid &&
                            FlowGraphCompiler::SupportsUnboxedSimd128()) ||
                           (field.guarded_cid() == kFloat64x2Cid &&

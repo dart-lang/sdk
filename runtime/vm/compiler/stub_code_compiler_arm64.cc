@@ -1917,7 +1917,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ PushRegisters(spill_set);
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (atomics do not support offsets).
@@ -1934,24 +1934,36 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
       __ cbnz(&retry, R4);
     }
 
-    __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
-    __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                      kUnsignedFourBytes);
-    __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
-    __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
-    __ add(R2, R2, Operand(1));
-    __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                     kUnsignedFourBytes);
-    __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
-    __ b(&done, NE);
+    __ tbnz(&is_new, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mov(R0, THR);
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ LoadFromOffset(R4, THR, offset);
+      __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
+                        kUnsignedFourBytes);
+      __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
+      __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
+      __ add(R2, R2, Operand(1));
+      __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
+                       kUnsignedFourBytes);
+      __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
+      __ b(&done, NE);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ mov(R0, THR);
+        rt.Call(entry, /*argument_count=*/1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ b(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ clrex();

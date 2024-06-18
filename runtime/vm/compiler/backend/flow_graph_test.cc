@@ -296,10 +296,6 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LargeFrame_Float64x2) {
 }
 
 ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return;
-  }
-
   const char* kScript = R"(
     double foo(double sum, int n) {
        if (sum == null) return 0.0;

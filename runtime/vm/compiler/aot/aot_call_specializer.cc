@@ -651,10 +651,6 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
     return false;
   }
 
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return false;
-  }
-
   Definition* replacement = nullptr;
 
   if (instr->ArgumentCount() == 2) {

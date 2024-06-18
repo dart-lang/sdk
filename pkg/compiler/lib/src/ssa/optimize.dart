@@ -1559,6 +1559,25 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           return _graph.addConstant(value, _closedWorld);
         }
       }
+      if (constant is RecordConstantValue) {
+        final recordData = _closedWorld.recordData;
+        final shape = constant.shape;
+        final representation = recordData.representationForShape(shape);
+        if (representation != null) {
+          // The `representation` does not have a method to convert a field into
+          // a record-index, so look at all the possible access paths to find
+          // one that matches the field. Although this is 'slow' (1) only short
+          // records have direct fields (longer ones use arrays), and (2) we
+          // should always find a matching path, so the search will not be
+          // repeated in later phases.
+          for (int i = 0; i < constant.shape.fieldCount; i++) {
+            final path = recordData.pathForAccess(shape, i);
+            if (path.field == node.element && path.index == null) {
+              return _graph.addConstant(constant.values[i], _closedWorld);
+            }
+          }
+        }
+      }
     }
 
     return node;
@@ -1648,6 +1667,38 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         if (foldedValue != null) {
           _metrics.countIndexFolded.add();
           return _graph.addConstant(foldedValue, _closedWorld);
+        }
+      }
+    } else if (receiver is HFieldGet) {
+      // Match the access path `(constant_record._values)[i]` for 'long' records
+      // where the record fields are stored in an Array (the `_RecordN` family
+      // of representations).
+      final receiver2 = receiver.receiver;
+      if (receiver2 is HConstant) {
+        final constant = receiver2.constant;
+        if (constant is RecordConstantValue) {
+          HInstruction index = node.index;
+          if (index is HConstant) {
+            final constantIndex = index.constant;
+            if (constantIndex is IntConstantValue && constantIndex.isUInt31()) {
+              int indexValue = constantIndex.intValue.toInt();
+              final recordData = _closedWorld.recordData;
+              final shape = constant.shape;
+              final representation = recordData.representationForShape(shape);
+              if (representation != null) {
+                // We assume that the record index is going to be the same as
+                // the HIndex index. If not (for example, we put the shape in
+                // the first slot of the array, offsetting the record field
+                // indexes), the codegen test will fail.
+                final path = recordData.pathForAccess(shape, indexValue);
+                if (path.field == receiver.element &&
+                    path.index == indexValue) {
+                  return _graph.addConstant(
+                      constant.values[indexValue], _closedWorld);
+                }
+              }
+            }
+          }
         }
       }
     }

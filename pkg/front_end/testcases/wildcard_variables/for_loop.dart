@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() async {
+test() async {
   // Multiple for-loop wildcard declarations.
   for (int _ = 0, _ = 2;;) {
     print(_);

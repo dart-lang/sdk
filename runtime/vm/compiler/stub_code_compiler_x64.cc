@@ -1837,7 +1837,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ pushq(RAX);      // Spill.
     __ pushq(RCX);      // Spill.
     __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
@@ -1854,23 +1854,37 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
     __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
-    __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
-    __ movq(Address(RAX, RCX, TIMES_8,
-                    target::MarkingStackBlock::pointers_offset()),
-            TMP);
-    __ incq(RCX);
-    __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
-    __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
-    __ j(NOT_EQUAL, &done);
+    __ testq(TMP,
+             Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ j(NOT_ZERO, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ movq(CallingConventions::kArg1Reg, THR);
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ movq(RAX, Address(THR, offset));
+      __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
+      __ movq(Address(RAX, RCX, TIMES_8,
+                      target::MarkingStackBlock::pointers_offset()),
+              TMP);
+      __ incq(RCX);
+      __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
+      __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
+      __ j(NOT_EQUAL, &done);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ movq(CallingConventions::kArg1Reg, THR);
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ jmp(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ popq(RCX);  // Unspill.

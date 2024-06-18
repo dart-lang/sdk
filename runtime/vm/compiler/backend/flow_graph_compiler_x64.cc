@@ -63,10 +63,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   }
 }
 
-bool FlowGraphCompiler::SupportsUnboxedDoubles() {
-  return true;
-}
-
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }

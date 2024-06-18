@@ -9,7 +9,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic {
+static method test() → dynamic {
   wildcard core::int _ = 1;
   wildcard core::int _ = 2;
   invalid-expression "pkg/front_end/testcases/wildcard_variables/local_var.dart:8:3: Error: Setter not found: '_'.

@@ -171,6 +171,7 @@ class BlockWorkList : public ValueObject {
   }
 
   // Returns false if no more work was found.
+  DART_FORCE_INLINE
   bool Pop(ObjectPtr* object) {
     ASSERT(local_input_ != nullptr);
     if (UNLIKELY(local_input_->IsEmpty())) {
@@ -191,6 +192,28 @@ class BlockWorkList : public ValueObject {
     }
     *object = local_input_->Pop();
     return true;
+  }
+
+  // Returns false if no more work was found.
+  DART_FORCE_INLINE
+  static bool Pop(BlockWorkList* first_choice,
+                  BlockWorkList* second_choice,
+                  ObjectPtr* object) {
+    if (!first_choice->local_input_->IsEmpty()) {
+      *object = first_choice->local_input_->Pop();
+      return true;
+    }
+    if (!second_choice->local_input_->IsEmpty()) {
+      *object = second_choice->local_input_->Pop();
+      return true;
+    }
+    if (first_choice->Pop(object)) {
+      return true;
+    }
+    if (second_choice->Pop(object)) {
+      return true;
+    }
+    return false;
   }
 
   void Push(ObjectPtr raw_obj) {

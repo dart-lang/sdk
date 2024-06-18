@@ -1089,9 +1089,7 @@ void UnboxFieldIfSupported(const dart::Field& field,
 
   classid_t cid = kIllegalCid;
   if (type.IsDoubleType()) {
-    if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-      cid = kDoubleCid;
-    }
+    cid = kDoubleCid;
   } else if (type.IsFloat32x4Type()) {
     if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
       cid = kFloat32x4Cid;

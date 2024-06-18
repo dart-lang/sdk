@@ -302,9 +302,6 @@ DEFINE_ARRAY_SETTER_INTRINSIC(Uint64Array)
 #define DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC(enum_name)                         \
   bool GraphIntrinsifier::Build_##enum_name##SetIndexed(                       \
       FlowGraph* flow_graph) {                                                 \
-    if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {                        \
-      return false;                                                            \
-    }                                                                          \
     return IntrinsifyArraySetIndexed(                                          \
         flow_graph, MethodRecognizer::MethodKindToReceiverCid(                 \
                         MethodRecognizer::k##enum_name##SetIndexed));          \
@@ -401,8 +398,7 @@ bool GraphIntrinsifier::Build_Float64x2Add(FlowGraph* flow_graph) {
 
 static bool BuildFloat32x4Get(FlowGraph* flow_graph,
                               MethodRecognizer::Kind kind) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles() ||
-      !FlowGraphCompiler::SupportsUnboxedSimd128()) {
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {
     return false;
   }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -705,9 +701,6 @@ static Definition* ConvertOrUnboxDoubleParameter(BlockBuilder* builder,
 }
 
 bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
-    return false;
-  }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry, /*with_frame=*/false);

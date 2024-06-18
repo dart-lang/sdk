@@ -563,11 +563,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
   void FlushMarkingStacks();
-  void EnableIncrementalBarrier(MarkingStack* marking_stack,
+  void EnableIncrementalBarrier(MarkingStack* old_marking_stack,
+                                MarkingStack* new_marking_stack,
                                 MarkingStack* deferred_marking_stack);
   void DisableIncrementalBarrier();
 
-  MarkingStack* marking_stack() const { return marking_stack_; }
+  MarkingStack* old_marking_stack() const { return old_marking_stack_; }
+  MarkingStack* new_marking_stack() const { return new_marking_stack_; }
   MarkingStack* deferred_marking_stack() const {
     return deferred_marking_stack_;
   }
@@ -835,7 +837,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
 #endif  // !defined(PRODUCT)
 
-  MarkingStack* marking_stack_ = nullptr;
+  MarkingStack* old_marking_stack_ = nullptr;
+  MarkingStack* new_marking_stack_ = nullptr;
   MarkingStack* deferred_marking_stack_ = nullptr;
   std::shared_ptr<IsolateGroupSource> source_;
   std::unique_ptr<ApiState> api_state_;

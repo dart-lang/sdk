@@ -1604,7 +1604,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (ldrex/strex do not support offsets).
@@ -1617,21 +1617,34 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmp(R4, Operand(1));
     __ b(&retry, EQ);
 
-    __ ldr(R4, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ ldr(R2, Address(R4, target::MarkingStackBlock::top_offset()));
-    __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
-    __ str(R0, Address(R3, target::MarkingStackBlock::pointers_offset()));
-    __ add(R2, R2, Operand(1));
-    __ str(R2, Address(R4, target::MarkingStackBlock::top_offset()));
-    __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
-    __ b(&done, NE);
+    __ tst(R0, Operand(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ b(&is_new, NOT_ZERO);
 
-    {
-      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mov(R0, Operand(THR));
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ ldr(R4, Address(THR, offset));
+      __ ldr(R2, Address(R4, target::MarkingStackBlock::top_offset()));
+      __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
+      __ str(R0, Address(R3, target::MarkingStackBlock::pointers_offset()));
+      __ add(R2, R2, Operand(1));
+      __ str(R2, Address(R4, target::MarkingStackBlock::top_offset()));
+      __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
+      __ b(&done, NE);
+
+      {
+        LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ mov(R0, Operand(THR));
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ b(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ clrex();
