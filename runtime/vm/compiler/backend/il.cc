@@ -7260,6 +7260,67 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   return kLibcPowRuntimeEntry;
 }
 
+Definition* InvokeMathCFunctionInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!CompilerState::Current().is_aot() &&
+      TargetCPUFeatures::double_truncate_round_supported()) {
+    Token::Kind op_kind = Token::kILLEGAL;
+    switch (recognized_kind_) {
+      case MethodRecognizer::kDoubleTruncateToDouble:
+        op_kind = Token::kTRUNCATE;
+        break;
+      case MethodRecognizer::kDoubleFloorToDouble:
+        op_kind = Token::kFLOOR;
+        break;
+      case MethodRecognizer::kDoubleCeilToDouble:
+        op_kind = Token::kCEILING;
+        break;
+      default:
+        return this;
+    }
+    auto* instr = new UnaryDoubleOpInstr(
+        op_kind, new Value(InputAt(0)->definition()), GetDeoptId(),
+        Instruction::kNotSpeculative, kUnboxedDouble);
+    flow_graph->InsertBefore(this, instr, env(), FlowGraph::kValue);
+    return instr;
+  }
+
+  return this;
+}
+
+bool DoubleToIntegerInstr::SupportsFloorAndCeil() {
+#if defined(TARGET_ARCH_X64)
+  return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
+  return true;
+#else
+  return false;
+#endif
+}
+
+Definition* DoubleToIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (SupportsFloorAndCeil() &&
+      (recognized_kind() == MethodRecognizer::kDoubleToInteger)) {
+    if (auto* arg = value()->definition()->AsInvokeMathCFunction()) {
+      switch (arg->recognized_kind()) {
+        case MethodRecognizer::kDoubleFloorToDouble:
+          // x.floorToDouble().toInt() => x.floor()
+          recognized_kind_ = MethodRecognizer::kDoubleFloorToInt;
+          value()->BindTo(arg->InputAt(0)->definition());
+          break;
+        case MethodRecognizer::kDoubleCeilToDouble:
+          // x.ceilToDouble().toInt() => x.ceil()
+          recognized_kind_ = MethodRecognizer::kDoubleCeilToInt;
+          value()->BindTo(arg->InputAt(0)->definition());
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  return this;
+}
+
 TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)
     : TemplateDefinition(deopt_id) {
   SetInputAt(0, lhs);

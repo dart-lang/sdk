@@ -10084,7 +10084,9 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
     return other.AsDoubleToInteger()->recognized_kind() == recognized_kind();
   }
 
-#define FIELD_LIST(F) F(const MethodRecognizer::Kind, recognized_kind_)
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+#define FIELD_LIST(F) F(MethodRecognizer::Kind, recognized_kind_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleToIntegerInstr,
                                           TemplateDefinition,
@@ -10092,6 +10094,8 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
 #undef FIELD_LIST
 
  private:
+  static bool SupportsFloorAndCeil();
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
 
@@ -10283,6 +10287,8 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
     auto const other_invoke = other.AsInvokeMathCFunction();
     return other_invoke->recognized_kind() == recognized_kind();
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool MayThrow() const { return false; }
 
