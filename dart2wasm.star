@@ -49,6 +49,7 @@ dart.ci_sandbox_builder(
     "dart2wasm-linux-jscm-chrome",
     category = "d2w|cm",
     properties = [chrome, emscripten, no_android],
+    location_filters = paths.to_location_filters(paths.dart2wasm),
     triggered_by = ["dart2wasm-gitiles-trigger-%s"],
 )
 
