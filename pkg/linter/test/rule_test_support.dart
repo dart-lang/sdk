@@ -19,6 +19,7 @@ import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -180,9 +181,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   List<String> get experiments => ['macros', 'wildcard-variables'];
 
   List<String> get lintRules => _lintRules;
-
-  /// The path that is not in [workspaceRootPath], contains external packages.
-  String get packagesRootPath => '/packages';
 
   String get testFileName => 'test.dart';
 
@@ -431,10 +429,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
 
     if (addFlutterPackageDep) {
-      var flutterPath = '/packages/flutter';
-      addFlutterPackageFiles(
-        getFolder(flutterPath),
-      );
+      var uiPath = addUI().parent.path;
+      configCopy.add(name: 'ui', rootPath: uiPath);
+
+      var flutterPath = addFlutter().parent.path;
       configCopy.add(name: 'flutter', rootPath: flutterPath);
     }
 
@@ -455,10 +453,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
 
     if (addMetaPackageDep) {
-      var metaPath = '/packages/meta';
-      MockPackages.addMetaPackageFiles(
-        getFolder(metaPath),
-      );
+      var metaPath = addMeta().parent.path;
       configCopy.add(name: 'meta', rootPath: metaPath);
     }
 
@@ -514,175 +509,6 @@ class Int32 {}
 class Int64 {}
 ''');
   }
-
-  /// Create a fake 'flutter' package that can be used by tests.
-  static void addFlutterPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
-
-    libFolder.getChildAssumingFile('foundation.dart').writeAsStringSync(r'''
-export 'src/foundation/assertions.dart';
-export 'src/foundation/constants.dart';
-''');
-
-    libFolder
-        .getChildAssumingFolder('src')
-        .getChildAssumingFolder('foundation')
-        .getChildAssumingFile('assertions.dart')
-        .writeAsStringSync(r'''
-class FlutterErrorDetails /* with Diagnosticable */ {
-  const FlutterErrorDetails({
-    required Object exception,
-  });
-}
-
-class FlutterError /* extends Error with DiagnosticableTreeMixin implements AssertionError */ {
-  static void reportError(FlutterErrorDetails details) {}
-}
-
-''');
-
-    libFolder
-        .getChildAssumingFolder('src')
-        .getChildAssumingFolder('foundation')
-        .getChildAssumingFile('constants.dart')
-        .writeAsStringSync(r'''
-mixin Diagnosticable {
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
-}
-
-class DiagnosticableTree with Diagnosticable {
-  List<DiagnosticsNode> debugDescribeChildren() => const [];
-}
-
-class DiagnosticPropertiesBuilder {}
-
-class DiagnosticsNode {}
-
-class Key {
-  Key(String value);
-}
-
-const bool kDebugMode = true;
-''');
-
-    libFolder.getChildAssumingFile('widgets.dart').writeAsStringSync(r'''
-export 'src/widgets/basic.dart';
-export 'src/widgets/container.dart';
-export 'src/widgets/framework.dart';
-''');
-
-    libFolder
-        .getChildAssumingFolder('src')
-        .getChildAssumingFolder('widgets')
-        .getChildAssumingFile('basic.dart')
-        .writeAsStringSync(r'''
-import 'package:flutter/foundation.dart';
-import 'framework.dart';
-
-class Column implements Widget {
-  Column({
-    Key? key,
-    List<Widget> children = const <Widget>[],
-  });
-}
-
-class RawMaterialButton implements Widget {
-  RawMaterialButton({
-    Key? key,
-    Widget? child,
-    void Function()? onPressed,
-  });
-}
-
-class SizedBox implements Widget {
-  SizedBox({
-    Key? key,
-    double height = 0,
-    double width = 0,
-    Widget? child,
-  });
-}
-
-class Text implements Widget {
-  Text(String data);
-}
-''');
-
-    libFolder
-        .getChildAssumingFolder('src')
-        .getChildAssumingFolder('widgets')
-        .getChildAssumingFile('container.dart')
-        .writeAsStringSync(r'''
-import 'framework.dart';
-
-// This is found in dart:ui.
-class Color {
-  Color(int value);
-}
-
-class Container extends StatelessWidget {
-  const Container({
-    super.key,
-    Color? color,
-    Decoration? decoration,
-    double? width,
-    double? height,
-    Widget? child,
-  });
-}
-
-class Decoration with Diagnosticable {}
-
-class BoxDecoration implements Decoration {}
-
-class Row implements Widget {}
-''');
-
-    libFolder
-        .getChildAssumingFolder('src')
-        .getChildAssumingFolder('widgets')
-        .getChildAssumingFile('framework.dart')
-        .writeAsStringSync(r'''
-import 'package:flutter/foundation.dart';
-
-abstract class BuildContext {
-  Widget get widget;
-  bool get mounted;
-}
-
-class Navigator {
-  static NavigatorState of(
-      BuildContext context, {bool rootNavigator = false}) => NavigatorState();
-}
-
-class NavigatorState {}
-
-abstract class StatefulWidget extends Widget {
-  const StatefulWidget({super.key});
-
-  State<StatefulWidget> createState();
-}
-
-abstract class State<T extends StatefulWidget> {
-  BuildContext get context;
-
-  bool get mounted;
-}
-
-abstract class Widget {
-  final Key? key;
-
-  const Widget({thi.key});
-}
-
-abstract class StatelessWidget extends Widget {
-  const StatelessWidget({super.key});
-
-  @protected
-  Widget build(BuildContext context);
-}
-''');
-  }
 }
 
 class PubspecYamlFileConfig {
@@ -729,7 +555,8 @@ class PubspecYamlFileDependency {
   });
 }
 
-abstract class _ContextResolutionTest with ResourceProviderMixin {
+abstract class _ContextResolutionTest
+    with MockPackagesMixin, ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
 
   final ByteStore _byteStore = MemoryByteStore();
@@ -752,6 +579,10 @@ abstract class _ContextResolutionTest with ResourceProviderMixin {
   /// Error codes that by default should be ignored in test expectations.
   List<AnalyzerErrorCode> get ignoredErrorCodes =>
       [WarningCode.UNUSED_LOCAL_VARIABLE];
+
+  /// The path to the root of the external packages.
+  @override
+  String get packagesRootPath => '/packages';
 
   Folder get sdkRoot => newFolder('/sdk');
 

@@ -137,6 +137,14 @@ class Padding extends SingleChildRenderObjectWidget {
   });
 }
 
+class RawMaterialButton implements Widget {
+  RawMaterialButton({
+    Key? key,
+    Widget? child,
+    void Function()? onPressed,
+  });
+}
+
 class Row extends Flex {
   Row({
     Key? key,
