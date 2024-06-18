@@ -189,18 +189,18 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 0x282a346e)                                      \
   V(_Double, _mul, DoubleMul, 0x1f7bafac)                                      \
   V(_Double, _div, DoubleDiv, 0x28601fd1)                                      \
-  V(_Double, _modulo, DoubleMod, 0xfd96802f)                                   \
-  V(_Double, _remainder, DoubleRem, 0xf0f45c93)                                \
+  V(_Double, _modulo, DoubleMod, 0xfd967c6e)                                   \
+  V(_Double, _remainder, DoubleRem, 0xf0f458d2)                                \
   V(_Double, ceil, DoubleCeilToInt, 0xcedbc005)                                \
-  V(_Double, ceilToDouble, DoubleCeilToDouble, 0x5efeb719)                     \
+  V(_Double, ceilToDouble, DoubleCeilToDouble, 0x5efeb358)                     \
   V(_Double, floor, DoubleFloorToInt, 0x2a1527c8)                              \
-  V(_Double, floorToDouble, DoubleFloorToDouble, 0x5497b388)                   \
-  V(_Double, roundToDouble, DoubleRoundToDouble, 0x562cb240)                   \
-  V(_Double, toInt, DoubleToInteger, 0x675208e9)                               \
-  V(_Double, truncateToDouble, DoubleTruncateToDouble, 0x62b76e99)             \
+  V(_Double, floorToDouble, DoubleFloorToDouble, 0x5497afc7)                   \
+  V(_Double, roundToDouble, DoubleRoundToDouble, 0x562cae7f)                   \
+  V(_Double, toInt, DoubleToInteger, 0x67520167)                               \
+  V(_Double, truncateToDouble, DoubleTruncateToDouble, 0x62b76ad8)             \
   V(::, min, MathMin, 0x63eb7469)                                              \
   V(::, max, MathMax, 0xf9320c82)                                              \
-  V(::, _doublePow, MathDoublePow, 0xaeabdc94)                                 \
+  V(::, _doublePow, MathDoublePow, 0x428b8405)                                 \
   V(::, _intPow, MathIntPow, 0xab39e81a)                                       \
   V(::, _sin, MathSin, 0x17bdb243)                                             \
   V(::, _cos, MathCos, 0xf4776585)                                             \

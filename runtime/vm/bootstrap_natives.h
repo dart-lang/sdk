@@ -90,18 +90,11 @@ namespace dart {
   V(Double_sub, 2)                                                             \
   V(Double_mul, 2)                                                             \
   V(Double_div, 2)                                                             \
-  V(Double_remainder, 2)                                                       \
-  V(Double_modulo, 2)                                                          \
   V(Double_greaterThanFromInteger, 2)                                          \
   V(Double_equalToInteger, 2)                                                  \
   V(Double_greaterThan, 2)                                                     \
   V(Double_equal, 2)                                                           \
   V(Double_doubleFromInteger, 2)                                               \
-  V(Double_round, 1)                                                           \
-  V(Double_floor, 1)                                                           \
-  V(Double_ceil, 1)                                                            \
-  V(Double_truncate, 1)                                                        \
-  V(Double_toInt, 1)                                                           \
   V(Double_parse, 3)                                                           \
   V(Double_toString, 1)                                                        \
   V(Double_toStringAsFixed, 2)                                                 \
@@ -139,7 +132,6 @@ namespace dart {
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
-  V(Math_doublePow, 2)                                                         \
   V(Random_initialSeed, 0)                                                     \
   V(SecureRandom_getBytes, 1)                                                  \
   V(DateTime_currentTimeMicros, 0)                                             \

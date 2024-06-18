@@ -78,31 +78,7 @@ num pow(num x, num exponent) {
 
 @pragma("vm:recognized", "other")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-double _doublePow(double base, double exponent) {
-  if (exponent == 0.0) {
-    return 1.0; // ECMA-262 15.8.2.13
-  }
-  // Speed up simple cases.
-  if (exponent == 1.0) return base;
-  if (exponent == 2.0) return base * base;
-  if (exponent == 3.0) return base * base * base;
-
-  if (base == 1.0) return 1.0;
-
-  if (base.isNaN || exponent.isNaN) {
-    return double.nan;
-  }
-  if ((base != -double.infinity) && (exponent == 0.5)) {
-    if (base == 0.0) {
-      return 0.0;
-    }
-    return sqrt(base);
-  }
-  return _pow(base.toDouble(), exponent.toDouble());
-}
-
-@pragma("vm:external-name", "Math_doublePow")
-external double _pow(double base, double exponent);
+external double _doublePow(double base, double exponent);
 
 @pragma("vm:recognized", "other")
 int _intPow(int base, int exponent) {

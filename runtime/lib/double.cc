@@ -69,20 +69,6 @@ DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
   return Double::New(Utils::DivideAllowZero(left, right));
 }
 
-DEFINE_NATIVE_ENTRY(Double_modulo, 0, 2) {
-  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
-  double right = right_object.value();
-  return Double::New(DartModulo(left, right));
-}
-
-DEFINE_NATIVE_ENTRY(Double_remainder, 0, 2) {
-  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
-  double right = right_object.value();
-  return Double::New(fmod_ieee(left, right));
-}
-
 DEFINE_NATIVE_ENTRY(Double_greaterThan, 0, 2) {
   const Double& left = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
@@ -117,35 +103,10 @@ DEFINE_NATIVE_ENTRY(Double_equalToInteger, 0, 2) {
   return Bool::Get(left.value() == right.AsDoubleValue()).ptr();
 }
 
-DEFINE_NATIVE_ENTRY(Double_round, 0, 1) {
-  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Double::New(round(arg.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Double_floor, 0, 1) {
-  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Double::New(floor(arg.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Double_ceil, 0, 1) {
-  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Double::New(ceil(arg.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Double_truncate, 0, 1) {
-  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Double::New(trunc(arg.value()));
-}
-
 #if defined(DART_HOST_OS_MACOS)
 // MAC OSX math library produces old style cast warning.
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-
-DEFINE_NATIVE_ENTRY(Double_toInt, 0, 1) {
-  const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return DoubleToInteger(zone, arg.value());
-}
 
 DEFINE_NATIVE_ENTRY(Double_parse, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
