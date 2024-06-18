@@ -121,7 +121,7 @@ vars = {
   # revision.
 
   "args_rev": "6a5a2e6b1f0020b873c7ffbdd36a784c4f9ee300",
-  "async_rev": "a00437017231ebb6c3e3e8ecdfc9dd03522ab828",
+  "async_rev": "d7c0cd5a458308ab5e5a0d0deebdce32c4391ec6",
   "bazel_worker_rev": "c76d7c86381a6ed594641ba03b55c65b84ee11a6",
   "benchmark_harness_rev": "f6ef33dc88d7cbc9e4a8a087f1e652eb0d6cc254",
   "boolean_selector_rev": "62f82f6a333b419b457e62cadc17b7a9c0545873",
@@ -144,7 +144,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "14d33d3a120ad3ce621bbcf0a545dc3adeccd7e7",
+  "dartdoc_rev": "818d1f52f127b2aaba66c55bacad1cd5351d0d3d",
   "ecosystem_rev": "8ada2ee303383cf62cace9b2a97e8a3cc983e5c1",
   "file_rev": "07cacaed6679a173e29176747e6ce0325742749f",
   "fixnum_rev": "a8157d87f17d5184e210403f2ed63d354b854132",
@@ -153,7 +153,7 @@ vars = {
   "html_rev": "3bc803d7e655491b243418f19300ef0c6112bcea",
   "http_rev": "8c325b9ca33d878a86d69c5048a8e6e18379663c",
   "http_multi_server_rev": "25941e260658efb324de857e6022f418faf9bdd1",
-  "http_parser_rev": "71b4c2c448b333397d5ff3235825d8cea773291c",
+  "http_parser_rev": "9bf7bd981a39137da1e5d7fe64f4652b078c7aa9",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "5b1cbd679756700d5f319bf10a217da53e98ea52",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -171,7 +171,7 @@ vars = {
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "ddc1c2fd2e2a7cd94a0b92ea033961a25f4ad517", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "a9025f3cc23ebb0f86c0af8759d95306b9133ce0",
-  "shelf_rev": "4c54af6b6baa9404826d234385c1bf69575dfd47",
+  "shelf_rev": "2536c15a562cb183dabbc628824a215663830325",
   "source_map_stack_trace_rev": "96a8213dacf7cd42aefb1311491a4169826f98d2",
   "source_maps_rev": "caa79c2011015759c6cf3299f299f5cccdf8bb61",
   "source_span_rev": "59a3903521dbf4c38c77df73669e73174a170327",
