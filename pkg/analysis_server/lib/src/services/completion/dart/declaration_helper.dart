@@ -1144,11 +1144,14 @@ class DeclarationHelper {
         );
       }
     }
-    _addExtensionMembers(
-        type: element.thisType as InterfaceType,
-        excludedGetters: {},
-        includeMethods: true,
-        includeSetters: true);
+    var thisType = element.thisType;
+    if (thisType is InterfaceType) {
+      _addExtensionMembers(
+          type: thisType,
+          excludedGetters: {},
+          includeMethods: true,
+          includeSetters: true);
+    }
   }
 
   /// Completion is inside [declaration].
