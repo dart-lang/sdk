@@ -61,6 +61,24 @@ template("application_snapshot") {
   if (defined(invoker.vm_args)) {
     snapshot_vm_args = invoker.vm_args
   }
+
+  # If --coverage=true/false hasn't been explicitly specified,
+  # add --coverage=false.
+  has_coverage_setting = false
+  foreach(vm_arg, snapshot_vm_args) {
+    vm_arg_split = string_split(vm_arg, "=")
+    if (vm_arg_split[0] == "--coverage") {
+      has_coverage_setting = true
+    }
+  }
+  if (!has_coverage_setting) {
+    # Also add --ignore-unrecognized-flags because --coverage is unrecognized
+    # in product mode.
+    snapshot_vm_args += [
+      "--coverage=false",
+      "--ignore-unrecognized-flags",
+    ]
+  }
   main_dart = invoker.main_dart
   training_args = invoker.training_args
   training_deps = []

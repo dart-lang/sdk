@@ -246,6 +246,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   flags.use_osr = true;
   flags.is_system_isolate = true;
   flags.branch_coverage = false;
+  flags.coverage = false;
 
   char* error = nullptr;
   Dart_Isolate dartdev_isolate = runner->create_isolate_(

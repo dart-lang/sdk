@@ -288,7 +288,8 @@ trace to find the place to insert the appropriate support.
                 self.depfiles = [self.rebase(self.optarg)]
             elif self.get_option([
                     '--packages', '-D', '--snapshot-kind',
-                    '--depfile_output_filename'
+                    '--depfile_output_filename', '--coverage',
+                    '--ignore-unrecognized-flags'
             ]):
                 pass
             elif arg in ['--deterministic', '--sound-null-safety']:
@@ -387,7 +388,8 @@ trace to find the place to insert the appropriate support.
                         os.path.join(self.optarg, 'dart2js_platform.dill')))
             elif self.get_option([
                     '--invoker', '--packages', '--libraries-spec',
-                    '--snapshot-kind', '--depfile_output_filename'
+                    '--snapshot-kind', '--depfile_output_filename',
+                    '--coverage', '--ignore-unrecognized-flags'
             ]):
                 pass
             elif arg in [
@@ -661,7 +663,10 @@ trace to find the place to insert the appropriate support.
                     '--elf',
             ]):
                 self.outputs.append(self.rebase(self.optarg))
-            elif self.get_option(['--snapshot_kind', '--snapshot-kind']):
+            elif self.get_option([
+                    '--snapshot_kind', '--snapshot-kind', '--coverage',
+                    '--ignore-unrecognized-flags'
+            ]):
                 pass
             elif arg in [
                     '--sound-null-safety',

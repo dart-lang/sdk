@@ -9276,6 +9276,26 @@ ApiErrorPtr Deserializer::VerifyImageAlignment() {
   return ApiError::null();
 }
 
+void SnapshotHeaderReader::SetCoverageFromSnapshotFeatures(
+    IsolateGroup* isolate_group) {
+  auto prev_position = stream_.Position();
+  char* error = VerifyVersion();
+  if (error == nullptr) {
+    const char* features = nullptr;
+    intptr_t features_length = 0;
+    char* error = ReadFeatures(&features, &features_length);
+    if (error == nullptr) {
+      if (strstr(features, " no-coverage") != nullptr) {
+        isolate_group->set_coverage(false);
+      } else if (strstr(features, " coverage") != nullptr) {
+        isolate_group->set_coverage(true);
+      }
+    }
+  }
+
+  stream_.SetPosition(prev_position);
+}
+
 char* SnapshotHeaderReader::VerifyVersionAndFeatures(
     IsolateGroup* isolate_group,
     intptr_t* offset) {
@@ -9960,6 +9980,7 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
 
 ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
+  header_reader.SetCoverageFromSnapshotFeatures(thread_->isolate_group());
   intptr_t offset = 0;
   char* error =
       header_reader.VerifyVersionAndFeatures(thread_->isolate_group(), &offset);
