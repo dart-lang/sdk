@@ -31,9 +31,7 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var comment = node.thisOrAncestorOfType<Comment>();
-    if (comment == null ||
-        !comment.isDocumentation ||
-        comment.tokens.length != 1) {
+    if (comment == null || comment.tokens.length != 1) {
       return;
     }
     var token = comment.tokens.first;

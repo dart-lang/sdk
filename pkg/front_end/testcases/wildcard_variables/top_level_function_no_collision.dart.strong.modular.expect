@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/wildcard_variables/top_level_function_no_collision.dart:6:9: Error: Undefined name '_'.
+//   print(_);
+//         ^
+//
+// pkg/front_end/testcases/wildcard_variables/top_level_function_no_collision.dart:10:9: Error: Undefined name '_'.
+//   print(_);
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method fn(wildcard dynamic _, wildcard dynamic _) → void {
+  core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/top_level_function_no_collision.dart:6:9: Error: Undefined name '_'.
+  print(_);
+        ^");
+}
+static method fn2(wildcard dynamic _, wildcard dynamic _, wildcard dynamic _) → void {
+  core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/top_level_function_no_collision.dart:10:9: Error: Undefined name '_'.
+  print(_);
+        ^");
+}
+static method test() → dynamic {
+  self::fn(1, 2);
+  self::fn2(1, 2, 3);
+}

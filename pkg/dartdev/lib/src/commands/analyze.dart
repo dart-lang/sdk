@@ -119,6 +119,9 @@ class AnalyzeCommand extends DartdevCommand {
       }
     }
 
+    /// Errors in analysis_options and pubspec.yaml will be reported first
+    /// and a note that they might be the cause of other errors.
+    final List<AnalysisError> priorityErrors = <AnalysisError>[];
     final List<AnalysisError> errors = <AnalysisError>[];
 
     final machineFormat = args.option('format') == 'machine';
@@ -180,10 +183,19 @@ class AnalyzeCommand extends DartdevCommand {
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
+      var isPriorityFile = const {'analysis_options.yaml', 'pubspec.yaml'}
+          .contains(path.basename(fileErrors.file));
+
       // Record the issues found (but filter out to do comments unless they've
       // been upgraded from INFO).
-      errors.addAll(fileErrors.errors.where((AnalysisError error) =>
-          error.type != 'TODO' || error.severity != 'INFO'));
+      for (var error in fileErrors.errors.where((AnalysisError error) =>
+          error.type != 'TODO' || error.severity != 'INFO')) {
+        if (isPriorityFile && error.severity == 'ERROR') {
+          priorityErrors.add(error);
+        } else {
+          errors.add(error);
+        }
+      }
     });
 
     int pid = await server.start();
@@ -215,9 +227,9 @@ class AnalyzeCommand extends DartdevCommand {
 
     progress?.finish(showTiming: true);
 
-    if (errors.isEmpty) {
+    if (priorityErrors.isEmpty && errors.isEmpty) {
       if (jsonFormat) {
-        emitJsonFormat(log, errors, usageInfo);
+        emitJsonFormat(log, [], usageInfo);
       } else if (!machineFormat && !server.serverErrorReceived) {
         log.stdout('No issues found!');
       }
@@ -226,6 +238,7 @@ class AnalyzeCommand extends DartdevCommand {
           : _Result.success.exitCode;
     }
 
+    priorityErrors.sort();
     errors.sort();
 
     if (machineFormat) {
@@ -235,21 +248,43 @@ class AnalyzeCommand extends DartdevCommand {
     } else {
       var relativeTo = targets.length == 1 ? targets.single : null;
 
-      emitDefaultFormat(
-        log,
-        errors,
-        relativeToDir: relativeTo is io.File
-            ? relativeTo.parent
-            : relativeTo as io.Directory?,
-        verbose: verbose,
-      );
+      /// Helper to emit a set of errors.
+      void emit(List<AnalysisError> errors) {
+        emitDefaultFormat(
+          log,
+          errors,
+          relativeToDir: relativeTo is io.File
+              ? relativeTo.parent
+              : relativeTo as io.Directory?,
+          verbose: verbose,
+        );
+      }
+
+      if (priorityErrors.isNotEmpty) {
+        log.stdout('');
+        log.stdout("Errors were found in 'pubspec.yaml' and/or "
+            "'analysis_options.yaml' which might result in either invalid "
+            'diagnostics being produced or valid diagnostics being missed.');
+
+        emit(priorityErrors);
+        if (errors.isNotEmpty) {
+          log.stdout('Errors in remaining files.');
+        }
+      }
+
+      if (errors.isNotEmpty) {
+        emit(errors);
+      }
+
+      final errorCount = priorityErrors.length + errors.length;
+      log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
     }
 
     bool hasErrors = false;
     bool hasWarnings = false;
     bool hasInfos = false;
 
-    for (final AnalysisError error in errors) {
+    for (final AnalysisError error in priorityErrors.followedBy(errors)) {
       hasErrors |= error.isError;
       hasWarnings |= error.isWarning;
       hasInfos |= error.isInfo;
@@ -344,9 +379,6 @@ class AnalyzeCommand extends DartdevCommand {
     }
 
     log.stdout('');
-
-    final errorCount = errors.length;
-    log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
   }
 
   @visibleForTesting

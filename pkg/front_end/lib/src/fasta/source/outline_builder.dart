@@ -2827,7 +2827,8 @@ class OutlineBuilder extends StackListenerImpl {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != FormalParameterBuilder.noNameSentinel &&
-            formals[0].name == formals[1].name) {
+            formals[0].name == formals[1].name &&
+            !formals[0].isWildcard) {
           addProblem(
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
@@ -2843,6 +2844,9 @@ class OutlineBuilder extends StackListenerImpl {
         Map<String, FormalParameterBuilder> seenNames =
             <String, FormalParameterBuilder>{};
         for (FormalParameterBuilder formal in formals) {
+          if (formal.isWildcard) {
+            continue;
+          }
           if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
             addProblem(

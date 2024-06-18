@@ -351,10 +351,15 @@ class LibraryBuilder with MacroApplicationsContainer {
       return MacroDeclarationsPhaseStepResult.nothing;
     }
 
-    var applicationResult = await macroApplier.executeDeclarationsPhase(
-      libraryBuilder: this,
-      targetElement: targetElement,
-      performance: performance,
+    var applicationResult = await performance.runAsync(
+      'macroApplier.executeDeclarationsPhase',
+      (performance) async {
+        return await macroApplier.executeDeclarationsPhase(
+          libraryBuilder: this,
+          targetElement: targetElement,
+          performance: performance,
+        );
+      },
     );
 
     // No more applications to execute.
@@ -362,10 +367,16 @@ class LibraryBuilder with MacroApplicationsContainer {
       return MacroDeclarationsPhaseStepResult.nothing;
     }
 
-    await _addMacroResults(
-      macroApplier,
-      applicationResult,
-      phase: macro.Phase.declarations,
+    await performance.runAsync(
+      'addMacroResults',
+      (performance) async {
+        await _addMacroResults(
+          macroApplier,
+          applicationResult,
+          phase: macro.Phase.declarations,
+          performance: performance,
+        );
+      },
     );
 
     // Check if a new top-level declaration was added.
@@ -394,7 +405,7 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     while (true) {
       var applicationResult = await performance.runAsync(
-        'executeDefinitionsPhase',
+        'macroApplier.executeDefinitionsPhase',
         (performance) async {
           return await macroApplier.executeDefinitionsPhase(
             libraryBuilder: this,
@@ -415,6 +426,7 @@ class LibraryBuilder with MacroApplicationsContainer {
             macroApplier,
             applicationResult,
             phase: macro.Phase.definitions,
+            performance: performance,
           );
         },
       );
@@ -434,8 +446,13 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
 
     while (true) {
-      var applicationResult = await macroApplier.executeTypesPhase(
-        libraryBuilder: this,
+      var applicationResult = await performance.runAsync(
+        'macroApplier.executeTypesPhase',
+        (performance) async {
+          return await macroApplier.executeTypesPhase(
+            libraryBuilder: this,
+          );
+        },
       );
 
       // No more applications to execute.
@@ -443,10 +460,16 @@ class LibraryBuilder with MacroApplicationsContainer {
         break;
       }
 
-      await _addMacroResults(
-        macroApplier,
-        applicationResult,
-        phase: macro.Phase.types,
+      await performance.runAsync(
+        'addMacroResults',
+        (performance) async {
+          await _addMacroResults(
+            macroApplier,
+            applicationResult,
+            phase: macro.Phase.types,
+            performance: performance,
+          );
+        },
       );
     }
   }
@@ -497,17 +520,29 @@ class LibraryBuilder with MacroApplicationsContainer {
       return;
     }
 
-    var augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      uri,
-      _macroResults.flattenedToList2,
+    var augmentationCode = performance.run(
+      'buildAugmentationLibraryCode',
+      (performance) {
+        return macroApplier.buildAugmentationLibraryCode(
+          uri,
+          _macroResults.flattenedToList2,
+        );
+      },
     );
     if (augmentationCode == null) {
       return;
     }
 
-    var mergedUnit = kind.file.parseCode(
-      code: augmentationCode,
-      errorListener: AnalysisErrorListener.NULL_LISTENER,
+    var mergedUnit = performance.run(
+      'mergedUnit',
+      (performance) {
+        performance.getDataInt('length').add(augmentationCode.length);
+        return kind.file.parseCode(
+          code: augmentationCode,
+          errorListener: AnalysisErrorListener.NULL_LISTENER,
+          performance: performance,
+        );
+      },
     );
 
     kind.disposeMacroAugmentations(disposeFiles: true);
@@ -543,14 +578,28 @@ class LibraryBuilder with MacroApplicationsContainer {
       optimizedCode = augmentationCode;
     }
 
-    var importState = kind.addMacroAugmentation(
-      optimizedCode,
-      partialIndex: null,
+    var importState = performance.run(
+      'kind.addMacroAugmentation',
+      (performance) {
+        return kind.addMacroAugmentation(
+          optimizedCode,
+          partialIndex: null,
+          performance: performance,
+        );
+      },
     );
     var importedAugmentation = importState.importedAugmentation!;
     var importedFile = importedAugmentation.file;
 
-    var unitNode = importedFile.parse();
+    var unitNode = performance.run(
+      'importedFile.parse()',
+      (performance) {
+        performance.getDataInt('length').add(importedFile.content.length);
+        return importedFile.parse(
+          performance: performance,
+        );
+      },
+    );
     var unitElement = CompilationUnitElementImpl(
       source: importedFile.source,
       librarySource: importedFile.source,
@@ -779,9 +828,14 @@ class LibraryBuilder with MacroApplicationsContainer {
   }
 
   LibraryAugmentationElementImpl _addMacroAugmentation(
-    AugmentationImportWithFile state,
-  ) {
-    var import = _buildAugmentationImport(element, state);
+    AugmentationImportWithFile state, {
+    required OperationPerformanceImpl performance,
+  }) {
+    var import = _buildAugmentationImport(
+      element,
+      state,
+      performance: performance,
+    );
     import.isSynthetic = true;
     element.augmentationImports = [
       ...element.augmentationImports,
@@ -802,6 +856,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     LibraryMacroApplier macroApplier,
     ApplicationResult applicationResult, {
     required macro.Phase phase,
+    required OperationPerformanceImpl performance,
   }) async {
     // No results from the application.
     var results = applicationResult.results;
@@ -809,20 +864,40 @@ class LibraryBuilder with MacroApplicationsContainer {
       return;
     }
 
-    var augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      uri,
-      results,
+    var augmentationCode = performance.run(
+      'buildAugmentationLibraryCode',
+      (performance) {
+        return macroApplier.buildAugmentationLibraryCode(
+          uri,
+          results,
+        );
+      },
     );
     if (augmentationCode == null) {
       return;
     }
 
-    var importState = kind.addMacroAugmentation(
-      augmentationCode,
-      partialIndex: _macroResults.length,
+    var importState = performance.run(
+      'kind.addMacroAugmentation',
+      (performance) {
+        performance.getDataInt('length').add(augmentationCode.length);
+        return kind.addMacroAugmentation(
+          augmentationCode,
+          partialIndex: _macroResults.length,
+          performance: performance,
+        );
+      },
     );
 
-    var augmentation = _addMacroAugmentation(importState);
+    var augmentation = performance.run(
+      '_addMacroAugmentation',
+      (performance) {
+        return _addMacroAugmentation(
+          importState,
+          performance: performance,
+        );
+      },
+    );
     var macroLinkingUnit = units.last;
 
     // If the generated code contains declarations that are not allowed at
@@ -850,19 +925,22 @@ class LibraryBuilder with MacroApplicationsContainer {
       return;
     }
 
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
+    performance.run('elements + types', (performance) {
+      ElementBuilder(
+        libraryBuilder: this,
+        container: macroLinkingUnit.container,
+        unitReference: macroLinkingUnit.reference,
+        unitElement: macroLinkingUnit.element,
+      ).buildDeclarationElements(macroLinkingUnit.node);
 
-    if (phase != macro.Phase.types) {
-      var nodesToBuildType = NodesToBuildType();
-      var resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
-      macroLinkingUnit.node.accept(resolver);
-      TypesBuilder(linker).build(nodesToBuildType);
-    }
+      if (phase != macro.Phase.types) {
+        var nodesToBuildType = NodesToBuildType();
+        var resolver =
+            ReferenceResolver(linker, nodesToBuildType, augmentation);
+        macroLinkingUnit.node.accept(resolver);
+        TypesBuilder(linker).build(nodesToBuildType);
+      }
+    });
 
     _macroResults.add(results);
 
@@ -876,15 +954,19 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   AugmentationImportElementImpl _buildAugmentationImport(
     LibraryOrAugmentationElementImpl augmentationTarget,
-    AugmentationImportState state,
-  ) {
+    AugmentationImportState state, {
+    required OperationPerformanceImpl performance,
+  }) {
     DirectiveUri uri;
     if (state is AugmentationImportWithFile) {
       var importedAugmentation = state.importedAugmentation;
       if (importedAugmentation != null) {
         var importedFile = importedAugmentation.file;
 
-        var unitNode = importedFile.parse();
+        var unitNode = importedFile.parse(
+          performance: performance,
+        );
+
         var unitElement = CompilationUnitElementImpl(
           source: importedFile.source,
           // TODO(scheglov): Remove this parameter.
@@ -990,7 +1072,11 @@ class LibraryBuilder with MacroApplicationsContainer {
     }).toFixedList();
 
     container.augmentationImports = kind.augmentationImports.map((state) {
-      return _buildAugmentationImport(container, state);
+      return _buildAugmentationImport(
+        container,
+        state,
+        performance: OperationPerformanceImpl('<root>'),
+      );
     }).toFixedList();
   }
 
@@ -1198,7 +1284,9 @@ class LibraryBuilder with MacroApplicationsContainer {
     var libraryUriStr = libraryFile.uriStr;
     var libraryReference = rootReference.getChild(libraryUriStr);
 
-    var libraryUnitNode = libraryFile.parse();
+    var libraryUnitNode = libraryFile.parse(
+      performance: OperationPerformanceImpl('<root>'),
+    );
 
     var name = '';
     var nameOffset = -1;
@@ -1263,7 +1351,9 @@ class LibraryBuilder with MacroApplicationsContainer {
         var includedPart = partState.includedPart;
         if (includedPart != null) {
           var partFile = includedPart.file;
-          var partUnitNode = partFile.parse();
+          var partUnitNode = partFile.parse(
+            performance: OperationPerformanceImpl('<root>'),
+          );
           var unitElement = CompilationUnitElementImpl(
             source: partFile.source,
             librarySource: libraryFile.source,
@@ -1336,6 +1426,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var import = inputLibrary.addMacroAugmentation(
         inputMacroResult.code,
         partialIndex: null,
+        performance: OperationPerformanceImpl('<root>'),
       );
       builder.inputMacroAugmentationImport = import;
     }

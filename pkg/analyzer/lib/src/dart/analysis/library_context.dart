@@ -347,6 +347,7 @@ class LibraryContext {
             libraryKind.addMacroAugmentation(
               macroGeneratedCode,
               partialIndex: null,
+              performance: OperationPerformanceImpl('<root>'),
             );
           }
         }

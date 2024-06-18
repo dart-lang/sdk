@@ -64,6 +64,8 @@ class TestProject {
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
+  String get analysisOptionsPath => path.join(dirPath, 'analysis_options.yaml');
+
   String get packageConfigPath => path.join(
         dirPath,
         '.dart_tool',

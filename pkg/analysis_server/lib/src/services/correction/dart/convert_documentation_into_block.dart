@@ -24,7 +24,7 @@ class ConvertDocumentationIntoBlock extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var comment = node.thisOrAncestorOfType<Comment>();
-    if (comment == null || !comment.isDocumentation) {
+    if (comment == null) {
       return;
     }
     var tokens = comment.tokens;

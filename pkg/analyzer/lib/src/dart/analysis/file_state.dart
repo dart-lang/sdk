@@ -37,6 +37,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
@@ -495,10 +496,16 @@ class FileState {
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
-  CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
+  CompilationUnitImpl parse({
+    AnalysisErrorListener? errorListener,
+    required OperationPerformanceImpl performance,
+  }) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return _parse(errorListener);
+      return _parse(
+        errorListener,
+        performance: performance,
+      );
     } catch (exception, stackTrace) {
       throw CaughtExceptionWithFiles(
         exception,
@@ -512,42 +519,50 @@ class FileState {
   CompilationUnitImpl parseCode({
     required String code,
     required AnalysisErrorListener errorListener,
+    required OperationPerformanceImpl performance,
   }) {
-    CharSequenceReader reader = CharSequenceReader(code);
-    Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet.restrictToVersion(
-          packageLanguageVersion,
-        ),
+    return performance.run('parseCode', (performance) {
+      performance.getDataInt('length').add(code.length);
+
+      CharSequenceReader reader = CharSequenceReader(code);
+      Scanner scanner = Scanner(source, reader, errorListener)
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet.restrictToVersion(
+            packageLanguageVersion,
+          ),
+        );
+      Token token = scanner.tokenize(reportScannerErrors: false);
+      LineInfo lineInfo = LineInfo(scanner.lineStarts);
+
+      Parser parser = Parser(
+        source,
+        errorListener,
+        featureSet: scanner.featureSet,
+        lineInfo: lineInfo,
       );
-    Token token = scanner.tokenize(reportScannerErrors: false);
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    Parser parser = Parser(
-      source,
-      errorListener,
-      featureSet: scanner.featureSet,
-      lineInfo: lineInfo,
-    );
+      var unit = parser.parseCompilationUnit(token);
+      unit.languageVersion = LibraryLanguageVersion(
+        package: packageLanguageVersion,
+        override: scanner.overrideVersion,
+      );
 
-    var unit = parser.parseCompilationUnit(token);
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: scanner.overrideVersion,
-    );
+      // Ensure the string canonicalization cache size is reasonable.
+      pruneStringCanonicalizationCache();
 
-    // Ensure the string canonicalization cache size is reasonable.
-    pruneStringCanonicalizationCache();
-
-    return unit;
+      return unit;
+    });
   }
 
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
   /// Return how the file changed since the last refresh.
-  FileStateRefreshResult refresh() {
+  FileStateRefreshResult refresh({
+    OperationPerformanceImpl? performance,
+  }) {
+    performance ??= OperationPerformanceImpl('<root>');
     _invalidateCurrentUnresolvedData();
 
     FileContent rawFileState;
@@ -578,7 +593,12 @@ class FileState {
     }
 
     // Prepare the unlinked unit.
-    _driverUnlinkedUnit = _getUnlinkedUnit(previousUnlinkedKey);
+    performance.run('getUnlinkedUnit', (performance) {
+      _driverUnlinkedUnit = _getUnlinkedUnit(
+        previousUnlinkedKey,
+        performance: performance,
+      );
+    });
     _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
@@ -699,7 +719,10 @@ class FileState {
 
   /// Return the unlinked unit, freshly deserialized from bytes,
   /// previously deserialized from bytes, or new.
-  AnalysisDriverUnlinkedUnit _getUnlinkedUnit(String? previousUnlinkedKey) {
+  AnalysisDriverUnlinkedUnit _getUnlinkedUnit(
+    String? previousUnlinkedKey, {
+    required OperationPerformanceImpl performance,
+  }) {
     if (previousUnlinkedKey != null) {
       if (previousUnlinkedKey != _unlinkedKey) {
         _fsState.unlinkedUnitStore.release(previousUnlinkedKey);
@@ -723,7 +746,10 @@ class FileState {
       return result;
     }
 
-    var unit = parse();
+    var unit = parse(
+      performance: performance,
+    );
+
     return _fsState._logger.run('Create unlinked for $path', () {
       var unlinkedUnit = serializeAstUnlinked2(
         unit,
@@ -759,10 +785,14 @@ class FileState {
     }
   }
 
-  CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
+  CompilationUnitImpl _parse(
+    AnalysisErrorListener errorListener, {
+    required OperationPerformanceImpl performance,
+  }) {
     return parseCode(
       code: content,
       errorListener: errorListener,
+      performance: performance,
     );
   }
 
@@ -1316,7 +1346,10 @@ class FileSystemState {
   /// to a file, for example because it is invalid (e.g. a `package:` URI
   /// without a package name), or we don't know this package. The returned
   /// file has the last known state since if was last refreshed.
-  UriResolution? getFileForUri(Uri uri) {
+  UriResolution? getFileForUri(
+    Uri uri, {
+    OperationPerformanceImpl? performance,
+  }) {
     var uriSource = _sourceFactory.forUri2(uri);
 
     // If the external store has this URI, create a stub file for it.
@@ -1349,7 +1382,12 @@ class FileSystemState {
         return null;
       }
 
-      file = _newFile(resource, path, rewrittenUri);
+      file = _newFile(
+        resource,
+        path,
+        rewrittenUri,
+        performance: performance,
+      );
     }
     return UriResolutionFile(file);
   }
@@ -1494,7 +1532,12 @@ class FileSystemState {
         nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion);
   }
 
-  FileState _newFile(File resource, String path, Uri uri) {
+  FileState _newFile(
+    File resource,
+    String path,
+    Uri uri, {
+    OperationPerformanceImpl? performance,
+  }) {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
     AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
@@ -1509,7 +1552,14 @@ class FileSystemState {
     knownFilePaths.add(path);
     knownFiles.add(file);
     fileStamp++;
-    file.refresh();
+
+    performance ??= OperationPerformanceImpl('<root>');
+    performance.run('fileState.refresh', (performance) {
+      file.refresh(
+        performance: performance,
+      );
+    });
+
     onNewFile(file);
     return file;
   }
@@ -1843,6 +1893,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   AugmentationImportWithFile addMacroAugmentation(
     String code, {
     required int? partialIndex,
+    required OperationPerformanceImpl performance,
   }) {
     var pathContext = file._fsState.pathContext;
     var libraryFileName = pathContext.basename(file.path);
@@ -1869,7 +1920,15 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     // Or this happens during the explicit `refresh()`, more below.
     file._fsState._macroFileContent = fileContent;
 
-    var macroFileResolution = file._fsState.getFileForUri(macroUri);
+    var macroFileResolution = performance.run(
+      'getFileForUri',
+      (performance) {
+        return file._fsState.getFileForUri(
+          macroUri,
+          performance: performance,
+        );
+      },
+    );
     macroFileResolution as UriResolutionFile;
     var macroFile = macroFileResolution.file;
 

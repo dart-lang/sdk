@@ -1306,7 +1306,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue? getConstantValue(ir.Member? memberContext, ir.Expression? node,
+  ConstantValue? getConstantValue(ir.Expression? node,
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {

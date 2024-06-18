@@ -13,7 +13,7 @@ export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 /// and range into the given [element].
 void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
   var comment = node.documentationComment;
-  if (comment != null && comment.isDocumentation) {
+  if (comment != null) {
     element.documentationComment =
         comment.tokens.map((Token t) => t.lexeme).join('\n');
   }

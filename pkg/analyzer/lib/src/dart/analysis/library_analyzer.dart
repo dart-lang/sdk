@@ -575,7 +575,10 @@ class LibraryAnalyzer {
   /// Return a new parsed unresolved [CompilationUnit].
   UnitAnalysis _parse(FileState file) {
     var errorListener = RecordingErrorListener();
-    var unit = file.parse(errorListener);
+    var unit = file.parse(
+      errorListener: errorListener,
+      performance: OperationPerformanceImpl('<root>'),
+    );
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
