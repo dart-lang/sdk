@@ -534,7 +534,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
     if (auto* call = instr->AsInstanceCall()) {
-      if (!call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
+      if (!call->CanReceiverBeSmiBasedOnInterfaceTarget(Z)) {
         has_nullable_int_args = false;
       }
     }
@@ -793,7 +793,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
     const Function& target = targets.FirstTarget();
-    has_one_target = !target.is_polymorphic_target();
+    has_one_target =
+        !target.is_polymorphic_target() && !target.IsDynamicallyOverridden();
   }
 
   if (has_one_target) {
@@ -1154,12 +1155,18 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 
 void AotCallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
   ASSERT(current_iterator_ == nullptr);
+  const intptr_t max_block_id = flow_graph()->max_block_id();
   for (BlockIterator block_it = flow_graph()->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
     ForwardInstructionIterator it(block_it.Current());
     current_iterator_ = &it;
-    for (; !it.Done(); it.Advance()) {
+    while (!it.Done()) {
       Instruction* instr = it.Current();
+      // Advance to the next instruction before replacing a call,
+      // as call can be replaced with a diamond and the rest of
+      // the instructions can be moved to a new basic block.
+      if (!it.Done()) it.Advance();
+
       if (auto call = instr->AsInstanceCall()) {
         TryReplaceWithDispatchTableCall(call);
       } else if (auto call = instr->AsPolymorphicInstanceCall()) {
@@ -1167,6 +1174,9 @@ void AotCallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
       }
     }
     current_iterator_ = nullptr;
+  }
+  if (flow_graph()->max_block_id() != max_block_id) {
+    flow_graph()->DiscoverBlocks();
   }
 }
 
@@ -1202,26 +1212,130 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
       precompiler_->selector_map()->GetSelector(interface_target);
 
   if (selector == nullptr) {
-    // Target functions were removed by tree shaking. This call is dead code,
-    // or the receiver is always null.
 #if defined(DEBUG)
-    AddCheckNull(receiver->CopyWithType(Z), call->function_name(),
-                 DeoptId::kNone, call->env(), call);
-    StopInstr* stop = new (Z) StopInstr("Dead instance call executed.");
-    InsertBefore(call, stop, call->env(), FlowGraph::kEffect);
+    if (!interface_target.IsDynamicallyOverridden()) {
+      // Target functions were removed by tree shaking. This call is dead code,
+      // or the receiver is always null.
+      AddCheckNull(receiver->CopyWithType(Z), call->function_name(),
+                   DeoptId::kNone, call->env(), call);
+      StopInstr* stop = new (Z) StopInstr("Dead instance call executed.");
+      InsertBefore(call, stop, call->env(), FlowGraph::kEffect);
+    }
 #endif
     return;
   }
 
   const bool receiver_can_be_smi =
-      call->CanReceiverBeSmiBasedOnInterfaceTarget(zone());
+      call->CanReceiverBeSmiBasedOnInterfaceTarget(Z);
   auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z),
                                            kUnboxedUword, receiver_can_be_smi);
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);
 
+  const auto& cls = Class::Handle(Z, interface_target.Owner());
+  if (cls.has_dynamically_extendable_subtypes()) {
+    ReplaceWithConditionalDispatchTableCall(call, load_cid, interface_target,
+                                            selector);
+    return;
+  }
+
   auto dispatch_table_call = DispatchTableCallInstr::FromCall(
       Z, call, new (Z) Value(load_cid), interface_target, selector);
   call->ReplaceWith(dispatch_table_call, current_iterator());
+}
+
+static void InheritDeoptTargetIfNeeded(Zone* zone,
+                                       Instruction* instr,
+                                       Instruction* from) {
+  if (from->env() != nullptr) {
+    instr->InheritDeoptTarget(zone, from);
+  }
+}
+
+void AotCallSpecializer::ReplaceWithConditionalDispatchTableCall(
+    InstanceCallBaseInstr* call,
+    LoadClassIdInstr* load_cid,
+    const Function& interface_target,
+    const compiler::TableSelector* selector) {
+  BlockEntryInstr* current_block = call->GetBlock();
+  const bool has_uses = call->HasUses();
+
+  const intptr_t num_cids = isolate_group()->class_table()->NumCids();
+  auto* compare = new (Z) TestRangeInstr(
+      call->source(), new (Z) Value(load_cid), 0, num_cids, kUnboxedUword);
+
+  BranchInstr* branch = new (Z) BranchInstr(compare, DeoptId::kNone);
+  InheritDeoptTargetIfNeeded(Z, branch, call);
+
+  TargetEntryInstr* true_target =
+      new (Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
+                               current_block->try_index(), DeoptId::kNone);
+  InheritDeoptTargetIfNeeded(Z, true_target, call);
+  *branch->true_successor_address() = true_target;
+
+  TargetEntryInstr* false_target =
+      new (Z) TargetEntryInstr(flow_graph()->allocate_block_id(),
+                               current_block->try_index(), DeoptId::kNone);
+  InheritDeoptTargetIfNeeded(Z, false_target, call);
+  *branch->false_successor_address() = false_target;
+
+  JoinEntryInstr* join =
+      new (Z) JoinEntryInstr(flow_graph()->allocate_block_id(),
+                             current_block->try_index(), DeoptId::kNone);
+  InheritDeoptTargetIfNeeded(Z, join, call);
+
+  current_block->ReplaceAsPredecessorWith(join);
+
+  for (intptr_t i = 0, n = current_block->dominated_blocks().length(); i < n;
+       ++i) {
+    BlockEntryInstr* block = current_block->dominated_blocks()[i];
+    join->AddDominatedBlock(block);
+  }
+  current_block->ClearDominatedBlocks();
+  current_block->AddDominatedBlock(join);
+  current_block->AddDominatedBlock(true_target);
+  current_block->AddDominatedBlock(false_target);
+
+  PhiInstr* phi = nullptr;
+  if (has_uses) {
+    phi = new (Z) PhiInstr(join, 2);
+    phi->mark_alive();
+    flow_graph()->AllocateSSAIndex(phi);
+    join->InsertPhi(phi);
+    phi->UpdateType(*call->Type());
+    phi->set_representation(call->representation());
+    call->ReplaceUsesWith(phi);
+  }
+
+  GotoInstr* true_goto = new (Z) GotoInstr(join, DeoptId::kNone);
+  InheritDeoptTargetIfNeeded(Z, true_goto, call);
+  true_target->LinkTo(true_goto);
+  true_target->set_last_instruction(true_goto);
+
+  GotoInstr* false_goto = new (Z) GotoInstr(join, DeoptId::kNone);
+  InheritDeoptTargetIfNeeded(Z, false_goto, call);
+  false_target->LinkTo(false_goto);
+  false_target->set_last_instruction(false_goto);
+
+  auto dispatch_table_call = DispatchTableCallInstr::FromCall(
+      Z, call, new (Z) Value(load_cid), interface_target, selector);
+  ASSERT(dispatch_table_call->representation() == call->representation());
+  InsertBefore(true_goto, dispatch_table_call, call->env(),
+               has_uses ? FlowGraph::kValue : FlowGraph::kEffect);
+
+  call->previous()->AppendInstruction(branch);
+  call->set_previous(nullptr);
+  join->LinkTo(call->next());
+  call->set_next(nullptr);
+  call->UnuseAllInputs();  // So it can be re-added to the graph.
+  call->InsertBefore(false_goto);
+  InheritDeoptTargetIfNeeded(Z, call, call);  // Restore env use list.
+
+  if (has_uses) {
+    phi->SetInputAt(0, new (Z) Value(dispatch_table_call));
+    dispatch_table_call->AddInputUse(phi->InputAt(0));
+    phi->SetInputAt(1, new (Z) Value(call));
+    call->AddInputUse(phi->InputAt(1));
+  }
 }
 
 #endif  // DART_PRECOMPILER

@@ -33,6 +33,7 @@ import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_statement;
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_test.dart' as function_expression;
+import 'function_invocation_test.dart' as function_invocation;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'implements_clause_test.dart' as implements_clause;
@@ -112,6 +113,7 @@ void main() {
     for_statement.main();
     function_declaration.main();
     function_expression.main();
+    function_invocation.main();
     if_element.main();
     if_statement.main();
     implements_clause.main();

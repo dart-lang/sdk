@@ -215,9 +215,17 @@ final class JSDataViewImpl implements ByteData {
 
   final int lengthInBytes;
 
-  JSDataViewImpl(this.lengthInBytes) : _ref = _newDataView(lengthInBytes);
+  final bool _immutable;
 
-  JSDataViewImpl.fromRef(this._ref) : lengthInBytes = _dataViewByteLength(_ref);
+  JSDataViewImpl(this.lengthInBytes)
+      : _ref = _newDataView(lengthInBytes),
+        _immutable = false;
+
+  JSDataViewImpl.fromRef(this._ref)
+      : lengthInBytes = _dataViewByteLength(_ref),
+        _immutable = false;
+
+  JSDataViewImpl.immutable(this._ref, this.lengthInBytes) : _immutable = true;
 
   factory JSDataViewImpl.view(
           JSArrayBufferImpl buffer, int offsetInBytes, int? length) =>
@@ -240,7 +248,8 @@ final class JSDataViewImpl implements ByteData {
   int get elementSizeInBytes => 1;
 
   @override
-  ByteData asUnmodifiableView() => throw UnimplementedError();
+  ByteData asUnmodifiableView() =>
+      JSDataViewImpl.immutable(_ref, lengthInBytes);
 
   @override
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
@@ -281,44 +290,84 @@ final class JSDataViewImpl implements ByteData {
   int getUint8(int byteOffset) => _getUint8(toExternRef, byteOffset);
 
   @override
-  void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) =>
-      _setFloat32(toExternRef, byteOffset, value, Endian.little == endian);
+  void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setFloat32(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) =>
-      _setFloat64(toExternRef, byteOffset, value, Endian.little == endian);
+  void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setFloat64(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setInt16(toExternRef, byteOffset, value, Endian.little == endian);
+  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setInt16(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setInt32(toExternRef, byteOffset, value, Endian.little == endian);
+  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setInt32(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setBigInt64(toExternRef, byteOffset, value, Endian.little == endian);
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setBigInt64(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt8(int byteOffset, int value) =>
-      _setInt8(toExternRef, byteOffset, value);
+  void setInt8(int byteOffset, int value) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setInt8(toExternRef, byteOffset, value);
+  }
 
   @override
-  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setUint16(toExternRef, byteOffset, value, Endian.little == endian);
+  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setUint16(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setUint32(toExternRef, byteOffset, value, Endian.little == endian);
+  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setUint32(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setBigUint64(toExternRef, byteOffset, value, Endian.little == endian);
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setBigUint64(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setUint8(int byteOffset, int value) =>
-      _setUint8(toExternRef, byteOffset, value);
+  void setUint8(int byteOffset, int value) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setUint8(toExternRef, byteOffset, value);
+  }
 }
 
 abstract class _IntArrayIteratorBase implements Iterator<int> {

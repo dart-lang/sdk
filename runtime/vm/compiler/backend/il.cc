@@ -319,6 +319,9 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
 
   Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
+  if (type_class.has_dynamically_extendable_subtypes()) {
+    return false;
+  }
 
   // We can use class id range checks only if we don't have to test type
   // arguments.
@@ -364,6 +367,9 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
+  if (type_class.has_dynamically_extendable_subtypes()) {
+    return false;
+  }
 
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&
@@ -5110,7 +5116,7 @@ LocationSummary* TestRangeInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM)
-  const bool needs_temp = true;
+  const bool needs_temp = (lower() != 0);
 #else
   const bool needs_temp = false;
 #endif
@@ -5136,14 +5142,18 @@ Condition TestRangeInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 
   Register in = locs()->in(0).reg();
+  if (lower == 0) {
+    __ CompareImmediate(in, upper);
+  } else {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM)
-  Register temp = locs()->temp(0).reg();
+    Register temp = locs()->temp(0).reg();
 #else
-  Register temp = TMP;
+    Register temp = TMP;
 #endif
-  __ AddImmediate(temp, in, -lower);
-  __ CompareImmediate(temp, upper - lower);
+    __ AddImmediate(temp, in, -lower);
+    __ CompareImmediate(temp, upper - lower);
+  }
   ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
   return kind() == Token::kIS ? UNSIGNED_LESS_EQUAL : UNSIGNED_GREATER;
 }

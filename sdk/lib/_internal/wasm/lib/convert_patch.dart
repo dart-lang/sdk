@@ -1805,25 +1805,18 @@ class _Utf8Decoder {
       final length = end - start;
       bytes = U8List(length);
       final u8listData = bytes.data;
-      if (allowMalformed) {
-        int u8listIdx = 0;
-        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
-          int byte = codeUnits[codeUnitsIdx];
-          if (byte < 0 || byte > 255) {
+      int u8listIdx = 0;
+      for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+        int byte = codeUnits[codeUnitsIdx];
+        if (byte < 0 || byte > 255) {
+          if (allowMalformed) {
             byte = 0xFF;
-          }
-          u8listData.write(u8listIdx++, byte);
-        }
-      } else {
-        int u8listIdx = 0;
-        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
-          final byte = codeUnits[codeUnitsIdx];
-          if (byte < 0 || byte > 255) {
+          } else {
             throw FormatException(
                 'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
           }
-          u8listData.write(u8listIdx++, byte);
         }
+        u8listData.write(u8listIdx++, byte);
       }
       start = 0;
       end = length;

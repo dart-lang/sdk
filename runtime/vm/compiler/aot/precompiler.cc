@@ -1888,6 +1888,7 @@ void Precompiler::CollectDynamicFunctionNames() {
     ASSERT(!farray.IsNull());
     if (farray.Length() == 1) {
       function ^= farray.At(0);
+      if (function.IsDynamicallyOverridden()) continue;
 
       // It looks like there is exactly one target for the given name. Though we
       // have to be careful: e.g. A name like `dyn:get:foo` might have a target
@@ -1910,9 +1911,8 @@ void Precompiler::CollectDynamicFunctionNames() {
     }
   }
 
-  farray ^= table.GetOrNull(Symbols::GetRuntimeType());
-
-  get_runtime_type_is_unique_ = !farray.IsNull() && (farray.Length() == 1);
+  function ^= functions_map.GetOrNull(Symbols::GetRuntimeType());
+  get_runtime_type_is_unique_ = !function.IsNull();
 
   if (FLAG_print_unique_targets) {
     UniqueFunctionsMap::Iterator unique_iter(&functions_map);

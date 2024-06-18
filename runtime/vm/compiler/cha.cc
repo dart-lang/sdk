@@ -74,6 +74,9 @@ bool CHA::HasSubclasses(const Class& cls) {
     // Class Object has subclasses, although we do not keep track of them.
     return true;
   }
+
+  if (cls.has_dynamically_extendable_subtypes()) return true;
+
   Thread* thread = Thread::Current();
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   const GrowableObjectArray& direct_subclasses =
@@ -91,6 +94,7 @@ bool CHA::ConcreteSubclasses(const Class& cls,
                              GrowableArray<intptr_t>* class_ids) {
   if (cls.InVMIsolateHeap()) return false;
   if (cls.IsObjectClass()) return false;
+  if (cls.has_dynamically_extendable_subtypes()) return false;
 
   if (!cls.is_abstract()) {
     class_ids->Add(cls.id());
@@ -120,6 +124,7 @@ bool CHA::IsImplemented(const Class& cls) {
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
   // classes.
   if (cls.InVMIsolateHeap()) return true;
+  if (cls.has_dynamically_extendable_subtypes()) return true;
 
   return cls.is_implemented();
 }
@@ -127,7 +132,8 @@ bool CHA::IsImplemented(const Class& cls) {
 bool CHA::HasSingleConcreteImplementation(const Class& interface,
                                           intptr_t* implementation_cid) {
   intptr_t cid = interface.implementor_cid();
-  if ((cid == kIllegalCid) || (cid == kDynamicCid)) {
+  if ((cid == kIllegalCid) || (cid == kDynamicCid) ||
+      interface.has_dynamically_extendable_subtypes()) {
     // No implementations / multiple implementations.
     *implementation_cid = kDynamicCid;
     return false;

@@ -760,6 +760,10 @@ final class _DispatchableInvocation extends _Invocation {
       ConeType receiver,
       Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
+    if (kPrintTrace) {
+      tracePrint(
+          "Collecting targets for dynamically extendable receiver $receiver");
+    }
     final cls = receiver.cls as _TFClassImpl;
     // Collect possible targets among dynamically extendable
     // subtypes as they may have allocated subtypes at run time.
@@ -770,6 +774,10 @@ final class _DispatchableInvocation extends _Invocation {
       Member? target = extendableSubtype.getDispatchTarget(selector);
       if (target != null) {
         if (areArgumentsValidFor(target)) {
+          if (kPrintTrace) {
+            tracePrint(
+                "Found target $target in a dynamically extendable subtype $extendableSubtype");
+          }
           // Overwrite previously added receiver type builder.
           targets[target] = receiverTypeBuilder;
           isDynamicallyOverridden = isDynamicallyOverridden ||
@@ -779,13 +787,19 @@ final class _DispatchableInvocation extends _Invocation {
           assert(selector is DynamicSelector);
           _recordMismatchedDynamicInvocation(target, typeFlowAnalysis);
         }
+      } else {
+        isDynamicallyOverridden = true;
       }
     }
     if (selector is DynamicSelector) {
       targets[noSuchMethodMarker] = receiverTypeBuilder;
       isDynamicallyOverridden = true;
     }
-    return isDynamicallyOverridden && !selector.name.isPrivate;
+    if (kPrintTrace) {
+      tracePrint(
+          "isDynamicallyOverridden = $isDynamicallyOverridden, isPrivate = ${selector.name.isPrivate}");
+    }
+    return !isDynamicallyOverridden || selector.name.isPrivate;
   }
 
   void _recordMismatchedDynamicInvocation(
