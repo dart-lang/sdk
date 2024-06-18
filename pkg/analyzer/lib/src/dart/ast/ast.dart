@@ -3242,12 +3242,15 @@ abstract final class Comment implements AstNode {
   bool get hasNodoc;
 
   /// Whether this is a block comment.
+  @Deprecated("Do not use; this value is always 'false'")
   bool get isBlock;
 
   /// Whether this is a documentation comment.
+  @Deprecated("Do not use; this value is always 'true'")
   bool get isDocumentation;
 
   /// Whether this is an end-of-line comment.
+  @Deprecated("Do not use; this value is always 'false'")
   bool get isEndOfLine;
 
   /// The references embedded within the documentation comment.
@@ -3264,9 +3267,6 @@ final class CommentImpl extends AstNodeImpl
     implements Comment {
   @override
   final List<Token> tokens;
-
-  /// The type of the comment.
-  final CommentType _type;
 
   final NodeListImpl<CommentReferenceImpl> _references = NodeListImpl._();
 
@@ -3292,13 +3292,12 @@ final class CommentImpl extends AstNodeImpl
   /// embedded references.
   CommentImpl({
     required this.tokens,
-    required CommentType type,
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
     required this.docImports,
     required this.docDirectives,
     required this.hasNodoc,
-  }) : _type = type {
+  }) {
     _references._initialize(this, references);
   }
 
@@ -3309,13 +3308,13 @@ final class CommentImpl extends AstNodeImpl
   Token get endToken => tokens[tokens.length - 1];
 
   @override
-  bool get isBlock => _type == CommentType.BLOCK;
+  bool get isBlock => false;
 
   @override
-  bool get isDocumentation => _type == CommentType.DOCUMENTATION;
+  bool get isDocumentation => true;
 
   @override
-  bool get isEndOfLine => _type == CommentType.END_OF_LINE;
+  bool get isEndOfLine => false;
 
   @override
   NodeListImpl<CommentReferenceImpl> get references => _references;
@@ -3407,27 +3406,6 @@ final class CommentReferenceImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
-}
-
-/// The possible types of comments that are recognized by the parser.
-class CommentType {
-  /// A block comment.
-  static const CommentType BLOCK = CommentType('BLOCK');
-
-  /// A documentation comment.
-  static const CommentType DOCUMENTATION = CommentType('DOCUMENTATION');
-
-  /// An end-of-line comment.
-  static const CommentType END_OF_LINE = CommentType('END_OF_LINE');
-
-  /// The name of the comment type.
-  final String name;
-
-  /// Initializes a newly created comment type to have the given [name].
-  const CommentType(this.name);
-
-  @override
-  String toString() => name;
 }
 
 /// A compilation unit.

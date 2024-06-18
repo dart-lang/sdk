@@ -198,8 +198,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    if (!node.isDocumentation) return;
-
     var codeBlockLines =
         node.codeBlocks.map((codeBlock) => codeBlock.lines).flattened;
 
