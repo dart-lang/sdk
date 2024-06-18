@@ -1374,6 +1374,10 @@ void KernelLoader::LoadClass(const Library& library,
   if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
+  if (DynModuleExtendablePragma::decode(pragma_bits)) {
+    out_class->set_is_dynamically_extendable(true);
+    IG->set_has_dynamically_extendable_classes(true);
+  }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
@@ -1605,6 +1609,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(HasPragma::decode(pragma_bits));
     function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
+    function.SetIsDynamicallyOverridden(
+        DynModuleCanBeOverriddenPragma::decode(pragma_bits));
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1783,6 +1789,15 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
           }
           *pragma_bits = SharedPragma::update(true, *pragma_bits);
         }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "dyn-module:extendable")) {
+          *pragma_bits = DynModuleExtendablePragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "dyn-module:can-be-overridden")) {
+          *pragma_bits =
+              DynModuleCanBeOverriddenPragma::update(true, *pragma_bits);
+        }
       }
     } else {
       helper_.SkipExpression();
@@ -1848,6 +1863,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                             procedure_helper.IsMemberSignature() ||
                             is_synthetic);
   function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
+  function.SetIsDynamicallyOverridden(
+      DynModuleCanBeOverriddenPragma::decode(pragma_bits));
   if (register_function) {
     functions_.Add(&function);
   } else {

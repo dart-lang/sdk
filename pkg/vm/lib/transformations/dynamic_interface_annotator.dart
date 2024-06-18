@@ -43,11 +43,11 @@ InstanceConstant pragmaConstant(CoreTypes coreTypes, String pragmaName) {
   });
 }
 
-void parseAndAnnotate(YamlList items, String pragmaName, Uri baseUri,
+void parseAndAnnotate(YamlList? items, String pragmaName, Uri baseUri,
     Component component, CoreTypes coreTypes, LibraryIndex libraryIndex,
     {required bool allowMembers, bool onlyInstanceMembers = false}) {
+  if (items == null) return;
   final pragma = pragmaConstant(coreTypes, pragmaName);
-
   for (final item in items) {
     final nodes = findNodes(item, baseUri, libraryIndex, component,
         allowMembers: allowMembers, onlyInstanceMembers: onlyInstanceMembers);

@@ -531,7 +531,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   // Useful receiver class information?
-  if (receiver_class.IsNull()) {
+  if (receiver_class.IsNull() ||
+      receiver_class.has_dynamically_extendable_subtypes()) {
     return ToCheck::kCheckCid;
   } else if (call->HasICData()) {
     // If the static class type does not match information found in ICData

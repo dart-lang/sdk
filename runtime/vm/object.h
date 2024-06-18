@@ -2068,6 +2068,11 @@ class Class : public Object {
     // It means that variable of static type based on this class may hold
     // a Future instance.
     kCanBeFutureBit,
+    // This class can be extended, implemented or mixed-in by
+    // a dynamically loaded class.
+    kIsDynamicallyExtendableBit,
+    // This class has a dynamically extendable subtype.
+    kHasDynamicallyExtendableSubtypesBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -2106,6 +2111,13 @@ class Class : public Object {
   class IsFutureSubtypeBit
       : public BitField<uint32_t, bool, kIsFutureSubtypeBit, 1> {};
   class CanBeFutureBit : public BitField<uint32_t, bool, kCanBeFutureBit, 1> {};
+  class IsDynamicallyExtendableBit
+      : public BitField<uint32_t, bool, kIsDynamicallyExtendableBit, 1> {};
+  class HasDynamicallyExtendableSubtypesBit
+      : public BitField<uint32_t,
+                        bool,
+                        kHasDynamicallyExtendableSubtypesBit,
+                        1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -2174,6 +2186,16 @@ class Class : public Object {
 
   void set_can_be_future(bool value) const;
   bool can_be_future() const { return CanBeFutureBit::decode(state_bits()); }
+
+  void set_is_dynamically_extendable(bool value) const;
+  bool is_dynamically_extendable() const {
+    return IsDynamicallyExtendableBit::decode(state_bits());
+  }
+
+  void set_has_dynamically_extendable_subtypes(bool value) const;
+  bool has_dynamically_extendable_subtypes() const {
+    return HasDynamicallyExtendableSubtypesBit::decode(state_bits());
+  }
 
  private:
   void set_functions(const Array& value) const;
@@ -4063,11 +4085,14 @@ class Function : public Object {
 // a hoisted instruction.
 // 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
 // before on a generalized bounds check.
+// IsDynamicallyOverridden: This function can be overridden in a dynamically
+//                          loaded class.
 #define STATE_BITS_LIST(V)                                                     \
   V(WasCompiled)                                                               \
   V(WasExecutedBit)                                                            \
   V(ProhibitsInstructionHoisting)                                              \
-  V(ProhibitsBoundsCheckGeneralization)
+  V(ProhibitsBoundsCheckGeneralization)                                        \
+  V(IsDynamicallyOverridden)
 
   enum StateBits {
 #define DECLARE_FLAG_POS(Name) k##Name##Pos,

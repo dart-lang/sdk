@@ -57,6 +57,11 @@ class ClassFinalizer : public AllStatic {
 
   // Mark [cls], its superclass and superinterfaces as can_be_future().
   static void MarkClassCanBeFuture(Zone* zone, const Class& cls);
+
+  // Mark [cls] and all its superclasses and superinterfaces as
+  // has_dynamically_extendable_subtypes().
+  static void MarkClassHasDynamicallyExtendableSubtypes(Zone* zone,
+                                                        const Class& cls);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Ensures members of the class are loaded, class layout is finalized and size

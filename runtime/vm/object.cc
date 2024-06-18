@@ -3156,6 +3156,17 @@ void Class::set_can_be_future(bool value) const {
   set_state_bits(CanBeFutureBit::update(value, state_bits()));
 }
 
+void Class::set_is_dynamically_extendable(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsDynamicallyExtendableBit::update(value, state_bits()));
+}
+
+void Class::set_has_dynamically_extendable_subtypes(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(
+      HasDynamicallyExtendableSubtypesBit::update(value, state_bits()));
+}
+
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() const {
   if (Object::empty_array().ptr() == Array::null()) {
@@ -11375,6 +11386,13 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   // AOT mode uses table dispatch.
   // In JIT mode all instance calls use switchable calls.
   if (!FLAG_precompiled_mode) {
+    return true;
+  }
+
+  // Any method from the class with a dynamically loaded subtype
+  // can be called via switchable call (when cid range check fails
+  // during conditional table dispatch).
+  if (Class::Handle(zone, Owner()).has_dynamically_extendable_subtypes()) {
     return true;
   }
 
@@ -27103,8 +27121,11 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
       continue;
     }
     *reusable_field_handle = IG->object_store()->pragma_name();
-    if (Instance::Cast(*pragma).GetField(*reusable_field_handle) !=
-        Symbols::vm_entry_point().ptr()) {
+    const auto pragma_name =
+        Instance::Cast(*pragma).GetField(*reusable_field_handle);
+    if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
+        (pragma_name != Symbols::dyn_module_callable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_extendable().ptr())) {
       continue;
     }
     *reusable_field_handle = IG->object_store()->pragma_options();

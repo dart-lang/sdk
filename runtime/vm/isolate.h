@@ -717,6 +717,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     isolate_group_flags_ =
         AllClassesFinalizedBit::update(value, isolate_group_flags_);
   }
+  bool has_dynamically_extendable_classes() const {
+    return HasDynamicallyExtendableClassesBit::decode(isolate_group_flags_);
+  }
+  void set_has_dynamically_extendable_classes(bool value) {
+    isolate_group_flags_ =
+        HasDynamicallyExtendableClassesBit::update(value, isolate_group_flags_);
+  }
 
   bool remapping_cids() const {
     return RemappingCidsBit::decode(isolate_group_flags_);
@@ -780,7 +787,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(UseOsr)                                                                    \
   V(SnapshotIsDontNeedSafe)                                                    \
   V(BranchCoverage)                                                            \
-  V(Coverage)
+  V(Coverage)                                                                  \
+  V(HasDynamicallyExtendableClasses)
 
   // Isolate group specific flags.
   enum FlagBits {
