@@ -24,7 +24,6 @@ class SubClass extends SuperClass {
   //      ^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-  // [cfe] Duplicated parameter name '_'.
   // [cfe] The parameter '_' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
   // [cfe] Type 'int' of the optional super-initializer parameter '_' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
   ]);
@@ -41,7 +40,6 @@ class TypedSubClass extends SuperClass {
     //        ^
     // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
     // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
-    // [cfe] Duplicated parameter name '_'.
     // [cfe] The parameter '_' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
     // [cfe] Type 'int' of the optional super-initializer parameter '_' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
   ]) : super.nullable();

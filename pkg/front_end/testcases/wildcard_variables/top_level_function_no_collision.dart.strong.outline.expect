@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method fn(wildcard dynamic _, wildcard dynamic _) → void
+  ;
+static method fn2(wildcard dynamic _, wildcard dynamic _, wildcard dynamic _) → void
+  ;
+static method test() → dynamic
+  ;
