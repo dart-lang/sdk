@@ -1271,6 +1271,7 @@ Fragment BaseFlowGraphBuilder::RecordCoverageImpl(TokenPosition position,
                                                   bool is_branch_coverage) {
   Fragment instructions;
   if (!SupportsCoverage()) return instructions;
+  if (!IG->coverage()) return instructions;
   if (!position.IsReal()) return instructions;
   if (is_branch_coverage && !IG->branch_coverage()) return instructions;
 

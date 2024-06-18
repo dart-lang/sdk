@@ -4,8 +4,7 @@
 
 library dart._simd;
 
-import 'dart:_internal'
-    show FixedLengthListMixin, unsafeCast, IterableElementError;
+import 'dart:_internal' show FixedLengthListMixin, IterableElementError;
 
 import 'dart:collection' show ListMixin;
 import 'dart:math' as math;
@@ -68,7 +67,8 @@ final class NaiveInt32x4List extends WasmTypedDataBase
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Int32x4List asUnmodifiableView() => NaiveUnmodifiableInt32x4List(this);
+  Int32x4List asUnmodifiableView() =>
+      NaiveUnmodifiableInt32x4List.externalStorage(_storage);
 
   Int32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
@@ -101,9 +101,6 @@ final class NaiveInt32x4List extends WasmTypedDataBase
 }
 
 final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List {
-  NaiveUnmodifiableInt32x4List(Int32x4List list)
-      : super.externalStorage(unsafeCast<NaiveInt32x4List>(list)._storage);
-
   NaiveUnmodifiableInt32x4List.externalStorage(Int32List storage)
       : super.externalStorage(storage);
 
@@ -172,7 +169,8 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Float32x4List asUnmodifiableView() => NaiveUnmodifiableFloat32x4List(this);
+  Float32x4List asUnmodifiableView() =>
+      NaiveUnmodifiableFloat32x4List.externalStorage(_storage);
 
   Float32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
@@ -206,9 +204,6 @@ final class NaiveFloat32x4List extends WasmTypedDataBase
 }
 
 final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List {
-  NaiveUnmodifiableFloat32x4List(Float32x4List list)
-      : super.externalStorage(unsafeCast<NaiveFloat32x4List>(list)._storage);
-
   NaiveUnmodifiableFloat32x4List.externalStorage(Float32List storage)
       : super.externalStorage(storage);
 
@@ -271,7 +266,8 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
     _storage[(index * 2) + 1] = value.y;
   }
 
-  Float64x2List asUnmodifiableView() => NaiveUnmodifiableFloat64x2List(this);
+  Float64x2List asUnmodifiableView() =>
+      NaiveUnmodifiableFloat64x2List.externalStorage(_storage);
 
   Float64x2List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
@@ -305,9 +301,6 @@ final class NaiveFloat64x2List extends WasmTypedDataBase
 }
 
 final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List {
-  NaiveUnmodifiableFloat64x2List(Float64x2List list)
-      : super.externalStorage(unsafeCast<NaiveFloat64x2List>(list)._storage);
-
   NaiveUnmodifiableFloat64x2List.externalStorage(Float64List storage)
       : super.externalStorage(storage);
 
