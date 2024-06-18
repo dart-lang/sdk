@@ -1151,7 +1151,10 @@ class AnalysisDriver {
 
     FileState file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
-    CompilationUnit unit = file.parse(listener);
+    CompilationUnit unit = file.parse(
+      errorListener: listener,
+      performance: OperationPerformanceImpl('<root>'),
+    );
     return ParsedUnitResultImpl(
       session: currentSession,
       fileState: file,
@@ -1848,25 +1851,35 @@ class AnalysisDriver {
   }
 
   Future<void> _getUnitElement(String path) async {
-    FileState file = _fsState.getFileForPath(path);
+    await scheduler.accumulatedPerformance.runAsync(
+      'getUnitElement',
+      (performance) async {
+        FileState file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    var kind = file.kind;
-    var library = kind.library ?? kind.asLibrary;
+        // Prepare the library - the file itself, or the known library.
+        var kind = file.kind;
+        var library = kind.library ?? kind.asLibrary;
 
-    await libraryContext.load(
-      targetLibrary: library,
-      performance: OperationPerformanceImpl('<root>'),
+        await performance.runAsync(
+          'libraryContext',
+          (performance) async {
+            await libraryContext.load(
+              targetLibrary: library,
+              performance: performance,
+            );
+          },
+        );
+
+        var element = libraryContext.computeUnitElement(library, file);
+        var result = UnitElementResultImpl(
+          session: currentSession,
+          fileState: file,
+          element: element,
+        );
+
+        _unitElementRequestedFiles.completeAll(path, result);
+      },
     );
-
-    var element = libraryContext.computeUnitElement(library, file);
-    var result = UnitElementResultImpl(
-      session: currentSession,
-      fileState: file,
-      element: element,
-    );
-
-    _unitElementRequestedFiles.completeAll(path, result);
   }
 
   bool _hasLibraryByUri(String uriStr) {
