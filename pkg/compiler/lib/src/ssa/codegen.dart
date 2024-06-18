@@ -366,6 +366,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     runPhase(SsaAssignmentChaining(_closedWorld));
     runPhase(SsaInstructionMerger(_abstractValueDomain, generateAtUseSite));
     runPhase(SsaConditionMerger(generateAtUseSite, controlFlowOperators));
+    runPhase(SsaPhiConditioning(generateAtUseSite, controlFlowOperators));
     runPhase(SsaShareRegionConstants());
 
     SsaLiveIntervalBuilder intervalBuilder =
