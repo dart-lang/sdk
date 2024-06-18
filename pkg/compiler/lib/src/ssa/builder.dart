@@ -163,8 +163,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   final FunctionInlineCache _inlineCache;
   final InlineDataCache _inlineDataCache;
 
-  final ir.Member? _memberContextNode;
-
   KernelSsaGraphBuilder(
       this.options,
       this.reporter,
@@ -184,9 +182,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       this._inlineDataCache)
       : this.targetElement = _effectiveTargetElementFor(_initialTargetElement),
         this._closureDataLookup = closedWorld.closureDataLookup,
-        this._recordData = closedWorld.recordData,
-        _memberContextNode =
-            _elementMap.getMemberContextNode(_initialTargetElement) {
+        this._recordData = closedWorld.recordData {
     _enterFrame(targetElement, null);
     _loopHandler = KernelLoopHandler(this);
     _typeBuilder = KernelTypeBuilder(this, _elementMap);
@@ -438,10 +434,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           if (target is ir.Procedure) {
             if (target.isExternal) {
               _buildExternalFunctionNode(targetElement as FunctionEntity,
-                  _ensureDefaultArgumentValues(target, target.function));
+                  _ensureDefaultArgumentValues(target.function));
             } else {
               _buildFunctionNode(targetElement as FunctionEntity,
-                  _ensureDefaultArgumentValues(target, target.function));
+                  _ensureDefaultArgumentValues(target.function));
             }
           } else if (target is ir.Field) {
             FieldAnalysisData fieldData = closedWorld.fieldAnalysis
@@ -481,7 +477,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
             }
           } else if (target is ir.LocalFunction) {
             _buildFunctionNode(targetElement as FunctionEntity,
-                _ensureDefaultArgumentValues(null, target.function));
+                _ensureDefaultArgumentValues(target.function));
           } else {
             throw 'No case implemented to handle target: '
                 '$target for $targetElement';
@@ -489,12 +485,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           break;
         case MemberKind.constructor:
           final constructor = definition.node as ir.Constructor;
-          _ensureDefaultArgumentValues(constructor, constructor.function);
+          _ensureDefaultArgumentValues(constructor.function);
           _buildConstructor(targetElement as ConstructorEntity, constructor);
           break;
         case MemberKind.constructorBody:
           final constructor = definition.node as ir.Constructor;
-          _ensureDefaultArgumentValues(constructor, constructor.function);
+          _ensureDefaultArgumentValues(constructor.function);
           _buildConstructorBody(constructor);
           break;
         case MemberKind.closureField:
@@ -554,8 +550,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     return null;
   }
 
-  ir.FunctionNode _ensureDefaultArgumentValues(
-      ir.Member? member, ir.FunctionNode function) {
+  ir.FunctionNode _ensureDefaultArgumentValues(ir.FunctionNode function) {
     // Register all [function]'s default argument values.
     //
     // Default values might be (or contain) functions that are not referenced
@@ -570,8 +565,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // there are only very small number of constants created here that are not
     // actually used.
     void _registerDefaultValue(ir.VariableDeclaration node) {
-      final constantValue = _elementMap
-          .getConstantValue(member, node.initializer, implicitNull: true);
+      final constantValue =
+          _elementMap.getConstantValue(node.initializer, implicitNull: true);
       assert(
           constantValue != null,
           failedAt(_elementMap.getMethod(function.parent as ir.Procedure),
@@ -1086,7 +1081,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   List<HInstruction> _normalizeAndBuildArguments(
-      ir.Member member, ir.FunctionNode function, ir.Arguments arguments) {
+      ir.FunctionNode function, ir.Arguments arguments) {
     List<HInstruction> builtArguments = [];
     var positionalIndex = 0;
     function.positionalParameters.forEach((ir.VariableDeclaration parameter) {
@@ -1094,7 +1089,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         arguments.positional[positionalIndex++].accept(this);
         builtArguments.add(pop());
       } else {
-        builtArguments.add(_defaultValueForParameter(member, parameter));
+        builtArguments.add(_defaultValueForParameter(parameter));
       }
     });
     // Evaluate named arguments in given order.
@@ -1104,7 +1099,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       ..sort(namedOrdering)
       ..forEach((ir.VariableDeclaration parameter) {
         var argument = namedArguments[parameter.name];
-        argument ??= _defaultValueForParameter(member, parameter);
+        argument ??= _defaultValueForParameter(parameter);
         builtArguments.add(argument);
       });
 
@@ -1118,9 +1113,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       ConstructorData constructorData, ir.Constructor caller) {
     ir.Constructor superOrRedirectConstructor = initializer.target;
     List<HInstruction> arguments = _normalizeAndBuildArguments(
-        superOrRedirectConstructor,
-        superOrRedirectConstructor.function,
-        initializer.arguments);
+        superOrRedirectConstructor.function, initializer.arguments);
 
     // Redirecting initializer already has [localsHandler] bindings for type
     // parameters from the redirecting constructor.
@@ -1138,8 +1131,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void _inlineSuperInitializer(ir.SuperInitializer initializer,
       ConstructorData constructorData, ir.Constructor caller) {
     ir.Constructor target = initializer.target;
-    List<HInstruction> arguments = _normalizeAndBuildArguments(
-        target, target.function, initializer.arguments);
+    List<HInstruction> arguments =
+        _normalizeAndBuildArguments(target.function, initializer.arguments);
 
     ir.Class callerClass = caller.enclosingClass;
     ir.Supertype supertype = callerClass.supertype!;
@@ -1998,8 +1991,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (memberContextNode != null) {
       for (ir.VariableDeclaration node in elidedParameters) {
         Local local = _localsMap.getLocalVariable(node);
-        localsHandler.updateLocal(
-            local, _defaultValueForParameter(memberContextNode, node));
+        localsHandler.updateLocal(local, _defaultValueForParameter(node));
       }
     }
 
@@ -2147,8 +2139,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
   @override
   void visitConstantExpression(ir.ConstantExpression node) {
-    ConstantValue value =
-        _elementMap.getConstantValue(_memberContextNode!, node)!;
+    ConstantValue value = _elementMap.getConstantValue(node)!;
     final sourceInformation = _sourceInformationBuilder.buildGet(node);
     if (!closedWorld.outputUnitData
         .hasOnlyNonDeferredImportPathsToConstant(targetElement, value)) {
@@ -3043,8 +3034,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     Map<ir.Expression, ConstantValue> constants = {};
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       for (ir.Expression caseExpression in switchCase.expressions) {
-        final constant =
-            _elementMap.getConstantValue(_memberContextNode!, caseExpression)!;
+        final constant = _elementMap.getConstantValue(caseExpression)!;
         constants[caseExpression] = constant;
       }
     }
@@ -3482,8 +3472,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
   @override
   void visitSymbolLiteral(ir.SymbolLiteral node) {
-    stack.add(graph.addConstant(
-        _elementMap.getConstantValue(_memberContextNode!, node)!, closedWorld));
+    stack.add(
+        graph.addConstant(_elementMap.getConstantValue(node)!, closedWorld));
     registry.registerConstSymbol(node.value);
   }
 
@@ -3514,9 +3504,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitListLiteral(ir.ListLiteral node) {
     HInstruction listInstruction;
     if (node.isConst) {
-      listInstruction = graph.addConstant(
-          _elementMap.getConstantValue(_memberContextNode!, node)!,
-          closedWorld);
+      listInstruction =
+          graph.addConstant(_elementMap.getConstantValue(node)!, closedWorld);
     } else {
       List<HInstruction> elements = [];
       for (ir.Expression element in node.expressions) {
@@ -3544,9 +3533,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   @override
   void visitSetLiteral(ir.SetLiteral node) {
     if (node.isConst) {
-      stack.add(graph.addConstant(
-          _elementMap.getConstantValue(_memberContextNode!, node)!,
-          closedWorld));
+      stack.add(
+          graph.addConstant(_elementMap.getConstantValue(node)!, closedWorld));
       return;
     }
 
@@ -3625,9 +3613,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   @override
   void visitMapLiteral(ir.MapLiteral node) {
     if (node.isConst) {
-      stack.add(graph.addConstant(
-          _elementMap.getConstantValue(_memberContextNode!, node)!,
-          closedWorld));
+      stack.add(
+          graph.addConstant(_elementMap.getConstantValue(node)!, closedWorld));
       return;
     }
 
@@ -3818,7 +3805,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     ir.DartType type = node.type;
     DartType dartType = _elementMap.getDartType(type);
     if (!dartType.containsTypeVariables) {
-      final constant = _elementMap.getConstantValue(_memberContextNode!, node)!;
+      final constant = _elementMap.getConstantValue(node)!;
       stack.add(graph.addConstant(constant, closedWorld,
           sourceInformation: sourceInformation));
       return;
@@ -4040,8 +4027,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       HInstruction initialValue = graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(local, initialValue);
     } else if (node.isConst) {
-      final constant =
-          _elementMap.getConstantValue(_memberContextNode!, node.initializer);
+      final constant = _elementMap.getConstantValue(node.initializer);
       assert(constant != null, failedAt(CURRENT_ELEMENT_SPANNABLE));
       HInstruction initialValue = graph.addConstant(constant!, closedWorld);
       localsHandler.updateLocal(local, initialValue);
@@ -4246,7 +4232,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   /// Build argument list in canonical order for a static [target], including
   /// filling in the default argument value.
   List<HInstruction> _visitArgumentsForStaticTarget(
-      ir.Member memberContextNode,
       ir.FunctionNode target,
       ParameterStructure parameterStructure,
       ir.Arguments arguments,
@@ -4258,7 +4243,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     while (values.length < parameterStructure.positionalParameters) {
       ir.VariableDeclaration parameter =
           target.positionalParameters[values.length];
-      values.add(_defaultValueForParameter(memberContextNode, parameter));
+      values.add(_defaultValueForParameter(parameter));
     }
 
     if (parameterStructure.namedParameters.isNotEmpty) {
@@ -4277,7 +4262,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       for (ir.VariableDeclaration parameter in namedParameters) {
         final value = namedValues[parameter.name];
         if (value == null) {
-          values.add(_defaultValueForParameter(memberContextNode, parameter));
+          values.add(_defaultValueForParameter(parameter));
         } else {
           values.add(value);
           namedValues.remove(parameter.name);
@@ -4301,11 +4286,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     }
   }
 
-  HInstruction _defaultValueForParameter(
-      ir.Member memberContextNode, ir.VariableDeclaration parameter) {
-    final constant = _elementMap.getConstantValue(
-        memberContextNode, parameter.initializer,
-        implicitNull: true);
+  HInstruction _defaultValueForParameter(ir.VariableDeclaration parameter) {
+    final constant =
+        _elementMap.getConstantValue(parameter.initializer, implicitNull: true);
     assert(constant != null, failedAt(CURRENT_ELEMENT_SPANNABLE));
     return graph.addConstant(constant!, closedWorld);
   }
@@ -4349,8 +4332,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       if (node.isConst) {
         // Just like all const constructors (see visitConstructorInvocation).
         stack.add(graph.addConstant(
-            _elementMap.getConstantValue(_memberContextNode!, node)!,
-            closedWorld,
+            _elementMap.getConstantValue(node)!, closedWorld,
             sourceInformation: sourceInformation));
       } else {
         _generateUnsupportedError(
@@ -4375,7 +4357,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments);
     } else {
       final arguments = _visitArgumentsForStaticTarget(
-          target,
           target.function,
           function.parameterStructure,
           node.arguments,
@@ -6035,7 +6016,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     MemberDefinition targetDefinition = _elementMap.getMemberDefinition(member);
     final target = targetDefinition.node as ir.Procedure;
     List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        target,
         target.function,
         member.parameterStructure,
         node.arguments,
@@ -6076,8 +6056,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     final sourceInformation = _sourceInformationBuilder.buildNew(node);
     ir.Constructor target = node.target;
     if (node.isConst) {
-      ConstantValue constant =
-          _elementMap.getConstantValue(_memberContextNode!, node)!;
+      ConstantValue constant = _elementMap.getConstantValue(node)!;
       stack.add(graph.addConstant(constant, closedWorld,
           sourceInformation: sourceInformation));
       return;
@@ -6117,7 +6096,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           _getConstructorTypeArguments(constructor, node.arguments);
 
       arguments.addAll(_visitArgumentsForStaticTarget(
-          target,
           target.function,
           constructor.parameterStructure,
           node.arguments,
@@ -6732,14 +6710,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           localsHandler.thisLocal!, compiledArguments[argumentIndex++]);
     }
 
-    final memberContextNode = _elementMap.getMemberContextNode(function)!;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {required bool isElided}) {
       Local local = localsMap.getLocalVariable(variable);
       if (isElided) {
-        localsHandler.updateLocal(
-            local, _defaultValueForParameter(memberContextNode, variable));
+        localsHandler.updateLocal(local, _defaultValueForParameter(variable));
         return;
       }
       if (forGenerativeConstructorBody &&

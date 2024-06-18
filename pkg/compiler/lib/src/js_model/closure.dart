@@ -1261,15 +1261,6 @@ class ClosureFunctionData extends ClosureMemberData
   }
 
   @override
-  late final ir.Member memberContext = (() {
-    ir.TreeNode parent = functionNode;
-    while (parent is! ir.Member) {
-      parent = parent.parent!;
-    }
-    return parent;
-  })();
-
-  @override
   FunctionType getFunctionType(IrToElementMap elementMap) {
     return functionType;
   }
