@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 
 /// Return the bytes of the unlinked API signature of the given [unit].
