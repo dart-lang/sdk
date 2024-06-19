@@ -177,7 +177,8 @@ class AstBuilder extends StackListener {
         uri = uri ?? fileUri;
 
   @override
-  Uri get importUri => uri;
+  bool get isDartLibrary =>
+      uri.isScheme("dart") || uri.isScheme("org-dartlang-sdk");
 
   @override
   void addProblem(Message message, int charOffset, int length,
@@ -5236,8 +5237,7 @@ class AstBuilder extends StackListener {
       return;
     } else if (message.code == codeBuiltInIdentifierInDeclaration) {
       // Allow e.g. 'class Function' in sdk.
-      if (importUri.isScheme("dart")) return;
-      if (uri.isScheme("org-dartlang-sdk")) return;
+      if (isDartLibrary) return;
     }
     debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {

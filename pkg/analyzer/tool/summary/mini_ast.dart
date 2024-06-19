@@ -160,7 +160,7 @@ class MiniAstBuilder extends StackListener {
   final compilationUnit = CompilationUnit();
 
   @override
-  Uri get importUri => throw UnimplementedError();
+  bool get isDartLibrary => throw UnimplementedError();
 
   @override
   Uri get uri => throw UnimplementedError();
