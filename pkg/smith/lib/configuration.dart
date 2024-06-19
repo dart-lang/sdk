@@ -245,6 +245,19 @@ class Configuration {
     nnbdMode ??= NnbdMode.strong;
     sanitizer ??= Sanitizer.none;
 
+    // Infer runtime from executable.
+    if (runtime == null) {
+      final executableName = Uri.file(Platform.executable)
+          .pathSegments
+          .lastWhere((e) => e.isNotEmpty);
+      final executableNoExtension = executableName.split('.').first;
+      if (executableNoExtension == 'dart_precompiled_runtime') {
+        runtime = Runtime.dartPrecompiled;
+      }
+      // Don't infer anything from the `dart` executable. As multiple runtimes
+      // use that as executable.
+    }
+
     // Infer from compiler from runtime or vice versa.
     if (compiler == null) {
       if (runtime == null) {

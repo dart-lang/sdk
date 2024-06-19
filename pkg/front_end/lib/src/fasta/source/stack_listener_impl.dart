@@ -22,7 +22,9 @@ abstract class StackListenerImpl extends StackListener {
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   @override
-  Uri get importUri => libraryBuilder.origin.importUri;
+  bool get isDartLibrary =>
+      libraryBuilder.origin.importUri.isScheme("dart") ||
+      uri.isScheme("org-dartlang-sdk");
 
   AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
