@@ -2,10 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-mixin Diagnosticable {}
+mixin Diagnosticable {
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
+}
 
 abstract class DiagnosticableTree with Diagnosticable {
   const DiagnosticableTree();
+
+  List<DiagnosticsNode> debugDescribeChildren() => const [];
 }
 
 class DiagnosticPropertiesBuilder {

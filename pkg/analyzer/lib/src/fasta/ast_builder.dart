@@ -1525,7 +1525,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endElseStatement(Token token) {
+  void endElseStatement(Token beginToken, Token endToken) {
     debugEvent("endElseStatement");
   }
 
@@ -2164,7 +2164,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     assert(optional('if', ifToken));
     assert(optionalOrNull('else', elseToken));
 
@@ -3312,7 +3312,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endThenStatement(Token token) {
+  void endThenStatement(Token beginToken, Token endToken) {
     debugEvent("endThenStatement");
   }
 
@@ -3407,7 +3407,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     assert(optional('try', tryKeyword));
     assert(optionalOrNull('finally', finallyKeyword));
     debugEvent("TryStatement");

@@ -1658,50 +1658,47 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitIndex(HIndex node) {
-    HInstruction receiver = node.receiver;
-    if (receiver is HConstant) {
-      HInstruction index = node.index;
-      if (index is HConstant) {
-        final foldedValue =
-            constant_system.index.fold(receiver.constant, index.constant);
+    switch (node) {
+      case HIndex(
+          receiver: HConstant(:final constant),
+          index: HConstant(constant: final constantIndex)
+        ):
+        final foldedValue = constant_system.index.fold(constant, constantIndex);
         if (foldedValue != null) {
           _metrics.countIndexFolded.add();
           return _graph.addConstant(foldedValue, _closedWorld);
         }
-      }
-    } else if (receiver is HFieldGet) {
+
       // Match the access path `(constant_record._values)[i]` for 'long' records
       // where the record fields are stored in an Array (the `_RecordN` family
       // of representations).
-      final receiver2 = receiver.receiver;
-      if (receiver2 is HConstant) {
-        final constant = receiver2.constant;
-        if (constant is RecordConstantValue) {
-          HInstruction index = node.index;
-          if (index is HConstant) {
-            final constantIndex = index.constant;
-            if (constantIndex is IntConstantValue && constantIndex.isUInt31()) {
-              int indexValue = constantIndex.intValue.toInt();
-              final recordData = _closedWorld.recordData;
-              final shape = constant.shape;
-              final representation = recordData.representationForShape(shape);
-              if (representation != null) {
-                // We assume that the record index is going to be the same as
-                // the HIndex index. If not (for example, we put the shape in
-                // the first slot of the array, offsetting the record field
-                // indexes), the codegen test will fail.
-                final path = recordData.pathForAccess(shape, indexValue);
-                if (path.field == receiver.element &&
-                    path.index == indexValue) {
-                  return _graph.addConstant(
-                      constant.values[indexValue], _closedWorld);
-                }
-              }
-            }
+      case HIndex(
+            receiver: HFieldGet(
+              receiver: HConstant(
+                constant: RecordConstantValue(:final shape, :final values)
+              ),
+              element: final field
+            ),
+            index: HConstant(
+              constant: IntConstantValue(:final intValue) && final constantIndex
+            )
+          )
+          when constantIndex.isUInt31():
+        int indexValue = intValue.toInt();
+        final recordData = _closedWorld.recordData;
+        final representation = recordData.representationForShape(shape);
+        if (representation != null) {
+          // We assume that the record index is going to be the same as the
+          // HIndex index. If not (for example, we put the shape in the first
+          // slot of the array, offsetting the record field indexes), the
+          // codegen test will fail.
+          final path = recordData.pathForAccess(shape, indexValue);
+          if (path.field == field && path.index == indexValue) {
+            return _graph.addConstant(values[indexValue], _closedWorld);
           }
         }
-      }
     }
+
     return node;
   }
 

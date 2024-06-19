@@ -13,15 +13,6 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Math_doublePow, 0, 2) {
-  const double operand =
-      Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, exponent_object,
-                               arguments->NativeArgAt(1));
-  const double exponent = exponent_object.value();
-  return Double::New(pow(operand, exponent));
-}
-
 DEFINE_NATIVE_ENTRY(Random_initialSeed, 0, 0) {
   Random* rnd = isolate->random();
   uint64_t seed = rnd->NextUInt32();

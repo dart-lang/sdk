@@ -1176,7 +1176,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endElseStatement(Token token) {
+  void endElseStatement(Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -1363,7 +1363,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     _unsupported();
   }
 
@@ -1570,7 +1570,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endThenStatement(Token token) {
+  void endThenStatement(Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -1600,7 +1600,7 @@ class _MacroListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     _unsupported();
   }
 

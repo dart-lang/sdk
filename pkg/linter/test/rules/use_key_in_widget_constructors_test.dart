@@ -70,7 +70,6 @@ class W extends StatelessWidget {
     await assertDiagnostics(r'''
 augment library 'a.dart';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 augment class W { }
@@ -79,7 +78,7 @@ augment class W {
   const W({Key? key});
 }
 ''', [
-      lint(156, 1),
+      lint(114, 1),
     ]);
   }
 
@@ -179,7 +178,6 @@ abstract class MyWidget extends StatelessWidget {
 
   test_missingKey_keyPassedToSuper() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
@@ -209,7 +207,6 @@ abstract class MyWidget extends StatelessWidget {
 
   test_redirectingConstructor_withKey() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
@@ -221,20 +218,18 @@ abstract class MyWidget extends StatelessWidget {
 
   test_simpleFormalParameter_notPassedToSuper() async {
     await assertDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {
   MyWidget.withKey({Key? key});
 }
 ''', [
-      lint(143, 7),
+      lint(101, 7),
     ]);
   }
 
   test_simpleFormalParameter_passedToSuper() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 abstract class MyWidget extends StatelessWidget {

@@ -1304,11 +1304,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     indent--;
     seen(ifToken);
     seen(elseToken);
-    doPrint('endIfStatement(' '$ifToken, ' '$elseToken)');
+    seen(endToken);
+    doPrint('endIfStatement(' '$ifToken, ' '$elseToken, ' '$endToken)');
   }
 
   @override
@@ -1319,10 +1320,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endThenStatement(Token token) {
+  void endThenStatement(Token beginToken, Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endThenStatement(' '$token)');
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endThenStatement(' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -1333,10 +1335,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endElseStatement(Token token) {
+  void endElseStatement(Token beginToken, Token endToken) {
     indent--;
-    seen(token);
-    doPrint('endElseStatement(' '$token)');
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endElseStatement(' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -2216,12 +2219,16 @@ class ParserTestListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     indent--;
     seen(tryKeyword);
     seen(finallyKeyword);
-    doPrint(
-        'endTryStatement(' '$catchCount, ' '$tryKeyword, ' '$finallyKeyword)');
+    seen(endToken);
+    doPrint('endTryStatement('
+        '$catchCount, '
+        '$tryKeyword, '
+        '$finallyKeyword, '
+        '$endToken)');
   }
 
   @override

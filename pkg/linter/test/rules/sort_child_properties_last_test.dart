@@ -22,7 +22,6 @@ class SortChildPropertiesLastTest extends LintRuleTest {
 
   test_childArgumentBeforeKeyArgument() async {
     await assertDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -31,7 +30,7 @@ void f() {
   );
 }
 ''', [
-      lint(108, 15),
+      lint(66, 15),
     ]);
   }
 
@@ -48,7 +47,6 @@ void f() {
 
   test_childrenArgumentBeforeKeyArgument_insideOtherChildArgument() async {
     await assertDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -62,13 +60,12 @@ void f() {
   );
 }
 ''', [
-      lint(172, 12),
+      lint(130, 12),
     ]);
   }
 
   test_keyArgumentBeforeChildArgument() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -81,7 +78,6 @@ void f() {
 
   test_keyArgumentBeforeChildrenArgument() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 void f() {
   SizedBox(
@@ -99,7 +95,6 @@ void f() {
 
   test_keyArgumentThenChildArgumentThenClosureArgument() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 void f() {
   RawMaterialButton(
@@ -119,7 +114,6 @@ void f() {
   test_nestedChildren() async {
     // See https://dart-review.googlesource.com/c/sdk/+/161624.
     await assertDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 void f() {
   Column(
@@ -138,8 +132,8 @@ void f() {
   );
 }
 ''', [
-      lint(106, 165),
-      lint(140, 42),
+      lint(64, 165),
+      lint(98, 42),
     ]);
   }
 }

@@ -664,7 +664,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endElseStatement(Token token) {
+  void endElseStatement(Token beginToken, Token endToken) {
     debugEvent("endElseStatement");
     Object? body = pop();
     exitLocalScope();
@@ -3777,7 +3777,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endThenStatement(Token token) {
+  void endThenStatement(Token beginToken, Token endToken) {
     debugEvent("endThenStatement");
     Object? body = pop();
     exitLocalScope();
@@ -3789,7 +3789,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     assert(checkState(ifToken, [
       /* else = */ if (elseToken != null) ValueKinds.Statement,
       ValueKinds.AssignedVariablesNodeInfo,
@@ -5756,7 +5756,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     Statement? finallyBlock;
     if (finallyKeyword != null) {
       finallyBlock = pop() as Statement;

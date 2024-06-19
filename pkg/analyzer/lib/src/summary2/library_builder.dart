@@ -806,12 +806,17 @@ class LibraryBuilder with MacroApplicationsContainer {
       target ??= topVariables.accessors['$name='];
 
       augmentation.augmentationTargetAny = target;
-      if (target case AugmentableElement<T> target) {
-        augmentation.isAugmentationChainStart = false;
-        target.augmentation = augmentation as T;
+      switch (target) {
+        case null:
+          _augmentationTargets[name] = augmentation;
+        case AugmentableElement<T> target:
+          augmentation.isAugmentationChainStart = false;
+          target.augmentation = augmentation as T;
+          _augmentationTargets[name] = augmentation;
       }
+    } else {
+      _augmentationTargets[name] = augmentation;
     }
-    _augmentationTargets[name] = augmentation;
   }
 
   /// Updates the element of the macro augmentation.

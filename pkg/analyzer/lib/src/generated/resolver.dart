@@ -1943,7 +1943,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     void resolveArgumentsOfInvalid() {
       for (var argument in node.arguments.arguments) {
-        argument.resolveExpression(this, InvalidTypeImpl.instance);
+        analyzeExpression(argument, InvalidTypeImpl.instance);
+        popRewrite();
       }
     }
 
