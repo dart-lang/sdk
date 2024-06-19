@@ -16,7 +16,6 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
@@ -421,10 +420,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     );
 
     if (addFixnumPackageDep) {
-      var fixnumPath = '/packages/fixnum';
-      addFixnumPackageFiles(
-        getFolder(fixnumPath),
-      );
+      var fixnumPath = addFixnum().parent.path;
       configCopy.add(name: 'fixnum', rootPath: fixnumPath);
     }
 
@@ -437,18 +433,12 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
 
     if (addJsPackageDep) {
-      var jsPath = '/packages/js';
-      MockPackages.addJsPackageFiles(
-        getFolder(jsPath),
-      );
+      var jsPath = addJs().parent.path;
       configCopy.add(name: 'js', rootPath: jsPath);
     }
 
     if (addKernelPackageDep) {
-      var kernelPath = '/packages/kernel';
-      MockPackages.addKernelPackageFiles(
-        getFolder(kernelPath),
-      );
+      var kernelPath = addKernel().parent.path;
       configCopy.add(name: 'kernel', rootPath: kernelPath);
     }
 
@@ -496,18 +486,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       pubspecAst.accept(entry.value);
     }
     return [...listener.errors];
-  }
-
-  /// Creates a fake 'fixnum' package that can be used by tests.
-  static void addFixnumPackageFiles(Folder rootFolder) {
-    var libFolder = rootFolder.getChildAssumingFolder('lib');
-    libFolder.getChildAssumingFile('fixnum.dart').writeAsStringSync(r'''
-library fixnum;
-
-class Int32 {}
-
-class Int64 {}
-''');
   }
 }
 
