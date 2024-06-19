@@ -4,7 +4,7 @@
 
 #include "vm/unit_test.h"
 
-#include "platform/uri.h"
+#include "bin/uri.h"
 #include "platform/utils.h"
 
 namespace dart {
