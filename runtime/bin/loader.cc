@@ -4,18 +4,11 @@
 
 #include "bin/loader.h"
 
-#include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
-#include "bin/file.h"
-#include "bin/gzip.h"
-#include "bin/lockers.h"
 #include "bin/snapshot_utils.h"
-#include "bin/utils.h"
-#include "include/dart_tools_api.h"
-#include "platform/growable_array.h"
-#include "platform/uri.h"
+#include "bin/uri.h"
 #include "platform/utils.h"
 
 namespace dart {
