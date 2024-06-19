@@ -1165,9 +1165,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     IfStatementEnd data = new IfStatementEnd(ParserAstType.END,
-        ifToken: ifToken, elseToken: elseToken);
+        ifToken: ifToken, elseToken: elseToken, endToken: endToken);
     seen(data);
   }
 
@@ -1179,9 +1179,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endThenStatement(Token token) {
-    ThenStatementEnd data =
-        new ThenStatementEnd(ParserAstType.END, token: token);
+  void endThenStatement(Token beginToken, Token endToken) {
+    ThenStatementEnd data = new ThenStatementEnd(ParserAstType.END,
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
@@ -1193,9 +1193,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endElseStatement(Token token) {
-    ElseStatementEnd data =
-        new ElseStatementEnd(ParserAstType.END, token: token);
+  void endElseStatement(Token beginToken, Token endToken) {
+    ElseStatementEnd data = new ElseStatementEnd(ParserAstType.END,
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
@@ -2019,11 +2019,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     TryStatementEnd data = new TryStatementEnd(ParserAstType.END,
         catchCount: catchCount,
         tryKeyword: tryKeyword,
-        finallyKeyword: finallyKeyword);
+        finallyKeyword: finallyKeyword,
+        endToken: endToken);
     seen(data);
   }
 
@@ -5565,14 +5566,17 @@ class IfStatementBegin extends ParserAstNode {
 class IfStatementEnd extends ParserAstNode {
   final Token ifToken;
   final Token? elseToken;
+  final Token endToken;
 
-  IfStatementEnd(ParserAstType type, {required this.ifToken, this.elseToken})
+  IfStatementEnd(ParserAstType type,
+      {required this.ifToken, this.elseToken, required this.endToken})
       : super("IfStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "ifToken": ifToken,
         "elseToken": elseToken,
+        "endToken": endToken,
       };
 
   @override
@@ -5594,15 +5598,21 @@ class ThenStatementBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitThenStatementBegin(this);
 }
 
-class ThenStatementEnd extends ParserAstNode {
-  final Token token;
+class ThenStatementEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
 
-  ThenStatementEnd(ParserAstType type, {required this.token})
+  ThenStatementEnd(ParserAstType type,
+      {required this.beginToken, required this.endToken})
       : super("ThenStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "beginToken": beginToken,
+        "endToken": endToken,
       };
 
   @override
@@ -5624,15 +5634,21 @@ class ElseStatementBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitElseStatementBegin(this);
 }
 
-class ElseStatementEnd extends ParserAstNode {
-  final Token token;
+class ElseStatementEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
 
-  ElseStatementEnd(ParserAstType type, {required this.token})
+  ElseStatementEnd(ParserAstType type,
+      {required this.beginToken, required this.endToken})
       : super("ElseStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "beginToken": beginToken,
+        "endToken": endToken,
       };
 
   @override
@@ -7506,9 +7522,13 @@ class TryStatementEnd extends ParserAstNode {
   final int catchCount;
   final Token tryKeyword;
   final Token? finallyKeyword;
+  final Token endToken;
 
   TryStatementEnd(ParserAstType type,
-      {required this.catchCount, required this.tryKeyword, this.finallyKeyword})
+      {required this.catchCount,
+      required this.tryKeyword,
+      this.finallyKeyword,
+      required this.endToken})
       : super("TryStatement", type);
 
   @override
@@ -7516,6 +7536,7 @@ class TryStatementEnd extends ParserAstNode {
         "catchCount": catchCount,
         "tryKeyword": tryKeyword,
         "finallyKeyword": finallyKeyword,
+        "endToken": endToken,
       };
 
   @override

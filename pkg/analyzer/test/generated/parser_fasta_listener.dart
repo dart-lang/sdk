@@ -770,9 +770,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endElseStatement(Token token) {
+  void endElseStatement(Token beginToken, Token endToken) {
     end('ElseStatement');
-    super.endElseStatement(token);
+    super.endElseStatement(beginToken, endToken);
   }
 
   @override
@@ -1008,9 +1008,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     end('IfStatement');
-    super.endIfStatement(ifToken, elseToken);
+    super.endIfStatement(ifToken, elseToken, endToken);
   }
 
   @override
@@ -1250,9 +1250,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endThenStatement(Token token) {
+  void endThenStatement(Token beginToken, Token endToken) {
     end('ThenStatement');
-    super.endThenStatement(token);
+    super.endThenStatement(beginToken, endToken);
   }
 
   @override
@@ -1297,9 +1297,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     end('TryStatement');
-    super.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+    super.endTryStatement(catchCount, tryKeyword, finallyKeyword, endToken);
   }
 
   @override

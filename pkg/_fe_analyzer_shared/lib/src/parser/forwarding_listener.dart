@@ -750,8 +750,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endElseStatement(Token token) {
-    listener?.endElseStatement(token);
+  void endElseStatement(Token beginToken, Token endToken) {
+    listener?.endElseStatement(beginToken, endToken);
   }
 
   @override
@@ -998,8 +998,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
-    listener?.endIfStatement(ifToken, elseToken);
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
+    listener?.endIfStatement(ifToken, elseToken, endToken);
   }
 
   @override
@@ -1225,8 +1225,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endThenStatement(Token token) {
-    listener?.endThenStatement(token);
+  void endThenStatement(Token beginToken, Token endToken) {
+    listener?.endThenStatement(beginToken, endToken);
   }
 
   @override
@@ -1287,8 +1287,8 @@ class ForwardingListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
-    listener?.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
+    listener?.endTryStatement(catchCount, tryKeyword, finallyKeyword, endToken);
   }
 
   @override

@@ -8235,17 +8235,18 @@ class Parser {
     assert(optional('if', ifToken));
     listener.beginIfStatement(ifToken);
     token = ensureParenthesizedCondition(ifToken, allowCase: allowPatterns);
-    listener.beginThenStatement(token.next!);
+    Token thenBeginToken = token.next!;
+    listener.beginThenStatement(thenBeginToken);
     token = parseStatement(token);
-    listener.endThenStatement(token);
+    listener.endThenStatement(thenBeginToken, token);
     Token? elseToken = null;
     if (optional('else', token.next!)) {
       elseToken = token.next!;
       listener.beginElseStatement(elseToken);
       token = parseStatement(elseToken);
-      listener.endElseStatement(elseToken);
+      listener.endElseStatement(elseToken, token);
     }
-    listener.endIfStatement(ifToken, elseToken);
+    listener.endIfStatement(ifToken, elseToken, token);
     return token;
   }
 
@@ -8871,14 +8872,14 @@ class Parser {
     if (optional('finally', token)) {
       finallyKeyword = token;
       lastConsumed = parseBlock(token, BlockKind.finallyClause);
-      token = lastConsumed.next!;
       listener.handleFinallyBlock(finallyKeyword);
     } else {
       if (catchCount == 0) {
         reportRecoverableError(tryKeyword, codes.messageOnlyTry);
       }
     }
-    listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+    listener.endTryStatement(
+        catchCount, tryKeyword, finallyKeyword, lastConsumed);
     return lastConsumed;
   }
 
