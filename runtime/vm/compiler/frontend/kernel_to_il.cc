@@ -1140,16 +1140,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
       return true;
-    case MethodRecognizer::kDoubleCeilToInt:
-    case MethodRecognizer::kDoubleFloorToInt:
-#if defined(TARGET_ARCH_X64)
-      return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
-#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
-    defined(TARGET_ARCH_RISCV64)
-      return true;
-#else
-      return false;
-#endif
     default:
       return false;
   }
@@ -1814,9 +1804,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
     } break;
-    case MethodRecognizer::kDoubleToInteger:
-    case MethodRecognizer::kDoubleCeilToInt:
-    case MethodRecognizer::kDoubleFloorToInt: {
+    case MethodRecognizer::kDoubleToInteger: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += DoubleToInteger(kind);
     } break;
@@ -1839,27 +1827,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       for (intptr_t i = 0, n = function.NumParameters(); i < n; ++i) {
         body += LoadLocal(parsed_function_->RawParameterVariable(i));
       }
-      if (!CompilerState::Current().is_aot() &&
-          TargetCPUFeatures::double_truncate_round_supported() &&
-          ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
-           (kind == MethodRecognizer::kDoubleFloorToDouble) ||
-           (kind == MethodRecognizer::kDoubleCeilToDouble))) {
-        switch (kind) {
-          case MethodRecognizer::kDoubleTruncateToDouble:
-            body += UnaryDoubleOp(Token::kTRUNCATE);
-            break;
-          case MethodRecognizer::kDoubleFloorToDouble:
-            body += UnaryDoubleOp(Token::kFLOOR);
-            break;
-          case MethodRecognizer::kDoubleCeilToDouble:
-            body += UnaryDoubleOp(Token::kCEILING);
-            break;
-          default:
-            UNREACHABLE();
-        }
-      } else {
-        body += InvokeMathCFunction(kind, function.NumParameters());
-      }
+      body += InvokeMathCFunction(kind, function.NumParameters());
     } break;
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));

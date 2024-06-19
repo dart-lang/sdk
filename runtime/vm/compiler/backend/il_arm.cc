@@ -5578,6 +5578,7 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
 }
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(recognized_kind() == MethodRecognizer::kDoubleToInteger);
   const Register result = locs()->out(0).reg();
   const DRegister value_double = EvenDRegisterOf(locs()->in(0).fpu_reg());
 
