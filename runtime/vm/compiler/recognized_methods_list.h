@@ -96,9 +96,9 @@ namespace dart {
   V(_TypedList, _setInt32x4, TypedList_SetInt32x4, 0x5ccbee5c)              \
   V(ByteData, ., ByteDataFactory, 0x0f140a3b)                                  \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x60b1da6c)   \
-  V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0xb9b4483a)          \
+  V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0xb9b44479)          \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x60b1da6c) \
-  V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0xb9b4483a)        \
+  V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0xb9b44479)        \
   V(_ByteDataView, ._, TypedData_ByteDataView_factory, 0x3169ff7d)             \
   V(_Int8ArrayView, ._, TypedData_Int8ArrayView_factory, 0x4438fdcb)           \
   V(_Uint8ArrayView, ._, TypedData_Uint8ArrayView_factory, 0x95e37496)         \
@@ -437,7 +437,7 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 0xd2fb73b4)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x024aa595)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0x4aa007b3)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x2d16b23b)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 0x2d16ae7a)                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, []=, Int8ArraySetIndexed, 0x02e93049)                           \
@@ -482,17 +482,17 @@ namespace dart {
   V(_GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, 0x512deb6f)  \
   V(_StringBase, get:length, StringBaseLength, 0x5833d8ab)                     \
   V(_Smi, ~, Smi_bitNegate, 0x8237e11c)                                        \
-  V(_IntegerImplementation, +, Integer_add, 0x6ef8468c)                        \
-  V(_IntegerImplementation, -, Integer_sub, 0x6301557d)                        \
-  V(_IntegerImplementation, *, Integer_mul, 0x4670aa1a)                        \
-  V(_IntegerImplementation, %, Integer_mod, 0x708e28b9)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x29407b25)               \
-  V(_IntegerImplementation, unary-, Integer_negate, 0x9140ec93)                \
-  V(_IntegerImplementation, &, Integer_bitAnd, 0x42452d89)                     \
-  V(_IntegerImplementation, |, Integer_bitOr, 0x45efa741)                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 0x8ee07048)                     \
-  V(_IntegerImplementation, >>, Integer_sar, 0x49c76ce0)                       \
-  V(_IntegerImplementation, >>>, Integer_shr, 0x2b3da942)                      \
+  V(_IntegerImplementation, +, Integer_add, 0x6ef842cb)                        \
+  V(_IntegerImplementation, -, Integer_sub, 0x630151bc)                        \
+  V(_IntegerImplementation, *, Integer_mul, 0x4670a659)                        \
+  V(_IntegerImplementation, %, Integer_mod, 0x708e24f8)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x29407764)               \
+  V(_IntegerImplementation, unary-, Integer_negate, 0x9140e8d2)                \
+  V(_IntegerImplementation, &, Integer_bitAnd, 0x424529c8)                     \
+  V(_IntegerImplementation, |, Integer_bitOr, 0x45efa380)                      \
+  V(_IntegerImplementation, ^, Integer_bitXor, 0x8ee06c87)                     \
+  V(_IntegerImplementation, >>, Integer_sar, 0x49c7691f)                       \
+  V(_IntegerImplementation, >>>, Integer_shr, 0x2b3da581)                      \
   V(_Double, unary-, DoubleFlipSignBit, 0x3d1bf06b)                            \
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \

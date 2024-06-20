@@ -262,14 +262,12 @@ class NativeCodeOracle {
       TypesBuilder typesBuilder,
       RuntimeTypeTranslator translator) {
     TypeExpr? returnType = null;
-    bool? nullable = null;
 
     for (var annotation in member.annotations) {
       ParsedPragma? pragma = _matcher.parsePragma(annotation);
       if (pragma == null) continue;
       if (pragma is ParsedResultTypeByTypePragma ||
-          pragma is ParsedResultTypeByPathPragma ||
-          pragma is ParsedNonNullableResultType) {
+          pragma is ParsedResultTypeByPathPragma) {
         // We can only use the 'vm:exact-result-type' pragma on methods in core
         // libraries for safety reasons. See 'result_type_pragma.md', detail 1.2
         // for explanation.
@@ -306,22 +304,13 @@ class NativeCodeOracle {
         Class klass = _libraryIndex.getClass(libName, klassName);
         Type concreteClass = entryPointsListener.addAllocatedClass(klass);
         returnType = concreteClass;
-      } else if (pragma is ParsedNonNullableResultType) {
-        nullable = false;
       }
-    }
-
-    if (returnType != null && nullable != null) {
-      throw 'ERROR: Cannot have both, @pragma("$kVmExactResultTypePragmaName") '
-          'and @pragma("$kVmNonNullableResultType"), '
-          'annotating the same member.';
     }
 
     if (returnType != null) {
       return returnType;
     } else {
-      return typesBuilder.fromStaticType(
-          member.function!.returnType, nullable ?? true);
+      return typesBuilder.fromStaticType(member.function!.returnType, true);
     }
   }
 }

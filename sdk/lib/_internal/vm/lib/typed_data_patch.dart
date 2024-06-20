@@ -4138,7 +4138,6 @@ abstract final class _TypedListView extends _TypedListBase
   }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:non-nullable-result-type")
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "TypedDataView_typedData")
   external _TypedList get _typedData;
@@ -5032,7 +5031,6 @@ final class _ByteDataView implements ByteData {
   }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:non-nullable-result-type")
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "TypedDataView_typedData")
   external _TypedList get _typedData;

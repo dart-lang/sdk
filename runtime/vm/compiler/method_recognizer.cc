@@ -77,21 +77,6 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
   return kDynamicCid;
 }
 
-bool MethodRecognizer::HasNonNullableResultTypeFromPragma(
-    const Object& function_or_field) {
-  auto T = Thread::Current();
-  auto Z = T->zone();
-  auto& option = Object::Handle(Z);
-  if (Library::FindPragma(T, /*only_core=*/true, function_or_field,
-                          Symbols::vm_non_nullable_result_type(),
-                          /*multiple=*/false, &option)) {
-    return true;
-  }
-
-  // If nothing said otherwise, the return type is nullable.
-  return false;
-}
-
 intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
   switch (kind) {
     case kObjectArrayGetIndexed:
