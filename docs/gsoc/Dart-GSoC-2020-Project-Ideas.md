@@ -234,7 +234,7 @@ application](https://github.com/flutter/flutter/issues/23794), which would invol
 an audio player plugin for both Android and iOS in addition to a UI in Flutter.
 
 **Getting Started**:
-Create a simple Flutter application which utilizes method channels to invoke functionality written in native code via Dart (Java or Kotlin for Android, Objective-C or Swift for iOS). This doesn't have to be anything complicated, just enough to experiment with writing code that crosses language boundaries. See Flutter documentation on [developing packages and plugins](https://flutter.dev/docs/development/packages-and-plugins/developing-packages) for information needed to get started.
+Create a simple Flutter application which utilizes method channels to invoke functionality written in native code via Dart (Java or Kotlin for Android, Objective-C or Swift for iOS). This doesn't have to be anything complicated, just enough to experiment with writing code that crosses language boundaries. See Flutter documentation on [developing packages and plugins](https://flutter.dev/to/develop-packages) for information needed to get started.
 
 It's also recommended that you read through the article on [background execution in Flutter](https://medium.com/flutter/executing-dart-in-the-background-with-flutter-plugins-and-geofencing-2b3e40a1a124). While this is slightly out of date, the general concepts are still correct and will be important for this project.
 
