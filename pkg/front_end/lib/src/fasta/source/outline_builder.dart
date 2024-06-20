@@ -503,8 +503,7 @@ extension on DeclarationContext {
 }
 
 class OutlineBuilder extends StackListenerImpl {
-  @override
-  final SourceLibraryBuilder libraryBuilder;
+  final SourceLibraryBuilder _libraryBuilder;
 
   final SourceCompilationUnit compilationUnit;
 
@@ -547,7 +546,20 @@ class OutlineBuilder extends StackListenerImpl {
   OutlineBuilder(this.compilationUnit, this._offsetMap)
       : enableNative = compilationUnit.loader.target.backendTarget
             .enableNative(compilationUnit.importUri),
-        libraryBuilder = compilationUnit.sourceLibraryBuilder;
+        _libraryBuilder = compilationUnit.sourceLibraryBuilder;
+
+  @override
+  LibraryFeatures get libraryFeatures => compilationUnit.libraryFeatures;
+
+  @override
+  bool get isDartLibrary => compilationUnit.isDartLibrary;
+
+  @override
+  Message reportFeatureNotEnabled(
+      LibraryFeature feature, int charOffset, int length) {
+    return compilationUnit.reportFeatureNotEnabled(
+        feature, uri, charOffset, length);
+  }
 
   DeclarationContext get declarationContext => _declarationContext.head;
 
@@ -1132,7 +1144,7 @@ class OutlineBuilder extends StackListenerImpl {
     // should not shadow these unresolved types.
     compilationUnit.currentTypeParameterScopeBuilder.resolveNamedTypes(
         compilationUnit.currentTypeParameterScopeBuilder.typeVariables,
-        libraryBuilder);
+        _libraryBuilder);
   }
 
   @override
@@ -1325,7 +1337,7 @@ class OutlineBuilder extends StackListenerImpl {
       compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.classDeclaration, "<syntax-error>")
-          .resolveNamedTypes(typeVariables, libraryBuilder);
+          .resolveNamedTypes(typeVariables, _libraryBuilder);
     } else {
       Identifier identifier = name as Identifier;
       final int startCharOffset =
@@ -1432,7 +1444,7 @@ class OutlineBuilder extends StackListenerImpl {
       compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.mixinDeclaration, "<syntax-error>")
-          .resolveNamedTypes(typeVariables, libraryBuilder);
+          .resolveNamedTypes(typeVariables, _libraryBuilder);
     } else {
       Identifier identifier = name as Identifier;
       int startOffset =
@@ -1696,7 +1708,7 @@ class OutlineBuilder extends StackListenerImpl {
             type: formal.type,
             name: formal.name,
             charOffset: formal.charOffset);
-        formals[i] = formal.forPrimaryConstructor(libraryBuilder);
+        formals[i] = formal.forPrimaryConstructor(_libraryBuilder);
       }
       if (inExtensionType) {
         if (firstOptionalPositionalParameterOffset != null) {
@@ -1731,7 +1743,7 @@ class OutlineBuilder extends StackListenerImpl {
       _
     ) = _createSyntheticTypeVariables(
         compilationUnit.currentTypeParameterScopeBuilder, scopeBuilder, null);
-    scopeBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
+    scopeBuilder.resolveNamedTypes(typeVariables, _libraryBuilder);
 
     compilationUnit.addPrimaryConstructor(
         offsetMap: _offsetMap,
@@ -1814,7 +1826,7 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     compilationUnit
         .endNestedDeclaration(TypeParameterScopeKind.topLevelMethod, "#method")
-        .resolveNamedTypes(typeVariables, libraryBuilder);
+        .resolveNamedTypes(typeVariables, _libraryBuilder);
     if (identifier is Identifier) {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
@@ -2140,7 +2152,7 @@ class OutlineBuilder extends StackListenerImpl {
           "Unexpected identifier $identifier (${identifier.runtimeType})");
       nativeMethodName = null;
       inConstructor = false;
-      declarationBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
+      declarationBuilder.resolveNamedTypes(typeVariables, _libraryBuilder);
       popDeclarationContext();
       return;
     }
@@ -2334,7 +2346,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
 
-    declarationBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
+    declarationBuilder.resolveNamedTypes(typeVariables, _libraryBuilder);
     if (constructorName != null) {
       if (isConst &&
           bodyKind != MethodBody.Abstract &&
@@ -2508,7 +2520,7 @@ class OutlineBuilder extends StackListenerImpl {
       compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
-          .resolveNamedTypes(typeVariables, libraryBuilder);
+          .resolveNamedTypes(typeVariables, _libraryBuilder);
     } else {
       Identifier identifier = name as Identifier;
       String classNameForErrors = identifier.name;
@@ -3088,7 +3100,7 @@ class OutlineBuilder extends StackListenerImpl {
       compilationUnit
           .endNestedDeclaration(
               TypeParameterScopeKind.enumDeclaration, "<syntax-error>")
-          .resolveNamedTypes(typeVariables, libraryBuilder);
+          .resolveNamedTypes(typeVariables, _libraryBuilder);
     }
 
     compilationUnit.endIndexedContainer();
@@ -3288,7 +3300,7 @@ class OutlineBuilder extends StackListenerImpl {
         compilationUnit
             .endNestedDeclaration(
                 TypeParameterScopeKind.typedef, "<syntax-error>")
-            .resolveNamedTypes(typeVariables, libraryBuilder);
+            .resolveNamedTypes(typeVariables, _libraryBuilder);
         popDeclarationContext(DeclarationContext.Typedef);
         return;
       }
@@ -3315,7 +3327,7 @@ class OutlineBuilder extends StackListenerImpl {
         compilationUnit
             .endNestedDeclaration(
                 TypeParameterScopeKind.functionType, "<syntax-error>")
-            .resolveNamedTypes(typeVariables, libraryBuilder);
+            .resolveNamedTypes(typeVariables, _libraryBuilder);
         popDeclarationContext(DeclarationContext.Typedef);
         return;
       }

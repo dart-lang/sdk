@@ -920,6 +920,12 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
   Object::VerifyBuiltinVtables();
 
   auto IG = T->isolate_group();
+  {
+    SafepointReadRwLocker reader(T, IG->program_lock());
+    IG->set_shared_field_table(T, IG->shared_initial_field_table()->Clone(
+                                      /*for_isolate=*/nullptr,
+                                      /*for_isolate_group=*/IG));
+  }
   DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

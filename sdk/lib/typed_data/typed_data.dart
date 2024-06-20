@@ -359,6 +359,7 @@ abstract final class TypedData {
 }
 
 /// A [TypedData] fixed-length [List]-view on the bytes of [buffer].
+@Since("3.5")
 abstract final class TypedDataList<E> implements TypedData, List<E> {}
 
 abstract final class _TypedIntList implements TypedDataList<int> {

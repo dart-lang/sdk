@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/error/codes.g.dart';
+library;
+
 import 'package:analyzer/error/error.dart';
 
 /// Defines style and best practice recommendations.
 ///
-/// Unlike [HintCode]s, which are akin to traditional static warnings from a
-/// compiler, lint recommendations focus on matters of style and practices that
-/// might aggregated to define a project's style guide.
+/// Unlike [WarningCode]s, which are akin to traditional static warnings from a
+/// compiler, lint recommendations focus on matters of avoiding errors,
+/// unintended code, maintainability, style and other best practices that might
+/// be aggregated to define a project's style guide.
 class LintCode extends ErrorCode {
   const LintCode(
     String name,

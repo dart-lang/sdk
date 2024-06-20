@@ -1329,7 +1329,7 @@ void Precompiler::AddField(const Field& field) {
   fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.ptr()));
 
   if (field.is_static()) {
-    auto field_table = field.is_shared() ? IG->shared_field_table()
+    auto field_table = field.is_shared() ? IG->shared_initial_field_table()
                                          : IG->initial_field_table();
     const Object& value = Object::Handle(Z, field_table->At(field.field_id()));
     // Should not be in the middle of initialization while precompiling.

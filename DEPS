@@ -144,12 +144,12 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "818d1f52f127b2aaba66c55bacad1cd5351d0d3d",
-  "ecosystem_rev": "8ada2ee303383cf62cace9b2a97e8a3cc983e5c1",
+  "dartdoc_rev": "6330a13e3da84b710867af26e343d0b1a4381bc1",
+  "ecosystem_rev": "31148cd81bdb3c248fc30cd345ef49a978ed454c",
   "file_rev": "07cacaed6679a173e29176747e6ce0325742749f",
   "fixnum_rev": "a8157d87f17d5184e210403f2ed63d354b854132",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
-  "glob_rev": "eaec6a448576048b748475d80bfac2795ad5a267",
+  "glob_rev": "6d3ba5ec02817e62d17ace040590bb81a3e1242f",
   "html_rev": "3bc803d7e655491b243418f19300ef0c6112bcea",
   "http_rev": "8c325b9ca33d878a86d69c5048a8e6e18379663c",
   "http_multi_server_rev": "25941e260658efb324de857e6022f418faf9bdd1",
@@ -158,7 +158,7 @@ vars = {
   "json_rpc_2_rev": "5b1cbd679756700d5f319bf10a217da53e98ea52",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "baaaa5616370243c3c8c6a9f67fb83d26bdac552",
-  "logging_rev": "dbd682919708316e9a6d1e2fa472c9ad9225c2b4",
+  "logging_rev": "240ec33e23720091e0e5a029d569a3770ddccf1c",
   "markdown_rev": "3d8d7a8f14b74bb646bb6e4ae35e0bf2beb74154",
   "matcher_rev": "0abd4054c47a923486a6c0c04b5c974ba13ad2da",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",

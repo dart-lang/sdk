@@ -95,7 +95,7 @@ void main() {
   void testFails(String source, int radix) {
     Expect.throwsFormatException(
         () => int.parse(source, radix: radix), "$source/$radix");
-    Expect.equals(-999, int.tryParse(source, radix: radix) ?? -999);
+    Expect.isNull(int.tryParse(source, radix: radix));
   }
 
   for (int i = 2; i < 36; i++) {
@@ -121,6 +121,4 @@ void main() {
   testBadArguments("0", 0);
   testBadArguments("0", 1);
   testBadArguments("0", 37);
-
-  // See also int_parse_radix_bad_handler_test.dart
 }

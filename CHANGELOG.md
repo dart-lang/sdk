@@ -34,11 +34,6 @@
   (`add`, `subtract`, `difference`) where the `Duration` argument or result
   exceeds 570 years.
 
-- Added superinterface `TypedDataList` to typed data lists, implementing both
-  `List` and `TypedData`. Allows abstracting over all such lists without losing
-  access to either the `List` or the `TypedData` members.
-  A `ByteData` is still only a `TypedData`, not a list.
-
 [#44876]: https://github.com/dart-lang/sdk/issues/44876
 
 #### `dart:typed_data`
@@ -48,6 +43,11 @@
 
   To create an unmodifiable view of a typed-data object, use the
   `asUnmodifiableView()` methods added in Dart 3.3.
+
+- Added superinterface `TypedDataList` to typed data lists, implementing both
+  `List` and `TypedData`. Allows abstracting over all such lists without losing
+  access to either the `List` or the `TypedData` members.
+  A `ByteData` is still only a `TypedData`, not a list.
 
 [#53785]: https://github.com/dart-lang/sdk/issues/53785
 

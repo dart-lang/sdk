@@ -747,17 +747,30 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     initial_field_table_ = field_table;
   }
 
+  FieldTable* shared_initial_field_table() const {
+    return shared_initial_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> shared_initial_field_table_shareable() {
+    return shared_initial_field_table_;
+  }
+  void set_shared_initial_field_table(std::shared_ptr<FieldTable> field_table) {
+    shared_initial_field_table_ = field_table;
+  }
+
   FieldTable* shared_field_table() const { return shared_field_table_.get(); }
   std::shared_ptr<FieldTable> shared_field_table_shareable() {
     return shared_field_table_;
   }
-  void set_shared_field_table(std::shared_ptr<FieldTable> field_table) {
-    shared_field_table_ = field_table;
+  void set_shared_field_table(Thread* T, FieldTable* shared_field_table) {
+    shared_field_table_.reset(shared_field_table);
+    T->shared_field_table_values_ = shared_field_table->table();
   }
 
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
   void RegisterClass(const Class& cls);
+  void RegisterSharedStaticField(const Field& field,
+                                 const Object& initial_value);
   void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
@@ -872,6 +885,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
+  std::shared_ptr<FieldTable> shared_initial_field_table_;
   std::shared_ptr<FieldTable> shared_field_table_;
   uint32_t isolate_group_flags_ = 0;
 
