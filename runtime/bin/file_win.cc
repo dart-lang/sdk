@@ -362,9 +362,32 @@ static bool IsAbsolutePath(const wchar_t* pathname) {
          (third == L'\\' || third == L'/');
 }
 
+const wchar_t* kLongPathPrefix = L"\\\\?\\";
+const int kLongPathPrefixLength = 4;
+
+// `\\.\` is a device namespace prefix somewhat similar to `\\?\`.
+// We should preserve it at the start of the file names.
+const wchar_t* kDeviceNamespacePrefix = L"\\\\.\\";
+const int kDeviceNamespacePrefixLength = 4;
+
+static bool IsLongPathPrefixed(const std::unique_ptr<wchar_t[]>& path) {
+  return wcsncmp(path.get(), kLongPathPrefix, kLongPathPrefixLength) == 0;
+}
+
+static bool IsDeviceNamespacePrefixed(const std::unique_ptr<wchar_t[]>& path) {
+  return wcsncmp(path.get(), kDeviceNamespacePrefix,
+                 kDeviceNamespacePrefixLength) == 0;
+}
+
 // Converts the given UTF8 path to wide char. If resulting path does not
 // fit into MAX_PATH / MAX_DIRECTORY_PATH (or if |force_long_prefix| is true)
 // then converts the path to the absolute `\\?\`-prefixed form.
+//
+// This function does not change paths which are already prefixed with `\\.\`
+// prefix.
+//
+// UNC paths (`\\server\share\...`) are converted to `\\?\UNC\server\share\...`
+// if necessary.
 //
 // Note:
 // 1. Some WinAPI functions (like SetCurrentDirectoryW) are always limited
@@ -379,9 +402,6 @@ static std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* utf8_path,
   // File name and Directory name have different size limit.
   // Reference: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
   const int path_short_limit = is_file ? MAX_PATH : MAX_DIRECTORY_PATH;
-
-  const wchar_t* kLongPathPrefix = L"\\\\?\\";
-  const int kLongPathPrefixLength = 4;
 
   std::unique_ptr<wchar_t[]> absolute_path;
   if (!IsAbsolutePath(path.get())) {
@@ -403,20 +423,42 @@ static std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* utf8_path,
     }
   }
 
-  if (wcsncmp(absolute_path.get(), kLongPathPrefix, kLongPathPrefixLength) ==
-      0) {
+  if (IsLongPathPrefixed(absolute_path) ||
+      IsDeviceNamespacePrefixed(absolute_path)) {
     return absolute_path;
   }
 
+  // If the path already starts with `\\` but not with `\\?\` or `\\.\`
+  // then we need to replace `\\` with `\\?\UNC\`.
+  const bool is_unc = (wcsncmp(absolute_path.get(), L"\\\\", 2) == 0);
+  const wchar_t* kUNCLongPathPrefix = L"\\\\?\\UNC\\";
+  const int kUNCLongPathPrefixLength = 8;
+
   // Add prefix and replace forward slashes with backward slashes.
-  auto result =
-      std::make_unique<wchar_t[]>(kLongPathPrefixLength + path_length + 1);
-  wcsncpy(result.get(), kLongPathPrefix, kLongPathPrefixLength);
-  for (int i = 0; i < path_length; i++) {
-    result.get()[kLongPathPrefixLength + i] =
-        absolute_path[i] == L'/' ? L'\\' : absolute_path[i];
+  //
+  // If the path is UNC we skip the first two characters of the path `\\`
+  // hence -2.
+  const intptr_t result_length =
+      (is_unc ? kUNCLongPathPrefixLength : kLongPathPrefixLength) +
+      path_length + (is_unc ? -2 : 0) + 1;
+  auto result = std::make_unique<wchar_t[]>(result_length);
+  intptr_t result_pos;
+  intptr_t path_pos;
+  if (is_unc) {
+    wcsncpy(result.get(), kUNCLongPathPrefix, kUNCLongPathPrefixLength);
+    result_pos = kUNCLongPathPrefixLength;
+    path_pos = 2;
+  } else {
+    wcsncpy(result.get(), kLongPathPrefix, kLongPathPrefixLength);
+    result_pos = kLongPathPrefixLength;
+    path_pos = 0;
   }
-  result.get()[path_length + kLongPathPrefixLength] = L'\0';
+  while (path_pos < path_length) {
+    wchar_t ch = absolute_path[path_pos++];
+    result.get()[result_pos++] = ch == L'/' ? L'\\' : ch;
+  }
+  result.get()[result_pos++] = L'\0';
+  ASSERT(result_pos == result_length);
   return result;
 }
 
@@ -734,8 +776,10 @@ static std::unique_ptr<wchar_t[]> GetDirectoryPath(
     const std::unique_ptr<wchar_t[]>& path) {
   for (intptr_t i = wcslen(path.get()) - 1; i >= 0; --i) {
     if (path.get()[i] == '\\' || path.get()[i] == '/') {
-      auto result = std::make_unique<wchar_t[]>(i + 1);
-      wcsncpy(result.get(), path.get(), i);
+      // Note: we need to copy the trailing directory separator so we need to
+      // copy i + 1 characters (plus trailing '\0').
+      auto result = std::make_unique<wchar_t[]>(i + 2);
+      wcsncpy(result.get(), path.get(), i + 1);
       return result;
     }
   }
@@ -811,10 +855,11 @@ static std::unique_ptr<wchar_t[]> CopyIntoTempFile(
 bool File::Copy(Namespace* namespc,
                 const char* old_name,
                 const char* new_name) {
-  // We are going to concatenate old path with temporary file names in
+  // We are going to concatenate new path with temporary file names in
   // CopyIntoTempFile so we force long prefix no matter what.
-  const auto old_path = ToWinAPIFilePath(old_name, /*force_long_prefix=*/true);
-  const auto new_path = ToWinAPIFilePath(new_name);
+  const auto old_path = ToWinAPIFilePath(old_name);
+  const auto new_path = ToWinAPIFilePath(new_name, /*force_long_prefix=*/true);
+
   File::Type type = GetType(old_path.get(), /*follow_links=*/false);
   if (type != kIsFile) {
     SetLastError(ERROR_FILE_NOT_FOUND);
