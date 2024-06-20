@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 
 import '../../api_prototype/experimental_flags.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../problems.dart' as problems
     show internalProblem, unhandled, unsupported;
 import 'source_library_builder.dart';

@@ -281,12 +281,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 22,
   ),
   // 73.0892742453436%.
-  "package:front_end/src/fasta/codes/fasta_codes_cfe_generated.dart": (
+  "package:front_end/src/codes/cfe_codes_generated.dart": (
     hitCount: 1138,
     missCount: 419,
   ),
   // 83.68336025848141%.
-  "package:front_end/src/fasta/codes/type_labeler.dart": (
+  "package:front_end/src/codes/type_labeler.dart": (
     hitCount: 518,
     missCount: 101,
   ),

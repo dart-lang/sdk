@@ -80,7 +80,7 @@ import 'builder/library_builder.dart' show CompilationUnit, LibraryBuilder;
 import 'builder/member_builder.dart' show MemberBuilder;
 import 'builder/name_iterator.dart' show NameIterator;
 import 'builder_graph.dart' show BuilderGraph;
-import 'codes/fasta_codes.dart';
+import '../codes/cfe_codes.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'compiler_context.dart' show CompilerContext;
 import 'dill/dill_class_builder.dart' show DillClassBuilder;

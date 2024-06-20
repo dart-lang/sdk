@@ -14,7 +14,7 @@ import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/metadata_builder.dart';
 import 'builder/name_iterator.dart';
-import 'codes/fasta_codes.dart';
+import '../codes/cfe_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/body_builder_context.dart';
 import 'kernel/hierarchy/class_member.dart' show ClassMember;

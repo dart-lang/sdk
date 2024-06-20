@@ -59,7 +59,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Message,
@@ -71,7 +71,7 @@ import '../codes/fasta_codes.dart'
         templateExperimentNotEnabledOffByDefault,
         templateLocalVariableUsedBeforeDeclared,
         templateLocalVariableUsedBeforeDeclaredContext;
-import '../codes/fasta_codes.dart' as fasta;
+import '../../codes/cfe_codes.dart' as fasta;
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../identifiers.dart'

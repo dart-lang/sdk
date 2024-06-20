@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
-import '../codes/fasta_codes.dart' show LocatedMessage, Message;
+import '../../codes/cfe_codes.dart' show LocatedMessage, Message;
 import '../kernel/internal_ast.dart';
 
 abstract class InferenceHelper {

@@ -5,7 +5,7 @@
 library fasta.kernel_constants;
 
 import '../builder/library_builder.dart';
-import '../codes/fasta_codes.dart' show LocatedMessage;
+import '../../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_loader.dart' show SourceLoader;
 import 'constant_evaluator.dart' show ErrorReporter;
 

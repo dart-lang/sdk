@@ -7,7 +7,7 @@ import 'dart:convert' show jsonEncode;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart';
+import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/util/bytes_sink.dart' show BytesSink;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;

@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
 
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/internal_ast.dart';
 import 'external_ast_helper.dart';
 import 'inference_helper.dart';

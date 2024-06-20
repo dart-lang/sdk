@@ -11,7 +11,7 @@ import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../dill/dill_member_builder.dart';
 import '../problems.dart';
 import '../scope.dart';

@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/fasta_codes.dart' show messageSupertypeIsFunction, noLength;
+import '../../codes/cfe_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
 import 'declaration_builders.dart';

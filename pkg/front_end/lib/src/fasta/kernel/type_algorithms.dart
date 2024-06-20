@@ -16,7 +16,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Message,

@@ -13,7 +13,7 @@ import 'package:kernel/src/printer.dart';
 
 import '../builder/builder.dart';
 import '../builder/inferable_type_builder.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../constant_context.dart';
 import '../problems.dart' show unsupported;
 import '../source/source_field_builder.dart';

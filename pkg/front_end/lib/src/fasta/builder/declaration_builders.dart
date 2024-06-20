@@ -7,7 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../loader.dart';
 import '../messages.dart';

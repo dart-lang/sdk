@@ -41,7 +41,7 @@ export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-export '../fasta/codes/fasta_codes.dart'
+export '../codes/cfe_codes.dart'
     show
         LocatedMessage,
         messageFfiAbiSpecificIntegerInvalid,

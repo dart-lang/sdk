@@ -23,7 +23,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
 import '../constant_context.dart' show ConstantContext;
 import '../crash.dart' show Crash;

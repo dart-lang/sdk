@@ -22,7 +22,7 @@ import 'api_prototype/memory_file_system.dart';
 import 'base/instrumentation.dart';
 import 'base/nnbd_mode.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
-import 'fasta/codes/fasta_codes.dart' show LocatedMessage;
+import 'codes/cfe_codes.dart' show LocatedMessage;
 import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/crash.dart' show withCrashReporting;
 import 'fasta/dill/dill_target.dart' show DillTarget;

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:front_end/src/fasta/codes/type_labeler.dart';
+import 'package:front_end/src/codes/type_labeler.dart';
 import 'package:kernel/ast.dart';
 
 void main() {

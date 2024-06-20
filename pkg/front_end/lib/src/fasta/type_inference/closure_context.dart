@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/invalid_type.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';

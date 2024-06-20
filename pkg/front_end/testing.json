@@ -273,7 +273,7 @@
       "exclude": [
         "kernel/lib/transformations/.*\\.dart$",
         "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
-        "front_end/lib/src/fasta/codes/fasta_codes_cfe_generated\\.dart$"
+        "front_end/lib/src/codes/cfe_codes_generated\\.dart$"
       ]
     },
     {
@@ -310,7 +310,7 @@
       ],
       "exclude": [
         "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
-        "front_end/lib/src/fasta/codes/fasta_codes_cfe_generated\\.dart$"
+        "front_end/lib/src/codes/cfe_codes_generated\\.dart$"
       ]
     },
     {

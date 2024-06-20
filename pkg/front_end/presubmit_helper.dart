@@ -76,7 +76,7 @@ const Set<String> _generatedFilesUpToDateFiles = {
   "pkg/_fe_analyzer_shared/lib/src/parser/listener.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart",
   "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
-  "pkg/front_end/lib/src/fasta/codes/fasta_codes_cfe_generated.dart",
+  "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
   "pkg/front_end/lib/src/fasta/util/parser_ast_helper.dart",
   "pkg/front_end/messages.yaml",
   "pkg/front_end/test/generated_files_up_to_date_git_test.dart",

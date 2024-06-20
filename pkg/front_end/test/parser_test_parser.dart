@@ -19,7 +19,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart' as codes;
+import 'package:front_end/src/codes/cfe_codes.dart' as codes;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 

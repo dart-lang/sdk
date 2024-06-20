@@ -15,7 +15,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../codes/fasta_codes.dart';
+import '../../../codes/cfe_codes.dart';
 import '../../source/source_library_builder.dart';
 import '../../type_inference/type_schema.dart' show UnknownType;
 import 'hierarchy_builder.dart';
