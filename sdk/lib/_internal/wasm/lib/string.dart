@@ -20,23 +20,29 @@ import 'dart:_wasm';
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
-/// Static function for `OneByteString._setAt` to avoid making `_setAt` public,
-/// which would allow calling it in dynamic invocations.
-@pragma('wasm:prefer-inline')
-void writeIntoOneByteString(OneByteString s, int index, int codePoint) =>
-    s._setAt(index, codePoint);
+extension OneByteStringUncheckedOperations on OneByteString {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) => _codeUnitAtUnchecked(index);
 
-/// Static function for `OneByteString._codeUnitAtUnchecked` to avoid making
-/// `_codeUnitAtUnchecked` public, which would allow calling it in dynamic
-/// invocations.
-@pragma('wasm:prefer-inline')
-int oneByteStringCodeUnitAtUnchecked(OneByteString s, int index) =>
-    s._codeUnitAtUnchecked(index);
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      _substringUnchecked(start, end);
 
-/// Same as `writeIntoOneByteString`, but for `TwoByteString`.
-@pragma('wasm:prefer-inline')
-void writeIntoTwoByteString(TwoByteString s, int index, int codePoint) =>
-    s._setAt(index, codePoint);
+  @pragma('wasm:prefer-inline')
+  void setUnchecked(int index, int codePoint) => _setAt(index, codePoint);
+}
+
+extension TwoByteStringUncheckedOperations on TwoByteString {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) => _codeUnitAtUnchecked(index);
+
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      _substringUnchecked(start, end);
+
+  @pragma('wasm:prefer-inline')
+  void setUnchecked(int index, int codePoint) => _setAt(index, codePoint);
+}
 
 /// Static function for `OneByteString._array` to avoid making `_array` public.
 @pragma('wasm:prefer-inline')
@@ -111,7 +117,8 @@ String _toLowerCase(String string) => JS<String>(
  * [StringBase] contains common methods used by concrete String
  * implementations, e.g., OneByteString.
  */
-abstract final class StringBase extends WasmStringBase {
+abstract final class StringBase extends WasmStringBase
+    implements StringUncheckedOperationsBase {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
@@ -1165,6 +1172,7 @@ final class OneByteString extends StringBase {
     return StringBase._operatorEqualsFallback(this, other);
   }
 
+  @override
   @pragma('wasm:prefer-inline')
   int _codeUnitAtUnchecked(int index) => _array.readUnsigned(index);
 
@@ -1604,8 +1612,12 @@ final class TwoByteString extends StringBase {
     if (WasmI64.fromInt(length).leU(WasmI64.fromInt(index))) {
       throw IndexError.withLength(index, length);
     }
-    return _array.readUnsigned(index);
+    return _codeUnitAtUnchecked(index);
   }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  int _codeUnitAtUnchecked(int index) => _array.readUnsigned(index);
 
   @override
   int get length => _array.length;
@@ -1644,7 +1656,7 @@ OneByteString _stringAllocate1(WasmI32 length) {
 
 @pragma("wasm:export", "\$stringWrite1")
 void _stringWrite1(OneByteString string, WasmI32 index, WasmI32 codePoint) {
-  writeIntoOneByteString(string, index.toIntSigned(), codePoint.toIntSigned());
+  string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
 }
 
 @pragma("wasm:export", "\$stringAllocate2")
@@ -1654,5 +1666,5 @@ TwoByteString _stringAllocate2(WasmI32 length) {
 
 @pragma("wasm:export", "\$stringWrite2")
 void _stringWrite2(TwoByteString string, WasmI32 index, WasmI32 codePoint) {
-  writeIntoTwoByteString(string, index.toIntSigned(), codePoint.toIntSigned());
+  string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
 }
