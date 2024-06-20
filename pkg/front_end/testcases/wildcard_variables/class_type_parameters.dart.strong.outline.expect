@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef _ = self::BB;
+class AA extends core::Object {
+  synthetic constructor •() → self::AA
+    ;
+}
+class BB extends self::AA {
+  synthetic constructor •() → self::BB
+    ;
+}
+class A<T extends core::Object? = dynamic, U extends self::AA> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%, self::A::U>
+    ;
+}
+class B<_ extends core::Object? = dynamic, _ extends self::AA> extends self::A<self::BB, self::BB> {
+  synthetic constructor •() → self::B<self::B::_%, self::B::_>
+    ;
+  method foo<_ extends self::BB>([wildcard core::int _ = 2]) → core::int
+    ;
+}
+class C<T extends core::Object? = dynamic, _ extends self::BB> extends self::A<self::C::T%, self::BB> {
+  static const field core::int _ = 1;
+  synthetic constructor •() → self::C<self::C::T%, self::C::_>
+    ;
+}
+class D<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::_%, self::D::_%>
+    ;
+}
+class DoesNotUseTypeVariable<_ extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::DoesNotUseTypeVariable<self::DoesNotUseTypeVariable::_%>
+    ;
+  method returnsBB() → core::Type
+    ;
+}

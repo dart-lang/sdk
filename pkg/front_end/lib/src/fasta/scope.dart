@@ -461,6 +461,7 @@ class Scope extends MutableScope {
     Scope newScope = new Scope.nested(this, "type variables",
         isModifiable: false, kind: ScopeKind.typeParameters);
     for (NominalVariableBuilder t in typeVariables) {
+      if (t.isWildcard) continue;
       (newScope._local ??= {})[t.name] = t;
     }
     return newScope;

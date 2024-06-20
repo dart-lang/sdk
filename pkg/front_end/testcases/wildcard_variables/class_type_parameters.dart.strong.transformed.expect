@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef _ = self::BB;
+class AA extends core::Object {
+  synthetic constructor •() → self::AA
+    : super core::Object::•()
+    ;
+}
+class BB extends self::AA {
+  synthetic constructor •() → self::BB
+    : super self::AA::•()
+    ;
+}
+class A<T extends core::Object? = dynamic, U extends self::AA> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%, self::A::U>
+    : super core::Object::•()
+    ;
+}
+class B<_ extends core::Object? = dynamic, _ extends self::AA> extends self::A<self::BB, self::BB> {
+  synthetic constructor •() → self::B<self::B::_%, self::B::_>
+    : super self::A::•()
+    ;
+  method foo<_ extends self::BB>([wildcard core::int _ = #C1]) → core::int
+    return 1;
+}
+class C<T extends core::Object? = dynamic, _ extends self::BB> extends self::A<self::C::T%, self::BB> {
+  static const field core::int _ = #C2;
+  synthetic constructor •() → self::C<self::C::T%, self::C::_>
+    : super self::A::•()
+    ;
+}
+class D<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::_%, self::D::_%>
+    : super core::Object::•()
+    ;
+}
+class DoesNotUseTypeVariable<_ extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::DoesNotUseTypeVariable<self::DoesNotUseTypeVariable::_%>
+    : super core::Object::•()
+    ;
+  method returnsBB() → core::Type {
+    return #C3;
+  }
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 1
+  #C3 = TypeLiteralConstant(self::BB)
+}
