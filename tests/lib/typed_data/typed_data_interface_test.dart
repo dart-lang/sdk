@@ -11,10 +11,10 @@ import 'package:expect/variations.dart';
 // * `offsetInBytes`
 // * `lengthInBytes`
 // * `elementSizeInBytes`
-
-@pragma('dart2js:assumeDynamic')
-@pragma('dart2js:noInline')
-confuse(x) => x;
+//
+// The new `TypedDataList` has these and the `List` interface.
+// Testing that all the typed data types have the members, and that if they
+// are lists, their list length matches their typed-data view size.
 
 void test(TypedData data, int bytesPerElement, int lengthInBytes) {
   var type = data.runtimeType.toString();
@@ -26,6 +26,9 @@ void test(TypedData data, int bytesPerElement, int lengthInBytes) {
   if (data is TypedDataList) {
     Expect.equals(
         lengthInBytes ~/ bytesPerElement, data.length, "$type.length");
+  } else {
+    // Only `ByteData` is not a `TypedDataList`.
+    Expect.type<ByteData>(data);
   }
 }
 
