@@ -1480,6 +1480,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
           'hasDeprecated',
           'isConstant',
           'isNoSuchMethod',
+          'isNotImported',
           'keyword',
           'startsWithDollar',
           'superMatches',
