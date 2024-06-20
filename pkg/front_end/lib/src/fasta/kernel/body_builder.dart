@@ -122,7 +122,7 @@ enum JumpTargetKind {
 }
 
 class BodyBuilder extends StackListenerImpl
-    implements ExpressionGeneratorHelper, DelayedActionPerformer {
+    implements ExpressionGeneratorHelper {
   @override
   final Forest forest;
 
@@ -242,89 +242,6 @@ class BodyBuilder extends StackListenerImpl
   /// nominal correspondingly.
   bool _insideOfFormalParameterType = false;
 
-  /// True if the currently built part of the body is inside of a default value
-  /// of a formal parameter.
-  ///
-  /// Being inside of a default value is treated with regards to possible
-  /// nestedness of the default values. See the documentation on
-  /// [_defaultValueNestingLevel] for details.
-  bool get _insideOfFormalParameterDefaultValue {
-    return _defaultValueNestingLevel > 0;
-  }
-
-  /// True if the parser is between [beginMetadata] and [endMetadata].
-  bool _insideMetadataParsing = false;
-
-  /// Numeric nestedness of formal parameter default values.
-  ///
-  /// The value of 0 means that the currently built part is not within a default
-  /// value. Consider the following clarifying examples.
-  ///
-  ///   // `const Bar()` isn't within a default value.
-  ///   foo() => const Bar();
-  ///
-  ///   // `const Bar()` is at [_defaultValueNestingLevel] = 1.
-  ///   foo([dynamic x = const Bar()]) {}
-  ///
-  ///   // `const Bar()` is at [_defaultValueNestingLevel] = 2.
-  ///   // `const Baz()` is at [_defaultValueNestingLevel] = 1.
-  ///   foo([dynamic x = ([dynamic y = const Bar()]) => const Baz()]) {}
-  ///
-  ///  Since function expressions aren't const values, currently it's not
-  ///  possible to write a program with [_defaultValueNestingLevel] > 1 that
-  ///  doesn't contain a compile-time error. However, it's still necessary to
-  ///  track the nestedness level to avoid bad compiler states and compiler
-  ///  crashes.
-  int _defaultValueNestingLevel = 0;
-
-  /// Returns true if newly created aliased or redirecting invocations need
-  /// post-processing such as resolution or unaliasing.
-  ///
-  /// The need for the condition computed by the getter is due to some parts of
-  /// the AST being built twice. The first time they are built is during
-  /// outline expressions building. The second time they are built during the
-  /// function body building. However, they are fully processed only the first
-  /// time they are built, and the second time around they are discarded.
-  /// Additional complication arises due to some nodes, such as annotations,
-  /// being built only once. So we only need to add the nodes created for the
-  /// first time into the lists of nodes for post-processing.
-  ///
-  /// The invocations inside default values that need resolution or unaliasing
-  /// were already added to the post-processing lists during outline expression
-  /// building. Only those invocations that are built outside of the default
-  /// values or inside the default values that aren't built as outline
-  /// expressions need to be added during the second pass.
-  bool get _createdStaticInvocationsNeedPostProcessing {
-    return
-        // All invocations in outline building phase will be type-inferred, and
-        // they all should be added to the post-processing.
-        _context.inOutlineBuildingPhase ||
-
-            // Here we aren't in the outline mode, but rather in the
-            // body-building mode. If the current context has formal parameters
-            // and is a constructor context, their default values should be
-            // skipped because in the body-building mode they aren't passed
-            // through type inference.
-            (!_context.hasFormalParameters ||
-                    !_insideOfFormalParameterDefaultValue ||
-                    !_context.isConstructor) &&
-
-                // The invocations in the metadata should also be skipped in the
-                // body-building phase, since they aren't type-inferred. An
-                // exception here are the annotations within method bodies,
-                // field initializers, and on formal parameters.
-                !(_context.inMetadata ||
-                    _insideMetadataParsing &&
-                        !_inBody &&
-                        !inFormals &&
-                        !inFieldInitializer) &&
-
-                // Finally, the const fields in body-building phase aren't
-                // inferred and the invocations in them should be skipped during
-                // post-processing.
-                !_context.inConstFields;
-  }
-
   bool get inFunctionType =>
       _structuralParameterDepthLevel > 0 || _insideOfFormalParameterType;
 
@@ -341,10 +258,6 @@ class BodyBuilder extends StackListenerImpl
   bool inCatchBlock = false;
 
   int functionNestingLevel = 0;
-
-  int _inBodyCount = 0;
-
-  bool get _inBody => _inBodyCount > 0;
 
   Statement? problemInLoopOrSwitch;
 
@@ -364,41 +277,6 @@ class BodyBuilder extends StackListenerImpl
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
   Map<String, int>? initializedFields;
-
-  /// List of built redirecting factory invocations.  The targets of the
-  /// invocations are to be resolved in a separate step.
-  final List<FactoryConstructorInvocation> redirectingFactoryInvocations = [];
-
-  /// List of redirecting factory invocations delayed for resolution.
-  ///
-  /// A resolution of a redirecting factory invocation can be delayed because
-  /// the inference in the declaration of the redirecting factory isn't done
-  /// yet.
-  final List<FactoryConstructorInvocation>
-      delayedRedirectingFactoryInvocations = [];
-
-  /// List of built type aliased generative constructor invocations that
-  /// require unaliasing.
-  final List<TypeAliasedConstructorInvocation>
-      typeAliasedConstructorInvocations = [];
-
-  /// List of built type aliased factory constructor invocations that require
-  /// unaliasing.
-  final List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations = [];
-
-  /// List of type aliased factory invocations delayed for resolution.
-  ///
-  /// A resolution of a type aliased factory invocation can be delayed because
-  /// the inference in the declaration of the target isn't done yet.
-  final List<TypeAliasedFactoryInvocation>
-      delayedTypeAliasedFactoryInvocations = [];
-
-  /// List of type aliased constructor invocations delayed for resolution.
-  ///
-  /// A resolution of a type aliased constructor invocation can be delayed
-  /// because the inference in the declaration of the target isn't done yet.
-  final List<TypeAliasedConstructorInvocation>
-      delayedTypeAliasedConstructorInvocations = [];
 
   /// Variables with metadata.  Their types need to be inferred late, for
   /// example, in [finishFunction].
@@ -506,9 +384,6 @@ class BodyBuilder extends StackListenerImpl
   void enterLocalScope(Scope localScope) {
     push(scope);
     scope = localScope;
-    if (scope.kind == ScopeKind.functionBody) {
-      _inBodyCount++;
-    }
     assert(checkState(null, [
       ValueKinds.Scope,
     ]));
@@ -518,9 +393,6 @@ class BodyBuilder extends StackListenerImpl
       {required String debugName, required ScopeKind kind}) {
     push(scope);
     scope = scope.createNestedScope(debugName: debugName, kind: kind);
-    if (kind == ScopeKind.functionBody) {
-      _inBodyCount++;
-    }
     assert(checkState(null, [
       ValueKinds.Scope,
     ]));
@@ -544,9 +416,6 @@ class BodyBuilder extends StackListenerImpl
       if (declaredInCurrentGuard!.isEmpty) {
         declaredInCurrentGuard = null;
       }
-    }
-    if (scope.kind == ScopeKind.functionBody) {
-      _inBodyCount--;
     }
     scope = pop() as Scope;
   }
@@ -907,7 +776,6 @@ class BodyBuilder extends StackListenerImpl
     super.push(constantContext);
     constantContext = ConstantContext.inferred;
     assert(checkState(token, [ValueKinds.ConstantContext]));
-    _insideMetadataParsing = true;
   }
 
   @override
@@ -982,7 +850,6 @@ class BodyBuilder extends StackListenerImpl
       }
       constantContext = savedConstantContext;
     }
-    _insideMetadataParsing = false;
     assert(checkState(beginToken, [ValueKinds.Expression]));
   }
 
@@ -1066,21 +933,7 @@ class BodyBuilder extends StackListenerImpl
         continue;
       }
       if (initializer != null) {
-        if (fieldBuilder.hasBodyBeenBuilt) {
-          // The initializer was already compiled (e.g., if it appear in the
-          // outline, like constant field initializers) so we do not need to
-          // perform type inference or transformations.
-
-          // If the body is already built and it's a type aliased constructor or
-          // factory invocation, they shouldn't be checked or resolved the
-          // second time, so they are removed from the corresponding lists.
-          if (initializer is TypeAliasedConstructorInvocation) {
-            typeAliasedConstructorInvocations.remove(initializer);
-          }
-          if (initializer is TypeAliasedFactoryInvocation) {
-            typeAliasedFactoryInvocations.remove(initializer);
-          }
-        } else {
+        if (!fieldBuilder.hasBodyBeenBuilt) {
           initializer = typeInferrer
               .inferFieldInitializer(this, fieldBuilder.builtType, initializer)
               .expression;
@@ -1108,7 +961,7 @@ class BodyBuilder extends StackListenerImpl
     }
     pop(); // Annotations.
 
-    performBacklogComputations(allowFurtherDelays: false);
+    performBacklogComputations();
     assert(stack.length == 0);
   }
 
@@ -1117,39 +970,13 @@ class BodyBuilder extends StackListenerImpl
   ///
   /// Back logged computations include resolution of redirecting factory
   /// invocations and checking of typedef types.
-  ///
-  /// If the parameter [allowFurtherDelays] is set to `true`, the backlog
-  /// computations are allowed to be delayed one more time if they can't be
-  /// completed in the current invocation of [performBacklogComputations] and
-  /// have a chance to be completed during the next invocation. If
-  /// [allowFurtherDelays] is set to `false`, the backlog computations are
-  /// assumed to be final and the function throws an internal exception in case
-  /// if any of the computations can't be completed.
-  void performBacklogComputations(
-      {List<DelayedActionPerformer>? delayedActionPerformers,
-      required bool allowFurtherDelays}) {
+  void performBacklogComputations() {
     _finishVariableMetadata();
-    _unaliasTypeAliasedConstructorInvocations(
-        typeAliasedConstructorInvocations);
-    _unaliasTypeAliasedFactoryInvocations(typeAliasedFactoryInvocations);
-    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations,
-        allowFurtherDelays: allowFurtherDelays);
     libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
-    if (hasDelayedActions) {
-      assert(
-          delayedActionPerformers != null,
-          "Body builder has delayed actions that cannot be performed: "
-          "${[
-            ...delayedRedirectingFactoryInvocations,
-            ...delayedTypeAliasedFactoryInvocations,
-            ...delayedTypeAliasedConstructorInvocations,
-          ]}");
-      delayedActionPerformers?.add(this);
-    }
   }
 
   void finishRedirectingFactoryBody() {
-    performBacklogComputations(allowFurtherDelays: false);
+    performBacklogComputations();
   }
 
   @override
@@ -1453,7 +1280,7 @@ class BodyBuilder extends StackListenerImpl
       _context.setBody(body);
     }
 
-    performBacklogComputations(allowFurtherDelays: false);
+    performBacklogComputations();
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
@@ -1569,7 +1396,8 @@ class BodyBuilder extends StackListenerImpl
   /// [target], `.arguments` is [arguments], `.fileOffset` is [fileOffset],
   /// and `.isConst` is [isConst].
   /// Returns null if the invocation can't be resolved.
-  Expression? _resolveRedirectingFactoryTarget(
+  @override
+  Expression? resolveRedirectingFactoryTarget(
       Procedure target, Arguments arguments, int fileOffset, bool isConst) {
     Procedure initialTarget = target;
     Expression replacementNode;
@@ -1616,188 +1444,49 @@ class BodyBuilder extends StackListenerImpl
     return replacementNode;
   }
 
-  /// If the parameter [allowFurtherDelays] is set to `true`, the resolution of
-  /// redirecting factories is allowed to be delayed one more time if it can't
-  /// be completed in the current invocation of
-  /// [_resolveRedirectingFactoryTargets] and has a chance to be completed
-  /// during the next invocation. If [allowFurtherDelays] is set to `false`,
-  /// the resolution of redirecting factories is assumed to be final and the
-  /// function throws an internal exception in case if any of the resolutions
-  /// can't be completed.
-  void _resolveRedirectingFactoryTargets(
-      List<FactoryConstructorInvocation> redirectingFactoryInvocations,
-      {required bool allowFurtherDelays}) {
-    List<FactoryConstructorInvocation> invocations =
-        redirectingFactoryInvocations.toList();
-    redirectingFactoryInvocations.clear();
-    for (FactoryConstructorInvocation invocation in invocations) {
-      // If the invocation was invalid, it or its parent has already been
-      // desugared into an exception throwing expression.  There is nothing to
-      // resolve anymore.  Note that in the case where the invocation's parent
-      // was invalid, type inference won't reach the invocation node and won't
-      // set its inferredType field.  If type inference is disabled, reach to
-      // the outermost parent to check if the node is a dead code.
-      if (invocation.parent == null) continue;
-      if (!invocation.hasBeenInferred) {
-        if (allowFurtherDelays) {
-          delayedRedirectingFactoryInvocations.add(invocation);
-        }
-        continue;
-      }
-      Expression? replacement = _resolveRedirectingFactoryTarget(
-          invocation.target,
-          invocation.arguments,
-          invocation.fileOffset,
-          invocation.isConst);
-      if (replacement == null) {
-        delayedRedirectingFactoryInvocations.add(invocation);
-      } else {
-        invocation.parent?.replaceChild(invocation, replacement);
-      }
-    }
-  }
-
-  void _unaliasTypeAliasedConstructorInvocations(
-      List<TypeAliasedConstructorInvocation>
-          typeAliasedConstructorInvocations) {
-    List<TypeAliasedConstructorInvocation> invocations = [
-      ...typeAliasedConstructorInvocations
-    ];
-    typeAliasedConstructorInvocations.clear();
-    for (TypeAliasedConstructorInvocation invocation in invocations) {
-      assert(invocation.hasBeenInferred || isOrphaned(invocation),
-          "Node $invocation has not been inferred.");
-
-      Expression? replacement;
-      if (invocation.hasBeenInferred) {
-        bool inferred = !hasExplicitTypeArguments(invocation.arguments);
-        DartType aliasedType = new TypedefType(
-            invocation.typeAliasBuilder.typedef,
-            Nullability.nonNullable,
-            invocation.arguments.types);
-        libraryBuilder.checkBoundsInType(
-            aliasedType, typeEnvironment, uri, invocation.fileOffset,
-            allowSuperBounded: false, inferred: inferred);
-        DartType unaliasedType = aliasedType.unalias;
-        List<DartType>? invocationTypeArguments = null;
-        if (unaliasedType is InterfaceType) {
-          invocationTypeArguments = unaliasedType.typeArguments;
-        }
-        Arguments invocationArguments = forest.createArguments(
-            noLocation, invocation.arguments.positional,
-            types: invocationTypeArguments, named: invocation.arguments.named);
-        replacement = new ConstructorInvocation(
-            invocation.target, invocationArguments,
-            isConst: invocation.isConst);
-      }
-      if (replacement == null) {
-        delayedTypeAliasedConstructorInvocations.add(invocation);
-      } else {
-        invocation.parent?.replaceChild(invocation, replacement);
-      }
-    }
-    typeAliasedConstructorInvocations.clear();
-  }
-
-  void _unaliasTypeAliasedFactoryInvocations(
-      List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations) {
-    List<TypeAliasedFactoryInvocation> invocations =
-        typeAliasedFactoryInvocations.toList();
-    typeAliasedFactoryInvocations.clear();
-    for (TypeAliasedFactoryInvocation invocation in invocations) {
-      assert(invocation.hasBeenInferred || isOrphaned(invocation),
-          "Node $invocation has not been inferred.");
-
-      Expression? replacement;
-      if (invocation.hasBeenInferred) {
-        bool inferred = !hasExplicitTypeArguments(invocation.arguments);
-        DartType aliasedType = new TypedefType(
-            invocation.typeAliasBuilder.typedef,
-            Nullability.nonNullable,
-            invocation.arguments.types);
-        libraryBuilder.checkBoundsInType(
-            aliasedType, typeEnvironment, uri, invocation.fileOffset,
-            allowSuperBounded: false, inferred: inferred);
-        DartType unaliasedType = aliasedType.unalias;
-        List<DartType>? invocationTypeArguments = null;
-        if (unaliasedType is TypeDeclarationType) {
-          invocationTypeArguments = unaliasedType.typeArguments;
-        }
-        Arguments invocationArguments = forest.createArguments(
-            noLocation, invocation.arguments.positional,
-            types: invocationTypeArguments,
-            named: invocation.arguments.named,
-            hasExplicitTypeArguments:
-                hasExplicitTypeArguments(invocation.arguments));
-        replacement = _resolveRedirectingFactoryTarget(invocation.target,
-            invocationArguments, invocation.fileOffset, invocation.isConst);
-      }
-
-      if (replacement == null) {
-        delayedTypeAliasedFactoryInvocations.add(invocation);
-      } else {
-        invocation.parent?.replaceChild(invocation, replacement);
-      }
-    }
-    typeAliasedFactoryInvocations.clear();
-  }
-
-  /// Perform actions that were delayed
-  ///
-  /// An action can be delayed, for instance, because it depends on some
-  /// calculations in another library.  For example, a resolution of a
-  /// redirecting factory invocation depends on the type inference in the
-  /// redirecting factory.
   @override
-  void performDelayedActions({required bool allowFurtherDelays}) {
-    if (delayedRedirectingFactoryInvocations.isNotEmpty) {
-      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations,
-          allowFurtherDelays: allowFurtherDelays);
-      if (delayedRedirectingFactoryInvocations.isNotEmpty) {
-        for (StaticInvocation invocation
-            in delayedRedirectingFactoryInvocations) {
-          internalProblem(
-              fasta.templateInternalProblemUnhandled.withArguments(
-                  invocation.target.name.text, 'performDelayedActions'),
-              invocation.fileOffset,
-              uri);
-        }
-      }
+  Expression unaliasSingleTypeAliasedConstructorInvocation(
+      TypeAliasedConstructorInvocation invocation) {
+    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
+    DartType aliasedType = new TypedefType(invocation.typeAliasBuilder.typedef,
+        Nullability.nonNullable, invocation.arguments.types);
+    libraryBuilder.checkBoundsInType(
+        aliasedType, typeEnvironment, uri, invocation.fileOffset,
+        allowSuperBounded: false, inferred: inferred);
+    DartType unaliasedType = aliasedType.unalias;
+    List<DartType>? invocationTypeArguments = null;
+    if (unaliasedType is InterfaceType) {
+      invocationTypeArguments = unaliasedType.typeArguments;
     }
-    if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
-      _unaliasTypeAliasedFactoryInvocations(
-          delayedTypeAliasedFactoryInvocations);
-      if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
-        for (StaticInvocation invocation
-            in delayedTypeAliasedFactoryInvocations) {
-          internalProblem(
-              fasta.templateInternalProblemUnhandled.withArguments(
-                  invocation.target.name.text, 'performDelayedActions'),
-              invocation.fileOffset,
-              uri);
-        }
-      }
-    }
-    if (delayedTypeAliasedConstructorInvocations.isNotEmpty) {
-      _unaliasTypeAliasedConstructorInvocations(
-          delayedTypeAliasedConstructorInvocations);
-      if (delayedTypeAliasedConstructorInvocations.isNotEmpty) {
-        for (ConstructorInvocation invocation
-            in delayedTypeAliasedConstructorInvocations) {
-          internalProblem(
-              fasta.templateInternalProblemUnhandled.withArguments(
-                  invocation.target.name.text, 'performDelayedActions'),
-              invocation.fileOffset,
-              uri);
-        }
-      }
-    }
+    Arguments invocationArguments = forest.createArguments(
+        noLocation, invocation.arguments.positional,
+        types: invocationTypeArguments, named: invocation.arguments.named);
+    return new ConstructorInvocation(invocation.target, invocationArguments,
+        isConst: invocation.isConst);
   }
 
-  bool get hasDelayedActions {
-    return delayedRedirectingFactoryInvocations.isNotEmpty ||
-        delayedTypeAliasedFactoryInvocations.isNotEmpty ||
-        delayedTypeAliasedConstructorInvocations.isNotEmpty;
+  @override
+  Expression? unaliasSingleTypeAliasedFactoryInvocation(
+      TypeAliasedFactoryInvocation invocation) {
+    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
+    DartType aliasedType = new TypedefType(invocation.typeAliasBuilder.typedef,
+        Nullability.nonNullable, invocation.arguments.types);
+    libraryBuilder.checkBoundsInType(
+        aliasedType, typeEnvironment, uri, invocation.fileOffset,
+        allowSuperBounded: false, inferred: inferred);
+    DartType unaliasedType = aliasedType.unalias;
+    List<DartType>? invocationTypeArguments = null;
+    if (unaliasedType is TypeDeclarationType) {
+      invocationTypeArguments = unaliasedType.typeArguments;
+    }
+    Arguments invocationArguments = forest.createArguments(
+        noLocation, invocation.arguments.positional,
+        types: invocationTypeArguments,
+        named: invocation.arguments.named,
+        hasExplicitTypeArguments:
+            hasExplicitTypeArguments(invocation.arguments));
+    return resolveRedirectingFactoryTarget(invocation.target,
+        invocationArguments, invocation.fileOffset, invocation.isConst);
   }
 
   void _finishVariableMetadata() {
@@ -1849,13 +1538,12 @@ class BodyBuilder extends StackListenerImpl
     } else {
       temporaryParent = new ListLiteral(expressions);
     }
-    performBacklogComputations(allowFurtherDelays: false);
+    performBacklogComputations();
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
-    assert(redirectingFactoryInvocations.isEmpty);
     int fileOffset = offsetForToken(token);
     List<NominalVariableBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
@@ -1926,7 +1614,7 @@ class BodyBuilder extends StackListenerImpl
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
 
-    performBacklogComputations(allowFurtherDelays: false);
+    performBacklogComputations();
 
     return fakeReturn.expression!;
   }
@@ -5577,7 +5265,6 @@ class BodyBuilder extends StackListenerImpl
     super.push(constantContext);
     _insideOfFormalParameterType = false;
     constantContext = ConstantContext.required;
-    _defaultValueNestingLevel++;
   }
 
   @override
@@ -5586,7 +5273,6 @@ class BodyBuilder extends StackListenerImpl
     Object? defaultValueExpression = pop();
     constantContext = pop() as ConstantContext;
     push(defaultValueExpression);
-    _defaultValueNestingLevel--;
   }
 
   @override
@@ -6062,17 +5748,12 @@ class BodyBuilder extends StackListenerImpl
         libraryBuilder.checkBoundsInConstructorInvocation(
             node, typeEnvironment, uri);
       } else {
-        TypeAliasedConstructorInvocation typeAliasedConstructorInvocation =
-            node = new TypeAliasedConstructorInvocation(
-                typeAliasBuilder, target, arguments,
-                isConst: isConst)
-              ..fileOffset = charOffset;
+        node = new TypeAliasedConstructorInvocation(
+            typeAliasBuilder, target, arguments,
+            isConst: isConst)
+          ..fileOffset = charOffset;
         // No type arguments were passed, so we need not check bounds.
         assert(arguments.types.isEmpty);
-        if (_createdStaticInvocationsNeedPostProcessing) {
-          typeAliasedConstructorInvocations
-              .add(typeAliasedConstructorInvocation);
-        }
       }
       return node;
     } else {
@@ -6103,9 +5784,6 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.checkBoundsInFactoryInvocation(
               factoryConstructorInvocation, typeEnvironment, uri,
               inferred: !hasExplicitTypeArguments(arguments));
-          if (_createdStaticInvocationsNeedPostProcessing) {
-            redirectingFactoryInvocations.add(factoryConstructorInvocation);
-          }
           node = factoryConstructorInvocation;
         } else {
           TypeAliasedFactoryInvocation typeAliasedFactoryInvocation =
@@ -6115,9 +5793,6 @@ class BodyBuilder extends StackListenerImpl
                 ..fileOffset = charOffset;
           // No type arguments were passed, so we need not check bounds.
           assert(arguments.types.isEmpty);
-          if (_createdStaticInvocationsNeedPostProcessing) {
-            typeAliasedFactoryInvocations.add(typeAliasedFactoryInvocation);
-          }
           node = typeAliasedFactoryInvocation;
         }
         return node;
@@ -10220,14 +9895,12 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
           node.target, clone(node.arguments),
           isConst: node.isConst)
         ..hasBeenInferred = node.hasBeenInferred;
-      bodyBuilder.redirectingFactoryInvocations.add(result);
       return result;
     } else if (node is TypeAliasedFactoryInvocation) {
       TypeAliasedFactoryInvocation result = new TypeAliasedFactoryInvocation(
           node.typeAliasBuilder, node.target, clone(node.arguments),
           isConst: node.isConst)
         ..hasBeenInferred = node.hasBeenInferred;
-      bodyBuilder.typeAliasedFactoryInvocations.add(result);
       return result;
     }
     return super.visitStaticInvocation(node);
@@ -10241,7 +9914,6 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
               node.typeAliasBuilder, node.target, clone(node.arguments),
               isConst: node.isConst)
             ..hasBeenInferred = node.hasBeenInferred;
-      bodyBuilder.typeAliasedConstructorInvocations.add(result);
       return result;
     }
     return super.visitConstructorInvocation(node);

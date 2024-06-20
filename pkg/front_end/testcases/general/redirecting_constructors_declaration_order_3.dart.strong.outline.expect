@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::List<self::A<core::bool>> field;
+  constructor named1({core::List<self::A<core::bool>> field = const <self::A<core::bool>>[const self::B::•<core::bool>(0, s: "")]}) → self::C
+    ;
+  constructor named2({core::List<self::A<core::bool>> field = const <self::A<core::bool>>[const self::B::•<core::bool>(0, s: "")]}) → self::C
+    ;
+}
+abstract class A<X extends core::Object? = dynamic> extends core::Object {
+  static factory redir1<X extends core::Object? = dynamic>(core::int x, {required core::String s}) → self::A<self::A::redir1::X%> /* redirection-target: self::B::•<self::A::redir1::X%>*/
+    return new self::B::•<self::A::redir1::X%>(x, s: s);
+  static factory redir2<X extends core::Object? = dynamic>(core::int x, {required core::String s}) → self::A<self::A::redir2::X%> /* redirection-target: self::B::•<self::A::redir2::X%>*/
+    return new self::B::•<self::A::redir2::X%>(x, s: s);
+}
+class B<Y extends core::Object? = dynamic> extends core::Object implements self::A<self::B::Y%> /*hasConstConstructor*/  {
+  const constructor •(core::int x, {required core::String s}) → self::B<self::B::Y%>
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_constructors_declaration_order_3.dart:7:26 -> ListConstant(const <A<bool>>[const B<bool>{}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_constructors_declaration_order_3.dart:8:26 -> ListConstant(const <A<bool>>[const B<bool>{}])
+Extra constant evaluation: evaluated: 8, effectively constant: 2

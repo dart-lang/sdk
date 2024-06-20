@@ -105,7 +105,7 @@ class MetadataBuilder {
       // TODO(johnniwinther): Avoid potentially inferring annotations multiple
       // times.
       bodyBuilder.inferAnnotations(parent, parent.annotations);
-      bodyBuilder.performBacklogComputations(allowFurtherDelays: false);
+      bodyBuilder.performBacklogComputations();
       for (MapEntry<MetadataBuilder, int> entry
           in parsedAnnotationBuilders.entries) {
         MetadataBuilder annotationBuilder = entry.key;

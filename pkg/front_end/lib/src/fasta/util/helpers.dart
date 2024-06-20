@@ -7,10 +7,6 @@ import 'package:kernel/ast.dart';
 import '../../api_prototype/experimental_flags.dart';
 import '../source/source_library_builder.dart';
 
-abstract class DelayedActionPerformer {
-  void performDelayedActions({required bool allowFurtherDelays});
-}
-
 /// Returns `true` if access to `Record` from `dart:core` is allowed.
 bool isRecordAccessAllowed(SourceLibraryBuilder library) {
   return library

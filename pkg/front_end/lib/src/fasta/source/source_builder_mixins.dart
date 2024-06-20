@@ -20,7 +20,6 @@ import '../kernel/kernel_helper.dart';
 import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
-import '../util/helpers.dart';
 import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
@@ -147,9 +146,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       required bool inMetadata,
       required bool inConstFields});
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
         annotatable,
@@ -170,7 +167,6 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
                 inMetadata: true,
                 inConstFields: false),
             classHierarchy,
-            delayedActionPerformers,
             scope.parent!);
       }
     }
@@ -178,8 +174,8 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     Iterator<SourceMemberBuilder> iterator = scope.filteredIterator(
         parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
-      iterator.current.buildOutlineExpressions(
-          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+      iterator.current
+          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
   }
 

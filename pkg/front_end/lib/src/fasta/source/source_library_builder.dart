@@ -103,7 +103,6 @@ import '../modifier.dart'
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../uris.dart';
-import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'offset_map.dart';
@@ -1963,6 +1962,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           procedureNameScheme,
           nativeMethodName,
           redirectionTarget);
+      (sourceLibraryBuilder.redirectingFactoryBuilders ??= [])
+          .add(procedureBuilder as RedirectingFactoryBuilder);
     } else {
       procedureBuilder = new SourceFactoryBuilder(
           metadata,
@@ -2776,6 +2777,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Information about which fields are promotable in this library, or `null`
   /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
+
+  /// Redirecting factory builders defined in the library. They should be
+  /// collected as they are built, so that we can build the outline expressions
+  /// in the right order.
+  ///
+  /// See [SourceLoader.buildOutlineExpressions] for details.
+  List<RedirectingFactoryBuilder>? redirectingFactoryBuilders;
 
   SourceLibraryBuilder.internal(
       SourceLoader loader,
@@ -4013,16 +4021,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         inConstFields: inConstFields);
   }
 
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.buildOutlineExpressions(classHierarchy,
-            delayedDefaultValueCloners, delayedActionPerformers);
+        augmentationLibrary.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       }
     }
 
@@ -4042,20 +4048,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is SourceClassBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceExtensionBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else if (declaration is SourceTypeAliasBuilder) {
-        declaration.buildOutlineExpressions(classHierarchy,
-            delayedActionPerformers, delayedDefaultValueCloners);
+        declaration.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
       } else {
         assert(
             declaration is PrefixBuilder ||
