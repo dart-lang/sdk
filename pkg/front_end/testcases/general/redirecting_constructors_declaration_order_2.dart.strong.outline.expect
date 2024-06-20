@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::List<self::A> field;
+  constructor named1({core::List<self::A> field = const <self::A>[const self::B::•<dynamic>(0, s: "")]}) → self::C
+    ;
+  constructor named2({core::List<self::A> field = const <self::A>[const self::B::•<dynamic>(0, s: "")]}) → self::C
+    ;
+}
+abstract class A extends core::Object {
+  static factory redir1(core::int x, {required core::String s}) → self::A /* redirection-target: self::B::•<dynamic>*/
+    return new self::B::•<dynamic>(x, s: s);
+  static factory redir2(core::int x, {required core::String s}) → self::A /* redirection-target: self::B::•<dynamic>*/
+    return new self::B::•<dynamic>(x, s: s);
+}
+class B<X extends core::Object? = dynamic> extends core::Object implements self::A /*hasConstConstructor*/  {
+  const constructor •(core::int x, {required core::String s}) → self::B<self::B::X%>
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_constructors_declaration_order_2.dart:7:26 -> ListConstant(const <A>[const B<dynamic>{}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_constructors_declaration_order_2.dart:8:26 -> ListConstant(const <A>[const B<dynamic>{}])
+Extra constant evaluation: evaluated: 8, effectively constant: 2

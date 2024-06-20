@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../codes/fasta_codes.dart' show LocatedMessage, Message;
+import '../kernel/internal_ast.dart';
 
 abstract class InferenceHelper {
   Uri get uri;
@@ -28,4 +29,13 @@ abstract class InferenceHelper {
   String superConstructorNameForDiagnostics(String name);
 
   String constructorNameForDiagnostics(String name, {String? className});
+
+  Expression unaliasSingleTypeAliasedConstructorInvocation(
+      TypeAliasedConstructorInvocation invocation);
+
+  Expression? resolveRedirectingFactoryTarget(
+      Procedure target, Arguments arguments, int fileOffset, bool isConst);
+
+  Expression? unaliasSingleTypeAliasedFactoryInvocation(
+      TypeAliasedFactoryInvocation invocation);
 }
