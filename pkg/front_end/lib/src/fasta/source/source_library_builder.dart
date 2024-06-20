@@ -145,6 +145,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
 
+  @override
+  bool get isDartLibrary =>
+      _sourceLibraryBuilder.origin.importUri.isScheme("dart") ||
+      fileUri.isScheme("org-dartlang-sdk");
+
   /// Returns the map of objects created in the [OutlineBuilder].
   ///
   /// This should only be called once.

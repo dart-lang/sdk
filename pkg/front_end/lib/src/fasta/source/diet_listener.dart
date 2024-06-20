@@ -21,6 +21,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import '../../api_prototype/experimental_flags.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../../codes/cfe_codes.dart'
@@ -49,7 +50,6 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
-  @override
   final SourceLibraryBuilder libraryBuilder;
 
   final ClassHierarchy hierarchy;
@@ -85,6 +85,21 @@ class DietListener extends StackListenerImpl {
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
         _benchmarker = library.loader.target.benchmarker;
+
+  @override
+  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
+
+  @override
+  bool get isDartLibrary =>
+      libraryBuilder.origin.importUri.isScheme("dart") ||
+      uri.isScheme("org-dartlang-sdk");
+
+  @override
+  Message reportFeatureNotEnabled(
+      LibraryFeature feature, int charOffset, int length) {
+    return libraryBuilder.reportFeatureNotEnabled(
+        feature, uri, charOffset, length);
+  }
 
   DeclarationBuilder? get currentDeclaration => _currentDeclaration;
 
@@ -1310,8 +1325,7 @@ class DietListener extends StackListenerImpl {
   List<Expression>? parseMetadata(BodyBuilderContext bodyBuilderContext,
       Token? metadata, Annotatable? parent) {
     if (metadata != null) {
-      StackListenerImpl listener =
-          createListener(bodyBuilderContext, memberScope);
+      BodyBuilder listener = createListener(bodyBuilderContext, memberScope);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
           allowPatterns: libraryFeatures.patterns.isEnabled);

@@ -122,6 +122,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   LibraryFeatures get libraryFeatures;
 
+  /// Returns `true` if the compilation unit is part of a `dart:` library.
+  bool get isDartLibrary;
+
   /// The current declaration that is being built. When we start parsing a
   /// declaration (class, method, and so on), we don't have enough information
   /// to create a builder and this object records its members and types until,

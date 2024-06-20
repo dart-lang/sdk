@@ -369,6 +369,21 @@ class BodyBuilder extends StackListenerImpl
                 .createLocalTypeInferrer(
                     fileUri, bodyBuilderContext.thisType, library, null));
 
+  @override
+  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
+
+  @override
+  bool get isDartLibrary =>
+      libraryBuilder.origin.importUri.isScheme("dart") ||
+      uri.isScheme("org-dartlang-sdk");
+
+  @override
+  Message reportFeatureNotEnabled(
+      LibraryFeature feature, int charOffset, int length) {
+    return libraryBuilder.reportFeatureNotEnabled(
+        feature, uri, charOffset, length);
+  }
+
   JumpTarget createBreakTarget(int charOffset) {
     return createJumpTarget(JumpTargetKind.Break, charOffset);
   }
@@ -1518,7 +1533,6 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  @override
   List<Expression> finishMetadata(Annotatable? parent) {
     assert(checkState(null, [ValueKinds.AnnotationList]));
     List<Expression> expressions = pop() as List<Expression>;

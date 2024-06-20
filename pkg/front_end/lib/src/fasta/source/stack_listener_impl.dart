@@ -12,19 +12,10 @@ import 'package:kernel/ast.dart';
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../codes/cfe_codes.dart';
-import '../problems.dart' as problems
-    show internalProblem, unhandled, unsupported;
-import 'source_library_builder.dart';
+import '../problems.dart' as problems show internalProblem, unhandled;
 
 abstract class StackListenerImpl extends StackListener {
-  SourceLibraryBuilder get libraryBuilder;
-
-  LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
-
-  @override
-  bool get isDartLibrary =>
-      libraryBuilder.origin.importUri.isScheme("dart") ||
-      uri.isScheme("org-dartlang-sdk");
+  LibraryFeatures get libraryFeatures;
 
   AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
@@ -47,12 +38,6 @@ abstract class StackListenerImpl extends StackListener {
     }
   }
 
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  List<Expression> finishMetadata(Annotatable? parent) {
-    return problems.unsupported("finishMetadata", -1, uri);
-  }
-
   /// Used to report an internal error encountered in the stack listener.
   @override
   Never internalProblem(Message message, int charOffset, Uri uri) {
@@ -71,11 +56,18 @@ abstract class StackListenerImpl extends StackListener {
   /// Return `true` if the [feature] is not enabled.
   bool reportIfNotEnabled(LibraryFeature feature, int charOffset, int length) {
     if (!feature.isEnabled) {
-      libraryBuilder.reportFeatureNotEnabled(feature, uri, charOffset, length);
+      reportFeatureNotEnabled(feature, charOffset, length);
       return true;
     }
     return false;
   }
+
+  /// Reports that [feature] is not enabled, using [charOffset] and
+  /// [length] for the location of the message.
+  ///
+  /// Returns the primary message.
+  Message reportFeatureNotEnabled(
+      LibraryFeature feature, int charOffset, int length);
 
   @override
   void handleExperimentNotEnabled(shared.ExperimentalFlag experimentalFlag,
