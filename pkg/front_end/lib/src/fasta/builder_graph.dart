@@ -4,21 +4,9 @@
 
 library fasta.builder_graph;
 
-import 'package:kernel/kernel.dart' show LibraryDependency, LibraryPart;
-
 import 'package:kernel/util/graph.dart' show Graph;
 
 import 'builder/library_builder.dart';
-
-import 'export.dart' show Export;
-
-import 'import.dart' show Import;
-
-import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
-
-import 'source/source_library_builder.dart' show SourceLibraryBuilder;
-
-import 'incremental_compiler.dart' show getPartUri;
 
 class BuilderGraph implements Graph<Uri> {
   final Map<Uri, LibraryBuilder> libraryBuilders;
@@ -36,44 +24,9 @@ class BuilderGraph implements Graph<Uri> {
     if (libraryBuilder == null) {
       throw "Library not found: $vertex";
     }
-    if (libraryBuilder is SourceLibraryBuilder) {
-      for (Import import in libraryBuilder.imports) {
-        // 'imported' can be null for fake imports, such as dart-ext:.
-        if (import.importedCompilationUnit != null) {
-          Uri uri = import.importedLibraryBuilder!.importUri;
-          if (libraryBuilders.containsKey(uri)) {
-            neighbors.add(uri);
-          }
-        }
-      }
-      for (Export export in libraryBuilder.exports) {
-        Uri uri = export.exportedLibraryBuilder.importUri;
-        if (libraryBuilders.containsKey(uri)) {
-          neighbors.add(uri);
-        }
-      }
-      for (SourceCompilationUnit part in libraryBuilder.parts) {
-        Uri uri = part.importUri;
-        if (libraryBuilders.containsKey(uri)) {
-          neighbors.add(uri);
-        }
-      }
-    } else if (libraryBuilder is DillLibraryBuilder) {
-      // Imports and exports
-      for (LibraryDependency dependency
-          in libraryBuilder.library.dependencies) {
-        Uri uri = dependency.targetLibrary.importUri;
-        if (libraryBuilders.containsKey(uri)) {
-          neighbors.add(uri);
-        }
-      }
-
-      // Parts
-      for (LibraryPart part in libraryBuilder.library.parts) {
-        Uri uri = getPartUri(libraryBuilder.importUri, part);
-        if (libraryBuilders.containsKey(uri)) {
-          neighbors.add(uri);
-        }
+    for (Uri importUri in libraryBuilder.dependencies) {
+      if (libraryBuilders.containsKey(importUri)) {
+        neighbors.add(importUri);
       }
     }
     return neighbors;

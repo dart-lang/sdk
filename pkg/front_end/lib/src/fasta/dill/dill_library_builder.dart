@@ -30,6 +30,7 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../scope.dart';
+import '../uris.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
 import 'dill_extension_type_declaration_builder.dart';
@@ -157,8 +158,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Null get partOfLibrary => null;
 
   @override
-  Iterable<Uri> get dependencies => library.dependencies.map(
-      (LibraryDependency dependency) => dependency.targetLibrary.importUri);
+  Iterable<Uri> get dependencies sync* {
+    for (LibraryDependency dependency in library.dependencies) {
+      yield dependency.targetLibrary.importUri;
+    }
+    for (LibraryPart part in library.parts) {
+      yield getPartUri(importUri, part);
+    }
+  }
 
   void ensureLoaded() {
     if (!isReadyToBuild) throw new StateError("Not ready to build.");

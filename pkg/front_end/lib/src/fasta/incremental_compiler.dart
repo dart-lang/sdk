@@ -101,7 +101,7 @@ import 'source/source_library_builder.dart'
 import 'source/source_loader.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
-import 'uris.dart' show MALFORMED_URI_SCHEME, dartCore;
+import 'uris.dart' show dartCore, getPartUri;
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 import 'util/experiment_environment_getter.dart'
     show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
@@ -1884,6 +1884,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         isAugmentation: false,
         isPatch: false,
       );
+      debugLibrary.compilationUnit.createLibrary();
       libraryBuilder.scope.forEachLocalMember((name, member) {
         debugLibrary.scope.addLocalMember(name, member, setter: false);
       });
@@ -1973,6 +1974,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
+      debugLibrary.compilationUnit.createLibrary();
       debugLibrary.buildOutlineNodes(lastGoodKernelTarget.loader.coreLibrary);
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
@@ -2220,67 +2222,6 @@ class _ExtensionTypeFinder extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   bool _foundExtensionType = false;
-}
-
-/// Translate a parts "partUri" to an actual uri with handling of invalid uris.
-///
-/// ```
-/// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "simple.dart")
-///   ),
-///   Uri.parse("file://path/to/simple.dart")
-/// )
-/// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "dir/simple.dart")
-///   ),
-///   Uri.parse("file://path/to/dir/simple.dart")
-/// )
-/// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "../simple.dart")
-///   ),
-///   Uri.parse("file://path/simple.dart")
-/// )
-/// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "file:///my/path/absolute.dart")
-///   ),
-///   Uri.parse("file:///my/path/absolute.dart")
-/// )
-/// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "package:foo/hello.dart")
-///   ),
-///   Uri.parse("package:foo/hello.dart")
-/// )
-/// ```
-/// And with invalid part uri:
-/// ```
-/// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], ":hello")
-///   ),
-///   new Uri(scheme: MALFORMED_URI_SCHEME,
-///     query: Uri.encodeQueryComponent(":hello"))
-/// )
-/// ```
-Uri getPartUri(Uri parentUri, LibraryPart part) {
-  try {
-    return parentUri.resolve(part.partUri);
-  } on FormatException {
-    // This is also done in [SourceLibraryBuilder.resolve]
-    return new Uri(
-        scheme: MALFORMED_URI_SCHEME,
-        query: Uri.encodeQueryComponent(part.partUri));
-  }
 }
 
 class PackageChangedError {
