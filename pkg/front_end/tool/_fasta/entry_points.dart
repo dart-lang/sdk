@@ -17,7 +17,7 @@ import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show codeInternalProblemVerificationError;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;

@@ -16,7 +16,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart' show LocatedMessage;
+import '../../codes/cfe_codes.dart' show LocatedMessage;
 import '../constant_context.dart' show ConstantContext;
 import '../messages.dart' show Message;
 import '../scope.dart';

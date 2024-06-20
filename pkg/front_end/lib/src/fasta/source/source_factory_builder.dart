@@ -15,7 +15,7 @@ import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../dill/dill_extension_type_member_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../identifiers.dart';

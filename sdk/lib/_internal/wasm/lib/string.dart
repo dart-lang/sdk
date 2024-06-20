@@ -1630,31 +1630,31 @@ final class TwoByteString extends StringBase {
 // String accessors used to perform Dart<->JS string conversion
 
 @pragma("wasm:export", "\$stringLength")
-double _stringLength(String string) {
-  return string.length.toDouble();
+WasmI32 _stringLength(String string) {
+  return string.length.toWasmI32();
 }
 
 @pragma("wasm:export", "\$stringRead")
-double _stringRead(String string, double index) {
-  return string.codeUnitAt(index.toInt()).toDouble();
+WasmI32 _stringRead(String string, WasmI32 index) {
+  return string.codeUnitAt(index.toIntSigned()).toWasmI32();
 }
 
 @pragma("wasm:export", "\$stringAllocate1")
-OneByteString _stringAllocate1(double length) {
-  return OneByteString.withLength(length.toInt());
+OneByteString _stringAllocate1(WasmI32 length) {
+  return OneByteString.withLength(length.toIntSigned());
 }
 
 @pragma("wasm:export", "\$stringWrite1")
-void _stringWrite1(OneByteString string, double index, double codePoint) {
-  writeIntoOneByteString(string, index.toInt(), codePoint.toInt());
+void _stringWrite1(OneByteString string, WasmI32 index, WasmI32 codePoint) {
+  writeIntoOneByteString(string, index.toIntSigned(), codePoint.toIntSigned());
 }
 
 @pragma("wasm:export", "\$stringAllocate2")
-TwoByteString _stringAllocate2(double length) {
-  return TwoByteString.withLength(length.toInt());
+TwoByteString _stringAllocate2(WasmI32 length) {
+  return TwoByteString.withLength(length.toIntSigned());
 }
 
 @pragma("wasm:export", "\$stringWrite2")
-void _stringWrite2(TwoByteString string, double index, double codePoint) {
-  writeIntoTwoByteString(string, index.toInt(), codePoint.toInt());
+void _stringWrite2(TwoByteString string, WasmI32 index, WasmI32 codePoint) {
+  writeIntoTwoByteString(string, index.toIntSigned(), codePoint.toIntSigned());
 }

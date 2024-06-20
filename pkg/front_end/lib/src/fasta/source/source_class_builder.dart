@@ -34,7 +34,7 @@ import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';

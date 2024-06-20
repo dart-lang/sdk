@@ -26,7 +26,7 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'

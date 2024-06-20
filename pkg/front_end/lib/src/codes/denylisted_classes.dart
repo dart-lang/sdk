@@ -31,6 +31,7 @@ const List<String> denylistedTypedDataClasses = [
   "Int64List",
   "Int8List",
   "TypedData",
+  "TypedDataList",
   "Uint16List",
   "Uint32List",
   "Uint64List",

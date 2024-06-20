@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../../base/instrumentation.dart' show InstrumentationValueForMember;
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/internal_ast.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';

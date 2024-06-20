@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show
         messageNamedFieldClashesWithPositionalFieldInRecord,
         messageObjectMemberNameUsedForRecordField,

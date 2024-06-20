@@ -9,7 +9,7 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/util/graph.dart' show Graph;
 
-import 'incremental_compiler.dart' show getPartUri;
+import 'uris.dart' show getPartUri;
 
 class LibraryGraph implements Graph<Uri> {
   final Map<Uri, Library> libraries;

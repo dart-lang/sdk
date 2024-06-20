@@ -41,7 +41,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../problems.dart';
 import '../scope.dart';

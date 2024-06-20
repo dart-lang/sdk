@@ -7,7 +7,7 @@ import 'dart:convert' show json;
 import 'package:kernel/ast.dart';
 
 import 'denylisted_classes.dart' show denylistedCoreClasses;
-import 'fasta_codes.dart'
+import 'cfe_codes.dart'
     show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
 
 /// A pretty-printer for Kernel types and constants with the ability to label

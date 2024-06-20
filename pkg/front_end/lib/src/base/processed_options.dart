@@ -40,7 +40,7 @@ import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-import '../fasta/codes/fasta_codes.dart'
+import '../codes/cfe_codes.dart'
     show
         FormattedMessage,
         LocatedMessage,

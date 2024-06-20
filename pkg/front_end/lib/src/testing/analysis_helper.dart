@@ -7,7 +7,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart';
+import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';

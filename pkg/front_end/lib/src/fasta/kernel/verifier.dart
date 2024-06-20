@@ -10,7 +10,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart';
 
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Message,

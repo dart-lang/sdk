@@ -6,7 +6,7 @@ library fasta.prefix_builder;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 import '../scope.dart';
 import '../source/source_library_builder.dart';

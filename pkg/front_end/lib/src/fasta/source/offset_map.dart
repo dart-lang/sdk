@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../export.dart';
 import '../identifiers.dart';
 import '../import.dart';

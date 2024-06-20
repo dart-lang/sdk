@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.codes;
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     hide demangleMixinApplicationName;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
@@ -16,4 +14,4 @@ export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     hide demangleMixinApplicationName;
 export 'package:_fe_analyzer_shared/src/messages/severity.dart';
 
-part 'fasta_codes_cfe_generated.dart';
+part 'cfe_codes_generated.dart';

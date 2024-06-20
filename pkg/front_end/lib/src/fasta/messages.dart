@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' show Location, Source;
 
 import 'compiler_context.dart' show CompilerContext;
 
-export 'codes/fasta_codes.dart';
+export '../codes/cfe_codes.dart';
 
 Location? getLocation(Uri uri, int charOffset) {
   return CompilerContext.current.uriToSource[uri]?.getLocation(uri, charOffset);

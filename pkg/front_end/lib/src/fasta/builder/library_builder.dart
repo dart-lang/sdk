@@ -194,7 +194,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
 
-  void addDependencies(Library library, Set<SourceLibraryBuilder> seen);
+  void addDependencies(Library library, Set<SourceCompilationUnit> seen);
 
   void includeParts(SourceLibraryBuilder libraryBuilder,
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
@@ -469,6 +469,10 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// Return the primary message.
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length);
+
+  void addImportsToScope();
+
+  int finishDeferredLoadTearoffs();
 }
 
 abstract class LibraryBuilder implements Builder {

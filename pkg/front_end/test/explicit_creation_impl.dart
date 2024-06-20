@@ -14,7 +14,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart' as api
 import 'package:front_end/src/fasta/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
 import 'package:front_end/src/fasta/builder/type_builder.dart' show TypeBuilder;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart' as fasta
+import 'package:front_end/src/codes/cfe_codes.dart' as fasta
     show templateUnspecified;
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/fasta/kernel/constness.dart' show Constness;

@@ -206,7 +206,7 @@ abstract final class _TypedListBase {
       int start, int count, _TypedListBase from, int skipCount);
 }
 
-base mixin _IntListMixin on _TypedListBase implements List<int> {
+base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -540,7 +540,7 @@ base mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
   }
 }
 
-base mixin _DoubleListMixin on _TypedListBase implements List<double> {
+base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -878,7 +878,8 @@ base mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
   }
 }
 
-base mixin _Float32x4ListMixin on _TypedListBase implements List<Float32x4> {
+base mixin _Float32x4ListMixin on _TypedListBase
+    implements TypedDataList<Float32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1216,7 +1217,8 @@ base mixin _Float32x4ListMixin on _TypedListBase implements List<Float32x4> {
       _setRange(start, end, from, skipCount);
 }
 
-base mixin _Int32x4ListMixin on _TypedListBase implements List<Int32x4> {
+base mixin _Int32x4ListMixin on _TypedListBase
+    implements TypedDataList<Int32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1553,7 +1555,8 @@ base mixin _Int32x4ListMixin on _TypedListBase implements List<Int32x4> {
       _setRange(start, end, from, skipCount);
 }
 
-base mixin _Float64x2ListMixin on _TypedListBase implements List<Float64x2> {
+base mixin _Float64x2ListMixin on _TypedListBase
+    implements TypedDataList<Float64x2> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;

@@ -256,7 +256,7 @@ Object? dartify(Object? object) {
       convertedObjects[o] = dartList;
       final length = getProperty<double>(o, 'length').toInt();
       for (int i = 0; i < length; i++) {
-        dartList.add(convert(JSValue.box(objectReadIndex(ref, i.toDouble()))));
+        dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
       }
       return dartList;
     } else {

@@ -363,6 +363,7 @@ class KernelTarget {
       // [SourceLoader.resolveParts]. For macro-generated augmentation libraries
       // we instead apply them directly here.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
+        augmentationLibrary.compilationUnit.createLibrary();
         augmentationLibrary.applyAugmentations();
       }
       loader.computeLibraryScopes(augmentationLibraries);

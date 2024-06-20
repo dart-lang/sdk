@@ -18,7 +18,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../codes/fasta_codes.dart';
+import '../../../codes/cfe_codes.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_builder.dart';

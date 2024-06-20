@@ -27,4 +27,4 @@ Normally this is null.
 
 These values are subject to change, but this file will be updated along with any
 such changes. On the code-side these are defined in
-`package:front_end/src/fasta/codes/fasta_codes.dart`.
+`package:front_end/src/codes/cfe_codes.dart`.

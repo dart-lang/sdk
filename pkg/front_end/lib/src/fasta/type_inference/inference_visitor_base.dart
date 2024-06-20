@@ -32,7 +32,7 @@ import '../../testing/id_extractor.dart';
 import '../../testing/id_testing_utils.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';

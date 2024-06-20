@@ -10,7 +10,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,

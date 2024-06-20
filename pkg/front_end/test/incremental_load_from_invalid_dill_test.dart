@@ -21,7 +21,7 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Code,
         codeInitializeFromDillNotSelfContained,

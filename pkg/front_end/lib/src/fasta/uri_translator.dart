@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show TargetLibrariesSpecification;
 import 'package:package_config/package_config.dart';
 
-import 'codes/fasta_codes.dart';
+import '../codes/cfe_codes.dart';
 import 'compiler_context.dart' show CompilerContext;
 
 class UriTranslator {

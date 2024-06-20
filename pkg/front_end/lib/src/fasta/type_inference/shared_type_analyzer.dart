@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import 'inference_helper.dart';
 
 /// Implementation of [TypeAnalyzerErrors] that reports errors using the

@@ -22,7 +22,7 @@
 #### `dart:core`
 
 - **Breaking Change** [#44876][]: `DateTime` on the web platform now stores
-  microseconds. The web imlementation is now practically compatible with the
+  microseconds. The web implementation is now practically compatible with the
   native implementation, where it is possible to round-trip a timestamp in
   microseconds through a `DateTime` value without rounding the lower
   digits. This change might be breaking for apps that rely in some way on the
@@ -33,6 +33,11 @@
   corresponding to dates with a year outside of 1685..2255, and (2) arithmetic
   (`add`, `subtract`, `difference`) where the `Duration` argument or result
   exceeds 570 years.
+
+- Added superinterface `TypedDataList` to typed data lists, implementing both
+  `List` and `TypedData`. Allows abstracting over all such lists without losing
+  access to either the `List` or the `TypedData` members.
+  A `ByteData` is still only a `TypedData`, not a list.
 
 [#44876]: https://github.com/dart-lang/sdk/issues/44876
 

@@ -7,7 +7,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show
         messageWeakReferenceNotStatic,
         messageWeakReferenceNotOneArgument,

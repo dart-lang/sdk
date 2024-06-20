@@ -26,7 +26,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/codes/fasta_codes.dart';
+import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:front_end/src/fasta/combinator.dart';
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;

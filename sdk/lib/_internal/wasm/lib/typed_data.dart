@@ -1444,11 +1444,7 @@ mixin _TypedListCommonOperationsMixin {
   String toString() => ListBase.listToString(this as List);
 }
 
-mixin _IntListMixin implements List<int> {
-  int get elementSizeInBytes;
-  int get offsetInBytes;
-  ByteBuffer get buffer;
-
+mixin _IntListMixin implements TypedDataList<int> {
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<int> followedBy(Iterable<int> other) =>
@@ -1720,8 +1716,8 @@ mixin _IntListMixin implements List<int> {
   }
 }
 
-mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
-    implements List<int> {
+mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
+    on _IntListMixin {
   SpawnedType _createList(int length);
 
   void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
@@ -1743,7 +1739,7 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
     if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
-      final TypedData destTypedData = unsafeCast<TypedData>(this);
+      final TypedData destTypedData = this;
       final TypedData fromTypedData = unsafeCast<TypedData>(from);
 
       final ByteBuffer destBuffer = destTypedData.buffer;
@@ -1761,7 +1757,7 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
       //
       // 1. Dart array element types are the same.
       // 2. Wasm array element sizes are the same.
-      // 3. Source and destinaton offsets are multiples of element size.
+      // 3. Source and destination offsets are multiples of element size.
       //
       // (1) is to make sure no sign extension, clamping, or truncation needs
       // to happen when copying. (2) and (3) are requirements for `array.copy`.
@@ -1841,11 +1837,7 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
   }
 }
 
-mixin _DoubleListMixin implements List<double> {
-  int get elementSizeInBytes;
-  int get offsetInBytes;
-  ByteBuffer get buffer;
-
+mixin _DoubleListMixin implements TypedDataList<double> {
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   Iterable<double> followedBy(Iterable<double> other) =>
@@ -2119,8 +2111,8 @@ mixin _DoubleListMixin implements List<double> {
   }
 }
 
-mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
-    on _DoubleListMixin implements List<double> {
+mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
+    on _DoubleListMixin {
   SpawnedType _createList(int length);
 
   void setRange(int start, int end, Iterable<double> from,
@@ -2141,10 +2133,10 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
 
     if (count == 0) return;
 
-    if (this is TypedData && from is TypedData) {
+    if (from is TypedData) {
       // We only add this mixin to typed lists in this library so we know
       // `this` is `TypedData`.
-      final TypedData destTypedData = unsafeCast<TypedData>(this);
+      final TypedData destTypedData = this;
       final TypedData fromTypedData = unsafeCast<TypedData>(from);
 
       final ByteBuffer destBuffer = destTypedData.buffer;

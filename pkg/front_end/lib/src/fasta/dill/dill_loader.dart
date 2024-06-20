@@ -13,7 +13,7 @@ import 'package:kernel/ast.dart'
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/fasta_codes.dart'
+import '../../codes/cfe_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 import '../crash.dart' show firstSourceUri;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;

@@ -38,7 +38,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../../base/nnbd_mode.dart';
-import '../codes/fasta_codes.dart';
+import '../../codes/cfe_codes.dart';
 import '../type_inference/delayed_expressions.dart';
 import '../type_inference/external_ast_helper.dart';
 import '../type_inference/matching_cache.dart';
