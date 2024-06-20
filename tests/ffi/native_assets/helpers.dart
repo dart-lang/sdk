@@ -362,7 +362,7 @@ Future<void> compileAndRun({
         aotCompile: aotCompile,
       );
       if (useSymlink) {
-        await withTempDir(prefix: 'link_dir', (tempDir) async {
+        await withTempDir(prefix: 'link dir', (tempDir) async {
           final link = Link.fromUri(tempDir.resolve('my_link'));
           await link.create(snapshotUri.toFilePath());
           await runDartAotRuntime(
@@ -387,7 +387,7 @@ Future<void> compileAndRun({
         arguments: runArguments,
       );
       if (useSymlink) {
-        await withTempDir(prefix: 'link_dir', (tempDir) async {
+        await withTempDir(prefix: 'link dir', (tempDir) async {
           final link = Link.fromUri(tempDir.resolve('my_link'));
           await link.create(outDillUri.toFilePath());
           await runDart(
@@ -403,7 +403,7 @@ Future<void> compileAndRun({
       }
     case Runtime.jit:
       if (useSymlink) {
-        await withTempDir(prefix: 'link_dir', (tempDir) async {
+        await withTempDir(prefix: 'link dir', (tempDir) async {
           final link = Link.fromUri(tempDir.resolve('my_link'));
           await link.create(outDillUri.toFilePath());
           await runDart(

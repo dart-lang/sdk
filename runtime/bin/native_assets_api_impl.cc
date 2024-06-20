@@ -5,6 +5,7 @@
 #include "include/bin/native_assets_api.h"
 
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #if defined(DART_HOST_OS_WINDOWS)
 #include <Psapi.h>
@@ -45,39 +46,34 @@ const int file_schema_length = 7;
 
 // Get a file uri with only forward slashes from the script path.
 // Returned string must be freed by caller.
-static char* CleanScriptUri(const char* script_uri) {
-  const char* path = script_uri;
-#if defined(DART_TARGET_OS_WINDOWS)
-  // Isolate.spawnUri sets a `source` including the file schema.
-  // And on Windows we get an extra forward slash in that case.
-  const char* file_schema_slash = "file:///";
-  const int file_schema_slash_length = 8;
+CStringUniquePtr CleanScriptUri(const char* script_uri) {
+  CStringUniquePtr script_path;
 
-  if (strlen(script_uri) > file_schema_slash_length &&
-      strncmp(script_uri, file_schema_slash, file_schema_slash_length) == 0) {
-    path = (script_uri + file_schema_slash_length);
-  }
-#else
-  // Isolate.spawnUri sets a `source` including the file schema.
   if (strlen(script_uri) > file_schema_length &&
       strncmp(script_uri, file_schema, file_schema_length) == 0) {
-    path = (script_uri + file_schema_length);
+    // Isolate.spawnUri sets a `source` including the file schema,
+    // e.g. Isolate.spawnUri may make the embedder pass a file:// uri.
+    script_path = File::UriToPath(script_uri);
+  } else {
+    // Dart and Flutter embedders set a source without a file schema.
+    script_path = CStringUniquePtr(strdup(script_uri));
   }
-#endif
 
   // Resolve symlinks.
   char canon_path[PATH_MAX];
-  File::GetCanonicalPath(nullptr, path, canon_path, PATH_MAX);
+  File::GetCanonicalPath(nullptr, script_path.get(), canon_path, PATH_MAX);
 
-  // Replace backward slashes with forward slashes.
+  // Convert path to Uri. Inspired by sdk/lib/core/uri.dart _makeFileUri.
+  // Only has a single case, the path is always absolute and always a file.
   const intptr_t len = strlen(canon_path);
   char* path_copy =
       reinterpret_cast<char*>(malloc(file_schema_length + len + 1));
   snprintf(path_copy, len + 1, "%s%s", file_schema, canon_path);
 #if defined(DART_TARGET_OS_WINDOWS)
+  // Replace backward slashes with forward slashes.
   ReplaceBackSlashes(path_copy);
 #endif
-  return path_copy;
+  return CStringUniquePtr(path_copy);
 }
 
 // If an error occurs populates |error| (if provided) with an error message
@@ -111,6 +107,18 @@ static void WrapError(const char* path, char** error) {
   }
 }
 
+static void WrapErrorRelative(const char* path,
+                              const char* script_uri,
+                              char** error) {
+  if (*error != nullptr) {
+    char* inner_error = *error;
+    SET_ERROR_MSG(error,
+                  "Failed to load dynamic library '%s' relative to '%s': %s",
+                  path, script_uri, inner_error);
+    free(inner_error);
+  }
+}
+
 void* NativeAssets::DlopenAbsolute(const char* path, char** error) {
   // If we'd want to be strict, it should not take into account include paths.
   void* handle = LoadDynamicLibrary(path, error);
@@ -122,24 +130,23 @@ void* NativeAssets::DlopenRelative(const char* path,
                                    const char* script_uri,
                                    char** error) {
   void* handle = nullptr;
-  char* platform_script_cstr = CleanScriptUri(script_uri);
+  CStringUniquePtr platform_script_cstr = CleanScriptUri(script_uri);
   const intptr_t len = strlen(path);
   char* path_copy = reinterpret_cast<char*>(malloc(len + 1));
   snprintf(path_copy, len + 1, "%s", path);
 #if defined(DART_TARGET_OS_WINDOWS)
   ReplaceBackSlashes(path_copy);
 #endif
-  auto target_uri = ResolveUri(path_copy, platform_script_cstr);
+  auto target_uri = ResolveUri(path_copy, platform_script_cstr.get());
   if (!target_uri) {
     SET_ERROR_MSG(error, "Failed to resolve '%s' relative to '%s'.", path_copy,
-                  platform_script_cstr);
+                  platform_script_cstr.get());
   } else {
     const char* target_path = target_uri.get() + file_schema_length;
     handle = LoadDynamicLibrary(target_path, error);
   }
   free(path_copy);
-  free(platform_script_cstr);
-  WrapError(path, error);
+  WrapErrorRelative(path, script_uri, error);
   return handle;
 }
 
