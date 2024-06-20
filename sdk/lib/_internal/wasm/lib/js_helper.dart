@@ -8,6 +8,7 @@ library dart._js_helper;
 import 'dart:_internal';
 import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;
+import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
@@ -325,10 +326,10 @@ WasmExternRef? callMethodVarArgsRaw(
     JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
 
 String typeof(WasmExternRef? object) =>
-    js_types.JSStringImpl(JS<WasmExternRef?>("o => typeof o", object));
+    JSStringImpl(JS<WasmExternRef?>("o => typeof o", object));
 
 String stringify(WasmExternRef? object) =>
-    js_types.JSStringImpl(JS<WasmExternRef?>("o => String(o)", object));
+    JSStringImpl(JS<WasmExternRef?>("o => String(o)", object));
 
 void promiseThen(WasmExternRef? promise, WasmExternRef? successFunc,
         WasmExternRef? failureFunc) =>
@@ -358,7 +359,7 @@ WasmExternRef? jsifyRaw(Object? object) {
     assert(functionToJSWrapper.containsKey(object),
         'Must call `allowInterop` on functions before they flow to JS');
     return functionToJSWrapper[object]!.toExternRef;
-  } else if (object is js_types.JSStringImpl) {
+  } else if (object is JSStringImpl) {
     return object.toExternRef;
   } else if (object is JSValue) {
     return object.toExternRef;
@@ -427,7 +428,7 @@ Object? dartifyRaw(WasmExternRef? ref) {
   } else if (isJSNumber(ref)) {
     return toDartNumber(ref);
   } else if (isJSString(ref)) {
-    return js_types.JSStringImpl.box(ref);
+    return JSStringImpl.box(ref);
   } else if (isJSInt8Array(ref)) {
     return js_types.JSInt8ArrayImpl.fromJSArray(ref);
   } else if (isJSUint8Array(ref)) {

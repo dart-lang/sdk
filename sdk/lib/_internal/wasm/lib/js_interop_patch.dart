@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal' show patch;
-import 'dart:_js_helper' hide JS;
 import 'dart:_js_helper' as js_helper;
+import 'dart:_js_helper' hide JS;
 import 'dart:_js_types' as js_types;
+import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:async' show Completer;
 import 'dart:js_interop';
@@ -450,7 +451,7 @@ extension BoolToJSBoolean on bool {
 @patch
 extension JSStringToString on JSString {
   @patch
-  String get toDart => js_types.JSStringImpl(toExternRef);
+  String get toDart => JSStringImpl(toExternRef);
 }
 
 @patch
@@ -458,9 +459,8 @@ extension StringToJSString on String {
   @patch
   JSString get toJS {
     final t = this;
-    return JSString._(JSValue(t is js_types.JSStringImpl
-        ? t.toExternRef
-        : jsStringFromDartString(t)));
+    return JSString._(
+        JSValue(t is JSStringImpl ? t.toExternRef : jsStringFromDartString(t)));
   }
 }
 

@@ -22,6 +22,7 @@ import 'dart:_simd'
         NaiveUnmodifiableInt32x4List,
         NaiveUnmodifiableFloat32x4List,
         NaiveUnmodifiableFloat64x2List;
+import 'dart:_string';
 import 'dart:_string_helper';
 import 'dart:_wasm';
 import 'dart:collection';
@@ -30,7 +31,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 part 'js_array.dart';
-part 'js_string.dart';
 part 'js_typed_array.dart';
 
 typedef JSAnyRepType = js.JSValue;

@@ -2,9 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_types;
+import 'dart:_error_utils';
+import 'dart:_internal';
+import 'dart:_js_helper' as js;
+import 'dart:_js_types';
+import 'dart:_object_helper';
+import 'dart:_string_helper';
+import 'dart:_wasm';
+import 'dart:js_interop';
 
-final class JSStringImpl implements String {
+abstract class StringUncheckedOperationsBase {
+  int _codeUnitAtUnchecked(int index);
+  String _substringUnchecked(int start, int end);
+}
+
+extension StringUncheckedOperations on String {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) =>
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._codeUnitAtUnchecked(index);
+
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._substringUnchecked(start, end);
+}
+
+final class JSStringImpl implements String, StringUncheckedOperationsBase {
   final WasmExternRef? _ref;
 
   JSStringImpl(this._ref);
@@ -37,7 +61,8 @@ final class JSStringImpl implements String {
       final s = o.toString();
       final jsString =
           s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      array._setUnchecked(i, jsString);
+      // array._setUnchecked(i, jsString);
+      array[i] = jsString;
     }
     return JSStringImpl(
         js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef));
@@ -51,6 +76,7 @@ final class JSStringImpl implements String {
     return _codeUnitAtUnchecked(index);
   }
 
+  @override
   @pragma("wasm:prefer-inline")
   int _codeUnitAtUnchecked(int index) {
     return _jsCharCodeAt(toExternRef, index);
@@ -329,8 +355,13 @@ final class JSStringImpl implements String {
     end ??= length;
     RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
     if (start == end) return "";
-    return JSStringImpl(_jsSubstring(toExternRef, start, end));
+    return _substringUnchecked(start, end);
   }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  String _substringUnchecked(int start, int end) =>
+      JSStringImpl(_jsSubstring(toExternRef, start, end));
 
   @override
   String toLowerCase() {

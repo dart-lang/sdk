@@ -38,6 +38,7 @@ JSMethods _performJSInteropTransformations(
         '_js_helper',
         '_js_string_convert',
         '_js_types',
+        '_string',
         'convert',
         'js_interop',
         'js_interop_unsafe',

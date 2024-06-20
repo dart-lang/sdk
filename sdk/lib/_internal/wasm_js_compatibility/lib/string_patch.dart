@@ -5,6 +5,7 @@
 import 'dart:_internal' show EfficientLengthIterable, patch;
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
+import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:js_interop';
 import 'dart:typed_data';

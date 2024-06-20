@@ -26,12 +26,12 @@ class String {
     if (charCode >= 0) {
       if (charCode <= 0xff) {
         final string = OneByteString.withLength(1);
-        writeIntoOneByteString(string, 0, charCode);
+        string.setUnchecked(0, charCode);
         return string;
       }
       if (charCode <= 0xffff) {
         final string = TwoByteString.withLength(1);
-        writeIntoTwoByteString(string, 0, charCode);
+        string.setUnchecked(0, charCode);
         return string;
       }
       if (charCode <= 0x10ffff) {
@@ -39,8 +39,8 @@ class String {
         int bits = charCode - 0x10000;
         int high = 0xD800 | (bits >> 10);
         final string = TwoByteString.withLength(2);
-        writeIntoTwoByteString(string, 0, high);
-        writeIntoTwoByteString(string, 1, low);
+        string.setUnchecked(0, high);
+        string.setUnchecked(1, low);
         return string;
       }
     }
