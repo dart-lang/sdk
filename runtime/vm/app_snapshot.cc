@@ -7112,10 +7112,11 @@ class ProgramSerializationRoots : public SerializationRoots {
       s->Push(initial_field_table->At(i));
     }
 
-    FieldTable* shared_field_table =
-        s->thread()->isolate_group()->shared_field_table();
-    for (intptr_t i = 0, n = shared_field_table->NumFieldIds(); i < n; i++) {
-      s->Push(shared_field_table->At(i));
+    FieldTable* shared_initial_field_table =
+        s->thread()->isolate_group()->shared_initial_field_table();
+    for (intptr_t i = 0, n = shared_initial_field_table->NumFieldIds(); i < n;
+         i++) {
+      s->Push(shared_initial_field_table->At(i));
     }
 
     dispatch_table_entries_ = object_store_->dispatch_table_code_entries();
@@ -7150,12 +7151,13 @@ class ProgramSerializationRoots : public SerializationRoots {
       s->WriteRootRef(initial_field_table->At(i), "some-static-field");
     }
 
-    FieldTable* shared_field_table =
-        s->thread()->isolate_group()->shared_field_table();
-    intptr_t n_shared = shared_field_table->NumFieldIds();
+    FieldTable* shared_initial_field_table =
+        s->thread()->isolate_group()->shared_initial_field_table();
+    intptr_t n_shared = shared_initial_field_table->NumFieldIds();
     s->WriteUnsigned(n_shared);
     for (intptr_t i = 0; i < n_shared; i++) {
-      s->WriteRootRef(shared_field_table->At(i), "some-shared-static-field");
+      s->WriteRootRef(shared_initial_field_table->At(i),
+                      "some-shared-static-field");
     }
 
     // The dispatch table is serialized only for precompiled snapshots.
@@ -7212,12 +7214,14 @@ class ProgramDeserializationRoots : public DeserializationRoots {
     }
 
     {
-      FieldTable* shared_field_table =
-          d->thread()->isolate_group()->shared_field_table();
+      FieldTable* shared_initial_field_table =
+          d->thread()->isolate_group()->shared_initial_field_table();
       intptr_t n_shared = d->ReadUnsigned();
-      shared_field_table->AllocateIndex(n_shared);
-      for (intptr_t i = 0; i < n_shared; i++) {
-        shared_field_table->SetAt(i, d->ReadRef());
+      if (n_shared > 0) {
+        shared_initial_field_table->AllocateIndex(n_shared - 1);
+        for (intptr_t i = 0; i < n_shared; i++) {
+          shared_initial_field_table->SetAt(i, d->ReadRef());
+        }
       }
     }
 

@@ -351,7 +351,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
-      shared_field_table_(new FieldTable(/*isolate=*/nullptr, /*shared=*/true)),
+      shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
+                                                 /*isolate_group=*/nullptr)),
+      shared_field_table_(new FieldTable(/*isolate=*/nullptr, this)),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
@@ -784,21 +786,35 @@ void IsolateGroup::ValidateClassTable() {
 }
 #endif  // DEBUG
 
+void IsolateGroup::RegisterSharedStaticField(const Field& field,
+                                             const Object& initial_value) {
+  const bool need_to_grow_backing_store =
+      shared_initial_field_table()->Register(field);
+  const intptr_t field_id = field.field_id();
+  shared_initial_field_table()->SetAt(field_id, initial_value.ptr());
+
+  if (need_to_grow_backing_store) {
+    // We have to stop other isolates from accessing shared isolate group
+    // field state, since we'll have to grow the backing store.
+    GcSafepointOperationScope scope(Thread::Current());
+    const bool need_to_grow_other_backing_store =
+        shared_field_table()->Register(field, field_id);
+    ASSERT(need_to_grow_other_backing_store);
+  } else {
+    const bool need_to_grow_other_backing_store =
+        shared_field_table()->Register(field, field_id);
+    ASSERT(!need_to_grow_other_backing_store);
+  }
+  shared_field_table()->SetAt(field_id, initial_value.ptr());
+}
+
 void IsolateGroup::RegisterStaticField(const Field& field,
                                        const Object& initial_value) {
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());
   if (field.is_shared()) {
-    GcSafepointOperationScope scope(Thread::Current());
-    if (shared_field_table()->Register(field)) {
-      for (auto isolate : isolates_) {
-        isolate->mutator_thread()->shared_field_table_values_ =
-            shared_field_table()->table();
-      }
-    }
-    const intptr_t field_id = field.field_id();
-    shared_field_table()->SetAt(field_id, initial_value.ptr());
+    RegisterSharedStaticField(field, initial_value);
     return;
   }
   const bool need_to_grow_backing_store =
@@ -2915,6 +2931,7 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
+  shared_initial_field_table()->VisitObjectPointers(visitor);
   shared_field_table()->VisitObjectPointers(visitor);
 
   // Visit the boxed_field_list_.
