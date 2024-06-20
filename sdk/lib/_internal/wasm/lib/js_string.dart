@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_types;
+import 'dart:_error_utils';
+import 'dart:_internal';
+import 'dart:_js_helper' as js;
+import 'dart:_js_types';
+import 'dart:_object_helper';
+import 'dart:_string_helper';
+import 'dart:_wasm';
+import 'dart:js_interop';
 
 final class JSStringImpl implements String {
   final WasmExternRef? _ref;
@@ -37,7 +44,8 @@ final class JSStringImpl implements String {
       final s = o.toString();
       final jsString =
           s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      array._setUnchecked(i, jsString);
+      // array._setUnchecked(i, jsString);
+      array[i] = jsString;
     }
     return JSStringImpl(
         js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef));

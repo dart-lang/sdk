@@ -17,7 +17,7 @@ mixin KernelNodes {
 
   // dart:_js_types classes
   late final Class jsStringClass =
-      index.getClass("dart:_js_types", "JSStringImpl");
+      index.getClass("dart:_string", "JSStringImpl");
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
@@ -195,9 +195,9 @@ mixin KernelNodes {
 
   // dart:_js_types procedures
   late final Procedure jsStringEquals =
-      index.getProcedure("dart:_js_types", "JSStringImpl", "==");
+      index.getProcedure("dart:_string", "JSStringImpl", "==");
   late final Procedure jsStringInterpolate =
-      index.getProcedure("dart:_js_types", "JSStringImpl", "_interpolate");
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate");
 
   // dart:collection procedures and fields
   late final Procedure mapFactory =

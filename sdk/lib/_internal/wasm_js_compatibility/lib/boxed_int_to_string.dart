@@ -5,6 +5,7 @@
 import 'dart:_internal';
 import 'dart:_js_helper';
 import 'dart:_js_types';
+import 'dart:_string';
 import 'dart:_wasm';
 
 @patch

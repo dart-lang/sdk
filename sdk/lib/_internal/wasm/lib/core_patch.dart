@@ -31,7 +31,7 @@ import "dart:_internal" as _internal;
 
 import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 
-import 'dart:_js_types' show JSStringImpl;
+import 'dart:_string' show JSStringImpl;
 
 import "dart:collection"
     show
