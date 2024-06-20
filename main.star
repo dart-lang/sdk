@@ -115,8 +115,6 @@ luci.notifier(
     on_new_failure = True,
     notify_emails = [
         "athom@google.com",
-        "sortie@google.com",
-        "whesse@google.com",
     ],
 )
 
