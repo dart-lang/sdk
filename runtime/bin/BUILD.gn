@@ -1031,6 +1031,7 @@ source_set("run_vm_tests_set") {
 
   # The VM sources are already included in libdart, so we just want to add in
   # the tests here.
+  platform_tests = rebase_path(platform_sources_tests, ".", "../platform")
   vm_tests = rebase_path(vm_sources_tests, ".", "../vm")
   compiler_tests = rebase_path(compiler_sources_tests, ".", "../vm/compiler")
   heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
@@ -1051,7 +1052,7 @@ source_set("run_vm_tests_set") {
               "vmservice_impl.cc",
               "vmservice_impl.h",
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
-            io_impl_tests
+            io_impl_tests + platform_tests
 }
 
 executable("run_vm_tests") {

@@ -14,6 +14,7 @@
 #include <tchar.h>
 #endif
 
+#include "platform/uri.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
@@ -280,6 +281,54 @@ static void* FfiResolveWithFfiNativeResolver(Thread* const thread,
   return result;
 }
 
+#if defined(DART_TARGET_OS_WINDOWS)
+// Replaces back slashes with forward slashes in place.
+static void ReplaceBackSlashes(char* cstr) {
+  const intptr_t length = strlen(cstr);
+  for (int i = 0; i < length; i++) {
+    cstr[i] = cstr[i] == '\\' ? '/' : cstr[i];
+  }
+}
+#endif
+
+const char* file_schema = "file://";
+const int file_schema_length = 7;
+
+// Get a file path with only forward slashes from the script path.
+static StringPtr GetPlatformScriptPath(Thread* thread) {
+  IsolateGroupSource* const source = thread->isolate_group()->source();
+
+#if defined(DART_TARGET_OS_WINDOWS)
+  // Isolate.spawnUri sets a `source` including the file schema.
+  // And on Windows we get an extra forward slash in that case.
+  const char* file_schema_slash = "file:///";
+  const int file_schema_slash_length = 8;
+  const char* path = source->script_uri;
+  if (strlen(source->script_uri) > file_schema_slash_length &&
+      strncmp(source->script_uri, file_schema_slash,
+              file_schema_slash_length) == 0) {
+    path = (source->script_uri + file_schema_slash_length);
+  }
+
+  // Replace backward slashes with forward slashes.
+  const intptr_t len = strlen(path);
+  char* path_copy = reinterpret_cast<char*>(malloc(len + 1));
+  snprintf(path_copy, len + 1, "%s", path);
+  ReplaceBackSlashes(path_copy);
+  const auto& result = String::Handle(String::New(path_copy));
+  free(path_copy);
+  return result.ptr();
+#else
+  // Isolate.spawnUri sets a `source` including the file schema.
+  if (strlen(source->script_uri) > file_schema_length &&
+      strncmp(source->script_uri, file_schema, file_schema_length) == 0) {
+    const char* path = (source->script_uri + file_schema_length);
+    return String::New(path);
+  }
+  return String::New(source->script_uri);
+#endif
+}
+
 // Array::null if asset is not in mapping or no mapping.
 static ArrayPtr GetAssetLocation(Thread* const thread, const String& asset) {
   Zone* const zone = thread->zone();
@@ -328,6 +377,77 @@ static char* AvailableAssetsToCString(Thread* const thread) {
   return buffer.buffer();
 }
 
+// Fall back to old implementation temporarily to ease the roll into flutter.
+// TODO(https://dartbug.com/55523): Remove fallback and throw errors that
+// native assets API is not initialized.
+static void* FfiResolveAssetFallback(Thread* const thread,
+                                     const String& asset_type,
+                                     const String& path,
+                                     const String& symbol,
+                                     char** error) {
+  Zone* const zone = thread->zone();
+  void* handle = nullptr;
+  if (asset_type.Equals(Symbols::absolute())) {
+    handle = LoadDynamicLibrary(path.ToCString(), error);
+  } else if (asset_type.Equals(Symbols::relative())) {
+    const auto& platform_script_uri = String::Handle(
+        zone,
+        String::NewFormatted(
+            "%s%s", file_schema,
+            String::Handle(zone, GetPlatformScriptPath(thread)).ToCString()));
+    char* path_cstr = path.ToMallocCString();
+#if defined(DART_TARGET_OS_WINDOWS)
+    ReplaceBackSlashes(path_cstr);
+#endif
+    CStringUniquePtr target_uri =
+        ResolveUri(path_cstr, platform_script_uri.ToCString());
+    free(path_cstr);
+    if (!target_uri) {
+      *error = OS::SCreate(
+          /*use malloc*/ nullptr,
+          "Failed to resolve '%s' relative to "
+          "'%s'.",
+          path.ToCString(), platform_script_uri.ToCString());
+    } else {
+      const char* target_path = target_uri.get() + file_schema_length;
+      handle = LoadDynamicLibrary(target_path, error);
+    }
+  } else if (asset_type.Equals(Symbols::system())) {
+    handle = LoadDynamicLibrary(path.ToCString(), error);
+  } else if (asset_type.Equals(Symbols::process())) {
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+    handle = RTLD_DEFAULT;
+#else
+    handle = kWindowsDynamicLibraryProcessPtr;
+#endif
+  } else if (asset_type.Equals(Symbols::executable())) {
+    handle = LoadDynamicLibrary(nullptr, error);
+  } else {
+    UNREACHABLE();
+  }
+  if (*error != nullptr) {
+    char* inner_error = *error;
+    *error = OS::SCreate(/*use malloc*/ nullptr,
+                         "Failed to load dynamic library '%s': %s",
+                         path.ToCString(), inner_error);
+    free(inner_error);
+  } else {
+    void* const result = ResolveSymbol(handle, symbol.ToCString(), error);
+    if (*error != nullptr) {
+      char* inner_error = *error;
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "Failed to lookup symbol '%s': %s",
+                           symbol.ToCString(), inner_error);
+      free(inner_error);
+    } else {
+      return result;
+    }
+  }
+  ASSERT(*error != nullptr);
+  return nullptr;
+}
+
 // If an error occurs populates |error| with an error message
 // (caller must free this message when it is no longer needed).
 //
@@ -356,42 +476,32 @@ static void* FfiResolveAsset(Thread* const thread,
   void* handle;
   if (asset_type.Equals(Symbols::absolute())) {
     if (native_assets_api->dlopen_absolute == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_absolute not set.");
-      return nullptr;
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
     }
     NoActiveIsolateScope no_active_isolate_scope;
     handle = native_assets_api->dlopen_absolute(path_cstr, error);
   } else if (asset_type.Equals(Symbols::relative())) {
     if (native_assets_api->dlopen_relative == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_relative not set.");
-      return nullptr;
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
     }
     NoActiveIsolateScope no_active_isolate_scope;
     handle = native_assets_api->dlopen_relative(path_cstr, error);
   } else if (asset_type.Equals(Symbols::system())) {
     if (native_assets_api->dlopen_system == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_system not set.");
-      return nullptr;
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
     }
     NoActiveIsolateScope no_active_isolate_scope;
     handle = native_assets_api->dlopen_system(path_cstr, error);
   } else if (asset_type.Equals(Symbols::executable())) {
     if (native_assets_api->dlopen_executable == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_executable not set.");
-      return nullptr;
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
     }
     NoActiveIsolateScope no_active_isolate_scope;
     handle = native_assets_api->dlopen_executable(error);
   } else {
     RELEASE_ASSERT(asset_type.Equals(Symbols::process()));
     if (native_assets_api->dlopen_process == nullptr) {
-      *error = OS::SCreate(/*use malloc*/ nullptr,
-                           "NativeAssetsApi::dlopen_process not set.");
-      return nullptr;
+      return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
     }
     NoActiveIsolateScope no_active_isolate_scope;
     handle = native_assets_api->dlopen_process(error);
@@ -401,9 +511,7 @@ static void* FfiResolveAsset(Thread* const thread,
     return nullptr;
   }
   if (native_assets_api->dlsym == nullptr) {
-    *error =
-        OS::SCreate(/*use malloc*/ nullptr, "NativeAssetsApi::dlsym not set.");
-    return nullptr;
+    return FfiResolveAssetFallback(thread, asset_type, path, symbol, error);
   }
   void* const result =
       native_assets_api->dlsym(handle, symbol.ToCString(), error);
