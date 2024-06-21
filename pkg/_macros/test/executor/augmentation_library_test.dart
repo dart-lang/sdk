@@ -22,6 +22,12 @@ void main() {
         kind: IdentifierKind.topLevelMember,
         staticScope: null,
         uri: Uri.parse('dart:core'));
+    final objectIdentifier = TestIdentifier(
+        id: RemoteInstance.uniqueId,
+        name: 'Object',
+        kind: IdentifierKind.topLevelMember,
+        staticScope: null,
+        uri: Uri.parse('dart:core'));
     final superclassIdentifier = TestIdentifier(
         id: RemoteInstance.uniqueId,
         name: 'SomeSuperclass',
@@ -618,6 +624,77 @@ void main() {
             }
           '''));
       }
+    });
+
+    test('copies generic types and bounds', () async {
+      final clazz = ClassDeclarationImpl(
+          id: RemoteInstance.uniqueId,
+          identifier:
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
+          library: Fixtures.library,
+          metadata: [],
+          typeParameters: [
+            TypeParameterDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: 'T'),
+                library: Fixtures.library,
+                metadata: [],
+                bound: NamedTypeAnnotationImpl(
+                    id: RemoteInstance.uniqueId,
+                    isNullable: false,
+                    identifier: objectIdentifier,
+                    typeArguments: [])),
+            TypeParameterDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: 'S'),
+                library: Fixtures.library,
+                metadata: [],
+                bound: null),
+          ],
+          interfaces: [],
+          hasAbstract: false,
+          hasBase: false,
+          hasExternal: false,
+          hasFinal: false,
+          hasInterface: false,
+          hasMixin: false,
+          hasSealed: false,
+          mixins: [],
+          superclass: null);
+
+      var results = [
+        MacroExecutionResultImpl(
+            diagnostics: [],
+            enumValueAugmentations: {},
+            extendsTypeAugmentations: {},
+            typeAugmentations: {
+              clazz.identifier: [
+                DeclarationCode.fromParts(['']),
+              ]
+            },
+            interfaceAugmentations: {},
+            mixinAugmentations: {},
+            newTypeNames: [],
+            libraryAugmentations: []),
+      ];
+      var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
+          results,
+          (Identifier i) =>
+              i == clazz.identifier ? clazz : throw UnimplementedError(),
+          (Identifier i) => (i as TestIdentifier).resolved,
+          (OmittedTypeAnnotation i) =>
+              (i as TestOmittedTypeAnnotation).inferredType);
+      expect(library, equalsIgnoringWhitespace('''
+            augment library 'package:foo/bar.dart';
+
+            import 'dart:core' as prefix0;
+
+            augment class MyClass<T extends prefix0.Object, S> {
+            }
+          '''));
     });
   });
 }

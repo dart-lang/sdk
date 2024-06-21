@@ -2041,6 +2041,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         InternalCompilerResult internalCompilerResult =
             await generateKernelInternal(
           buildSummary: compileMode != CompileMode.full,
+          serializeIfBuildingSummary: false,
           buildComponent: compileMode == CompileMode.full,
           includeHierarchyAndCoreTypes: true,
           retainDataForTesting: true,
@@ -2094,6 +2095,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         InternalCompilerResult internalCompilerResult =
             await generateKernelInternal(
           buildSummary: compileMode == CompileMode.outline,
+          serializeIfBuildingSummary: false,
           buildComponent: compileMode != CompileMode.outline,
           instrumentation: instrumentation,
           retainDataForTesting: true,

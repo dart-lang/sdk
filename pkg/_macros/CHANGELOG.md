@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Fix bug where augmenting classes with type parameters didn't work.
+
 ## 0.3.1
 
 - Make it an error for macros to complete with pending async work scheduled.

@@ -233,8 +233,26 @@ class _Builder {
       ];
       // Has the effect of adding a space after the keywords
       if (keywords.isNotEmpty) keywords.add('');
+
+      var hasTypeParams = typeDeclaration is ParameterizedTypeDeclaration &&
+          typeDeclaration.typeParameters.isNotEmpty;
       _writeDirectiveStringPart(TypeDeclarationContentKey.declaration(key),
-          'augment ${keywords.join(' ')}$declarationKind ${type.name} ');
+          'augment ${keywords.join(' ')}$declarationKind ${type.name}${hasTypeParams ? '' : ' '}');
+
+      if (hasTypeParams) {
+        var typeParameters = typeDeclaration.typeParameters;
+        _writeDirectiveStringPart(
+            TypeDeclarationContentKey.typeParametersStart(key), '<');
+        for (var param in typeParameters) {
+          _buildCode(
+              key,
+              param == typeParameters.first
+                  ? param.code
+                  : RawCode.fromParts([', ', param.code]));
+        }
+        _writeDirectiveStringPart(
+            TypeDeclarationContentKey.typeParametersEnd(key), '> ');
+      }
 
       if (mergedExtendsResults[type] case (var superclassKey, var superclass)) {
         Key fixedKey = TypeDeclarationContentKey.superclass(key);
