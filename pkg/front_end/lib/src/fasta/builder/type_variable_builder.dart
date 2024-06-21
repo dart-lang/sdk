@@ -578,6 +578,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
 
   final StructuralParameter actualParameter;
 
+  final bool isWildcard;
+
   @override
   StructuralVariableBuilder? actualOrigin;
 
@@ -585,7 +587,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
       String name, Builder? compilationUnit, int charOffset, Uri? fileUri,
       {TypeBuilder? bound,
       Variance? variableVariance,
-      List<MetadataBuilder>? metadata})
+      List<MetadataBuilder>? metadata,
+      this.isWildcard = false})
       : actualParameter =
             new StructuralParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
@@ -596,7 +599,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
             variableVariance: variableVariance,
             metadata: metadata);
 
-  StructuralVariableBuilder.fromKernel(StructuralParameter parameter)
+  StructuralVariableBuilder.fromKernel(StructuralParameter parameter,
+      {this.isWildcard = false})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?

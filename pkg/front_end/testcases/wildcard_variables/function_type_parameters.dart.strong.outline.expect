@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F = <_ extends core::Object? = dynamic, _ extends core::int = dynamic, _ extends core::Object? = dynamic>() → void;
+static method fn(<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic>() → void x) → void
+  ;
+static method fn1<_ extends core::Object? = dynamic, _ extends core::int>(<_ extends core::Object? = dynamic, _ extends core::Object? = dynamic>() → void x) → void
+  ;
+static method test() → dynamic
+  ;

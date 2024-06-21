@@ -12,7 +12,8 @@ import 'package:expect/expect.dart';
 var _ = 2;
 
 void main() {
-  Clas().member();
+  Clas().member(); // Top level _ is 4 after this call.
+  _ = 2;
 
   int _ = _;
   int _ = 3;

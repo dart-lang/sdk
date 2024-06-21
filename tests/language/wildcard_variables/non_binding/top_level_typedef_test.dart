@@ -20,7 +20,7 @@ void main<_ extends _>() {
   _ foo<_ extends _>([_ _ = int]) => _;
   _ bar<_ extends _>([_ _ = _]) => int;
   Expect.type<Type>(foo());
-  Expect.type<int>(bar());
+  Expect.type<Type>(bar());
 }
 
 class CConst {
