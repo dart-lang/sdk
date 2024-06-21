@@ -2433,6 +2433,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     type.accept(resolverVisitor);
     var requiredType = type.typeOrThrow;
 
@@ -2449,6 +2450,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
       requiredType: requiredType,
       matchedValueType: analysisResult.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(this);
 
     return analysisResult;
   }
@@ -4033,9 +4035,11 @@ final class ConstantPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var analysisResult =
         resolverVisitor.analyzeConstantPattern(context, this, expression);
     expression = resolverVisitor.popRewrite()!;
+    inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 
@@ -4964,6 +4968,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
         declaredElement!, declaredElement!.name, type?.typeOrThrow);
     declaredElement!.type = result.staticType;
@@ -4974,6 +4979,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       requiredType: result.staticType,
       matchedValueType: result.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(this);
 
     return result;
   }
@@ -11059,8 +11065,11 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.listPatternResolver
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.listPatternResolver
         .resolve(node: this, context: context);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -11159,8 +11168,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.analyzeLogicalAndPattern(
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.analyzeLogicalAndPattern(
         context, this, leftOperand, rightOperand);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -11234,9 +11246,11 @@ final class LogicalOrPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var analysisResult = resolverVisitor.analyzeLogicalOrPattern(
         context, this, leftOperand, rightOperand);
     resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
+    inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 
@@ -12787,9 +12801,12 @@ final class NullAssertPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
         context, this, pattern,
         isAssert: true);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -12858,9 +12875,12 @@ final class NullCheckPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
         context, this, pattern,
         isAssert: false);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -13030,6 +13050,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeObjectPattern(
       context,
       this,
@@ -13045,6 +13066,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
       requiredType: result.requiredType,
       matchedValueType: result.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(this);
 
     return result;
   }
@@ -13213,7 +13235,10 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.dispatchPattern(context, pattern);
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.dispatchPattern(context, pattern);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -14313,6 +14338,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeRecordPattern(
       context,
       this,
@@ -14330,6 +14356,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
         matchedValueType: result.matchedValueType,
       );
     }
+    inferenceLogWriter?.exitPattern(this);
 
     return result;
   }
@@ -14741,9 +14768,11 @@ final class RelationalPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var analysisResult =
         resolverVisitor.analyzeRelationalPattern(context, this, operand);
     resolverVisitor.popRewrite();
+    inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 

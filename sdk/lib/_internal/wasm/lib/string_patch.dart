@@ -4,7 +4,6 @@
 
 import "dart:_internal" show patch;
 import "dart:_string";
-import "dart:_js_types" show JSStringImpl;
 
 @patch
 class String {

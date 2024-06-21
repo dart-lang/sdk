@@ -43,6 +43,9 @@ class DoesNotUseTypeVariable<_ extends core::Object? = dynamic> extends core::Ob
   method returnsBB() → core::Type {
     return #C3;
   }
+  method alsoReturnsBB<_ extends core::Object? = dynamic, _ extends core::int>() → core::Type {
+    return #C3;
+  }
 }
 
 constants  {

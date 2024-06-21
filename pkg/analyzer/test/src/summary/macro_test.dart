@@ -13855,7 +13855,7 @@ Map get foo => {};
 ''', r'''
 foo
   flags: hasBody isGetter
-  returnType: Map<dynamic, dynamic>
+  returnType: Map
 ''');
   }
 
@@ -13866,7 +13866,7 @@ Map<int> get foo => {};
 ''', r'''
 foo
   flags: hasBody isGetter
-  returnType: Map<dynamic, dynamic>
+  returnType: Map<int>
 ''');
   }
 
@@ -14284,6 +14284,14 @@ mixin B {}
       additionalDeclarations: r'''
 mixin A {}
 ''',
+    );
+  }
+
+  test_isExactly_namedTypeAnnotation_typeArguments_absent() async {
+    await _assertIsExactly(
+      firstTypeCode: 'Map',
+      secondTypeCode: 'Map<dynamic, dynamic>',
+      isExactly: true,
     );
   }
 

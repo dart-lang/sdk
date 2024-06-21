@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -54,7 +55,7 @@ void stopInferenceLogging() {
 /// The [SharedInferenceLogWriter] interface, augmented with analyzer-specific
 /// functionality.
 abstract interface class InferenceLogWriter
-    implements SharedInferenceLogWriter<DartType> {
+    implements SharedInferenceLogWriter<DartType, TypeParameterElement> {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
   /// This is called from [ResolverVisitor.dispatchExpression], to verify that
@@ -65,12 +66,37 @@ abstract interface class InferenceLogWriter
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
 /// analyzer-specific functionality.
 final class _InferenceLogWriterImpl
-    extends SharedInferenceLogWriterImpl<DartType>
+    extends SharedInferenceLogWriterImpl<DartType, TypeParameterElement>
     implements InferenceLogWriter {
   @override
   void assertExpressionWasRecorded(Object expression) {
     if (_recordedExpressions[expression] ?? false) return;
     fail('failed to record ${describe(expression)}');
+  }
+
+  @override
+  void enterAnnotation(covariant Annotation node) {
+    // ResolverVisitor.visitAnnotation is sometimes called from
+    // AstResolver.resolveAnnotation during summary linking. When this happens,
+    // the state will be a "top" state even though _traceableParent suggests
+    // that we should be in some other state. So to avoid a bogus exception, if
+    // the state is a "top" state, don't bother calling `checkCall`.
+    if (state.kind != StateKind.top) {
+      checkCall(
+          method: 'enterAnnotation',
+          arguments: [node],
+          expectedNode: traceableAncestor(node));
+    }
+    super.enterAnnotation(node);
+  }
+
+  @override
+  void enterElement(covariant CollectionElement node) {
+    checkCall(
+        method: 'enterElement',
+        arguments: [node],
+        expectedNode: traceableAncestor(node));
+    super.enterElement(node);
   }
 
   @override
@@ -103,6 +129,28 @@ final class _InferenceLogWriterImpl
     super.enterLValue(node);
   }
 
+  @override
+  void enterPattern(covariant DartPattern node) {
+    checkCall(
+        method: 'enterPattern',
+        arguments: [node],
+        expectedNode: traceableAncestor(node));
+    super.enterPattern(node);
+  }
+
+  @override
+  void enterStatement(covariant Statement node) {
+    checkCall(
+        method: 'enterStatement',
+        arguments: [node],
+        expectedNode: traceableAncestor(node));
+    super.enterStatement(node);
+  }
+
+  @override
+  String getTypeParameterName(TypeParameterElement typeParameter) =>
+      typeParameter.name;
+
   /// Returns the nearest ancestor of [node] for which a call to `enter...`
   /// should have been made.
   ///
@@ -111,7 +159,10 @@ final class _InferenceLogWriterImpl
     for (var parent = node.parent;; parent = parent.parent) {
       switch (parent) {
         case null:
-        case Expression():
+        case Annotation():
+        case CollectionElement():
+        case DartPattern():
+        case Statement():
           return parent;
         default:
           break;

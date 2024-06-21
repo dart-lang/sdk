@@ -1006,6 +1006,11 @@ class MethodInvocationResolver with ScopeHelpers {
   void _setResolution(MethodInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType contextType}) {
+    inferenceLogWriter?.recordLookupResult(
+        expression: node,
+        type: type,
+        target: node.target,
+        methodName: node.methodName.name);
     // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.setPseudoExpressionStaticType(type);

@@ -38,6 +38,8 @@ import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'augmentation_extends_clause_already_present_test.dart'
+    as augmentation_extends_clause_already_present;
 import 'augmentation_modifier_extra_test.dart' as augmentation_modifier_extra;
 import 'augmentation_modifier_missing_test.dart'
     as augmentation_modifier_missing;
@@ -943,6 +945,7 @@ main() {
     assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
+    augmentation_extends_clause_already_present.main();
     augmentation_modifier_extra.main();
     augmentation_modifier_missing.main();
     augmentation_of_different_declaration_kind.main();

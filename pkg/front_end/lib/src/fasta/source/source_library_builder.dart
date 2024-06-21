@@ -2539,6 +2539,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Map<String, StructuralVariableBuilder> typeVariablesByName =
         <String, StructuralVariableBuilder>{};
     for (StructuralVariableBuilder tv in typeVariables) {
+      if (tv.isWildcard) continue;
       StructuralVariableBuilder? existing = typeVariablesByName[tv.name];
       if (existing != null) {
         addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
@@ -2600,7 +2601,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       Uri fileUri) {
     StructuralVariableBuilder builder = new StructuralVariableBuilder(
         name, _sourceLibraryBuilder, charOffset, fileUri,
-        bound: bound, metadata: metadata);
+        bound: bound,
+        metadata: metadata,
+        isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
 
     unboundStructuralVariables.add(builder);
     return builder;
@@ -2677,8 +2680,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           kind: kind,
           variableVariance:
               variable.parameter.isLegacyCovariant ? null : variable.variance,
-          isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
-              variable.isWildcard);
+          isWildcard: variable.isWildcard);
       copy.add(newVariable);
       unboundNominalVariables.add(newVariable);
     }
@@ -4453,7 +4455,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           variable.name, this, variable.charOffset, variable.fileUri,
           bound: variable.bound?.clone(newTypes, this, declaration),
           variableVariance:
-              variable.parameter.isLegacyCovariant ? null : variable.variance);
+              variable.parameter.isLegacyCovariant ? null : variable.variance,
+          isWildcard: variable.isWildcard);
       copy.add(newVariable);
       unboundStructuralVariables.add(newVariable);
     }

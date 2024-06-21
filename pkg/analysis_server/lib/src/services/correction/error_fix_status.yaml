@@ -203,6 +203,8 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+  status: needsEvaluation
 CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA:
   status: hasFix
 CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:

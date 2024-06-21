@@ -33,6 +33,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -647,6 +648,7 @@ class TypeSystemImpl implements TypeSystem {
       return const <DartType>[];
     }
 
+    inferenceLogWriter?.enterGenericInference(fnType.typeFormals, fnType);
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that

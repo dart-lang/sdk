@@ -13,13 +13,12 @@ String quoteStringForRegExp(String string) =>
     // This method is optimized to test before replacement, which should be
     // much faster. This might be worth measuring in real world use cases
     // though.
-    JS<String>(r"""s => {
-      let jsString = stringFromDartString(s);
-      if (/[[\]{}()*+?.\\^$|]/.test(jsString)) {
-          jsString = jsString.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
+    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(r"""s => {
+      if (/[[\]{}()*+?.\\^$|]/.test(s)) {
+          s = s.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
       }
-      return stringToDartString(jsString);
-    }""", string);
+      return s;
+    }""", jsStringFromDartString(string).toExternRef)));
 
 // TODO(srujzs): Add this to `JSObject`.
 @js.JS('Object.keys')
@@ -107,7 +106,7 @@ class JSSyntaxRegExp implements RegExp {
     String modifiers = '$m$i$u$s$g';
     // The call to create the regexp is wrapped in a try catch so we can
     // reformat the exception if need be.
-    WasmExternRef? result = JS<WasmExternRef?>("""(s, m) => {
+    final result = JS<WasmExternRef?>("""(s, m) => {
           try {
             return new RegExp(s, m);
           } catch (e) {
@@ -117,7 +116,7 @@ class JSSyntaxRegExp implements RegExp {
     if (isJSRegExp(result)) return JSValue(result!) as JSNativeRegExp;
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
-    String errorMessage = jsStringToDartString(result);
+    String errorMessage = jsStringToDartString(JSStringImpl(result!));
     throw new FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 

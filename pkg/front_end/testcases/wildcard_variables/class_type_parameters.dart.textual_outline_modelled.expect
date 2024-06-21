@@ -15,6 +15,7 @@ class C<T, _ extends _> extends A<T, _> {
 class D<_, _> {}
 
 class DoesNotUseTypeVariable<_> {
+  Type alsoReturnsBB<_, _ extends int>() {}
   Type returnsBB() {}
 }
 

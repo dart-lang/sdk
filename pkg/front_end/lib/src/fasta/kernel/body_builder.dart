@@ -5137,6 +5137,7 @@ class BodyBuilder extends StackListenerImpl
         kind: ScopeKind.typeParameters));
     if (nominalVariableBuilders != null) {
       for (NominalVariableBuilder builder in nominalVariableBuilders) {
+        if (builder.isWildcard) continue;
         String name = builder.name;
         NominalVariableBuilder? existing = scope.lookupLocalMember(name,
             setter: false) as NominalVariableBuilder?;
@@ -5158,6 +5159,7 @@ class BodyBuilder extends StackListenerImpl
         kind: ScopeKind.typeParameters));
     if (structuralVariableBuilders != null) {
       for (StructuralVariableBuilder builder in structuralVariableBuilders) {
+        if (builder.isWildcard) continue;
         String name = builder.name;
         StructuralVariableBuilder? existing = scope.lookupLocalMember(name,
             setter: false) as StructuralVariableBuilder?;
@@ -8798,10 +8800,14 @@ class BodyBuilder extends StackListenerImpl
     }
     TypeVariableBuilderBase variable = inFunctionType
         ? new StructuralVariableBuilder(
-            typeVariableName, libraryBuilder, typeVariableCharOffset, uri)
+            typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
+            isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
+                typeVariableName == '_')
         : new NominalVariableBuilder(
             typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
-            kind: TypeVariableKind.function);
+            kind: TypeVariableKind.function,
+            isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
+                typeVariableName == '_');
     if (annotations != null) {
       switch (variable) {
         case StructuralVariableBuilder():

@@ -24,4 +24,8 @@ class DoesNotUseTypeVariable<_> {
   Type returnsBB() {
     return _;
   }
+
+  Type alsoReturnsBB<_, _ extends int>() {
+    return _;
+  }
 }

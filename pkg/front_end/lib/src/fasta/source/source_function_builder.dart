@@ -259,6 +259,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (NominalVariableBuilder variable in typeVariables!) {
+      if (variable.isWildcard) continue;
       local[variable.name] = variable;
     }
     return new Scope(

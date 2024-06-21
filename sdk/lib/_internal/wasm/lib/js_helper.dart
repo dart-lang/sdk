@@ -76,8 +76,9 @@ extension DoubleToExternRef on double? {
 }
 
 extension StringToExternRef on String? {
-  WasmExternRef? get toExternRef =>
-      this == null ? WasmExternRef.nullRef : jsStringFromDartString(this!);
+  WasmExternRef? get toExternRef => this == null
+      ? WasmExternRef.nullRef
+      : jsStringFromDartString(this!).toExternRef;
 }
 
 extension ListOfObjectToExternRef on List<Object?>? {
@@ -285,11 +286,8 @@ WasmExternRef? jsDataViewFromDartByteData(ByteData data, int length) =>
 WasmExternRef? jsArrayFromDartList(List<Object?> l) =>
     JS<WasmExternRef?>('l => arrayFromDartList(Array, l)', l);
 
-WasmExternRef? jsStringFromDartString(String s) =>
-    JS<WasmExternRef?>('stringFromDartString', s);
-
-String jsStringToDartString(WasmExternRef? s) =>
-    JS<String>('stringToDartString', s);
+external JSStringImpl jsStringFromDartString(String s);
+external String jsStringToDartString(JSStringImpl s);
 
 WasmExternRef? newObjectRaw() => JS<WasmExternRef?>('() => ({})');
 
@@ -364,7 +362,7 @@ WasmExternRef? jsifyRaw(Object? object) {
   } else if (object is JSValue) {
     return object.toExternRef;
   } else if (object is String) {
-    return jsStringFromDartString(object);
+    return jsStringFromDartString(object).toExternRef;
   } else if (object is js_types.JSInt8ArrayImpl) {
     return object.toJSArrayExternRef();
   } else if (object is js_types.JSUint8ArrayImpl) {

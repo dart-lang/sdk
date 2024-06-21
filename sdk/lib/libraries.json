@@ -164,6 +164,12 @@
       },
       "_typed_data": {
         "uri": "_internal/wasm/lib/typed_data.dart"
+      },
+      "_js_helper": {
+        "uri": "_internal/wasm/lib/js_helper.dart",
+        "patches": [
+          "_internal/wasm/lib/js_helper_patch.dart"
+        ]
       }
     }
   },
@@ -212,6 +218,12 @@
       },
       "_string": {
         "uri": "_internal/wasm/lib/js_string.dart"
+      },
+      "_js_helper": {
+        "uri": "_internal/wasm/lib/js_helper.dart",
+        "patches": [
+          "_internal/wasm_js_compatibility/lib/js_helper_patch.dart"
+        ]
       }
     }
   },
@@ -239,9 +251,6 @@
       },
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"
-      },
-      "_js_helper": {
-        "uri": "_internal/wasm/lib/js_helper.dart"
       },
       "_js_string_convert": {
         "uri": "_internal/wasm/lib/js_string_convert.dart"

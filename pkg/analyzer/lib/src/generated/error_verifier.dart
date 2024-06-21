@@ -459,6 +459,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentationElement: element,
       );
 
+      _checkClassAugmentationTargetAlreadyHasExtendsClause(
+        node: node,
+        augmentationTarget: element.augmentationTarget,
+      );
+
       _isInNativeClass = node.nativeClause != null;
 
       var augmented = element.augmented;
@@ -1702,6 +1707,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       declarationFlag: declaration.isSealed,
       augmentationModifier: augmentationNode.sealedKeyword,
     );
+  }
+
+  void _checkClassAugmentationTargetAlreadyHasExtendsClause({
+    required ClassDeclarationImpl node,
+    required ClassElementImpl? augmentationTarget,
+  }) {
+    var extendsClause = node.extendsClause;
+    if (extendsClause == null) {
+      return;
+    }
+
+    while (augmentationTarget != null) {
+      if (augmentationTarget.hasExtendsClause) {
+        errorReporter.atToken(
+          extendsClause.extendsKeyword,
+          CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
+          contextMessages: [
+            DiagnosticMessageImpl(
+              filePath: augmentationTarget.source.fullName,
+              offset: augmentationTarget.nameOffset,
+              length: augmentationTarget.nameLength,
+              message: 'The extends clause is included here.',
+              url: null,
+            ),
+          ],
+        );
+        return;
+      }
+      augmentationTarget = augmentationTarget.augmentationTarget;
+    }
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented

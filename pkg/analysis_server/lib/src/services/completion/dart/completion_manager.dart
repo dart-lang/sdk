@@ -83,6 +83,63 @@ class DartCompletionManager {
     this.notImportedSuggestions,
   });
 
+  /// Return a suggestion collector containing a list of the suggestions that
+  /// should be returned to the client.
+  Future<SuggestionCollector> computeCandidateSuggestions({
+    required int maxSuggestions,
+    required OperationPerformanceImpl performance,
+    required DartCompletionRequest request,
+    bool suggestOverrides = true,
+    bool suggestUris = true,
+    required bool useFilter,
+  }) async {
+    request.checkAborted();
+
+    var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
+    try {
+      var selection = request.unit.select(offset: request.offset, length: 0);
+      if (selection == null) {
+        throw AbortCompletion();
+      }
+      var targetPrefix = request.targetPrefix;
+      var matcher =
+          targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
+      var state = CompletionState(request, selection, budget, matcher);
+      var operations = performance.run(
+        'InScopeCompletionPass',
+        (performance) {
+          var pass = InScopeCompletionPass(
+            state: state,
+            collector: collector,
+            skipImports: skipImports,
+            suggestOverrides: suggestOverrides,
+            suggestUris: suggestUris,
+          );
+          pass.computeSuggestions();
+          state.request.collectorLocationName = collector.completionLocation;
+          return pass.notImportedOperations;
+        },
+      );
+
+      request.checkAborted();
+      if (operations.isNotEmpty && notImportedSuggestions != null) {
+        await performance.runAsync(
+          'NotImportedCompletionPass',
+          (performance) async {
+            await NotImportedCompletionPass(
+                    state: state, collector: collector, operations: operations)
+                .computeSuggestions(performance: performance);
+          },
+        );
+      }
+    } on InconsistentAnalysisException {
+      // The state of the code being analyzed has changed, so results are likely
+      // to be inconsistent. Just abort the operation.
+      throw AbortCompletion();
+    }
+    return collector;
+  }
+
   Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
     OperationPerformanceImpl performance, {
@@ -102,81 +159,25 @@ class DartCompletionManager {
       return const [];
     }
 
-    request.checkAborted();
+    var collector = await computeCandidateSuggestions(
+        maxSuggestions: maxSuggestions,
+        performance: performance,
+        request: request,
+        suggestOverrides: enableOverrideContributor,
+        suggestUris: enableUriContributor,
+        useFilter: useFilter);
 
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
+    await builder.suggestFromCandidates(
+        collector.suggestions, collector.preferConstants);
 
     var notImportedSuggestions = this.notImportedSuggestions;
-
-    var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
-    try {
-      var selection = request.unit.select(offset: request.offset, length: 0);
-      if (selection == null) {
-        throw AbortCompletion();
-      }
-      var targetPrefix = request.targetPrefix;
-      var matcher =
-          targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
-      var state = CompletionState(request, selection, budget, matcher);
-      var operations = performance.run(
-        'InScopeCompletionPass',
-        (performance) {
-          return _runFirstPass(
-            state: state,
-            collector: collector,
-            builder: builder,
-            suggestOverrides: enableOverrideContributor,
-            suggestUris: enableUriContributor,
-          );
-        },
-      );
-      request.checkAborted();
-      if (operations.isNotEmpty && notImportedSuggestions != null) {
-        await performance.runAsync(
-          'NotImportedCompletionPass',
-          (performance) async {
-            await NotImportedCompletionPass(
-                    state: state, collector: collector, operations: operations)
-                .computeSuggestions(performance: performance);
-          },
-        );
-      }
-      await builder.suggestFromCandidates(
-          collector.suggestions, collector.preferConstants);
-    } on InconsistentAnalysisException {
-      // The state of the code being analyzed has changed, so results are likely
-      // to be inconsistent. Just abort the operation.
-      throw AbortCompletion();
-    }
-
     if (notImportedSuggestions != null && collector.isIncomplete) {
       notImportedSuggestions.isIncomplete = true;
     }
 
     return builder.suggestions.toList();
-  }
-
-  /// Run the first pass of the code completion algorithm.
-  ///
-  /// Returns the operations that need to be performed in the second pass.
-  List<NotImportedOperation> _runFirstPass({
-    required CompletionState state,
-    required SuggestionCollector collector,
-    required SuggestionBuilder builder,
-    required bool suggestOverrides,
-    required bool suggestUris,
-  }) {
-    var pass = InScopeCompletionPass(
-      state: state,
-      collector: collector,
-      skipImports: skipImports,
-      suggestOverrides: suggestOverrides,
-      suggestUris: suggestUris,
-    );
-    pass.computeSuggestions();
-    state.request.collectorLocationName = collector.completionLocation;
-    return pass.notImportedOperations;
   }
 }
 
