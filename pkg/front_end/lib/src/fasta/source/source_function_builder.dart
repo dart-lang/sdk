@@ -33,6 +33,7 @@ import '../scope.dart';
 import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
+import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_builder_mixins.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_member_builder.dart';
@@ -475,7 +476,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
@@ -506,6 +509,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
                   inMetadata: true,
                   inConstFields: false),
               classHierarchy,
+              delayedActionPerformers,
               computeTypeParameterScope(parentScope));
         }
       }
@@ -516,7 +520,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(libraryBuilder);
+          formal.buildOutlineExpressions(
+              libraryBuilder, delayedActionPerformers);
         }
       }
       hasBuiltOutlineExpressions = true;

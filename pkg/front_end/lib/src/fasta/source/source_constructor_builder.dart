@@ -49,6 +49,7 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_member_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
+import '../util/helpers.dart' show DelayedActionPerformer;
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_extension_type_declaration_builder.dart';
@@ -298,7 +299,9 @@ abstract class AbstractSourceConstructorBuilder
   }
 
   void _buildConstructorForOutline(
-      Token? beginInitializers, Scope declarationScope) {
+      Token? beginInitializers,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      Scope declarationScope) {
     if (beginInitializers != null) {
       final Scope? formalParameterScope;
       if (isConst) {
@@ -324,7 +327,9 @@ abstract class AbstractSourceConstructorBuilder
       }
       bodyBuilder.parseInitializers(beginInitializers,
           doFinishConstructor: isConst);
-      bodyBuilder.performBacklogComputations();
+      bodyBuilder.performBacklogComputations(
+          delayedActionPerformers: delayedActionPerformers,
+          allowFurtherDelays: false);
     }
   }
 
@@ -795,20 +800,24 @@ class DeclaredSourceConstructorBuilder
   bool _hasBuiltOutlines = false;
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
     if (isConst && isAugmenting) {
       origin.buildOutlineExpressions(
-          classHierarchy, delayedDefaultValueCloners);
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
-    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline. We also need to parse
     // initializers to infer types of the super-initializing parameters.
     if (isConst || _hasSuperInitializingFormals) {
-      _buildConstructorForOutline(beginInitializers, classBuilder.scope);
+      _buildConstructorForOutline(
+          beginInitializers, delayedActionPerformers, classBuilder.scope);
     }
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     if (isConst && isAugmenting) {
@@ -1035,7 +1044,9 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_immediatelyDefiningConstructor != null) {
       // Ensure that default value expressions have been created for [_origin].
@@ -1043,8 +1054,8 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       // values and initializers first.
       MemberBuilder origin = _immediatelyDefiningConstructor!;
       if (origin is SourceConstructorBuilder) {
-        origin.buildOutlineExpressions(
-            classHierarchy, delayedDefaultValueCloners);
+        origin.buildOutlineExpressions(classHierarchy, delayedActionPerformers,
+            delayedDefaultValueCloners);
       }
       addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
       _immediatelyDefiningConstructor = null;
@@ -1187,16 +1198,20 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
 
     if (isConst) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
       Scope typeParameterScope =
           computeTypeParameterScope(extensionTypeDeclarationBuilder.scope);
-      _buildConstructorForOutline(beginInitializers, typeParameterScope);
+      _buildConstructorForOutline(
+          beginInitializers, delayedActionPerformers, typeParameterScope);
       _buildBody();
     }
     beginInitializers = null;

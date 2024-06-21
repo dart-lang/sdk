@@ -53,6 +53,7 @@ import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
 import '../scope.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
+import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -79,6 +80,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   final Set<SourceFieldBuilder> _builtElements =
       new Set<SourceFieldBuilder>.identity();
+
+  final List<DelayedActionPerformer> _delayedActionPerformers = [];
 
   SourceEnumBuilder.internal(
       List<MetadataBuilder>? metadata,
@@ -742,7 +745,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         // redirecting factories can't be completed at this moment and
         // therefore should be delayed to another invocation of
         // [BodyBuilder.performBacklogComputations].
-        bodyBuilder.performBacklogComputations();
+        bodyBuilder.performBacklogComputations(
+            delayedActionPerformers: _delayedActionPerformers,
+            allowFurtherDelays: true);
 
         arguments.positional.insertAll(0, enumSyntheticArguments);
         arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
@@ -816,7 +821,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
@@ -843,6 +850,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       elementBuilder.type.registerInferredType(
           buildElement(elementBuilder, classHierarchy.coreTypes));
     }
+    delayedActionPerformers.addAll(_delayedActionPerformers);
+    _delayedActionPerformers.clear();
 
     SourceProcedureBuilder toStringBuilder =
         firstMemberNamed("_enumToString") as SourceProcedureBuilder;
@@ -878,7 +887,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ]));
     }
 
-    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
   }
 }
 

@@ -21,6 +21,7 @@ import '../scope.dart' show Scope;
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
+import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
@@ -270,7 +271,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder) {
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     if (needsDefaultValuesBuiltAsOutlineExpressions) {
       if (initializerToken != null) {
         final DeclarationBuilder declarationBuilder =
@@ -292,7 +294,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations();
+        bodyBuilder.performBacklogComputations(
+            delayedActionPerformers: delayedActionPerformers,
+            allowFurtherDelays: false);
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;

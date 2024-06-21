@@ -1355,17 +1355,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.fileOffset, functionType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
+    Expression resultNode = node;
     SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
       library.checkBoundsInFactoryInvocation(
           node, typeSchemaEnvironment, helper.uri,
           inferred: true);
     }
-    Expression resolvedExpression = helper.resolveRedirectingFactoryTarget(
-        node.target, node.arguments, node.fileOffset, node.isConst)!;
-    Expression resultExpression = result.applyResult(resolvedExpression);
-
-    return new ExpressionInferenceResult(result.inferredType, resultExpression);
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(resultNode));
   }
 
   /// Returns the function type of [constructor] when called through [typedef].
@@ -1418,13 +1416,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
-
-    Expression resolvedExpression =
-        helper.unaliasSingleTypeAliasedConstructorInvocation(node);
-    Expression resultingExpression = result.applyResult(resolvedExpression);
+    Expression resultNode = node;
 
     return new ExpressionInferenceResult(
-        result.inferredType, resultingExpression);
+        result.inferredType, result.applyResult(resultNode));
   }
 
   /// Returns the function type of [factory] when called through [typedef].
@@ -1478,13 +1473,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         isConst: node.isConst, staticTarget: node.target);
-
-    Expression resolvedExpression =
-        helper.unaliasSingleTypeAliasedFactoryInvocation(node)!;
-    Expression resultExpression = result.applyResult(resolvedExpression);
-
     node.hasBeenInferred = true;
-    return new ExpressionInferenceResult(result.inferredType, resultExpression);
+    Expression resultNode = node;
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(resultNode));
   }
 
   @override

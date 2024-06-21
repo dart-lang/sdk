@@ -26,6 +26,7 @@ import 'source/source_extension_type_declaration_builder.dart';
 import 'source/source_function_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
+import 'util/helpers.dart' show DelayedActionPerformer;
 
 enum ScopeKind {
   /// Scope of pattern switch-case statements
@@ -1001,7 +1002,9 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   ProcedureKind? get kind => null;
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     throw new UnsupportedError('$runtimeType.buildOutlineExpressions');
   }
