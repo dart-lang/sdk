@@ -134,32 +134,6 @@ class D<T> {
 }
 ```
 
-### Declaring a result type non-nullable
-
-```dart
-@pragma("vm:non-nullable-result-type")
-```
-
-Tells the VM that the method/field cannot return `null`.
-
-There is one limitation on this pragma:
-
-- The Dart object returned by the method at runtime **must not** return `null`.
-
-If this limitation is violated, undefined behavior may result.
-
-#### Examples for non-nullable result types
-
-```dart
-@pragma("vm:non-nullable-result-type")
-A foo() native "foo_impl";
-
-class C {
-  @pragma('vm:non-nullable-result-type");
-  final int value;
-}
-```
-
 ### Marking recognized methods
 
 ```dart

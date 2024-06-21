@@ -185,6 +185,12 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
+  bool _hasMatchingObjectMethod(
+      MethodElement target, NodeListImpl<ExpressionImpl> arguments) {
+    return arguments.length == target.parameters.length &&
+        !arguments.any((e) => e is NamedExpression);
+  }
+
   bool _isCoreFunction(DartType type) {
     // TODO(scheglov): Can we optimize this?
     return type is InterfaceType && type.isDartCoreFunction;
@@ -432,16 +438,24 @@ class MethodInvocationResolver with ScopeHelpers {
     var target = objectElement.getMethod(nameNode.name);
 
     FunctionType? rawType;
-    if (target is MethodElement && !target.isStatic) {
-      var arguments = node.argumentList.arguments;
-      var hasMatchingObjectMethod =
-          arguments.length == target.parameters.length &&
-              !arguments.any((e) => e is NamedExpression);
-      if (hasMatchingObjectMethod) {
-        nameNode.staticElement = target;
-        rawType = target.type;
-        node.recordStaticType(target.returnType, resolver: _resolver);
-      }
+    if (receiverType is InvalidType) {
+      nameNode.staticElement = null;
+      nameNode.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+      node.staticInvokeType = InvalidTypeImpl.instance;
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+    } else if (target != null &&
+        !target.isStatic &&
+        _hasMatchingObjectMethod(target, node.argumentList.arguments)) {
+      nameNode.staticElement = target;
+      rawType = target.type;
+      nameNode.setPseudoExpressionStaticType(target.type);
+      node.staticInvokeType = target.type;
+      node.recordStaticType(target.returnType, resolver: _resolver);
+    } else {
+      nameNode.staticElement = null;
+      nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      node.staticInvokeType = DynamicTypeImpl.instance;
+      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
     }
 
     _setExplicitTypeArgumentTypes();
@@ -452,19 +466,6 @@ class MethodInvocationResolver with ScopeHelpers {
             whyNotPromotedList: whyNotPromotedList,
             contextType: contextType)
         .resolveInvocation(rawType: rawType);
-
-    if (receiverType is InvalidType) {
-      nameNode.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-      node.staticInvokeType = InvalidTypeImpl.instance;
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-    } else if (rawType == null) {
-      nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
-      node.staticInvokeType = DynamicTypeImpl.instance;
-      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
-    } else {
-      // rawType is not `null`, therefore a static type was already recorded
-      // above.
-    }
   }
 
   void _resolveReceiverNever(MethodInvocationImpl node, Expression receiver,

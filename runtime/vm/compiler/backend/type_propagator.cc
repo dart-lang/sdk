@@ -1526,21 +1526,17 @@ CompileType DispatchTableCallInstr::ComputeType() const {
 }
 
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
-  bool is_nullable = CompileType::kCanBeNull;
   if (IsSureToCallSingleRecognizedTarget()) {
     const Function& target = *targets_.TargetAt(0)->target;
     if (target.has_pragma()) {
       const intptr_t cid = MethodRecognizer::ResultCidFromPragma(target);
       if (cid != kDynamicCid) {
         return CompileType::FromCid(cid);
-      } else if (MethodRecognizer::HasNonNullableResultTypeFromPragma(target)) {
-        is_nullable = CompileType::kCannotBeNull;
       }
     }
   }
 
-  CompileType type = InstanceCallBaseInstr::ComputeType();
-  return is_nullable ? type : type.CopyNonNullable();
+  return InstanceCallBaseInstr::ComputeType();
 }
 
 static CompileType ComputeListFactoryType(CompileType* inferred_type,
@@ -1594,9 +1590,6 @@ CompileType StaticCallInstr::ComputeType() const {
     const intptr_t cid = MethodRecognizer::ResultCidFromPragma(function_);
     if (cid != kDynamicCid) {
       return CompileType::FromCid(cid);
-    }
-    if (MethodRecognizer::HasNonNullableResultTypeFromPragma(function_)) {
-      is_nullable = CompileType::kCannotBeNull;
     }
   }
 

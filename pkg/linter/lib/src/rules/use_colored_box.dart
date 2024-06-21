@@ -62,34 +62,6 @@ class UseColoredBox extends LintRule {
   }
 }
 
-class _ArgumentData {
-  var positionalArgumentsFound = false;
-  var additionalArgumentsFound = false;
-  var hasColor = false;
-  var hasChild = false;
-
-  _ArgumentData(ArgumentList node) {
-    for (var argument in node.arguments) {
-      if (argument is! NamedExpression) {
-        positionalArgumentsFound = true;
-        return;
-      }
-      var label = argument.name.label;
-      if (label.name == 'color' &&
-          argument.staticType?.nullabilitySuffix !=
-              NullabilitySuffix.question) {
-        hasColor = true;
-      } else if (label.name == 'child') {
-        hasChild = true;
-      } else if (label.name == 'key') {
-        // Ignore key
-      } else {
-        additionalArgumentsFound = true;
-      }
-    }
-  }
-}
-
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
 
@@ -101,14 +73,38 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    var data = _ArgumentData(node.argumentList);
-
-    if (data.additionalArgumentsFound || data.positionalArgumentsFound) {
-      return;
-    }
-
-    if (data.hasChild && data.hasColor) {
+    if (_shouldReportForArguments(node.argumentList)) {
       rule.reportLint(node.constructorName);
     }
+  }
+
+  /// Determine if the lint [rule] should be reported for
+  /// the specified [argumentList].
+  static bool _shouldReportForArguments(ArgumentList argumentList) {
+    var hasChild = false;
+    var hasColor = false;
+
+    for (var argument in argumentList.arguments) {
+      if (argument is! NamedExpression) {
+        // Positional arguments are not supported.
+        return false;
+      }
+      switch (argument.name.label.name) {
+        case 'child':
+          hasChild = true;
+        case 'color'
+            when argument.staticType?.nullabilitySuffix !=
+                NullabilitySuffix.question:
+          hasColor = true;
+        case 'key':
+          // Ignore 'key' as both ColoredBox and Container have it.
+          break;
+        case _:
+          // Other named arguments are not supported.
+          return false;
+      }
+    }
+
+    return hasChild && hasColor;
   }
 }

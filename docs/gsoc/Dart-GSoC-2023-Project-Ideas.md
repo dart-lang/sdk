@@ -146,7 +146,7 @@ A good project proposal will describe what Java APIs are necessary to implement 
 
 We would like to explore the possibilities of the new language features that could help to improve packages and create a new API (potentially) or refactor internal coding that make the package to take full advantage of Dart 3. We would like to also prepare a guideline after this refactoring for other maintainers to figure out what could be improved or changed.
 
-We are using [Federated plugins](https://docs.flutter.dev/development/packages-and-plugins/developing-packages#federated-plugins)  therefore this is likely to involve:
+We are using [Federated plugins](https://flutter.dev/to/federated-plugins), therefore this is likely to involve:
  
 * refactoring `platform_interface` class for each package,
 * refactoring app-facing and platform-specific-implementation packages,

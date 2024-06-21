@@ -9,7 +9,6 @@ import 'package:kernel/target/targets.dart' show Target;
 // Pragmas recognized by the VM
 const kVmEntryPointPragmaName = "vm:entry-point";
 const kVmExactResultTypePragmaName = "vm:exact-result-type";
-const kVmNonNullableResultType = "vm:non-nullable-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
 const kVmRecognizedPragmaName = "vm:recognized";
@@ -56,10 +55,6 @@ class ParsedResultTypeByTypePragma implements ParsedPragma {
 class ParsedResultTypeByPathPragma implements ParsedPragma {
   final String path;
   const ParsedResultTypeByPathPragma(this.path);
-}
-
-class ParsedNonNullableResultType implements ParsedPragma {
-  const ParsedNonNullableResultType();
 }
 
 class ParsedRecognized implements ParsedPragma {
@@ -167,8 +162,6 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         }
         throw "ERROR: Unsupported option to '$kVmExactResultTypePragmaName' "
             "pragma: $options";
-      case kVmNonNullableResultType:
-        return const ParsedNonNullableResultType();
       case kVmRecognizedPragmaName:
         PragmaRecognizedType? type;
         if (options is StringConstant) {

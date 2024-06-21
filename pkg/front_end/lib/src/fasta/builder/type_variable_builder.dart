@@ -188,6 +188,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
 
   final TypeParameter actualParameter;
 
+  final bool isWildcard;
+
   @override
   NominalVariableBuilder? actualOrigin;
 
@@ -196,7 +198,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       {TypeBuilder? bound,
       required TypeVariableKind kind,
       Variance? variableVariance,
-      List<MetadataBuilder>? metadata})
+      List<MetadataBuilder>? metadata,
+      this.isWildcard = false})
       : actualParameter =
             new TypeParameter(name == noNameSentinel ? null : name, null)
               ..fileOffset = charOffset
@@ -220,7 +223,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   ///
   ///   class A<X extends A<X>> {}
   NominalVariableBuilder.fromKernel(TypeParameter parameter,
-      {required Loader? loader})
+      {required Loader? loader, this.isWildcard = false})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?

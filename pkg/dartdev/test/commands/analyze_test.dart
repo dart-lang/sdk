@@ -652,7 +652,10 @@ Errors were found in 'pubspec.yaml' and/or 'analysis_options.yaml' which might r
         expect(result.exitCode, 3);
         expect(result.stderr, isEmpty);
 
-        final stdout = result.stdout;
+        final stdout = replacePathsWithMatchingCase(
+          result.stdout.toString(),
+          filePath: p.dirPath,
+        );
         final expectedOutput = '''
 Analyzing myapp...
 

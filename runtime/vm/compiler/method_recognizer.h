@@ -42,14 +42,6 @@ class MethodRecognizer : public AllStatic {
   // See [result_type_pragma.md].
   static intptr_t ResultCidFromPragma(const Object& function_or_field);
 
-  // Try to find an annotation of the form
-  //   @pragma("vm:non-nullable-result-type")
-  // and returns true iff `false` was specified in the annotation.
-  //
-  // See [pragmas.md].
-  static bool HasNonNullableResultTypeFromPragma(
-      const Object& function_or_field);
-
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
   static const char* KindToFunctionNameCString(Kind kind);

@@ -121,4 +121,49 @@ void main() {
   testBadArguments("0", 0);
   testBadArguments("0", 1);
   testBadArguments("0", 37);
+
+  // Test overflow checks. Overflow checks in bases 2 and 3 are simple because
+  // `(number * <base>) + <digit>` always becomes negative when overflows.
+  //
+  // For other bases, this computation can overflow without turning the result
+  // negative, because a high 1 bit can be shifted more than one place in the
+  // binary representation.
+  //
+  // The inputs below cause losing bits without turning the number negative.
+  if (!v.jsNumbers) {
+    Expect.equals(
+        null, int.tryParse("113333333333333333333333333333330", radix: 4));
+    Expect.equals(null, int.tryParse("3324103204424323413431434140", radix: 5));
+    Expect.equals(null, int.tryParse("5501203013133131110411030", radix: 6));
+    Expect.equals(null, int.tryParse("100353032434101216220200", radix: 7));
+    Expect.equals(null, int.tryParse("2777777777777777777770", radix: 8));
+    Expect.equals(null, int.tryParse("224313870536325635680", radix: 9));
+    Expect.equals(null, int.tryParse("27670116110564327420", radix: 10));
+    Expect.equals(null, int.tryParse("4a820077a4642651970", radix: 11));
+    Expect.equals(null, int.tryParse("1057b377b1343360a70", radix: 12));
+    Expect.equals(null, int.tryParse("327772311192c9baa0", radix: 13));
+    Expect.equals(null, int.tryParse("c9c177096975d9930", radix: 14));
+    Expect.equals(null, int.tryParse("432c82996d3a44910", radix: 15));
+    Expect.equals(null, int.tryParse("17ffffffffffffff0", radix: 16));
+    Expect.equals(null, int.tryParse("9b5b67915g63c010", radix: 17));
+    Expect.equals(null, int.tryParse("41eefg9h5a66had0", radix: 18));
+    Expect.equals(null, int.tryParse("1fbicb30g29966f0", radix: 19));
+    Expect.equals(null, int.tryParse("ghf7jfab7b70ib0", radix: 20));
+    Expect.equals(null, int.tryParse("8b2dheee137ka70", radix: 21));
+    Expect.equals(null, int.tryParse("49iabcb64igi290", radix: 22));
+    Expect.equals(null, int.tryParse("28kecd2emc447d0", radix: 23));
+    Expect.equals(null, int.tryParse("17dfll8bmd5f2f0", radix: 24));
+    Expect.equals(null, int.tryParse("ie5h4mndljgnl0", radix: 25));
+    Expect.equals(null, int.tryParse("b3olhc69fb4io0", radix: 26));
+    Expect.equals(null, int.tryParse("6m9cq9g69nj5k0", radix: 27));
+    Expect.equals(null, int.tryParse("474a0ha3nadcm0", radix: 28));
+    Expect.equals(null, int.tryParse("2k5rdpg280drr0", radix: 29));
+    Expect.equals(null, int.tryParse("1m1thg464g6600", radix: 30));
+    Expect.equals(null, int.tryParse("1440anrglnuc90", radix: 31));
+    Expect.equals(null, int.tryParse("nvvvvvvvvvvv0", radix: 32));
+    Expect.equals(null, int.tryParse("gjfd4rsp6eo90", radix: 33));
+    Expect.equals(null, int.tryParse("bk7kq5ppnkl90", radix: 34));
+    Expect.equals(null, int.tryParse("86knwkq9vdv50", radix: 35));
+    Expect.equals(null, int.tryParse("5u831jl976p60", radix: 36));
+  }
 }

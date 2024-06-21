@@ -7077,7 +7077,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: toString
     staticElement: dart:core::@class::Object::@method::toString
-    staticType: null
+    staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

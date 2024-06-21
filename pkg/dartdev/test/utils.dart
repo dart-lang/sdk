@@ -344,3 +344,15 @@ The `pkg/dartdev` tests must be run with the `dart` executable in the `bin` fold
 ''');
   }
 }
+
+/// Replaces the path [filePath] case-insensitively in [input] with itself.
+///
+/// This allows comparing strings that contain file paths where the casing may
+/// be different but is not important to the test (for example where a drive
+/// letter might have different casing).
+String replacePathsWithMatchingCase(String input, {required String filePath}) {
+  return input.replaceAll(
+    RegExp(RegExp.escape(filePath), caseSensitive: false),
+    filePath,
+  );
+}

@@ -2583,7 +2583,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       {required TypeVariableKind kind}) {
     NominalVariableBuilder builder = new NominalVariableBuilder(
         name, _sourceLibraryBuilder, charOffset, fileUri,
-        bound: bound, metadata: metadata, kind: kind);
+        bound: bound,
+        metadata: metadata,
+        kind: kind,
+        isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
 
     unboundNominalVariables.add(builder);
     return builder;
@@ -2611,6 +2614,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         <String, NominalVariableBuilder>{};
     for (NominalVariableBuilder tv in typeVariables) {
       NominalVariableBuilder? existing = typeVariablesByName[tv.name];
+      if (tv.isWildcard) continue;
       if (existing != null) {
         if (existing.kind == TypeVariableKind.extensionSynthesized) {
           // The type parameter from the extension is shadowed by the type
@@ -2673,7 +2677,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               ?.clone(newTypes, _sourceLibraryBuilder, declaration),
           kind: kind,
           variableVariance:
-              variable.parameter.isLegacyCovariant ? null : variable.variance);
+              variable.parameter.isLegacyCovariant ? null : variable.variance,
+          isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
+              variable.isWildcard);
       copy.add(newVariable);
       unboundNominalVariables.add(newVariable);
     }
@@ -6219,6 +6225,7 @@ class TypeParameterScopeBuilder {
     if (typeVariables != null) {
       map = <String, NominalVariableBuilder>{};
       for (NominalVariableBuilder builder in typeVariables) {
+        if (builder.isWildcard) continue;
         map[builder.name] = builder;
       }
     }

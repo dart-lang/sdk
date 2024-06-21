@@ -24997,7 +24997,7 @@ flutter:
         fileName: hello_web.dart
 ```
 
-See [Developing packages & plugins](https://docs.flutter.dev/packages-and-plugins/developing-packages)
+See [Developing packages & plugins](https://flutter.dev/to/develop-packages)
 for more information.
 
 ### await_only_futures
