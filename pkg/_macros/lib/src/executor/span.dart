@@ -318,6 +318,8 @@ enum _TypeDeclarationContentKind {
   enumValueEnd,
   declarationSeparator,
   bodyEnd,
+  typeParameterStart,
+  typeParameterEnd,
 }
 
 /// Content of a [TypeDeclaration].
@@ -380,6 +382,22 @@ class TypeDeclarationContentKey implements Key {
   ///
   TypeDeclarationContentKey.bodyEnd(Key parent)
       : this._(parent, _TypeDeclarationContentKind.bodyEnd);
+
+  /// The start of the type parameters, that is, "<" in
+  ///
+  ///     augment class Foo<T> {
+  ///     }
+  ///
+  TypeDeclarationContentKey.typeParametersStart(Key parent)
+      : this._(parent, _TypeDeclarationContentKind.typeParameterStart);
+
+  /// The end of the type parameters, that is, ">" in
+  ///
+  ///     augment class Foo<T> {
+  ///     }
+  ///
+  TypeDeclarationContentKey.typeParametersEnd(Key parent)
+      : this._(parent, _TypeDeclarationContentKind.typeParameterEnd);
 
   @override
   bool operator ==(Object other) =>

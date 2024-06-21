@@ -1,3 +1,7 @@
+## 0.1.2-main.4
+
+- Fix bug where augmenting classes with type parameters didn't work.
+
 ## 0.1.2-main.3
 
 - Re-export 'package:_macros/src/executor/response_impls.dart'.
