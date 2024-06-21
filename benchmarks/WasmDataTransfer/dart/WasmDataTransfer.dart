@@ -41,8 +41,17 @@ void main(List<String> args) {
   WasmDataTransferToBrowserBytes(largeDartBytes, '1MB').report();
 }
 
+class PrintEmitter implements ScoreEmitter {
+  const PrintEmitter();
+
+  @override
+  void emit(String testName, double value) {
+    print('$testName(RunTimeRaw): $value us.');
+  }
+}
+
 abstract class Benchmark extends BenchmarkBase {
-  Benchmark(super.name);
+  Benchmark(super.name) : super(emitter: const PrintEmitter());
 
   @override
   void exercise() {
