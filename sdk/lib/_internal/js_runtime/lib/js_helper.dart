@@ -3122,6 +3122,11 @@ String _computeThisScriptFromTrace() {
   throw UnsupportedError('Cannot extract URI from "$stack"');
 }
 
+Object _buildTrustedScriptUriWithRetry(String hunkName, int retryCount) {
+  return _getBasedScriptUrl(
+      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
+}
+
 Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
     String loadId, int priority, int retryCount) {
   const int maxRetries = 3;
@@ -3145,7 +3150,8 @@ Future _loadAllHunks(Object loader, List<String> hunkNames, List<String> hashes,
       } else {
         hunksToLoad.add(hunkName);
         hashesToLoad.add(hash);
-        Object trustedScriptUri = _getBasedScriptUrl(hunkName, '');
+        Object trustedScriptUri =
+            _buildTrustedScriptUriWithRetry(hunkName, retryCount);
         // [trustedScriptUri] is either a String, in which case `toString()` is
         // an identity function, or it is a TrustedScriptURL and `toString()`
         // returns the sanitized URL.
@@ -3253,11 +3259,8 @@ Future<Null> _loadHunk(
   }
   completer ??= _loadingLibraries[hunkName] = Completer();
 
-  Object trustedScriptUri = _getBasedScriptUrl(
-      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
-  // [trustedScriptUri] is either a String, in which case `toString()` is an
-  // identity function, or it is a TrustedScriptURL and `toString()` returns the
-  // sanitized URL.
+  Object trustedScriptUri =
+      _buildTrustedScriptUriWithRetry(hunkName, retryCount);
   String uriAsString = JS('', '#.toString()', trustedScriptUri);
 
   _addEvent(part: hunkName, event: 'download', loadId: loadId);
