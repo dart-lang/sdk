@@ -342,7 +342,10 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
         print("Building outlines for ${arguments.join(' ')}");
       }
       CompilerResult compilerResult = await generateKernelInternal(
-          buildSummary: true, buildComponent: false, benchmarker: benchmarker);
+          buildSummary: true,
+          serializeIfBuildingSummary: false,
+          buildComponent: false,
+          benchmarker: benchmarker);
       Component component = compilerResult.component!;
       await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote outline to ");
@@ -375,7 +378,10 @@ Future<Uri?> deps(List<String> arguments) async {
       if (c.options.verbose) {
         print("Computing deps: ${arguments.join(' ')}");
       }
-      await generateKernelInternal(buildSummary: true);
+      await generateKernelInternal(
+        buildSummary: true,
+        serializeIfBuildingSummary: false,
+      );
       return await _emitDeps(c, c.options.output);
     });
   });

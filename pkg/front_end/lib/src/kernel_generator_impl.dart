@@ -57,8 +57,11 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
   });
 }
 
+/// Note that if [buildSummary] is true it will be default serialize the summary
+/// but this can be disabled by setting [serializeIfBuildingSummary] to false.
 Future<InternalCompilerResult> generateKernelInternal(
     {bool buildSummary = false,
+    bool serializeIfBuildingSummary = true,
     bool buildComponent = true,
     bool truncateSummary = false,
     bool includeOffsets = true,
@@ -133,6 +136,7 @@ Future<InternalCompilerResult> generateKernelInternal(
           sdkSummary: sdkSummary,
           loadedComponents: loadedComponents,
           buildSummary: buildSummary,
+          serializeIfBuildingSummary: serializeIfBuildingSummary,
           truncateSummary: truncateSummary,
           buildComponent: buildComponent,
           includeOffsets: includeOffsets,
@@ -152,6 +156,7 @@ Future<InternalCompilerResult> _buildInternal(
     required Component? sdkSummary,
     required List<Component> loadedComponents,
     required bool buildSummary,
+    required bool serializeIfBuildingSummary,
     required bool truncateSummary,
     required bool buildComponent,
     required bool includeOffsets,
@@ -213,9 +218,11 @@ Future<InternalCompilerResult> _buildInternal(
       options.target.performOutlineTransformations(trimmedSummaryComponent);
       options.ticker.logMs("Transformed outline");
     }
-    // Don't include source (but do add it above to include importUris).
-    summary = serializeComponent(trimmedSummaryComponent,
-        includeSources: false, includeOffsets: includeOffsets);
+    if (serializeIfBuildingSummary) {
+      // Don't include source (but do add it above to include importUris).
+      summary = serializeComponent(trimmedSummaryComponent,
+          includeSources: false, includeOffsets: includeOffsets);
+    }
     options.ticker.logMs("Generated outline");
   }
 
