@@ -968,9 +968,10 @@ class LibraryBuilder with MacroApplicationsContainer {
       if (importedAugmentation != null) {
         var importedFile = importedAugmentation.file;
 
-        var unitNode = importedFile.parse(
+        var parsedResult = importedFile.getParsed(
           performance: performance,
         );
+        var unitNode = parsedResult.unit;
 
         var unitElement = CompilationUnitElementImpl(
           source: importedFile.source,
