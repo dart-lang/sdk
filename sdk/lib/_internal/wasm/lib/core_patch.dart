@@ -29,11 +29,17 @@ import "dart:_internal"
 
 import "dart:_internal" as _internal;
 
-import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
+import 'dart:_js_helper'
+    show
+        JS,
+        JSSyntaxRegExp,
+        quoteStringForRegExp,
+        jsStringFromDartString,
+        jsStringToDartString;
 
 import 'dart:_list';
 
-import 'dart:_string' show JSStringImpl;
+import 'dart:_string' show JSStringImpl, JSStringImplExt;
 
 import "dart:collection"
     show

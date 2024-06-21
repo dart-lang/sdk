@@ -11,8 +11,8 @@ import "dart:_internal"
         unsafeCast,
         WasmStringBase;
 
-import 'dart:_js_helper' show JS, jsStringToDartString;
-import 'dart:_js_types' show JSStringImpl;
+import 'dart:_js_helper' show JS, jsStringFromDartString, jsStringToDartString;
+import 'dart:_string';
 import 'dart:_object_helper';
 import 'dart:_string_helper';
 import 'dart:_typed_data';
@@ -107,11 +107,13 @@ extension OneByteStringUnsafeExtensions on String {
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 
-String _toUpperCase(String string) => JS<String>(
-    "s => stringToDartString(stringFromDartString(s).toUpperCase())", string);
+String _toUpperCase(String string) =>
+    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+        "s => s.toUpperCase()", jsStringFromDartString(string).toExternRef)));
 
-String _toLowerCase(String string) => JS<String>(
-    "s => stringToDartString(stringFromDartString(s).toLowerCase())", string);
+String _toLowerCase(String string) =>
+    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+        "s => s.toLowerCase()", jsStringFromDartString(string).toExternRef)));
 
 /**
  * [StringBase] contains common methods used by concrete String
@@ -938,7 +940,7 @@ abstract final class StringBase extends WasmStringBase
       final value = values[i];
       var stringValue = value is String ? value : value.toString();
       if (stringValue is JSStringImpl) {
-        stringValue = jsStringToDartString(stringValue.toExternRef);
+        stringValue = jsStringToDartString(stringValue);
       }
       values[i] = stringValue;
       isOneByteString = isOneByteString && stringValue is OneByteString;
@@ -1099,7 +1101,7 @@ abstract final class StringBase extends WasmStringBase
     for (int i = start; i < end; i++) {
       String stringValue = strings[i];
       if (stringValue is JSStringImpl) {
-        stringValue = jsStringToDartString(stringValue.toExternRef);
+        stringValue = jsStringToDartString(stringValue);
         strings[i] = stringValue;
       }
       isOneByteString = isOneByteString && stringValue is OneByteString;

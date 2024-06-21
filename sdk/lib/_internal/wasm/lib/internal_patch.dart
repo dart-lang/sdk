@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper" show JS;
+import "dart:_js_helper" show JS, jsStringFromDartString, jsStringToDartString;
+import "dart:_js_types" show JSStringImpl;
+import 'dart:_string';
 import 'dart:_wasm';
 
 part "class_id.dart";
@@ -144,8 +146,9 @@ List<String> _makeStringList() => <String>[];
 @pragma("wasm:export", "\$listAdd")
 void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
 
-String jsonEncode(String object) => JS<String>(
-    "s => stringToDartString(JSON.stringify(stringFromDartString(s)))", object);
+String jsonEncode(String object) =>
+    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+        "s => JSON.stringify(s)", jsStringFromDartString(object).toExternRef)));
 
 /// Whether to check bounds in [indexCheck] and [indexCheckWithName], which are
 /// used in list and typed data implementations.

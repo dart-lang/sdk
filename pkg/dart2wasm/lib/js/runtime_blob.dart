@@ -16,56 +16,6 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
     let dartInstance;
 ''';
 
-// Break to support system dependent conversion routines.
-const jsRuntimeBlobPart2Regular = r'''
-    function stringFromDartString(string) {
-        const totalLength = dartInstance.exports.$stringLength(string);
-        let result = '';
-        let index = 0;
-        while (index < totalLength) {
-          let chunkLength = Math.min(totalLength - index, 0xFFFF);
-          const array = new Array(chunkLength);
-          for (let i = 0; i < chunkLength; i++) {
-              array[i] = dartInstance.exports.$stringRead(string, index++);
-          }
-          result += String.fromCharCode(...array);
-        }
-        return result;
-    }
-
-    function stringToDartString(string) {
-        const length = string.length;
-        let range = 0;
-        for (let i = 0; i < length; i++) {
-            range |= string.codePointAt(i);
-        }
-        if (range < 256) {
-            const dartString = dartInstance.exports.$stringAllocate1(length);
-            for (let i = 0; i < length; i++) {
-                dartInstance.exports.$stringWrite1(dartString, i, string.codePointAt(i));
-            }
-            return dartString;
-        } else {
-            const dartString = dartInstance.exports.$stringAllocate2(length);
-            for (let i = 0; i < length; i++) {
-                dartInstance.exports.$stringWrite2(dartString, i, string.charCodeAt(i));
-            }
-            return dartString;
-        }
-    }
-''';
-
-// Conversion functions for JSCM.
-const jsRuntimeBlobPart2JSCM = r'''
-    function stringFromDartString(string) {
-      return dartInstance.exports.$jsStringFromJSStringImpl(string);
-    }
-
-    function stringToDartString(string) {
-      return dartInstance.exports.$jsStringToJSStringImpl(string);
-    }
-''';
-
 const jsRuntimeBlobPart3 = r'''
     // Prints to the console
     function printToConsole(value) {

@@ -459,8 +459,8 @@ extension StringToJSString on String {
   @patch
   JSString get toJS {
     final t = this;
-    return JSString._(
-        JSValue(t is JSStringImpl ? t.toExternRef : jsStringFromDartString(t)));
+    return JSString._(JSValue(
+        (t is JSStringImpl ? t : jsStringFromDartString(t)).toExternRef));
   }
 }
 
