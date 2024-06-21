@@ -36,8 +36,8 @@
       "core": {
         "uri": "core/core.dart",
         "patches": [
+          "_internal/vm/lib/array_patch.dart",
           "_internal/vm/lib/core_patch.dart",
-          "_internal/vm_shared/lib/array_patch.dart",
           "_internal/vm_shared/lib/bigint_patch.dart",
           "_internal/vm_shared/lib/bool_patch.dart",
           "_internal/vm_shared/lib/date_patch.dart",
@@ -126,12 +126,12 @@
       "core": {
         "uri": "core/core.dart",
         "patches": [
-          "_internal/vm_shared/lib/array_patch.dart",
           "_internal/vm_shared/lib/bigint_patch.dart",
           "_internal/vm_shared/lib/bool_patch.dart",
           "_internal/vm_shared/lib/date_patch.dart",
           "_internal/vm_shared/lib/map_patch.dart",
           "_internal/vm_shared/lib/null_patch.dart",
+          "_internal/wasm/lib/array_patch.dart",
           "_internal/wasm/lib/boxed_double.dart",
           "_internal/wasm/lib/boxed_int.dart",
           "_internal/wasm/lib/boxed_int_to_string.dart",
@@ -183,12 +183,12 @@
       "core": {
         "uri": "core/core.dart",
         "patches": [
-          "_internal/vm_shared/lib/array_patch.dart",
           "_internal/vm_shared/lib/bigint_patch.dart",
           "_internal/vm_shared/lib/bool_patch.dart",
           "_internal/vm_shared/lib/date_patch.dart",
           "_internal/vm_shared/lib/map_patch.dart",
           "_internal/vm_shared/lib/null_patch.dart",
+          "_internal/wasm/lib/array_patch.dart",
           "_internal/wasm/lib/boxed_double.dart",
           "_internal/wasm/lib/boxed_int.dart",
           "_internal/wasm/lib/core_patch.dart",
@@ -248,6 +248,9 @@
       },
       "_js_types": {
         "uri": "_internal/wasm/lib/js_types.dart"
+      },
+      "_list": {
+        "uri": "_internal/wasm/lib/list.dart"
       },
       "_object_helper": {
         "uri": "_internal/wasm/lib/object_helper.dart"

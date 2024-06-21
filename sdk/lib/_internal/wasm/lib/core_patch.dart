@@ -31,6 +31,8 @@ import "dart:_internal" as _internal;
 
 import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 
+import 'dart:_list';
+
 import 'dart:_string' show JSStringImpl;
 
 import "dart:collection"
@@ -60,9 +62,7 @@ part "bool.dart";
 part "closure.dart";
 part "double_patch.dart";
 part "errors_patch.dart";
-part "growable_list.dart";
 part "identical_patch.dart";
-part "list.dart";
 part "named_parameters.dart";
 part "object_patch.dart";
 part "record_patch.dart";

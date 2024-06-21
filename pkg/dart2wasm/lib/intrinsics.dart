@@ -1601,8 +1601,8 @@ class Intrinsifier {
           function, translator.nullableObjectArrayType, 0, (_, __) {});
 
       b.else_();
-      // List argument may be a custom list type, convert it to `_ListBase`
-      // with `_List.of`.
+      // List argument may be a custom list type, convert it to `WasmListBase`
+      // with `WasmListBase.of`.
       translator.constants.instantiateConstant(
         function,
         b,

@@ -146,6 +146,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_js_helper',
         'dart:_js_types',
+        'dart:_list',
         'dart:_string',
         'dart:_wasm',
         'dart:async',
@@ -164,6 +165,7 @@ class WasmTarget extends Target {
   List<String> get extraIndexedLibraries => [
         'dart:_js_helper',
         'dart:_js_types',
+        'dart:_list',
         'dart:_string',
         'dart:_wasm',
         'dart:collection',
@@ -453,13 +455,13 @@ class WasmTarget extends Target {
   @override
   Class concreteListLiteralClass(CoreTypes coreTypes) {
     return _growableList ??=
-        coreTypes.index.getClass('dart:core', '_GrowableList');
+        coreTypes.index.getClass('dart:_list', 'GrowableList');
   }
 
   @override
   Class concreteConstListLiteralClass(CoreTypes coreTypes) {
     return _immutableList ??=
-        coreTypes.index.getClass('dart:core', '_ImmutableList');
+        coreTypes.index.getClass('dart:_list', 'ImmutableList');
   }
 
   @override
