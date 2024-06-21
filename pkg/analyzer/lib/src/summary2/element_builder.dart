@@ -102,6 +102,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isAbstract = true;
       element.isSealed = true;
     }
+    element.hasExtendsClause = node.extendsClause != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);

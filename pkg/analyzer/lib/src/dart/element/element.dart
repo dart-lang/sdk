@@ -317,6 +317,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     super.fields = fields;
   }
 
+  bool get hasExtendsClause {
+    return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
+  }
+
+  set hasExtendsClause(bool value) {
+    setModifier(Modifier.HAS_EXTENDS_CLAUSE, value);
+  }
+
   bool get hasGenerativeConstConstructor {
     return constructors.any((c) => !c.isFactory && c.isConst);
   }
@@ -5462,6 +5470,9 @@ enum Modifier {
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
   GETTER,
+
+  /// Indicates that this class has an explicit `extends` clause.
+  HAS_EXTENDS_CLAUSE,
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.

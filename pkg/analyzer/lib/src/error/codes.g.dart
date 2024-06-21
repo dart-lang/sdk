@@ -214,6 +214,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT = CompileTimeErrorCode(
+    'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
+    "The augmentation has an 'extends' clause, but an augmentation target "
+        "already includes an 'extends' clause and it isn't allowed to be "
+        "repeated or changed.",
+    correctionMessage:
+        "Try removing the 'extends' clause, either here or in the augmentation "
+        "target.",
+  );
+
   ///  Parameters:
   ///  0: the lexeme of the modifier.
   static const CompileTimeErrorCode AUGMENTATION_MODIFIER_EXTRA =
