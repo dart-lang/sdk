@@ -1485,6 +1485,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required MapPatternImpl node,
     required SharedMatchContext context,
   }) {
+    inferenceLogWriter?.enterPattern(node);
     ({DartType keyType, DartType valueType})? typeArguments;
     var typeArgumentsList = node.typeArguments;
     if (typeArgumentsList != null) {
@@ -1519,6 +1520,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       requiredType: result.requiredType,
       matchedValueType: result.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(node);
 
     return result;
   }
@@ -1785,6 +1787,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
+    inferenceLogWriter?.enterAnnotation(node);
     // Annotations can contain expressions, so we need flow analysis to be
     // available to process those expressions.
     var isTopLevel = flowAnalysis.flow == null;
@@ -1801,6 +1804,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (isTopLevel) {
       flowAnalysis.topLevelDeclaration_exit();
     }
+    inferenceLogWriter?.exitAnnotation(node);
   }
 
   @override
@@ -1859,6 +1863,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAssertStatement(AssertStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     flowAnalysis.flow?.assert_begin();
     analyzeExpression(node.condition, typeProvider.boolType);
@@ -1871,6 +1876,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
     flowAnalysis.flow?.assert_end();
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -2054,8 +2060,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitBlock(Block node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -2376,6 +2384,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitDoStatement(DoStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
 
     var condition = node.condition;
@@ -2391,6 +2400,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         whyNotPromoted: whyNotPromoted);
 
     flowAnalysis.flow?.doStatement_end(condition);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -2566,8 +2576,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -2666,7 +2678,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant ForElementImpl node, {
     CollectionLiteralContext? context,
   }) {
+    inferenceLogWriter?.enterElement(node);
     _forResolver.resolveElement(node, context);
+    inferenceLogWriter?.exitElement(node);
   }
 
   @override
@@ -2687,9 +2701,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitForStatement(ForStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _forResolver.resolveStatement(node as ForStatementImpl);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -2752,8 +2768,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -2834,6 +2852,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant IfElementImpl node, {
     CollectionLiteralContext? context,
   }) {
+    inferenceLogWriter?.enterElement(node);
     var caseClause = node.caseClause;
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
@@ -2859,10 +2878,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         context: context,
       );
     }
+    inferenceLogWriter?.exitElement(node);
   }
 
   @override
   void visitIfStatement(covariant IfStatementImpl node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
 
     var caseClause = node.caseClause;
@@ -2888,6 +2909,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.elseStatement,
       );
     }
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3020,10 +3042,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     flowAnalysis.labeledStatement_enter(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
     flowAnalysis.labeledStatement_exit(node);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3055,6 +3079,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitMapLiteralEntry(MapLiteralEntry node,
       {CollectionLiteralContext? context}) {
+    inferenceLogWriter?.enterElement(node);
     checkUnreachableNode(node);
     analyzeExpression(
         node.key, context?.keyType ?? UnknownInferredType.instance);
@@ -3062,6 +3087,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(
         node.value, context?.valueType ?? UnknownInferredType.instance);
     popRewrite();
+    inferenceLogWriter?.exitElement(node);
   }
 
   @override
@@ -3283,8 +3309,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitPatternVariableDeclarationStatement(
       PatternVariableDeclarationStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.declaration.accept(this);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3491,6 +3519,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitReturnStatement(ReturnStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     var expression = node.expression;
     if (expression != null) {
@@ -3504,6 +3533,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     bodyContext?.addReturnExpression(expression);
     flowAnalysis.flow?.handleExit();
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3550,6 +3580,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitSpreadElement(SpreadElement node,
       {CollectionLiteralContext? context}) {
+    inferenceLogWriter?.enterElement(node);
     var iterableType = context?.iterableType;
     if (iterableType != null && node.isNullAware) {
       iterableType = typeSystem.makeNullable(iterableType);
@@ -3565,6 +3596,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.expression,
       );
     }
+
+    inferenceLogWriter?.exitElement(node);
   }
 
   @override
@@ -3626,6 +3659,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
+    inferenceLogWriter?.enterStatement(node);
     // Stack: ()
     checkUnreachableNode(node);
 
@@ -3635,6 +3669,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
     // Stack: ()
     legacySwitchExhaustiveness = previousExhaustiveness;
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3678,6 +3713,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitTryStatement(TryStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     var flow = flowAnalysis.flow!;
 
@@ -3721,6 +3757,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       finallyBlock.accept(this);
       flow.tryFinallyStatement_end();
     }
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3792,12 +3829,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
 
     Expression condition = node.condition;
@@ -3816,6 +3856,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
     // TODO(brianwilkerson): If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -3826,8 +3867,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitYieldStatement(YieldStatement node) {
+    inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   /// Check whether [errorNode] is an `onError` callback in a
@@ -3926,6 +3969,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required DartType contextType,
     required AstNode? nodeForTesting,
   }) {
+    inferenceLogWriter?.enterGenericInference(typeParameters, declaredType);
     var inferrer = GenericInferrer(
       typeSystem,
       typeParameters,

@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:analyzer/dart/ast/ast.dart'
     show
@@ -29,6 +30,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -140,7 +142,11 @@ class GenericInferrer {
 
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
-  List<DartType> choosePreliminaryTypes() => _chooseTypes(preliminary: true);
+  List<DartType> choosePreliminaryTypes() {
+    var types = _chooseTypes(preliminary: true);
+    inferenceLogWriter?.recordPreliminaryTypes(types);
+    return types;
+  }
 
   /// Apply an argument constraint, which asserts that the [argument] staticType
   /// is a subtype of the [parameterType].
@@ -160,8 +166,11 @@ class GenericInferrer {
       genericClassName: genericClass?.name,
       isGenericClassInDartCore: genericClass?.library.isDartCore ?? false,
     );
+    inferenceLogWriter?.enterConstraintGeneration(
+        ConstraintGenerationSource.argument, argumentType, parameterType);
     _tryMatchSubtypeOf(argumentType, parameterType, origin,
         covariant: false, nodeForTesting: nodeForTesting);
+    inferenceLogWriter?.exitConstraintGeneration();
   }
 
   /// Applies all the argument constraints implied by [parameters] and
@@ -205,8 +214,13 @@ class GenericInferrer {
       returnType: fnType.returnType,
       nullabilitySuffix: fnType.nullabilitySuffix,
     );
+    inferenceLogWriter?.enterConstraintGeneration(
+        ConstraintGenerationSource.genericFunctionInContext,
+        inferFnType,
+        contextType);
     _tryMatchSubtypeOf(inferFnType, contextType, origin,
         covariant: true, nodeForTesting: nodeForTesting);
+    inferenceLogWriter?.exitConstraintGeneration();
   }
 
   /// Apply a return type constraint, which asserts that the [declaredType]
@@ -220,8 +234,11 @@ class GenericInferrer {
         TypeParameterElement,
         InterfaceType,
         InterfaceElement>(declaredType: declaredType, contextType: contextType);
+    inferenceLogWriter?.enterConstraintGeneration(
+        ConstraintGenerationSource.returnType, declaredType, contextType);
     _tryMatchSubtypeOf(declaredType, contextType, origin,
         covariant: true, nodeForTesting: nodeForTesting);
+    inferenceLogWriter?.exitConstraintGeneration();
   }
 
   /// Same as [chooseFinalTypes], but if [failAtError] is `true` (the default)
@@ -266,7 +283,10 @@ class GenericInferrer {
       }
 
       if (!success) {
-        if (failAtError) return null;
+        if (failAtError) {
+          inferenceLogWriter?.exitGenericInference(failed: true);
+          return null;
+        }
         hasErrorReported = true;
         errorReporter?.atEntity(
           errorEntity!,
@@ -287,7 +307,10 @@ class GenericInferrer {
           inferred.typeFormals.isNotEmpty &&
           !genericMetadataIsEnabled &&
           errorReporter != null) {
-        if (failAtError) return null;
+        if (failAtError) {
+          inferenceLogWriter?.exitGenericInference(failed: true);
+          return null;
+        }
         hasErrorReported = true;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
@@ -326,7 +349,10 @@ class GenericInferrer {
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
       if (hasError[i]) {
-        if (failAtError) return null;
+        if (failAtError) {
+          inferenceLogWriter?.exitGenericInference(failed: true);
+          return null;
+        }
         hasErrorReported = true;
         TypeParameterElement typeParam = _typeFormals[i];
         var typeParamBound = Substitution.fromPairs(_typeFormals, inferredTypes)
@@ -354,6 +380,7 @@ class GenericInferrer {
     }
 
     _demoteTypes(result);
+    inferenceLogWriter?.exitGenericInference(finalTypes: result);
     return result;
   }
 
@@ -749,6 +776,7 @@ class GenericInferrer {
             !_typesInferredSoFar.containsKey(entry.key)) {
           var constraint = _constraints[entry.key]!;
           constraint.add(entry.value..origin = origin);
+          inferenceLogWriter?.recordGeneratedConstraint(entry.key, entry.value);
         }
       }
     }

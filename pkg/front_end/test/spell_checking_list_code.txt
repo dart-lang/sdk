@@ -1066,6 +1066,7 @@ mess
 meta
 metadata's
 metadatum
+method's
 mi
 migrate
 migrated
@@ -1765,6 +1766,7 @@ superinterface
 superinterfaces
 supernode
 supers
+supplies
 suppose
 surfaced
 surprising

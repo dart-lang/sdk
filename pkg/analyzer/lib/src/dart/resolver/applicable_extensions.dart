@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 
 class InstantiatedExtensionWithMember {
   final _NotInstantiatedExtensionWithMember candidate;
@@ -208,6 +209,8 @@ extension NotInstantiatedExtensionsExtensions<R>
       var typeSystemOperations =
           TypeSystemOperations(typeSystem, strictCasts: false);
 
+      inferenceLogWriter?.enterGenericInference(
+          freshTypeParameters, rawExtendedType);
       var inferrer = GenericInferrer(
         typeSystem,
         freshTypeParameters,
