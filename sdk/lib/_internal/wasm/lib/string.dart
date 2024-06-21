@@ -1638,35 +1638,3 @@ final class TwoByteString extends StringBase {
     return offset + length;
   }
 }
-
-// String accessors used to perform Dart<->JS string conversion
-
-@pragma("wasm:export", "\$stringLength")
-WasmI32 _stringLength(String string) {
-  return string.length.toWasmI32();
-}
-
-@pragma("wasm:export", "\$stringRead")
-WasmI32 _stringRead(String string, WasmI32 index) {
-  return string.codeUnitAt(index.toIntSigned()).toWasmI32();
-}
-
-@pragma("wasm:export", "\$stringAllocate1")
-OneByteString _stringAllocate1(WasmI32 length) {
-  return OneByteString.withLength(length.toIntSigned());
-}
-
-@pragma("wasm:export", "\$stringWrite1")
-void _stringWrite1(OneByteString string, WasmI32 index, WasmI32 codePoint) {
-  string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
-}
-
-@pragma("wasm:export", "\$stringAllocate2")
-TwoByteString _stringAllocate2(WasmI32 length) {
-  return TwoByteString.withLength(length.toIntSigned());
-}
-
-@pragma("wasm:export", "\$stringWrite2")
-void _stringWrite2(TwoByteString string, WasmI32 index, WasmI32 codePoint) {
-  string.setUnchecked(index.toIntSigned(), codePoint.toIntSigned());
-}
