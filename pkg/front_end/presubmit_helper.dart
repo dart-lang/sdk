@@ -11,6 +11,7 @@ import 'dart:isolate';
 import 'test/utils/io_utils.dart';
 
 Future<void> main(List<String> args) async {
+  Directory.current = Directory.fromUri(_repoDir);
   Stopwatch stopwatch = new Stopwatch()..start();
   // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
   if (args.length != 1) throw "Need exactly one argument.";
