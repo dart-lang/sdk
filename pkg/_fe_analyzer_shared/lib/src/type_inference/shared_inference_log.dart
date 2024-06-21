@@ -675,7 +675,11 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType,
         expectedKind: StateKind.expression);
     addEvent(
         new Event(message: 'EXPRESSION ${describe(expression)} HAS NO TYPE'));
-    (state as ExpressionState).typeRecorded = true;
+    ExpressionState state = this.state as ExpressionState;
+    if (state.typeRecorded) {
+      fail('A type (or lack thereof) was already recorded for this expression');
+    }
+    state.typeRecorded = true;
   }
 
   @override
@@ -736,7 +740,11 @@ abstract class SharedInferenceLogWriterImpl<Type extends SharedType,
         expectedKind: StateKind.expression);
     addEvent(
         new Event(message: 'STATIC TYPE OF ${describe(expression)} IS $type'));
-    (state as ExpressionState).typeRecorded = true;
+    ExpressionState state = this.state as ExpressionState;
+    if (state.typeRecorded) {
+      fail('A type (or lack thereof) was already recorded for this expression');
+    }
+    state.typeRecorded = true;
   }
 }
 

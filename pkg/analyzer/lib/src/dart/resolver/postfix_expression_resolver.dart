@@ -179,9 +179,9 @@ class PostfixExpressionResolver {
               ?.write(node, element, operatorReturnType, null);
         }
       }
+      node.recordStaticType(receiverType, resolver: _resolver);
     }
 
-    node.recordStaticType(receiverType, resolver: _resolver);
     _resolver.nullShortingTermination(node);
   }
 
