@@ -86,6 +86,12 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
+/// Function determining which source files should have inference logging
+/// enabled.
+///
+/// By default, no files have inference logging enabled.
+bool Function(Source) inferenceLoggingPredicate = (_) => false;
+
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
 
@@ -2186,7 +2192,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    conditionallyStartInferenceLogging();
+    conditionallyStartInferenceLogging(dump: inferenceLoggingPredicate(source));
     try {
       NodeList<Directive> directives = node.directives;
       int directiveCount = directives.length;
