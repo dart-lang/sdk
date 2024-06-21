@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_type_location.dart';
@@ -109,6 +110,10 @@ class DeclarationBuilder {
 
   Reference get rootReference {
     return elementFactory.rootReference;
+  }
+
+  TypeSystemImpl get _typeSystem {
+    return elementFactory.analysisContext.typeSystem;
   }
 
   macro.MacroTarget buildTarget(ast.AstNode node) {
@@ -548,6 +553,12 @@ class DeclarationBuilder {
       case DynamicElementImpl():
         return DynamicTypeImpl.instance;
       case InterfaceElementImpl():
+        if (typeCode.typeArguments.isEmpty) {
+          return _typeSystem.instantiateInterfaceToBounds(
+            element: element,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
         return element.instantiate(
           typeArguments: typeCode.typeArguments.map(resolveType).toList(),
           nullabilitySuffix: NullabilitySuffix.none,
@@ -1843,24 +1854,14 @@ class DeclarationBuilderFromNode {
     ast.NamedType node,
     TypeAnnotationLocation location,
   ) {
-    var typeArguments = _typeAnnotations(
-      node.typeArguments?.arguments,
-      location,
-    );
-
-    // If the named type does not have type arguments, or has the wrong
-    // number of type arguments, replace them from the actual type.
-    if (node.type case InterfaceType type) {
-      if (typeArguments.length != type.element.typeParameters.length) {
-        typeArguments = builder.fromElement._dartTypes(type.typeArguments);
-      }
-    }
-
     return _NamedTypeAnnotation(
       id: macro.RemoteInstance.uniqueId,
       identifier: _namedTypeIdentifier(node),
       isNullable: node.question != null,
-      typeArguments: typeArguments,
+      typeArguments: _typeAnnotations(
+        node.typeArguments?.arguments,
+        location,
+      ),
       location: location,
     );
   }
