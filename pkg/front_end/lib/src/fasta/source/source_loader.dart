@@ -77,6 +77,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../uri_offset.dart';
 import '../uris.dart';
+import '../util/helpers.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
@@ -86,7 +87,6 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
-import 'source_factory_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -2771,10 +2771,21 @@ severity: $severity
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    List<DelayedActionPerformer> delayedActionPerformers =
+        <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          classHierarchy, delayedDefaultValueCloners);
+          classHierarchy, delayedDefaultValueCloners, delayedActionPerformers);
     }
+
+    target.benchmarker
+        ?.beginSubdivide(BenchmarkSubdivides.delayedActionPerformer);
+    for (DelayedActionPerformer delayedActionPerformer
+        in delayedActionPerformers) {
+      delayedActionPerformer.performDelayedActions(allowFurtherDelays: false);
+    }
+    target.benchmarker?.endSubdivide();
+    ticker.logMs("Build outline expressions");
   }
 
   void buildClassHierarchy(
@@ -2802,15 +2813,7 @@ severity: $severity
         new TypeInferenceEngineImpl(instrumentation, target.benchmarker);
   }
 
-  void inferRedirectingFactories(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    /// Inferring redirecting factories partially overlaps with top-level
-    /// inference, since the formal parameters of the redirection targets should
-    /// be inferred, and they can be formal initializing parameters requiring
-    /// inference. [RedirectingFactoryBuilder.buildOutlineExpressions] can
-    /// invoke inference on those formal parameters. Therefore, the top-level
-    /// inference should be prepared before we can infer redirecting factories.
-
+  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     /// The first phase of top level initializer inference, which consists of
     /// creating kernel objects for all fields and top level variables that
     /// might be subject to type inference, and records dependencies between
@@ -2818,30 +2821,6 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    // TODO(cstefantsova): Put the redirecting factory inference into a separate
-    // step.
-
-    // Redirecting factory invocations can occur in outline expressions and
-    // should be processed before them. The outline expressions within
-    // redirecting factory invocations themselves are minimal, containing only
-    // the target and possibly some type arguments, and don't depend on other
-    // kinds of outline expressions themselves.
-    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      List<RedirectingFactoryBuilder>? redirectingFactoryBuilders =
-          library.redirectingFactoryBuilders;
-      if (redirectingFactoryBuilders != null) {
-        for (RedirectingFactoryBuilder redirectingFactoryBuilder
-            in redirectingFactoryBuilders) {
-          redirectingFactoryBuilder.buildOutlineExpressions(
-              classHierarchy, delayedDefaultValueCloners);
-        }
-      }
-    }
-
-    ticker.logMs("Performed redirecting factory inference");
-  }
-
-  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     List<InferableType> inferableTypes = [];
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       libraryBuilder.collectInferableTypes(inferableTypes);

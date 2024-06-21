@@ -16,11 +16,6 @@ library;
 // const newConst1 = new ExtensionType1(0); /* Error */
 //                   ^^^
 //
-// pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:23: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const newConst1 = new ExtensionType1(0); /* Error */
-//                       ^
-//
 // pkg/front_end/testcases/extension_types/const_constructor_access.dart:13:31: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const implicitConstAliased1 = Typedef1(0); /* Error */
@@ -35,11 +30,6 @@ library;
 // const newConstAliased1 = new Typedef1(0); /* Error */
 //                          ^^^
 //
-// pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const newConstAliased1 = new Typedef1(0); /* Error */
-//                              ^
-//
 // pkg/front_end/testcases/extension_types/const_constructor_access.dart:21:19: Error: New expression is not a constant expression.
 // const newConst2 = new ExtensionType2(0); /* Error */
 //                   ^^^
@@ -47,6 +37,16 @@ library;
 // pkg/front_end/testcases/extension_types/const_constructor_access.dart:27:26: Error: New expression is not a constant expression.
 // const newConstAliased2 = new Typedef2(0); /* Error */
 //                          ^^^
+//
+// pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:23: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const newConst1 = new ExtensionType1(0); /* Error */
+//                       ^
+//
+// pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const newConstAliased1 = new Typedef1(0); /* Error */
+//                              ^
 //
 import self as self;
 import "dart:core" as core;

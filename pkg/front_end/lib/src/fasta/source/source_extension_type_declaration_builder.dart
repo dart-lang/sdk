@@ -28,6 +28,7 @@ import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
@@ -556,15 +557,18 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
 
     Iterator<SourceMemberBuilder> iterator = constructorScope.filteredIterator(
         parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
-      iterator.current
-          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+      iterator.current.buildOutlineExpressions(
+          classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
   }
 

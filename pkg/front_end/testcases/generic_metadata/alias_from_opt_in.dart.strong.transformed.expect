@@ -163,15 +163,15 @@ library;
 //   new T7(0); // Error
 //       ^
 //
-// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:59:7: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
-// Try providing a non-generic function type explicitly.
-//   new T4(); // Error
-//       ^
-//
 // pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:63:10: Error: The argument type 'int' can't be assigned to the parameter type 'List<void Function<T>(T)>'.
 //  - 'List' is from 'dart:core'.
 //   new T7(0); // Error
 //          ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:59:7: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   new T4(); // Error
+//       ^
 //
 // pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:60:4: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
 // Try providing a non-generic function type explicitly.

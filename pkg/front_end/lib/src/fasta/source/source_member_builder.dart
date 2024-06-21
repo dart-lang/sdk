@@ -19,6 +19,7 @@ import '../problems.dart' show unsupported;
 import '../source/source_library_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
+import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_class_builder.dart';
 
 typedef BuildNodesCallback = void Function(
@@ -33,7 +34,9 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// Builds the core AST structures for this member as needed for the outline.
   void buildOutlineNodes(BuildNodesCallback f);
 
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
 
   /// Builds the AST nodes for this member as needed for the full compilation.
@@ -156,7 +159,9 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override

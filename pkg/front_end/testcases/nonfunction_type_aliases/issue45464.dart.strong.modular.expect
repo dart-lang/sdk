@@ -12,16 +12,6 @@ library;
 // class A<X extends A<X>> {}
 //         ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:33:9: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'C'.
-//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
-//  - 'Object' is from 'dart:core'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//     new C();
-//         ^
-// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:14:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef C<X extends A<X>> = A<X>;
-//           ^
-//
 // pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:34:7: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'call'.
 //  - 'Object' is from 'dart:core'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
@@ -85,6 +75,16 @@ library;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //     instance2(() => captureTypeArgument());
 //     ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:33:9: Error: Inferred type argument 'A<Object?>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'C'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     new C();
+//         ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:14:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef C<X extends A<X>> = A<X>;
+//           ^
 //
 // pkg/front_end/testcases/nonfunction_type_aliases/issue45464.dart:47:11: Error: Inferred type argument 'Object?' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'Subclass.instance1'.
 //  - 'Object' is from 'dart:core'.
