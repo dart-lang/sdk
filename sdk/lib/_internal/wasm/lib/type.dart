@@ -1634,7 +1634,7 @@ _Type _getMasqueradedRuntimeType(Object object) {
   if (object is int) return _literal<int>();
   if (object is double) return _literal<double>();
   if (object is _Type) return _literal<Type>();
-  if (object is _ListBase) {
+  if (object is WasmListBase) {
     return _InterfaceType(
         ClassID.cidList, false, Object._getTypeArguments(object));
   }

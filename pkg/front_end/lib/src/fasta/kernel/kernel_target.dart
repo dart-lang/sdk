@@ -335,11 +335,11 @@ class KernelTarget {
       benchmarker?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
       await loader.buildOutlines();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_becomeCoreLibrary);
-      loader.coreLibrary.becomeCoreLibrary();
-
       benchmarker?.enterPhase(BenchmarkPhases.outline_resolveParts);
       loader.resolveParts();
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_becomeCoreLibrary);
+      loader.coreLibrary.becomeCoreLibrary();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result =

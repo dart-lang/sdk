@@ -12,6 +12,7 @@ import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
+// TODO(johnniwinther): Remove this.
 class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   NullTypeDeclarationBuilder(
       DartType type, LibraryBuilder compilationUnit, int charOffset)

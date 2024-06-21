@@ -33,12 +33,13 @@ mixin KernelNodes {
       index.getClass("dart:core", "_BoxedDouble");
   late final Class boxedIntClass = index.getClass("dart:core", "_BoxedInt");
   late final Class closureClass = index.getClass("dart:core", "_Closure");
-  late final Class listBaseClass = index.getClass("dart:core", "_ListBase");
-  late final Class fixedLengthListClass = index.getClass("dart:core", "_List");
+  late final Class listBaseClass = index.getClass("dart:_list", "WasmListBase");
+  late final Class fixedLengthListClass =
+      index.getClass("dart:_list", "ModifiableFixedLengthList");
   late final Class growableListClass =
-      index.getClass("dart:core", "_GrowableList");
+      index.getClass("dart:_list", "GrowableList");
   late final Class immutableListClass =
-      index.getClass("dart:core", "_ImmutableList");
+      index.getClass("dart:_list", "ImmutableList");
   late final Class wasmStringBaseClass =
       index.getClass("dart:_internal", "WasmStringBase");
   late final Class stringBaseClass =
@@ -209,9 +210,9 @@ mixin KernelNodes {
   late final Procedure setFromWasmArray =
       index.getProcedure("dart:collection", "_WasmDefaultSet", "fromWasmArray");
   late final Procedure growableListEmpty =
-      index.getProcedure("dart:core", "_GrowableList", "empty");
+      index.getProcedure("dart:_list", "GrowableList", "empty");
   late final Constructor growableListFromWasmArray =
-      index.getConstructor("dart:core", "_GrowableList", "_withData");
+      index.getConstructor("dart:_list", "GrowableList", "_withData");
   late final Procedure hashImmutableIndexNullable = index.getProcedure(
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
   late final Field hashFieldBaseIndexField =
@@ -346,7 +347,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_namedParametersToMap");
   late final Procedure namedParameterMapToArray =
       index.getTopLevelProcedure("dart:core", "_namedParameterMapToArray");
-  late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
+  late final Procedure listOf =
+      index.getProcedure("dart:_list", "ModifiableFixedLengthList", "of");
 
   // dart:_wasm procedures
   late final Procedure wasmFunctionCall =

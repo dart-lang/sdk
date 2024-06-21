@@ -3864,25 +3864,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final Uri importUri;
 
   @override
-  void addSyntheticDeclarationOfDynamic() {
-    addBuilder("dynamic",
-        new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
-  }
-
-  @override
-  void addSyntheticDeclarationOfNever() {
-    addBuilder(
-        "Never",
-        new NeverTypeDeclarationBuilder(
-            const NeverType.nonNullable(), this, -1),
-        -1);
-  }
-
-  @override
-  void addSyntheticDeclarationOfNull() {
-    // TODO(cstefantsova): Uncomment the following when the Null class is
-    // removed from the SDK.
-    //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
+  void becomeCoreLibrary() {
+    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
+      addBuilder("dynamic",
+          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
+    }
+    if (scope.lookupLocalMember("Never", setter: false) == null) {
+      addBuilder(
+          "Never",
+          new NeverTypeDeclarationBuilder(
+              const NeverType.nonNullable(), this, -1),
+          -1);
+    }
+    assert(scope.lookupLocalMember("Null", setter: false) != null,
+        "No class 'Null' found in dart:core.");
   }
 
   List<InferableType>? _inferableTypes = [];

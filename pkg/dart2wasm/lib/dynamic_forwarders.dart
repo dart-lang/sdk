@@ -646,7 +646,7 @@ enum _ForwarderKind {
 ///
 /// [typeArgsLocal], [posArgsLocal], [namedArgsLocal] are the locals for type,
 /// positional, and named arguments, respectively. Types of these locals must
-/// be `ref _ListBase`.
+/// be `ref WasmListBase`.
 ///
 /// [noSuchMethodBlock] is used as the `br` target when the shape check fails.
 void generateDynamicFunctionCall(
