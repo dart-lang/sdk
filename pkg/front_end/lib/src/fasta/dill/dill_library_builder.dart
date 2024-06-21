@@ -225,22 +225,19 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   LibraryBuilder get nameOriginBuilder => this;
 
   @override
-  void addSyntheticDeclarationOfDynamic() {
-    _addBuilder("dynamic",
-        new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
-  }
-
-  @override
-  void addSyntheticDeclarationOfNever() {
-    _addBuilder(
-        "Never",
-        new NeverTypeDeclarationBuilder(
-            const NeverType.nonNullable(), this, -1));
-  }
-
-  @override
-  void addSyntheticDeclarationOfNull() {
-    // The name "Null" is declared by the class Null.
+  void becomeCoreLibrary() {
+    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
+      _addBuilder("dynamic",
+          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
+    }
+    if (scope.lookupLocalMember("Never", setter: false) == null) {
+      _addBuilder(
+          "Never",
+          new NeverTypeDeclarationBuilder(
+              const NeverType.nonNullable(), this, -1));
+    }
+    assert(scope.lookupLocalMember("Null", setter: false) != null,
+        "No class 'Null' found in dart:core.");
   }
 
   void _addClass(Class cls) {

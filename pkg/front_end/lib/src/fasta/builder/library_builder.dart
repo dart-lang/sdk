@@ -583,12 +583,6 @@ abstract class LibraryBuilder implements Builder {
 
   void becomeCoreLibrary();
 
-  void addSyntheticDeclarationOfDynamic();
-
-  void addSyntheticDeclarationOfNever();
-
-  void addSyntheticDeclarationOfNull();
-
   /// Lookups the member [name] declared in this library.
   ///
   /// If [required] is `true` and no member is found an internal problem is
@@ -761,19 +755,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
             "$className.$constructorName", importUri),
         -1,
         null);
-  }
-
-  @override
-  void becomeCoreLibrary() {
-    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
-      addSyntheticDeclarationOfDynamic();
-    }
-    if (scope.lookupLocalMember("Never", setter: false) == null) {
-      addSyntheticDeclarationOfNever();
-    }
-    if (scope.lookupLocalMember("Null", setter: false) == null) {
-      addSyntheticDeclarationOfNull();
-    }
   }
 
   @override

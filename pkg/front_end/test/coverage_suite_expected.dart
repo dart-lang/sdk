@@ -195,10 +195,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 17,
     missCount: 3,
   ),
-  // 79.7752808988764%.
+  // 78.48101265822784%.
   "package:front_end/src/fasta/builder/library_builder.dart": (
-    hitCount: 71,
-    missCount: 18,
+    hitCount: 62,
+    missCount: 17,
   ),
   // 97.38562091503267%.
   "package:front_end/src/fasta/builder/member_builder.dart": (
@@ -346,10 +346,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 129,
     missCount: 25,
   ),
-  // 82.69720101781171%.
+  // 83.12342569269522%.
   "package:front_end/src/fasta/dill/dill_library_builder.dart": (
-    hitCount: 325,
-    missCount: 68,
+    hitCount: 330,
+    missCount: 67,
   ),
   // 77.03349282296651%.
   "package:front_end/src/fasta/dill/dill_loader.dart": (
@@ -762,10 +762,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 293,
     missCount: 35,
   ),
-  // 85.37240537240537%.
+  // 85.28909490119541%.
   "package:front_end/src/fasta/source/source_library_builder.dart": (
     hitCount: 3496,
-    missCount: 599,
+    missCount: 603,
   ),
   // 81.8988464951198%.
   "package:front_end/src/fasta/source/source_loader.dart": (
