@@ -533,18 +533,6 @@ class LibraryBuilder with MacroApplicationsContainer {
       return;
     }
 
-    var mergedUnit = performance.run(
-      'mergedUnit',
-      (performance) {
-        performance.getDataInt('length').add(augmentationCode.length);
-        return kind.file.parseCode(
-          code: augmentationCode,
-          errorListener: AnalysisErrorListener.NULL_LISTENER,
-          performance: performance,
-        );
-      },
-    );
-
     kind.disposeMacroAugmentations(disposeFiles: true);
 
     // Remove import for partial macro augmentations.
@@ -636,12 +624,26 @@ class LibraryBuilder with MacroApplicationsContainer {
       unitElement: unitElement,
       augmentation: augmentation,
     ).perform(updateConstants: () {
-      MacroUpdateConstantsForOptimizedCode(
-        libraryElement: element,
-        unitNode: mergedUnit,
-        codeEdits: optimizedCodeEdits,
-        unitElement: unitElement,
-      ).perform();
+      if (optimizedCodeEdits.isNotEmpty) {
+        var mergedUnit = performance.run(
+          'mergedUnit',
+          (performance) {
+            performance.getDataInt('length').add(augmentationCode.length);
+            return kind.file.parseCode(
+              code: augmentationCode,
+              errorListener: AnalysisErrorListener.NULL_LISTENER,
+              performance: performance,
+            );
+          },
+        );
+
+        MacroUpdateConstantsForOptimizedCode(
+          libraryElement: element,
+          unitNode: mergedUnit,
+          codeEdits: optimizedCodeEdits,
+          unitElement: unitElement,
+        ).perform();
+      }
     });
 
     // Set offsets the same way as when reading from summary.
