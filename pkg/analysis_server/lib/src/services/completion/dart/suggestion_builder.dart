@@ -351,13 +351,16 @@ class SuggestionBuilder {
   /// If [includeTrailingComma] is `true` then the completion text will include
   /// a trailing comma, such as when the closure is part of an argument list.
   void suggestClosure(FunctionType type, {bool includeTrailingComma = false}) {
+    var includeTypes =
+        request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
     var indent = getRequestLineIndent(request);
-    var parametersString = buildClosureParameters(type);
-    // Build a version of the parameter string without keywords for the
-    // completion label because `required` is less useful and may push the
-    // end of the completion (`=>` vs `() {}`) off the end.
-    var parametersDisplayString =
-        buildClosureParameters(type, includeKeywords: false);
+    var parametersString = buildClosureParameters(type,
+        includeTypes: includeTypes, includeKeywords: true);
+    // Build a short version of the parameter string without keywords or types
+    // for the completion label because they're less useful there and may push
+    // the end of the completion (`=>` vs `() {}`) off the end.
+    var parametersDisplayString = buildClosureParameters(type,
+        includeKeywords: false, includeTypes: false);
 
     var blockBuffer = StringBuffer(parametersString);
     blockBuffer.writeln(' {');

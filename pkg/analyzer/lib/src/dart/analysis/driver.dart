@@ -526,6 +526,10 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
+  void afterPerformWork() {
+    _fsState.parsedFileStateCache.clear();
+  }
+
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
   ///
@@ -2443,6 +2447,7 @@ class AnalysisDriverScheduler {
 
       // Ask the driver to perform a chunk of work.
       await bestDriver.performWork();
+      bestDriver.afterPerformWork();
 
       // Schedule one more cycle.
       _hasWork.notify();

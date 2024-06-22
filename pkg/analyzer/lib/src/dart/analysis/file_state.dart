@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -495,6 +496,32 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
+  /// Returns either new, or cached parsed result for this file.
+  ParsedFileState getParsed({
+    required OperationPerformanceImpl performance,
+  }) {
+    var result = _fsState.parsedFileStateCache.get(this);
+    if (result != null) {
+      return result;
+    }
+
+    var errorListener = RecordingErrorListener();
+    var unit = parseCode(
+      code: content,
+      errorListener: errorListener,
+      performance: performance,
+    );
+
+    result = ParsedFileState(
+      code: content,
+      unit: unit,
+      errors: errorListener.errors,
+    );
+    _fsState.parsedFileStateCache.put(this, result);
+
+    return result;
+  }
+
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse({
     AnalysisErrorListener? errorListener,
@@ -502,8 +529,9 @@ class FileState {
   }) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return _parse(
-        errorListener,
+      return parseCode(
+        code: content,
+        errorListener: errorListener,
         performance: performance,
       );
     } catch (exception, stackTrace) {
@@ -576,6 +604,7 @@ class FileState {
 
     var contentChanged = _fileContent?.contentHash != rawFileState.contentHash;
     _fileContent = rawFileState;
+    _fsState.parsedFileStateCache.remove(this);
 
     // Prepare the unlinked bundle key.
     var previousUnlinkedKey = _unlinkedKey;
@@ -746,9 +775,9 @@ class FileState {
       return result;
     }
 
-    var unit = parse(
+    var unit = getParsed(
       performance: performance,
-    );
+    ).unit;
 
     return _fsState._logger.run('Create unlinked for $path', () {
       var unlinkedUnit = serializeAstUnlinked2(
@@ -783,17 +812,6 @@ class FileState {
         files?.remove(this);
       }
     }
-  }
-
-  CompilationUnitImpl _parse(
-    AnalysisErrorListener errorListener, {
-    required OperationPerformanceImpl performance,
-  }) {
-    return parseCode(
-      code: content,
-      errorListener: errorListener,
-      performance: performance,
-    );
   }
 
   // TODO(scheglov): write tests
@@ -1225,6 +1243,12 @@ class FileSystemState {
 
   /// Used for looking up options to associate with created file states.
   final AnalysisOptionsMap _analysisOptionsMap;
+
+  /// We cache results of parsing [FileState]s because they might be useful
+  /// in the process of a single analysis operation. But after that, even
+  /// if these results are still valid, they are often never used again. So,
+  /// currently we clear the cache after each operation.
+  ParsedFileStateCache parsedFileStateCache = ParsedFileStateCache();
 
   FileSystemState(
     this._logger,
@@ -2372,6 +2396,38 @@ class NamespaceDirectiveUris {
     required this.configurations,
     required this.selected,
   });
+}
+
+class ParsedFileState {
+  final String code;
+  final CompilationUnitImpl unit;
+  final List<AnalysisError> errors;
+
+  ParsedFileState({
+    required this.code,
+    required this.unit,
+    required this.errors,
+  });
+}
+
+class ParsedFileStateCache {
+  final Map<FileState, ParsedFileState> _map = Map.identity();
+
+  void clear() {
+    _map.clear();
+  }
+
+  ParsedFileState? get(FileState file) {
+    return _map[file];
+  }
+
+  void put(FileState file, ParsedFileState result) {
+    _map[file] = result;
+  }
+
+  void remove(FileState file) {
+    _map.remove(file);
+  }
 }
 
 /// The file has `part of` directive.

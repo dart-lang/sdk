@@ -1,5 +1,8 @@
+import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../analysis_server_base.dart';
 import '../../../../client/completion_driver_test.dart';
 
 void main() {
@@ -113,6 +116,29 @@ ${' ' * 4}
     kind: invocation
     displayText: (a, b) {}
     selection: 13
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(lints: [LintNames.always_specify_types]),
+    );
+
+    await computeSuggestions('''
+void Function(List<int> a, Object? b, [dynamic c]) v = ^;
+''');
+    assertResponse('''
+suggestions
+  |(List<int> a, Object? b, [dynamic c]) => |
+    kind: invocation
+    displayText: (a, b, [c]) =>
+  (List<int> a, Object? b, [dynamic c]) {
+${' ' * 2}
+}
+    kind: invocation
+    displayText: (a, b, [c]) {}
+    selection: 42
 ''');
   }
 
