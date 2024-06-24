@@ -47,7 +47,7 @@ import "package:dtd"
 /// and you can copy that to use for developing your tool.
 final dtdUri = 'ws://127.0.0.1:62925/';
 
-final client = await DartToolingDaemon.connectToDaemonAt(dtdUri);
+final client = await DartToolingDaemon.connect(dtdUri);
 ```
 
 `client` can then be used to interact with the Dart Tooling Daemon.
