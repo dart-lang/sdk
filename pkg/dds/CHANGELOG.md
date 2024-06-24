@@ -1,4 +1,4 @@
-# 4.2.4
+# 4.2.4+1
 - Added missing type to `Event` in `postEvent`.
 - [DAP] Instaces with both fields and getters of the same name will no longer show duplicates in `variables` responses.
 - `bin/dds.dart` now closes the `stderr` pipe after writing its JSON to the stream.

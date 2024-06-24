@@ -47,7 +47,7 @@ those out of the way first.
     Directories with the `_2` suffix contain pre-null-safety tests, while the
     corresponding suites without `_2` are the null-safe tests. (The `_2`
     suffix is a vestige of the migration from Dart 1.0 to Dart 2.0.)
-    
+
 *   **Test** - A test is a Dart file (which may reference other files) that the
     test runner will send to a Dart implementation and then validate the
     resulting behavior. Most test files are named with an `_test.dart` suffix.
@@ -165,6 +165,15 @@ up the outcome of every test and records that in the database, associated with
 the commit that it ran against. That database is queried by tools (including the
 test runner itself) to determine the status of any test for any supported
 configuration, at any point in the commit stream.
+
+#### Viewing the current status
+
+The [current results app](https://dart-current-results.web.app/) shows the
+current status of all tests, with the ability to filter by test name (path
+prefix).
+
+The [results feed](https://dart-ci.firebaseapp.com/) shows the most recent
+changes to test statuses, with a tab for unapproved changes.
 
 ### Skips and slows
 
