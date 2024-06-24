@@ -2139,12 +2139,6 @@ A0 S1;
 replacement
   left: 1
 suggestions
-  A0
-    kind: class
-  S2.B
-    kind: class
-  _B0
-    kind: class
   S2
     kind: library
 ''');

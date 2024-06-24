@@ -91,7 +91,6 @@ class DartCompletionManager {
     required DartCompletionRequest request,
     bool suggestOverrides = true,
     bool suggestUris = true,
-    required bool useFilter,
   }) async {
     request.checkAborted();
 
@@ -101,7 +100,8 @@ class DartCompletionManager {
       if (selection == null) {
         throw AbortCompletion();
       }
-      var targetPrefix = request.targetPrefix;
+      var tokenData = TokenData.fromSelection(selection);
+      var targetPrefix = tokenData?.prefix ?? '';
       var matcher =
           targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
@@ -164,8 +164,7 @@ class DartCompletionManager {
         performance: performance,
         request: request,
         suggestOverrides: enableOverrideContributor,
-        suggestUris: enableUriContributor,
-        useFilter: useFilter);
+        suggestUris: enableUriContributor);
 
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
@@ -457,4 +456,79 @@ class NotImportedSuggestions {
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.
   bool isIncomplete = false;
+}
+
+/// Information about the token containing the selection.
+class TokenData {
+  /// The token containing the offset.
+  ///
+  /// The token can be any token, including a comment token.
+  final Token token;
+
+  /// The prefix before the selection offset.
+  ///
+  /// This will be an empty string if the token isn't either an identifier or
+  /// keyword, or if the selection offset is at the beginning of the token.
+  final String prefix;
+
+  TokenData._(this.token, this.prefix);
+
+  /// Returns token data representing the token containing the offset of the
+  /// [selection], or `null` if the offset isn't within any token.
+  static TokenData? fromSelection(Selection selection) {
+    var coveringNode = selection.coveringNode;
+    var selectionOffset = selection.offset;
+    // Start at the last token in the covering node and walk backward in the
+    // token stream until we've found the left-most token whose offset is before
+    // the `selectionOffset`.
+    var currentToken = coveringNode.endToken;
+    while ((currentToken.isSynthetic ||
+            currentToken.offset > selectionOffset ||
+            (currentToken.offset == selectionOffset &&
+                !currentToken.isKeywordOrIdentifier)) &&
+        !currentToken.isEof) {
+      currentToken = currentToken.previous!;
+    }
+    if (currentToken.isEof) {
+      return null;
+    }
+    if (selectionOffset > currentToken.end) {
+      // The selection is between two tokens. Check to see whether it's inside a
+      // comment token.
+      Token? commentToken = currentToken.next!.precedingComments;
+      while (commentToken != null) {
+        if (selectionOffset >= commentToken.offset &&
+            selectionOffset <= commentToken.end) {
+          return TokenData._(commentToken, '');
+        }
+        commentToken = commentToken.next;
+      }
+      return null;
+    }
+    if (currentToken.isKeywordOrIdentifier) {
+      var offsetInToken = selectionOffset - currentToken.offset;
+      var prefix = currentToken.lexeme.substring(0, offsetInToken);
+      return TokenData._(currentToken, prefix);
+    } else if (currentToken.type == TokenType.STRING) {
+      // Compute a prefix inside string literals to support completion of URIs
+      // in directives.
+      var lexeme = currentToken.lexeme;
+      var startOfContent = 1;
+      if (lexeme.startsWith("r'''") || lexeme.startsWith('r"""')) {
+        startOfContent = 4;
+      } else if (lexeme.startsWith("r'") || lexeme.startsWith('r"')) {
+        startOfContent = 2;
+      } else if (lexeme.startsWith("'''") || lexeme.startsWith('"""')) {
+        startOfContent = 3;
+      }
+      var offsetInToken = selectionOffset - currentToken.offset;
+      if (offsetInToken < startOfContent) {
+        // The cursor is inside the opening quote sequence.
+        return TokenData._(currentToken, '');
+      }
+      var prefix = currentToken.lexeme.substring(startOfContent, offsetInToken);
+      return TokenData._(currentToken, prefix);
+    }
+    return TokenData._(currentToken, '');
+  }
 }

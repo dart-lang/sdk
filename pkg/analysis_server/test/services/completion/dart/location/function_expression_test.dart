@@ -93,8 +93,6 @@ suggestions
     kind: keyword
   async*
     kind: keyword
-  sync*
-    kind: keyword
 ''');
   }
 
@@ -110,8 +108,6 @@ suggestions
     kind: keyword
   async*
     kind: keyword
-  sync*
-    kind: keyword
 ''');
   }
 
@@ -126,8 +122,6 @@ suggestions
   async
     kind: keyword
   async*
-    kind: keyword
-  sync*
     kind: keyword
 ''');
   }
