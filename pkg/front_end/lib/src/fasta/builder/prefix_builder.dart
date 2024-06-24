@@ -30,8 +30,11 @@ class PrefixBuilder extends BuilderImpl {
 
   final LoadLibraryBuilder? loadLibraryBuilder;
 
+  final bool isWildcard;
+
   PrefixBuilder(this.name, this.deferred, this.parent, this.loadLibraryBuilder,
-      this.charOffset, this.importIndex) {
+      this.charOffset, this.importIndex)
+      : isWildcard = name == '_' {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");
     if (loadLibraryBuilder != null) {

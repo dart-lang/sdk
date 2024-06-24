@@ -3515,6 +3515,14 @@ class BodyBuilder extends StackListenerImpl
           memberBuilder.parent, memberBuilder.member, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
+      // Wildcard import prefixes are non-binding and cannot be used.
+      if (libraryFeatures.wildcardVariables.isEnabled &&
+          declaration.isWildcard) {
+        // TODO(kallentu): Provide a helpful error related to wildcard prefixes.
+        return new UnresolvedNameGenerator(this, nameToken,
+            new Name(declaration.name, libraryBuilder.nameOrigin),
+            unresolvedReadKind: UnresolvedKind.Unknown);
+      }
       return new PrefixUseGenerator(this, nameToken, declaration);
     } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator(this, nameToken, declaration);
