@@ -216,6 +216,18 @@ extension E on A? {
     ]);
   }
 
+  test_methodInvocation_nuverNullable_extensionMethod() async {
+    await assertNoErrorsInCode(r'''
+extension<X> on X {
+  X m() => this;
+}
+
+Future<void> f(Never? x) async {
+  (await x).m();
+}
+''');
+  }
+
   test_prefixExpression_minus_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
