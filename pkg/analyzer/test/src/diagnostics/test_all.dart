@@ -45,6 +45,8 @@ import 'augmentation_modifier_missing_test.dart'
     as augmentation_modifier_missing;
 import 'augmentation_of_different_declaration_kind_test.dart'
     as augmentation_of_different_declaration_kind;
+import 'augmentation_type_parameter_count_test.dart'
+    as augmentation_type_parameter_count;
 import 'augmentation_without_declaration_test.dart'
     as augmentation_without_declaration;
 import 'await_in_late_local_variable_initializer_test.dart'
@@ -949,6 +951,7 @@ main() {
     augmentation_modifier_extra.main();
     augmentation_modifier_missing.main();
     augmentation_of_different_declaration_kind.main();
+    augmentation_type_parameter_count.main();
     augmentation_without_declaration.main();
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();

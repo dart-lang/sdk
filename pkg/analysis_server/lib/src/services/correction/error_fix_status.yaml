@@ -211,6 +211,8 @@ CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:
   status: needsFix
 CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
   status: noFix
+CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT:
+  status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:

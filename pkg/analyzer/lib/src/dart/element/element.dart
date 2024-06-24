@@ -305,6 +305,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return augmentedInternal;
   }
 
+  AugmentedClassElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedClassElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
+  }
+
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
@@ -2734,6 +2743,15 @@ class EnumElementImpl extends InterfaceElementImpl
     return augmentedInternal;
   }
 
+  AugmentedEnumElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedEnumElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
+  }
+
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
@@ -2972,6 +2990,15 @@ class ExtensionElementImpl extends InstanceElementImpl
     return augmentedInternal;
   }
 
+  AugmentedExtensionElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedExtensionElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
+  }
+
   @override
   List<Element> get children => [
         ...super.children,
@@ -3088,6 +3115,15 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
     linkedData?.read(this);
     return augmentedInternal;
+  }
+
+  AugmentedExtensionTypeElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedExtensionTypeElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
   }
 
   @override
@@ -5356,6 +5392,15 @@ class MixinElementImpl extends ClassOrMixinElementImpl
 
     linkedData?.read(this);
     return augmentedInternal;
+  }
+
+  AugmentedMixinElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedMixinElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
   }
 
   @override
