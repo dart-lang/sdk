@@ -30,20 +30,24 @@ class InstanceOfIsTestSpecialization implements IsTestSpecialization {
 
 class SpecializedChecks {
   static IsTestSpecialization? findIsTestSpecialization(
-      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld) {
+      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld,
+      {required bool experimentNullSafetyChecks}) {
     if (dartType is LegacyType) {
       DartType base = dartType.baseType;
       // `Never*` accepts only `null`.
       if (base is NeverType) return SimpleIsTestSpecialization.isNull;
       // `Object*` is top and should be handled by constant folding.
       if (base.isObject) return null;
-      return _findIsTestSpecialization(base, compiland, closedWorld);
+      return _findIsTestSpecialization(base, compiland, closedWorld,
+          experimentNullSafetyChecks: experimentNullSafetyChecks);
     }
-    return _findIsTestSpecialization(dartType, compiland, closedWorld);
+    return _findIsTestSpecialization(dartType, compiland, closedWorld,
+        experimentNullSafetyChecks: experimentNullSafetyChecks);
   }
 
   static IsTestSpecialization? _findIsTestSpecialization(
-      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld) {
+      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld,
+      {required bool experimentNullSafetyChecks}) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;
@@ -96,6 +100,10 @@ class SpecializedChecks {
       if (dartType.isObject) {
         assert(!dartTypes.isTopType(dartType)); // Checked above.
         return SimpleIsTestSpecialization.isNotNull;
+      }
+
+      if (experimentNullSafetyChecks && dartType.typeArguments.isNotEmpty) {
+        return null;
       }
 
       ClassHierarchy classHierarchy = closedWorld.classHierarchy;
