@@ -267,8 +267,39 @@ const _Literal literal = _Literal();
 const _MustBeConst mustBeConst = _MustBeConst();
 
 /// Used to annotate an instance member `m` declared on a class or mixin `C`.
-/// Indicates that every subclass of `C`, concrete or abstract, must directly
-/// override `m`.
+/// Indicates that every concrete subclass of `C` must directly override `m`.
+///
+/// The intention of this annotation is to "re-abtract" a member that was
+/// previously concrete, and to ensure that subclasses provide their own
+/// implementation of the member. For example:
+///
+/// ```dart
+/// base class Entity {
+///   @mustBeOverridden
+///   String toString();
+/// }
+///
+/// abstract class AbstractEntity extends Entity {
+///   // OK: AbstractEntity is abstract.
+/// }
+///
+/// sealed class SealedEntity extends Entity {
+///   // OK: SealedEntity is sealed, which implies abstract.
+/// }
+///
+/// mixin MixinEntity on Entity {
+///  // OK: MixinEntity is abstract.
+/// }
+///
+/// class Person extends Entity {
+///   // ERROR: Missing new implementation of 'toString'.
+/// }
+///
+/// class Animal extends Entity {
+///   // OK: Animal provides its own implementation of 'toString'.
+///   String toString() => 'Animal';
+/// }
+/// ```
 ///
 /// This annotation places no restrictions on the overriding members. In
 /// particular, it does not require that the overriding members invoke the
@@ -281,7 +312,7 @@ const _MustBeConst mustBeConst = _MustBeConst();
 ///   (a method, operator, field, getter, or setter) of a class or of a mixin,
 ///   or
 /// * the annotation is associated with a member `m` in class or mixin `C`, and
-///   there is a class or mixin `D` which is a subclass of `C` (directly or
+///   there is a concrete class `D` which is a subclass of `C` (directly or
 ///   indirectly), and `D` does not directly declare a concrete override of `m`
 ///   and does not directly declare a concrete override of `noSuchMethod`.
 const _MustBeOverridden mustBeOverridden = _MustBeOverridden();

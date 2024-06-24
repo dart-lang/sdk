@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/mock_packages.dart';
+import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,10 @@ main() {
 @reflectiveTest
 class InvalidExportOfInternalElement_BlazePackageTest
     extends BlazeWorkspaceResolutionTest
-    with InvalidExportOfInternalElementTest {
+    with InvalidExportOfInternalElementTest, MockPackagesMixin {
+  @override
+  String get packagesRootPath => workspaceThirdPartyDartPath;
+
   String get testPackageBlazeBinPath => '$workspaceRootPath/blaze-bin/dart/my';
 
   String get testPackageGenfilesPath =>
@@ -32,10 +35,7 @@ class InvalidExportOfInternalElement_BlazePackageTest
   @override
   void setUp() async {
     super.setUp();
-    var metaPath = '$workspaceThirdPartyDartPath/meta';
-    MockPackages.addMetaPackageFiles(
-      getFolder(metaPath),
-    );
+    addMeta();
     newFile('$testPackageBlazeBinPath/my.packages', '');
     newFolder('$workspaceRootPath/blaze-out');
   }

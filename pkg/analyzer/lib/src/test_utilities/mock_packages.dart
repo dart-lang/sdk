@@ -5,6 +5,9 @@
 import 'package:analyzer/file_system/file_system.dart';
 
 /// Helper for creating mock packages.
+// TODO(brianwilkerson): Deprecate or remove this class after the internal uses
+//  of the class have been removed.
+//  @Deprecated('Use MockPackagesMixin from analyzer_utilities')
 class MockPackages {
   /// Create a fake 'angular' package that can be used by tests.
   static void addAngularMetaPackageFiles(Folder rootFolder) {

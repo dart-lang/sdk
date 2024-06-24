@@ -18,23 +18,46 @@ library meta_meta;
 ///   `const` constructor).
 /// * the annotated annotation is associated with anything other than the kinds
 ///   of declarations listed as valid targets.
+///
+/// This type is not intended to be extended and will be marked as `final`
+/// in a future release of `package:meta`.
 @Target({TargetKind.classType})
 class Target {
   /// The kinds of declarations with which the annotated annotation can be
   /// associated.
   final Set<TargetKind> kinds;
 
+  /// Create a new instance of [Target] to be used as an annotation
+  /// on a class intended to be used as an annotation, with the
+  /// specified target [kinds] that it can be applied to.
   const Target(this.kinds);
 }
 
 /// An enumeration of the kinds of targets to which an annotation can be
 /// applied.
+///
+/// This type is not intended to be extended and will be marked as `final`
+/// in a future release of `package:meta`.
 class TargetKind {
   /// Indicates that an annotation is valid on any class declaration.
   static const classType = TargetKind._('classes', 'classType');
 
+  /// Indicates that an annotation is valid on any constructor declaration, both
+  /// factory and generative constructors, whether it's in a class, enum, or
+  /// extension type. Extension type primary constructors are not supported,
+  /// because there is no way to annotate a primary constructor.
+  static const constructor = TargetKind._('constructors', 'constructor');
+
+  /// Indicates that an annotation is valid on any directive in a library or
+  /// part file, whether it's a `library`, `import`, `export`, `part`, or
+  /// `part of` directive.
+  static const directive = TargetKind._('directives', 'directive');
+
   /// Indicates that an annotation is valid on any enum declaration.
   static const enumType = TargetKind._('enums', 'enumType');
+
+  /// Indicates that an annotation is valid on any enum value declaration.
+  static const enumValue = TargetKind._('enum values', 'enumValue');
 
   /// Indicates that an annotation is valid on any extension declaration.
   static const extension = TargetKind._('extensions', 'extension');
@@ -43,7 +66,8 @@ class TargetKind {
   static const extensionType = TargetKind._('extension types', 'extensionType');
 
   /// Indicates that an annotation is valid on any field declaration, both
-  /// instance and static fields, whether it's in a class, mixin or extension.
+  /// instance and static fields, whether it's in a class, enum, mixin, or
+  /// extension.
   static const field = TargetKind._('fields', 'field');
 
   /// Indicates that an annotation is valid on any top-level function
@@ -56,12 +80,13 @@ class TargetKind {
   static const library = TargetKind._('libraries', 'library');
 
   /// Indicates that an annotation is valid on any getter declaration, both
-  /// instance or static getters, whether it's in a class, mixin, extension, or
-  /// at the top-level of a library.
+  /// instance or static getters, whether it's in a class, enum, mixin,
+  /// extension, extension type, or at the top-level of a library.
   static const getter = TargetKind._('getters', 'getter');
 
   /// Indicates that an annotation is valid on any method declaration, both
-  /// instance and static methods, whether it's in a class, mixin or extension.
+  /// instance and static methods, whether it's in a class, enum, mixin,
+  /// extension, or extension type.
   static const method = TargetKind._('methods', 'method');
 
   /// Indicates that an annotation is valid on any mixin declaration.
@@ -80,12 +105,13 @@ class TargetKind {
       TargetKind._('overridable members', 'overridableMember');
 
   /// Indicates that an annotation is valid on any formal parameter declaration,
-  /// whether it's in a function, method, constructor, or closure.
+  /// whether it's in a constructor, function (named or anonymous), function
+  /// type, function-typed formal parameter, or method.
   static const parameter = TargetKind._('parameters', 'parameter');
 
   /// Indicates that an annotation is valid on any setter declaration, both
-  /// instance or static setters, whether it's in a class, mixin, extension, or
-  /// at the top-level of a library.
+  /// instance or static setters, whether it's in a class, enum, mixin,
+  /// extension, extension type, or at the top-level of a library.
   static const setter = TargetKind._('setters', 'setter');
 
   /// Indicates that an annotation is valid on any top-level variable
@@ -94,17 +120,28 @@ class TargetKind {
       TargetKind._('top-level variables', 'topLevelVariable');
 
   /// Indicates that an annotation is valid on any declaration that introduces a
-  /// type. This includes classes, enums, mixins and typedefs, but does not
+  /// type. This includes classes, enums, mixins, and typedefs, but does not
   /// include extensions because extensions don't introduce a type.
+  // TODO(srawlins): This should include extension types.
   static const type =
       TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
 
-  /// Indicates that an annotation is valid on any typedef declaration.`
+  /// Indicates that an annotation is valid on any typedef declaration.
   static const typedefType = TargetKind._('typedefs', 'typedefType');
 
+  /// Indicates that an annotation is valid on any type parameter declaration,
+  /// whether it's on a class, enum, function type, function, mixin, extension,
+  /// extension type, or typedef.
+  static const typeParameter = TargetKind._('type parameters', 'typeParameter');
+
+  /// All current [TargetKind] values of targets to
+  /// which an annotation can be applied.
   static const values = [
     classType,
+    constructor,
+    directive,
     enumType,
+    enumValue,
     extension,
     extensionType,
     field,
@@ -120,6 +157,7 @@ class TargetKind {
     topLevelVariable,
     type,
     typedefType,
+    typeParameter,
   ];
 
   /// A user visible string used to describe this target kind.
@@ -127,11 +165,12 @@ class TargetKind {
 
   /// The name of the [TargetKind] value.
   ///
-  /// The name is a string containing the source identifier used to declare the [TargetKind] value.
-  /// For example, the result of `TargetKind.classType.name` is the string "classType".
+  /// The name is a string containing the source identifier used
+  /// to declare the [TargetKind] value. For example,
+  /// the result of `TargetKind.classType.name`is the string "classType".
   final String name;
 
-  // This class isnot meant to be instantiated or extended; this constructor
+  // This class is not meant to be instantiated or extended; this constructor
   // prevents instantiation and extension.
   const TargetKind._(this.displayString, this.name);
 

@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/macro.dart';
-import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -489,44 +488,30 @@ class PubPackageResolutionTest extends ContextResolutionTest
     );
 
     if (angularMeta) {
-      var angularMetaPath = '/packages/angular_meta';
-      MockPackages.addAngularMetaPackageFiles(
-        getFolder(angularMetaPath),
-      );
+      var angularMetaPath = addAngularMeta().parent.path;
       config.add(name: 'angular_meta', rootPath: angularMetaPath);
     }
 
     if (ffi) {
-      var ffiPath = '/packages/ffi';
-      MockPackages.addFfiPackageFiles(
-        getFolder(ffiPath),
-      );
+      var ffiPath = addFfi().parent.path;
       config.add(name: 'ffi', rootPath: ffiPath);
     }
 
     if (flutter) {
-      var uiPath = '/packages/ui';
-      addUI();
+      var uiPath = addUI().parent.path;
       config.add(name: 'ui', rootPath: uiPath);
 
-      var flutterPath = '/packages/flutter';
-      addFlutter();
+      var flutterPath = addFlutter().parent.path;
       config.add(name: 'flutter', rootPath: flutterPath);
     }
 
     if (js) {
-      var jsPath = '/packages/js';
-      MockPackages.addJsPackageFiles(
-        getFolder(jsPath),
-      );
+      var jsPath = addJs().parent.path;
       config.add(name: 'js', rootPath: jsPath);
     }
 
     if (meta || flutter) {
-      var metaPath = '/packages/meta';
-      MockPackages.addMetaPackageFiles(
-        getFolder(metaPath),
-      );
+      var metaPath = addMeta().parent.path;
       config.add(name: 'meta', rootPath: metaPath);
     }
 
