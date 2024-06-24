@@ -579,15 +579,11 @@ class LibraryBuilder with MacroApplicationsContainer {
     var importedAugmentation = importState.importedAugmentation!;
     var importedFile = importedAugmentation.file;
 
-    var unitNode = performance.run(
-      'importedFile.parse()',
-      (performance) {
-        performance.getDataInt('length').add(importedFile.content.length);
-        return importedFile.parse(
-          performance: performance,
-        );
-      },
+    var importedFileParsed = importedFile.getParsed(
+      performance: performance,
     );
+    var unitNode = importedFileParsed.unit;
+
     var unitElement = CompilationUnitElementImpl(
       source: importedFile.source,
       librarySource: importedFile.source,
