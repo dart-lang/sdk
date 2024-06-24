@@ -9,7 +9,6 @@ import '../fasta/builder/library_builder.dart';
 import '../fasta/builder/member_builder.dart';
 import '../fasta/builder/type_builder.dart';
 import '../fasta/messages.dart';
-import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
 import '../kernel_generator_impl.dart';
 
@@ -135,22 +134,14 @@ LibraryBuilder? lookupLibraryBuilder(
   return builder;
 }
 
-TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
-    InternalCompilerResult compilerResult, Library library,
-    {bool required = true}) {
-  SourceLibraryBuilder builder =
-      lookupLibraryBuilder(compilerResult, library, required: required)
-          as SourceLibraryBuilder;
-  return builder.libraryTypeParameterScopeBuilderForTesting;
-}
-
 ClassBuilder? lookupClassBuilder(
     InternalCompilerResult compilerResult, Class cls,
     {bool required = true}) {
-  TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+  LibraryBuilder libraryBuilder = lookupLibraryBuilder(
       compilerResult, cls.enclosingLibrary,
-      required: required);
-  ClassBuilder? clsBuilder = libraryBuilder.members![cls.name] as ClassBuilder?;
+      required: required)!;
+  ClassBuilder? clsBuilder = libraryBuilder.scope
+      .lookupLocalMember(cls.name, setter: false) as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
   }
@@ -160,16 +151,15 @@ ClassBuilder? lookupClassBuilder(
 ExtensionBuilder? lookupExtensionBuilder(
     InternalCompilerResult compilerResult, Extension extension,
     {bool required = true}) {
-  TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+  LibraryBuilder libraryBuilder = lookupLibraryBuilder(
       compilerResult, extension.enclosingLibrary,
-      required: required);
+      required: required)!;
   ExtensionBuilder? extensionBuilder;
-  for (ExtensionBuilder builder in libraryBuilder.extensions!) {
+  libraryBuilder.scope.forEachLocalExtension((ExtensionBuilder builder) {
     if (builder.extension == extension) {
       extensionBuilder = builder;
-      break;
     }
-  }
+  });
   if (extensionBuilder == null && required) {
     throw new ArgumentError("ExtensionBuilder for $extension not found.");
   }
@@ -225,15 +215,11 @@ MemberBuilder? lookupMemberBuilder(
         compilerResult, member.enclosingClass!, member, member.name.text,
         required: required);
   } else {
-    TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+    LibraryBuilder libraryBuilder = lookupLibraryBuilder(
         compilerResult, member.enclosingLibrary,
-        required: required);
-    if (member is Procedure && member.isSetter) {
-      memberBuilder = libraryBuilder.setters![member.name.text];
-    } else {
-      memberBuilder =
-          libraryBuilder.members![member.name.text] as MemberBuilder?;
-    }
+        required: required)!;
+    memberBuilder = libraryBuilder.scope.lookupLocalMember(member.name.text,
+        setter: member is Procedure && member.isSetter) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
