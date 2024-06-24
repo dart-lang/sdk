@@ -285,7 +285,7 @@ class _Listener extends Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     Token? prefixToken = token.previous;
     if (prefixToken == null || prefixToken.type != TokenType.IDENTIFIER) {
       return;

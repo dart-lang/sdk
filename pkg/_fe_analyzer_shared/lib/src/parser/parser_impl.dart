@@ -5772,9 +5772,10 @@ class Parser {
     // TODO(brianwilkerson): If the next token is not the start of a valid
     // expression, then this method shouldn't report that we have an expression
     // statement.
+    Token beginToken = token.next!;
     token = parseExpression(token);
     token = ensureSemicolon(token);
-    listener.handleExpressionStatement(token);
+    listener.handleExpressionStatement(beginToken, token);
     return token;
   }
 
@@ -5863,7 +5864,7 @@ class Parser {
     Token colon = ensureColon(token);
     listener.handleConditionalExpressionColon();
     token = parseExpressionWithoutCascade(colon);
-    listener.endConditionalExpression(question, colon);
+    listener.endConditionalExpression(question, colon, token);
     return token;
   }
 
@@ -6006,7 +6007,7 @@ class Parser {
                 token.next!,
                 IdentifierContext.expressionContinuation,
                 constantPatternContext);
-            listener.handleEndingBinaryExpression(operator);
+            listener.handleEndingBinaryExpression(operator, token);
 
             Token bangToken = token;
             if (optional('!', token.next!)) {
@@ -6085,7 +6086,7 @@ class Parser {
           // precedence level.
           token = parsePrecedenceExpression(token.next!, level + 1,
               allowCascades, ConstantPatternContext.none);
-          listener.endBinaryExpression(operator);
+          listener.endBinaryExpression(operator, token);
         }
         next = token.next!;
         type = next.type;
@@ -6290,7 +6291,7 @@ class Parser {
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation,
           ConstantPatternContext.none);
-      listener.handleEndingBinaryExpression(cascadeOperator);
+      listener.handleEndingBinaryExpression(cascadeOperator, token);
     }
     Token next = token.next!;
     Token mark;
@@ -6301,7 +6302,7 @@ class Parser {
         token = parseSend(next, IdentifierContext.expressionContinuation,
             ConstantPatternContext.none);
         next = token.next!;
-        listener.handleEndingBinaryExpression(period);
+        listener.handleEndingBinaryExpression(period, token);
       } else if (optional('!', next)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -8419,6 +8420,7 @@ class Parser {
     } else {
       token = parseExpressionStatement(leftSeparator);
     }
+    Token rightSeparator = token;
     int expressionCount = 0;
     while (true) {
       Token next = token.next!;
@@ -8436,8 +8438,8 @@ class Parser {
       reportRecoverableErrorWithToken(token, codes.templateUnexpectedToken);
       token = leftParenthesis.endGroup!;
     }
-    listener.handleForLoopParts(
-        forToken, leftParenthesis, leftSeparator, expressionCount);
+    listener.handleForLoopParts(forToken, leftParenthesis, leftSeparator,
+        rightSeparator, expressionCount);
     return token;
   }
 

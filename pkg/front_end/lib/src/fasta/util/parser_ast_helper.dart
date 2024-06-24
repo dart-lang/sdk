@@ -578,9 +578,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    ExpressionStatementHandle data =
-        new ExpressionStatementHandle(ParserAstType.HANDLE, token: token);
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    ExpressionStatementHandle data = new ExpressionStatementHandle(
+        ParserAstType.HANDLE,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
@@ -879,11 +881,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     ForLoopPartsHandle data = new ForLoopPartsHandle(ParserAstType.HANDLE,
         forKeyword: forKeyword,
         leftParen: leftParen,
         leftSeparator: leftSeparator,
+        rightSeparator: rightSeparator,
         updateExpressionCount: updateExpressionCount);
     seen(data);
   }
@@ -2309,9 +2312,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
-    BinaryExpressionEnd data =
-        new BinaryExpressionEnd(ParserAstType.END, token: token);
+  void endBinaryExpression(Token token, Token endToken) {
+    BinaryExpressionEnd data = new BinaryExpressionEnd(ParserAstType.END,
+        token: token, endToken: endToken);
     seen(data);
   }
 
@@ -2330,9 +2333,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token) {
-    EndingBinaryExpressionHandle data =
-        new EndingBinaryExpressionHandle(ParserAstType.HANDLE, token: token);
+  void handleEndingBinaryExpression(Token token, Token endToken) {
+    EndingBinaryExpressionHandle data = new EndingBinaryExpressionHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        endToken: endToken);
     seen(data);
   }
 
@@ -2351,11 +2356,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     ConditionalExpressionEnd data = new ConditionalExpressionEnd(
         ParserAstType.END,
         question: question,
-        colon: colon);
+        colon: colon,
+        endToken: endToken);
     seen(data);
   }
 
@@ -4321,15 +4327,21 @@ class ExtraneousExpressionHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitExtraneousExpressionHandle(this);
 }
 
-class ExpressionStatementHandle extends ParserAstNode {
-  final Token token;
+class ExpressionStatementHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
 
-  ExpressionStatementHandle(ParserAstType type, {required this.token})
+  ExpressionStatementHandle(ParserAstType type,
+      {required this.beginToken, required this.endToken})
       : super("ExpressionStatement", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "token": token,
+        "beginToken": beginToken,
+        "endToken": endToken,
       };
 
   @override
@@ -4944,12 +4956,14 @@ class ForLoopPartsHandle extends ParserAstNode {
   final Token forKeyword;
   final Token leftParen;
   final Token leftSeparator;
+  final Token rightSeparator;
   final int updateExpressionCount;
 
   ForLoopPartsHandle(ParserAstType type,
       {required this.forKeyword,
       required this.leftParen,
       required this.leftSeparator,
+      required this.rightSeparator,
       required this.updateExpressionCount})
       : super("ForLoopParts", type);
 
@@ -4958,6 +4972,7 @@ class ForLoopPartsHandle extends ParserAstNode {
         "forKeyword": forKeyword,
         "leftParen": leftParen,
         "leftSeparator": leftSeparator,
+        "rightSeparator": rightSeparator,
         "updateExpressionCount": updateExpressionCount,
       };
 
@@ -8163,13 +8178,16 @@ class BinaryExpressionBegin extends ParserAstNode {
 
 class BinaryExpressionEnd extends ParserAstNode {
   final Token token;
+  final Token endToken;
 
-  BinaryExpressionEnd(ParserAstType type, {required this.token})
+  BinaryExpressionEnd(ParserAstType type,
+      {required this.token, required this.endToken})
       : super("BinaryExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "endToken": endToken,
       };
 
   @override
@@ -8208,13 +8226,16 @@ class BinaryPatternEnd extends ParserAstNode {
 
 class EndingBinaryExpressionHandle extends ParserAstNode {
   final Token token;
+  final Token endToken;
 
-  EndingBinaryExpressionHandle(ParserAstType type, {required this.token})
+  EndingBinaryExpressionHandle(ParserAstType type,
+      {required this.token, required this.endToken})
       : super("EndingBinaryExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "endToken": endToken,
       };
 
   @override
@@ -8252,15 +8273,17 @@ class ConditionalExpressionColonHandle extends ParserAstNode {
 class ConditionalExpressionEnd extends ParserAstNode {
   final Token question;
   final Token colon;
+  final Token endToken;
 
   ConditionalExpressionEnd(ParserAstType type,
-      {required this.question, required this.colon})
+      {required this.question, required this.colon, required this.endToken})
       : super("ConditionalExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "question": question,
         "colon": colon,
+        "endToken": endToken,
       };
 
   @override

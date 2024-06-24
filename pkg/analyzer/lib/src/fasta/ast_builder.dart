@@ -996,7 +996,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endBinaryExpression(Token operatorToken) {
+  void endBinaryExpression(Token operatorToken, Token endToken) {
     assert(operatorToken.isOperator ||
         optional('.', operatorToken) ||
         optional('?.', operatorToken) ||
@@ -1396,7 +1396,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     assert(optional('?', question));
     assert(optional(':', colon));
     debugEvent("ConditionalExpression");
@@ -4218,7 +4218,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleExpressionStatement(Token semicolon) {
+  void handleExpressionStatement(Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
     var expression = pop() as ExpressionImpl;
@@ -4340,7 +4340,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     assert(optional('for', forKeyword));
     assert(optional('(', leftParen));
     assert(optional(';', leftSeparator));

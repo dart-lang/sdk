@@ -631,9 +631,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    seen(token);
-    doPrint('handleExpressionStatement(' '$token)');
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    seen(beginToken);
+    seen(endToken);
+    doPrint('handleExpressionStatement(' '$beginToken, ' '$endToken)');
   }
 
   @override
@@ -1002,14 +1003,16 @@ class ParserTestListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     seen(forKeyword);
     seen(leftParen);
     seen(leftSeparator);
+    seen(rightSeparator);
     doPrint('handleForLoopParts('
         '$forKeyword, '
         '$leftParen, '
         '$leftSeparator, '
+        '$rightSeparator, '
         '$updateExpressionCount)');
   }
 
@@ -2512,10 +2515,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     indent--;
     seen(token);
-    doPrint('endBinaryExpression(' '$token)');
+    seen(endToken);
+    doPrint('endBinaryExpression(' '$token, ' '$endToken)');
   }
 
   @override
@@ -2533,9 +2537,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token) {
+  void handleEndingBinaryExpression(Token token, Token endToken) {
     seen(token);
-    doPrint('handleEndingBinaryExpression(' '$token)');
+    seen(endToken);
+    doPrint('handleEndingBinaryExpression(' '$token, ' '$endToken)');
   }
 
   @override
@@ -2551,11 +2556,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     indent--;
     seen(question);
     seen(colon);
-    doPrint('endConditionalExpression(' '$question, ' '$colon)');
+    seen(endToken);
+    doPrint('endConditionalExpression(' '$question, ' '$colon, ' '$endToken)');
   }
 
   @override

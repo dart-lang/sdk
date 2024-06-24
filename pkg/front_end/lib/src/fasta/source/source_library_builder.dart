@@ -2953,9 +2953,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isAugmenting ? origin.mergedScope : new MergedLibraryScope(this);
   }
 
-  TypeParameterScopeBuilder get libraryTypeParameterScopeBuilderForTesting =>
-      _libraryTypeParameterScopeBuilder;
-
   LibraryFeatures? _libraryFeatures;
 
   /// Returns the state of the experimental features within this library.
