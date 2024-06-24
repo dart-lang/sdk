@@ -432,6 +432,26 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    _computer._addRegion(
+      node.offset,
+      node.end,
+      FoldingKind.LITERAL,
+    );
+    super.visitSimpleStringLiteral(node);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    _computer._addRegion(
+      node.offset,
+      node.end,
+      FoldingKind.LITERAL,
+    );
+    super.visitStringInterpolation(node);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _computer._addRegion(node.colon.end, node.end, FoldingKind.BLOCK);
     super.visitSwitchCase(node);
