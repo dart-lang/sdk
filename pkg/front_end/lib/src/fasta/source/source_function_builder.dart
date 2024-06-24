@@ -244,6 +244,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals!) {
+      // Wildcard initializing formal parameters do not introduce a local
+      // variable in the initializer list.
+      if (formal.isWildcard) continue;
+
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
     return new Scope(

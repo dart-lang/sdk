@@ -3328,7 +3328,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
       {bool forNullGuardedAccess = false}) {
-    if (!(variable as VariableDeclarationImpl).isLocalFunction) {
+    if (!(variable as VariableDeclarationImpl).isLocalFunction &&
+        !variable.isWildcard) {
       typeInferrer.assignedVariables.read(variable);
     }
     return new VariableGetImpl(variable,
