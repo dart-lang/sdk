@@ -91,21 +91,11 @@ suggestions
     await computeSuggestions('''
 class A e^ implements foo { }
 ''');
-    // TODO(brianwilkerson): The keyword `with` should not be suggested when
-    //  using protocol 2 (so this these should require a conditional check).
-    //  The reason it is being suggested is as follows: The `e` is ignored by
-    //  the parser so it doesn't show up in the AST. As a result, the "entity"
-    //  is the implements clause, and the code doesn't find the unattached token
-    //  for `e`. As a result, there is no prefix, so the fuzzy matcher returns 1
-    //  (a perfect match). We need to improve the detection of a prefix in order
-    //  to fix this bug.
     assertResponse(r'''
 replacement
   left: 1
 suggestions
   extends
-    kind: keyword
-  with
     kind: keyword
 ''');
   }
@@ -119,8 +109,6 @@ replacement
   left: 1
 suggestions
   extends
-    kind: keyword
-  with
     kind: keyword
 ''');
   }

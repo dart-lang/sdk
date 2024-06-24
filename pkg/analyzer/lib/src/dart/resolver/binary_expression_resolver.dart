@@ -407,7 +407,6 @@ class BinaryExpressionResolver {
     }
 
     var leftType = leftOperand.typeOrThrow;
-    leftType = _typeSystem.resolveToBound(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.atNode(

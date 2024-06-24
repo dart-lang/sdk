@@ -1788,6 +1788,35 @@ BinaryExpression
 ''');
   }
 
+  test_plus_int_typeVariable_via_extension() async {
+    await assertNoErrorsInCode('''
+class Foo {}
+
+extension FooExtension<F extends Foo> on F {
+  F operator +(int i) => this;
+
+  F get gg => this + 1;
+}
+''');
+
+    assertResolvedNodeText(findNode.binary('this + 1'), r'''
+BinaryExpression
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: F
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    parameter: root::@parameter::i
+    staticType: int
+  staticElement: MethodMember
+    base: self::@extension::FooExtension::@method::+
+    substitution: {F: F}
+  staticInvokeType: F Function(int)
+  staticType: F
+''');
+  }
+
   test_plus_invalidType_int() async {
     await assertErrorsInCode(r'''
 void f() {

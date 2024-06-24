@@ -132,7 +132,7 @@ vars = {
   "collection_rev": "9354f386de3c57f5486b01ab4dfa1a2f033307d9",
   "convert_rev": "0c9eab7d4656be97329c4970659afd53a78910e6",
   "crypto_rev": "813e35e913d12e16de67ac57523cd0ff4b07c012",
-  "csslib_rev": "23c314bb6b247a71348cfb0987ba0eb29574abb6",
+  "csslib_rev": "b70fef222c8a98abca39c3f729ec34632089697e",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -144,14 +144,14 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "a6ad7693555a9add6f98ad6fd94de80d35c89415", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "6330a13e3da84b710867af26e343d0b1a4381bc1",
+  "dartdoc_rev": "88df88c9278ec4ec31df818f3ae33d4f91c8cd64",
   "ecosystem_rev": "31148cd81bdb3c248fc30cd345ef49a978ed454c",
   "file_rev": "07cacaed6679a173e29176747e6ce0325742749f",
   "fixnum_rev": "a8157d87f17d5184e210403f2ed63d354b854132",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "6d3ba5ec02817e62d17ace040590bb81a3e1242f",
   "html_rev": "3bc803d7e655491b243418f19300ef0c6112bcea",
-  "http_rev": "8c325b9ca33d878a86d69c5048a8e6e18379663c",
+  "http_rev": "4d8e7ef73d6135a8cc9b5e53db1beb43977d44b0",
   "http_multi_server_rev": "25941e260658efb324de857e6022f418faf9bdd1",
   "http_parser_rev": "9bf7bd981a39137da1e5d7fe64f4652b078c7aa9",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -167,10 +167,10 @@ vars = {
   "native_rev": "fef40aebc3cf34654919e8a5785b6c50b3ea445c", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "903a0e528f91aef90821c8f5eaafbc1ae27198ab",
   "path_rev": "04807b61c25f98f328b322ec511451f9f86f98bb",
-  "pool_rev": "88e463600c636a0d8cdb5dc306524ebf04b06baf",
+  "pool_rev": "832c5ab5eaee444354a8c796f7998bf744f169af",
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "ddc1c2fd2e2a7cd94a0b92ea033961a25f4ad517", # disable tools/rev_sdk_deps.dart
-  "pub_semver_rev": "a9025f3cc23ebb0f86c0af8759d95306b9133ce0",
+  "pub_semver_rev": "dfcad38866fb1e94e8ca91bff3dddd5189fb0794",
   "shelf_rev": "2536c15a562cb183dabbc628824a215663830325",
   "source_map_stack_trace_rev": "96a8213dacf7cd42aefb1311491a4169826f98d2",
   "source_maps_rev": "caa79c2011015759c6cf3299f299f5cccdf8bb61",
@@ -178,24 +178,24 @@ vars = {
   "sse_rev": "7dcde164d5bfe707441f206379ef33e7509e2aac",
   "stack_trace_rev": "ab09060b82c936c38c04eb49c1154b83f6648349",
   "stream_channel_rev": "b41ff7a25395ace8b23e454e3d1a3459a71306ca",
-  "string_scanner_rev": "7b37c1b3d1ca6b581792e6ba385f651573af4a45",
+  "string_scanner_rev": "e1cab8f0538b50f6d7180598752cf5a7e07e74db",
   "sync_http_rev": "7622bdd07501f3f279212e355325b7c84a2b0a08",
   "tar_rev": "552a49d7595e444184d4f91e9afd533aa253a31d",
   "term_glyph_rev": "c86e8171ee7e9f6fc8e775e0be755a603dd0b72d",
   "test_rev": "329c6dff4dfcb178ba6c7009cf1c1b9215b317aa",
-  "test_descriptor_rev": "b23d7ccb0f9882e161fb4dea75b2237bf428432b",
-  "test_process_rev": "862eaf3b825f5e97b278d84a2afbe81b3e8a1683",
+  "test_descriptor_rev": "2f19400259e6ec6801a79dcbf038b235545ab400",
+  "test_process_rev": "a7ca20b73f28d220e6478254082ea2b52f46dc97",
   "test_reflective_loader_rev": "816942eaeeac30cc59d8699f1e94ad779cc53c06",
-  "tools_rev": "4321aecf2cb618dceab5d90adf0cb2ef7207169c",
-  "typed_data_rev": "d14f9654f7a5d6baa7dcc27691bd0fa56769fb67",
+  "tools_rev": "e660a68dce659311fb47735ab00365e26fca2fe3",
+  "typed_data_rev": "85299290551297a28202b6e7a177bb787f790ffd",
   "vector_math_rev": "e7b11a234638bd5d76a05bae99d20b937637dfe8",
   "watcher_rev": "c00fc2a6cd869cdebbc52e00af3d912d25745729",
   "web_rev": "2fe754fb396cb9b87010f0318cfbfc5408346c48",
   "web_socket_channel_rev": "bf69990738f173c07e67cf6945551194bc8c2d92",
-  "webdev_rev": "eccc7d87982b23f666d5e3e09953dca59ca094e4",
+  "webdev_rev": "c56611255f3f02642da10750448a8c90a9fa7b47",
   "webdriver_rev": "f85779edd7c9f66198d4391ed3631db1d97a5b11",
   "webkit_inspection_protocol_rev": "5740cc91eaeb13a02007b77b128fccf4b056db6e",
-  "yaml_rev": "7873b3fb9f16ec83bc7778fed58615fa91f1f042",
+  "yaml_rev": "4cf24ca3bbcb2cd8cbea32fdd355ee5d0a597247",
   "yaml_edit_rev": "08a146ef8f2c7aba908d2017c9ec840b882c9e51",
 
   # Windows deps

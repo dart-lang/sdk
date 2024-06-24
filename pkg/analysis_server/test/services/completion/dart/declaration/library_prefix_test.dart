@@ -212,8 +212,6 @@ A Sew;
 replacement
   left: 1
 suggestions
-  S0.B
-    kind: class
   S0
     kind: library
 ''');

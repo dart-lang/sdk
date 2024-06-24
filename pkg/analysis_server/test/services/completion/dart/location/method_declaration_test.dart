@@ -281,8 +281,6 @@ suggestions
     kind: keyword
   async*
     kind: keyword
-  sync*
-    kind: keyword
 ''');
   }
 

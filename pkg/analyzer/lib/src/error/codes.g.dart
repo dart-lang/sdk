@@ -257,6 +257,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try changing the augmentation to match the declaration kind.",
   );
 
+  static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_COUNT =
+      CompileTimeErrorCode(
+    'AUGMENTATION_TYPE_PARAMETER_COUNT',
+    "The augmentation must have the same number of type parameters as the "
+        "declaration.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration type "
+        "parameters.",
+  );
+
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
       CompileTimeErrorCode(
     'AUGMENTATION_WITHOUT_DECLARATION',

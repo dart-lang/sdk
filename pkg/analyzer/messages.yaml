@@ -1154,6 +1154,10 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the declaration kind.
       1: the name of the augmentation kind.
+  AUGMENTATION_TYPE_PARAMETER_COUNT:
+    problemMessage: The augmentation must have the same number of type parameters as the declaration.
+    correctionMessage: Try changing the augmentation to match the declaration type parameters.
+    hasPublishedDocs: false
   AUGMENTATION_WITHOUT_DECLARATION:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.

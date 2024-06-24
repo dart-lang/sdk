@@ -459,6 +459,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentationElement: element,
       );
 
+      if (element.augmentedIfReally case var augmented?) {
+        _checkAugmentationTypeParameters(
+          nameToken: node.name,
+          typeParameterList: node.typeParameters,
+          declarationTypeParameters: augmented.declaration.typeParameters,
+        );
+      }
+
       _checkClassAugmentationTargetAlreadyHasExtendsClause(
         node: node,
         augmentationTarget: element.augmentationTarget,
@@ -662,6 +670,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element: element,
       );
 
+      if (element.augmentedIfReally case var augmented?) {
+        _checkAugmentationTypeParameters(
+          nameToken: node.name,
+          typeParameterList: node.typeParameters,
+          declarationTypeParameters: augmented.declaration.typeParameters,
+        );
+      }
+
       var augmented = element.augmented;
       var declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
@@ -738,6 +754,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       element: element,
     );
 
+    if (element.augmentedIfReally case var augmented?) {
+      if (node.name case var nameToken?) {
+        _checkAugmentationTypeParameters(
+          nameToken: nameToken,
+          typeParameterList: node.typeParameters,
+          declarationTypeParameters: augmented.declaration.typeParameters,
+        );
+      }
+    }
+
     _enclosingExtension = element;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
@@ -770,6 +796,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentKeyword: node.augmentKeyword,
         element: element,
       );
+
+      if (element.augmentedIfReally case var augmented?) {
+        _checkAugmentationTypeParameters(
+          nameToken: node.name,
+          typeParameterList: node.typeParameters,
+          declarationTypeParameters: augmented.declaration.typeParameters,
+        );
+      }
 
       _enclosingClass = declarationElement;
 
@@ -1184,6 +1218,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         augmentationNode: node,
         augmentationElement: element,
       );
+
+      if (element.augmentedIfReally case var augmented?) {
+        _checkAugmentationTypeParameters(
+          nameToken: node.name,
+          typeParameterList: node.typeParameters,
+          declarationTypeParameters: augmented.declaration.typeParameters,
+        );
+      }
 
       var augmented = element.augmented;
       var declarationElement = augmented.declaration;
@@ -1627,6 +1669,45 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       augmentKeyword,
       CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
     );
+  }
+
+  void _checkAugmentationTypeParameters({
+    required Token nameToken,
+    required TypeParameterList? typeParameterList,
+    required List<TypeParameterElement> declarationTypeParameters,
+  }) {
+    if (declarationTypeParameters.isEmpty) {
+      if (typeParameterList != null) {
+        errorReporter.atToken(
+          typeParameterList.leftBracket,
+          CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
+        );
+      }
+    } else {
+      if (typeParameterList == null) {
+        errorReporter.atToken(
+          nameToken,
+          CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
+        );
+      } else {
+        var declarationCount = declarationTypeParameters.length;
+        var typeParameters = typeParameterList.typeParameters;
+        switch (typeParameters.length.compareTo(declarationCount)) {
+          case < 0:
+            errorReporter.atToken(
+              typeParameterList.rightBracket,
+              CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
+            );
+          case > 0:
+            errorReporter.atToken(
+              typeParameters[declarationCount].name,
+              CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
+            );
+          default:
+          // TODO(scheglov): check names and bounds
+        }
+      }
+    }
   }
 
   void _checkClassAugmentationModifiers({
