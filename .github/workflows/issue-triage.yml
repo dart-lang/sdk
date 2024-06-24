@@ -29,6 +29,11 @@ jobs:
       - run: dart pub get
         working-directory: pkgs/sdk_triage_bot
 
+      # Delay 2 minutes to allow a grace period between opening or transferring
+      # an issue and assigning an area- label.
+      - name: sleep 2m
+        run: sleep 120
+
       - name: triage issue
         working-directory: pkgs/sdk_triage_bot
         env:
