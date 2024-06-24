@@ -2277,14 +2277,15 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
   }
 }
 
-ErrorPtr Debugger::FindCompiledFunctions(
+ErrorPtr Debugger::FindAndCompileMatchingFunctions(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition start_pos,
     TokenPosition end_pos,
-    GrowableObjectArray* code_function_list) {
+    GrowableObjectArray& code_function_list) const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   Script& script = Script::Handle(zone);
+  Object& ensure_has_code_result = Object::Handle(zone);
   for (intptr_t i = 0; i < scripts.length(); ++i) {
     script = scripts.At(i).ptr();
     ClosureFunctionsCache::ForAllClosureFunctions(
@@ -2292,14 +2293,21 @@ ErrorPtr Debugger::FindCompiledFunctions(
           ASSERT(!function.IsNull());
           if ((function.token_pos() == start_pos) &&
               (function.end_token_pos() == end_pos) &&
-              (function.script() == script.ptr())) {
-            if (function.is_debuggable() && function.HasCode()) {
-              code_function_list->Add(function);
+              (function.script() == script.ptr()) && function.is_debuggable()) {
+            // If we've found a matching function, ensure it's compiled so
+            // the breakpoint currently being set can be resolved immediately.
+            ensure_has_code_result = function.EnsureHasCodeNoThrow();
+            if (ensure_has_code_result.IsError()) {
+              return false;  // Stop iterating.
             }
+            code_function_list.Add(function);
             ASSERT(!function.HasImplicitClosureFunction());
           }
-          return true;  // Continue iteration.
+          return true;  // Continue iterating.
         });
+    if (ensure_has_code_result.IsError()) {
+      return Error::Cast(ensure_has_code_result).ptr();
+    }
 
     Class& cls = Class::Handle(zone);
     Array& functions = Array::Handle(zone);
@@ -2333,17 +2341,28 @@ ErrorPtr Debugger::FindCompiledFunctions(
             function ^= functions.At(pos);
             ASSERT(!function.IsNull());
             bool function_added = false;
-            if (function.is_debuggable() && function.HasCode() &&
-                function.token_pos() == start_pos &&
+            if (function.is_debuggable() && function.token_pos() == start_pos &&
                 function.end_token_pos() == end_pos &&
                 function.script() == script.ptr()) {
-              code_function_list->Add(function);
+              // If we've found a matching function, ensure it's compiled so
+              // the breakpoint currently being set can be resolved immediately.
+              ensure_has_code_result = function.EnsureHasCodeNoThrow();
+              if (ensure_has_code_result.IsError()) {
+                return Error::Cast(ensure_has_code_result).ptr();
+              }
+              code_function_list.Add(function);
               function_added = true;
             }
             if (function_added && function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.is_debuggable() && function.HasCode()) {
-                code_function_list->Add(function);
+              if (function.is_debuggable()) {
+                // Ensure that the implicit closure function is compiled so the
+                // breakpoint currently being set can be resolved immediately.
+                ensure_has_code_result = function.EnsureHasCodeNoThrow();
+                if (ensure_has_code_result.IsError()) {
+                  return Error::Cast(ensure_has_code_result).ptr();
+                }
+                code_function_list.Add(function);
               }
             }
           }
@@ -2366,7 +2385,11 @@ ErrorPtr Debugger::FindCompiledFunctions(
                 function.token_pos() == start_pos &&
                 function.end_token_pos() == end_pos &&
                 function.script() == script.ptr()) {
-              code_function_list->Add(function);
+              ensure_has_code_result = function.EnsureHasCodeNoThrow();
+              if (ensure_has_code_result.IsError()) {
+                return Error::Cast(ensure_has_code_result).ptr();
+              }
+              code_function_list.Add(function);
             }
           }
         }
@@ -2387,10 +2410,11 @@ static void UpdateBestFit(Function* best_fit, const Function& func) {
   }
 }
 
-// Returns true if a best fit is found. A best fit can either be a function
-// or a field. If it is a function, then the best fit function is returned
-// in |best_fit|. If a best fit is a field, it means that a latent
-// breakpoint can be set in the range |token_pos| to |last_token_pos|.
+// If a best fit function is found, stores that function in |best_fit| and
+// returns |true|.
+// Note that in some cases, there may be a closure that is a better fit that the
+// function returned in |best_fit|, because |FindBestFit| is only able to detect
+// that closure if the function containing it has already been compiled.
 bool Debugger::FindBestFit(const Script& script,
                            TokenPosition token_pos,
                            TokenPosition last_token_pos,
@@ -2485,9 +2509,11 @@ bool Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (IsImplicitFunction(function)) {
-            // Implicit functions do not have a user specifiable source
-            // location.
+          if (IsImplicitFunction(function) || function.is_synthetic() ||
+              !function.is_debuggable()) {
+            // We skip implicit functions and synthetic functions because they
+            // do not have user specifiable source locations. We also skip
+            // functions marked as undebuggable.
             continue;
           }
           if (FunctionOverlaps(function, script_url, token_pos,
@@ -2523,7 +2549,7 @@ bool Debugger::FindBestFit(const Script& script,
           end = field.end_token_pos();
           if (token_pos.IsWithin(start, end) ||
               start.IsWithin(token_pos, last_token_pos)) {
-            *best_fit = field.InitializerFunction();
+            *best_fit = field.EnsureInitializerFunction();
             return true;
           }
         }
@@ -2632,7 +2658,22 @@ ErrorPtr Debugger::SetBreakpoint(
     if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
       return Object::no_debuggable_code_error().ptr();
     }
-    // If func was not set (still Null), the best fit is a field.
+    ASSERT(!func.IsNull());
+    // There may be closures that were not considered by the first call to
+    // |FindBestFit| because the functions containing them were not yet
+    // compiled. So, we must recursively compile functions until we converge
+    // at a true best fit function.
+    Function& tmp = Function::Handle();
+    Object& ensure_has_code_result = Object::Handle();
+    do {
+      ensure_has_code_result = func.EnsureHasCodeNoThrow();
+      if (ensure_has_code_result.IsError()) {
+        return Error::Cast(ensure_has_code_result).ptr();
+      }
+      tmp = func.ptr();
+      FindBestFit(script, token_pos, last_token_pos, &func);
+      ASSERT(!func.IsNull());
+    } while (tmp.ptr() != func.ptr());
   } else {
     func = function.ptr();
     if (!func.token_pos().IsReal()) {
@@ -2642,15 +2683,16 @@ ErrorPtr Debugger::SetBreakpoint(
   }
 
   if (!func.IsNull()) {
-    // There may be more than one function object for a given function
-    // in source code. There may be implicit closure functions, and
-    // there may be copies of mixin functions. Collect all compiled
-    // functions whose source code range matches exactly the best fit
-    // function we found.
+    // There may be more than one function object for a given function in source
+    // code. There may be implicit closure functions, and there may be copies of
+    // mixin functions. Compile and collect all functions whose source code
+    // range matches exactly the best fit function we found. We compile all of
+    // theses functions eagerly so that the breakpoint currently being set can
+    // be resolved immediately.
     GrowableObjectArray& code_functions =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
-    const Error& error = Error::Handle(FindCompiledFunctions(
-        scripts, func.token_pos(), func.end_token_pos(), &code_functions));
+    const Error& error = Error::Handle(FindAndCompileMatchingFunctions(
+        scripts, func.token_pos(), func.end_token_pos(), code_functions));
     if (!error.IsNull()) {
       return error.ptr();
     }
@@ -2682,34 +2724,8 @@ ErrorPtr Debugger::SetBreakpoint(
       }
     }
   }
-  // There is either an uncompiled function, or an uncompiled function literal
-  // initializer of a field at |token_pos|. Hence, Register an unresolved
-  // breakpoint.
-  if (FLAG_verbose_debug) {
-    intptr_t line_number = -1;
-    intptr_t column_number = -1;
-    script.GetTokenLocation(token_pos, &line_number, &column_number);
-    if (func.IsNull()) {
-      OS::PrintErr(
-          "Registering pending breakpoint for "
-          "an uncompiled function literal at line %" Pd " col %" Pd "\n",
-          line_number, column_number);
-    } else {
-      OS::PrintErr(
-          "Registering pending breakpoint for "
-          "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
-          func.ToFullyQualifiedCString(), line_number, column_number);
-    }
-  }
-  const String& script_url = String::Handle(script.url());
-  BreakpointLocation* loc = GetBreakpointLocation(
-      script_url, token_pos, requested_line, requested_column);
-  if (loc == nullptr) {
-    loc = new BreakpointLocation(this, scripts, token_pos, last_token_pos,
-                                 requested_line, requested_column);
-    RegisterBreakpointLocation(loc);
-  }
-  *result_breakpoint_location = loc;
+  // There is no debuggable code at all at |token_pos|, so we leave
+  // |*result_breakpoint_location| as null.
   return Error::null();
 }
 

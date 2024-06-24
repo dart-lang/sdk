@@ -3166,6 +3166,12 @@ class Function : public Object {
   // current code, whether it is optimized or unoptimized.
   CodePtr EnsureHasCode() const;
 
+  // Ensures that the function has code. If there is no code, this method
+  // compiles the unoptimized version of the code. If an error occurs during
+  // compilation, the error is returned. Normally returns the function's code,
+  // whether optimized or unoptimized.
+  ObjectPtr EnsureHasCodeNoThrow() const;
+
   // Disables optimized code and switches to unoptimized code (or the lazy
   // compilation stub).
   void SwitchToLazyCompiledUnoptimizedCode() const;

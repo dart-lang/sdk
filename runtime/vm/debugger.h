@@ -830,11 +830,15 @@ class Debugger {
 
   void SendBreakpointEvent(ServiceEvent::EventKind kind, Breakpoint* bpt);
 
-  ErrorPtr FindCompiledFunctions(
+  // Finds all |Function|s that span the token range [start_pos, end_pos] in any
+  // of the scripts in |scripts|, compiles these functions, and then adds them
+  // to |code_function_list|. If an error occurs during compilation, the error
+  // is returned. Otherwise, |Error::null()| is returned.
+  ErrorPtr FindAndCompileMatchingFunctions(
       const GrowableHandlePtrArray<const Script>& scripts,
       TokenPosition start_pos,
       TokenPosition end_pos,
-      GrowableObjectArray* code_function_list);
+      GrowableObjectArray& code_function_list) const;
   bool FindBestFit(const Script& script,
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,

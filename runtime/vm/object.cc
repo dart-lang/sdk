@@ -11340,13 +11340,14 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
 }
 
 CodePtr Function::EnsureHasCode() const {
-  if (HasCode()) return CurrentCode();
+  if (HasCode()) {
+    return CurrentCode();
+  }
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
-  const Object& result =
-      Object::Handle(zone, Compiler::CompileFunction(thread, *this));
+  const Object& result = Object::Handle(zone, EnsureHasCodeNoThrow());
   if (result.IsError()) {
     if (result.ptr() == Object::out_of_memory_error().ptr()) {
       Exceptions::ThrowOOM();
@@ -11358,6 +11359,22 @@ CodePtr Function::EnsureHasCode() const {
     }
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
+  } else {
+    return Code::Cast(result).ptr();
+  }
+}
+
+ObjectPtr Function::EnsureHasCodeNoThrow() const {
+  if (HasCode()) {
+    return CurrentCode();
+  }
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsDartMutatorThread());
+  Zone* zone = thread->zone();
+  const Object& result =
+      Object::Handle(zone, Compiler::CompileFunction(thread, *this));
+  if (result.IsError()) {
+    return result.ptr();
   }
   // Compiling in unoptimized mode should never fail if there are no errors.
   RELEASE_ASSERT(HasCode());
