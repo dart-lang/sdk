@@ -684,9 +684,6 @@ class Debugger {
                                         bool single_shot);
   Breakpoint* BreakpointAtActivation(const Instance& closure);
 
-  // TODO(turnidge): script_url may no longer be specific enough.
-  Breakpoint* SetBreakpointAtLine(const String& script_url,
-                                  intptr_t line_number);
   Breakpoint* SetBreakpointAtLineCol(const String& script_url,
                                      intptr_t line_number,
                                      intptr_t column_number);

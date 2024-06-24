@@ -2806,21 +2806,6 @@ void Debugger::ResumptionBreakpoint() {
   }
 }
 
-Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number) {
-  // Prevent future tests from calling this function in the wrong
-  // execution state.  If you hit this assert, consider using
-  // Dart_SetBreakpoint instead.
-  ASSERT(Thread::Current()->execution_state() == Thread::kThreadInVM);
-
-  BreakpointLocation* loc =
-      BreakpointLocationAtLineCol(script_url, line_number, -1 /* no column */);
-  if (loc != nullptr) {
-    return loc->AddRepeated(this);
-  }
-  return nullptr;
-}
-
 Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
                                              intptr_t line_number,
                                              intptr_t column_number) {
