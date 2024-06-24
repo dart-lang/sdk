@@ -2277,7 +2277,7 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
   }
 }
 
-void Debugger::FindCompiledFunctions(
+ErrorPtr Debugger::FindCompiledFunctions(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition start_pos,
     TokenPosition end_pos,
@@ -2373,6 +2373,7 @@ void Debugger::FindCompiledFunctions(
       }
     }
   }
+  return Error::null();
 }
 
 static void UpdateBestFit(Function* best_fit, const Function& func) {
@@ -2601,36 +2602,42 @@ static TokenPosition FindExactTokenPosition(const Script& script,
                                             intptr_t column_number);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
-                                            TokenPosition token_pos,
-                                            TokenPosition last_token_pos,
-                                            intptr_t requested_line,
-                                            intptr_t requested_column,
-                                            const Function& function) {
+ErrorPtr Debugger::SetBreakpoint(
+    const Script& script,
+    TokenPosition token_pos,
+    TokenPosition last_token_pos,
+    intptr_t requested_line,
+    intptr_t requested_column,
+    const Function& function,
+    BreakpointLocation** result_breakpoint_location) {
   GrowableHandlePtrArray<const Script> scripts(Thread::Current()->zone(), 1);
   scripts.Add(script);
   return SetBreakpoint(scripts, token_pos, last_token_pos, requested_line,
-                       requested_column, function);
+                       requested_column, function, result_breakpoint_location);
 }
 
-BreakpointLocation* Debugger::SetBreakpoint(
+ErrorPtr Debugger::SetBreakpoint(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition token_pos,
     TokenPosition last_token_pos,
     intptr_t requested_line,
     intptr_t requested_column,
-    const Function& function) {
+    const Function& function,
+    BreakpointLocation** result_breakpoint_location) {
+  ASSERT(scripts.length() > 0);
+  ASSERT(result_breakpoint_location != nullptr);
   Function& func = Function::Handle();
   const Script& script = scripts.At(0);
   if (function.IsNull()) {
     if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
-      return nullptr;
+      return Object::no_debuggable_code_error().ptr();
     }
     // If func was not set (still Null), the best fit is a field.
   } else {
     func = function.ptr();
     if (!func.token_pos().IsReal()) {
-      return nullptr;  // Missing source positions?
+      // Missing source positions?
+      return Object::no_debuggable_code_error().ptr();
     }
   }
 
@@ -2642,8 +2649,11 @@ BreakpointLocation* Debugger::SetBreakpoint(
     // function we found.
     GrowableObjectArray& code_functions =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
-    FindCompiledFunctions(scripts, func.token_pos(), func.end_token_pos(),
-                          &code_functions);
+    const Error& error = Error::Handle(FindCompiledFunctions(
+        scripts, func.token_pos(), func.end_token_pos(), &code_functions));
+    if (!error.IsNull()) {
+      return error.ptr();
+    }
 
     if (code_functions.Length() > 0) {
       // One or more function object containing this breakpoint location
@@ -2667,7 +2677,8 @@ BreakpointLocation* Debugger::SetBreakpoint(
                                  exact_token_pos, code_functions);
       });
       if (loc != nullptr) {
-        return loc;
+        *result_breakpoint_location = loc;
+        return Error::null();
       }
     }
   }
@@ -2698,7 +2709,8 @@ BreakpointLocation* Debugger::SetBreakpoint(
                                  requested_line, requested_column);
     RegisterBreakpointLocation(loc);
   }
-  return loc;
+  *result_breakpoint_location = loc;
+  return Error::null();
 }
 
 // Synchronize the enabled/disabled state of all code breakpoints
@@ -2719,38 +2731,54 @@ void GroupDebugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   }
 }
 
-Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
-                                           bool single_shot) {
+ErrorPtr Debugger::SetBreakpointAtEntry(const Function& target_function,
+                                        bool single_shot,
+                                        Breakpoint** result_breakpoint) {
   ASSERT(!target_function.IsNull());
+  ASSERT(result_breakpoint != nullptr);
   if (!target_function.is_debuggable()) {
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   }
   const Script& script = Script::Handle(target_function.script());
-  BreakpointLocation* bpt_location = SetBreakpoint(
+  BreakpointLocation* bpt_location = nullptr;
+  const Error& error = Error::Handle(SetBreakpoint(
       script, target_function.token_pos(), target_function.end_token_pos(), -1,
-      -1 /* no requested line/col */, target_function);
-  if (bpt_location == nullptr) {
-    return nullptr;
+      -1 /* no requested line/col */, target_function, &bpt_location));
+  if (!error.IsNull()) {
+    return error.ptr();
   }
 
+  ASSERT(bpt_location != nullptr);
   if (single_shot) {
-    return bpt_location->AddSingleShot(this);
+    *result_breakpoint = bpt_location->AddSingleShot(this);
   } else {
-    return bpt_location->AddRepeated(this);
+    *result_breakpoint = bpt_location->AddRepeated(this);
   }
+  return Error::null();
 }
 
-Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
-                                                bool single_shot) {
+ErrorPtr Debugger::SetBreakpointAtActivation(const Instance& closure,
+                                             bool single_shot,
+                                             Breakpoint** result_breakpoint) {
+  ASSERT(result_breakpoint != nullptr);
+
   if (!closure.IsClosure()) {
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   }
   const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt_location =
+  BreakpointLocation* bpt_location = nullptr;
+  const Error& error = Error::Handle(
       SetBreakpoint(script, func.token_pos(), func.end_token_pos(), -1,
-                    -1 /* no line/col */, func);
-  return bpt_location->AddBreakpoint(this, Closure::Cast(closure), single_shot);
+                    -1 /* no line/col */, func, &bpt_location));
+  if (!error.IsNull()) {
+    return error.ptr();
+  }
+
+  ASSERT(bpt_location != nullptr);
+  *result_breakpoint =
+      bpt_location->AddBreakpoint(this, Closure::Cast(closure), single_shot);
+  return Error::null();
 }
 
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
@@ -2806,26 +2834,35 @@ void Debugger::ResumptionBreakpoint() {
   }
 }
 
-Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
-                                             intptr_t line_number,
-                                             intptr_t column_number) {
+ErrorPtr Debugger::SetBreakpointAtLineCol(const String& script_url,
+                                          intptr_t line_number,
+                                          intptr_t column_number,
+                                          Breakpoint** result_breakpoint) {
   // Prevent future tests from calling this function in the wrong
   // execution state.  If you hit this assert, consider using
   // Dart_SetBreakpoint instead.
   ASSERT(Thread::Current()->execution_state() == Thread::kThreadInVM);
+  ASSERT(result_breakpoint != nullptr);
 
-  BreakpointLocation* loc =
-      BreakpointLocationAtLineCol(script_url, line_number, column_number);
-  if (loc != nullptr) {
-    return loc->AddRepeated(this);
+  BreakpointLocation* loc = nullptr;
+  const Error& error = Error::Handle(BreakpointLocationAtLineCol(
+      script_url, line_number, column_number, &loc));
+  if (!error.IsNull()) {
+    return error.ptr();
   }
-  return nullptr;
+
+  ASSERT(loc != nullptr);
+  *result_breakpoint = loc->AddRepeated(this);
+  return Error::null();
 }
 
-BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
+ErrorPtr Debugger::BreakpointLocationAtLineCol(
     const String& script_url,
     intptr_t line_number,
-    intptr_t column_number) {
+    intptr_t column_number,
+    BreakpointLocation** result_breakpoint_location) {
+  ASSERT(result_breakpoint_location != nullptr);
+
   Zone* zone = Thread::Current()->zone();
   Library& lib = Library::Handle(zone);
   GrowableHandlePtrArray<const Script> scripts(zone, 1);
@@ -2857,7 +2894,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
           "line %" Pd " col %" Pd "\n",
           script_url.ToCString(), line_number, column_number);
     }
-    return latent_bpt;
+    *result_breakpoint_location = latent_bpt;
+    return Error::null();
   }
   TokenPosition first_token_idx = TokenPosition::kNoSource;
   TokenPosition last_token_idx = TokenPosition::kNoSource;
@@ -2870,28 +2908,41 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
       OS::PrintErr("Script '%s' does not contain line number %" Pd "\n",
                    script_url.ToCString(), line_number);
     }
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   } else if (!last_token_idx.IsReal()) {
     // Line does not contain any tokens.
     if (FLAG_verbose_debug) {
       OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
                    script_url.ToCString());
     }
-    return nullptr;
+    return Object::no_debuggable_code_error().ptr();
   }
 
-  BreakpointLocation* loc = nullptr;
   ASSERT(first_token_idx <= last_token_idx);
-  while ((loc == nullptr) && (first_token_idx <= last_token_idx)) {
-    loc = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
-                        column_number, Function::Handle());
+  Error& error = Error::Handle();
+  while ((*result_breakpoint_location == nullptr) &&
+         (first_token_idx <= last_token_idx)) {
+    error = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
+                          column_number, Function::Handle(),
+                          result_breakpoint_location);
+    if (!error.IsNull() &&
+        error.ptr() != Object::no_debuggable_code_error().ptr()) {
+      // We do not return an error immediately if |SetBreakpoint| returns
+      // |Object::no_debuggable_code_error().ptr()|, because there is a chance
+      // that |SetBreakpoint| will succeed if called again after
+      // |first_token_idx| is advanced.
+      return error.ptr();
+    }
     first_token_idx = first_token_idx.Next();
   }
-  if ((loc == nullptr) && FLAG_verbose_debug) {
-    OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
-                 script_url.ToCString());
+  if (*result_breakpoint_location == nullptr) {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
+                   script_url.ToCString());
+    }
+    return Object::no_debuggable_code_error().ptr();
   }
-  return loc;
+  return Error::null();
 }
 
 // Return innermost closure contained in 'function' that contains
@@ -4156,7 +4207,23 @@ void Debugger::AsyncStepInto(const Closure& awaiter) {
         Object::Handle(zone, suspend_state.function_data());
     SetBreakpointAtResumption(function_data);
   } else {
-    SetBreakpointAtActivation(awaiter, /*single_shot=*/true);
+    const Error& error = Error::Handle(
+        SetBreakpointAtActivation(awaiter, /*single_shot=*/true, nullptr));
+    // This method cannot be called while responding to a Service RPC, so we
+    // know that the top error handler is an exit frame.
+    DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
+    if (!error.IsNull()) {
+      if (error.ptr() == Object::out_of_memory_error().ptr()) {
+        Exceptions::ThrowOOM();
+        UNREACHABLE();
+      }
+      if (error.IsLanguageError()) {
+        Exceptions::ThrowCompileTimeError(LanguageError::Cast(error));
+        UNREACHABLE();
+      }
+      Exceptions::PropagateError(Error::Cast(error));
+      UNREACHABLE();
+    }
   }
   Continue();
 }

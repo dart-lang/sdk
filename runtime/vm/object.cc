@@ -1254,6 +1254,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   error_str = String::New("Background Compilation Failed", Heap::kOld);
   *background_compilation_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
+  error_str = String::New("No debuggable code where breakpoint was requested",
+                          Heap::kOld);
+  *no_debuggable_code_error_ =
+      LanguageError::New(error_str, Report::kError, Heap::kOld);
   error_str = String::New("Out of memory", Heap::kOld);
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
