@@ -2285,8 +2285,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    assert(checkState(token, [
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    assert(checkState(endToken, [
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
@@ -2295,7 +2295,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     debugEvent("ExpressionStatement");
     push(forest.createExpressionStatement(
-        offsetForToken(token), popForEffect()));
+        offsetForToken(endToken), popForEffect()));
   }
 
   @override
@@ -2746,7 +2746,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -4276,8 +4276,10 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     push(forKeyword);
+    // TODO(jensj): Seems like leftParen and leftSeparator are just popped and
+    // thrown away. If that's the case there's no reason to push them.
     push(leftParen);
     push(leftSeparator);
     push(updateExpressionCount);
@@ -5392,7 +5394,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
     Expression thenExpression = pop() as Expression;

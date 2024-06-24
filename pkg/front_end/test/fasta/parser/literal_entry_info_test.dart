@@ -916,7 +916,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     calls.add('endBinaryExpression $token');
   }
 
@@ -981,8 +981,8 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    calls.add('handleExpressionStatement $token');
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    calls.add('handleExpressionStatement $endToken');
   }
 
   @override
@@ -1004,7 +1004,7 @@ class TestInfoListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     calls.add('handleForInitializerExpressionStatement '
         '$forKeyword $leftParen $leftSeparator $updateExpressionCount');
   }

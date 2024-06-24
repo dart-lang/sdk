@@ -599,8 +599,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
-    listener?.endBinaryExpression(token);
+  void endBinaryExpression(Token token, Token endToken) {
+    listener?.endBinaryExpression(token, endToken);
   }
 
   @override
@@ -609,8 +609,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token) {
-    listener?.handleEndingBinaryExpression(token);
+  void handleEndingBinaryExpression(Token token, Token endToken) {
+    listener?.handleEndingBinaryExpression(token, endToken);
   }
 
   @override
@@ -707,8 +707,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
-    listener?.endConditionalExpression(question, colon);
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
+    listener?.endConditionalExpression(question, colon, endToken);
   }
 
   @override
@@ -1470,8 +1470,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    listener?.handleExpressionStatement(token);
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    listener?.handleExpressionStatement(beginToken, endToken);
   }
 
   @override
@@ -1514,9 +1514,9 @@ class ForwardingListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
-    listener?.handleForLoopParts(
-        forKeyword, leftParen, leftSeparator, updateExpressionCount);
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
+    listener?.handleForLoopParts(forKeyword, leftParen, leftSeparator,
+        rightSeparator, updateExpressionCount);
   }
 
   @override

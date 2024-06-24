@@ -434,7 +434,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExtraneousExpression");
   }
 
-  void handleExpressionStatement(Token token) {
+  void handleExpressionStatement(Token beginToken, Token endToken) {
     logEvent("ExpressionStatement");
   }
 
@@ -690,7 +690,7 @@ class Listener implements UnescapeErrorListener {
   /// or for control flow entry up to and including the closing parenthesis.
   /// `for` `(` initialization `;` condition `;` updaters `)`
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {}
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {}
 
   // TODO(jensj): Should this have a `beginToken`?
   void endForStatement(Token endToken) {
@@ -1780,7 +1780,7 @@ class Listener implements UnescapeErrorListener {
   /// Not called when the binary operator is `.`, `?.`, or `..`.
   void beginBinaryExpression(Token token) {}
 
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     logEvent("BinaryExpression");
   }
 
@@ -1794,9 +1794,9 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called for `.`, `?.` and `..`.
-  void handleEndingBinaryExpression(Token token) {
+  void handleEndingBinaryExpression(Token token, Token endToken) {
     // TODO(jensj): push implementation into subclasses
-    endBinaryExpression(token);
+    endBinaryExpression(token, endToken);
   }
 
   /// Called when the parser encounters a `?` operator and begins parsing a
@@ -1808,7 +1808,7 @@ class Listener implements UnescapeErrorListener {
   void handleConditionalExpressionColon() {}
 
   /// Called when the parser finishes processing a conditional expression.
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     logEvent("ConditionalExpression");
   }
 

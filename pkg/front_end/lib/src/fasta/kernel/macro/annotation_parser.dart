@@ -1044,7 +1044,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     _unknown();
   }
 
@@ -1134,7 +1134,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     _unhandled('conditional expression');
   }
 
@@ -1754,7 +1754,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token) {
+  void handleEndingBinaryExpression(Token token, Token endToken) {
     _unknown();
   }
 
@@ -1795,7 +1795,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
+  void handleExpressionStatement(Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -1838,7 +1838,7 @@ class _MacroListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
     _unsupported();
   }
 
