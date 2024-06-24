@@ -87,17 +87,6 @@ class TypesBuilder {
       builder.build();
     }
 
-    // TODO(scheglov): generalize
-    _linker.elementNodes.forEach((element, node) {
-      if (element is GenericFunctionTypeElementImpl &&
-          node is GenericFunctionType) {
-        element.returnType = node.returnType?.type ?? _dynamicType;
-      }
-      if (element is TypeParameterElementImpl && node is TypeParameter) {
-        element.bound = node.bound?.type;
-      }
-    });
-
     for (var declaration in nodes.declarations) {
       _declaration(declaration);
     }
@@ -191,6 +180,8 @@ class TypesBuilder {
       _functionTypeAlias(node);
     } else if (node is FunctionTypedFormalParameter) {
       _functionTypedFormalParameter(node);
+    } else if (node is GenericFunctionTypeImpl) {
+      _genericFunctionType(node);
     } else if (node is GenericTypeAlias) {
       _genericTypeAlias(node);
     } else if (node is MethodDeclaration) {
@@ -213,6 +204,8 @@ class TypesBuilder {
       element.type = node.type?.type ?? _dynamicType;
     } else if (node is SuperFormalParameter) {
       _superFormalParameter(node);
+    } else if (node is TypeParameterImpl) {
+      _typeParameter(node);
     } else if (node is VariableDeclarationList) {
       var type = node.type?.type;
       if (type != null) {
@@ -289,6 +282,11 @@ class TypesBuilder {
     element.type = type;
   }
 
+  void _genericFunctionType(GenericFunctionTypeImpl node) {
+    var element = node.declaredElement!;
+    element.returnType = node.returnType?.type ?? _dynamicType;
+  }
+
   void _genericTypeAlias(GenericTypeAlias node) {
     var element = node.declaredElement as TypeAliasElementImpl;
     var featureSet = element.library.featureSet;
@@ -340,6 +338,11 @@ class TypesBuilder {
     } else {
       element.type = node.type?.type ?? _dynamicType;
     }
+  }
+
+  void _typeParameter(TypeParameterImpl node) {
+    var element = node.declaredElement!;
+    element.bound = node.bound?.type;
   }
 
   List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
