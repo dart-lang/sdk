@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -75,6 +76,10 @@ String b = "Test";
   @override
   void setUp() {
     super.setUp();
+
+    if (Registry.ruleRegistry.isEmpty) {
+      registerLintRules();
+    }
 
     // These tests deliberately generate diagnostics.
     failTestOnErrorDiagnostic = false;
@@ -498,6 +503,56 @@ version: latest
     expect(diagnostic.range.end.character, equals(12));
   }
 
+  /// Ensure lints included from another package work when there are multiple
+  /// workspace folders.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/56047
+  @skippedTest
+  Future<void> test_lints_includedFromPackage() async {
+    // FailingTest() doesn't handle timeouts so this is marked as skipped.
+    // Needs to be manually updated when
+    // https://github.com/dart-lang/sdk/issues/56047 is fixed.
+
+    var rootWorkspacePath = '$packagesRootPath/root';
+
+    // Set up a project with an analysis_options that enables a lint.
+    var lintsPackagePath = '$rootWorkspacePath/my_lints';
+    newFile('$lintsPackagePath/lib/pubspec.yaml', '''
+name: my_lints
+''');
+    newFile('$lintsPackagePath/lib/analysis_options.yaml', '''
+linter:
+  rules:
+    - avoid_dynamic_calls
+''');
+    writePackageConfig(convertPath(lintsPackagePath));
+
+    // Set up a project that imports the analysis_options and violates the lint.
+    var projectPackagePath = '$rootWorkspacePath/my_project';
+    writePackageConfig(
+      projectPackagePath,
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'my_lints', rootPath: lintsPackagePath)),
+    );
+    newFile('$projectPackagePath/analysis_options.yaml', '''
+include: package:my_lints/analysis_options.yaml
+
+linter:
+  rules:
+    - prefer_single_quotes
+''');
+    newFile('$projectPackagePath/main.dart', '''
+void f(dynamic a) => a.foo();
+''');
+
+    // Verify there's an error for the import.
+    var diagnosticsUpdate =
+        waitForDiagnostics(toUri('$projectPackagePath/main.dart'));
+    await initialize(workspaceFolders: [toUri(rootWorkspacePath)]);
+    var diagnostics = await diagnosticsUpdate;
+    expect(diagnostics!.single.code, contains('avoid_dynamic_calls'));
+  }
+
   Future<void> test_looseFile_withoutPubpsec() async {
     await initialize(allowEmptyRootUri: true);
 
@@ -539,7 +594,6 @@ void f() {
 }
 ''';
 
-    registerLintRules();
     newFile(analysisOptionsPath, '''
 linter:
   rules:
