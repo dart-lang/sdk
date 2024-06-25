@@ -1195,4 +1195,4 @@ external JSObject createJSInteropWrapper<T extends Object>(T dartObject);
 ///
 /// Returns a [JSPromise] that resolves to a [JSObject] that's the module
 /// namespace object.
-external JSPromise<JSObject> importModule(String moduleName);
+external JSPromise<JSObject> importModule(JSAny moduleName);

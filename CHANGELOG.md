@@ -51,6 +51,13 @@
 
 [#53785]: https://github.com/dart-lang/sdk/issues/53785
 
+#### `dart:js_interop`
+
+- **Breaking Change** [#55508][]: `importModule` now accepts a `JSAny` instead
+  of a `String` to support other JS values as well, like `TrustedScriptURL`s.
+
+[#55508]: https://github.com/dart-lang/sdk/issues/55508
+
 ### Tools
 
 #### Linter

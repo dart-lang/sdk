@@ -556,9 +556,9 @@ extension JSAnyOperatorExtension on JSAny? {
 }
 
 @patch
-JSPromise<JSObject> importModule(String moduleName) =>
+JSPromise<JSObject> importModule(JSAny moduleName) =>
     JSPromise<JSObject>._(JSValue(js_helper.JS<WasmExternRef?>(
-        '(m) => import(m)', moduleName.toJS.toExternRef)));
+        '(m) => import(m)', moduleName.toExternRef)));
 
 @JS('Array')
 @staticInterop

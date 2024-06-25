@@ -476,5 +476,5 @@ extension JSAnyOperatorExtension on JSAny? {
 
 @patch
 @pragma('dart2js:prefer-inline')
-JSPromise<JSObject> importModule(String moduleName) =>
+JSPromise<JSObject> importModule(JSAny moduleName) =>
     foreign_helper.JS('', 'import(#)', moduleName);
