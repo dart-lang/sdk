@@ -6,7 +6,7 @@ import 'dart:convert' show utf8;
 
 import "package:front_end/src/api_prototype/file_system.dart" show FileSystem;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 
 import 'package:kernel/kernel.dart'
     show

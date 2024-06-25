@@ -9,7 +9,7 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+import 'package:front_end/src/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
 import 'package:kernel/binary/ast_from_binary.dart'
     show
@@ -72,40 +72,40 @@ import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../base/nnbd_mode.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show precompileMacros;
-import 'builder/builder.dart' show Builder;
-import 'builder/declaration_builders.dart'
+import '../builder/builder.dart' show Builder;
+import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
-import 'builder/field_builder.dart' show FieldBuilder;
-import 'builder/library_builder.dart' show CompilationUnit, LibraryBuilder;
-import 'builder/member_builder.dart' show MemberBuilder;
-import 'builder/name_iterator.dart' show NameIterator;
+import '../builder/field_builder.dart' show FieldBuilder;
+import '../builder/library_builder.dart' show CompilationUnit, LibraryBuilder;
+import '../builder/member_builder.dart' show MemberBuilder;
+import '../builder/name_iterator.dart' show NameIterator;
 import 'builder_graph.dart' show BuilderGraph;
 import '../codes/cfe_codes.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'compiler_context.dart' show CompilerContext;
-import 'dill/dill_class_builder.dart' show DillClassBuilder;
-import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
-import 'dill/dill_loader.dart' show DillLoader;
-import 'dill/dill_target.dart' show DillTarget;
+import '../dill/dill_class_builder.dart' show DillClassBuilder;
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+import '../dill/dill_loader.dart' show DillLoader;
+import '../dill/dill_target.dart' show DillTarget;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
-import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
-import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
-import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import 'kernel/macro/macro.dart' show NeededPrecompilations;
+import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
+import '../kernel/macro/macro.dart' show NeededPrecompilations;
 import 'library_graph.dart' show LibraryGraph;
 import 'scope.dart' show ScopeKind;
-import 'source/source_extension_builder.dart';
-import 'source/source_library_builder.dart'
+import '../source/source_extension_builder.dart';
+import '../source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
-import 'source/source_loader.dart';
+import '../source/source_loader.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show dartCore, getPartUri;
-import 'util/error_reporter_file_copier.dart' show saveAsGzip;
-import 'util/experiment_environment_getter.dart'
+import '../util/error_reporter_file_copier.dart' show saveAsGzip;
+import '../util/experiment_environment_getter.dart'
     show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
-import 'util/textual_outline.dart' show textualOutline;
+import '../util/textual_outline.dart' show textualOutline;
 
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 

@@ -8,8 +8,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $SPACE, $CARET;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/util/parser_ast.dart';
-import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
+import 'package:front_end/src/util/parser_ast.dart';
+import 'package:front_end/src/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:package_config/package_config.dart';
 

@@ -31,10 +31,9 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
+import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson;

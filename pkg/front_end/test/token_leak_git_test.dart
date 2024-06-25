@@ -6,9 +6,9 @@ import "dart:developer" as developer;
 
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
-import 'package:front_end/src/fasta/dill/dill_target.dart';
-import 'package:front_end/src/fasta/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/kernel/macro/macro.dart';
+import 'package:front_end/src/dill/dill_target.dart';
+import 'package:front_end/src/kernel/kernel_target.dart';
+import 'package:front_end/src/kernel/macro/macro.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/ast.dart' show CanonicalName, Class;
 import 'package:vm_service/vm_service.dart' as vmService;
@@ -151,7 +151,7 @@ void throwOnLeaksOrNoFinds(Map<vmService.Class, int> foundInstances,
     }
     if (entry.value > 0) {
       // 'SyntheticToken' will have 1 alive because of dummyToken in
-      // front_end/lib/src/fasta/kernel/utils.dart. Hack around that.
+      // front_end/lib/src/kernel/utils.dart. Hack around that.
       if (entry.key.name == "SyntheticToken" && entry.value == 1) {
         continue;
       }

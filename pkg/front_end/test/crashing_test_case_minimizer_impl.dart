@@ -26,18 +26,17 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart' show Message;
-import 'package:front_end/src/fasta/source/diet_parser.dart'
+import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-import 'package:front_end/src/fasta/util/parser_ast.dart';
-import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
-import 'package:front_end/src/fasta/util/textual_outline.dart'
-    show textualOutline;
+import 'package:front_end/src/util/parser_ast.dart';
+import 'package:front_end/src/util/parser_ast_helper.dart';
+import 'package:front_end/src/util/textual_outline.dart' show textualOutline;
 import 'package:kernel/ast.dart'
     show Component, LibraryPart, Version, defaultLanguageVersion;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;

@@ -99,7 +99,7 @@ export '../codes/cfe_codes.dart'
         templateFfiTypeMismatch;
 export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-export '../fasta/kernel/utils.dart'
+export '../kernel/utils.dart'
     show
         createExpressionEvaluationComponent,
         serializeComponent,

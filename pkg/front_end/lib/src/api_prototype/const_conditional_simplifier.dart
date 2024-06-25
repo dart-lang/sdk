@@ -4,5 +4,5 @@
 
 library front_end.const_conditional_simplifier;
 
-export '../fasta/kernel/const_conditional_simplifier.dart'
+export '../kernel/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;

@@ -15,7 +15,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
-import 'package:front_end/src/fasta/source/diet_parser.dart'
+import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 import 'package:kernel/kernel.dart';
 import 'package:package_config/package_config.dart';

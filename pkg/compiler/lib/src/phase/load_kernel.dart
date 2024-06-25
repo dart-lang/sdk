@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/class_hierarchy.dart' as ir;

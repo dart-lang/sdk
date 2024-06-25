@@ -5,15 +5,15 @@
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/builder/declaration_builders.dart';
+import 'package:front_end/src/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
-import 'package:front_end/src/fasta/dill/dill_loader.dart';
-import 'package:front_end/src/fasta/dill/dill_target.dart';
-import 'package:front_end/src/fasta/dill/dill_type_alias_builder.dart';
-import 'package:front_end/src/fasta/kernel/collections.dart';
-import 'package:front_end/src/fasta/kernel/forest.dart';
-import 'package:front_end/src/fasta/kernel/internal_ast.dart';
+import 'package:front_end/src/dill/dill_library_builder.dart';
+import 'package:front_end/src/dill/dill_loader.dart';
+import 'package:front_end/src/dill/dill_target.dart';
+import 'package:front_end/src/dill/dill_type_alias_builder.dart';
+import 'package:front_end/src/kernel/collections.dart';
+import 'package:front_end/src/kernel/forest.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/ast.dart';
@@ -881,7 +881,7 @@ void _testLoadLibraryTearOff() {
   Procedure procedure = new Procedure(new Name('get#loadLibrary'),
       ProcedureKind.Getter, new FunctionNode(new Block([])),
       fileUri: dummyUri);
-  testExpression(new LoadLibraryTearOff(dependency, procedure), ''' 
+  testExpression(new LoadLibraryTearOff(dependency, procedure), '''
 pre.loadLibrary''');
 }
 

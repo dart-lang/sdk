@@ -16,9 +16,9 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'dill/dill_target.dart' show DillTarget;
+import '../dill/dill_target.dart' show DillTarget;
 
-import 'kernel/kernel_target.dart' show KernelTarget;
+import '../kernel/kernel_target.dart' show KernelTarget;
 
 import 'uri_translator.dart' show UriTranslator;
 

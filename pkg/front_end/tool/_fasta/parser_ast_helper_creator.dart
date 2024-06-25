@@ -19,8 +19,7 @@ void main(List<String> args) {
 }
 
 Uri computeAstHelperUri(Uri repoDir) {
-  return repoDir
-      .resolve("pkg/front_end/lib/src/fasta/util/parser_ast_helper.dart");
+  return repoDir.resolve("pkg/front_end/lib/src/util/parser_ast_helper.dart");
 }
 
 String generateAstHelper(Uri repoDir) {

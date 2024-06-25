@@ -23,10 +23,9 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+import 'package:front_end/src/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
-import 'package:front_end/src/fasta/kernel/utils.dart'
-    show writeComponentToFile;
+import 'package:front_end/src/kernel/utils.dart' show writeComponentToFile;
 import 'package:front_end/src/kernel_generator_impl.dart'
     show generateKernelInternal;
 import 'package:front_end/src/linux_and_intel_specific_perf.dart';

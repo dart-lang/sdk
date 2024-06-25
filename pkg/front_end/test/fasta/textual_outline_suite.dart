@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/util/textual_outline.dart';
+import 'package:front_end/src/util/textual_outline.dart';
 import 'package:testing/testing.dart'
     show
         Chain,

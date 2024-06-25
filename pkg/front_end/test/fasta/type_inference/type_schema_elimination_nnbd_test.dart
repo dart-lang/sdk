@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart'
+import 'package:front_end/src/type_inference/type_schema.dart';
+import 'package:front_end/src/type_inference/type_schema_elimination.dart'
     as typeSchemaElimination;
 import 'package:kernel/ast.dart';
 import 'package:kernel/testing/type_parser_environment.dart';

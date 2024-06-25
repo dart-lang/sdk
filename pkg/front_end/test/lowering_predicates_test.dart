@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/fasta/source/name_scheme.dart';
+import 'package:front_end/src/source/name_scheme.dart';
 import 'package:kernel/ast.dart';
 
 void main() {

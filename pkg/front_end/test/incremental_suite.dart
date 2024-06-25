@@ -33,7 +33,7 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
-import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;

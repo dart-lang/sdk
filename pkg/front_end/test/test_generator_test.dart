@@ -8,7 +8,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/kernel/utils.dart';
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 

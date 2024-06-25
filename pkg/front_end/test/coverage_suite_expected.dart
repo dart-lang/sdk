@@ -93,6 +93,181 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 236,
     missCount: 356,
   ),
+  // 0.0%.
+  "package:front_end/src/builder/augmentation_iterator.dart": (
+    hitCount: 0,
+    missCount: 17,
+  ),
+  // 64.44444444444444%.
+  "package:front_end/src/builder/builder.dart": (
+    hitCount: 29,
+    missCount: 16,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/builder_mixins.dart": (
+    hitCount: 42,
+    missCount: 0,
+  ),
+  // 70.0%.
+  "package:front_end/src/builder/builtin_type_declaration_builder.dart": (
+    hitCount: 7,
+    missCount: 3,
+  ),
+  // 71.64179104477611%.
+  "package:front_end/src/builder/class_builder.dart": (
+    hitCount: 144,
+    missCount: 57,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/constructor_reference_builder.dart": (
+    hitCount: 52,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/declaration_builder.dart": (
+    hitCount: 25,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/dynamic_type_declaration_builder.dart": (
+    hitCount: 2,
+    missCount: 0,
+  ),
+  // 50.0%.
+  "package:front_end/src/builder/extension_builder.dart": (
+    hitCount: 4,
+    missCount: 4,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/extension_type_declaration_builder.dart": (
+    hitCount: 17,
+    missCount: 0,
+  ),
+  // 22.727272727272727%.
+  "package:front_end/src/builder/fixed_type_builder.dart": (
+    hitCount: 5,
+    missCount: 17,
+  ),
+  // 95.87628865979381%.
+  "package:front_end/src/builder/formal_parameter_builder.dart": (
+    hitCount: 186,
+    missCount: 8,
+  ),
+  // 77.95275590551181%.
+  "package:front_end/src/builder/function_type_builder.dart": (
+    hitCount: 99,
+    missCount: 28,
+  ),
+  // 0.0%.
+  "package:front_end/src/builder/future_or_type_declaration_builder.dart": (
+    hitCount: 0,
+    missCount: 10,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/inferable_type_builder.dart": (
+    hitCount: 27,
+    missCount: 0,
+  ),
+  // 33.33333333333333%.
+  "package:front_end/src/builder/invalid_type_builder.dart": (
+    hitCount: 4,
+    missCount: 8,
+  ),
+  // 85.0%.
+  "package:front_end/src/builder/invalid_type_declaration_builder.dart": (
+    hitCount: 17,
+    missCount: 3,
+  ),
+  // 78.48101265822784%.
+  "package:front_end/src/builder/library_builder.dart": (
+    hitCount: 62,
+    missCount: 17,
+  ),
+  // 97.38562091503267%.
+  "package:front_end/src/builder/member_builder.dart": (
+    hitCount: 149,
+    missCount: 4,
+  ),
+  // 86.04651162790698%.
+  "package:front_end/src/builder/metadata_builder.dart": (
+    hitCount: 37,
+    missCount: 6,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/mixin_application_builder.dart": (
+    hitCount: 1,
+    missCount: 0,
+  ),
+  // 85.0%.
+  "package:front_end/src/builder/modifier_builder.dart": (
+    hitCount: 17,
+    missCount: 3,
+  ),
+  // 80.60606060606061%.
+  "package:front_end/src/builder/named_type_builder.dart": (
+    hitCount: 399,
+    missCount: 96,
+  ),
+  // 76.92307692307693%.
+  "package:front_end/src/builder/never_type_declaration_builder.dart": (
+    hitCount: 10,
+    missCount: 3,
+  ),
+  // 33.33333333333333%.
+  "package:front_end/src/builder/null_type_declaration_builder.dart": (
+    hitCount: 2,
+    missCount: 4,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/nullability_builder.dart": (
+    hitCount: 24,
+    missCount: 0,
+  ),
+  // 34.146341463414636%.
+  "package:front_end/src/builder/omitted_type_builder.dart": (
+    hitCount: 28,
+    missCount: 54,
+  ),
+  // 0.0%.
+  "package:front_end/src/builder/omitted_type_declaration_builder.dart": (
+    hitCount: 0,
+    missCount: 13,
+  ),
+  // 89.74358974358975%.
+  "package:front_end/src/builder/prefix_builder.dart": (
+    hitCount: 35,
+    missCount: 4,
+  ),
+  // 77.77777777777779%.
+  "package:front_end/src/builder/record_type_builder.dart": (
+    hitCount: 154,
+    missCount: 44,
+  ),
+  // 78.8135593220339%.
+  "package:front_end/src/builder/type_alias_builder.dart": (
+    hitCount: 186,
+    missCount: 50,
+  ),
+  // 77.77777777777779%.
+  "package:front_end/src/builder/type_builder.dart": (
+    hitCount: 56,
+    missCount: 16,
+  ),
+  // 90.0%.
+  "package:front_end/src/builder/type_declaration_builder.dart": (
+    hitCount: 9,
+    missCount: 1,
+  ),
+  // 78.32167832167832%.
+  "package:front_end/src/builder/type_variable_builder.dart": (
+    hitCount: 336,
+    missCount: 93,
+  ),
+  // 100.0%.
+  "package:front_end/src/builder/void_type_declaration_builder.dart": (
+    hitCount: 2,
+    missCount: 0,
+  ),
   // 73.0892742453436%.
   "package:front_end/src/codes/cfe_codes_generated.dart": (
     hitCount: 1138,
@@ -108,182 +283,60 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 52,
     missCount: 21,
   ),
-  // 0.0%.
-  "package:front_end/src/fasta/builder/augmentation_iterator.dart": (
-    hitCount: 0,
-    missCount: 17,
+  // 100.0%.
+  "package:front_end/src/dill/dill_builder_mixins.dart": (
+    hitCount: 16,
+    missCount: 0,
   ),
-  // 64.44444444444444%.
-  "package:front_end/src/fasta/builder/builder.dart": (
+  // 92.34972677595628%.
+  "package:front_end/src/dill/dill_class_builder.dart": (
+    hitCount: 169,
+    missCount: 14,
+  ),
+  // 86.74698795180723%.
+  "package:front_end/src/dill/dill_extension_builder.dart": (
+    hitCount: 72,
+    missCount: 11,
+  ),
+  // 70.29702970297029%.
+  "package:front_end/src/dill/dill_extension_member_builder.dart": (
+    hitCount: 71,
+    missCount: 30,
+  ),
+  // 95.42483660130719%.
+  "package:front_end/src/dill/dill_extension_type_declaration_builder.dart": (
+    hitCount: 146,
+    missCount: 7,
+  ),
+  // 83.76623376623377%.
+  "package:front_end/src/dill/dill_extension_type_member_builder.dart": (
+    hitCount: 129,
+    missCount: 25,
+  ),
+  // 83.12342569269522%.
+  "package:front_end/src/dill/dill_library_builder.dart": (
+    hitCount: 330,
+    missCount: 67,
+  ),
+  // 77.03349282296651%.
+  "package:front_end/src/dill/dill_loader.dart": (
+    hitCount: 161,
+    missCount: 48,
+  ),
+  // 86.52173913043478%.
+  "package:front_end/src/dill/dill_member_builder.dart": (
+    hitCount: 199,
+    missCount: 31,
+  ),
+  // 74.35897435897436%.
+  "package:front_end/src/dill/dill_target.dart": (
     hitCount: 29,
-    missCount: 16,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/builder_mixins.dart": (
-    hitCount: 42,
-    missCount: 0,
-  ),
-  // 70.0%.
-  "package:front_end/src/fasta/builder/builtin_type_declaration_builder.dart": (
-    hitCount: 7,
-    missCount: 3,
-  ),
-  // 71.64179104477611%.
-  "package:front_end/src/fasta/builder/class_builder.dart": (
-    hitCount: 144,
-    missCount: 57,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/constructor_reference_builder.dart": (
-    hitCount: 52,
-    missCount: 0,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/declaration_builder.dart": (
-    hitCount: 25,
-    missCount: 0,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/dynamic_type_declaration_builder.dart": (
-    hitCount: 2,
-    missCount: 0,
-  ),
-  // 50.0%.
-  "package:front_end/src/fasta/builder/extension_builder.dart": (
-    hitCount: 4,
-    missCount: 4,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/extension_type_declaration_builder.dart":
-      (
-    hitCount: 17,
-    missCount: 0,
-  ),
-  // 22.727272727272727%.
-  "package:front_end/src/fasta/builder/fixed_type_builder.dart": (
-    hitCount: 5,
-    missCount: 17,
-  ),
-  // 95.87628865979381%.
-  "package:front_end/src/fasta/builder/formal_parameter_builder.dart": (
-    hitCount: 186,
-    missCount: 8,
-  ),
-  // 77.95275590551181%.
-  "package:front_end/src/fasta/builder/function_type_builder.dart": (
-    hitCount: 99,
-    missCount: 28,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/builder/future_or_type_declaration_builder.dart":
-      (
-    hitCount: 0,
     missCount: 10,
   ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/inferable_type_builder.dart": (
-    hitCount: 27,
-    missCount: 0,
-  ),
-  // 33.33333333333333%.
-  "package:front_end/src/fasta/builder/invalid_type_builder.dart": (
-    hitCount: 4,
-    missCount: 8,
-  ),
-  // 85.0%.
-  "package:front_end/src/fasta/builder/invalid_type_declaration_builder.dart": (
-    hitCount: 17,
-    missCount: 3,
-  ),
-  // 78.48101265822784%.
-  "package:front_end/src/fasta/builder/library_builder.dart": (
-    hitCount: 62,
-    missCount: 17,
-  ),
-  // 97.38562091503267%.
-  "package:front_end/src/fasta/builder/member_builder.dart": (
-    hitCount: 149,
-    missCount: 4,
-  ),
-  // 86.04651162790698%.
-  "package:front_end/src/fasta/builder/metadata_builder.dart": (
-    hitCount: 37,
-    missCount: 6,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/mixin_application_builder.dart": (
-    hitCount: 1,
-    missCount: 0,
-  ),
-  // 85.0%.
-  "package:front_end/src/fasta/builder/modifier_builder.dart": (
-    hitCount: 17,
-    missCount: 3,
-  ),
-  // 80.60606060606061%.
-  "package:front_end/src/fasta/builder/named_type_builder.dart": (
-    hitCount: 399,
-    missCount: 96,
-  ),
-  // 76.92307692307693%.
-  "package:front_end/src/fasta/builder/never_type_declaration_builder.dart": (
-    hitCount: 10,
-    missCount: 3,
-  ),
-  // 33.33333333333333%.
-  "package:front_end/src/fasta/builder/null_type_declaration_builder.dart": (
-    hitCount: 2,
-    missCount: 4,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/nullability_builder.dart": (
-    hitCount: 24,
-    missCount: 0,
-  ),
-  // 34.146341463414636%.
-  "package:front_end/src/fasta/builder/omitted_type_builder.dart": (
-    hitCount: 28,
-    missCount: 54,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/builder/omitted_type_declaration_builder.dart": (
-    hitCount: 0,
-    missCount: 13,
-  ),
-  // 89.47368421052632%.
-  "package:front_end/src/fasta/builder/prefix_builder.dart": (
-    hitCount: 34,
-    missCount: 4,
-  ),
-  // 77.77777777777779%.
-  "package:front_end/src/fasta/builder/record_type_builder.dart": (
-    hitCount: 154,
-    missCount: 44,
-  ),
-  // 78.8135593220339%.
-  "package:front_end/src/fasta/builder/type_alias_builder.dart": (
-    hitCount: 186,
-    missCount: 50,
-  ),
-  // 77.77777777777779%.
-  "package:front_end/src/fasta/builder/type_builder.dart": (
-    hitCount: 56,
-    missCount: 16,
-  ),
-  // 90.0%.
-  "package:front_end/src/fasta/builder/type_declaration_builder.dart": (
-    hitCount: 9,
-    missCount: 1,
-  ),
-  // 78.32167832167832%.
-  "package:front_end/src/fasta/builder/type_variable_builder.dart": (
-    hitCount: 336,
-    missCount: 93,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/builder/void_type_declaration_builder.dart": (
-    hitCount: 2,
-    missCount: 0,
+  // 95.83333333333334%.
+  "package:front_end/src/dill/dill_type_alias_builder.dart": (
+    hitCount: 46,
+    missCount: 2,
   ),
   // 94.44444444444444%.
   "package:front_end/src/fasta/builder_graph.dart": (
@@ -314,62 +367,6 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   "package:front_end/src/fasta/crash.dart": (
     hitCount: 52,
     missCount: 36,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/dill/dill_builder_mixins.dart": (
-    hitCount: 16,
-    missCount: 0,
-  ),
-  // 92.34972677595628%.
-  "package:front_end/src/fasta/dill/dill_class_builder.dart": (
-    hitCount: 169,
-    missCount: 14,
-  ),
-  // 86.74698795180723%.
-  "package:front_end/src/fasta/dill/dill_extension_builder.dart": (
-    hitCount: 72,
-    missCount: 11,
-  ),
-  // 70.29702970297029%.
-  "package:front_end/src/fasta/dill/dill_extension_member_builder.dart": (
-    hitCount: 71,
-    missCount: 30,
-  ),
-  // 95.42483660130719%.
-  "package:front_end/src/fasta/dill/dill_extension_type_declaration_builder.dart":
-      (
-    hitCount: 146,
-    missCount: 7,
-  ),
-  // 83.76623376623377%.
-  "package:front_end/src/fasta/dill/dill_extension_type_member_builder.dart": (
-    hitCount: 129,
-    missCount: 25,
-  ),
-  // 83.12342569269522%.
-  "package:front_end/src/fasta/dill/dill_library_builder.dart": (
-    hitCount: 330,
-    missCount: 67,
-  ),
-  // 77.03349282296651%.
-  "package:front_end/src/fasta/dill/dill_loader.dart": (
-    hitCount: 161,
-    missCount: 48,
-  ),
-  // 86.52173913043478%.
-  "package:front_end/src/fasta/dill/dill_member_builder.dart": (
-    hitCount: 199,
-    missCount: 31,
-  ),
-  // 74.35897435897436%.
-  "package:front_end/src/fasta/dill/dill_target.dart": (
-    hitCount: 29,
-    missCount: 10,
-  ),
-  // 95.83333333333334%.
-  "package:front_end/src/fasta/dill/dill_type_alias_builder.dart": (
-    hitCount: 46,
-    missCount: 2,
   ),
   // 88.88888888888889%.
   "package:front_end/src/fasta/export.dart": (
@@ -411,246 +408,6 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 202,
   ),
-  // 100.0%.
-  "package:front_end/src/fasta/kernel/augmentation_lowering.dart": (
-    hitCount: 4,
-    missCount: 0,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/kernel/benchmarker.dart": (
-    hitCount: 0,
-    missCount: 128,
-  ),
-  // 92.06901163568276%.
-  "package:front_end/src/fasta/kernel/body_builder.dart": (
-    hitCount: 6884,
-    missCount: 593,
-  ),
-  // 70.40816326530613%.
-  "package:front_end/src/fasta/kernel/body_builder_context.dart": (
-    hitCount: 345,
-    missCount: 145,
-  ),
-  // 36.44736842105264%.
-  "package:front_end/src/fasta/kernel/collections.dart": (
-    hitCount: 277,
-    missCount: 483,
-  ),
-  // 91.8854415274463%.
-  "package:front_end/src/fasta/kernel/combined_member_signature.dart": (
-    hitCount: 385,
-    missCount: 34,
-  ),
-  // 61.68831168831169%.
-  "package:front_end/src/fasta/kernel/const_conditional_simplifier.dart": (
-    hitCount: 95,
-    missCount: 59,
-  ),
-  // 67.65676567656766%.
-  "package:front_end/src/fasta/kernel/constant_collection_builders.dart": (
-    hitCount: 205,
-    missCount: 98,
-  ),
-  // 82.66337300696159%.
-  "package:front_end/src/fasta/kernel/constant_evaluator.dart": (
-    hitCount: 3681,
-    missCount: 772,
-  ),
-  // 92.04545454545455%.
-  "package:front_end/src/fasta/kernel/constant_int_folder.dart": (
-    hitCount: 243,
-    missCount: 21,
-  ),
-  // 95.11278195488721%.
-  "package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart": (
-    hitCount: 253,
-    missCount: 13,
-  ),
-  // 74.57098283931357%.
-  "package:front_end/src/fasta/kernel/exhaustiveness.dart": (
-    hitCount: 478,
-    missCount: 163,
-  ),
-  // 79.7660448940879%.
-  "package:front_end/src/fasta/kernel/expression_generator.dart": (
-    hitCount: 2523,
-    missCount: 640,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/kernel/expression_generator_helper.dart": (
-    hitCount: 36,
-    missCount: 0,
-  ),
-  // 90.27777777777779%.
-  "package:front_end/src/fasta/kernel/forest.dart": (
-    hitCount: 390,
-    missCount: 42,
-  ),
-  // 94.4927536231884%.
-  "package:front_end/src/fasta/kernel/forwarding_node.dart": (
-    hitCount: 326,
-    missCount: 19,
-  ),
-  // 83.1896551724138%.
-  "package:front_end/src/fasta/kernel/hierarchy/class_member.dart": (
-    hitCount: 386,
-    missCount: 78,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/kernel/hierarchy/delayed.dart": (
-    hitCount: 218,
-    missCount: 0,
-  ),
-  // 87.52834467120182%.
-  "package:front_end/src/fasta/kernel/hierarchy/extension_type_members.dart": (
-    hitCount: 386,
-    missCount: 55,
-  ),
-  // 50.77720207253886%.
-  "package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart": (
-    hitCount: 98,
-    missCount: 95,
-  ),
-  // 93.33333333333333%.
-  "package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart": (
-    hitCount: 392,
-    missCount: 28,
-  ),
-  // 98.51851851851852%.
-  "package:front_end/src/fasta/kernel/hierarchy/members_builder.dart": (
-    hitCount: 133,
-    missCount: 2,
-  ),
-  // 91.52276295133439%.
-  "package:front_end/src/fasta/kernel/hierarchy/members_node.dart": (
-    hitCount: 1166,
-    missCount: 108,
-  ),
-  // 61.53846153846154%.
-  "package:front_end/src/fasta/kernel/hierarchy/mixin_inferrer.dart": (
-    hitCount: 248,
-    missCount: 155,
-  ),
-  // 52.24719101123596%.
-  "package:front_end/src/fasta/kernel/implicit_field_type.dart": (
-    hitCount: 93,
-    missCount: 85,
-  ),
-  // 2.941176470588235%.
-  "package:front_end/src/fasta/kernel/implicit_type_argument.dart": (
-    hitCount: 1,
-    missCount: 33,
-  ),
-  // 46.484375%.
-  "package:front_end/src/fasta/kernel/internal_ast.dart": (
-    hitCount: 595,
-    missCount: 685,
-  ),
-  // 74.13793103448276%.
-  "package:front_end/src/fasta/kernel/invalid_type.dart": (
-    hitCount: 43,
-    missCount: 15,
-  ),
-  // 55.55555555555556%.
-  "package:front_end/src/fasta/kernel/kernel_constants.dart": (
-    hitCount: 10,
-    missCount: 8,
-  ),
-  // 98.95833333333334%.
-  "package:front_end/src/fasta/kernel/kernel_helper.dart": (
-    hitCount: 285,
-    missCount: 3,
-  ),
-  // 81.10175975516451%.
-  "package:front_end/src/fasta/kernel/kernel_target.dart": (
-    hitCount: 1060,
-    missCount: 247,
-  ),
-  // 61.111111111111114%.
-  "package:front_end/src/fasta/kernel/kernel_variable_builder.dart": (
-    hitCount: 11,
-    missCount: 7,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/kernel/late_lowering.dart": (
-    hitCount: 368,
-    missCount: 0,
-  ),
-  // 89.58333333333334%.
-  "package:front_end/src/fasta/kernel/load_library_builder.dart": (
-    hitCount: 43,
-    missCount: 5,
-  ),
-  // 0.1984126984126984%.
-  "package:front_end/src/fasta/kernel/macro/annotation_parser.dart": (
-    hitCount: 2,
-    missCount: 1006,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/kernel/macro/identifiers.dart": (
-    hitCount: 0,
-    missCount: 132,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/kernel/macro/introspectors.dart": (
-    hitCount: 0,
-    missCount: 573,
-  ),
-  // 0.19047619047619047%.
-  "package:front_end/src/fasta/kernel/macro/macro.dart": (
-    hitCount: 2,
-    missCount: 1048,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/kernel/macro/offsets.dart": (
-    hitCount: 0,
-    missCount: 201,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/kernel/macro/types.dart": (
-    hitCount: 0,
-    missCount: 230,
-  ),
-  // 89.23611111111111%.
-  "package:front_end/src/fasta/kernel/member_covariance.dart": (
-    hitCount: 257,
-    missCount: 31,
-  ),
-  // 39.473684210526315%.
-  "package:front_end/src/fasta/kernel/resource_identifier.dart": (
-    hitCount: 15,
-    missCount: 23,
-  ),
-  // 15.238095238095239%.
-  "package:front_end/src/fasta/kernel/static_weak_references.dart": (
-    hitCount: 16,
-    missCount: 89,
-  ),
-  // 19.753086419753085%.
-  "package:front_end/src/fasta/kernel/try_constant_evaluator.dart": (
-    hitCount: 16,
-    missCount: 65,
-  ),
-  // 94.27402862985686%.
-  "package:front_end/src/fasta/kernel/type_algorithms.dart": (
-    hitCount: 922,
-    missCount: 56,
-  ),
-  // 90.20618556701031%.
-  "package:front_end/src/fasta/kernel/type_builder_computer.dart": (
-    hitCount: 175,
-    missCount: 19,
-  ),
-  // 37.93103448275862%.
-  "package:front_end/src/fasta/kernel/utils.dart": (
-    hitCount: 66,
-    missCount: 108,
-  ),
-  // 56.25%.
-  "package:front_end/src/fasta/kernel/verifier.dart": (
-    hitCount: 18,
-    missCount: 14,
-  ),
   // 86.20689655172413%.
   "package:front_end/src/fasta/library_graph.dart": (
     hitCount: 25,
@@ -681,221 +438,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 799,
     missCount: 192,
   ),
-  // 80.29556650246306%.
-  "package:front_end/src/fasta/source/class_declaration.dart": (
-    hitCount: 163,
-    missCount: 40,
-  ),
-  // 92.1875%.
-  "package:front_end/src/fasta/source/diet_listener.dart": (
-    hitCount: 649,
-    missCount: 55,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/source/diet_parser.dart": (
-    hitCount: 4,
-    missCount: 0,
-  ),
-  // 93.19148936170212%.
-  "package:front_end/src/fasta/source/name_scheme.dart": (
-    hitCount: 219,
-    missCount: 16,
-  ),
-  // 95.16129032258065%.
-  "package:front_end/src/fasta/source/offset_map.dart": (
-    hitCount: 118,
-    missCount: 6,
-  ),
-  // 93.60488798370672%.
-  "package:front_end/src/fasta/source/outline_builder.dart": (
-    hitCount: 2298,
-    missCount: 157,
-  ),
-  // 94.44444444444444%.
-  "package:front_end/src/fasta/source/redirecting_factory_body.dart": (
-    hitCount: 34,
-    missCount: 2,
-  ),
-  // 88.8268156424581%.
-  "package:front_end/src/fasta/source/source_builder_mixins.dart": (
-    hitCount: 159,
-    missCount: 20,
-  ),
-  // 86.02836879432624%.
-  "package:front_end/src/fasta/source/source_class_builder.dart": (
-    hitCount: 1213,
-    missCount: 197,
-  ),
-  // 92.65658747300216%.
-  "package:front_end/src/fasta/source/source_constructor_builder.dart": (
-    hitCount: 858,
-    missCount: 68,
-  ),
-  // 95.73560767590618%.
-  "package:front_end/src/fasta/source/source_enum_builder.dart": (
-    hitCount: 449,
-    missCount: 20,
-  ),
-  // 61.261261261261254%.
-  "package:front_end/src/fasta/source/source_extension_builder.dart": (
-    hitCount: 68,
-    missCount: 43,
-  ),
-  // 84.32539682539682%.
-  "package:front_end/src/fasta/source/source_extension_type_declaration_builder.dart":
-      (
-    hitCount: 425,
-    missCount: 79,
-  ),
-  // 92.22222222222223%.
-  "package:front_end/src/fasta/source/source_factory_builder.dart": (
-    hitCount: 581,
-    missCount: 49,
-  ),
-  // 89.94668697638994%.
-  "package:front_end/src/fasta/source/source_field_builder.dart": (
-    hitCount: 1181,
-    missCount: 132,
-  ),
-  // 89.32926829268293%.
-  "package:front_end/src/fasta/source/source_function_builder.dart": (
-    hitCount: 293,
-    missCount: 35,
-  ),
-  // 85.28909490119541%.
-  "package:front_end/src/fasta/source/source_library_builder.dart": (
-    hitCount: 3496,
-    missCount: 603,
-  ),
-  // 81.8988464951198%.
-  "package:front_end/src/fasta/source/source_loader.dart": (
-    hitCount: 1846,
-    missCount: 408,
-  ),
-  // 40.32258064516129%.
-  "package:front_end/src/fasta/source/source_member_builder.dart": (
-    hitCount: 25,
-    missCount: 37,
-  ),
-  // 96.11829944547135%.
-  "package:front_end/src/fasta/source/source_procedure_builder.dart": (
-    hitCount: 520,
-    missCount: 21,
-  ),
-  // 97.63313609467455%.
-  "package:front_end/src/fasta/source/source_type_alias_builder.dart": (
-    hitCount: 330,
-    missCount: 8,
-  ),
-  // 83.33333333333334%.
-  "package:front_end/src/fasta/source/stack_listener_impl.dart": (
-    hitCount: 20,
-    missCount: 4,
-  ),
   // 73.07692307692307%.
   "package:front_end/src/fasta/ticker.dart": (
     hitCount: 19,
     missCount: 7,
-  ),
-  // 86.70886075949366%.
-  "package:front_end/src/fasta/type_inference/closure_context.dart": (
-    hitCount: 411,
-    missCount: 63,
-  ),
-  // 77.55474452554745%.
-  "package:front_end/src/fasta/type_inference/delayed_expressions.dart": (
-    hitCount: 425,
-    missCount: 123,
-  ),
-  // 97.88732394366197%.
-  "package:front_end/src/fasta/type_inference/external_ast_helper.dart": (
-    hitCount: 139,
-    missCount: 3,
-  ),
-  // 76.19047619047619%.
-  "package:front_end/src/fasta/type_inference/factor_type.dart": (
-    hitCount: 16,
-    missCount: 5,
-  ),
-  // 75.47169811320755%.
-  "package:front_end/src/fasta/type_inference/for_in.dart": (
-    hitCount: 120,
-    missCount: 39,
-  ),
-  // 85.12820512820512%.
-  "package:front_end/src/fasta/type_inference/inference_results.dart": (
-    hitCount: 166,
-    missCount: 29,
-  ),
-  // 90.37792719684674%.
-  "package:front_end/src/fasta/type_inference/inference_visitor.dart": (
-    hitCount: 7796,
-    missCount: 830,
-  ),
-  // 85.96491228070175%.
-  "package:front_end/src/fasta/type_inference/inference_visitor_base.dart": (
-    hitCount: 2401,
-    missCount: 392,
-  ),
-  // 80.26509572901325%.
-  "package:front_end/src/fasta/type_inference/matching_cache.dart": (
-    hitCount: 545,
-    missCount: 134,
-  ),
-  // 98.10964083175804%.
-  "package:front_end/src/fasta/type_inference/matching_expressions.dart": (
-    hitCount: 519,
-    missCount: 10,
-  ),
-  // 77.63578274760383%.
-  "package:front_end/src/fasta/type_inference/object_access_target.dart": (
-    hitCount: 486,
-    missCount: 140,
-  ),
-  // 98.0%.
-  "package:front_end/src/fasta/type_inference/shared_type_analyzer.dart": (
-    hitCount: 98,
-    missCount: 2,
-  ),
-  // 71.42857142857143%.
-  "package:front_end/src/fasta/type_inference/standard_bounds.dart": (
-    hitCount: 20,
-    missCount: 8,
-  ),
-  // 61.28608923884514%.
-  "package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart": (
-    hitCount: 467,
-    missCount: 295,
-  ),
-  // 95.0%.
-  "package:front_end/src/fasta/type_inference/type_demotion.dart": (
-    hitCount: 19,
-    missCount: 1,
-  ),
-  // 89.62962962962962%.
-  "package:front_end/src/fasta/type_inference/type_inference_engine.dart": (
-    hitCount: 484,
-    missCount: 56,
-  ),
-  // 54.037267080745345%.
-  "package:front_end/src/fasta/type_inference/type_inferrer.dart": (
-    hitCount: 87,
-    missCount: 74,
-  ),
-  // 36.666666666666664%.
-  "package:front_end/src/fasta/type_inference/type_schema.dart": (
-    hitCount: 11,
-    missCount: 19,
-  ),
-  // 88.88888888888889%.
-  "package:front_end/src/fasta/type_inference/type_schema_elimination.dart": (
-    hitCount: 32,
-    missCount: 4,
-  ),
-  // 94.33198380566802%.
-  "package:front_end/src/fasta/type_inference/type_schema_environment.dart": (
-    hitCount: 233,
-    missCount: 14,
   ),
   // 100.0%.
   "package:front_end/src/fasta/uri_offset.dart": (
@@ -912,35 +458,245 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 9,
     missCount: 4,
   ),
+  // 100.0%.
+  "package:front_end/src/kernel/augmentation_lowering.dart": (
+    hitCount: 4,
+    missCount: 0,
+  ),
   // 0.0%.
-  "package:front_end/src/fasta/util/error_reporter_file_copier.dart": (
+  "package:front_end/src/kernel/benchmarker.dart": (
     hitCount: 0,
-    missCount: 11,
+    missCount: 128,
   ),
-  // 85.71428571428571%.
-  "package:front_end/src/fasta/util/experiment_environment_getter.dart": (
-    hitCount: 6,
-    missCount: 1,
+  // 92.09016940109377%.
+  "package:front_end/src/kernel/body_builder.dart": (
+    hitCount: 6904,
+    missCount: 593,
   ),
-  // 52.63157894736842%.
-  "package:front_end/src/fasta/util/helpers.dart": (
-    hitCount: 20,
-    missCount: 18,
+  // 70.40816326530613%.
+  "package:front_end/src/kernel/body_builder_context.dart": (
+    hitCount: 345,
+    missCount: 145,
   ),
-  // 5.5954088952654235%.
-  "package:front_end/src/fasta/util/parser_ast.dart": (
-    hitCount: 78,
-    missCount: 1316,
+  // 36.44736842105264%.
+  "package:front_end/src/kernel/collections.dart": (
+    hitCount: 277,
+    missCount: 483,
   ),
-  // 20.40687919463087%.
-  "package:front_end/src/fasta/util/parser_ast_helper.dart": (
-    hitCount: 973,
-    missCount: 3795,
+  // 91.8854415274463%.
+  "package:front_end/src/kernel/combined_member_signature.dart": (
+    hitCount: 385,
+    missCount: 34,
   ),
-  // 86.54205607476636%.
-  "package:front_end/src/fasta/util/textual_outline.dart": (
-    hitCount: 463,
-    missCount: 72,
+  // 61.68831168831169%.
+  "package:front_end/src/kernel/const_conditional_simplifier.dart": (
+    hitCount: 95,
+    missCount: 59,
+  ),
+  // 67.65676567656766%.
+  "package:front_end/src/kernel/constant_collection_builders.dart": (
+    hitCount: 205,
+    missCount: 98,
+  ),
+  // 82.66337300696159%.
+  "package:front_end/src/kernel/constant_evaluator.dart": (
+    hitCount: 3681,
+    missCount: 772,
+  ),
+  // 92.04545454545455%.
+  "package:front_end/src/kernel/constant_int_folder.dart": (
+    hitCount: 243,
+    missCount: 21,
+  ),
+  // 95.11278195488721%.
+  "package:front_end/src/kernel/constructor_tearoff_lowering.dart": (
+    hitCount: 253,
+    missCount: 13,
+  ),
+  // 74.57098283931357%.
+  "package:front_end/src/kernel/exhaustiveness.dart": (
+    hitCount: 478,
+    missCount: 163,
+  ),
+  // 79.7660448940879%.
+  "package:front_end/src/kernel/expression_generator.dart": (
+    hitCount: 2523,
+    missCount: 640,
+  ),
+  // 100.0%.
+  "package:front_end/src/kernel/expression_generator_helper.dart": (
+    hitCount: 36,
+    missCount: 0,
+  ),
+  // 90.27777777777779%.
+  "package:front_end/src/kernel/forest.dart": (
+    hitCount: 390,
+    missCount: 42,
+  ),
+  // 94.4927536231884%.
+  "package:front_end/src/kernel/forwarding_node.dart": (
+    hitCount: 326,
+    missCount: 19,
+  ),
+  // 83.1896551724138%.
+  "package:front_end/src/kernel/hierarchy/class_member.dart": (
+    hitCount: 386,
+    missCount: 78,
+  ),
+  // 100.0%.
+  "package:front_end/src/kernel/hierarchy/delayed.dart": (
+    hitCount: 218,
+    missCount: 0,
+  ),
+  // 87.52834467120182%.
+  "package:front_end/src/kernel/hierarchy/extension_type_members.dart": (
+    hitCount: 386,
+    missCount: 55,
+  ),
+  // 50.77720207253886%.
+  "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart": (
+    hitCount: 98,
+    missCount: 95,
+  ),
+  // 93.33333333333333%.
+  "package:front_end/src/kernel/hierarchy/hierarchy_node.dart": (
+    hitCount: 392,
+    missCount: 28,
+  ),
+  // 98.51851851851852%.
+  "package:front_end/src/kernel/hierarchy/members_builder.dart": (
+    hitCount: 133,
+    missCount: 2,
+  ),
+  // 91.52276295133439%.
+  "package:front_end/src/kernel/hierarchy/members_node.dart": (
+    hitCount: 1166,
+    missCount: 108,
+  ),
+  // 61.53846153846154%.
+  "package:front_end/src/kernel/hierarchy/mixin_inferrer.dart": (
+    hitCount: 248,
+    missCount: 155,
+  ),
+  // 52.24719101123596%.
+  "package:front_end/src/kernel/implicit_field_type.dart": (
+    hitCount: 93,
+    missCount: 85,
+  ),
+  // 2.941176470588235%.
+  "package:front_end/src/kernel/implicit_type_argument.dart": (
+    hitCount: 1,
+    missCount: 33,
+  ),
+  // 46.484375%.
+  "package:front_end/src/kernel/internal_ast.dart": (
+    hitCount: 595,
+    missCount: 685,
+  ),
+  // 74.13793103448276%.
+  "package:front_end/src/kernel/invalid_type.dart": (
+    hitCount: 43,
+    missCount: 15,
+  ),
+  // 55.55555555555556%.
+  "package:front_end/src/kernel/kernel_constants.dart": (
+    hitCount: 10,
+    missCount: 8,
+  ),
+  // 98.95833333333334%.
+  "package:front_end/src/kernel/kernel_helper.dart": (
+    hitCount: 285,
+    missCount: 3,
+  ),
+  // 81.10175975516451%.
+  "package:front_end/src/kernel/kernel_target.dart": (
+    hitCount: 1060,
+    missCount: 247,
+  ),
+  // 61.111111111111114%.
+  "package:front_end/src/kernel/kernel_variable_builder.dart": (
+    hitCount: 11,
+    missCount: 7,
+  ),
+  // 100.0%.
+  "package:front_end/src/kernel/late_lowering.dart": (
+    hitCount: 368,
+    missCount: 0,
+  ),
+  // 89.58333333333334%.
+  "package:front_end/src/kernel/load_library_builder.dart": (
+    hitCount: 43,
+    missCount: 5,
+  ),
+  // 0.1984126984126984%.
+  "package:front_end/src/kernel/macro/annotation_parser.dart": (
+    hitCount: 2,
+    missCount: 1006,
+  ),
+  // 0.0%.
+  "package:front_end/src/kernel/macro/identifiers.dart": (
+    hitCount: 0,
+    missCount: 132,
+  ),
+  // 0.0%.
+  "package:front_end/src/kernel/macro/introspectors.dart": (
+    hitCount: 0,
+    missCount: 573,
+  ),
+  // 0.19047619047619047%.
+  "package:front_end/src/kernel/macro/macro.dart": (
+    hitCount: 2,
+    missCount: 1048,
+  ),
+  // 0.0%.
+  "package:front_end/src/kernel/macro/offsets.dart": (
+    hitCount: 0,
+    missCount: 201,
+  ),
+  // 0.0%.
+  "package:front_end/src/kernel/macro/types.dart": (
+    hitCount: 0,
+    missCount: 230,
+  ),
+  // 89.23611111111111%.
+  "package:front_end/src/kernel/member_covariance.dart": (
+    hitCount: 257,
+    missCount: 31,
+  ),
+  // 39.473684210526315%.
+  "package:front_end/src/kernel/resource_identifier.dart": (
+    hitCount: 15,
+    missCount: 23,
+  ),
+  // 15.238095238095239%.
+  "package:front_end/src/kernel/static_weak_references.dart": (
+    hitCount: 16,
+    missCount: 89,
+  ),
+  // 19.753086419753085%.
+  "package:front_end/src/kernel/try_constant_evaluator.dart": (
+    hitCount: 16,
+    missCount: 65,
+  ),
+  // 94.27402862985686%.
+  "package:front_end/src/kernel/type_algorithms.dart": (
+    hitCount: 922,
+    missCount: 56,
+  ),
+  // 90.20618556701031%.
+  "package:front_end/src/kernel/type_builder_computer.dart": (
+    hitCount: 175,
+    missCount: 19,
+  ),
+  // 37.93103448275862%.
+  "package:front_end/src/kernel/utils.dart": (
+    hitCount: 66,
+    missCount: 108,
+  ),
+  // 56.25%.
+  "package:front_end/src/kernel/verifier.dart": (
+    hitCount: 18,
+    missCount: 14,
   ),
   // 28.79581151832461%.
   "package:front_end/src/kernel_generator_impl.dart": (
@@ -971,5 +727,246 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   "package:front_end/src/macros/temp_dir_macro_serializer.dart": (
     hitCount: 0,
     missCount: 18,
+  ),
+  // 80.29556650246306%.
+  "package:front_end/src/source/class_declaration.dart": (
+    hitCount: 163,
+    missCount: 40,
+  ),
+  // 92.1875%.
+  "package:front_end/src/source/diet_listener.dart": (
+    hitCount: 649,
+    missCount: 55,
+  ),
+  // 100.0%.
+  "package:front_end/src/source/diet_parser.dart": (
+    hitCount: 4,
+    missCount: 0,
+  ),
+  // 93.19148936170212%.
+  "package:front_end/src/source/name_scheme.dart": (
+    hitCount: 219,
+    missCount: 16,
+  ),
+  // 95.16129032258065%.
+  "package:front_end/src/source/offset_map.dart": (
+    hitCount: 118,
+    missCount: 6,
+  ),
+  // 93.60488798370672%.
+  "package:front_end/src/source/outline_builder.dart": (
+    hitCount: 2298,
+    missCount: 157,
+  ),
+  // 94.44444444444444%.
+  "package:front_end/src/source/redirecting_factory_body.dart": (
+    hitCount: 34,
+    missCount: 2,
+  ),
+  // 88.8268156424581%.
+  "package:front_end/src/source/source_builder_mixins.dart": (
+    hitCount: 159,
+    missCount: 20,
+  ),
+  // 86.02836879432624%.
+  "package:front_end/src/source/source_class_builder.dart": (
+    hitCount: 1213,
+    missCount: 197,
+  ),
+  // 92.65658747300216%.
+  "package:front_end/src/source/source_constructor_builder.dart": (
+    hitCount: 858,
+    missCount: 68,
+  ),
+  // 95.73560767590618%.
+  "package:front_end/src/source/source_enum_builder.dart": (
+    hitCount: 449,
+    missCount: 20,
+  ),
+  // 61.261261261261254%.
+  "package:front_end/src/source/source_extension_builder.dart": (
+    hitCount: 68,
+    missCount: 43,
+  ),
+  // 84.32539682539682%.
+  "package:front_end/src/source/source_extension_type_declaration_builder.dart":
+      (
+    hitCount: 425,
+    missCount: 79,
+  ),
+  // 92.22222222222223%.
+  "package:front_end/src/source/source_factory_builder.dart": (
+    hitCount: 581,
+    missCount: 49,
+  ),
+  // 89.94668697638994%.
+  "package:front_end/src/source/source_field_builder.dart": (
+    hitCount: 1181,
+    missCount: 132,
+  ),
+  // 89.39393939393939%.
+  "package:front_end/src/source/source_function_builder.dart": (
+    hitCount: 295,
+    missCount: 35,
+  ),
+  // 85.36585365853658%.
+  "package:front_end/src/source/source_library_builder.dart": (
+    hitCount: 3500,
+    missCount: 600,
+  ),
+  // 81.8988464951198%.
+  "package:front_end/src/source/source_loader.dart": (
+    hitCount: 1846,
+    missCount: 408,
+  ),
+  // 40.32258064516129%.
+  "package:front_end/src/source/source_member_builder.dart": (
+    hitCount: 25,
+    missCount: 37,
+  ),
+  // 96.11829944547135%.
+  "package:front_end/src/source/source_procedure_builder.dart": (
+    hitCount: 520,
+    missCount: 21,
+  ),
+  // 97.63313609467455%.
+  "package:front_end/src/source/source_type_alias_builder.dart": (
+    hitCount: 330,
+    missCount: 8,
+  ),
+  // 83.33333333333334%.
+  "package:front_end/src/source/stack_listener_impl.dart": (
+    hitCount: 20,
+    missCount: 4,
+  ),
+  // 86.70886075949366%.
+  "package:front_end/src/type_inference/closure_context.dart": (
+    hitCount: 411,
+    missCount: 63,
+  ),
+  // 77.55474452554745%.
+  "package:front_end/src/type_inference/delayed_expressions.dart": (
+    hitCount: 425,
+    missCount: 123,
+  ),
+  // 97.88732394366197%.
+  "package:front_end/src/type_inference/external_ast_helper.dart": (
+    hitCount: 139,
+    missCount: 3,
+  ),
+  // 76.19047619047619%.
+  "package:front_end/src/type_inference/factor_type.dart": (
+    hitCount: 16,
+    missCount: 5,
+  ),
+  // 75.47169811320755%.
+  "package:front_end/src/type_inference/for_in.dart": (
+    hitCount: 120,
+    missCount: 39,
+  ),
+  // 85.12820512820512%.
+  "package:front_end/src/type_inference/inference_results.dart": (
+    hitCount: 166,
+    missCount: 29,
+  ),
+  // 90.37792719684674%.
+  "package:front_end/src/type_inference/inference_visitor.dart": (
+    hitCount: 7796,
+    missCount: 830,
+  ),
+  // 85.96491228070175%.
+  "package:front_end/src/type_inference/inference_visitor_base.dart": (
+    hitCount: 2401,
+    missCount: 392,
+  ),
+  // 80.26509572901325%.
+  "package:front_end/src/type_inference/matching_cache.dart": (
+    hitCount: 545,
+    missCount: 134,
+  ),
+  // 98.10964083175804%.
+  "package:front_end/src/type_inference/matching_expressions.dart": (
+    hitCount: 519,
+    missCount: 10,
+  ),
+  // 77.63578274760383%.
+  "package:front_end/src/type_inference/object_access_target.dart": (
+    hitCount: 486,
+    missCount: 140,
+  ),
+  // 98.0%.
+  "package:front_end/src/type_inference/shared_type_analyzer.dart": (
+    hitCount: 98,
+    missCount: 2,
+  ),
+  // 71.42857142857143%.
+  "package:front_end/src/type_inference/standard_bounds.dart": (
+    hitCount: 20,
+    missCount: 8,
+  ),
+  // 61.28608923884514%.
+  "package:front_end/src/type_inference/type_constraint_gatherer.dart": (
+    hitCount: 467,
+    missCount: 295,
+  ),
+  // 95.0%.
+  "package:front_end/src/type_inference/type_demotion.dart": (
+    hitCount: 19,
+    missCount: 1,
+  ),
+  // 89.62962962962962%.
+  "package:front_end/src/type_inference/type_inference_engine.dart": (
+    hitCount: 484,
+    missCount: 56,
+  ),
+  // 54.037267080745345%.
+  "package:front_end/src/type_inference/type_inferrer.dart": (
+    hitCount: 87,
+    missCount: 74,
+  ),
+  // 36.666666666666664%.
+  "package:front_end/src/type_inference/type_schema.dart": (
+    hitCount: 11,
+    missCount: 19,
+  ),
+  // 88.88888888888889%.
+  "package:front_end/src/type_inference/type_schema_elimination.dart": (
+    hitCount: 32,
+    missCount: 4,
+  ),
+  // 94.33198380566802%.
+  "package:front_end/src/type_inference/type_schema_environment.dart": (
+    hitCount: 233,
+    missCount: 14,
+  ),
+  // 0.0%.
+  "package:front_end/src/util/error_reporter_file_copier.dart": (
+    hitCount: 0,
+    missCount: 11,
+  ),
+  // 85.71428571428571%.
+  "package:front_end/src/util/experiment_environment_getter.dart": (
+    hitCount: 6,
+    missCount: 1,
+  ),
+  // 52.63157894736842%.
+  "package:front_end/src/util/helpers.dart": (
+    hitCount: 20,
+    missCount: 18,
+  ),
+  // 5.5954088952654235%.
+  "package:front_end/src/util/parser_ast.dart": (
+    hitCount: 78,
+    missCount: 1316,
+  ),
+  // 20.385501780850618%.
+  "package:front_end/src/util/parser_ast_helper.dart": (
+    hitCount: 973,
+    missCount: 3800,
+  ),
+  // 86.54205607476636%.
+  "package:front_end/src/util/textual_outline.dart": (
+    hitCount: 463,
+    missCount: 72,
   ),
 };

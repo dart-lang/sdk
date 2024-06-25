@@ -9,7 +9,7 @@ import 'package:kernel/target/targets.dart'
     show ConstantsBackend, DartLibrarySupport, Target;
 import 'package:kernel/type_environment.dart';
 
-import 'package:front_end/src/fasta/kernel/constant_evaluator.dart'
+import 'package:front_end/src/kernel/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode, SimpleErrorReporter;
 
 import '../target_os.dart';
