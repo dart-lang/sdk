@@ -186,7 +186,6 @@ wasm_js_compatibility:
       uri: typed_data/typed_data.dart
       patches:
         - _internal/wasm/lib/simd_patch.dart
-        - _internal/wasm_js_compatibility/lib/typed_data.dart
         - _internal/wasm_js_compatibility/lib/typed_data_patch.dart
     _string:
       uri: _internal/wasm/lib/js_string.dart
