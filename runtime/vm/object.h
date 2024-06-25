@@ -494,6 +494,7 @@ class Object {
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, speculative_inlining_error)                                 \
   V(LanguageError, background_compilation_error)                               \
+  V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
@@ -3164,6 +3165,12 @@ class Function : public Object {
   // Exceptions::PropagateError and does not return.  Normally returns the
   // current code, whether it is optimized or unoptimized.
   CodePtr EnsureHasCode() const;
+
+  // Ensures that the function has code. If there is no code, this method
+  // compiles the unoptimized version of the code. If an error occurs during
+  // compilation, the error is returned. Normally returns the function's code,
+  // whether optimized or unoptimized.
+  ObjectPtr EnsureHasCodeNoThrow() const;
 
   // Disables optimized code and switches to unoptimized code (or the lazy
   // compilation stub).

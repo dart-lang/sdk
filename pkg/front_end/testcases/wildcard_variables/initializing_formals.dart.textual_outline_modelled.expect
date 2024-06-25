@@ -1,0 +1,29 @@
+class A {
+  A(this._) {}
+  final int _;
+}
+
+class B {
+  B(this._, this.v, this.w);
+  final int _, v, w;
+}
+
+class C extends B {
+  C(super.x, super._, super._, this.z)
+      : assert(x > 0),
+        assert(_ >= 0) {}
+  final int z;
+}
+
+class InitializerListError {
+  InitializerListError(this._) : x = _;
+  final int _;
+  final int x;
+}
+
+class MultipleThisError {
+  MultipleThisError(this._, this._);
+  final int _;
+}
+
+main() {}

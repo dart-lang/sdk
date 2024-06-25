@@ -15,21 +15,21 @@ main() {
   _.topLevel;
 //^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Undefined name '_'.
 
   _.C(value);
 //^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Undefined name '_'.
 
   // Private extensions can't be used.
   value.bar;
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+//      ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [cfe] The getter 'bar' isn't defined for the class 'String'.
 
   value.fn;
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+//      ^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [cfe] The getter 'fn' isn't defined for the class 'String'.
 }

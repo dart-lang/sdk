@@ -139,147 +139,353 @@ class UntaggedObjectPtrSetTraits {
   static uword Hash(const ObjectPtr obj) { return static_cast<uword>(obj); }
 };
 
-static ObjectPtr ValidateMessageObject(Zone* zone,
-                                       Isolate* isolate,
-                                       const Object& obj) {
-  TIMELINE_DURATION(Thread::Current(), Isolate, "ValidateMessageObject");
+#if defined(HASH_IN_OBJECT_HEADER)
+// Written to avoid O(elements) pauses that block safepoints. Compare
+// object_graph_copy.cc's IdentityMap, which implements something similar
+// but with enough differents to make shared code less readable.
+class WorkSet {
+ public:
+  explicit WorkSet(Thread* thread)
+      : thread_(thread), list_(GrowableObjectArray::Handle()) {
+    hash_table_used_ = 0;
+    hash_table_capacity_ = 32;
+    hash_table_ = reinterpret_cast<uint32_t*>(
+        malloc(hash_table_capacity_ * sizeof(uint32_t)));
+    memset(hash_table_, 0, hash_table_capacity_ * sizeof(uint32_t));
 
-  class SendMessageValidator : public ObjectPointerVisitor {
-   public:
-    SendMessageValidator(IsolateGroup* isolate_group,
-                         WeakTable* visited,
-                         MallocGrowableArray<ObjectPtr>* const working_set)
-        : ObjectPointerVisitor(isolate_group),
-          visited_(visited),
-          working_set_(working_set) {}
-
-    void VisitObject(ObjectPtr obj) {
-      if (!obj->IsHeapObject() || obj->untag()->IsCanonical()) {
-        return;
-      }
-      if (visited_->GetValueExclusive(obj) == 1) {
-        return;
-      }
-      visited_->SetValueExclusive(obj, 1);
-      working_set_->Add(obj);
-    }
-
-   private:
-    void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
-      for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
-        VisitObject(*ptr);
-      }
-    }
-
-#if defined(DART_COMPRESSED_POINTERS)
-    void VisitCompressedPointers(uword heap_base,
-                                 CompressedObjectPtr* from,
-                                 CompressedObjectPtr* to) override {
-      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
-        VisitObject(ptr->Decompress(heap_base));
-      }
-    }
-#endif
-
-    WeakTable* visited_;
-    MallocGrowableArray<ObjectPtr>* const working_set_;
-  };
-  if (!obj.ptr()->IsHeapObject() || obj.ptr()->untag()->IsCanonical()) {
-    return obj.ptr();
+    list_ = GrowableObjectArray::New(256);
+    list_.Add(Object::null_object());  // Id 0 is sentinel.
+    cursor_ = 1;
   }
-  ClassTable* class_table = isolate->group()->class_table();
+  ~WorkSet() { free(hash_table_); }
 
-  Class& klass = Class::Handle(zone);
-  Closure& closure = Closure::Handle(zone);
-  Array& array = Array::Handle(zone);
-  Object& illegal_object = Object::Handle(zone);
-  const char* exception_message = nullptr;
-  Thread* thread = Thread::Current();
-
-  // working_set contains only elements that have not been visited yet that
-  // need to be processed.
-  // So before adding elements to working_set ensure to check visited flag,
-  // set visited flag at the same time as the element is added.
-
-  // This working set of raw pointers is visited by GC, only one for a given
-  // isolate should be in use.
-  MallocGrowableArray<ObjectPtr>* const working_set =
-      isolate->pointers_to_verify_at_exit();
-  ASSERT(working_set->length() == 0);
-  std::unique_ptr<WeakTable> visited(new WeakTable());
-
-  SendMessageValidator visitor(isolate->group(), visited.get(), working_set);
-
-  visited->SetValueExclusive(obj.ptr(), 1);
-  working_set->Add(obj.ptr());
-
-  while (!working_set->is_empty() && (exception_message == nullptr)) {
-    thread->CheckForSafepoint();
-
-    ObjectPtr raw = working_set->RemoveLast();
-    if (CanShareObjectAcrossIsolates(raw)) {
-      continue;
-    }
-    const intptr_t cid = raw->GetClassId();
-    switch (cid) {
-      case kArrayCid: {
-        array ^= Array::RawCast(raw);
-        visitor.VisitObject(array.GetTypeArguments());
-        for (intptr_t i = 0; i < array.Length(); ++i) {
-          ObjectPtr ptr = array.At(i);
-          visitor.VisitObject(ptr);
-          if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
-            thread->CheckForSafepoint();
-          }
-        }
-        continue;
+  void Push(const Object& obj) {
+    intptr_t mask = hash_table_capacity_ - 1;
+    intptr_t probe = GetHeaderHash(obj.ptr()) & mask;
+    for (;;) {
+      intptr_t index = hash_table_[probe];
+      if (index == 0) {
+        intptr_t id = list_.Length();
+        list_.Add(obj);
+        hash_table_[probe] = id;
+        break;
       }
-      case kClosureCid:
-        closure ^= raw;
-        // Only context has to be checked.
-        working_set->Add(closure.RawContext());
-        continue;
+      if (list_.At(index) == obj.ptr()) {
+        break;  // Already present.
+      }
+      probe = (probe + 1) & mask;
+    }
+    hash_table_used_++;
+    if (hash_table_used_ * 2 > hash_table_capacity_) {
+      Rehash(hash_table_capacity_ * 2);
+    }
+  }
 
-#define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
-  case k##type##Cid:                                                           \
-    illegal_object = raw;                                                      \
-    exception_message = "is a " #type;                                         \
-    break;
+  bool Pop(Object* obj) {
+    if (cursor_ < list_.Length()) {
+      *obj = list_.At(cursor_);
+      cursor_++;
+      return true;
+    }
+    return false;
+  }
 
-        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-        // TODO(http://dartbug.com/47777): Send and exit support: remove this.
-        MESSAGE_SNAPSHOT_ILLEGAL(Finalizer);
-        MESSAGE_SNAPSHOT_ILLEGAL(NativeFinalizer);
-        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
-        MESSAGE_SNAPSHOT_ILLEGAL(SuspendState);
+ private:
+  DART_FORCE_INLINE
+  uint32_t GetHeaderHash(ObjectPtr object) {
+    uint32_t hash = Object::GetCachedHash(object);
+    if (hash == 0) {
+      switch (object->GetClassId()) {
+        case kMintCid:
+          hash = Mint::Value(static_cast<MintPtr>(object));
+          // Don't write back: doesn't agree with dart:core's identityHash.
+          break;
+        case kDoubleCid:
+          hash =
+              bit_cast<uint64_t>(Double::Value(static_cast<DoublePtr>(object)));
+          // Don't write back: doesn't agree with dart:core's identityHash.
+          break;
+        case kOneByteStringCid:
+        case kTwoByteStringCid:
+          hash = String::Hash(static_cast<StringPtr>(object));
+          hash = Object::SetCachedHashIfNotSet(object, hash);
+          break;
+        default:
+          do {
+            hash = thread_->random()->NextUInt32();
+          } while (hash == 0 || !Smi::IsValid(hash));
+          hash = Object::SetCachedHashIfNotSet(object, hash);
+          break;
+      }
+    }
+    return hash;
+  }
 
-      default:
-        klass = class_table->At(cid);
-        if (klass.is_isolate_unsendable()) {
-          illegal_object = raw;
-          exception_message =
-              "is unsendable object (see restrictions listed at"
-              "`SendPort.send()` documentation for more information)";
+  void Rehash(intptr_t new_capacity) {
+    hash_table_capacity_ = new_capacity;
+    hash_table_used_ = 0;
+    free(hash_table_);
+    hash_table_ = reinterpret_cast<uint32_t*>(
+        malloc(hash_table_capacity_ * sizeof(uint32_t)));
+    for (intptr_t i = 0; i < hash_table_capacity_; i++) {
+      hash_table_[i] = 0;
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
+        thread_->CheckForSafepoint();
+      }
+    }
+    for (intptr_t id = 1; id < list_.Length(); id++) {
+      ObjectPtr obj = list_.At(id);
+      intptr_t mask = hash_table_capacity_ - 1;
+      intptr_t probe = GetHeaderHash(obj) & mask;
+      for (;;) {
+        if (hash_table_[probe] == 0) {
+          hash_table_[probe] = id;
+          hash_table_used_++;
           break;
         }
+        probe = (probe + 1) & mask;
+      }
+      if (((id + 1) % kSlotsPerInterruptCheck) == 0) {
+        thread_->CheckForSafepoint();
+      }
     }
-    raw->untag()->VisitPointers(&visitor);
   }
 
-  ASSERT((exception_message == nullptr) == illegal_object.IsNull());
-  if (exception_message != nullptr) {
-    working_set->Clear();
+  Thread* thread_;
+  uint32_t* hash_table_;
+  uint32_t hash_table_capacity_;
+  uint32_t hash_table_used_;
+  GrowableObjectArray& list_;
+  intptr_t cursor_;
+};
+#else   // defined(HASH_IN_OBJECT_HEADER)
+class WorkSet {
+ public:
+  explicit WorkSet(Thread* thread)
+      : isolate_(thread->isolate()), list_(GrowableObjectArray::Handle()) {
+    isolate_->set_forward_table_new(new WeakTable());
+    isolate_->set_forward_table_old(new WeakTable());
+    list_ = GrowableObjectArray::New(256);
+    cursor_ = 0;
+  }
+  ~WorkSet() {
+    isolate_->set_forward_table_new(nullptr);
+    isolate_->set_forward_table_old(nullptr);
+  }
 
+  void Push(const Object& obj) {
+    ASSERT(WeakTable::kNoValue == 0);
+    if (GetObjectId(obj.ptr()) == 0) {
+      SetObjectId(obj.ptr(), 1);
+      list_.Add(obj);
+    }
+  }
+
+  bool Pop(Object* obj) {
+    if (cursor_ < list_.Length()) {
+      *obj = list_.At(cursor_);
+      cursor_++;
+      return true;
+    }
+    return false;
+  }
+
+ private:
+  DART_FORCE_INLINE
+  intptr_t GetObjectId(ObjectPtr object) {
+    if (object->IsNewObject()) {
+      return isolate_->forward_table_new()->GetValueExclusive(object);
+    } else {
+      return isolate_->forward_table_old()->GetValueExclusive(object);
+    }
+  }
+
+  DART_FORCE_INLINE
+  void SetObjectId(ObjectPtr object, intptr_t id) {
+    if (object->IsNewObject()) {
+      isolate_->forward_table_new()->SetValueExclusive(object, id);
+    } else {
+      isolate_->forward_table_old()->SetValueExclusive(object, id);
+    }
+  }
+
+  Isolate* isolate_;
+  GrowableObjectArray& list_;
+  intptr_t cursor_;
+};
+#endif  // defined(HASH_IN_OBJECT_HEADER)
+
+class MessageValidator : private WorkSet {
+ public:
+  explicit MessageValidator(Thread* thread)
+      : WorkSet(thread),
+        value_(PassiveObject::Handle()),
+        class_table_(thread->isolate()->group()->class_table()) {}
+
+  ObjectPtr Validate(Thread* thread, const Object& root) {
+    TIMELINE_DURATION(thread, Isolate, "ValidateMessageObject");
+    Visit(root.ptr());
+    Object& current = Object::Handle();
+    Class& klass = Class::Handle();
+    while (Pop(&current)) {
+      const intptr_t cid = current.GetClassId();
+      switch (cid) {
+        case kArrayCid:
+        case kImmutableArrayCid:
+          VisitArrayPointers(thread, Array::Cast(current));
+          break;
+        case kClosureCid:
+          VisitClosurePointers(Closure::Cast(current));
+          break;
+        case kContextCid:
+          VisitContextPointers(Context::Cast(current));
+          break;
+        case kGrowableObjectArrayCid:
+          VisitGrowableObjectArrayPointers(GrowableObjectArray::Cast(current));
+          break;
+        case kSetCid:
+        case kConstSetCid:
+        case kMapCid:
+        case kConstMapCid:
+          VisitLinkedHashBasePointers(LinkedHashBase::Cast(current));
+          break;
+        case kRecordCid:
+          VisitRecordPointers(Record::Cast(current));
+          break;
+        case kWeakPropertyCid:
+          VisitWeakPropertyPointers(WeakProperty::Cast(current));
+          break;
+        case kWeakReferenceCid:
+          VisitWeakReferencePointers(WeakReference::Cast(current));
+          break;
+#define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
+  case k##type##Cid:                                                           \
+    return Error(current, "is a " #type, root);
+          MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary)
+          // TODO(http://dartbug.com/47777): Send and exit support: remove this.
+          MESSAGE_SNAPSHOT_ILLEGAL(Finalizer)
+          MESSAGE_SNAPSHOT_ILLEGAL(NativeFinalizer)
+          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference)
+          MESSAGE_SNAPSHOT_ILLEGAL(Pointer)
+          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort)
+          MESSAGE_SNAPSHOT_ILLEGAL(UserTag)
+          MESSAGE_SNAPSHOT_ILLEGAL(SuspendState)
+        default:
+          klass = class_table_->At(cid);
+          if (klass.is_isolate_unsendable()) {
+            return Error(
+                current,
+                "is unsendable object (see restrictions listed at"
+                "`SendPort.send()` documentation for more information)",
+                root);
+          }
+          VisitInstancePointers(Instance::Cast(current), cid);
+      }
+
+      thread->CheckForSafepoint();
+    }
+
+    return root.ptr();
+  }
+
+ private:
+  void VisitArrayPointers(Thread* thread, const Array& array) {
+    for (intptr_t i = 0, n = array.Length(); i < n; i++) {
+      Visit(array.At(i));
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
+        thread->CheckForSafepoint();
+      }
+    }
+  }
+
+  void VisitGrowableObjectArrayPointers(const GrowableObjectArray& list) {
+    Visit(list.data());
+  }
+
+  void VisitRecordPointers(const Record& record) {
+    for (intptr_t i = 0, n = record.num_fields(); i < n; i++) {
+      Visit(record.FieldAt(i));
+    }
+  }
+
+  void VisitContextPointers(const Context& context) {
+    Visit(context.parent());
+    for (intptr_t i = 0, n = context.num_variables(); i < n; i++) {
+      Visit(context.At(i));
+    }
+  }
+
+  void VisitLinkedHashBasePointers(const LinkedHashBase& hash) {
+    Visit(hash.data());
+  }
+
+  void VisitClosurePointers(const Closure& closure) {
+    Visit(closure.RawContext());
+  }
+
+  void VisitWeakPropertyPointers(const WeakProperty& weak) {
+    Visit(weak.key());
+    Visit(weak.value());
+  }
+
+  void VisitWeakReferencePointers(const WeakReference& weak) {
+    Visit(weak.target());
+  }
+
+  void VisitInstancePointers(const Instance& instance, intptr_t cid) {
+    ASSERT(cid == kInstanceCid || cid >= kNumPredefinedCids);
+
+    const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
+
+    intptr_t size = instance.ptr()->untag()->HeapSize();
+    uword heap_base = instance.ptr()->heap_base();
+    intptr_t offset = kWordSize;
+    intptr_t bit = offset >> kCompressedWordSizeLog2;
+    for (; offset < size; offset += kCompressedWordSize) {
+      if (!bitmap.Get(bit++)) {
+        Visit(reinterpret_cast<CompressedObjectPtr*>(
+                  reinterpret_cast<uword>(instance.ptr()->untag()) + offset)
+                  ->Decompress(heap_base));
+      }
+    }
+  }
+
+  void Visit(ObjectPtr obj) {
+    if (!obj->IsHeapObject() || obj->untag()->IsCanonical() ||
+        obj->untag()->IsImmutable()) {
+      return;
+    }
+    switch (obj->untag()->GetClassId()) {
+      case kTransferableTypedDataCid:
+#define CASE(clazz)                                                            \
+  case kTypedData##clazz##Cid:                                                 \
+  case kTypedData##clazz##ViewCid:                                             \
+  case kExternalTypedData##clazz##Cid:                                         \
+  case kUnmodifiableTypedData##clazz##ViewCid:
+        CLASS_LIST_TYPED_DATA(CASE)
+#undef CASE
+      case kByteDataViewCid:
+      case kUnmodifiableByteDataViewCid:
+      case kByteBufferCid:
+        return;
+    }
+    value_ = obj;
+    Push(value_);
+  }
+
+  ObjectPtr Error(const Object& illegal_object,
+                  const char* exception_message,
+                  const Object& root) {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    Zone* zone = thread->zone();
     const Array& args = Array::Handle(zone, Array::New(3));
     args.SetAt(0, illegal_object);
     args.SetAt(2, String::Handle(
                       zone, String::NewFormatted(
                                 "%s%s",
                                 FindRetainingPath(
-                                    zone, isolate, obj, illegal_object,
+                                    zone, isolate, root, illegal_object,
                                     TraversalRules::kInternalToIsolateGroup),
                                 exception_message)));
     const Object& exception = Object::Handle(
@@ -288,10 +494,10 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
                                    StackTrace::Handle(zone));
   }
 
-  ASSERT(working_set->length() == 0);
-  isolate->set_forward_table_new(nullptr);
-  return obj.ptr();
-}
+ private:
+  PassiveObject& value_;
+  ClassTable* class_table_;
+};
 
 // TODO(http://dartbug.com/47777): Add support for Finalizers.
 DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
@@ -316,7 +522,10 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
 
     Object& validated_result = Object::Handle(zone);
     const Object& msg_obj = Object::Handle(zone, obj.ptr());
-    validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+    {
+      MessageValidator validator(thread);
+      validated_result = validator.Validate(thread, obj);
+    }
     // msg_array = [
     //     <message>,
     //     <collection-lib-objects-to-rehash>,

@@ -1,0 +1,66 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:32:16: Error: Undefined name '_'.
+//         assert(_ >= 0) // Error: no `_` in scope.
+//                ^
+//
+// pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:15:38: Error: Can't access 'this' in a field initializer to read '_'.
+//   InitializerListError(this._) : x = _; // Error. `_` in initializer list.
+//                                      ^
+//
+// pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:20:34: Error: '_' was already initialized by this constructor.
+//   MultipleThisError(this._, this._); // Error. Multiple `this._`.
+//                                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int _;
+  constructor •(wildcard core::int _) → self::A
+    : self::A::_ = _, super core::Object::•() {
+    core::print(this.{self::A::_}{core::int});
+  }
+}
+class InitializerListError extends core::Object {
+  final field core::int _;
+  final field core::int x;
+  constructor •(wildcard core::int _) → self::InitializerListError
+    : self::InitializerListError::_ = _, self::InitializerListError::x = invalid-expression "pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:15:38: Error: Can't access 'this' in a field initializer to read '_'.
+  InitializerListError(this._) : x = _; // Error. `_` in initializer list.
+                                     ^", super core::Object::•()
+    ;
+}
+class MultipleThisError extends core::Object {
+  final field core::int _;
+  constructor •(wildcard core::int _, wildcard core::int _) → self::MultipleThisError
+    : self::MultipleThisError::_ = _, final dynamic #t1 = invalid-expression "pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:20:34: Error: '_' was already initialized by this constructor.
+  MultipleThisError(this._, this._); // Error. Multiple `this._`.
+                                 ^", super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  final field core::int _;
+  final field core::int v;
+  final field core::int w;
+  constructor •(wildcard core::int _, core::int v, core::int w) → self::B
+    : self::B::_ = _, self::B::v = v, self::B::w = w, super core::Object::•()
+    ;
+}
+class C extends self::B {
+  final field core::int z;
+  constructor •(core::int x, wildcard core::int _, wildcard core::int _, core::int z) → self::C
+    : self::C::z = z, assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(invalid-expression "pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:32:16: Error: Undefined name '_'.
+        assert(_ >= 0) // Error: no `_` in scope.
+               ^"{<invalid>}.>=(0)), super self::B::•(x, _, _) {
+    core::print(this.{self::B::_}{core::int});
+  }
+}
+static method main() → dynamic {
+  new self::A::•(1);
+  new self::InitializerListError::•(1);
+  new self::MultipleThisError::•(1, 2);
+  new self::C::•(1, 2, 3, 4);
+}

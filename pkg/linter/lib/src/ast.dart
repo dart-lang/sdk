@@ -130,19 +130,6 @@ Element? getWriteOrReadElement(SimpleIdentifier node) {
 bool hasConstantError(Expression node) =>
     node.computeConstantValue().errors.isNotEmpty;
 
-/// Returns `true` if this [node] is the child of a private compilation unit
-/// member.
-bool inPrivateMember(AstNode node) {
-  var parent = node.parent;
-  if (parent is NamedCompilationUnitMember) {
-    return isPrivate(parent.name);
-  }
-  if (parent is ExtensionDeclaration) {
-    return parent.name == null || isPrivate(parent.name);
-  }
-  return false;
-}
-
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name.lexeme == '==';
@@ -192,10 +179,6 @@ bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
 
 /// Returns `true` if the given [ClassMember] is a method.
 bool isMethod(ClassMember m) => m is MethodDeclaration;
-
-/// Check if the given identifier has a private name.
-bool isPrivate(Token? name) =>
-    name != null ? Identifier.isPrivateName(name.lexeme) : false;
 
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) {

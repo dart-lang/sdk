@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
@@ -129,7 +128,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
-      isPrivate(name) || _isOverridingMember(element) || isWidgetProperty(type);
+      name.isPrivate || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

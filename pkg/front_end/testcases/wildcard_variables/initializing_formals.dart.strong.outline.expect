@@ -1,0 +1,42 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:32:16: Error: Undefined name '_'.
+//         assert(_ >= 0) // Error: no `_` in scope.
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int _;
+  constructor •(wildcard core::int _) → self::A
+    ;
+}
+class InitializerListError extends core::Object {
+  final field core::int _;
+  final field core::int x;
+  constructor •(wildcard core::int _) → self::InitializerListError
+    ;
+}
+class MultipleThisError extends core::Object {
+  final field core::int _;
+  constructor •(wildcard core::int _, wildcard core::int _) → self::MultipleThisError
+    ;
+}
+class B extends core::Object {
+  final field core::int _;
+  final field core::int v;
+  final field core::int w;
+  constructor •(wildcard core::int _, core::int v, core::int w) → self::B
+    ;
+}
+class C extends self::B {
+  final field core::int z;
+  constructor •(core::int x, wildcard core::int _, wildcard core::int _, core::int z) → self::C
+    : self::C::z = z
+    ;
+}
+static method main() → dynamic
+  ;

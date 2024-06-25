@@ -2305,7 +2305,8 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     }
 
     final specialization = SpecializedChecks.findIsTestSpecialization(
-        node.dartType, _graph.element, _closedWorld);
+        node.dartType, _graph.element, _closedWorld,
+        experimentNullSafetyChecks: _options.experimentNullSafetyChecks);
 
     if (specialization == SimpleIsTestSpecialization.isNull ||
         specialization == SimpleIsTestSpecialization.isNotNull) {

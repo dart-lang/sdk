@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
@@ -95,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.isAugmentation) return;
 
-    if (!isPrivate(node.name) &&
+    if (!node.name.isPrivate &&
         // Only report on top-level functions, not those declared within the
         // scope of another function.
         node.parent is CompilationUnit) {
@@ -109,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isPrivate(node.name)) {
+    if (!node.name.isPrivate) {
       if (node.returnType == null) {
         rule.reportLintForToken(node.name);
       } else {
@@ -122,7 +121,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAugmentation) return;
 
-    if (!isPrivate(node.name)) {
+    if (!node.name.isPrivate) {
       if (node.returnType == null && !node.isSetter) {
         rule.reportLintForToken(node.name);
       } else {
@@ -165,7 +164,7 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (!isPrivate(node.name) &&
+    if (!node.name.isPrivate &&
         !node.isConst &&
         !(node.isFinal && hasInferredType(node))) {
       rule.reportLintForToken(node.name);

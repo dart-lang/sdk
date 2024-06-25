@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:expect/expect.dart';
 
 import 'isolates/reload_utils.dart';
@@ -18,30 +15,17 @@ main() async {
 
     await reloader.waitUntilStdoutContains('[testee] helper isolate is ready');
 
-    final helperIsolateId = await reloader.getIsolateId('helper-isolate');
-
-    // Set breakpoint.
-    final debugEvents = StreamIterator(reloader.getDebugStream());
-    await reloader.addBreakpoint(7, isolateId: helperIsolateId);
-
     // Reload 1
     final reloadResult1 = await reloader.reload(dills[1]);
     Expect.equals('ReloadReport', reloadResult1['type']);
     Expect.equals(true, reloadResult1['success']);
-
-    // Now we should get a debug resolved event.
-    if (!await debugEvents.moveNext()) throw 'failed';
-    final event = debugEvents.current;
-    print(JsonEncoder.withIndent('  ').convert(event));
-    if (event['kind'] != 'BreakpointResolved') throw 'failed';
-    print('Got breakpoint resolved event ($event)');
 
     // Continue testee, which will run (and therefore compile) old closure
     // without a script.
     await reloader.waitUntilStdoutContains('[testee] running old closure');
     await reloader.waitUntilStdoutContains('[testee] done');
 
-    // Reload 1
+    // Reload 2
     print('reloading');
     final reloadResult2 = await reloader.reload(dills[2]);
     Expect.equals('ReloadReport', reloadResult2['type']);
@@ -78,13 +62,10 @@ Future main() async {
     ReceivePort();
   }, null, debugName: 'helper-isolate');
 
-  // Debugger should now set breakpoint on
-  // myOldClosure.
-
   // Wait until we got reloaded.
   while (await waitUntilReloadDone());
 
-  // Now run the old closure (which has breakpoint in it).
+  // Now run the old closure.
   escapedOldClosure();
 
   print('[testee] done');
