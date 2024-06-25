@@ -166,6 +166,15 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
 
   mixin_deduplication.transformComponent(component);
 
+  // Patch `dart:_internal`s `mainTearOff` getter.
+  final internalLib = component.libraries
+      .singleWhere((lib) => lib.importUri.toString() == 'dart:_internal');
+  final mainTearOff = internalLib.procedures
+      .singleWhere((procedure) => procedure.name.text == 'mainTearOff');
+  mainTearOff.isExternal = false;
+  mainTearOff.function.body = ReturnStatement(
+      ConstantExpression(StaticTearOffConstant(component.mainMethod!)));
+
   // Keep the flags in-sync with
   // pkg/vm/test/transformations/type_flow/transformer_test.dart
   globalTypeFlow.transformComponent(target, coreTypes, component,

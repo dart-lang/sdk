@@ -249,8 +249,7 @@ Function unwrapJSWrappedDartFunction(WasmExternRef? f) =>
 WasmExternRef? jsInt8ArrayFromDartInt8List(Int8List l) =>
     JS<WasmExternRef?>('l => arrayFromDartList(Int8Array, l)', l);
 
-WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l) =>
-    JS<WasmExternRef?>('l => arrayFromDartList(Uint8Array, l)', l);
+external WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l);
 
 WasmExternRef? jsUint8ClampedArrayFromDartUint8ClampedList(
         Uint8ClampedList l) =>
@@ -276,9 +275,10 @@ WasmExternRef? jsFloat64ArrayFromDartFloat64List(Float64List l) =>
 
 WasmExternRef? jsDataViewFromDartByteData(ByteData data, int length) =>
     JS<WasmExternRef?>("""(data, length) => {
+          const read = dartInstance.exports.\$byteDataGetUint8;
           const view = new DataView(new ArrayBuffer(length));
           for (let i = 0; i < length; i++) {
-              view.setUint8(i, dartInstance.exports.\$byteDataGetUint8(data, i));
+              view.setUint8(i, read(data, i));
           }
           return view;
         }""", data, length.toWasmI32());

@@ -125,6 +125,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   SourceLibraryBuilder? _libraryBuilder;
 
+  @override
+  final TypeParameterScopeBuilder libraryTypeParameterScopeBuilder;
+
   /// Map used to find objects created in the [OutlineBuilder] from within
   /// the [DietListener].
   ///
@@ -138,7 +141,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final List<Export> exports = <Export>[];
 
-  SourceCompilationUnitImpl(this._sourceLibraryBuilder);
+  SourceCompilationUnitImpl(
+      this._sourceLibraryBuilder, this.libraryTypeParameterScopeBuilder);
 
   @override
   SourceLibraryBuilder get sourceLibraryBuilder => _sourceLibraryBuilder;
@@ -930,7 +934,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
-          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
@@ -1085,9 +1089,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
-          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
-    assert(declaration.parent ==
-        _sourceLibraryBuilder._libraryTypeParameterScopeBuilder);
+          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+    assert(declaration.parent == libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
@@ -1211,7 +1214,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
-        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
     supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         metadata: metadata,
@@ -1460,7 +1463,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                     TypeParameterScopeKind.unnamedMixinApplication,
                     "mixin application");
             mixinDeclaration.resolveNamedTypes(
-                applicationTypeVariables, _sourceLibraryBuilder);
+                applicationTypeVariables, _sourceLibraryBuilder, this);
 
             applicationTypeArguments = <TypeBuilder>[];
             for (NominalVariableBuilder typeVariable in typeVariables) {
@@ -1577,9 +1580,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
-          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
-    assert(declaration.parent ==
-        _sourceLibraryBuilder._libraryTypeParameterScopeBuilder);
+          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+    assert(declaration.parent == libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
@@ -1664,9 +1666,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionTypeDeclaration, name)
-      ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
-    assert(declaration.parent ==
-        _sourceLibraryBuilder._libraryTypeParameterScopeBuilder);
+      ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+    assert(declaration.parent == libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
@@ -1771,7 +1772,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _checkTypeVariables(typeVariables, typedefBuilder);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
-        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder);
+        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
     _sourceLibraryBuilder.addBuilder(name, typedefBuilder, charOffset,
         getterReference: referenceFrom?.reference);
   }
@@ -2100,7 +2101,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _sourceLibraryBuilder.currentTypeParameterScopeBuilder = savedDeclaration;
 
     factoryDeclaration.resolveNamedTypes(
-        procedureBuilder.typeVariables, _sourceLibraryBuilder);
+        procedureBuilder.typeVariables, _sourceLibraryBuilder, this);
     _sourceLibraryBuilder.addBuilder(
         procedureName, procedureBuilder, charOffset,
         getterReference: constructorReference);
@@ -2720,14 +2721,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 }
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
-  late final SourceCompilationUnit compilationUnit =
-      new SourceCompilationUnitImpl(this);
+  late final SourceCompilationUnit compilationUnit;
 
   @override
   final SourceLoader loader;
-
-  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
-  final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
 
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
@@ -2914,7 +2911,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.fileUri,
       this._packageUri,
       this.packageLanguageVersion,
-      this._libraryTypeParameterScopeBuilder,
+      TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       this.importScope,
       SourceLibraryBuilder? origin,
       this.library,
@@ -2925,7 +2922,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
-        currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
+        currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
         _immediateOrigin = origin,
         _omittedTypeDeclarationBuilders = omittedTypes,
         libraryName = new LibraryName(library.reference),
@@ -2933,7 +2930,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isPatchLibrary = isPatch,
         super(
             fileUri,
-            _libraryTypeParameterScopeBuilder.toScope(importScope,
+            libraryTypeParameterScopeBuilder.toScope(importScope,
                 omittedTypeDeclarationBuilders: omittedTypes),
             origin?.exportScope ?? new Scope.top(kind: ScopeKind.library)) {
     assert(
@@ -2946,6 +2943,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         !importUri.isScheme('dart') || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
+    compilationUnit =
+        new SourceCompilationUnitImpl(this, libraryTypeParameterScopeBuilder);
   }
 
   MergedLibraryScope get mergedScope {
@@ -3138,7 +3137,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   List<NamedTypeBuilder> get unresolvedNamedTypes =>
-      _libraryTypeParameterScopeBuilder.unresolvedNamedTypes;
+      compilationUnit.libraryTypeParameterScopeBuilder.unresolvedNamedTypes;
 
   @override
   bool get isSynthetic => accessProblem != null;
@@ -3253,7 +3252,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (declaration is SourceExtensionBuilder &&
         declaration.isUnnamedExtension) {
       assert(currentTypeParameterScopeBuilder ==
-          _libraryTypeParameterScopeBuilder);
+          compilationUnit.libraryTypeParameterScopeBuilder);
       declaration.parent = this;
       currentTypeParameterScopeBuilder.extensions!.add(declaration);
       return declaration;
@@ -3264,7 +3263,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (setterReference != null) {
       loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
-    if (currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder) {
+    if (currentTypeParameterScopeBuilder ==
+        compilationUnit.libraryTypeParameterScopeBuilder) {
       if (declaration is MemberBuilder) {
         declaration.parent = this;
       } else if (declaration is TypeDeclarationBuilder) {
@@ -3277,7 +3277,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else {
       assert(currentTypeParameterScopeBuilder.parent ==
-          _libraryTypeParameterScopeBuilder);
+          compilationUnit.libraryTypeParameterScopeBuilder);
     }
     bool isConstructor = declaration is FunctionBuilder &&
         (declaration.isConstructor || declaration.isFactory);
@@ -4689,7 +4689,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     for (Builder? declaration
-        in _libraryTypeParameterScopeBuilder.members!.values) {
+        in compilationUnit.libraryTypeParameterScopeBuilder.members!.values) {
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
             declaration.typeVariablesCount > 0) {
@@ -5017,15 +5017,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     for (Builder declaration
-        in _libraryTypeParameterScopeBuilder.members!.values) {
+        in compilationUnit.libraryTypeParameterScopeBuilder.members!.values) {
       computeDefaultValuesForDeclaration(declaration);
     }
     for (Builder declaration
-        in _libraryTypeParameterScopeBuilder.setters!.values) {
+        in compilationUnit.libraryTypeParameterScopeBuilder.setters!.values) {
       computeDefaultValuesForDeclaration(declaration);
     }
     for (ExtensionBuilder declaration
-        in _libraryTypeParameterScopeBuilder.extensions!) {
+        in compilationUnit.libraryTypeParameterScopeBuilder.extensions!) {
       if (declaration is SourceExtensionBuilder &&
           declaration.isUnnamedExtension) {
         computeDefaultValuesForDeclaration(declaration);
@@ -6208,8 +6208,11 @@ class TypeParameterScopeBuilder {
 
   /// Resolves type variables in [unresolvedNamedTypes] and propagate other
   /// types to [parent].
-  void resolveNamedTypes(List<NominalVariableBuilder>? typeVariables,
-      SourceLibraryBuilder library) {
+  void resolveNamedTypes(
+      List<NominalVariableBuilder>? typeVariables,
+      // TODO(johnniwinther): Remove [library]:
+      SourceLibraryBuilder library,
+      SourceCompilationUnit compilationUnit) {
     Map<String, NominalVariableBuilder>? map;
     if (typeVariables != null) {
       map = <String, NominalVariableBuilder>{};
@@ -6240,7 +6243,7 @@ class TypeParameterScopeBuilder {
         int nameLength = typeName.fullNameLength;
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
             qualifier, typeName.name);
-        library.addProblem(
+        compilationUnit.addProblem(
             message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
         namedTypeBuilder.bind(
             library,

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const jsRuntimeBlobPart1 = r'''
-let buildArgsList;
 
 // `modulePromise` is a promise to the `WebAssembly.module` object to be
 //   instantiated.
@@ -38,29 +37,23 @@ const jsRuntimeBlobPart3 = r'''
     // Converts a Dart List to a JS array. Any Dart objects will be converted, but
     // this will be cheap for JSValues.
     function arrayFromDartList(constructor, list) {
-        const length = dartInstance.exports.$listLength(list);
-        const array = new constructor(length);
-        for (let i = 0; i < length; i++) {
-            array[i] = dartInstance.exports.$listRead(list, i);
-        }
-        return array;
-    }
-
-    buildArgsList = function(list) {
-        const dartList = dartInstance.exports.$makeStringList();
-        for (let i = 0; i < list.length; i++) {
-            dartInstance.exports.$listAdd(dartList, stringToDartString(list[i]));
-        }
-        return dartList;
+      const exports = dartInstance.exports;
+      const read = exports.$listRead;
+      const length = exports.$listLength(list);
+      const array = new constructor(length);
+      for (let i = 0; i < length; i++) {
+        array[i] = read(list, i);
+      }
+      return array;
     }
 
     // A special symbol attached to functions that wrap Dart functions.
     const jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 
     function finalizeWrapper(dartFunction, wrapped) {
-        wrapped.dartFunction = dartFunction;
-        wrapped[jsWrappedDartFunctionSymbol] = true;
-        return wrapped;
+      wrapped.dartFunction = dartFunction;
+      wrapped[jsWrappedDartFunctionSymbol] = true;
+      return wrapped;
     }
 
     // Imports
@@ -112,8 +105,6 @@ const jsRuntimeBlobPart5 = r'''
 // `moduleInstance` is the instantiated dart2wasm module
 // `args` are any arguments that should be passed into the main function.
 export const invoke = (moduleInstance, ...args) => {
-    const dartMain = moduleInstance.exports.$getMain();
-    const dartArgs = buildArgsList(args);
-    moduleInstance.exports.$invokeMain(dartMain, dartArgs);
+  moduleInstance.exports.$invokeMain(args);
 }
 ''';

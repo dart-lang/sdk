@@ -118,6 +118,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   // TODO(johnniwinther): Remove this.
   SourceLibraryBuilder get sourceLibraryBuilder;
 
+  // TODO(johnniwinther): Remove this.
+  TypeParameterScopeBuilder get libraryTypeParameterScopeBuilder;
+
   abstract OffsetMap offsetMap;
 
   LibraryFeatures get libraryFeatures;
