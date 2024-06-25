@@ -4678,6 +4678,57 @@ library
 ''');
   }
 
+  test_methods_typeParameterCountMismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment class A<T> {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  void foo() {}
+  void bar() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        methods
+          foo @42
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+          bar @58
+            returnType: void
+        augmented
+          methods
+            self::@class::A::@method::bar
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+              augmentationSubstitution: {T: InvalidType}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            typeParameters
+              covariant T @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            methods
+              augment foo @65
+                returnType: void
+                augmentationTarget: self::@class::A::@method::foo
+''');
+  }
+
   test_modifiers_abstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
@@ -50776,6 +50827,95 @@ library
 ''');
   }
 
+  test_augmented_constants_typeParameterCountMismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment enum A<T> {
+  augment v
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+enum A {
+  v, v2
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    enums
+      enum A @30
+        reference: self::@enum::A
+        augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+        supertype: Enum
+        fields
+          static const enumConstant v @36
+            reference: self::@enum::A::@field::v
+            type: A
+            shouldUseTypeForInitializerInference: false
+            augmentation: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+          static const enumConstant v2 @39
+            reference: self::@enum::A::@field::v2
+            type: A
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            reference: self::@enum::A::@field::values
+            type: List<A>
+        accessors
+          synthetic static get v @-1
+            reference: self::@enum::A::@getter::v
+            returnType: A
+          synthetic static get v2 @-1
+            reference: self::@enum::A::@getter::v2
+            returnType: A
+          synthetic static get values @-1
+            reference: self::@enum::A::@getter::values
+            returnType: List<A>
+        augmented
+          fields
+            FieldMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+              augmentationSubstitution: {T: InvalidType}
+            self::@enum::A::@field::v2
+            self::@enum::A::@field::values
+          constants
+            FieldMember
+              base: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+              augmentationSubstitution: {T: InvalidType}
+            self::@enum::A::@field::v2
+          accessors
+            self::@enum::A::@getter::v
+            self::@enum::A::@getter::v2
+            self::@enum::A::@getter::values
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        enums
+          augment enum A @42
+            reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A
+            typeParameters
+              covariant T @44
+                defaultType: dynamic
+            augmentationTarget: self::@enum::A
+            fields
+              augment static const enumConstant v @59
+                reference: self::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+                type: A
+                shouldUseTypeForInitializerInference: false
+                augmentationTarget: self::@enum::A::@field::v
+''');
+  }
+
   test_augmented_constructors_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
@@ -56509,6 +56649,57 @@ library
 ''');
   }
 
+  test_augmented_methods_typeParameterCountMismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension A<T> {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension A on int {
+  void foo() {}
+  void bar() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      A @35
+        extendedType: int
+        augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        methods
+          foo @53
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+          bar @69
+            returnType: void
+        augmented
+          methods
+            self::@extension::A::@method::bar
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              augmentationSubstitution: {T: InvalidType}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensions
+          augment A @47
+            typeParameters
+              covariant T @49
+                defaultType: dynamic
+            augmentationTarget: self::@extension::A
+            methods
+              augment foo @69
+                returnType: void
+                augmentationTarget: self::@extension::A::@method::foo
+''');
+  }
+
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';
@@ -58690,6 +58881,77 @@ library
             methods
               augment foo @81
                 returnType: T2
+                augmentationTarget: self::@extensionType::A::@method::foo
+''');
+  }
+
+  test_augmented_methods_typeParameterCountMismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension type A<T>(int it) {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension type A(int it) {
+  void foo() {}
+  void bar() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @40
+        augmentation: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int
+        fields
+          final it @46
+            type: int
+        constructors
+          @40
+            parameters
+              requiredPositional final this.it @46
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+        methods
+          foo @59
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+          bar @75
+            returnType: void
+        augmented
+          fields
+            self::@extensionType::A::@field::it
+          constructors
+            self::@extensionType::A::@constructor::new
+          accessors
+            self::@extensionType::A::@getter::it
+          methods
+            self::@extensionType::A::@method::bar
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+              augmentationSubstitution: {T: InvalidType}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensionTypes
+          augment A @52
+            typeParameters
+              covariant T @54
+                defaultType: dynamic
+            augmentationTarget: self::@extensionType::A
+            methods
+              augment foo @82
+                returnType: void
                 augmentationTarget: self::@extensionType::A::@method::foo
 ''');
   }
@@ -62787,6 +63049,60 @@ library
             methods
               augment foo @64
                 returnType: T2
+                augmentationTarget: self::@mixin::A::@method::foo
+''');
+  }
+
+  test_augmented_methods_typeParameterCountMismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment mixin A<T> {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        methods
+          foo @42
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+          bar @58
+            returnType: void
+        augmented
+          superclassConstraints
+            Object
+          methods
+            self::@mixin::A::@method::bar
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              augmentationSubstitution: {T: InvalidType}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            typeParameters
+              covariant T @45
+                defaultType: dynamic
+            augmentationTarget: self::@mixin::A
+            methods
+              augment foo @65
+                returnType: void
                 augmentationTarget: self::@mixin::A::@method::foo
 ''');
   }

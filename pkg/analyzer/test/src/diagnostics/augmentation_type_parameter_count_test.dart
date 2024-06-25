@@ -93,6 +93,26 @@ augment class A<T> {}
     ]);
   }
 
+  test_class_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    await assertErrorsInCode(r'''
+augment library 'a.dart';
+
+augment class A<T> {
+  augment void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 42, 1),
+    ]);
+  }
+
   test_enum_0_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';
@@ -402,6 +422,26 @@ augment library 'a.dart';
 augment mixin A<T> {}
 ''', [
       error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 44, 1),
+    ]);
+  }
+
+  test_mixin_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'test.dart';
+
+mixin A {
+  void foo() {}
+}
+''');
+
+    await assertErrorsInCode(r'''
+augment library 'a.dart';
+
+augment mixin A<T> {
+  augment void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT, 42, 1),
     ]);
   }
 }
