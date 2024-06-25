@@ -28,9 +28,9 @@ void main() {
       silenceOutput: true,
     );
     expect(serviceInfo.serverUri, isNotNull);
-    expect(serviceInfo.serverWebSocketUri, isNotNull);
+    final serverWebSocketUri = serviceInfo.serverWebSocketUri!;
     service = await vmServiceConnectUri(
-      serviceInfo.serverWebSocketUri!.toString(),
+      serverWebSocketUri.toString(),
     );
 
     // Check that DDS has been launched.
