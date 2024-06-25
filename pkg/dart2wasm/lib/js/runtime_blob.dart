@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const jsRuntimeBlobPart1 = r'''
-let buildArgsList;
 
 // `modulePromise` is a promise to the `WebAssembly.module` object to be
 //   instantiated.
@@ -46,14 +45,6 @@ const jsRuntimeBlobPart3 = r'''
         array[i] = read(list, i);
       }
       return array;
-    }
-
-    buildArgsList = function(list) {
-      const dartList = dartInstance.exports.$makeStringList();
-      for (let i = 0; i < list.length; i++) {
-        dartInstance.exports.$listAdd(dartList, stringToDartString(list[i]));
-      }
-      return dartList;
     }
 
     // A special symbol attached to functions that wrap Dart functions.
@@ -114,8 +105,6 @@ const jsRuntimeBlobPart5 = r'''
 // `moduleInstance` is the instantiated dart2wasm module
 // `args` are any arguments that should be passed into the main function.
 export const invoke = (moduleInstance, ...args) => {
-    const dartMain = moduleInstance.exports.$getMain();
-    const dartArgs = buildArgsList(args);
-    moduleInstance.exports.$invokeMain(dartMain, dartArgs);
+  moduleInstance.exports.$invokeMain(args);
 }
 ''';

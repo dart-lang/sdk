@@ -5,6 +5,9 @@
 import "dart:_js_helper" show JS, jsStringFromDartString, jsStringToDartString;
 import "dart:_js_types" show JSStringImpl;
 import 'dart:_string';
+import 'dart:js_interop'
+    show JSArray, JSString, JSArrayToList, JSStringToString;
+import 'dart:_js_helper' show JSValue;
 import 'dart:_wasm';
 
 part "class_id.dart";
@@ -119,11 +122,17 @@ void _invokeCallback1(void Function(dynamic) callback, dynamic arg) {
   }
 }
 
+// Will be patched in `pkg/dart2wasm/lib/compile.dart` right before TFA.
+external Function get mainTearOff;
+
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
-void _invokeMain(Function main, List<String> args) {
+void _invokeMain(WasmExternRef jsArrayRef) {
   try {
+    final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
+    final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
+    final main = mainTearOff;
     if (main is void Function(List<String>, Null)) {
       main(List.unmodifiable(args), null);
     } else if (main is void Function(List<String>)) {
@@ -139,9 +148,6 @@ void _invokeMain(Function main, List<String> args) {
     rethrow;
   }
 }
-
-@pragma("wasm:export", "\$makeStringList")
-List<String> _makeStringList() => <String>[];
 
 @pragma("wasm:export", "\$listAdd")
 void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
