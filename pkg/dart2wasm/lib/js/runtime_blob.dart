@@ -38,29 +38,31 @@ const jsRuntimeBlobPart3 = r'''
     // Converts a Dart List to a JS array. Any Dart objects will be converted, but
     // this will be cheap for JSValues.
     function arrayFromDartList(constructor, list) {
-        const length = dartInstance.exports.$listLength(list);
-        const array = new constructor(length);
-        for (let i = 0; i < length; i++) {
-            array[i] = dartInstance.exports.$listRead(list, i);
-        }
-        return array;
+      const exports = dartInstance.exports;
+      const read = exports.$listRead;
+      const length = exports.$listLength(list);
+      const array = new constructor(length);
+      for (let i = 0; i < length; i++) {
+        array[i] = read(list, i);
+      }
+      return array;
     }
 
     buildArgsList = function(list) {
-        const dartList = dartInstance.exports.$makeStringList();
-        for (let i = 0; i < list.length; i++) {
-            dartInstance.exports.$listAdd(dartList, stringToDartString(list[i]));
-        }
-        return dartList;
+      const dartList = dartInstance.exports.$makeStringList();
+      for (let i = 0; i < list.length; i++) {
+        dartInstance.exports.$listAdd(dartList, stringToDartString(list[i]));
+      }
+      return dartList;
     }
 
     // A special symbol attached to functions that wrap Dart functions.
     const jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 
     function finalizeWrapper(dartFunction, wrapped) {
-        wrapped.dartFunction = dartFunction;
-        wrapped[jsWrappedDartFunctionSymbol] = true;
-        return wrapped;
+      wrapped.dartFunction = dartFunction;
+      wrapped[jsWrappedDartFunctionSymbol] = true;
+      return wrapped;
     }
 
     // Imports
