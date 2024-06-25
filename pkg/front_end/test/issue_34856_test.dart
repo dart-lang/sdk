@@ -23,9 +23,9 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 
-import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
+import 'package:front_end/src/kernel/verifier.dart' show verifyComponent;
 
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart';

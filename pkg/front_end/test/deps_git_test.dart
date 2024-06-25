@@ -11,8 +11,8 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/dill/dill_target.dart';
-import 'package:front_end/src/fasta/kernel/kernel_target.dart';
+import 'package:front_end/src/dill/dill_target.dart';
+import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart';

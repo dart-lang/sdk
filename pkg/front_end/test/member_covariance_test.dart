@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
-import 'package:front_end/src/fasta/kernel/member_covariance.dart';
+import 'package:front_end/src/kernel/member_covariance.dart';
 
 void main() {
   void checkEquals(Covariance a, Covariance b) {

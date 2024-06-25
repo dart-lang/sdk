@@ -25,7 +25,7 @@ import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
 import "package:front_end/src/fasta/messages.dart"
     show Code, codeObjectExtends, codeObjectImplements, codeObjectMixesIn;
 
-import "package:front_end/src/fasta/source/source_loader.dart"
+import "package:front_end/src/source/source_loader.dart"
     show defaultDartCoreSource;
 
 import "package:front_end/src/kernel_generator_impl.dart";

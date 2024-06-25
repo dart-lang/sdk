@@ -5,7 +5,7 @@
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/fasta/hybrid_file_system.dart';
-import 'package:front_end/src/fasta/kernel/kernel_target.dart';
+import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:kernel/ast.dart';
 

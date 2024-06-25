@@ -12,7 +12,7 @@ import 'package:kernel/src/equivalence.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:kernel/target/targets.dart';
 import 'incremental_suite.dart' as helper;
-import 'package:front_end/src/fasta/util/outline_extractor.dart';
+import 'package:front_end/src/util/outline_extractor.dart';
 import 'package:package_config/package_config.dart';
 
 Future<void> main(List<String> args) async {

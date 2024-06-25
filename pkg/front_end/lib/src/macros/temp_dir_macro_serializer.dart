@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 
-import '../fasta/kernel/utils.dart';
+import '../kernel/utils.dart';
 import 'macro_serializer.dart';
 
 /// [MacroSerializer] that uses .dill files stored in a temporary directory to

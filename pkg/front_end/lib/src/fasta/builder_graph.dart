@@ -6,7 +6,7 @@ library fasta.builder_graph;
 
 import 'package:kernel/util/graph.dart' show Graph;
 
-import 'builder/library_builder.dart';
+import '../builder/library_builder.dart';
 
 class BuilderGraph implements Graph<Uri> {
   final Map<Uri, LibraryBuilder> libraryBuilders;

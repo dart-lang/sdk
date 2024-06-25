@@ -27,7 +27,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/utils.dart'
+import 'package:front_end/src/kernel/utils.dart'
     show serializeComponent, serializeProcedure;
 import 'package:front_end/src/testing/compiler_common.dart';
 import "package:kernel/ast.dart"

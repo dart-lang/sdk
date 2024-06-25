@@ -345,7 +345,7 @@ void main(List<String> args) {
   if (args.isEmpty) {
     args = [
       Platform.script
-          .resolve("../lib/src/fasta/source/source_library_builder.dart")
+          .resolve("../lib/src/source/source_library_builder.dart")
           .toFilePath()
     ];
   }

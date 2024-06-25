@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.d
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/type_inference/factor_type.dart';
+import 'package:front_end/src/type_inference/factor_type.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';

@@ -34,7 +34,7 @@ export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 export '../base/nnbd_mode.dart' show NnbdMode;
-export '../fasta/kernel/utils.dart' show serializeComponent;
+export '../kernel/utils.dart' show serializeComponent;
 export 'compiler_state.dart' show InitializedCompilerState;
 
 /// Initializes the compiler for a modular build.

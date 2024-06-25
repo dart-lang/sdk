@@ -13,7 +13,7 @@ import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
 /// Test that the compiler can successfully read in .dill kernel files rather

@@ -19,15 +19,13 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler, IncrementalKernelTarget;
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-import 'package:front_end/src/fasta/source/source_loader.dart'
-    show SourceLoader;
+import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
+import 'package:front_end/src/source/source_loader.dart' show SourceLoader;
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;

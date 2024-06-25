@@ -12,7 +12,7 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/kernel.dart' show Component, Library, LibraryDependency;
 
-import 'kernel/utils.dart' show ByteSink;
+import '../kernel/utils.dart' show ByteSink;
 
 class IncrementalSerializer {
   final Map<Uri, SerializationGroup> uriToGroup =

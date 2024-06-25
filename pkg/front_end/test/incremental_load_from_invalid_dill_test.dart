@@ -31,7 +31,7 @@ import 'package:front_end/src/codes/cfe_codes.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler, RecorderForTesting;
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/kernel.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;
 

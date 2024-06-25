@@ -11,17 +11,17 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, SimpleToken, Token;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api
     show DiagnosticMessage;
-import 'package:front_end/src/fasta/builder/declaration_builders.dart'
+import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
-import 'package:front_end/src/fasta/builder/type_builder.dart' show TypeBuilder;
+import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
 import 'package:front_end/src/codes/cfe_codes.dart' as fasta
     show templateUnspecified;
-import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-import 'package:front_end/src/fasta/kernel/constness.dart' show Constness;
-import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart'
+import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/kernel/constness.dart' show Constness;
+import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
-import 'package:front_end/src/fasta/kernel/kernel_target.dart' show BuildResult;
-import 'package:front_end/src/fasta/util/import_export_etc_helper.dart';
+import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
+import 'package:front_end/src/util/import_export_etc_helper.dart';
 import 'package:kernel/kernel.dart' show Arguments, Expression;
 import 'package:package_config/package_config.dart';
 

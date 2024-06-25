@@ -6,8 +6,8 @@ library fasta.export;
 
 import 'package:kernel/ast.dart';
 
-import 'builder/builder.dart';
-import 'builder/library_builder.dart';
+import '../builder/builder.dart';
+import '../builder/library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
 
 class Export {

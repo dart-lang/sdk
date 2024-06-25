@@ -20,8 +20,8 @@ import 'package:args/args.dart';
 
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/source/diet_parser.dart';
-import 'package:front_end/src/fasta/source/directive_listener.dart';
+import 'package:front_end/src/source/diet_parser.dart';
+import 'package:front_end/src/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'perf_common.dart';

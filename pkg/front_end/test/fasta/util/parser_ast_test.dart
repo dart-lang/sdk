@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/fasta/util/parser_ast.dart';
-import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
+import 'package:front_end/src/util/parser_ast.dart';
+import 'package:front_end/src/util/parser_ast_helper.dart';
 
 late Uri base;
 

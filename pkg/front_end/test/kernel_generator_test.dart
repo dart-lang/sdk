@@ -6,7 +6,7 @@ import 'package:front_end/src/api_prototype/front_end.dart'
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show FormattedMessage, messageMissingMain;
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:front_end/src/testing/compiler_common.dart'
     show
         compileScript,

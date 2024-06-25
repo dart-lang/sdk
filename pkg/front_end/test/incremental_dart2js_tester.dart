@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 
-import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/kernel/utils.dart';
 
 import 'package:kernel/kernel.dart' show Component, Library, LibraryPart;
 

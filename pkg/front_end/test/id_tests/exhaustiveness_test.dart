@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, cfeMarker, runTests;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/kernel/exhaustiveness.dart';
+import 'package:front_end/src/kernel/exhaustiveness.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
 

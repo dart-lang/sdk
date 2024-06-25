@@ -4,12 +4,12 @@
 
 import 'package:kernel/ast.dart';
 
-import '../fasta/builder/declaration_builders.dart';
-import '../fasta/builder/library_builder.dart';
-import '../fasta/builder/member_builder.dart';
-import '../fasta/builder/type_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/type_builder.dart';
 import '../fasta/messages.dart';
-import '../fasta/source/source_loader.dart';
+import '../source/source_loader.dart';
 import '../kernel_generator_impl.dart';
 
 /// Helper methods to use in annotated tests.
