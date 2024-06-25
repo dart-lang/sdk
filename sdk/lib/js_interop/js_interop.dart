@@ -1143,12 +1143,10 @@ extension JSAnyOperatorExtension on JSAny? {
   external JSAny? or(JSAny? any);
 
   /// The result of <code>!`this`</code> in JavaScript.
-  // TODO(srujzs): Change this to JSBoolean to be consistent.
-  external bool get not;
+  external JSBoolean get not;
 
   /// The result of <code>!!`this`</code> in JavaScript.
-  // TODO(srujzs): Change this to JSBoolean to be consistent.
-  external bool get isTruthy;
+  external JSBoolean get isTruthy;
 }
 
 /// The global scope that is used to find user-declared interop members.

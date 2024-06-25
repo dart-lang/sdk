@@ -545,14 +545,12 @@ extension JSAnyOperatorExtension on JSAny? {
       '(o, a) => o || a', this.toExternRef, any.toExternRef)) as JSAny?;
 
   @patch
-  bool get not => JSBoolean._(
-          JSValue(js_helper.JS<WasmExternRef?>('(o) => !o', this.toExternRef)))
-      .toDart;
+  JSBoolean get not => JSBoolean._(
+      JSValue(js_helper.JS<WasmExternRef?>('(o) => !o', this.toExternRef)));
 
   @patch
-  bool get isTruthy => JSBoolean._(
-          JSValue(js_helper.JS<WasmExternRef?>('(o) => !!o', this.toExternRef)))
-      .toDart;
+  JSBoolean get isTruthy => JSBoolean._(
+      JSValue(js_helper.JS<WasmExternRef?>('(o) => !!o', this.toExternRef)));
 }
 
 @patch

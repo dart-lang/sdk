@@ -55,8 +55,11 @@
 
 - **Breaking Change** [#55508][]: `importModule` now accepts a `JSAny` instead
   of a `String` to support other JS values as well, like `TrustedScriptURL`s.
+- **Breaking Change** [#55267][]: `isTruthy` and `not` now return `JSBoolean`
+  instead of `bool` to be consistent with the other operators.
 
 [#55508]: https://github.com/dart-lang/sdk/issues/55508
+[#55267]: https://github.com/dart-lang/sdk/issues/55267
 
 ### Tools
 
