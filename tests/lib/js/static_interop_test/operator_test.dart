@@ -82,8 +82,8 @@ void dartJsInteropOperatorsTest() {
   Expect.isTrue(t.strictNotEquals(1.toJS).toDart);
   Expect.isFalse((t.and(f) as JSBoolean).toDart);
   Expect.isTrue((t.or(f) as JSBoolean).toDart);
-  Expect.isFalse(t.not);
-  Expect.isTrue(t.isTruthy);
+  Expect.isFalse(t.not.toDart);
+  Expect.isTrue(t.isTruthy.toDart);
   Expect.isFalse(i10.lessThan(i10).toDart);
   Expect.isTrue(i10.lessThanOrEqualTo(i10).toDart);
   Expect.isFalse(i10.greaterThan(i10).toDart);
@@ -103,8 +103,8 @@ void dartJsInteropOperatorsTest() {
   Expect.isFalse(null.strictNotEquals(null).toDart);
   expect(null.and(null), null);
   expect(null.or(null), null);
-  Expect.isTrue(null.not);
-  Expect.isFalse(null.isTruthy);
+  Expect.isTrue(null.not.toDart);
+  Expect.isFalse(null.isTruthy.toDart);
   Expect.isFalse(null.lessThan(null).toDart);
   Expect.isTrue(null.lessThanOrEqualTo(null).toDart);
   Expect.isFalse(null.greaterThan(null).toDart);
@@ -128,8 +128,8 @@ void dartJsInteropOperatorsTest() {
   Expect.isTrue(b1.strictNotEquals(t).toDart);
   expect(b10.and(b1), b1);
   expect(b10.or(b1), b10);
-  Expect.isFalse(b10.not);
-  Expect.isTrue(b10.isTruthy);
+  Expect.isFalse(b10.not.toDart);
+  Expect.isTrue(b10.isTruthy.toDart);
   Expect.isFalse(b10.lessThan(b10).toDart);
   Expect.isTrue(b10.lessThanOrEqualTo(b10).toDart);
   Expect.isFalse(b10.greaterThan(b10).toDart);

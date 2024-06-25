@@ -300,7 +300,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       if (is_setter) {
         if (CompilerState::Current().is_aot()) {
           const intptr_t kernel_offset = field.kernel_offset();
-          const InferredTypeMetadata parameter_type =
+          const InferredTypeMetadata inferred_field_type =
               inferred_type_metadata_helper_.GetInferredType(kernel_offset);
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -308,7 +308,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
               AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
               LocalVariable::kNoKernelOffset, /*is_late=*/false,
               /*inferred_type=*/nullptr,
-              /*inferred_arg_type=*/&parameter_type);
+              /*inferred_arg_type=*/field.is_covariant()
+                  ? nullptr
+                  : &inferred_field_type);
         } else {
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,

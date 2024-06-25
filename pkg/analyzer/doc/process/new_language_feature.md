@@ -18,6 +18,7 @@ Separate issues should be created for each of the items in the list.
 The following is a list of the individual features that need to be considered.
 The features are listed roughly in dependency order.
 
+- [ ] If needed, add an experiment flag
 - [ ] AST enhancements (`AstBuilder`)
 - [ ] Resolution of directives
 - [ ] Element model

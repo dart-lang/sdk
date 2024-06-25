@@ -467,14 +467,14 @@ extension JSAnyOperatorExtension on JSAny? {
 
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get not => js_util.not(this);
+  JSBoolean get not => js_util.not(this);
 
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isTruthy => js_util.isTruthy(this);
+  JSBoolean get isTruthy => JSBoolean._(js_util.isTruthy(this));
 }
 
 @patch
 @pragma('dart2js:prefer-inline')
-JSPromise<JSObject> importModule(String moduleName) =>
+JSPromise<JSObject> importModule(JSAny moduleName) =>
     foreign_helper.JS('', 'import(#)', moduleName);

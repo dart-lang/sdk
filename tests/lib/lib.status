@@ -26,6 +26,9 @@ js/static_interop_test/disallowed_interop_libraries_test: SkipByDesign # Only ch
 developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
+[ $runtime != chrome ]
+js/static_interop_test/import/import_trustedscripturl_test: SkipByDesign # Trusted Types are only supported in Chrome currently.
+
 [ $runtime == d8 ]
 js/export/static_interop_mock/proto_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/constants_test: SkipByDesign # Uses dart:html.
