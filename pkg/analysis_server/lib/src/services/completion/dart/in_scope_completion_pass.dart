@@ -773,6 +773,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         declarationHelper(
           preferNonInvocation: true,
         ).addConstructorNamesForElement(element: element);
+        declarationHelper(
+          preferNonInvocation: true,
+        ).addStaticMembersOfElement(element);
       }
     } else {
       var type = node.type.type;

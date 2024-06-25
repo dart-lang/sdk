@@ -426,6 +426,32 @@ suggestions
 ''');
   }
 
+  Future<void> test_importPrefix_dot_enumConstantName() async {
+    allowedIdentifiers = {'foo01', 'foo02'};
+    newFile('$testPackageLibPath/a.dart', r'''
+enum E0 {
+  foo01,
+  foo02;
+}
+''');
+
+    await computeSuggestions('''
+import 'a.dart' as p0;
+
+void f() {
+  p0.E0.^
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  foo01
+    kind: enumConstant
+  foo02
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_nothing() async {
     _configureWithMyEnum();
 
