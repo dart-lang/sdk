@@ -561,39 +561,35 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
                           Thread* thread) {
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
 
-  // If we eliminate a generational write barriers on allocations of an object
+  // If we eliminate the generational write barrier when writing into an object,
   // we need to ensure it's either a new-space object or it has been added to
-  // the remembered set.
+  // the remembered set. If we eliminate the incremental write barrier, we need
+  // to add the object to the deferred marking stack so it will be [re]scanned.
   //
   // NOTE: We use static_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
   // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
-  bool add_to_remembered_set = true;
-  if (object->IsNewObject()) {
-    add_to_remembered_set = false;
-  } else if (object->IsArray()) {
+  bool skips_barrier = true;
+  if (object->IsArray()) {
     const intptr_t length = Array::LengthOf(static_cast<ArrayPtr>(object));
-    add_to_remembered_set =
-        compiler::target::WillAllocateNewOrRememberedArray(length);
+    skips_barrier = compiler::target::WillAllocateNewOrRememberedArray(length);
   } else if (object->IsContext()) {
     const intptr_t num_context_variables =
         Context::NumVariables(static_cast<ContextPtr>(object));
-    add_to_remembered_set =
-        compiler::target::WillAllocateNewOrRememberedContext(
-            num_context_variables);
+    skips_barrier = compiler::target::WillAllocateNewOrRememberedContext(
+        num_context_variables);
   }
 
-  if (add_to_remembered_set) {
-    object->untag()->EnsureInRememberedSet(thread);
-  }
+  if (skips_barrier) {
+    if (object->IsOldObject()) {
+      object->untag()->EnsureInRememberedSet(thread);
+    }
 
-  // For incremental write barrier elimination, we need to ensure that the
-  // allocation ends up in the new space or else the object needs to added
-  // to deferred marking stack so it will be [re]scanned.
-  if (thread->is_marking()) {
-    thread->DeferredMarkingStackAddObject(object);
+    if (thread->is_marking()) {
+      thread->DeferredMarkingStackAddObject(object);
+    }
   }
 
   return static_cast<uword>(object);
