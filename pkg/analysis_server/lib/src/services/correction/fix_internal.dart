@@ -102,6 +102,7 @@ import 'package:analysis_server/src/services/correction/dart/flutter_remove_widg
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
+import 'package:analysis_server/src/services/correction/dart/insert_body.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_semicolon.dart';
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_conditional_on_debug_mode.dart';
@@ -1409,6 +1410,33 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA: [
     RemoveComma.emptyRecordType,
   ],
+  ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_CLASS_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_EXTENSION_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_MIXIN_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY: [
+    InsertBody.new,
+  ],
+  ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY: [
+    InsertBody.new,
+  ],
   ParserErrorCode.EXPECTED_TOKEN: [
     InsertSemicolon.new,
     ReplaceWithArrow.new,
@@ -1484,6 +1512,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
     AddTypeAnnotation.new,
+  ],
+  ParserErrorCode.MISSING_ENUM_BODY: [
+    InsertBody.new,
   ],
   ParserErrorCode.MISSING_FUNCTION_BODY: [
     ConvertIntoBlockBody.missingBody,

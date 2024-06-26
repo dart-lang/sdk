@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 316 "needsFix"
-# - 431 "hasFix"
+# - 306 "needsFix"
+# - 441 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -2664,13 +2664,9 @@ ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
 ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
   status: noFix
 ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_CLASS_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_CLASS_MEMBER:
   status: noFix
 ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
@@ -2678,17 +2674,11 @@ ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
 ParserErrorCode.EXPECTED_EXECUTABLE:
   status: noFix
 ParserErrorCode.EXPECTED_EXTENSION_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
   status: noFix
 ParserErrorCode.EXPECTED_INSTEAD:
@@ -2698,9 +2688,7 @@ ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
   notes: |-
     Add the braces or brackets for the literal.
 ParserErrorCode.EXPECTED_MIXIN_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
@@ -2716,19 +2704,13 @@ ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: noFix
 ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_TOKEN:
   status: hasFix
 ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_TYPE_NAME:
   status: noFix
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
@@ -3001,9 +2983,7 @@ ParserErrorCode.MISSING_CLOSING_PARENTHESIS:
 ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE:
   status: hasFix
 ParserErrorCode.MISSING_ENUM_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body
+  status: hasFix
 ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER:
   status: noFix
 ParserErrorCode.MISSING_EXPRESSION_IN_THROW:
