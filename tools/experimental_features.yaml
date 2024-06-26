@@ -358,6 +358,9 @@ features:
       }
     expired: true
 
+  null-aware-elements:
+    help: "Null-aware elements and map entries in collections."
+
   extension-methods:
     help: "Extension Methods"
     enabledIn: '2.6.0'

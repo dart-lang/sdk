@@ -633,6 +633,9 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       List<DartScope2> rawScopes, Library library, int offset) {
     List<DartScope2> firstFilteredScopes =
         _filterScopesWithArtificialNodes(rawScopes, library);
+    if (firstFilteredScopes.isEmpty) {
+      return rawScopes;
+    }
     if (_allHaveTheSameDefinitions(firstFilteredScopes)) {
       return [firstFilteredScopes.first];
     }

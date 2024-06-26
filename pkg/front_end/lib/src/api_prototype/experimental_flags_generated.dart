@@ -195,6 +195,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 13),
       experimentReleasedVersion: const Version(2, 13));
 
+  static const ExperimentalFlag nullAwareElements = const ExperimentalFlag(
+      name: 'null-aware-elements',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
       isEnabledByDefault: true,
@@ -410,6 +418,10 @@ class GlobalFeatures {
   GlobalFeature get nonfunctionTypeAliases => _nonfunctionTypeAliases ??=
       _computeGlobalFeature(ExperimentalFlag.nonfunctionTypeAliases);
 
+  GlobalFeature? _nullAwareElements;
+  GlobalFeature get nullAwareElements => _nullAwareElements ??=
+      _computeGlobalFeature(ExperimentalFlag.nullAwareElements);
+
   GlobalFeature? _patterns;
   GlobalFeature get patterns =>
       _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
@@ -567,6 +579,11 @@ class LibraryFeatures {
           canonicalUri,
           libraryVersion);
 
+  LibraryFeature? _nullAwareElements;
+  LibraryFeature get nullAwareElements =>
+      _nullAwareElements ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.nullAwareElements, canonicalUri, libraryVersion);
+
   LibraryFeature? _patterns;
   LibraryFeature get patterns =>
       _patterns ??= globalFeatures._computeLibraryFeature(
@@ -665,6 +682,8 @@ class LibraryFeatures {
         return nonNullable;
       case shared.ExperimentalFlag.nonfunctionTypeAliases:
         return nonfunctionTypeAliases;
+      case shared.ExperimentalFlag.nullAwareElements:
+        return nullAwareElements;
       case shared.ExperimentalFlag.patterns:
         return patterns;
       case shared.ExperimentalFlag.records:
@@ -731,6 +750,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nonNullable;
     case "nonfunction-type-aliases":
       return ExperimentalFlag.nonfunctionTypeAliases;
+    case "null-aware-elements":
+      return ExperimentalFlag.nullAwareElements;
     case "patterns":
       return ExperimentalFlag.patterns;
     case "records":
@@ -793,6 +814,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable.isEnabledByDefault,
   ExperimentalFlag.nonfunctionTypeAliases:
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
+  ExperimentalFlag.nullAwareElements:
+      ExperimentalFlag.nullAwareElements.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.resourceIdentifiers:
@@ -844,6 +867,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable,
   shared.ExperimentalFlag.nonfunctionTypeAliases:
       ExperimentalFlag.nonfunctionTypeAliases,
+  shared.ExperimentalFlag.nullAwareElements: ExperimentalFlag.nullAwareElements,
   shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
   shared.ExperimentalFlag.resourceIdentifiers:

@@ -18,10 +18,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 66,
     missCount: 8,
   ),
-  // 55.28846153846154%.
+  // 54.07925407925408%.
   "package:front_end/src/api_prototype/experimental_flags_generated.dart": (
-    hitCount: 230,
-    missCount: 186,
+    hitCount: 232,
+    missCount: 197,
   ),
   // 33.33333333333333%.
   "package:front_end/src/api_prototype/file_system.dart": (
@@ -753,10 +753,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 118,
     missCount: 6,
   ),
-  // 93.60488798370672%.
+  // 93.47120843471208%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2298,
-    missCount: 157,
+    hitCount: 2305,
+    missCount: 161,
   ),
   // 94.44444444444444%.
   "package:front_end/src/source/redirecting_factory_body.dart": (
@@ -809,9 +809,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 295,
     missCount: 35,
   ),
-  // 85.36585365853658%.
+  // 85.3836784409257%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 3500,
+    hitCount: 3505,
     missCount: 600,
   ),
   // 81.8988464951198%.

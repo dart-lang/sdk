@@ -71,9 +71,9 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:12.6.163",
-  "jsshell_tag": "version:125.0.3",
-  "jsc_tag": "version:278398",
+  "d8_tag": "version:12.8.142",
+  "jsshell_tag": "version:127.0.2",
+  "jsc_tag": "version:280364",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:3809e20afc68d7d03821f0ec59b928dcf9befbf4",
@@ -97,7 +97,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "d844d2e77b402d562ade8cf8fd96759b587bf09d",
+  "binaryen_rev" : "654ee6e2504f11fb0e982a2cf276bafa750f694b",
   "boringssl_gen_rev": "9c7294fd58261a79794f5afaa26598cf1442ad20",
   "boringssl_rev": "d24a38200fef19150eef00cad35b138936c08767",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
@@ -209,7 +209,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "121.0.6167.85",
   "download_firefox": False,
-  "firefox_tag": "126.0",
+  "firefox_tag": "127.0.2",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
