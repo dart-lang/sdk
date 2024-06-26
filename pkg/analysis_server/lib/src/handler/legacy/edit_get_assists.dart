@@ -13,7 +13,7 @@ import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/util/file_paths.dart';

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
-/// [ChangeWorkspace] based on sessions.
+/// A [ChangeWorkspace] based on [AnalysisSession]s.
 class DartChangeWorkspace implements ChangeWorkspace {
   final List<AnalysisSession> sessions;
 
@@ -32,6 +32,6 @@ class DartChangeWorkspace implements ChangeWorkspace {
         return session;
       }
     }
-    throw StateError('Not in a context root: $path');
+    throw StateError("Not in a context root: '$path'");
   }
 }
