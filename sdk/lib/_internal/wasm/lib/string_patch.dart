@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show patch;
+import "dart:_internal" show patch, unsafeCast;
 import "dart:_string";
 
 @patch
@@ -55,12 +55,12 @@ extension _StringExt on String {
   int firstNonWhitespace() {
     final value = this;
     if (value is StringBase) return value.firstNonWhitespace();
-    return (value as JSStringImpl).firstNonWhitespace();
+    return unsafeCast<JSStringImpl>(value).firstNonWhitespace();
   }
 
   int lastNonWhitespace() {
     final value = this;
     if (value is StringBase) return value.lastNonWhitespace();
-    return (value as JSStringImpl).lastNonWhitespace();
+    return unsafeCast<JSStringImpl>(value).lastNonWhitespace();
   }
 }

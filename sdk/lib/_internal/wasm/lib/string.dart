@@ -518,7 +518,7 @@ abstract final class StringBase extends WasmStringBase
     final len = this.length;
     int first = 0;
     for (; first < len; first++) {
-      if (!_isWhitespace(this.codeUnitAt(first))) {
+      if (!_isWhitespace(codeUnitAtUnchecked(first))) {
         break;
       }
     }
@@ -528,7 +528,7 @@ abstract final class StringBase extends WasmStringBase
   int lastNonWhitespace() {
     int last = this.length - 1;
     for (; last >= 0; last--) {
-      if (!_isWhitespace(this.codeUnitAt(last))) {
+      if (!_isWhitespace(codeUnitAtUnchecked(last))) {
         break;
       }
     }

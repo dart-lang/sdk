@@ -194,9 +194,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   FormalParameterBuilder forPrimaryConstructor(
-      SourceLibraryBuilder sourceLibraryBuilder) {
+      SourceCompilationUnit compilationUnit) {
     return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
-        sourceLibraryBuilder.addInferableType(), name, null, charOffset,
+        compilationUnit.addInferableType(), name, null, charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)

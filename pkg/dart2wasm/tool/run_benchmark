@@ -86,4 +86,4 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-exec "$SHELL_BIN" "$RUN_WASM" $SHELL_ARG_SEPERATOR "$MJS_FILE" "$WASM_FILE" "${LINEAR_WASM_FILES[@]}" -- "$@"
+exec "$SHELL_BIN" "${SHELL_OPTIONS[@]}" "$RUN_WASM" $SHELL_ARG_SEPERATOR "$MJS_FILE" "$WASM_FILE" "${LINEAR_WASM_FILES[@]}" -- "$@"

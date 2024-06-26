@@ -9,9 +9,9 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/isolate_data.h"
+#include "bin/uri.h"
 
 #include "platform/globals.h"
-#include "platform/uri.h"
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"

@@ -51,6 +51,8 @@ builtin_impl_sources = [
   "thread_macos.h",
   "thread_win.cc",
   "thread_win.h",
+  "uri.cc",
+  "uri.h",
   "utils.cc",
   "utils.h",
   "utils_fuchsia.cc",
@@ -69,4 +71,5 @@ builtin_impl_tests = [
   "priority_heap_test.cc",
   "snapshot_utils_test.cc",
   "test_utils.cc",
+  "uri_test.cc",
 ]

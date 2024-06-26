@@ -934,7 +934,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
-          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+          ..resolveNamedTypes(typeVariables, this);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
@@ -1089,7 +1089,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
-          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+          ..resolveNamedTypes(typeVariables, this);
     assert(declaration.parent == libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
@@ -1214,7 +1214,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
-        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+        .resolveNamedTypes(typeVariables, this);
     supertype = _applyMixins(supertype, mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         metadata: metadata,
@@ -1462,8 +1462,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 .endNestedDeclaration(
                     TypeParameterScopeKind.unnamedMixinApplication,
                     "mixin application");
-            mixinDeclaration.resolveNamedTypes(
-                applicationTypeVariables, _sourceLibraryBuilder, this);
+            mixinDeclaration.resolveNamedTypes(applicationTypeVariables, this);
 
             applicationTypeArguments = <TypeBuilder>[];
             for (NominalVariableBuilder typeVariable in typeVariables) {
@@ -1580,7 +1579,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // `OutlineBuilder.beginExtensionDeclarationPrelude`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
-          ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+          ..resolveNamedTypes(typeVariables, this);
     assert(declaration.parent == libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
@@ -1666,7 +1665,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionTypeDeclaration, name)
-      ..resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+      ..resolveNamedTypes(typeVariables, this);
     assert(declaration.parent == libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
@@ -1772,7 +1771,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _checkTypeVariables(typeVariables, typedefBuilder);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
-        .resolveNamedTypes(typeVariables, _sourceLibraryBuilder, this);
+        .resolveNamedTypes(typeVariables, this);
     _sourceLibraryBuilder.addBuilder(name, typedefBuilder, charOffset,
         getterReference: referenceFrom?.reference);
   }
@@ -2100,8 +2099,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     }
     _sourceLibraryBuilder.currentTypeParameterScopeBuilder = savedDeclaration;
 
-    factoryDeclaration.resolveNamedTypes(
-        procedureBuilder.typeVariables, _sourceLibraryBuilder, this);
+    factoryDeclaration.resolveNamedTypes(procedureBuilder.typeVariables, this);
     _sourceLibraryBuilder.addBuilder(
         procedureName, procedureBuilder, charOffset,
         getterReference: constructorReference);
@@ -6208,10 +6206,7 @@ class TypeParameterScopeBuilder {
 
   /// Resolves type variables in [unresolvedNamedTypes] and propagate other
   /// types to [parent].
-  void resolveNamedTypes(
-      List<NominalVariableBuilder>? typeVariables,
-      // TODO(johnniwinther): Remove [library]:
-      SourceLibraryBuilder library,
+  void resolveNamedTypes(List<NominalVariableBuilder>? typeVariables,
       SourceCompilationUnit compilationUnit) {
     Map<String, NominalVariableBuilder>? map;
     if (typeVariables != null) {
@@ -6246,14 +6241,14 @@ class TypeParameterScopeBuilder {
         compilationUnit.addProblem(
             message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
         namedTypeBuilder.bind(
-            library,
+            compilationUnit,
             namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
                 message.withLocation(
                     namedTypeBuilder.fileUri!, nameOffset, nameLength)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, library);
+            namedTypeBuilder.fileUri!, compilationUnit);
       }
     }
     unresolvedNamedTypes.clear();
