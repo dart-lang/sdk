@@ -5440,8 +5440,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (tmp.IsNull()) {
     return Api::NewError(
         "Invoked Dart programs must have a 'main' function defined:\n"
-        "https://dart.dev/guides/language/"
-        "language-tour#a-basic-dart-program");
+        "https://dart.dev/to/main-function");
   }
   library ^= tmp.ptr();
   IG->object_store()->set_root_library(library);

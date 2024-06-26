@@ -7488,6 +7488,19 @@ TEST_CASE(DartAPI_RootLibrary) {
   EXPECT(Dart_IsNull(root_lib));  // Root library did change.
 }
 
+TEST_CASE(DartAPI_RootLibraryMissingMain) {
+  const char* kScriptChars =
+      "notMain() {"
+      "  return 12345;"
+      "}";
+
+  Dart_Handle result = LoadScript(TestCase::url(), kScriptChars);
+
+  EXPECT_ERROR(result,
+               "Invoked Dart programs must have a 'main' function defined:\n"
+               "https://dart.dev/to/main-function");
+}
+
 TEST_CASE(DartAPI_LookupLibrary) {
   const char* kScriptChars =
       "import 'library1_dart';"
