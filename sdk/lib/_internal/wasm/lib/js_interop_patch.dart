@@ -22,7 +22,7 @@ js_types.JSObjectRepType _createObjectLiteral() =>
 @patch
 JSObject get globalContext => js_util.globalThis as JSObject;
 
-/// Helper for working with the [JSAny?] top type in a backend agnostic way.
+// Helper for working with the JSAny? top type in a backend agnostic way.
 @patch
 extension NullableUndefineableJSAnyExtension on JSAny? {
   // TODO(joshualitt): To support incremental migration of existing users to
@@ -64,14 +64,15 @@ extension JSAnyUtilityExtension on JSAny? {
   Object? dartify() => js_util.dartify(this);
 }
 
-/// Utility extensions for [Object?].
+// Utility extensions for Object?.
 @patch
 extension NullableObjectUtilExtension on Object? {
   @patch
   JSAny? jsify() => js_util.jsify(this);
 }
 
-/// [JSExportedDartFunction] <-> [Function]
+// -----------------------------------------------------------------------------
+// JSExportedDartFunction <-> Function
 @patch
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
@@ -93,15 +94,16 @@ extension FunctionToJSExportedDartFunction on Function {
       'transformed by the interop transformer.');
 }
 
-/// Embedded global property for wrapped Dart objects passed via JS interop.
-///
-/// This is a Symbol so that different Dart applications don't share Dart
-/// objects from different Dart runtimes. We expect all [JSBoxedDartObject]s to
-/// have this Symbol.
+// Embedded global property for wrapped Dart objects passed via JS interop.
+//
+// This is a Symbol so that different Dart applications don't share Dart
+// objects from different Dart runtimes. We expect all JSBoxedDartObjects to
+// have this Symbol.
 final JSSymbol _jsBoxedDartObjectProperty = JSSymbol._(JSValue(
     js_helper.JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")')));
 
-/// [JSBoxedDartObject] <-> [Object]
+// -----------------------------------------------------------------------------
+// JSBoxedDartObject <-> Object
 @patch
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
@@ -130,22 +132,36 @@ extension ObjectToJSBoxedDartObject on Object {
   }
 }
 
-/// [ExternalDartReference] <-> [Object]
+// -----------------------------------------------------------------------------
+// ExternalDartReference <-> Object
 @patch
-extension ExternalDartReferenceToObject on ExternalDartReference {
+extension ExternalDartReferenceToObject<T extends Object?>
+    on ExternalDartReference<T> {
   @patch
-  Object get toDartObject =>
-      jsObjectToDartObject(this._externalDartReference.toExternRef);
+  T get toDartObject {
+    // TODO(srujzs): We could do an `unsafeCast` here for performance, but
+    // that can result in unsoundness for users. Alternatively, we can
+    // introduce a generic version of `JSValue` which would allow us to safely
+    // `unsafeCast`. However, this has its own issues where a user can't
+    // do casts like `ExternalDartReference<Object> as
+    // ExternalDartReference<int>` since `JSValue<Object>` is not a subtype of
+    // `JSValue<int>`, even though it may be valid to do such a cast.
+    final t = this._externalDartReference;
+    return (t == null ? null : jsObjectToDartObject(t.toExternRef)) as T;
+  }
 }
 
 @patch
-extension ObjectToExternalDartReference on Object {
+extension ObjectToExternalDartReference<T extends Object?> on T {
   @patch
-  ExternalDartReference get toExternalReference =>
-      ExternalDartReference._(JSValue(jsObjectFromDartObject(this)));
+  ExternalDartReference<T> get toExternalReference {
+    final t = this;
+    return ExternalDartReference<T>._(
+        t == null ? null : JSValue(jsObjectFromDartObject(t)));
+  }
 }
 
-/// [JSPromise] -> [Future].
+// JSPromise -> Future
 @patch
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
@@ -182,7 +198,8 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   }
 }
 
-/// [JSArrayBuffer] <-> [ByteBuffer]
+// -----------------------------------------------------------------------------
+// JSArrayBuffer <-> ByteBuffer
 @patch
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   @patch
@@ -202,7 +219,8 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   }
 }
 
-/// [JSDataView] <-> [ByteData]
+// -----------------------------------------------------------------------------
+// JSDataView <-> ByteData
 @patch
 extension JSDataViewToByteData on JSDataView {
   @patch
@@ -220,7 +238,8 @@ extension ByteDataToJSDataView on ByteData {
   }
 }
 
-/// [JSInt8Array] <-> [Int8List]
+// -----------------------------------------------------------------------------
+// JSInt8Array <-> Int8List
 @patch
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
@@ -238,7 +257,8 @@ extension Int8ListToJSInt8Array on Int8List {
   }
 }
 
-/// [JSUint8Array] <-> [Uint8List]
+// -----------------------------------------------------------------------------
+// JSUint8Array <-> Uint8List
 @patch
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
@@ -256,7 +276,8 @@ extension Uint8ListToJSUint8Array on Uint8List {
   }
 }
 
-/// [JSUint8ClampedArray] <-> [Uint8ClampedList]
+// -----------------------------------------------------------------------------
+// JSUint8ClampedArray <-> Uint8ClampedList
 @patch
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
@@ -275,7 +296,8 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
   }
 }
 
-/// [JSInt16Array] <-> [Int16List]
+// -----------------------------------------------------------------------------
+// JSInt16Array <-> Int16List
 @patch
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
@@ -293,7 +315,8 @@ extension Int16ListToJSInt16Array on Int16List {
   }
 }
 
-/// [JSUint16Array] <-> [Uint16List]
+// -----------------------------------------------------------------------------
+// JSUint16Array <-> Uint16List
 @patch
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
@@ -311,7 +334,8 @@ extension Uint16ListToJSInt16Array on Uint16List {
   }
 }
 
-/// [JSInt32Array] <-> [Int32List]
+// -----------------------------------------------------------------------------
+// JSInt32Array <-> Int32List
 @patch
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
@@ -329,7 +353,8 @@ extension Int32ListToJSInt32Array on Int32List {
   }
 }
 
-/// [JSUint32Array] <-> [Uint32List]
+// -----------------------------------------------------------------------------
+// JSUint32Array <-> Uint32List
 @patch
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
@@ -347,7 +372,8 @@ extension Uint32ListToJSUint32Array on Uint32List {
   }
 }
 
-/// [JSFloat32Array] <-> [Float32List]
+// -----------------------------------------------------------------------------
+// JSFloat32Array <-> Float32List
 @patch
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
@@ -366,7 +392,8 @@ extension Float32ListToJSFloat32Array on Float32List {
   }
 }
 
-/// [JSFloat64Array] <-> [Float64List]
+// -----------------------------------------------------------------------------
+// JSFloat64Array <-> Float64List
 @patch
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
@@ -385,7 +412,8 @@ extension Float64ListToJSFloat64Array on Float64List {
   }
 }
 
-/// [JSArray] <-> [List]
+// -----------------------------------------------------------------------------
+// JSArray <-> List
 @patch
 extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   @patch
@@ -410,7 +438,8 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
       _underlyingArray ?? _createJSProxyOfList<T>(this);
 }
 
-/// [JSNumber] -> [double] or [int].
+// -----------------------------------------------------------------------------
+// JSNumber -> double or int
 @patch
 extension JSNumberToNumber on JSNumber {
   @patch
@@ -434,7 +463,8 @@ extension DoubleToJSNumber on double {
   JSNumber get toJS => JSNumber._(JSValue(toJSNumber(this)));
 }
 
-/// [JSBoolean] <-> [bool]
+// -----------------------------------------------------------------------------
+// JSBoolean <-> bool
 @patch
 extension JSBooleanToBool on JSBoolean {
   @patch
@@ -447,7 +477,8 @@ extension BoolToJSBoolean on bool {
   JSBoolean get toJS => JSBoolean._(JSValue(toJSBoolean(this)));
 }
 
-/// [JSString] <-> [String]
+// -----------------------------------------------------------------------------
+// JSString <-> String
 @patch
 extension JSStringToString on JSString {
   @patch
@@ -575,12 +606,12 @@ class _Symbol {
 @staticInterop
 class __ListBackedJSArray {}
 
-/// Implementation of indexing, `length`, and core handler methods.
-///
-/// JavaScript's `Array` methods are similar to Dart's `ListMixin`, because they
-/// only rely on the implementation of `length` and indexing methods (and
-/// support for any JS operators like `in` or `delete`).
-/// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#generic_array_methods
+// Implementation of indexing, `length`, and core handler methods.
+//
+// JavaScript's `Array` methods are similar to Dart's `ListMixin`, because they
+// only rely on the implementation of `length` and indexing methods (and
+// support for any JS operators like `in` or `delete`).
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#generic_array_methods
 class _ListBackedJSArray {
   final List<JSAny?> _list;
   // The proxy that wraps this list.

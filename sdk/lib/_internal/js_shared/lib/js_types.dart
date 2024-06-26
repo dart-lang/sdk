@@ -66,7 +66,7 @@ typedef JSBigIntRepType = interceptors.JavaScriptBigInt;
 
 // While this type is not a JS type, it is here for convenience so we don't need
 // to create a new shared library.
-typedef ExternalDartReferenceRepType = Object;
+typedef ExternalDartReferenceRepType<T> = T;
 
 // JSVoid is just a typedef for void.
 typedef JSVoidRepType = void;
