@@ -20,7 +20,7 @@
 #endif
 
 #include "bin/file.h"
-#include "platform/uri.h"
+#include "bin/uri.h"
 
 namespace dart {
 namespace bin {

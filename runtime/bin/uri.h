@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_PLATFORM_URI_H_
-#define RUNTIME_PLATFORM_URI_H_
+#ifndef RUNTIME_BIN_URI_H_
+#define RUNTIME_BIN_URI_H_
 
 #include <memory>
 #include "platform/utils.h"
@@ -33,4 +33,4 @@ CStringUniquePtr ResolveUri(const char* ref_uri, const char* base_uri);
 
 }  // namespace dart
 
-#endif  // RUNTIME_PLATFORM_URI_H_
+#endif  // RUNTIME_BIN_URI_H_
