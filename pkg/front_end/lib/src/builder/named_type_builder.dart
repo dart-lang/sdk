@@ -9,10 +9,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
 
-import '../codes/cfe_codes.dart'
+import '../fasta/messages.dart'
     show
         LocatedMessage,
         Message,
+        ProblemReporting,
         Severity,
         Template,
         messageClassImplementsDeferredClass,
@@ -180,14 +181,15 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
 
   @override
-  void bind(LibraryBuilder libraryBuilder, TypeDeclarationBuilder declaration) {
+  void bind(
+      ProblemReporting problemReporting, TypeDeclarationBuilder declaration) {
     _declaration = declaration.origin;
-    _check(libraryBuilder);
+    _check(problemReporting);
   }
 
   @override
-  void resolveIn(
-      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
+  void resolveIn(Scope scope, int charOffset, Uri fileUri,
+      ProblemReporting problemReporting) {
     if (_declaration != null) return;
     Builder? member;
     String? qualifier = typeName.qualifier;
@@ -201,7 +203,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       member = scope.lookup(typeName.name, typeName.nameOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
-      bind(library, member);
+      bind(problemReporting, member);
     } else {
       Template<Message Function(String name)> template =
           member == null ? templateTypeNotFound : templateNotAType;
@@ -221,16 +223,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         ];
         message = template.withArguments(nameText);
       }
-      library.addProblem(message, nameOffset, nameLength, fileUri,
+      problemReporting.addProblem(message, nameOffset, nameLength, fileUri,
           context: context);
       TypeDeclarationBuilder declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri, nameOffset, nameLength),
           context: context);
-      bind(library, declaration);
+      bind(problemReporting, declaration);
     }
   }
 
-  void _check(LibraryBuilder library) {
+  void _check(ProblemReporting problemReporting) {
     if (_declaration is InvalidTypeDeclarationBuilder) {
       return;
     }
@@ -241,7 +243,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         int nameLength = typeName.nameLength;
         Message message =
             templateTypeArgumentsOnTypeVariable.withArguments(nameText);
-        library.addProblem(message, nameOffset, nameLength, fileUri);
+        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         // TODO(johnniwinther): Should we retain the declaration to support
         //  additional errors?
         _declaration = buildInvalidTypeDeclarationBuilder(
@@ -251,18 +253,19 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         int nameLength = typeName.nameLength;
         Message message = templateTypeArgumentMismatch
             .withArguments(declaration!.typeVariablesCount);
-        library.addProblem(message, nameOffset, nameLength, fileUri);
+        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri!, nameOffset, nameLength));
       }
     }
-    if (_declaration!.isExtension && library is SourceLibraryBuilder) {
+    // TODO(johnniwinther): Remove check for `is SourceLibraryBuilder`.
+    if (_declaration!.isExtension && problemReporting is SourceLibraryBuilder) {
       String nameText = typeName.name;
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;
       // TODO(johnniwinther): Create a custom message.
       Message message = templateNotAType.withArguments(nameText);
-      library.addProblem(message, nameOffset, nameLength, fileUri);
+      problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, nameOffset, nameLength));
     } else if (_declaration is NominalVariableBuilder) {
@@ -277,7 +280,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
             Message message = messageTypeVariableInStaticContext;
-            library.addProblem(message, nameOffset, nameLength, fileUri);
+            problemReporting.addProblem(
+                message, nameOffset, nameLength, fileUri);
             _declaration = buildInvalidTypeDeclarationBuilder(
                 message.withLocation(fileUri!, nameOffset, nameLength));
             return;

@@ -22,6 +22,7 @@ import '../fasta/messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
+        ProblemReporting,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
@@ -109,7 +110,8 @@ sealed class CompilationUnit {
 
 abstract class DillCompilationUnit implements CompilationUnit {}
 
-abstract class SourceCompilationUnit implements CompilationUnit {
+abstract class SourceCompilationUnit
+    implements CompilationUnit, ProblemReporting {
   SourceLibraryBuilder createLibrary();
 
   @override
@@ -481,7 +483,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   int finishDeferredLoadTearoffs();
 }
 
-abstract class LibraryBuilder implements Builder {
+abstract class LibraryBuilder implements Builder, ProblemReporting {
   Scope get scope;
 
   Scope get exportScope;
@@ -548,19 +550,6 @@ abstract class LibraryBuilder implements Builder {
   ///
   /// Duplicates and augmenting members are _not_ included.
   NameIterator<T> fullMemberNameIterator<T extends Builder>();
-
-  /// Add a problem with a severity determined by the severity of the message.
-  ///
-  /// If [fileUri] is null, it defaults to `this.fileUri`.
-  ///
-  /// See `Loader.addMessage` for an explanation of the
-  /// arguments passed to this method.
-  FormattedMessage? addProblem(
-      Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      Severity? severity,
-      bool problemOnLibrary = false});
 
   /// Returns true if the export scope was modified.
   bool addToExportScope(String name, Builder member, [int charOffset = -1]);
