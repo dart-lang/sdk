@@ -156,15 +156,20 @@ void syncTests() {
   expect(confuse(fun) is JSFunction, true);
 
   // [JSExportedDartFunction] <-> [Function]
-  edf = (JSString a, JSString b) {
+  final dartFunction = (JSString a, JSString b) {
     return (a.toDart + b.toDart).toJS;
-  }.toJS;
+  };
+  edf = dartFunction.toJS;
   expect(doFun('foo'.toJS, 'bar'.toJS).toDart, 'foobar');
   expect(
       (edf.toDart as JSString Function(JSString, JSString))(
               'foo'.toJS, 'bar'.toJS)
           .toDart,
       'foobar');
+  Expect.equals(edf.toDart, dartFunction);
+  Expect.isTrue(identical(edf.toDart, dartFunction));
+  // Two wrappers should not be the same.
+  Expect.notEquals(edf, dartFunction.toJS);
   // Converting a non-function should throw.
   Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
 

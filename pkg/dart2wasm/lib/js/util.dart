@@ -16,6 +16,7 @@ class CoreTypesUtil {
   final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
   final Procedure functionToJSTarget;
+  final Procedure greaterThanOrEqualToTarget;
   final Procedure inlineJSTarget;
   final Procedure isDartFunctionWrappedTarget;
   final Procedure jsifyRawTarget;
@@ -33,6 +34,8 @@ class CoreTypesUtil {
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         functionToJSTarget = coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
+        greaterThanOrEqualToTarget =
+            coreTypes.index.getProcedure('dart:core', 'num', '>='),
         inlineJSTarget =
             coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         isDartFunctionWrappedTarget = coreTypes.index
@@ -93,6 +96,17 @@ class CoreTypesUtil {
           VariableDeclaration variable, Constant constant) =>
       StaticInvocation(coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
+
+  Expression variableGreaterThanOrEqualToConstant(
+          VariableDeclaration variable, Constant constant) =>
+      InstanceInvocation(
+        InstanceAccessKind.Instance,
+        VariableGet(variable),
+        greaterThanOrEqualToTarget.name,
+        Arguments([ConstantExpression(constant)]),
+        interfaceTarget: greaterThanOrEqualToTarget,
+        functionType: greaterThanOrEqualToTarget.getterType as FunctionType,
+      );
 
   /// Cast the [invocation] if needed to conform to the expected [returnType].
   Expression castInvocationForReturn(
