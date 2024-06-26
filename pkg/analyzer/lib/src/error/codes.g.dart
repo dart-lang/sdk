@@ -277,6 +277,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "parameters.",
   );
 
+  static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_NAME =
+      CompileTimeErrorCode(
+    'AUGMENTATION_TYPE_PARAMETER_NAME',
+    "The augmentation type parameter must have the same name as the "
+        "corresponding type parameter of the declaration.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration type "
+        "parameters.",
+  );
+
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
       CompileTimeErrorCode(
     'AUGMENTATION_WITHOUT_DECLARATION',

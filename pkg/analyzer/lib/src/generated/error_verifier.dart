@@ -1707,6 +1707,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             for (var index = 0; index < declarationCount; index++) {
               var ofDeclaration = declarationTypeParameters[index];
               var ofAugmentation = typeParameters[index];
+
+              if (ofAugmentation.name.lexeme != ofDeclaration.name) {
+                errorReporter.atToken(
+                  ofAugmentation.name,
+                  CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME,
+                );
+                continue;
+              }
+
               var declarationBound = ofDeclaration.bound;
               var augmentationBound = ofAugmentation.bound;
               switch ((declarationBound, augmentationBound)) {
@@ -1733,7 +1742,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   }
               }
             }
-          // TODO(scheglov): check names
         }
       }
     }
