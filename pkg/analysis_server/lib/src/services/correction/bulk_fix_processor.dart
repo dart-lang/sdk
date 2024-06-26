@@ -7,7 +7,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
@@ -18,6 +17,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -76,7 +76,8 @@ class BulkFixProcessor {
 
   /// A map from an error code to a list of generators used to create multiple
   /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintMultiProducerMap].
+  /// generators used for lint rules are in the
+  /// [FixProcessor.lintMultiProducerMap].
   ///
   /// The expectation is that only one of the correction producers will produce
   /// a change for a given fix. If more than one change is produced the result
