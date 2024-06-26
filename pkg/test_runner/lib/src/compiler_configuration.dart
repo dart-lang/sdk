@@ -606,8 +606,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
       if (isD8) ...[
-        '--shell-option=turboshaft-wasm',
-        '--shell-option=experimental-wasm-imported-strings',
+        '--shell-option=--turboshaft-wasm',
+        '--shell-option=--experimental-wasm-imported-strings',
       ],
       wasmFilename,
       ...testFile.sharedObjects
