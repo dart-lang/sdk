@@ -6153,62 +6153,6 @@ abstract class MacroElementsTest extends MacroElementsBaseTest {
   @override
   bool get retainDataForTesting => true;
 
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/sdk/issues/55931',
-    reason: r'''
-Here we apply `SetExtendsType` first, so `augment class B` is first.
-Then we apply `DeclareType`, so `class C @113` is next.
-But the actual merged code has the different order.
-Note, that the code below has the _expected_ merged code.
-''',
-  )
-  test_addClass_extendsTypeOther() async {
-    var library = await buildLibrary(r'''
-import 'append.dart';
-
-class A {}
-
-@DeclareType('C', 'class C {}')
-@SetExtendsType('{{package:test/test.dart@A}}', [])
-class B {}
-''');
-
-    configuration
-      ..withConstructors = false
-      ..withMetadata = false;
-    checkElementText(library, r'''
-library
-  imports
-    package:test/append.dart
-  definingUnit
-    classes
-      class A @29
-      class B @125
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-        supertype: A
-        augmented
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-augment library 'package:test/test.dart';
-
-import 'package:test/test.dart' as prefix0;
-
-augment class B extends prefix0.A {
-}
-class C {}
----
-      imports
-        package:test/test.dart as prefix0 @78
-      definingUnit
-        classes
-          augment class B @94
-            augmentationTarget: self::@class::B
-          class C @113
-''');
-  }
-
   test_disable_declarationsPhase() async {
     var library = await buildLibrary(r'''
 // @dart = 3.2
@@ -8413,6 +8357,56 @@ library
       mixin M @6
         superclassConstraints
           Object
+''');
+  }
+
+  test_merge_m1_setExtends1_m2_addClass2() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+class A {}
+
+@DeclareType('C', 'class C {}')
+@SetExtendsType('{{package:test/test.dart@A}}', [])
+class B {}
+''');
+
+    // New `class C` is the first.
+    // Augmented `class B` next.
+    // Even if applications have different order.
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/append.dart
+  definingUnit
+    classes
+      class A @29
+      class B @125
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        supertype: A
+        augmented
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+augment library 'package:test/test.dart';
+
+import 'package:test/test.dart' as prefix0;
+
+class C {}
+augment class B extends prefix0.A {
+}
+---
+      imports
+        package:test/test.dart as prefix0 @78
+      definingUnit
+        classes
+          class C @94
+          augment class B @113
+            augmentationTarget: self::@class::B
 ''');
   }
 
