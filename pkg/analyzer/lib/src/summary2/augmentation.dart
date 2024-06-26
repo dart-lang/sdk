@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -238,15 +239,22 @@ abstract class AugmentedInstanceDeclarationBuilder {
     var declaration = augmented.declaration;
     var declarationTypeParameters = declaration.typeParameters;
 
+    MapSubstitution toDeclaration;
     var augmentationTypeParameters = augmentation.typeParameters;
-    if (augmentationTypeParameters.length != declarationTypeParameters.length) {
-      return;
+    if (augmentationTypeParameters.length == declarationTypeParameters.length) {
+      toDeclaration = Substitution.fromPairs(
+        augmentationTypeParameters,
+        declarationTypeParameters.instantiateNone(),
+      );
+    } else {
+      toDeclaration = Substitution.fromPairs(
+        augmentationTypeParameters,
+        List.filled(
+          augmentationTypeParameters.length,
+          InvalidTypeImpl.instance,
+        ),
+      );
     }
-
-    var toDeclaration = Substitution.fromPairs(
-      augmentationTypeParameters,
-      declarationTypeParameters.instantiateNone(),
-    );
 
     if (augmentation is InterfaceElementImpl &&
         declaration is InterfaceElementImpl &&

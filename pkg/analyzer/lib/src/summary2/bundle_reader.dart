@@ -2024,12 +2024,20 @@ class ResolutionReader {
       var augmentationSubstitution = Substitution.empty;
       if (enclosing != declaration) {
         var elementTypeParameters = enclosing.typeParameters;
-        // We don't add augmentation members if numbers of type parameters
-        // don't match, so we can assume that they are the same here.
-        augmentationSubstitution = Substitution.fromPairs(
-          elementTypeParameters,
-          declarationTypeParameters.instantiateNone(),
-        );
+        if (elementTypeParameters.length == declarationTypeParameters.length) {
+          augmentationSubstitution = Substitution.fromPairs(
+            elementTypeParameters,
+            declarationTypeParameters.instantiateNone(),
+          );
+        } else {
+          augmentationSubstitution = Substitution.fromPairs(
+            elementTypeParameters,
+            List.filled(
+              elementTypeParameters.length,
+              InvalidTypeImpl.instance,
+            ),
+          );
+        }
       }
 
       var substitution = Substitution.empty;
