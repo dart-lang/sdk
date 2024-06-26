@@ -5833,7 +5833,6 @@ class FileSystemStateTest with ResourceProviderMixin {
       packages: Packages.empty,
     );
     fileSystemState = FileSystemState(
-      logger,
       byteStore,
       resourceProvider,
       'contextName',

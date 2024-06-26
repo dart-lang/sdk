@@ -107,16 +107,29 @@ class Linker {
     required List<LibraryFileKind> inputLibraries,
     required Map<LibraryFileKind, MacroResultInput> inputMacroResults,
   }) async {
-    for (var inputLibrary in inputLibraries) {
-      var inputMacroResult = inputMacroResults[inputLibrary];
-      LibraryBuilder.build(this, inputLibrary, inputMacroResult);
-    }
+    performance.run('LibraryBuilder.build', (performance) {
+      for (var inputLibrary in inputLibraries) {
+        var inputMacroResult = inputMacroResults[inputLibrary];
+        LibraryBuilder.build(
+          linker: this,
+          inputLibrary: inputLibrary,
+          inputMacroResult: inputMacroResult,
+          performance: performance,
+        );
+      }
+    });
 
-    await _buildOutlines(
-      performance: performance,
-    );
+    await performance.runAsync('buildOutlines', (performance) async {
+      await _buildOutlines(
+        performance: performance,
+      );
+    });
 
-    _writeLibraries();
+    performance.run('writeLibraries', (performance) {
+      _writeLibraries(
+        performance: performance,
+      );
+    });
   }
 
   void _buildClassSyntheticConstructors() {
@@ -462,7 +475,9 @@ class Linker {
     }
   }
 
-  void _writeLibraries() {
+  void _writeLibraries({
+    required OperationPerformanceImpl performance,
+  }) {
     var bundleWriter = BundleWriter(
       elementFactory.dynamicRef,
     );
@@ -473,6 +488,8 @@ class Linker {
 
     var writeWriterResult = bundleWriter.finish();
     resolutionBytes = writeWriterResult.resolutionBytes;
+
+    performance.getDataInt('length').add(resolutionBytes.length);
   }
 }
 

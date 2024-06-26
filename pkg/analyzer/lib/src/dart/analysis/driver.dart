@@ -1593,7 +1593,6 @@ class AnalysisDriver {
     );
 
     _fsState = FileSystemState(
-      _logger,
       _byteStore,
       _resourceProvider,
       name,
