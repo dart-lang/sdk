@@ -146,9 +146,9 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalVariableBuilder variable in typeParameters!) {
-            Variance variance = computeTypeVariableBuilderVariance(
-                    variable, typeBuilder, libraryBuilder)
-                .variance!;
+            Variance variance =
+                computeTypeVariableBuilderVariance(variable, typeBuilder)
+                    .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage =

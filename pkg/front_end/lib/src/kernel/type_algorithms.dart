@@ -12,7 +12,6 @@ import '../base/problems.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
@@ -40,9 +39,7 @@ import '../source/source_type_alias_builder.dart';
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
 VarianceCalculationValue computeTypeVariableBuilderVariance(
-    NominalVariableBuilder variable,
-    TypeBuilder? type,
-    LibraryBuilder libraryBuilder) {
+    NominalVariableBuilder variable, TypeBuilder? type) {
   switch (type) {
     case NamedTypeBuilder(
         :TypeDeclarationBuilder? declaration,
@@ -55,9 +52,9 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
           if (arguments != null) {
             for (int i = 0; i < arguments.length; ++i) {
               result = result.meet(declaration.cls.typeParameters[i].variance
-                  .combine(computeTypeVariableBuilderVariance(
-                          variable, arguments[i], libraryBuilder)
-                      .variance!));
+                  .combine(
+                      computeTypeVariableBuilderVariance(variable, arguments[i])
+                          .variance!));
             }
           }
           return new VarianceCalculationValue.fromVariance(result);
@@ -77,9 +74,7 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
                 declarationTypeVariable.varianceCalculationValue =
                     VarianceCalculationValue.inProgress;
                 Variance computedVariance = computeTypeVariableBuilderVariance(
-                        declarationTypeVariable,
-                        declaration.type,
-                        libraryBuilder)
+                        declarationTypeVariable, declaration.type)
                     .variance!;
 
                 declarationTypeVariable.varianceCalculationValue =
@@ -104,7 +99,7 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
               }
 
               result = result.meet(computeTypeVariableBuilderVariance(
-                      variable, type.typeArguments![i], libraryBuilder)
+                      variable, type.typeArguments![i])
                   .variance!
                   .combine(declarationTypeVariableVariance.variance!));
             }
@@ -116,9 +111,9 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
             for (int i = 0; i < arguments.length; ++i) {
               result = result.meet(declaration
                   .extensionTypeDeclaration.typeParameters[i].variance
-                  .combine(computeTypeVariableBuilderVariance(
-                          variable, arguments[i], libraryBuilder)
-                      .variance!));
+                  .combine(
+                      computeTypeVariableBuilderVariance(variable, arguments[i])
+                          .variance!));
             }
           }
           return new VarianceCalculationValue.fromVariance(result);
@@ -144,9 +139,8 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
       ):
       Variance result = Variance.unrelated;
       if (returnType is! OmittedTypeBuilder) {
-        result = result.meet(computeTypeVariableBuilderVariance(
-                variable, returnType, libraryBuilder)
-            .variance!);
+        result = result.meet(
+            computeTypeVariableBuilderVariance(variable, returnType).variance!);
       }
       if (typeVariables != null) {
         for (StructuralVariableBuilder typeVariable in typeVariables) {
@@ -156,7 +150,7 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
           // if [variable] occurs in the bound.
           if (typeVariable.bound != null &&
               computeTypeVariableBuilderVariance(
-                      variable, typeVariable.bound!, libraryBuilder) !=
+                      variable, typeVariable.bound!) !=
                   VarianceCalculationValue.calculatedUnrelated) {
             result = Variance.invariant;
           }
@@ -165,8 +159,7 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
       if (formals != null) {
         for (ParameterBuilder formal in formals) {
           result = result.meet(Variance.contravariant.combine(
-              computeTypeVariableBuilderVariance(
-                      variable, formal.type, libraryBuilder)
+              computeTypeVariableBuilderVariance(variable, formal.type)
                   .variance!));
         }
       }
@@ -178,16 +171,16 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
       Variance result = Variance.unrelated;
       if (positionalFields != null) {
         for (RecordTypeFieldBuilder field in positionalFields) {
-          result = result.meet(computeTypeVariableBuilderVariance(
-                  variable, field.type, libraryBuilder)
-              .variance!);
+          result = result.meet(
+              computeTypeVariableBuilderVariance(variable, field.type)
+                  .variance!);
         }
       }
       if (namedFields != null) {
         for (RecordTypeFieldBuilder field in namedFields) {
-          result = result.meet(computeTypeVariableBuilderVariance(
-                  variable, field.type, libraryBuilder)
-              .variance!);
+          result = result.meet(
+              computeTypeVariableBuilderVariance(variable, field.type)
+                  .variance!);
         }
       }
       return new VarianceCalculationValue.fromVariance(result);

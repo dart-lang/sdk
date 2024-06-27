@@ -120,9 +120,6 @@ abstract class SourceCompilationUnit
   // TODO(johnniwinther): Remove this.
   SourceLibraryBuilder get sourceLibraryBuilder;
 
-  // TODO(johnniwinther): Remove this.
-  TypeParameterScopeBuilder get libraryTypeParameterScopeBuilder;
-
   abstract OffsetMap offsetMap;
 
   LibraryFeatures get libraryFeatures;
@@ -488,6 +485,19 @@ abstract class SourceCompilationUnit
   void forEachExtensionInScope(void Function(ExtensionBuilder) f);
 
   void clearExtensionsInScopeCache();
+
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass);
+
+  /// Computes variances of type parameters on typedefs.
+  ///
+  /// The variance property of type parameters on typedefs is computed from the
+  /// use of the parameters in the right-hand side of the typedef definition.
+  int computeVariances();
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {

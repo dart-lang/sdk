@@ -956,9 +956,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
       NominalVariableBuilder typeVariableBuilder = typeVariables![i];
-      Variance variance = computeTypeVariableBuilderVariance(
-              typeVariableBuilder, supertype, libraryBuilder)
-          .variance!;
+      Variance variance =
+          computeTypeVariableBuilderVariance(typeVariableBuilder, supertype)
+              .variance!;
       if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
         if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(
