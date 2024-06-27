@@ -830,7 +830,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Allocate and initialize the sentinel values.
   {
     *sentinel_ ^= Sentinel::New();
-    *transition_sentinel_ ^= Sentinel::New();
   }
 
   // Allocate and initialize optimizing compiler constants.
@@ -1316,8 +1315,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(empty_async_exception_handlers_->IsExceptionHandlers());
   ASSERT(!sentinel_->IsSmi());
   ASSERT(sentinel_->IsSentinel());
-  ASSERT(!transition_sentinel_->IsSmi());
-  ASSERT(transition_sentinel_->IsSentinel());
   ASSERT(!unknown_constant_->IsSmi());
   ASSERT(unknown_constant_->IsSentinel());
   ASSERT(!non_constant_->IsSmi());
@@ -12311,7 +12308,6 @@ bool Field::IsUninitialized() const {
   Thread* thread = Thread::Current();
   const FieldTable* field_table = thread->isolate()->field_table();
   const ObjectPtr raw_value = field_table->At(field_id());
-  ASSERT(raw_value != Object::transition_sentinel().ptr());
   return raw_value == Object::sentinel().ptr();
 }
 
@@ -12399,40 +12395,25 @@ ErrorPtr Field::InitializeStatic() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().ptr()) {
+    ASSERT(is_late());
     auto& value = Object::Handle();
-    if (is_late()) {
-      if (!has_initializer()) {
-        Exceptions::ThrowLateFieldNotInitialized(String::Handle(name()));
-        UNREACHABLE();
-      }
-      value = EvaluateInitializer();
-      if (value.IsError()) {
-        return Error::Cast(value).ptr();
-      }
-      if (is_final() && (StaticValue() != Object::sentinel().ptr())) {
-        Exceptions::ThrowLateFieldAssignedDuringInitialization(
-            String::Handle(name()));
-        UNREACHABLE();
-      }
-    } else {
-      SetStaticValue(Object::transition_sentinel());
-      value = EvaluateInitializer();
-      if (value.IsError()) {
-        SetStaticValue(Object::null_instance());
-        return Error::Cast(value).ptr();
-      }
+    if (!has_initializer()) {
+      Exceptions::ThrowLateFieldNotInitialized(String::Handle(name()));
+      UNREACHABLE();
+    }
+    value = EvaluateInitializer();
+    if (value.IsError()) {
+      return Error::Cast(value).ptr();
+    }
+    if (is_final() && (StaticValue() != Object::sentinel().ptr())) {
+      Exceptions::ThrowLateFieldAssignedDuringInitialization(
+          String::Handle(name()));
+      UNREACHABLE();
     }
     ASSERT(value.IsNull() || value.IsInstance());
     SetStaticValue(value.IsNull() ? Instance::null_instance()
                                   : Instance::Cast(value));
     return Error::null();
-  } else if (StaticValue() == Object::transition_sentinel().ptr()) {
-    ASSERT(!is_late());
-    const Array& ctor_args = Array::Handle(Array::New(1));
-    const String& field_name = String::Handle(name());
-    ctor_args.SetAt(0, field_name);
-    Exceptions::ThrowByType(Exceptions::kCyclicInitializationError, ctor_args);
-    UNREACHABLE();
   }
   return Error::null();
 }
@@ -12824,7 +12805,6 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
     bool print_trace /* = false */) {
   ASSERT(!value.IsNull());  // Should be handled by the caller.
   ASSERT(value.ptr() != Object::sentinel().ptr());
-  ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
   Thread* thread = Thread::Current();
   Zone* const zone = thread->zone();
@@ -18754,8 +18734,6 @@ SentinelPtr Sentinel::New() {
 const char* Sentinel::ToCString() const {
   if (ptr() == Object::sentinel().ptr()) {
     return "sentinel";
-  } else if (ptr() == Object::transition_sentinel().ptr()) {
-    return "transition_sentinel";
   } else if (ptr() == Object::unknown_constant().ptr()) {
     return "unknown_constant";
   } else if (ptr() == Object::non_constant().ptr()) {

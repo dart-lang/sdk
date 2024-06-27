@@ -67,7 +67,6 @@ class Exceptions : AllStatic {
     kAssertion,
     kType,
     kAbstractClassInstantiation,
-    kCyclicInitializationError,
     kCompileTimeError,
     kLateFieldAssignedDuringInitialization,
     kLateFieldNotInitialized,

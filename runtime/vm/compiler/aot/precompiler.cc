@@ -1217,8 +1217,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
-  if (instance.ptr() == Object::sentinel().ptr() ||
-      instance.ptr() == Object::transition_sentinel().ptr()) {
+  if (instance.ptr() == Object::sentinel().ptr()) {
     return;
   }
 
@@ -1332,8 +1331,6 @@ void Precompiler::AddField(const Field& field) {
     auto field_table = field.is_shared() ? IG->shared_initial_field_table()
                                          : IG->initial_field_table();
     const Object& value = Object::Handle(Z, field_table->At(field.field_id()));
-    // Should not be in the middle of initialization while precompiling.
-    ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
     if (value.ptr() != Object::sentinel().ptr() &&
         value.ptr() != Object::null()) {

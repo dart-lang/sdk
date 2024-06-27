@@ -1692,8 +1692,6 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
         Write<uint8_t>(0);
-      } else if (x.ptr() == Object::transition_sentinel().ptr()) {
-        Write<uint8_t>(1);
       } else if (x.ptr() == Object::optimized_out().ptr()) {
         Write<uint8_t>(2);
       } else {
@@ -1978,8 +1976,6 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       switch (Read<uint8_t>()) {
         case 0:
           return Object::sentinel();
-        case 1:
-          return Object::transition_sentinel();
         case 2:
           return Object::optimized_out();
         default:

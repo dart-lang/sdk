@@ -2389,7 +2389,7 @@ abstract class SentinelKind {
   /// Indicates that a variable or field has not been initialized.
   static const String kNotInitialized = 'NotInitialized';
 
-  /// Indicates that a variable or field is in the process of being initialized.
+  /// Deprecated, no longer used.
   static const String kBeingInitialized = 'BeingInitialized';
 
   /// Indicates that a variable has been eliminated by the optimizing compiler.
@@ -2513,8 +2513,6 @@ class AllocationProfile extends Response {
 /// If the field is uninitialized, the `value` will be the `NotInitialized`
 /// [Sentinel].
 ///
-/// If the field is being initialized, the `value` will be the
-/// `BeingInitialized` [Sentinel].
 class BoundField {
   static BoundField? parse(Map<String, dynamic>? json) =>
       json == null ? null : BoundField._fromJson(json);
@@ -2566,9 +2564,6 @@ class BoundField {
 ///
 /// If the variable is uninitialized, the `value` will be the `NotInitialized`
 /// [Sentinel].
-///
-/// If the variable is being initialized, the `value` will be the
-/// `BeingInitialized` [Sentinel].
 ///
 /// If the variable has been optimized out by the compiler, the `value` will be
 /// the `OptimizedOut` [Sentinel].

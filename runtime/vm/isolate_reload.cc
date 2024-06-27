@@ -2208,8 +2208,7 @@ class FieldInvalidator {
         // At that point it doesn't have the field table setup yet.
         if (field_table->IsReadyToUse()) {
           value_ = field_table->At(field_id);
-          if ((value_.ptr() != Object::sentinel().ptr()) &&
-              (value_.ptr() != Object::transition_sentinel().ptr())) {
+          if (value_.ptr() != Object::sentinel().ptr()) {
             CheckValueType(value_, field);
           }
         }

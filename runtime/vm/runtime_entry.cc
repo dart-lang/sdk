@@ -3826,8 +3826,7 @@ DEFINE_RUNTIME_ENTRY(InitInstanceField, 2) {
   Object& result = Object::Handle(zone, field.InitializeInstance(instance));
   ThrowIfError(result);
   result = instance.GetField(field);
-  ASSERT((result.ptr() != Object::sentinel().ptr()) &&
-         (result.ptr() != Object::transition_sentinel().ptr()));
+  ASSERT(result.ptr() != Object::sentinel().ptr());
   arguments.SetReturn(result);
 }
 
@@ -3836,8 +3835,7 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   Object& result = Object::Handle(zone, field.InitializeStatic());
   ThrowIfError(result);
   result = field.StaticValue();
-  ASSERT((result.ptr() != Object::sentinel().ptr()) &&
-         (result.ptr() != Object::transition_sentinel().ptr()));
+  ASSERT(result.ptr() != Object::sentinel().ptr());
   arguments.SetReturn(result);
 }
 
