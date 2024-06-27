@@ -1107,5 +1107,6 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.UNUSED_RESULT,
   WarningCode.UNUSED_RESULT_WITH_MESSAGE,
   WarningCode.UNUSED_SHOWN_NAME,
+  WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT,
   WarningCode.invalid_use_of_do_not_submit_member,
 ];
