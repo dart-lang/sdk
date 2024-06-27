@@ -736,7 +736,6 @@ class FileResolver {
       );
 
       fsState = FileSystemState(
-        logger,
         byteStore,
         resourceProvider,
         'contextName',

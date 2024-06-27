@@ -39,7 +39,10 @@ class MacroElementsMerger {
   void perform({
     required void Function() updateConstants,
   }) {
-    _mergeClasses();
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/55931
+    // This is a fix for this specific issue, not a complete implementation.
+    _mergeClasses(isAugmentation: false);
+    _mergeClasses(isAugmentation: true);
     _mergeExtensions();
     _mergeFunctions();
     _mergeUnitPropertyAccessors();
@@ -48,24 +51,28 @@ class MacroElementsMerger {
     _rewriteImportPrefixes();
   }
 
-  void _mergeClasses() {
+  void _mergeClasses({
+    required bool isAugmentation,
+  }) {
     for (var partialUnit in partialUnits) {
       var elementsToAdd = <ClassElementImpl>[];
       for (var element in partialUnit.element.classes) {
-        var reference = element.reference!;
-        var containerRef = element.isAugmentation
-            ? unitReference.getChild('@classAugmentation')
-            : unitReference.getChild('@class');
-        var existingRef = containerRef[element.name];
-        if (existingRef == null) {
-          elementsToAdd.add(element);
-          containerRef.addChildReference(element.name, reference);
-        } else {
-          var existingElement = existingRef.element as ClassElementImpl;
-          if (existingElement.augmentation == element) {
-            existingElement.augmentation = null;
+        if (element.isAugmentation == isAugmentation) {
+          var reference = element.reference!;
+          var containerRef = element.isAugmentation
+              ? unitReference.getChild('@classAugmentation')
+              : unitReference.getChild('@class');
+          var existingRef = containerRef[element.name];
+          if (existingRef == null) {
+            elementsToAdd.add(element);
+            containerRef.addChildReference(element.name, reference);
+          } else {
+            var existingElement = existingRef.element as ClassElementImpl;
+            if (existingElement.augmentation == element) {
+              existingElement.augmentation = null;
+            }
+            _mergeInstanceChildren(existingRef, existingElement, element);
           }
-          _mergeInstanceChildren(existingRef, existingElement, element);
         }
       }
       unitElement.classes = [

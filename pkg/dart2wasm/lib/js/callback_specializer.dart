@@ -33,7 +33,7 @@ class CallbackSpecializer {
       VariableGet v = VariableGet(positionalParameters[i]);
       if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
         expression = _createJSValue(v);
-        if (!callbackParameterType.isPotentiallyNullable) {
+        if (!callbackParameterType.extensionTypeErasure.isPotentiallyNullable) {
           expression = NullCheck(expression);
         }
       } else {

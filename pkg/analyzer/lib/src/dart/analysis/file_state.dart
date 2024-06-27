@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
@@ -779,11 +778,17 @@ class FileState {
       performance: performance,
     ).unit;
 
-    return _fsState._logger.run('Create unlinked for $path', () {
-      var unlinkedUnit = serializeAstUnlinked2(
-        unit,
-        exists: exists,
-        isDartCore: uriStr == 'dart:core',
+    return performance.run('compute', (performance) {
+      var unlinkedUnit = performance.run(
+        'serializeAstUnlinked2',
+        (performance) {
+          return serializeAstUnlinked2(
+            unit,
+            exists: exists,
+            isDartCore: uriStr == 'dart:core',
+            performance: performance,
+          );
+        },
       );
       var definedNames = computeDefinedNames(unit);
       var referencedNames = computeReferencedNames(unit);
@@ -914,6 +919,7 @@ class FileState {
     CompilationUnit unit, {
     required bool exists,
     required bool isDartCore,
+    required OperationPerformanceImpl performance,
   }) {
     UnlinkedLibraryDirective? libraryDirective;
     UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
@@ -1054,12 +1060,15 @@ class FileState {
       }
     }
 
-    var apiSignature = ApiSignature();
-    apiSignature.addBytes(computeUnlinkedApiSignature(unit));
-    apiSignature.addBool(exists);
+    var apiSignature = performance.run('apiSignature', (performance) {
+      var signatureBuilder = ApiSignature();
+      signatureBuilder.addBytes(computeUnlinkedApiSignature(unit));
+      signatureBuilder.addBool(exists);
+      return signatureBuilder.toByteList();
+    });
 
     return UnlinkedUnit(
-      apiSignature: apiSignature.toByteList(),
+      apiSignature: apiSignature,
       augmentations: augmentations.toFixedList(),
       exports: exports.toFixedList(),
       imports: imports.toFixedList(),
@@ -1183,7 +1192,6 @@ class FileStateTestView {
 
 /// Information about known file system state.
 class FileSystemState {
-  final PerformanceLog _logger;
   final ResourceProvider resourceProvider;
   final String contextName;
   final ByteStore _byteStore;
@@ -1244,6 +1252,14 @@ class FileSystemState {
   /// Used for looking up options to associate with created file states.
   final AnalysisOptionsMap _analysisOptionsMap;
 
+  /// The default performance for [_newFile].
+  ///
+  /// [_newFile] does expensive work, so it is important to see which
+  /// operations it does, and how long they take. But it can be reached
+  /// through getters, which we would like to keep getters. So, instead we
+  /// store here the instance to attach [_newFile] operations.
+  OperationPerformanceImpl? newFileOperationPerformance;
+
   /// We cache results of parsing [FileState]s because they might be useful
   /// in the process of a single analysis operation. But after that, even
   /// if these results are still valid, they are often never used again. So,
@@ -1251,7 +1267,6 @@ class FileSystemState {
   ParsedFileStateCache parsedFileStateCache = ParsedFileStateCache();
 
   FileSystemState(
-    this._logger,
     this._byteStore,
     this.resourceProvider,
     this.contextName,
@@ -1577,6 +1592,7 @@ class FileSystemState {
     knownFiles.add(file);
     fileStamp++;
 
+    performance ??= newFileOperationPerformance;
     performance ??= OperationPerformanceImpl('<root>');
     performance.run('fileState.refresh', (performance) {
       file.refresh(

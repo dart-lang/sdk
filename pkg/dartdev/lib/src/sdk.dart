@@ -136,7 +136,7 @@ class Sdk {
       );
 
   static bool checkArtifactExists(String path, {bool logError = true}) {
-    if (!File(path).existsSync()) {
+    if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound) {
       if (logError) {
         log.stderr(
           'Could not find $path. Have you built the full Dart SDK?',
@@ -156,7 +156,9 @@ class Sdk {
       var sdkPath = path.absolute(path.dirname(path.dirname(executablePath)));
       var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
       var runFromBuildRoot = false;
-      if (!Directory(snapshotsDir).existsSync()) {
+      final type = FileSystemEntity.typeSync(snapshotsDir);
+      if (type != FileSystemEntityType.directory &&
+          type != FileSystemEntityType.link) {
         // This is the less common case where the user is in
         // the checked out Dart SDK, and is executing `dart` via:
         // ./out/ReleaseX64/dart ... or in google3.
@@ -169,8 +171,10 @@ class Sdk {
       // the SDK snapshots with this SDK path. This is meant to handle
       // non-standard SDK layouts that can involve symlinks (e.g., Brew
       // installations, google3 tests, etc).
-      if (!File(path.join(snapshotsDir, 'dartdev.dart.snapshot'))
-          .existsSync()) {
+      if (!checkArtifactExists(
+        path.join(snapshotsDir, 'dartdev.dart.snapshot'),
+        logError: false,
+      )) {
         return null;
       }
       return (sdkPath, runFromBuildRoot);

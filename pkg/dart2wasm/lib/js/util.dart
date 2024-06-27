@@ -70,7 +70,7 @@ class CoreTypesUtil {
   Procedure jsifyTarget(DartType type) =>
       isJSValueType(type) ? jsValueUnboxTarget : jsifyRawTarget;
 
-  /// Return whether [type] erases to a `JSValue`.
+  /// Whether [type] erases to a `JSValue` or `JSValue?`.
   bool isJSValueType(DartType type) =>
       _extensionIndex.isStaticInteropType(type) ||
       _extensionIndex.isExternalDartReferenceType(type);
@@ -112,7 +112,7 @@ class CoreTypesUtil {
         // there are static interop types that are not boxed as JSValue, we
         // might need a proper cast then.
         expression = invokeOneArg(jsValueBoxTarget, invocation);
-        if (returnType.isPotentiallyNonNullable) {
+        if (returnType.extensionTypeErasure.isPotentiallyNonNullable) {
           expression = NullCheck(expression);
         }
       } else {

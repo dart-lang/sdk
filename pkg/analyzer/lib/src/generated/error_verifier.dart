@@ -1704,7 +1704,44 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
             );
           default:
-          // TODO(scheglov): check names and bounds
+            for (var index = 0; index < declarationCount; index++) {
+              var ofDeclaration = declarationTypeParameters[index];
+              var ofAugmentation = typeParameters[index];
+
+              if (ofAugmentation.name.lexeme != ofDeclaration.name) {
+                errorReporter.atToken(
+                  ofAugmentation.name,
+                  CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME,
+                );
+                continue;
+              }
+
+              var declarationBound = ofDeclaration.bound;
+              var augmentationBound = ofAugmentation.bound;
+              switch ((declarationBound, augmentationBound)) {
+                case (null, var augmentationBound?):
+                  errorReporter.atNode(
+                    augmentationBound,
+                    CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
+                  );
+                case (_?, null):
+                  errorReporter.atToken(
+                    ofAugmentation.name,
+                    CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
+                  );
+                case (var declarationBound?, var augmentationBound?):
+                  var augmentationType = augmentationBound.typeOrThrow;
+                  if (!typeSystem.isEqualTo(
+                    declarationBound,
+                    augmentationType,
+                  )) {
+                    errorReporter.atNode(
+                      augmentationBound,
+                      CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
+                    );
+                  }
+              }
+            }
         }
       }
     }

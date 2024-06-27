@@ -57,9 +57,18 @@
   of a `String` to support other JS values as well, like `TrustedScriptURL`s.
 - **Breaking Change** [#55267][]: `isTruthy` and `not` now return `JSBoolean`
   instead of `bool` to be consistent with the other operators.
+- **Breaking Change** `ExternalDartReference` no longer implements `Object`.
+  `ExternalDartReference` now accepts a type parameter `T` with a bound of
+  `Object?` to capture the type of the Dart object that is externalized.
+  `ExternalDartReferenceToObject.toDartObject` now returns a `T`.
+  `ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
+  extensions on `T` and `ExternalDartReference<T>`, respectively, where `T
+  extends Object?`. See [#55342][] and [#55536][] for more details.
 
 [#55508]: https://github.com/dart-lang/sdk/issues/55508
 [#55267]: https://github.com/dart-lang/sdk/issues/55267
+[#55342]: https://github.com/dart-lang/sdk/issues/55342
+[#55536]: https://github.com/dart-lang/sdk/issues/55536
 
 ### Tools
 

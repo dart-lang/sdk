@@ -1276,11 +1276,12 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
-  static void build(
-    Linker linker,
-    LibraryFileKind inputLibrary,
-    MacroResultInput? inputMacroResult,
-  ) {
+  static void build({
+    required Linker linker,
+    required LibraryFileKind inputLibrary,
+    required MacroResultInput? inputMacroResult,
+    required OperationPerformanceImpl performance,
+  }) {
     var elementFactory = linker.elementFactory;
     var rootReference = linker.rootReference;
 
@@ -1288,9 +1289,11 @@ class LibraryBuilder with MacroApplicationsContainer {
     var libraryUriStr = libraryFile.uriStr;
     var libraryReference = rootReference.getChild(libraryUriStr);
 
-    var libraryUnitNode = libraryFile.parse(
-      performance: OperationPerformanceImpl('<root>'),
-    );
+    var libraryUnitNode = performance.run('libraryFile', (performance) {
+      return libraryFile.parse(
+        performance: performance,
+      );
+    });
 
     var name = '';
     var nameOffset = -1;
