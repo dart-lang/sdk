@@ -28,7 +28,7 @@ import '../codes/cfe_codes.dart'
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 import '../kernel/utils.dart';
-import '../fasta/problems.dart';
+import '../base/problems.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';

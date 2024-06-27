@@ -16,7 +16,7 @@ import 'package:front_end/src/source/source_constructor_builder.dart';
 import 'package:front_end/src/source/source_factory_builder.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/source/source_procedure_builder.dart';
-import 'package:front_end/src/fasta/scope.dart';
+import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';

@@ -21,9 +21,9 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' as analyzer
 import 'package:front_end/src/base/instrumentation.dart'
     show Instrumentation, InstrumentationValue;
 
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/messages.dart'
+import 'package:front_end/src/base/messages.dart'
     show noLength, templateUnspecified;
 
 /// Implementation of [Instrumentation] which checks property/value pairs

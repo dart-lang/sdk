@@ -14,15 +14,15 @@ import 'package:kernel/kernel.dart'
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import '../fasta/compiler_context.dart' show CompilerContext;
+import '../base/compiler_context.dart' show CompilerContext;
 
-import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
+import '../base/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../fasta/incremental_serializer.dart' show IncrementalSerializer;
+import '../base/incremental_serializer.dart' show IncrementalSerializer;
 
 import 'compiler_options.dart' show CompilerOptions;
 
-export '../fasta/incremental_serializer.dart' show IncrementalSerializer;
+export '../base/incremental_serializer.dart' show IncrementalSerializer;
 
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(

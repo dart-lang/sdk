@@ -14,8 +14,8 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
-import '../fasta/modifier.dart';
-import '../fasta/problems.dart' show unsupported;
+import '../base/modifier.dart';
+import '../base/problems.dart' show unsupported;
 import 'source_library_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;

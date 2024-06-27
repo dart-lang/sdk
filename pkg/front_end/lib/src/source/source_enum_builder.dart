@@ -41,7 +41,7 @@ import '../codes/cfe_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumContainsRestrictedInstanceDeclaration,
         templateEnumConstantSameNameAsEnclosing;
-import '../fasta/constant_context.dart';
+import '../base/constant_context.dart';
 import '../kernel/body_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';
@@ -49,8 +49,8 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../fasta/modifier.dart' show constMask, hasInitializerMask, staticMask;
-import '../fasta/scope.dart';
+import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
+import '../base/scope.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';

@@ -18,7 +18,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import '../fasta/compiler_context.dart' show CompilerContext;
+import '../base/compiler_context.dart' show CompilerContext;
 
 import '../kernel_generator_impl.dart'
     show generateKernel, generateKernelInternal;

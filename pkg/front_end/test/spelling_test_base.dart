@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
-import 'package:front_end/src/fasta/command_line_reporting.dart'
+import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 
 import 'package:kernel/kernel.dart' show Location, Source;

@@ -12,12 +12,12 @@ import 'package:kernel/ast.dart'
     show AsyncMarker, Class, Library, ProcedureKind, Reference;
 
 import '../api_prototype/experimental_flags.dart';
-import '../fasta/combinator.dart' show CombinatorBuilder;
-import '../fasta/configuration.dart';
-import '../fasta/export.dart' show Export;
-import '../fasta/identifiers.dart';
-import '../fasta/loader.dart' show Loader;
-import '../fasta/messages.dart'
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/configuration.dart';
+import '../base/export.dart' show Export;
+import '../base/identifiers.dart';
+import '../base/loader.dart' show Loader;
+import '../base/messages.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -26,8 +26,8 @@ import '../fasta/messages.dart'
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
-import '../fasta/problems.dart' show internalProblem;
-import '../fasta/scope.dart';
+import '../base/problems.dart' show internalProblem;
+import '../base/scope.dart';
 import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/source_class_builder.dart';

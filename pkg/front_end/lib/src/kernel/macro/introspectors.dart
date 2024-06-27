@@ -20,7 +20,7 @@ import '../../source/source_factory_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_procedure_builder.dart';
-import '../../fasta/uri_offset.dart';
+import '../../base/uri_offset.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 import 'types.dart';

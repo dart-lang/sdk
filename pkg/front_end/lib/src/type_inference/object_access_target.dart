@@ -8,7 +8,7 @@ import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import '../builder/member_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
-import '../fasta/problems.dart' show unexpected;
+import '../base/problems.dart' show unexpected;
 import 'inference_visitor_base.dart';
 import 'type_schema_environment.dart';
 

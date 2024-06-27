@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../../builder/declaration_builders.dart';
-import '../../fasta/messages.dart'
+import '../../base/messages.dart'
     show
         LocatedMessage,
         messageDeclaredMemberConflictsWithInheritedMembersCause,

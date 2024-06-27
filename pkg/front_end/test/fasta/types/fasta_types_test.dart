@@ -23,7 +23,7 @@ import "package:front_end/src/base/processed_options.dart"
 
 import "package:front_end/src/builder/declaration_builders.dart";
 
-import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
+import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
 
 import "package:front_end/src/dill/dill_loader.dart" show DillLoader;
 
@@ -32,7 +32,7 @@ import "package:front_end/src/dill/dill_target.dart" show DillTarget;
 import "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart"
     show ClassHierarchyBuilder;
 
-import "package:front_end/src/fasta/ticker.dart" show Ticker;
+import "package:front_end/src/base/ticker.dart" show Ticker;
 
 import 'kernel_type_parser_test.dart' show parseSdk;
 

@@ -20,9 +20,9 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
 
-import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
+import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
 
-import "package:front_end/src/fasta/messages.dart"
+import "package:front_end/src/base/messages.dart"
     show Code, codeObjectExtends, codeObjectImplements, codeObjectMixesIn;
 
 import "package:front_end/src/source/source_loader.dart"

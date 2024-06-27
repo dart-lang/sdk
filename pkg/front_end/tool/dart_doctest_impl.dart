@@ -27,21 +27,21 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
-import 'package:front_end/src/fasta/combinator.dart';
-import 'package:front_end/src/fasta/command_line_reporting.dart'
+import 'package:front_end/src/base/combinator.dart';
+import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
-import 'package:front_end/src/fasta/compiler_context.dart';
+import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_target.dart';
-import 'package:front_end/src/fasta/hybrid_file_system.dart';
-import 'package:front_end/src/fasta/incremental_compiler.dart';
+import 'package:front_end/src/base/hybrid_file_system.dart';
+import 'package:front_end/src/base/incremental_compiler.dart';
 import 'package:front_end/src/kernel/utils.dart';
-import 'package:front_end/src/fasta/scope.dart';
+import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_loader.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/base/uri_translator.dart';
 import 'package:kernel/kernel.dart' as kernel
     show Combinator, Component, LibraryDependency, Location, Source;
 import 'package:kernel/reference_from_index.dart';

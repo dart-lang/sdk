@@ -14,7 +14,7 @@ import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../fasta/uris.dart';
+import '../../base/uris.dart';
 import 'introspectors.dart';
 
 abstract class IdentifierImpl extends macro.IdentifierImpl {

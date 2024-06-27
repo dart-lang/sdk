@@ -23,18 +23,18 @@ import 'base/instrumentation.dart';
 import 'base/nnbd_mode.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
 import 'codes/cfe_codes.dart' show LocatedMessage;
-import 'fasta/compiler_context.dart' show CompilerContext;
-import 'fasta/crash.dart' show withCrashReporting;
+import 'base/compiler_context.dart' show CompilerContext;
+import 'base/crash.dart' show withCrashReporting;
 import 'dill/dill_target.dart' show DillTarget;
-import 'fasta/hybrid_file_system.dart';
+import 'base/hybrid_file_system.dart';
 import 'kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import 'kernel/macro/macro.dart';
 import 'kernel/utils.dart' show printComponentText, serializeComponent;
 import 'kernel/verifier.dart' show verifyComponent;
 import 'source/source_loader.dart' show SourceLoader;
-import 'fasta/uri_offset.dart';
-import 'fasta/uri_translator.dart' show UriTranslator;
+import 'base/uri_offset.dart';
+import 'base/uri_translator.dart' show UriTranslator;
 import 'macros/macro_target.dart'
     show MacroConfiguration, computeMacroConfiguration;
 

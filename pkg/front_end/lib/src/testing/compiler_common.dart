@@ -21,7 +21,7 @@ import '../api_prototype/memory_file_system.dart'
 import '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
+import '../base/hybrid_file_system.dart' show HybridFileSystem;
 
 /// Generate kernel for a script.
 ///

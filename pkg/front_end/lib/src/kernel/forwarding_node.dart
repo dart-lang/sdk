@@ -12,7 +12,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/declaration_builders.dart';
 
-import "../fasta/problems.dart" show unhandled;
+import "../base/problems.dart" show unhandled;
 
 import '../source/source_library_builder.dart';
 import 'hierarchy/class_member.dart';

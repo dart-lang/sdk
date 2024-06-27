@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:front_end/src/fasta/uri_offset.dart';
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:macros/macros.dart' as macro;

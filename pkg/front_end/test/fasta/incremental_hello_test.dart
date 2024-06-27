@@ -26,9 +26,9 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/incremental_compiler.dart'
+import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
 
 void diagnosticMessageHandler(DiagnosticMessage message) {

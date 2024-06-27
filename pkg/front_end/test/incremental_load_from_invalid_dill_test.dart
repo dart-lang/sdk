@@ -28,8 +28,8 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         codeInitializeFromDillNotSelfContainedNoDump,
         codeInitializeFromDillUnknownProblem,
         codeInitializeFromDillUnknownProblemNoDump;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler, RecorderForTesting;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/kernel.dart'

@@ -8,7 +8,7 @@ import 'dart:io' as io;
 
 import 'file_system.dart';
 
-import '../fasta/compiler_context.dart' show CompilerContext;
+import '../base/compiler_context.dart' show CompilerContext;
 
 /// Concrete implementation of [FileSystem] handling standard URI schemes.
 ///

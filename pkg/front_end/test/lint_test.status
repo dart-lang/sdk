@@ -13,8 +13,8 @@ front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail
 front_end/lib/src/api_prototype/static_weak_references/Exports: Fail
 front_end/lib/src/api_prototype/terminal_color_support/Exports: Fail
 front_end/lib/src/api_prototype/try_constant_evaluator/Exports: Fail
+front_end/lib/src/base/messages/Exports: Fail
 front_end/lib/src/codes/cfe_codes/Exports: Fail
-front_end/lib/src/fasta/messages/Exports: Fail
 front_end/lib/src/testing/id_testing_helper/Exports: Fail
 kernel/lib/ast/Exports: Fail
 kernel/lib/kernel/Exports: Fail

@@ -11,7 +11,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/problems.dart' show unimplemented;
+import '../base/problems.dart' show unimplemented;
 import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 

@@ -97,8 +97,8 @@ export '../codes/cfe_codes.dart'
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;
-export '../fasta/compiler_context.dart' show CompilerContext;
-export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
+export '../base/compiler_context.dart' show CompilerContext;
+export '../base/hybrid_file_system.dart' show HybridFileSystem;
 export '../kernel/utils.dart'
     show
         createExpressionEvaluationComponent,

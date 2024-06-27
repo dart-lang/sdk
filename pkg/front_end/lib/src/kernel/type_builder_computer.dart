@@ -25,8 +25,8 @@ import '../builder/void_type_declaration_builder.dart';
 
 import '../kernel/utils.dart';
 
-import '../fasta/loader.dart' show Loader;
-import '../fasta/uris.dart' show missingUri;
+import '../base/loader.dart' show Loader;
+import '../base/uris.dart' show missingUri;
 
 class TypeBuilderComputer {
   final _TypeBuilderComputerHelper _typeBuilderComputerHelper;

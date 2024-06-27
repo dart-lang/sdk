@@ -5,9 +5,9 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../fasta/messages.dart';
-import '../fasta/problems.dart';
-import '../fasta/scope.dart';
+import '../base/messages.dart';
+import '../base/problems.dart';
+import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'field_builder.dart';

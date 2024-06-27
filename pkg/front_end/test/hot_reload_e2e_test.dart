@@ -35,7 +35,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/hybrid_file_system.dart'
+import 'package:front_end/src/base/hybrid_file_system.dart'
     show HybridFileSystem;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/modular/target/vm.dart';

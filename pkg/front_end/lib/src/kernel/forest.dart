@@ -7,7 +7,7 @@ library fasta.fangorn;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../fasta/problems.dart' show unsupported;
+import '../base/problems.dart' show unsupported;
 
 import '../type_inference/type_schema.dart';
 

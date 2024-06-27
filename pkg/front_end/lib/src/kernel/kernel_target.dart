@@ -32,12 +32,12 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/compiler_context.dart' show CompilerContext;
-import '../fasta/crash.dart' show withCrashReporting;
+import '../base/compiler_context.dart' show CompilerContext;
+import '../base/crash.dart' show withCrashReporting;
 import '../dill/dill_target.dart' show DillTarget;
 import 'constructor_tearoff_lowering.dart';
-import '../fasta/loader.dart' show Loader;
-import '../fasta/messages.dart'
+import '../base/loader.dart' show Loader;
+import '../base/messages.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -54,8 +54,8 @@ import '../fasta/messages.dart'
         templateFinalFieldNotInitializedByConstructor,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
-import '../fasta/problems.dart' show unhandled;
-import '../fasta/scope.dart' show AmbiguousBuilder;
+import '../base/problems.dart' show unhandled;
+import '../base/scope.dart' show AmbiguousBuilder;
 import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
 import '../source/name_scheme.dart';
@@ -65,9 +65,9 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
-import '../fasta/ticker.dart' show Ticker;
+import '../base/ticker.dart' show Ticker;
 import '../type_inference/type_schema.dart';
-import '../fasta/uri_translator.dart' show UriTranslator;
+import '../base/uri_translator.dart' show UriTranslator;
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'constant_evaluator.dart' as constants
     show

@@ -38,11 +38,11 @@ export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
-export '../fasta/compiler_context.dart' show CompilerContext;
-export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
+export '../base/compiler_context.dart' show CompilerContext;
+export '../base/hybrid_file_system.dart' show HybridFileSystem;
+export '../base/incremental_compiler.dart' show IncrementalCompiler;
 export '../kernel/constructor_tearoff_lowering.dart' show isTearOffLowering;
-export '../fasta/ticker.dart' show Ticker;
+export '../base/ticker.dart' show Ticker;
 export '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
 export 'compiler_state.dart'

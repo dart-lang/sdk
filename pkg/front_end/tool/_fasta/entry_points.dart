@@ -19,9 +19,9 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show codeInternalProblemVerificationError;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/get_dependencies.dart' show getDependencies;
+import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;

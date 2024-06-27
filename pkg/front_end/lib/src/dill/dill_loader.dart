@@ -15,10 +15,10 @@ import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
-import '../fasta/crash.dart' show firstSourceUri;
+import '../base/crash.dart' show firstSourceUri;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
-import '../fasta/loader.dart';
-import '../fasta/messages.dart'
+import '../base/loader.dart';
+import '../base/messages.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -28,10 +28,10 @@ import '../fasta/messages.dart'
         Template,
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity;
-import '../fasta/problems.dart' show internalProblem;
+import '../base/problems.dart' show internalProblem;
 import '../source/source_loader.dart' show SourceLoader;
-import '../fasta/ticker.dart' show Ticker;
-import '../fasta/uris.dart';
+import '../base/ticker.dart' show Ticker;
+import '../base/uris.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_target.dart' show DillTarget;
 

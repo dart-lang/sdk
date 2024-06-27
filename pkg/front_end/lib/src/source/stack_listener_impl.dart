@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../codes/cfe_codes.dart';
-import '../fasta/problems.dart' as problems show internalProblem, unhandled;
+import '../base/problems.dart' as problems show internalProblem, unhandled;
 
 abstract class StackListenerImpl extends StackListener {
   LibraryFeatures get libraryFeatures;

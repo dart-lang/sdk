@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../fasta/problems.dart';
+import '../base/problems.dart';
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';

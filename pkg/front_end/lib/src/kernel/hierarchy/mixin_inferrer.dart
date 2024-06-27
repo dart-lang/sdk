@@ -11,9 +11,9 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/src/bounds_checks.dart';
 
 import '../../builder/declaration_builders.dart';
-import '../../fasta/messages.dart'
+import '../../base/messages.dart'
     show Message, templateMixinInferenceNoMatchingClass;
-import '../../fasta/problems.dart' show unexpected, unsupported;
+import '../../base/problems.dart' show unexpected, unsupported;
 import '../../type_inference/type_schema.dart';
 
 class BuilderMixinInferrer {

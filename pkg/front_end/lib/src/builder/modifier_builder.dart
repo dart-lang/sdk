@@ -4,7 +4,7 @@
 
 library fasta.modifier_builder;
 
-import '../fasta/modifier.dart';
+import '../base/modifier.dart';
 
 import 'builder.dart';
 

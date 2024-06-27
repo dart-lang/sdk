@@ -27,7 +27,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
     as shared;
 
 import '../builder/declaration_builders.dart';
-import '../fasta/problems.dart' show unsupported;
+import '../base/problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart' show UnknownType;

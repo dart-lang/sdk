@@ -10,7 +10,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/library_builder.dart';
-import '../fasta/messages.dart';
+import '../base/messages.dart';
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.

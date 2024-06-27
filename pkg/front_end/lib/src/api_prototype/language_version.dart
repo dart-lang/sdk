@@ -15,9 +15,9 @@ import 'package:package_config/package_config.dart'
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import '../fasta/compiler_context.dart' show CompilerContext;
+import '../base/compiler_context.dart' show CompilerContext;
 
-import '../fasta/uri_translator.dart' show UriTranslator;
+import '../base/uri_translator.dart' show UriTranslator;
 
 import 'compiler_options.dart' show CompilerOptions;
 

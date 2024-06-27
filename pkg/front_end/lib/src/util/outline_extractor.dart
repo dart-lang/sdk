@@ -10,8 +10,8 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/base/compiler_context.dart';
+import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/util/parser_ast_helper.dart';
 import 'package:front_end/src/util/textual_outline.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';

@@ -17,12 +17,12 @@ import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_extension_type_member_builder.dart';
 import '../dill/dill_member_builder.dart';
-import '../fasta/identifiers.dart';
+import '../base/identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
-import '../fasta/messages.dart'
+import '../base/messages.dart'
     show
         messageConstFactoryRedirectionToNonConst,
         noLength,
@@ -30,8 +30,8 @@ import '../fasta/messages.dart'
         templateIncompatibleRedirecteeFunctionType,
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateTypeArgumentMismatch;
-import '../fasta/problems.dart' show unexpected, unhandled;
-import '../fasta/scope.dart';
+import '../base/problems.dart' show unexpected, unhandled;
+import '../base/scope.dart';
 import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';

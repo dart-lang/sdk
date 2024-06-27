@@ -26,16 +26,16 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart'
     show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
-import '../fasta/constant_context.dart' show ConstantContext;
-import '../fasta/crash.dart' show Crash;
-import '../fasta/identifiers.dart'
+import '../base/constant_context.dart' show ConstantContext;
+import '../base/crash.dart' show Crash;
+import '../base/identifiers.dart'
     show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
-import '../fasta/ignored_parser_errors.dart' show isIgnoredParserError;
+import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 import '../kernel/body_builder_context.dart';
-import '../fasta/problems.dart' show DebugAbort;
-import '../fasta/scope.dart';
+import '../base/problems.dart' show DebugAbort;
+import '../base/scope.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting, TypeInferenceEngine;

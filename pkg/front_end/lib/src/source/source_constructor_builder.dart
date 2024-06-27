@@ -16,9 +16,9 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/constant_context.dart' show ConstantContext;
+import '../base/constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
-import '../fasta/identifiers.dart';
+import '../base/identifiers.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -31,7 +31,7 @@ import '../kernel/kernel_helper.dart'
         TypeDependency,
         finishConstructorAugmentation,
         finishProcedureAugmentation;
-import '../fasta/messages.dart'
+import '../base/messages.dart'
     show
         LocatedMessage,
         Message,
@@ -41,7 +41,7 @@ import '../fasta/messages.dart'
         messageRedirectingConstructorWithSuperInitializer,
         messageSuperInitializerNotLast,
         noLength;
-import '../fasta/scope.dart';
+import '../base/scope.dart';
 import 'source_class_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;

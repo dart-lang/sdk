@@ -8,7 +8,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/scope.dart';
+import '../base/scope.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
 import 'dill_builder_mixins.dart';

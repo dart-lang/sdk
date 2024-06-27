@@ -42,12 +42,12 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
-import '../fasta/combinator.dart' show CombinatorBuilder;
-import '../fasta/configuration.dart' show Configuration;
-import '../fasta/identifiers.dart'
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/configuration.dart' show Configuration;
+import '../base/identifiers.dart'
     show Identifier, OperatorIdentifier, SimpleIdentifier, flattenName;
-import '../fasta/ignored_parser_errors.dart' show isIgnoredParserError;
-import '../fasta/modifier.dart'
+import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
+import '../base/modifier.dart'
     show
         Augment,
         Const,
@@ -67,9 +67,9 @@ import '../fasta/modifier.dart'
         mixinDeclarationMask,
         requiredMask,
         staticMask;
-import '../fasta/operator.dart' show Operator;
-import '../fasta/problems.dart' show unhandled;
-import '../fasta/uris.dart';
+import '../base/operator.dart' show Operator;
+import '../base/problems.dart' show unhandled;
+import '../base/uris.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import 'offset_map.dart';

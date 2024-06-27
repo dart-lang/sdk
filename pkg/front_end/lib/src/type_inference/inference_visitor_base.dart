@@ -38,7 +38,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
-import '../fasta/problems.dart' show internalProblem, unhandled;
+import '../base/problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'

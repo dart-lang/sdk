@@ -10,7 +10,7 @@ library;
 
 import 'package:kernel/ast.dart';
 
-import '../fasta/messages.dart'
+import '../base/messages.dart'
     show
         messageResourceIdentifiersNotStatic,
         messageResourceIdentifiersMultiple;

@@ -27,7 +27,7 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../base/nnbd_mode.dart' show NnbdMode;
 
-import '../fasta/compiler_context.dart' show CompilerContext;
+import '../base/compiler_context.dart' show CompilerContext;
 
 import '../kernel_generator_impl.dart' show generateKernelInternal;
 
@@ -121,7 +121,7 @@ export '../base/nnbd_mode.dart' show NnbdMode;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-export '../fasta/operator.dart' show Operator;
+export '../base/operator.dart' show Operator;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 

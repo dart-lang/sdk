@@ -23,9 +23,9 @@ import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/combinator.dart';
-import '../fasta/configuration.dart';
-import '../fasta/identifiers.dart';
+import '../base/combinator.dart';
+import '../base/configuration.dart';
+import '../base/identifiers.dart';
 import '../source/source_library_builder.dart';
 import 'body_builder.dart';
 

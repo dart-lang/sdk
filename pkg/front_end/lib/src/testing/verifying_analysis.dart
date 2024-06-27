@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
 import 'package:kernel/ast.dart';
 
 import '../codes/cfe_codes.dart';
-import '../fasta/command_line_reporting.dart';
+import '../base/command_line_reporting.dart';
 import 'analysis_helper.dart';
 
 /// [AnalysisVisitor] that supports tracking error/problem occurrences in an

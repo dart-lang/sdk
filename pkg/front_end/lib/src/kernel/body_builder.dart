@@ -72,19 +72,19 @@ import '../codes/cfe_codes.dart'
         templateLocalVariableUsedBeforeDeclared,
         templateLocalVariableUsedBeforeDeclaredContext;
 import '../codes/cfe_codes.dart' as fasta;
-import '../fasta/constant_context.dart' show ConstantContext;
+import '../base/constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-import '../fasta/identifiers.dart'
+import '../base/identifiers.dart'
     show
         Identifier,
         InitializedIdentifier,
         QualifiedName,
         SimpleIdentifier,
         flattenName;
-import '../fasta/modifier.dart'
+import '../base/modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
-import '../fasta/problems.dart' show internalProblem, unhandled, unsupported;
-import '../fasta/scope.dart';
+import '../base/problems.dart' show internalProblem, unhandled, unsupported;
+import '../base/scope.dart';
 import '../source/diet_parser.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';

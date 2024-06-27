@@ -10,7 +10,7 @@ import 'package:kernel/clone.dart';
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
-import '../fasta/scope.dart' show Scope;
+import '../base/scope.dart' show Scope;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class MetadataBuilder {

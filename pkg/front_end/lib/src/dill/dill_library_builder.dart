@@ -6,8 +6,8 @@ library fasta.dill_library_builder;
 
 import 'dart:convert' show jsonDecode;
 
-import 'package:front_end/src/fasta/combinator.dart';
-import 'package:front_end/src/fasta/loader.dart';
+import 'package:front_end/src/base/combinator.dart';
+import 'package:front_end/src/base/loader.dart';
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
@@ -25,12 +25,12 @@ import '../codes/cfe_codes.dart'
         noLength,
         templateDuplicatedDeclaration,
         templateUnspecified;
-import '../fasta/export.dart';
+import '../base/export.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
-import '../fasta/problems.dart' show internalProblem, unhandled;
-import '../fasta/scope.dart';
-import '../fasta/uris.dart';
+import '../base/problems.dart' show internalProblem, unhandled;
+import '../base/scope.dart';
+import '../base/uris.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
 import 'dill_extension_type_declaration_builder.dart';

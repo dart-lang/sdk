@@ -17,14 +17,14 @@ import '../api_prototype/experimental_flags.dart'
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
-import '../fasta/messages.dart' show FormattedMessage;
+import '../base/messages.dart' show FormattedMessage;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
 import 'id_extractor.dart' show DataExtractor;
 import 'kernel_id_testing.dart';
 
-export '../fasta/compiler_context.dart' show CompilerContext;
-export '../fasta/messages.dart' show FormattedMessage;
+export '../base/compiler_context.dart' show CompilerContext;
+export '../base/messages.dart' show FormattedMessage;
 export '../kernel_generator_impl.dart' show InternalCompilerResult;
 
 /// Test configuration used for testing CFE in its default state.

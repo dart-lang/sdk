@@ -11,8 +11,8 @@ import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/nnbd_mode.dart' show NnbdMode;
 import '../base/processed_options.dart' show ProcessedOptions;
-import '../fasta/compiler_context.dart' show CompilerContext;
-import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
+import '../base/compiler_context.dart' show CompilerContext;
+import '../base/incremental_compiler.dart' show IncrementalCompiler;
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
 import 'util.dart' show equalLists, equalMaps, equalSets;

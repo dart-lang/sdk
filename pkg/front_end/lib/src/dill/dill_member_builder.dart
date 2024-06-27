@@ -26,10 +26,10 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
 
-import '../fasta/modifier.dart'
+import '../base/modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
 
-import '../fasta/problems.dart' show unhandled;
+import '../base/problems.dart' show unhandled;
 
 abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override

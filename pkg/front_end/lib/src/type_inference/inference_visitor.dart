@@ -46,11 +46,11 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
-import '../fasta/problems.dart' as problems
+import '../base/problems.dart' as problems
     show internalProblem, unhandled, unsupported;
 import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
-import '../fasta/uri_offset.dart';
+import '../base/uri_offset.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';

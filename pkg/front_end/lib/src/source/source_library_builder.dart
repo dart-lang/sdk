@@ -58,11 +58,11 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart';
-import '../fasta/combinator.dart' show CombinatorBuilder;
-import '../fasta/configuration.dart' show Configuration;
-import '../fasta/export.dart' show Export;
-import '../fasta/identifiers.dart' show Identifier, QualifiedName;
-import '../fasta/import.dart' show Import;
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/configuration.dart' show Configuration;
+import '../base/export.dart' show Export;
+import '../base/identifiers.dart' show Identifier, QualifiedName;
+import '../base/import.dart' show Import;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -85,7 +85,7 @@ import '../kernel/utils.dart'
         exportNeverSentinel,
         toKernelCombinators,
         unserializableExportName;
-import '../fasta/modifier.dart'
+import '../base/modifier.dart'
     show
         abstractMask,
         augmentMask,
@@ -100,9 +100,9 @@ import '../fasta/modifier.dart'
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
-import '../fasta/problems.dart' show unexpected, unhandled;
-import '../fasta/scope.dart';
-import '../fasta/uris.dart';
+import '../base/problems.dart' show unexpected, unhandled;
+import '../base/scope.dart';
+import '../base/uris.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';

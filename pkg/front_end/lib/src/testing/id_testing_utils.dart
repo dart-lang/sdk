@@ -8,7 +8,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/messages.dart';
+import '../base/messages.dart';
 import '../source/source_loader.dart';
 import '../kernel_generator_impl.dart';
 

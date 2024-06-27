@@ -15,10 +15,10 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/prefix_builder.dart';
-import '../../fasta/scope.dart';
+import '../../base/scope.dart';
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
-import '../../fasta/uri_offset.dart';
+import '../../base/uri_offset.dart';
 import 'macro.dart';
 
 List<MacroApplication>? prebuildAnnotations(

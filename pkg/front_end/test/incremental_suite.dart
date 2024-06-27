@@ -28,10 +28,10 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
-import 'package:front_end/src/fasta/incremental_serializer.dart'
+import 'package:front_end/src/base/incremental_serializer.dart'
     show IncrementalSerializer;
 import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 import 'package:kernel/ast.dart';

@@ -28,9 +28,9 @@ import '../builder/mixin_application_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
 
-import '../fasta/combinator.dart' as type;
-import '../fasta/configuration.dart' as type;
-import '../fasta/identifiers.dart' as type;
+import '../base/combinator.dart' as type;
+import '../base/configuration.dart' as type;
+import '../base/identifiers.dart' as type;
 
 import '../kernel/body_builder.dart' as type
     show
@@ -41,16 +41,16 @@ import '../kernel/body_builder.dart' as type
         Label;
 import '../kernel/expression_generator.dart' as type;
 
-import '../fasta/modifier.dart' as type;
+import '../base/modifier.dart' as type;
 
-import '../fasta/operator.dart' as type;
+import '../base/operator.dart' as type;
 
-import '../fasta/scope.dart' as type;
+import '../base/scope.dart' as type;
 
 import 'outline_builder.dart' as type;
 import 'source_enum_builder.dart' as type show EnumConstantInfo;
 
-import '../fasta/constant_context.dart' as type;
+import '../base/constant_context.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =

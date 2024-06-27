@@ -16,7 +16,7 @@ import '../../builder/nullability_builder.dart';
 import '../../builder/record_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_loader.dart';
-import '../../fasta/uri_offset.dart';
+import '../../base/uri_offset.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 import 'introspectors.dart';

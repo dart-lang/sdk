@@ -52,7 +52,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/base/uri_translator.dart';
 
 import 'perf_common.dart';
 

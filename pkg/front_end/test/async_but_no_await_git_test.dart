@@ -11,8 +11,8 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/incremental_compiler.dart';
+import 'package:front_end/src/base/compiler_context.dart';
+import 'package:front_end/src/base/incremental_compiler.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';

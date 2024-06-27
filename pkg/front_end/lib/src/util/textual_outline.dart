@@ -20,7 +20,7 @@ import 'package:kernel/ast.dart' show Version;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../codes/cfe_codes.dart' show codeNativeClauseShouldBeAnnotation;
-import '../fasta/messages.dart' show Message;
+import '../base/messages.dart' show Message;
 
 abstract class _Chunk implements Comparable<_Chunk> {
   late int originalPosition;

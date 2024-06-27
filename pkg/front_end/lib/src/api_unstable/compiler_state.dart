@@ -6,7 +6,7 @@ import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import 'package:front_end/src/fasta/incremental_compiler.dart'
+import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
 
 import 'package:kernel/kernel.dart' show Component;

@@ -83,15 +83,135 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 10,
     missCount: 17,
   ),
+  // 94.44444444444444%.
+  "package:front_end/src/base/builder_graph.dart": (
+    hitCount: 17,
+    missCount: 1,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/combinator.dart": (
+    hitCount: 9,
+    missCount: 0,
+  ),
+  // 70.70707070707071%.
+  "package:front_end/src/base/command_line_reporting.dart": (
+    hitCount: 70,
+    missCount: 29,
+  ),
+  // 90.1639344262295%.
+  "package:front_end/src/base/compiler_context.dart": (
+    hitCount: 55,
+    missCount: 6,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/configuration.dart": (
+    hitCount: 1,
+    missCount: 0,
+  ),
+  // 59.09090909090909%.
+  "package:front_end/src/base/crash.dart": (
+    hitCount: 52,
+    missCount: 36,
+  ),
+  // 88.88888888888889%.
+  "package:front_end/src/base/export.dart": (
+    hitCount: 16,
+    missCount: 2,
+  ),
+  // 50.0%.
+  "package:front_end/src/base/hybrid_file_system.dart": (
+    hitCount: 21,
+    missCount: 21,
+  ),
+  // 84.78260869565217%.
+  "package:front_end/src/base/identifiers.dart": (
+    hitCount: 78,
+    missCount: 14,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/ignored_parser_errors.dart": (
+    hitCount: 3,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/import.dart": (
+    hitCount: 48,
+    missCount: 0,
+  ),
+  // 96.96969696969697%.
+  "package:front_end/src/base/import_chains.dart": (
+    hitCount: 96,
+    missCount: 3,
+  ),
+  // 50.55718475073314%.
+  "package:front_end/src/base/incremental_compiler.dart": (
+    hitCount: 862,
+    missCount: 843,
+  ),
+  // 0.0%.
+  "package:front_end/src/base/incremental_serializer.dart": (
+    hitCount: 0,
+    missCount: 202,
+  ),
   // 100.0%.
   "package:front_end/src/base/instrumentation.dart": (
     hitCount: 29,
     missCount: 0,
   ),
+  // 86.20689655172413%.
+  "package:front_end/src/base/library_graph.dart": (
+    hitCount: 25,
+    missCount: 4,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/messages.dart": (
+    hitCount: 12,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/modifier.dart": (
+    hitCount: 29,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/operator.dart": (
+    hitCount: 4,
+    missCount: 0,
+  ),
+  // 0.0%.
+  "package:front_end/src/base/problems.dart": (
+    hitCount: 0,
+    missCount: 29,
+  ),
   // 39.86486486486486%.
   "package:front_end/src/base/processed_options.dart": (
     hitCount: 236,
     missCount: 356,
+  ),
+  // 80.62563067608475%.
+  "package:front_end/src/base/scope.dart": (
+    hitCount: 799,
+    missCount: 192,
+  ),
+  // 73.07692307692307%.
+  "package:front_end/src/base/ticker.dart": (
+    hitCount: 19,
+    missCount: 7,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/uri_offset.dart": (
+    hitCount: 1,
+    missCount: 0,
+  ),
+  // 75.92592592592592%.
+  "package:front_end/src/base/uri_translator.dart": (
+    hitCount: 41,
+    missCount: 13,
+  ),
+  // 69.23076923076923%.
+  "package:front_end/src/base/uris.dart": (
+    hitCount: 9,
+    missCount: 4,
   ),
   // 0.0%.
   "package:front_end/src/builder/augmentation_iterator.dart": (
@@ -337,126 +457,6 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   "package:front_end/src/dill/dill_type_alias_builder.dart": (
     hitCount: 46,
     missCount: 2,
-  ),
-  // 94.44444444444444%.
-  "package:front_end/src/fasta/builder_graph.dart": (
-    hitCount: 17,
-    missCount: 1,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/combinator.dart": (
-    hitCount: 9,
-    missCount: 0,
-  ),
-  // 70.70707070707071%.
-  "package:front_end/src/fasta/command_line_reporting.dart": (
-    hitCount: 70,
-    missCount: 29,
-  ),
-  // 90.1639344262295%.
-  "package:front_end/src/fasta/compiler_context.dart": (
-    hitCount: 55,
-    missCount: 6,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/configuration.dart": (
-    hitCount: 1,
-    missCount: 0,
-  ),
-  // 59.09090909090909%.
-  "package:front_end/src/fasta/crash.dart": (
-    hitCount: 52,
-    missCount: 36,
-  ),
-  // 88.88888888888889%.
-  "package:front_end/src/fasta/export.dart": (
-    hitCount: 16,
-    missCount: 2,
-  ),
-  // 50.0%.
-  "package:front_end/src/fasta/hybrid_file_system.dart": (
-    hitCount: 21,
-    missCount: 21,
-  ),
-  // 84.78260869565217%.
-  "package:front_end/src/fasta/identifiers.dart": (
-    hitCount: 78,
-    missCount: 14,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/ignored_parser_errors.dart": (
-    hitCount: 3,
-    missCount: 0,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/import.dart": (
-    hitCount: 48,
-    missCount: 0,
-  ),
-  // 96.96969696969697%.
-  "package:front_end/src/fasta/import_chains.dart": (
-    hitCount: 96,
-    missCount: 3,
-  ),
-  // 50.55718475073314%.
-  "package:front_end/src/fasta/incremental_compiler.dart": (
-    hitCount: 862,
-    missCount: 843,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/incremental_serializer.dart": (
-    hitCount: 0,
-    missCount: 202,
-  ),
-  // 86.20689655172413%.
-  "package:front_end/src/fasta/library_graph.dart": (
-    hitCount: 25,
-    missCount: 4,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/messages.dart": (
-    hitCount: 12,
-    missCount: 0,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/modifier.dart": (
-    hitCount: 29,
-    missCount: 0,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/operator.dart": (
-    hitCount: 4,
-    missCount: 0,
-  ),
-  // 0.0%.
-  "package:front_end/src/fasta/problems.dart": (
-    hitCount: 0,
-    missCount: 29,
-  ),
-  // 80.62563067608475%.
-  "package:front_end/src/fasta/scope.dart": (
-    hitCount: 799,
-    missCount: 192,
-  ),
-  // 73.07692307692307%.
-  "package:front_end/src/fasta/ticker.dart": (
-    hitCount: 19,
-    missCount: 7,
-  ),
-  // 100.0%.
-  "package:front_end/src/fasta/uri_offset.dart": (
-    hitCount: 1,
-    missCount: 0,
-  ),
-  // 75.92592592592592%.
-  "package:front_end/src/fasta/uri_translator.dart": (
-    hitCount: 41,
-    missCount: 13,
-  ),
-  // 69.23076923076923%.
-  "package:front_end/src/fasta/uris.dart": (
-    hitCount: 9,
-    missCount: 4,
   ),
   // 100.0%.
   "package:front_end/src/kernel/augmentation_lowering.dart": (
@@ -753,10 +753,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 118,
     missCount: 6,
   ),
-  // 93.47120843471208%.
+  // 93.60228198859005%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2305,
-    missCount: 161,
+    hitCount: 2297,
+    missCount: 157,
   ),
   // 94.44444444444444%.
   "package:front_end/src/source/redirecting_factory_body.dart": (
@@ -809,9 +809,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 295,
     missCount: 35,
   ),
-  // 85.3836784409257%.
+  // 85.35513790578472%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 3505,
+    hitCount: 3497,
     missCount: 600,
   ),
   // 81.8988464951198%.

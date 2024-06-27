@@ -15,7 +15,7 @@ import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../fasta/messages.dart'
+import '../../base/messages.dart'
     show
         LocatedMessage,
         messageDeclaredMemberConflictsWithInheritedMember,
@@ -963,7 +963,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     _Tuple? noSuchMethod = memberMap.remove(noSuchMethodName);
     if (noSuchMethod != null) {
       // The noSuchMethod is always available - unless Object is not valid.
-      // See for instance pkg/front_end/test/fasta/object_supertype_test.dart
+      // See for instance pkg/front_end/test/base/object_supertype_test.dart
       computeClassInterfaceMember(noSuchMethodName, noSuchMethod);
     }
     noSuchMethodMember = interfaceMemberMap[noSuchMethodName] ??

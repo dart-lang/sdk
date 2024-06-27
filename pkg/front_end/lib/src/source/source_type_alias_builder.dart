@@ -23,8 +23,8 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
-import '../fasta/problems.dart' show unhandled;
-import '../fasta/scope.dart';
+import '../base/problems.dart' show unhandled;
+import '../base/scope.dart';
 import '../util/helpers.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
