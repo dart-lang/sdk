@@ -155,13 +155,15 @@ class _Node extends graph.Node<_Node> {
     element.representation.type = type;
     element.augmented.typeErasure = type.extensionTypeErasure;
 
-    var interfaces = node.implementsClause?.interfaces
-        .map((e) => e.type)
+    var interfaces = element.augmented.interfaces
         .whereType<InterfaceType>()
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
-    if (interfaces != null) {
-      element.interfaces = interfaces;
+    switch (element.augmented) {
+      case AugmentedExtensionTypeElementImpl augmented:
+        augmented.interfaces = interfaces;
+      default:
+        element.interfaces = interfaces;
     }
 
     var primaryConstructor = element.constructors.first;
