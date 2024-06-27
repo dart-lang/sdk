@@ -38,6 +38,7 @@ import '../base/configuration.dart' show Configuration;
 import '../base/export.dart' show Export;
 import '../base/identifiers.dart' show Identifier, QualifiedName;
 import '../base/import.dart' show Import;
+import '../base/messages.dart';
 import '../base/modifier.dart'
     show
         abstractMask,
@@ -80,7 +81,6 @@ import '../builder/procedure_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -104,9 +104,11 @@ import '../kernel/utils.dart'
         toKernelCombinators,
         unserializableExportName;
 import '../util/helpers.dart';
+import 'builder_factory.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';
 import 'offset_map.dart';
+import 'outline_builder.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -120,7 +122,8 @@ import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
-class SourceCompilationUnitImpl implements SourceCompilationUnit {
+class SourceCompilationUnitImpl
+    implements SourceCompilationUnit, ProblemReporting, BuilderFactory {
   final SourceLibraryBuilder _sourceLibraryBuilder;
 
   SourceLibraryBuilder? _libraryBuilder;
@@ -174,15 +177,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     OffsetMap map = _offsetMap!;
     _offsetMap = null;
     return map;
-  }
-
-  /// Registers the map of objects created in the [OutlineBuilder].
-  ///
-  /// This should only be called once.
-  @override
-  void set offsetMap(OffsetMap value) {
-    assert(_offsetMap == null, "OffsetMap has already been set for $this");
-    _offsetMap = value;
   }
 
   @override
@@ -314,6 +308,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {
     _sourceLibraryBuilder.recordAccess(accessor, charOffset, length, fileUri);
+  }
+
+  @override
+  OutlineBuilder createOutlineBuilder() {
+    assert(_offsetMap == null, "OffsetMap has already been set for $this");
+    return new OutlineBuilder(
+        this, this, this, _offsetMap = new OffsetMap(fileUri));
   }
 
   @override
@@ -798,6 +799,26 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         nativeImportPath: nativePath);
     imports.add(import);
     offsetMap?.registerImport(importKeyword!, import);
+  }
+
+  @override
+  void addSyntheticImport(
+      {required String uri,
+      required String? prefix,
+      required List<CombinatorBuilder>? combinators,
+      required bool deferred}) {
+    addImport(
+        metadata: null,
+        isAugmentationImport: false,
+        uri: uri,
+        configurations: null,
+        prefix: prefix,
+        combinators: combinators,
+        deferred: deferred,
+        charOffset: -1,
+        prefixCharOffset: -1,
+        uriOffset: -1,
+        importIndex: -1);
   }
 
   @override
@@ -3229,6 +3250,29 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
     }
     return count;
+  }
+
+  @override
+  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
+    assert(currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.library);
+    for (ExtensionBuilder _extensionBuilder
+        in currentTypeParameterScopeBuilder.extensions!) {
+      ExtensionBuilder extensionBuilder = _extensionBuilder;
+      if (extensionBuilder is! SourceExtensionBuilder) continue;
+      DartType onType = extensionBuilder.extension.onType;
+      if (onType is InterfaceType) {
+        // TODO(cstefantsova): Handle private names.
+        List<Supertype> supertypes = membersBuilder.hierarchyBuilder
+            .getNodeFromClass(onType.classNode)
+            .superclasses;
+        Map<String, Supertype> supertypesByName = <String, Supertype>{};
+        for (Supertype supertype in supertypes) {
+          // TODO(cstefantsova): Should only non-generic supertypes be allowed?
+          supertypesByName[supertype.classNode.name] = supertype;
+        }
+      }
+    }
   }
 }
 
@@ -5683,25 +5727,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    assert(compilationUnit.currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.library);
-    for (ExtensionBuilder _extensionBuilder
-        in compilationUnit.currentTypeParameterScopeBuilder.extensions!) {
-      ExtensionBuilder extensionBuilder = _extensionBuilder;
-      if (extensionBuilder is! SourceExtensionBuilder) continue;
-      DartType onType = extensionBuilder.extension.onType;
-      if (onType is InterfaceType) {
-        // TODO(cstefantsova): Handle private names.
-        List<Supertype> supertypes = membersBuilder.hierarchyBuilder
-            .getNodeFromClass(onType.classNode)
-            .superclasses;
-        Map<String, Supertype> supertypesByName = <String, Supertype>{};
-        for (Supertype supertype in supertypes) {
-          // TODO(cstefantsova): Should only non-generic supertypes be allowed?
-          supertypesByName[supertype.classNode.name] = supertype;
-        }
-      }
-    }
+    compilationUnit.computeShowHideElements(membersBuilder);
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
@@ -6228,7 +6254,7 @@ class TypeParameterScopeBuilder {
   /// Resolves type variables in [unresolvedNamedTypes] and propagate other
   /// types to [parent].
   void resolveNamedTypes(List<NominalVariableBuilder>? typeVariables,
-      SourceCompilationUnit compilationUnit) {
+      ProblemReporting problemReporting) {
     Map<String, NominalVariableBuilder>? map;
     if (typeVariables != null) {
       map = <String, NominalVariableBuilder>{};
@@ -6259,17 +6285,17 @@ class TypeParameterScopeBuilder {
         int nameLength = typeName.fullNameLength;
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
             qualifier, typeName.name);
-        compilationUnit.addProblem(
+        problemReporting.addProblem(
             message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
         namedTypeBuilder.bind(
-            compilationUnit,
+            problemReporting,
             namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
                 message.withLocation(
                     namedTypeBuilder.fileUri!, nameOffset, nameLength)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!, compilationUnit);
+            namedTypeBuilder.fileUri!, problemReporting);
       }
     }
     unresolvedNamedTypes.clear();

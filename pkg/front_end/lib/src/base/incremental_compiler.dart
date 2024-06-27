@@ -1912,18 +1912,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     combinator.fileOffset, libraryBuilder.fileUri));
           }
 
-          debugLibrary.compilationUnit.addImport(
-              metadata: null,
-              isAugmentationImport: false,
+          debugLibrary.compilationUnit.addSyntheticImport(
               uri: dependency.importedLibraryReference.canonicalName!.name,
-              configurations: null,
               prefix: dependency.name,
               combinators: combinators,
-              deferred: dependency.isDeferred,
-              charOffset: -1,
-              prefixCharOffset: -1,
-              uriOffset: -1,
-              importIndex: -1);
+              deferred: dependency.isDeferred);
         }
 
         debugLibrary.addImportsToScope();

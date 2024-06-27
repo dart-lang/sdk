@@ -18,6 +18,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../source/constructor_declaration.dart';
+import '../source/builder_factory.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
@@ -193,10 +194,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
-  FormalParameterBuilder forPrimaryConstructor(
-      SourceCompilationUnit compilationUnit) {
+  FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
     return new FormalParameterBuilder(kind, modifiers | initializingFormalMask,
-        compilationUnit.addInferableType(), name, null, charOffset,
+        builderFactory.addInferableType(), name, null, charOffset,
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
