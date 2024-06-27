@@ -45,10 +45,7 @@ class StaticMember {
     var (_, _) = (3, '4');
     Expect.equals(2, _);
 
-    _ = 4;
-    Expect.equals(4, _);
-
     int foo<_>([int _ = _ + 1]) => _;
-    Expect.equals(4, foo());
+    Expect.equals(2, foo());
   }
 }
