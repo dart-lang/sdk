@@ -719,9 +719,21 @@ abstract class CommonElements {
   /// The class for native annotations defined in dart:_js_helper.
   late final ClassEntity nativeAnnotationClass = _findHelperClass('Native');
 
+  bool isAssertTest(MemberEntity member) =>
+      member.name == 'assertTest' &&
+      member.isFunction &&
+      member.isTopLevel &&
+      member.library == jsHelperLibrary;
+
   late final assertTest = _findHelperFunction('assertTest');
 
   late final assertThrow = _findHelperFunction('assertThrow');
+
+  bool isAssertHelper(MemberEntity member) =>
+      member.name == 'assertHelper' &&
+      member.isFunction &&
+      member.isTopLevel &&
+      member.library == jsHelperLibrary;
 
   late final assertHelper = _findHelperFunction('assertHelper');
 
