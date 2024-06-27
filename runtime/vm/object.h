@@ -447,9 +447,6 @@ class Object {
   //
   // - sentinel is a value that cannot be produced by Dart code. It can be used
   // to mark special values, for example to distinguish "uninitialized" fields.
-  // - transition_sentinel is a value marking that we are transitioning from
-  // sentinel, e.g., computing a field value. Used to detect circular
-  // initialization.
   // - unknown_constant and non_constant are optimizing compiler's constant
   // propagation constants.
   // - optimized_out results from deopt environment pruning or failure to
@@ -480,7 +477,6 @@ class Object {
   V(Array, synthetic_getter_parameter_types)                                   \
   V(Array, synthetic_getter_parameter_names)                                   \
   V(Sentinel, sentinel)                                                        \
-  V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
   V(Sentinel, non_constant)                                                    \
   V(Sentinel, optimized_out)                                                   \
@@ -7580,9 +7576,6 @@ class ContextScope : public Object {
 // - Object::sentinel() is a value that cannot be produced by Dart code.
 // It can be used to mark special values, for example to distinguish
 // "uninitialized" fields.
-// - Object::transition_sentinel() is a value marking that we are transitioning
-// from sentinel, e.g., computing a field value. Used to detect circular
-// initialization of static fields.
 // - Object::unknown_constant() and Object::non_constant() are optimizing
 // compiler's constant propagation constants.
 // - Object::optimized_out() result from deopt environment pruning or failure

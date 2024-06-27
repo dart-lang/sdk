@@ -2065,7 +2065,7 @@ class LengthList extends JavaScriptObject
   // -- start List<Length> mixins.
   // Length is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -2390,7 +2390,7 @@ class NumberList extends JavaScriptObject
   // -- start List<Number> mixins.
   // Number is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -2873,7 +2873,7 @@ class StringList extends JavaScriptObject
   // -- start List<String> mixins.
   // String is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -3862,7 +3862,7 @@ class TransformList extends JavaScriptObject
   // -- start List<Transform> mixins.
   // Transform is the element type.
 
-  set length(int value) {
+  set length(int newLength) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

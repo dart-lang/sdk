@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -33,6 +34,8 @@ class DuplicateDefinitionVerifier {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null && stackTraceParameter != null) {
+      var element = exceptionParameter.declaredElement;
+      if (element != null && element.isWildcardVariable) return;
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
         _errorReporter.reportError(_diagnosticFactory
@@ -533,7 +536,7 @@ class DuplicateDefinitionVerifier {
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, Token identifier,
       {required Element element, Map<String, Element>? setterScope}) {
-    if (identifier.isSynthetic) {
+    if (identifier.isSynthetic || element.isWildcardVariable) {
       return;
     }
 

@@ -1202,10 +1202,6 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       constructor_name = &Symbols::DotCreate();
       break;
 #endif
-    case kCyclicInitializationError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::_CyclicInitializationError();
-      break;
     case kCompileTimeError:
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();

@@ -1129,12 +1129,6 @@ void Sentinel::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("kind", "NotInitialized");
     jsobj.AddProperty("valueAsString", "<not initialized>");
     return;
-  } else if (ptr() == Object::transition_sentinel().ptr()) {
-    JSONObject jsobj(stream);
-    jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddProperty("kind", "BeingInitialized");
-    jsobj.AddProperty("valueAsString", "<being initialized>");
-    return;
   } else if (ptr() == Object::optimized_out().ptr()) {
     JSONObject jsobj(stream);
     jsobj.AddProperty("type", "Sentinel");

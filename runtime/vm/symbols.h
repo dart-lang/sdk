@@ -291,7 +291,6 @@ class ObjectPointerVisitor;
   V(_ConstMap, "_ConstMap")                                                    \
   V(_ConstSet, "_ConstSet")                                                    \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
-  V(_CyclicInitializationError, "_CyclicInitializationError")                  \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \

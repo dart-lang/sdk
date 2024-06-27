@@ -1894,6 +1894,30 @@ void f() {
     ]);
   }
 
+  test_block_localVariable_localVariable_wildcard() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var _ = 0;
+  var _ = 1;
+}
+''');
+  }
+
+  test_block_localVariable_localVariable_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  var _ = 0;
+  var _ = 1;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 74, 1,
+          contextMessages: [message(testFile, 61, 1)]),
+    ]);
+  }
+
   test_block_localVariable_patternVariable() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -1906,6 +1930,27 @@ void f() {
           contextMessages: [message(testFile, 17, 1)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
     ]);
+  }
+
+  test_block_localVariable_patternVariable_wildcard() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var _ = 0;
+  var (_) = 1;
+}
+''');
+  }
+
+  test_block_localVariable_patternVariable_wildcard_preWildcards() async {
+    await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  var _ = 0;
+  var (_) = 1;
+}
+''');
   }
 
   test_block_patternVariable_localVariable() async {
@@ -1947,6 +1992,26 @@ main() {
     ]);
   }
 
+  test_catch_wildcard() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  try {} catch (_, _) {}
+}''');
+  }
+
+  test_catch_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  try {} catch (_, _) {}
+}''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 69, 1,
+          contextMessages: [message(testFile, 66, 1)]),
+    ]);
+  }
+
   test_emptyName() async {
     // Note: This code has two FunctionElements '() {}' with an empty name; this
     // tests that the empty string is not put into the scope (more than once).
@@ -1972,6 +2037,28 @@ f() {
     ]);
   }
 
+  test_for_initializers_wildcard() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  for (int _ = 0, _ = 0; ;) {}
+}
+''');
+  }
+
+  test_for_initializers_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  for (int _ = 0, _ = 0; ;) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 68, 1,
+          contextMessages: [message(testFile, 61, 1)]),
+    ]);
+  }
+
   test_getter_single() async {
     await assertNoErrorsInCode('''
 bool get a => true;
@@ -1990,6 +2077,33 @@ class A {
     ]);
   }
 
+  test_parameters_constructor_field_first_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  int? _;
+  A(this._, int _);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 17, 1),
+    ]);
+  }
+
+  test_parameters_constructor_field_first_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  int? _;
+  A(this._, int _);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 61, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 80, 1,
+          contextMessages: [message(testFile, 73, 1)]),
+    ]);
+  }
+
   test_parameters_constructor_field_second() async {
     await assertErrorsInCode(r'''
 class A {
@@ -2002,6 +2116,68 @@ class A {
     ]);
   }
 
+  test_parameters_constructor_field_second_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  int? _;
+  A(int _, this._);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 17, 1),
+    ]);
+  }
+
+  test_parameters_constructor_field_second_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  int? _;
+  A(int _, this._);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 61, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 80, 1,
+          contextMessages: [message(testFile, 72, 1)]),
+    ]);
+  }
+
+  test_parameters_constructor_super_first_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  int? _;
+  A(this._);
+}
+class B extends A {
+  B(super._, super._);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 17, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 74, 1,
+          contextMessages: [message(testFile, 65, 1)]),
+    ]);
+  }
+
+  test_parameters_constructor_super_first_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  int? _;
+  A(this._);
+}
+class B extends A {
+  B(super._, super._);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 61, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 118, 1,
+          contextMessages: [message(testFile, 109, 1)]),
+    ]);
+  }
+
   test_parameters_functionTypeAlias() async {
     await assertErrorsInCode(r'''
 typedef void F(int a, double a);
@@ -2011,12 +2187,48 @@ typedef void F(int a, double a);
     ]);
   }
 
+  test_parameters_functionTypeAlias_wildcard() async {
+    await assertNoErrorsInCode(r'''
+typedef void F(int _, double _);
+''');
+  }
+
+  test_parameters_functionTypeAlias_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+typedef void F(int _, double _);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 73, 1,
+          contextMessages: [message(testFile, 63, 1)]),
+    ]);
+  }
+
   test_parameters_genericFunction() async {
     await assertErrorsInCode(r'''
 typedef F = void Function(int a, double a);
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 40, 1,
           contextMessages: [message(testFile, 30, 1)]),
+    ]);
+  }
+
+  test_parameters_genericFunction_wildcard() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function(int _, double _);
+''');
+  }
+
+  test_parameters_genericFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+typedef F = void Function(int _, double _);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 84, 1,
+          contextMessages: [message(testFile, 74, 1)]),
     ]);
   }
 
@@ -2033,6 +2245,31 @@ main() {
     ]);
   }
 
+  test_parameters_localFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+f() {
+  g(int _, double _) {};
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 8, 1),
+    ]);
+  }
+
+  test_parameters_localFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  g(int _, double _) {};
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 52, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 68, 1,
+          contextMessages: [message(testFile, 58, 1)]),
+    ]);
+  }
+
   test_parameters_method() async {
     await assertErrorsInCode(r'''
 class A {
@@ -2045,12 +2282,54 @@ class A {
     ]);
   }
 
+  test_parameters_method_wildcard() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m(int _, double _) {
+  }
+}
+''');
+  }
+
+  test_parameters_method_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  m(int _, double _) {
+  }
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 72, 1,
+          contextMessages: [message(testFile, 62, 1)]),
+    ]);
+  }
+
   test_parameters_topLevelFunction() async {
     await assertErrorsInCode(r'''
 f(int a, double a) {}
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 16, 1,
           contextMessages: [message(testFile, 6, 1)]),
+    ]);
+  }
+
+  test_parameters_topLevelFunction_wildcard() async {
+    await assertNoErrorsInCode(r'''
+f(int _, double _) {}
+''');
+  }
+
+  test_parameters_topLevelFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f(int _, double _) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 60, 1,
+          contextMessages: [message(testFile, 50, 1)]),
     ]);
   }
 
@@ -2089,6 +2368,36 @@ void f() {
     ]);
   }
 
+  test_switchDefault_localVariable_localVariable_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  switch (0) {
+    default:
+      var _;
+      var _;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 106, 1,
+          contextMessages: [message(testFile, 93, 1)]),
+    ]);
+  }
+
+  test_switchDefault_localVariable_localVariable_wildcard() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  switch (0) {
+    default:
+      var _;
+      var _;
+  }
+}
+''');
+  }
+
   test_switchPatternCase_localVariable_localVariable() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -2106,12 +2415,60 @@ void f() {
     ]);
   }
 
+  test_switchPatternCase_localVariable_localVariable_wildcard() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  switch (0) {
+    case 0:
+      var _;
+      var _;
+  }
+}
+''');
+  }
+
+  test_switchPatternCase_localVariable_localVariable_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  switch (0) {
+    case 0:
+      var _;
+      var _;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 105, 1,
+          contextMessages: [message(testFile, 92, 1)]),
+    ]);
+  }
+
   test_typeParameters_class() async {
     await assertErrorsInCode(r'''
 class A<T, T> {}
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 11, 1,
           contextMessages: [message(testFile, 8, 1)]),
+    ]);
+  }
+
+  test_typeParameters_class_wildcard() async {
+    await assertNoErrorsInCode(r'''
+class A<_, _> {}
+''');
+  }
+
+  test_typeParameters_class_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A<_, _> {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 1,
+          contextMessages: [message(testFile, 52, 1)]),
     ]);
   }
 
@@ -2124,12 +2481,48 @@ typedef void F<T, T>();
     ]);
   }
 
+  test_typeParameters_functionTypeAlias_wildcard() async {
+    await assertNoErrorsInCode(r'''
+typedef void F<_, _>();
+''');
+  }
+
+  test_typeParameters_functionTypeAlias_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+typedef void F<_, _>();
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 1,
+          contextMessages: [message(testFile, 59, 1)]),
+    ]);
+  }
+
   test_typeParameters_genericFunction() async {
     await assertErrorsInCode(r'''
 typedef F = void Function<T, T>();
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 29, 1,
           contextMessages: [message(testFile, 26, 1)]),
+    ]);
+  }
+
+  test_typeParameters_genericFunction_wildcard() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function<_, _>();
+''');
+  }
+
+  test_typeParameters_genericFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+typedef F = void Function<_, _>();
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 73, 1,
+          contextMessages: [message(testFile, 70, 1)]),
     ]);
   }
 
@@ -2142,12 +2535,48 @@ typedef F<T, T> = void Function();
     ]);
   }
 
+  test_typeParameters_genericTypedef_functionType_wildcard() async {
+    await assertNoErrorsInCode(r'''
+typedef F<_, _> = void Function();
+''');
+  }
+
+  test_typeParameters_genericTypedef_functionType_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+typedef F<_, _> = void Function();
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 57, 1,
+          contextMessages: [message(testFile, 54, 1)]),
+    ]);
+  }
+
   test_typeParameters_genericTypedef_interfaceType() async {
     await assertErrorsInCode(r'''
 typedef F<T, T> = Map;
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 13, 1,
           contextMessages: [message(testFile, 10, 1)]),
+    ]);
+  }
+
+  test_typeParameters_genericTypedef_interfaceType_wildcard() async {
+    await assertNoErrorsInCode(r'''
+typedef F<_, _> = Map;
+''');
+  }
+
+  test_typeParameters_genericTypedef_interfaceType_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+typedef F<_, _> = Map;
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 57, 1,
+          contextMessages: [message(testFile, 54, 1)]),
     ]);
   }
 
@@ -2162,12 +2591,52 @@ class A {
     ]);
   }
 
+  test_typeParameters_method_wildcard() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void m<_, _>() {}
+}
+''');
+  }
+
+  test_typeParameters_method_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  void m<_, _>() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 66, 1,
+          contextMessages: [message(testFile, 63, 1)]),
+    ]);
+  }
+
   test_typeParameters_topLevelFunction() async {
     await assertErrorsInCode(r'''
 void f<T, T>() {}
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 10, 1,
           contextMessages: [message(testFile, 7, 1)]),
+    ]);
+  }
+
+  test_typeParameters_topLevelFunction_wildcard() async {
+    await assertNoErrorsInCode(r'''
+void f<_, _>() {}
+''');
+  }
+
+  test_typeParameters_topLevelFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f<_, _>() {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 54, 1,
+          contextMessages: [message(testFile, 51, 1)]),
     ]);
   }
 }

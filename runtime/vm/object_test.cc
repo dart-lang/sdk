@@ -6367,16 +6367,6 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"valueAsString\":\"<not initialized>\"}",
         js.ToCString());
   }
-  // Transition sentinel reference
-  {
-    JSONStream js;
-    Object::transition_sentinel().PrintJSON(&js, true);
-    EXPECT_STREQ(
-        "{\"type\":\"Sentinel\","
-        "\"kind\":\"BeingInitialized\","
-        "\"valueAsString\":\"<being initialized>\"}",
-        js.ToCString());
-  }
 }
 
 #endif  // !PRODUCT

@@ -100,7 +100,7 @@ struct WeakAcqRelStorageTraits : WeakArrayStorageTraits {
 
 class HashTableBase : public ValueObject {
  public:
-  static const Object& UnusedMarker() { return Object::transition_sentinel(); }
+  static const Object& UnusedMarker() { return Object::sentinel(); }
   static const Object& DeletedMarker() { return Object::null_object(); }
 };
 
@@ -156,7 +156,7 @@ class HashTableBase : public ValueObject {
 // Each entry contains a key, followed by zero or more payload components,
 // and has 3 possible states: unused, occupied, or deleted.
 // The header tracks the number of entries in each state.
-// Any object except the backing storage array and Object::transition_sentinel()
+// Any object except the backing storage array and Object::sentinel()
 // may be stored as a key. Any object may be stored in a payload.
 //
 // Parameters
