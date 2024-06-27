@@ -105,7 +105,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
     if (parts.last is List<Constant>) {
       lastPart = parts.last as List<Constant>;
     } else {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       parts.add(lastPart = <Constant>[]);
     }
     Constant value = evaluator.ensureIsSubtype(constant, elementType, context);
@@ -177,7 +177,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (parts.last is List<Constant>) {
       lastPart = parts.last as List<Constant>;
     } else {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       parts.add(lastPart = <Constant>[]);
     }
     Constant value = evaluator.ensureIsSubtype(constant, elementType, context);
@@ -291,7 +291,7 @@ class MapConstantBuilder {
     if (parts.last is List<ConstantMapEntry>) {
       lastPart = parts.last as List<ConstantMapEntry>;
     } else {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       parts.add(lastPart = <ConstantMapEntry>[]);
     }
     if (!evaluator.hasPrimitiveEqual(key,

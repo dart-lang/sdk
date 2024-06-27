@@ -8,25 +8,20 @@ part of "coverage_suite.dart";
 // using out/ReleaseX64/dart-sdk/bin/dart (which for instance makes a
 // difference for compute_platform_binaries_location.dart).
 const Map<String, ({int hitCount, int missCount})> _expect = {
-  // 18.53448275862069%.
+  // 18.614718614718615%.
   "package:front_end/src/api_prototype/compiler_options.dart": (
     hitCount: 43,
-    missCount: 189,
+    missCount: 188,
   ),
   // 89.1891891891892%.
   "package:front_end/src/api_prototype/experimental_flags.dart": (
     hitCount: 66,
     missCount: 8,
   ),
-  // 54.07925407925408%.
-  "package:front_end/src/api_prototype/experimental_flags_generated.dart": (
-    hitCount: 232,
-    missCount: 197,
-  ),
-  // 33.33333333333333%.
+  // 100.0%.
   "package:front_end/src/api_prototype/file_system.dart": (
     hitCount: 2,
-    missCount: 4,
+    missCount: 0,
   ),
   // 6.666666666666667%.
   "package:front_end/src/api_prototype/incremental_kernel_generator.dart": (
@@ -41,22 +36,22 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 0.0%.
   "package:front_end/src/api_prototype/language_version.dart": (
     hitCount: 0,
-    missCount: 67,
+    missCount: 65,
   ),
-  // 3.903903903903904%.
+  // 3.927492447129909%.
   "package:front_end/src/api_prototype/lowering_predicates.dart": (
     hitCount: 13,
-    missCount: 320,
+    missCount: 318,
   ),
-  // 25.0%.
+  // 27.710843373493976%.
   "package:front_end/src/api_prototype/memory_file_system.dart": (
     hitCount: 23,
-    missCount: 69,
+    missCount: 60,
   ),
-  // 38.46153846153847%.
+  // 38.83495145631068%.
   "package:front_end/src/api_prototype/standard_file_system.dart": (
     hitCount: 40,
-    missCount: 64,
+    missCount: 63,
   ),
   // 0.0%.
   "package:front_end/src/api_prototype/summary_generator.dart": (
@@ -98,10 +93,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 70,
     missCount: 29,
   ),
-  // 90.1639344262295%.
+  // 93.22033898305084%.
   "package:front_end/src/base/compiler_context.dart": (
     hitCount: 55,
-    missCount: 6,
+    missCount: 4,
   ),
   // 100.0%.
   "package:front_end/src/base/configuration.dart": (
@@ -143,10 +138,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 96,
     missCount: 3,
   ),
-  // 50.55718475073314%.
+  // 50.67607289829512%.
   "package:front_end/src/base/incremental_compiler.dart": (
     hitCount: 862,
-    missCount: 843,
+    missCount: 839,
   ),
   // 0.0%.
   "package:front_end/src/base/incremental_serializer.dart": (
@@ -183,15 +178,15 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 29,
   ),
-  // 39.86486486486486%.
+  // 40.75993091537133%.
   "package:front_end/src/base/processed_options.dart": (
     hitCount: 236,
-    missCount: 356,
+    missCount: 343,
   ),
-  // 80.62563067608475%.
+  // 84.01682439537329%.
   "package:front_end/src/base/scope.dart": (
     hitCount: 799,
-    missCount: 192,
+    missCount: 152,
   ),
   // 73.07692307692307%.
   "package:front_end/src/base/ticker.dart": (
@@ -218,10 +213,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 17,
   ),
-  // 64.44444444444444%.
+  // 72.5%.
   "package:front_end/src/builder/builder.dart": (
     hitCount: 29,
-    missCount: 16,
+    missCount: 11,
   ),
   // 100.0%.
   "package:front_end/src/builder/builder_mixins.dart": (
@@ -253,10 +248,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 2,
     missCount: 0,
   ),
-  // 50.0%.
+  // 100.0%.
   "package:front_end/src/builder/extension_builder.dart": (
     hitCount: 4,
-    missCount: 4,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/builder/extension_type_declaration_builder.dart": (
@@ -343,15 +338,15 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 24,
     missCount: 0,
   ),
-  // 34.146341463414636%.
+  // 37.83783783783784%.
   "package:front_end/src/builder/omitted_type_builder.dart": (
     hitCount: 28,
-    missCount: 54,
+    missCount: 46,
   ),
   // 0.0%.
   "package:front_end/src/builder/omitted_type_declaration_builder.dart": (
     hitCount: 0,
-    missCount: 13,
+    missCount: 5,
   ),
   // 89.74358974358975%.
   "package:front_end/src/builder/prefix_builder.dart": (
@@ -368,10 +363,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 186,
     missCount: 50,
   ),
-  // 77.77777777777779%.
+  // 82.35294117647058%.
   "package:front_end/src/builder/type_builder.dart": (
     hitCount: 56,
-    missCount: 16,
+    missCount: 12,
   ),
   // 90.0%.
   "package:front_end/src/builder/type_declaration_builder.dart": (
@@ -388,15 +383,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 2,
     missCount: 0,
   ),
-  // 73.0892742453436%.
-  "package:front_end/src/codes/cfe_codes_generated.dart": (
-    hitCount: 1138,
-    missCount: 419,
-  ),
-  // 83.68336025848141%.
+  // 85.0574712643678%.
   "package:front_end/src/codes/type_labeler.dart": (
     hitCount: 518,
-    missCount: 101,
+    missCount: 91,
   ),
   // 71.23287671232876%.
   "package:front_end/src/compute_platform_binaries_location.dart": (
@@ -408,10 +398,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 16,
     missCount: 0,
   ),
-  // 92.34972677595628%.
+  // 93.37016574585635%.
   "package:front_end/src/dill/dill_class_builder.dart": (
     hitCount: 169,
-    missCount: 14,
+    missCount: 12,
   ),
   // 86.74698795180723%.
   "package:front_end/src/dill/dill_extension_builder.dart": (
@@ -433,10 +423,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 129,
     missCount: 25,
   ),
-  // 83.12342569269522%.
+  // 84.61538461538461%.
   "package:front_end/src/dill/dill_library_builder.dart": (
     hitCount: 330,
-    missCount: 67,
+    missCount: 60,
   ),
   // 77.03349282296651%.
   "package:front_end/src/dill/dill_loader.dart": (
@@ -468,70 +458,70 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 128,
   ),
-  // 92.09016940109377%.
+  // 92.1639300493926%.
   "package:front_end/src/kernel/body_builder.dart": (
     hitCount: 6904,
-    missCount: 593,
+    missCount: 587,
   ),
-  // 70.40816326530613%.
+  // 91.26984126984127%.
   "package:front_end/src/kernel/body_builder_context.dart": (
     hitCount: 345,
-    missCount: 145,
+    missCount: 33,
   ),
-  // 36.44736842105264%.
+  // 36.83510638297872%.
   "package:front_end/src/kernel/collections.dart": (
     hitCount: 277,
-    missCount: 483,
+    missCount: 475,
   ),
-  // 91.8854415274463%.
+  // 92.54807692307693%.
   "package:front_end/src/kernel/combined_member_signature.dart": (
     hitCount: 385,
-    missCount: 34,
+    missCount: 31,
   ),
   // 61.68831168831169%.
   "package:front_end/src/kernel/const_conditional_simplifier.dart": (
     hitCount: 95,
     missCount: 59,
   ),
-  // 67.65676567656766%.
+  // 69.72789115646259%.
   "package:front_end/src/kernel/constant_collection_builders.dart": (
     hitCount: 205,
-    missCount: 98,
+    missCount: 89,
   ),
-  // 82.66337300696159%.
+  // 85.85694379934975%.
   "package:front_end/src/kernel/constant_evaluator.dart": (
-    hitCount: 3681,
-    missCount: 772,
+    hitCount: 3697,
+    missCount: 609,
   ),
-  // 92.04545454545455%.
+  // 97.59036144578313%.
   "package:front_end/src/kernel/constant_int_folder.dart": (
     hitCount: 243,
-    missCount: 21,
+    missCount: 6,
   ),
   // 95.11278195488721%.
   "package:front_end/src/kernel/constructor_tearoff_lowering.dart": (
     hitCount: 253,
     missCount: 13,
   ),
-  // 74.57098283931357%.
+  // 75.0392464678179%.
   "package:front_end/src/kernel/exhaustiveness.dart": (
     hitCount: 478,
-    missCount: 163,
+    missCount: 159,
   ),
-  // 79.7660448940879%.
+  // 79.81651376146789%.
   "package:front_end/src/kernel/expression_generator.dart": (
     hitCount: 2523,
-    missCount: 640,
+    missCount: 638,
   ),
   // 100.0%.
   "package:front_end/src/kernel/expression_generator_helper.dart": (
     hitCount: 36,
     missCount: 0,
   ),
-  // 90.27777777777779%.
+  // 93.97590361445783%.
   "package:front_end/src/kernel/forest.dart": (
     hitCount: 390,
-    missCount: 42,
+    missCount: 25,
   ),
   // 94.4927536231884%.
   "package:front_end/src/kernel/forwarding_node.dart": (
@@ -548,10 +538,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 218,
     missCount: 0,
   ),
-  // 87.52834467120182%.
+  // 87.92710706150342%.
   "package:front_end/src/kernel/hierarchy/extension_type_members.dart": (
     hitCount: 386,
-    missCount: 55,
+    missCount: 53,
   ),
   // 50.77720207253886%.
   "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart": (
@@ -578,25 +568,25 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 248,
     missCount: 155,
   ),
-  // 52.24719101123596%.
+  // 60.3896103896104%.
   "package:front_end/src/kernel/implicit_field_type.dart": (
     hitCount: 93,
-    missCount: 85,
+    missCount: 61,
   ),
-  // 2.941176470588235%.
+  // 5.555555555555555%.
   "package:front_end/src/kernel/implicit_type_argument.dart": (
     hitCount: 1,
-    missCount: 33,
+    missCount: 17,
   ),
-  // 46.484375%.
+  // 47.25972994440032%.
   "package:front_end/src/kernel/internal_ast.dart": (
     hitCount: 595,
-    missCount: 685,
+    missCount: 664,
   ),
-  // 74.13793103448276%.
+  // 78.18181818181819%.
   "package:front_end/src/kernel/invalid_type.dart": (
     hitCount: 43,
-    missCount: 15,
+    missCount: 12,
   ),
   // 55.55555555555556%.
   "package:front_end/src/kernel/kernel_constants.dart": (
@@ -608,10 +598,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 285,
     missCount: 3,
   ),
-  // 81.10175975516451%.
+  // 81.35072908672295%.
   "package:front_end/src/kernel/kernel_target.dart": (
     hitCount: 1060,
-    missCount: 247,
+    missCount: 243,
   ),
   // 61.111111111111114%.
   "package:front_end/src/kernel/kernel_variable_builder.dart": (
@@ -636,17 +626,17 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 0.0%.
   "package:front_end/src/kernel/macro/identifiers.dart": (
     hitCount: 0,
-    missCount: 132,
+    missCount: 120,
   ),
   // 0.0%.
   "package:front_end/src/kernel/macro/introspectors.dart": (
     hitCount: 0,
-    missCount: 573,
+    missCount: 549,
   ),
-  // 0.19047619047619047%.
+  // 0.1932367149758454%.
   "package:front_end/src/kernel/macro/macro.dart": (
     hitCount: 2,
-    missCount: 1048,
+    missCount: 1033,
   ),
   // 0.0%.
   "package:front_end/src/kernel/macro/offsets.dart": (
@@ -658,10 +648,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 230,
   ),
-  // 89.23611111111111%.
+  // 91.13475177304964%.
   "package:front_end/src/kernel/member_covariance.dart": (
     hitCount: 257,
-    missCount: 31,
+    missCount: 25,
   ),
   // 39.473684210526315%.
   "package:front_end/src/kernel/resource_identifier.dart": (
@@ -673,20 +663,20 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 16,
     missCount: 89,
   ),
-  // 19.753086419753085%.
+  // 20.77922077922078%.
   "package:front_end/src/kernel/try_constant_evaluator.dart": (
     hitCount: 16,
-    missCount: 65,
+    missCount: 61,
   ),
   // 94.27402862985686%.
   "package:front_end/src/kernel/type_algorithms.dart": (
     hitCount: 922,
     missCount: 56,
   ),
-  // 90.20618556701031%.
+  // 92.10526315789474%.
   "package:front_end/src/kernel/type_builder_computer.dart": (
     hitCount: 175,
-    missCount: 19,
+    missCount: 15,
   ),
   // 37.93103448275862%.
   "package:front_end/src/kernel/utils.dart": (
@@ -698,10 +688,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 18,
     missCount: 14,
   ),
-  // 28.79581151832461%.
+  // 28.947368421052634%.
   "package:front_end/src/kernel_generator_impl.dart": (
     hitCount: 55,
-    missCount: 136,
+    missCount: 135,
   ),
   // 0.0%.
   "package:front_end/src/macros/isolate_macro_serializer.dart": (
@@ -733,20 +723,20 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 163,
     missCount: 40,
   ),
-  // 92.1875%.
+  // 93.38129496402877%.
   "package:front_end/src/source/diet_listener.dart": (
     hitCount: 649,
-    missCount: 55,
+    missCount: 46,
   ),
   // 100.0%.
   "package:front_end/src/source/diet_parser.dart": (
     hitCount: 4,
     missCount: 0,
   ),
-  // 93.19148936170212%.
+  // 93.99141630901288%.
   "package:front_end/src/source/name_scheme.dart": (
     hitCount: 219,
-    missCount: 16,
+    missCount: 14,
   ),
   // 95.16129032258065%.
   "package:front_end/src/source/offset_map.dart": (
@@ -773,20 +763,20 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 1213,
     missCount: 197,
   ),
-  // 92.65658747300216%.
+  // 93.058568329718%.
   "package:front_end/src/source/source_constructor_builder.dart": (
     hitCount: 858,
-    missCount: 68,
+    missCount: 64,
   ),
   // 95.73560767590618%.
   "package:front_end/src/source/source_enum_builder.dart": (
     hitCount: 449,
     missCount: 20,
   ),
-  // 61.261261261261254%.
+  // 64.15094339622641%.
   "package:front_end/src/source/source_extension_builder.dart": (
     hitCount: 68,
-    missCount: 43,
+    missCount: 38,
   ),
   // 84.32539682539682%.
   "package:front_end/src/source/source_extension_type_declaration_builder.dart":
@@ -799,30 +789,30 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 581,
     missCount: 49,
   ),
-  // 89.94668697638994%.
+  // 94.2537909018356%.
   "package:front_end/src/source/source_field_builder.dart": (
     hitCount: 1181,
-    missCount: 132,
+    missCount: 72,
   ),
   // 89.39393939393939%.
   "package:front_end/src/source/source_function_builder.dart": (
     hitCount: 295,
     missCount: 35,
   ),
-  // 85.35513790578472%.
+  // 85.2467024914509%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 3497,
-    missCount: 600,
+    hitCount: 3490,
+    missCount: 604,
   ),
   // 81.8988464951198%.
   "package:front_end/src/source/source_loader.dart": (
     hitCount: 1846,
     missCount: 408,
   ),
-  // 40.32258064516129%.
+  // 50.0%.
   "package:front_end/src/source/source_member_builder.dart": (
     hitCount: 25,
-    missCount: 37,
+    missCount: 25,
   ),
   // 96.11829944547135%.
   "package:front_end/src/source/source_procedure_builder.dart": (
@@ -864,15 +854,15 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 120,
     missCount: 39,
   ),
-  // 85.12820512820512%.
+  // 87.36842105263159%.
   "package:front_end/src/type_inference/inference_results.dart": (
     hitCount: 166,
-    missCount: 29,
+    missCount: 24,
   ),
-  // 90.37792719684674%.
+  // 90.44083526682135%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
     hitCount: 7796,
-    missCount: 830,
+    missCount: 824,
   ),
   // 85.96491228070175%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
@@ -889,10 +879,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 519,
     missCount: 10,
   ),
-  // 77.63578274760383%.
+  // 81.13522537562604%.
   "package:front_end/src/type_inference/object_access_target.dart": (
     hitCount: 486,
-    missCount: 140,
+    missCount: 113,
   ),
   // 98.0%.
   "package:front_end/src/type_inference/shared_type_analyzer.dart": (
@@ -914,20 +904,20 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 19,
     missCount: 1,
   ),
-  // 89.62962962962962%.
+  // 90.29850746268657%.
   "package:front_end/src/type_inference/type_inference_engine.dart": (
     hitCount: 484,
-    missCount: 56,
+    missCount: 52,
   ),
   // 54.037267080745345%.
   "package:front_end/src/type_inference/type_inferrer.dart": (
     hitCount: 87,
     missCount: 74,
   ),
-  // 36.666666666666664%.
+  // 42.30769230769231%.
   "package:front_end/src/type_inference/type_schema.dart": (
     hitCount: 11,
-    missCount: 19,
+    missCount: 15,
   ),
   // 88.88888888888889%.
   "package:front_end/src/type_inference/type_schema_elimination.dart": (
@@ -954,15 +944,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 20,
     missCount: 18,
   ),
-  // 5.5954088952654235%.
+  // 5.611510791366906%.
   "package:front_end/src/util/parser_ast.dart": (
     hitCount: 78,
-    missCount: 1316,
-  ),
-  // 20.385501780850618%.
-  "package:front_end/src/util/parser_ast_helper.dart": (
-    hitCount: 973,
-    missCount: 3800,
+    missCount: 1312,
   ),
   // 86.54205607476636%.
   "package:front_end/src/util/textual_outline.dart": (

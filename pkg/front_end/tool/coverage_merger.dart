@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
-    show $SPACE, $CARET;
+    show $SPACE, $CARET, $LF, $CR;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/util/parser_ast.dart';
 import 'package:front_end/src/util/parser_ast_helper.dart';
@@ -16,20 +16,29 @@ import 'package:package_config/package_config.dart';
 import '../test/coverage_helper.dart';
 import 'interval_list.dart';
 import 'parser_ast_indexer.dart';
+import 'utils.dart';
 
 void main(List<String> arguments) {
   Uri? coverageUri;
   Uri? packagesUri;
+  bool addCommentsToFiles = false;
+  bool removeCommentsFromFiles = false;
 
   for (String argument in arguments) {
     const String coverage = "--coverage=";
     const String packages = "--packages=";
+    const String comment = "--comment";
+    const String removeComments = "--remove-comments";
     if (argument.startsWith(coverage)) {
       coverageUri =
           Uri.base.resolveUri(Uri.file(argument.substring(coverage.length)));
     } else if (argument.startsWith(packages)) {
       packagesUri =
           Uri.base.resolveUri(Uri.file(argument.substring(packages.length)));
+    } else if (argument == comment) {
+      addCommentsToFiles = true;
+    } else if (argument == removeComments) {
+      removeCommentsFromFiles = true;
     } else {
       throw "Unsupported argument: $argument";
     }
@@ -42,7 +51,15 @@ void main(List<String> arguments) {
   }
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  mergeFromDirUri(packagesUri, coverageUri, silent: false);
+  mergeFromDirUri(
+    packagesUri,
+    coverageUri,
+    silent: false,
+    extraCoverageIgnores: ["coverage-ignore(suite):"],
+    extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
+    addCommentsToFiles: addCommentsToFiles,
+    removeCommentsFromFiles: removeCommentsFromFiles,
+  );
   print("Done in ${stopwatch.elapsed}");
 }
 
@@ -50,6 +67,10 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
   Uri packagesUri,
   Uri coverageUri, {
   required bool silent,
+  required List<String> extraCoverageIgnores,
+  required List<String> extraCoverageBlockIgnores,
+  bool addCommentsToFiles = false,
+  bool removeCommentsFromFiles = false,
 }) {
   void output(Object? object) {
     if (silent) return;
@@ -116,16 +137,34 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
   for (Uri uri in knownUris.toList()
     ..sort(((a, b) => a.toString().compareTo(b.toString())))) {
     // Don't care about coverage for testing stuff.
-    if (uri.toString().startsWith("package:front_end/src/testing/")) continue;
+    String uriString = uri.toString();
+    if (uriString.startsWith("package:front_end/src/testing/")) continue;
+    if (uriString == "package:front_end/src/util/parser_ast_helper.dart" ||
+        uriString ==
+            "package:front_end/src/api_prototype/experimental_flags_generated.dart" ||
+        uriString == "package:front_end/src/codes/cfe_codes_generated.dart") {
+      continue;
+    }
 
     Hit? hit = hits[uri];
     Set<int>? miss = misses[uri];
     List<int> hitsSorted =
         hit == null ? const [] : (hit._data.keys.toList()..sort());
 
-    CoverageInfo processInfo =
-        process(packageConfig, uri, miss ?? const {}, hitsSorted);
-    output(processInfo.visualization);
+    CoverageInfo processInfo = process(
+      packageConfig,
+      uri,
+      miss ?? const {},
+      hitsSorted,
+      extraCoverageIgnores,
+      extraCoverageBlockIgnores,
+      addCommentsToFiles: addCommentsToFiles,
+      removeCommentsFromFiles: removeCommentsFromFiles,
+    );
+    if (processInfo.visualization.trim().isNotEmpty) {
+      output(processInfo.visualization);
+      output("");
+    }
     result[uri] = processInfo;
     filesCount++;
     if (processInfo.error) {
@@ -137,8 +176,6 @@ Map<Uri, CoverageInfo>? mergeFromDirUri(
       hitsTotal += processInfo.hitCount;
       missesTotal += processInfo.missCount;
     }
-
-    output("");
   }
 
   output("Processed $filesCount files with $errorsCount error(s) and "
@@ -170,8 +207,16 @@ class CoverageInfo {
       : error = false;
 }
 
-CoverageInfo process(PackageConfig packageConfig, Uri uri,
-    Set<int> untrimmedMisses, List<int> hitsSorted) {
+CoverageInfo process(
+  PackageConfig packageConfig,
+  Uri uri,
+  Set<int> untrimmedMisses,
+  List<int> hitsSorted,
+  List<String> extraCoverageIgnores,
+  List<String> extraCoverageBlockIgnores, {
+  bool addCommentsToFiles = false,
+  bool removeCommentsFromFiles = false,
+}) {
   Uri? fileUri = packageConfig.resolve(uri);
   if (fileUri == null) {
     return new CoverageInfo.error("Couldn't find file uri for $uri");
@@ -193,11 +238,200 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
     enableExtensionMethods: true,
     enableNonNullable: true,
     enableTripleShift: true,
+    allowPatterns: true,
     lineStarts: lineStarts,
   );
 
+  Source source = new Source(lineStarts, rawBytes, uri, fileUri);
+
+  if (removeCommentsFromFiles) {
+    CompilationUnitBegin unitBegin =
+        ast.children!.first as CompilationUnitBegin;
+    Token? token = unitBegin.token;
+    List<Token> removeComments = [];
+    while (token != null && !token.isEof) {
+      Token? comment = token.precedingComments;
+      while (comment != null) {
+        String message = comment.lexeme.trim().toLowerCase();
+        while (message.startsWith("//") || message.startsWith("/*")) {
+          message = message.substring(2).trim();
+        }
+        for (String coverageIgnoreString in const [
+          "coverage-ignore(suite): not run.",
+          "coverage-ignore-block(suite): not run.",
+        ]) {
+          if (message.startsWith(coverageIgnoreString)) {
+            removeComments.add(comment);
+          }
+        }
+        comment = comment.next;
+      }
+      token = token.next;
+    }
+    String sourceText = source.text;
+    StringBuffer sb = new StringBuffer();
+    int from = 0;
+    for (Token token in removeComments) {
+      String substring = sourceText.substring(from, token.charOffset);
+      sb.write(substring);
+      from = token.charEnd;
+      // Remove whitespace after too.
+      while (sourceText.length > from &&
+          (sourceText.codeUnitAt(from) == $SPACE ||
+              sourceText.codeUnitAt(from) == $LF ||
+              sourceText.codeUnitAt(from) == $CR)) {
+        from++;
+      }
+    }
+    sb.write(sourceText.substring(from));
+    f.writeAsStringSync(sb.toString());
+    print("Removed ${removeComments.length} in $uri");
+
+    // Return a fake result.
+    return new CoverageInfo(
+        allCovered: true, missCount: -1, hitCount: -1, visualization: "fake 2");
+  }
+
+  List<int> allSorted = [...hitsSorted, ...untrimmedMisses]..sort();
   AstIndexerAndIgnoreCollector astIndexer =
-      AstIndexerAndIgnoreCollector.collect(ast);
+      AstIndexerAndIgnoreCollector.collect(
+          ast, extraCoverageIgnores, extraCoverageBlockIgnores,
+          hitsSorted: hitsSorted, allSorted: allSorted);
+
+  IntervalList ignoredIntervals =
+      astIndexer.ignoredStartEnd.buildIntervalList();
+
+  if (addCommentsToFiles) {
+    String sourceText = source.text;
+    StringBuffer sb = new StringBuffer();
+    int from = 0;
+    astIndexer.potentiallyAddCommentTokens.sort();
+    List<_CommentOn> processed = [];
+    for (_CommentOn commentOn in astIndexer.potentiallyAddCommentTokens) {
+      bool doAdd = true;
+      if (processed.isNotEmpty) {
+        _CommentOn prevAdded = processed.last;
+
+        if (prevAdded.beginToken.charOffset <=
+                commentOn.beginToken.charOffset &&
+            prevAdded.endToken.charEnd >= commentOn.endToken.charEnd) {
+          // The previous added "block" contain this one.
+          doAdd = false;
+
+          if (commentOn.commentOnToken.lexeme == "." ||
+              commentOn.commentOnToken.lexeme == "?.") {
+            // A comment on the actual call isn't pretty.
+            // Allow the "bigger one".
+          } else if (prevAdded.canBeReplaced) {
+            // Though if there aren't any possible extra coverage in the
+            // previous block compared to this one, we do prefer the smaller
+            // one.
+            int allSortedIndex =
+                binarySearch(allSorted, commentOn.beginToken.charOffset);
+            if (allSortedIndex < allSorted.length &&
+                allSorted[allSortedIndex] < commentOn.beginToken.charOffset) {
+              allSortedIndex++;
+            }
+            if (allSortedIndex > 0 &&
+                allSorted[allSortedIndex - 1] <
+                    prevAdded.beginToken.charOffset) {
+              // The block before this can't have any coverage.
+              // Now find the first point outside this range.
+              int i = binarySearch(allSorted, commentOn.endToken.charEnd) + 1;
+              if (i < allSorted.length &&
+                  allSorted[i] > prevAdded.endToken.charEnd) {
+                // The previous one doesn't have any possible coverage points
+                // that this one doesn't. We prefer the smaller one and will
+                // therefore replace it.
+                processed.removeLast();
+                doAdd = true;
+              }
+            }
+          }
+        }
+      }
+      if (doAdd) {
+        processed.add(commentOn);
+      }
+    }
+    for (_CommentOn entry in processed) {
+      // If - on a file without ignore comments - an ignore comment is
+      // pushed down (say inside an if instead of outside it), on a subsequent
+      // run, because now that ignore inside the if is already present there's
+      // nothing to push down and the one outside the if will be added.
+      // We don't want that, so verify that a new comment will actually ignore
+      // possible coverage points that wasn't covered/ignored before.
+      int sortedIndex = binarySearch(allSorted, entry.beginToken.charOffset);
+      if (sortedIndex < allSorted.length &&
+          allSorted[sortedIndex] < entry.beginToken.charOffset) {
+        sortedIndex++;
+      }
+      bool doAdd = false;
+      while (sortedIndex < allSorted.length &&
+          allSorted[sortedIndex] <= entry.endToken.charEnd) {
+        if (!ignoredIntervals.contains(allSorted[sortedIndex])) {
+          doAdd = true;
+          break;
+        }
+        sortedIndex++;
+      }
+
+      if (!doAdd) {
+        continue;
+      }
+
+      Token token = entry.commentOnToken;
+      String extra = "";
+      if (token.previous?.lexeme == "&&" ||
+          token.previous?.lexeme == "||" ||
+          token.previous?.lexeme == "(" ||
+          token.previous?.lexeme == ")" ||
+          token.previous?.lexeme == "}" ||
+          token.previous?.lexeme == "?" ||
+          token.previous?.lexeme == ":" ||
+          token.previous?.lexeme == ";" ||
+          token.previous?.lexeme == "=" ||
+          token.lexeme == "?.") {
+        extra = "\n  ";
+        // If adding an extra linebreak would introduce an empty line we won't
+        // add it.
+        for (int i = token.charOffset - 1; i >= token.previous!.charEnd; i--) {
+          int codeUnit = sourceText.codeUnitAt(i);
+          if (codeUnit == $SPACE) {
+            // We ignore spaces.
+          } else if (codeUnit == $LF || codeUnit == $CR) {
+            // Found linebreak: Adding a linebreak would add an empty line.
+            extra = "";
+            break;
+          } else {
+            // We found a non-space before a linebreak.
+            // Let's just add the linebreak.
+            break;
+          }
+        }
+      }
+      if (token.precedingComments != null) {
+        token = token.precedingComments!;
+      }
+      String substring = sourceText.substring(from, token.charOffset);
+      sb.write(substring);
+
+      // The extra spaces at the end makes the formatter format better if for
+      // instance there's comments after this.
+      if (entry.isBlock) {
+        sb.write("$extra// Coverage-ignore-block(suite): Not run.\n  ");
+      } else {
+        sb.write("$extra// Coverage-ignore(suite): Not run.\n  ");
+      }
+      from = token.charOffset;
+    }
+    sb.write(sourceText.substring(from));
+    f.writeAsStringSync(sb.toString());
+
+    // Return a fake result.
+    return new CoverageInfo(
+        allCovered: true, missCount: -1, hitCount: -1, visualization: "fake");
+  }
 
   // TODO(jensj): Extract all comments and use those as well here.
   // TODO(jensj): Should some comment throw/report and error if covered?
@@ -205,8 +439,6 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
 
   StringBuffer visualization = new StringBuffer();
 
-  IntervalList ignoredIntervals =
-      astIndexer.ignoredStartEnd.buildIntervalList();
   var (:bool allCovered, :Set<int> trimmedMisses) =
       _trimIgnoredAndPrintPercentages(
           visualization, ignoredIntervals, untrimmedMisses, hitsSorted, uri);
@@ -221,7 +453,6 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
 
   CompilationUnitBegin unitBegin = ast.children!.first as CompilationUnitBegin;
   Token firstToken = unitBegin.token;
-  Source source = new Source(lineStarts, rawBytes, uri, fileUri);
 
   List<int> sortedMisses = trimmedMisses.toList()..sort();
 
@@ -285,8 +516,8 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
         String? name = astIndexer.nameOfEntitySpanning(offset);
 
         if (name != null) {
-          visualization.writeln(
-              "$uri:${location.line}: No coverage for '$name'.\n$line\n");
+          visualization.writeln("$uri:${location.line}: "
+              "No coverage for '$name' ($offset).\n$line\n");
           // TODO(jensj): Squiggly line under the identifier of the entity?
         } else {
           visualization.writeln(
@@ -371,7 +602,7 @@ CoverageInfo process(PackageConfig packageConfig, Uri uri,
           "($missCount misses)");
       return (allCovered: false, trimmedMisses: trimmedMisses);
     } else {
-      visualization.writeln("$uri: 100% (OK)");
+      // visualization.writeln("$uri: 100% (OK)");
       return (allCovered: true, trimmedMisses: trimmedMisses);
     }
   }
@@ -423,15 +654,32 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     "debugName",
     "writeNullabilityOn",
   };
+  final List<String> _coverageIgnores = [
+    "coverage-ignore:",
+  ];
+  final List<String> _coverageBlockIgnores = [
+    "coverage-ignore-block:",
+  ];
 
   final IntervalListBuilder ignoredStartEnd = new IntervalListBuilder();
+
+  final List<int> hitsSorted;
+  int hitsSortedIndex = 0;
+  final List<int> allSorted;
+  int allSortedIndex = 0;
+
+  final List<_CommentOn> potentiallyAddCommentTokens = [];
 
   late final _AstIndexerAndIgnoreCollectorBody _collectorBody =
       new _AstIndexerAndIgnoreCollectorBody(this);
 
-  static AstIndexerAndIgnoreCollector collect(ParserAstNode ast) {
+  static AstIndexerAndIgnoreCollector collect(ParserAstNode ast,
+      List<String> extraCoverageIgnores, List<String> extraCoverageBlockIgnores,
+      {required List<int> hitsSorted, required List<int> allSorted}) {
     AstIndexerAndIgnoreCollector collector =
-        new AstIndexerAndIgnoreCollector._();
+        new AstIndexerAndIgnoreCollector._(hitsSorted, allSorted);
+    collector._coverageIgnores.addAll(extraCoverageIgnores);
+    collector._coverageBlockIgnores.addAll(extraCoverageBlockIgnores);
     ast.accept(collector);
 
     assert(collector.positionNodeIndex.length ==
@@ -442,10 +690,228 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     return collector;
   }
 
-  AstIndexerAndIgnoreCollector._() {}
+  AstIndexerAndIgnoreCollector._(this.hitsSorted, this.allSorted) {}
+
+  bool _hasIgnoreComment(Token tokenWithPossibleComment,
+      {required bool isBlock}) {
+    List<String> coverageIgnores = _coverageIgnores;
+    if (isBlock) {
+      coverageIgnores = _coverageBlockIgnores;
+    }
+    Token? comment = tokenWithPossibleComment.precedingComments;
+    while (comment != null) {
+      String message = comment.lexeme.trim().toLowerCase();
+      while (message.startsWith("//") || message.startsWith("/*")) {
+        message = message.substring(2).trim();
+      }
+      for (String coverageIgnoreString in coverageIgnores) {
+        if (message.startsWith(coverageIgnoreString)) {
+          return true;
+        }
+      }
+      comment = comment.next;
+    }
+    return false;
+  }
+
+  /// Check if there is an ignore comment on [tokenWithPossibleComment] and
+  /// returns true if there is.
+  ///
+  /// If there is not it will add a note to add one if that makes sense (in that
+  /// there is possible coverage but no actual coverage).
+  bool _checkCommentAndIgnoreCoverage(
+      Token tokenWithPossibleComment, BeginAndEndTokenParserAstNode ignoreRange,
+      {required bool allowReplace}) {
+    return _checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        tokenWithPossibleComment, ignoreRange.beginToken, ignoreRange.endToken,
+        allowReplace: allowReplace);
+  }
+
+  /// Check if there is an ignore comment on [tokenWithPossibleComment] and
+  /// returns true if there is.
+  ///
+  /// If there is not it will add a note to add one if that makes sense (in that
+  /// there is possible coverage but no actual coverage).
+  bool _checkCommentAndIgnoreCoverageWithBeginAndEnd(
+      Token tokenWithPossibleComment, Token beginToken, Token endToken,
+      {required bool allowReplace,
+      bool isBlock = false,
+      bool allowOnBraceStart = false}) {
+    if (_hasIgnoreComment(tokenWithPossibleComment, isBlock: isBlock)) {
+      ignoredStartEnd.addIntervalIncludingEnd(
+          beginToken.charOffset, endToken.charEnd);
+      return true;
+    }
+
+    // Should a comment be added here?
+    if (tokenWithPossibleComment.lexeme == "{" && !allowOnBraceStart) {
+      // We don't want to add it "outside" the block, but inside it,
+      // so we just return here.
+      return false;
+    }
+    if (tokenWithPossibleComment.lexeme == "else" &&
+        tokenWithPossibleComment.next!.lexeme == "{") {
+      // An else with a block, prefer it directly inside the block instead.
+      return false;
+    }
+    // Because of (at least) `visitEndingBinaryExpressionHandle` we can get
+    // events out of order. Go back here if needed...
+    if (allSorted.isNotEmpty) {
+      if (allSorted.length >= allSortedIndex) {
+        allSortedIndex = allSorted.length - 1;
+      }
+      while (allSortedIndex > 0 &&
+          allSorted[allSortedIndex] > beginToken.charOffset) {
+        allSortedIndex--;
+      }
+      // ...then go forward if needed (e.g. when it does come in order).
+      while (allSortedIndex < allSorted.length &&
+          allSorted[allSortedIndex] < beginToken.charOffset) {
+        allSortedIndex++;
+      }
+    }
+
+    if (allSortedIndex >= allSorted.length ||
+        allSorted[allSortedIndex] > endToken.charEnd) {
+      // Nothing inside this block can be covered by the VM anyway.
+      return false;
+    }
+
+    // As before: Make work when events arrive out of order.
+    if (hitsSorted.isNotEmpty) {
+      if (hitsSorted.length >= hitsSortedIndex) {
+        hitsSortedIndex = hitsSorted.length - 1;
+      }
+      while (hitsSortedIndex > 0 &&
+          hitsSorted[hitsSortedIndex] > beginToken.charOffset) {
+        hitsSortedIndex--;
+      }
+      while (hitsSortedIndex < hitsSorted.length &&
+          hitsSorted[hitsSortedIndex] < beginToken.charOffset) {
+        hitsSortedIndex++;
+      }
+    }
+
+    if (hitsSortedIndex >= hitsSorted.length ||
+        hitsSorted[hitsSortedIndex] > endToken.charEnd) {
+      // No hits at all or next hit is after this "block".
+      potentiallyAddCommentTokens.add(new _CommentOn(
+        commentOnToken: tokenWithPossibleComment,
+        beginToken: beginToken,
+        endToken: endToken,
+        canBeReplaced: allowReplace,
+        isBlock: isBlock,
+      ));
+    }
+
+    return false;
+  }
+
+  /// Check if there is an ignore comment on [tokenWithPossibleComment] and
+  /// returns true if there is.
+  ///
+  /// If there is not it will add a note to add one if that makes sense (in that
+  /// there is possible coverage but no actual coverage).
+  ///
+  /// This method in particular will try to ignore from
+  /// [tokenWithPossibleComment] until the end of the block that it's inside,
+  /// but fall back to the original range if that's not possible.
+  /// Two different comments are used to distinguish these cases.
+  bool _checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+      Token tokenWithPossibleComment,
+      Token beginToken,
+      ParserAstNode node,
+      Token endToken,
+      {required bool allowReplace}) {
+    ParserAstNode? parent = node.parent;
+    if ((parent is BlockFunctionBodyEnd || parent is BlockEnd)) {
+      if (_checkCommentAndIgnoreCoverageWithBeginAndEnd(
+          tokenWithPossibleComment,
+          beginToken,
+          (parent as BeginAndEndTokenParserAstNode).endToken,
+          allowReplace: allowReplace,
+          isBlock: true)) {
+        return true;
+      }
+    }
+    return _checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        tokenWithPossibleComment, beginToken, endToken,
+        allowReplace: allowReplace);
+  }
+
+  bool _ignoreIfChildrenIsThrow(BeginAndEndTokenParserAstNode node) {
+    List<ParserAstNode>? children = node.children;
+    if (children == null) return false;
+    if (children.length >= 4 &&
+        children[1] is NewExpressionEnd &&
+        children[2] is ThrowExpressionHandle &&
+        children[3] is ExpressionStatementHandle) {
+      ignoredStartEnd.addIntervalIncludingEnd(
+          node.beginToken.charOffset, node.endToken.charEnd);
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  void visitClassDeclarationEnd(ClassDeclarationEnd node) {
+    // Note that this stops recursing meaning there'll be stuff we can't look
+    // up. If that turns out to be a problem we can likely just not return,
+    // possible "double-ignored" coverages should still work fine because of the
+    // interval list.
+    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) return;
+    super.visitClassDeclarationEnd(node);
+  }
+
+  @override
+  void visitExtensionDeclarationEnd(ExtensionDeclarationEnd node) {
+    // Note that this stops recursing meaning there'll be stuff we can't look
+    // up. If that turns out to be a problem we can likely just not return,
+    // possible "double-ignored" coverages should still work fine because of the
+    // interval list.
+    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) return;
+    super.visitExtensionDeclarationEnd(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclarationEnd(ExtensionTypeDeclarationEnd node) {
+    // Note that this stops recursing meaning there'll be stuff we can't look
+    // up. If that turns out to be a problem we can likely just not return,
+    // possible "double-ignored" coverages should still work fine because of the
+    // interval list.
+    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) return;
+    super.visitExtensionTypeDeclarationEnd(node);
+  }
+
+  @override
+  void visitTopLevelFieldsEnd(TopLevelFieldsEnd node) {
+    super.visitTopLevelFieldsEnd(node);
+    assert(positionNodeIndex.last == node);
+    assert(positionStartEndIndex.last == node.endToken.charEnd);
+    int index = positionNodeIndex.length - 1;
+    int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
+    Token beginToken = node.beginToken;
+    if (firstIndex < index) {
+      MetadataEnd metadata = positionNodeIndex[firstIndex] as MetadataEnd;
+      beginToken = metadata.beginToken;
+    }
+
+    if (_checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.beginToken, beginToken, node.endToken,
+        allowReplace: false)) {
+      // Ignore these class fields including metadata.
+      ignoredStartEnd.addIntervalIncludingEnd(
+          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+    }
+  }
 
   @override
   void visitTopLevelMethodEnd(TopLevelMethodEnd node) {
+    if (_checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) return;
     super.visitTopLevelMethodEnd(node);
     String name = node.getNameIdentifier().token.lexeme;
     if (topLevelMethodNamesToIgnore.contains(name)) {
@@ -461,15 +927,63 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     }
   }
 
+  /// This method will try to recognize entities (think methods) that just
+  /// throws. If it finds [node] to be this, it will add it to the ignore list
+  /// and return true.
+  bool _ignoreIfEntityWithThrowBody(BeginAndEndTokenParserAstNode node) {
+    List<ParserAstNode>? children = node.children;
+    if (children == null) return false;
+    for (ParserAstNode child in children) {
+      if (child is BlockFunctionBodyEnd && _ignoreIfChildrenIsThrow(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  void containerFields(
+      BeginAndEndTokenParserAstNode node, List<IdentifierHandle> names) {
+    super.containerFields(node, names);
+    assert(positionNodeIndex.last == node);
+    assert(positionStartEndIndex.last == node.endToken.charEnd);
+    int index = positionNodeIndex.length - 1;
+    int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
+    Token beginToken = node.beginToken;
+    if (firstIndex < index) {
+      MetadataEnd metadata = positionNodeIndex[firstIndex] as MetadataEnd;
+      beginToken = metadata.beginToken;
+    }
+
+    if (_checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.beginToken, beginToken, node.endToken,
+        allowReplace: false)) {
+      // Ignore these class fields including metadata.
+      ignoredStartEnd.addIntervalIncludingEnd(
+          positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
+    }
+  }
+
   @override
   void containerMethod(BeginAndEndTokenParserAstNode node, String name) {
     super.containerMethod(node, name);
-    if (classMethodNamesToIgnore.contains(name)) {
+    assert(positionNodeIndex.last == node);
+    assert(positionStartEndIndex.last == node.endToken.charEnd);
+    int index = positionNodeIndex.length - 1;
+    int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
+    Token beginToken = node.beginToken;
+    if (firstIndex < index) {
+      MetadataEnd metadata = positionNodeIndex[firstIndex] as MetadataEnd;
+      beginToken = metadata.beginToken;
+    }
+
+    if (_ignoreIfEntityWithThrowBody(node) ||
+        classMethodNamesToIgnore.contains(name) ||
+        _checkCommentAndIgnoreCoverageWithBeginAndEnd(
+            node.beginToken, beginToken, node.endToken,
+            allowReplace: false)) {
       // Ignore this class method including metadata.
-      assert(positionNodeIndex.last == node);
-      assert(positionStartEndIndex.last == node.endToken.charEnd);
-      int index = positionNodeIndex.length - 1;
-      int firstIndex = moveNodeIndexToFirstMetadataIfAny(index)!;
+
       ignoredStartEnd.addIntervalIncludingEnd(
           positionStartEndIndex[firstIndex * 2 + 0], node.endToken.charEnd);
     } else {
@@ -506,18 +1020,340 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
         return true;
       }
     }
+    if (_collector._ignoreIfChildrenIsThrow(node)) return true;
     return false;
   }
 
   @override
   void visitReturnStatementEnd(ReturnStatementEnd node) {
     if (_recordIfIsCallToNotExpectedCoverage(node)) return;
+    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) {
+      return;
+    }
     super.visitReturnStatementEnd(node);
   }
 
   @override
   void visitBlockEnd(BlockEnd node) {
     if (_recordIfIsCallToNotExpectedCoverage(node)) return;
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.beginToken.next!, node.beginToken, node.endToken,
+        allowReplace: false, isBlock: true)) {
+      return;
+    }
     super.visitBlockEnd(node);
+  }
+
+  @override
+  void visitBlockFunctionBodyEnd(BlockFunctionBodyEnd node) {
+    if (_recordIfIsCallToNotExpectedCoverage(node)) return;
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.beginToken.next!, node.beginToken, node.endToken,
+        allowReplace: false, isBlock: true)) {
+      return;
+    }
+    super.visitBlockFunctionBodyEnd(node);
+  }
+
+  @override
+  void visitFunctionExpressionEnd(FunctionExpressionEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitFunctionExpressionEnd(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclarationEnd(LocalFunctionDeclarationEnd node) {
+    ParserAstNode? beginNode = node.children?.firstOrNull;
+    if (beginNode is LocalFunctionDeclarationBegin) {
+      if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+          beginNode.token, beginNode.token, node.endToken,
+          allowReplace: true)) {
+        return;
+      }
+    }
+    super.visitLocalFunctionDeclarationEnd(node);
+  }
+
+  @override
+  void visitSwitchCaseEnd(SwitchCaseEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) {
+      return;
+    }
+    super.visitSwitchCaseEnd(node);
+  }
+
+  @override
+  void visitCaseExpressionEnd(CaseExpressionEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.caseKeyword, node.caseKeyword, node.colon,
+        allowReplace: false)) {
+      return;
+    }
+    super.visitCaseExpressionEnd(node);
+  }
+
+  @override
+  void visitThrowExpressionHandle(ThrowExpressionHandle node) {
+    if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+        node.throwToken, node.throwToken, node, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitThrowExpressionHandle(node);
+  }
+
+  @override
+  void visitElseStatementEnd(ElseStatementEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: false)) {
+      return;
+    }
+    super.visitElseStatementEnd(node);
+  }
+
+  @override
+  void visitThenStatementEnd(ThenStatementEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitThenStatementEnd(node);
+  }
+
+  @override
+  void visitIfStatementEnd(IfStatementEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+        node.ifToken, node.ifToken, node, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitIfStatementEnd(node);
+  }
+
+  @override
+  void visitTryStatementEnd(TryStatementEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+        node.tryKeyword, node.tryKeyword, node, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitTryStatementEnd(node);
+  }
+
+  @override
+  void visitBinaryExpressionEnd(BinaryExpressionEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.token.next!, node.token, node.endToken,
+        allowReplace: false)) {
+      return;
+    }
+    super.visitBinaryExpressionEnd(node);
+  }
+
+  @override
+  void visitEndingBinaryExpressionHandle(EndingBinaryExpressionHandle node) {
+    // Given `a?.b` if `a` is null `b` won't execute.
+    // Having the comment before the `?.` formats prettier.
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.token, node.token, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitEndingBinaryExpressionHandle(node);
+  }
+
+  @override
+  void visitThenControlFlowHandle(ThenControlFlowHandle node) {
+    ParserAstNode? parent = node.parent;
+    if (parent is IfControlFlowEnd) {
+      if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+          node.token.next!, node.token.next!, parent.token,
+          allowReplace: false)) {
+        return;
+      }
+    }
+    super.visitThenControlFlowHandle(node);
+  }
+
+  @override
+  void visitConditionalExpressionEnd(ConditionalExpressionEnd node) {
+    // Visiting `foo ? bar : baz`:
+
+    // Check the comment on the `bar` part (i.e. between ? and :).
+    _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.question.next!, node.question.next!, node.colon,
+        allowReplace: false);
+
+    // Check the comment on the `baz` part (i.e. between : and end).
+    _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.colon.next!, node.colon.next!, node.endToken,
+        allowReplace: false);
+
+    super.visitConditionalExpressionEnd(node);
+  }
+
+  @override
+  void visitForLoopPartsHandle(ForLoopPartsHandle node) {
+    // Given `for(a; b; c)` --- the `c` part could be uncovered.
+    _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.rightSeparator.next!,
+        node.rightSeparator.next!,
+        node.leftParen.endGroup!,
+        allowReplace: false);
+    super.visitForLoopPartsHandle(node);
+  }
+
+  @override
+  void visitForInBodyEnd(ForInBodyEnd node) {
+    ParserAstNode? beginNode = node.children?.firstOrNull;
+    if (beginNode is ForInBodyBegin) {
+      if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+          beginNode.token, beginNode.token, node.endToken,
+          allowReplace: true, allowOnBraceStart: true)) {
+        return;
+      }
+    }
+    super.visitForInBodyEnd(node);
+  }
+
+  @override
+  void visitExpressionStatementHandle(ExpressionStatementHandle node) {
+    // TODO(jensj): allowReplace should depend upon if there's anything
+    // coverable in this statement. If there isn't it should certainly be
+    // replaceable.
+    if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+        node.beginToken, node.beginToken, node, node.endToken,
+        allowReplace: false)) {
+      return;
+    }
+    super.visitExpressionStatementHandle(node);
+  }
+
+  @override
+  void visitVariablesDeclarationEnd(VariablesDeclarationEnd node) {
+    // TODO(jensj): allowReplace should depend upon if there's anything
+    // coverable in this statement. If there isn't it should certainly be
+    // replaceable.
+    if (node.endToken != null) {
+      List<ParserAstNode> parentChildren = node.parent!.children!;
+      int thisIndex = parentChildren.indexOf(node);
+      if (thisIndex - 1 >= 0 && parentChildren[thisIndex - 1] is TypeHandle) {
+        TypeHandle type = parentChildren[thisIndex - 1] as TypeHandle;
+        if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+            type.beginToken, type.beginToken, node, node.endToken!,
+            allowReplace: false)) {
+          return;
+        }
+      }
+    }
+    super.visitVariablesDeclarationEnd(node);
+  }
+
+  @override
+  void visitAssertEnd(AssertEnd node) {
+    if (_collector._checkCommentAndIgnoreCoverageUntilEndOfBlockOrEnd(
+        node.assertKeyword, node.assertKeyword, node, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+
+    if (node.commaToken != null) {
+      _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+          node.commaToken!.next!, node.commaToken!, node.endToken,
+          allowReplace: false);
+    }
+    super.visitAssertEnd(node);
+  }
+
+  @override
+  void visitCatchBlockHandle(CatchBlockHandle node) {
+    // TODO(jensj): allowReplace should depend upon if there's anything
+    // coverable in this statement. If there isn't it should certainly be
+    // replaceable.
+    if (node.onKeyword != null) {
+      List<ParserAstNode> parentChildren = node.parent!.children!;
+      int thisIndex = parentChildren.indexOf(node);
+      if (thisIndex - 1 >= 0 && parentChildren[thisIndex - 1] is BlockEnd) {
+        BlockEnd block = parentChildren[thisIndex - 1] as BlockEnd;
+        if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+            node.onKeyword!, node.onKeyword!, block.endToken,
+            allowReplace: false)) {
+          return;
+        }
+      }
+    }
+    super.visitCatchBlockHandle(node);
+  }
+
+  @override
+  void visitPatternEnd(PatternEnd node) {
+    ParserAstNode? beginNode = node.children?.firstOrNull;
+    if (beginNode is PatternBegin) {
+      Token begin = beginNode.token;
+      if (begin.lexeme != ":") {
+        begin = begin.next!;
+      }
+      if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+          begin, begin, node.token,
+          allowReplace: true)) {
+        return;
+      }
+    }
+    super.visitPatternEnd(node);
+  }
+
+  @override
+  void visitSwitchExpressionCaseEnd(SwitchExpressionCaseEnd node) {
+    // The entire thing?
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.beginToken, node.beginToken, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+
+    // The if-matched part?
+    _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.arrow.next!, node.arrow.next!, node.endToken,
+        allowReplace: true);
+
+    super.visitSwitchExpressionCaseEnd(node);
+  }
+
+  @override
+  void visitAssignmentExpressionHandle(AssignmentExpressionHandle node) {
+    _collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.token.next!, node.token.next!, node.endToken,
+        allowReplace: true, allowOnBraceStart: true);
+    super.visitAssignmentExpressionHandle(node);
+  }
+}
+
+class _CommentOn implements Comparable<_CommentOn> {
+  final Token commentOnToken;
+  final Token beginToken;
+  final Token endToken;
+  final bool canBeReplaced;
+  final bool isBlock;
+
+  _CommentOn({
+    required this.commentOnToken,
+    required this.beginToken,
+    required this.endToken,
+    required this.canBeReplaced,
+    required this.isBlock,
+  });
+
+  @override
+  int compareTo(_CommentOn other) {
+    // Small to big.
+    int result = beginToken.charOffset.compareTo(other.beginToken.charOffset);
+    if (result != 0) return result;
+    // Big to small.
+    return other.endToken.charOffset.compareTo(endToken.charOffset);
   }
 }

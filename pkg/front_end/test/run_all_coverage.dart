@@ -116,5 +116,7 @@ Future<void> main() async {
     repoDirUri.resolve(".dart_tool/package_config.json"),
     coverageTmpDir.uri,
     silent: false,
+    extraCoverageIgnores: const [],
+    extraCoverageBlockIgnores: const [],
   );
 }

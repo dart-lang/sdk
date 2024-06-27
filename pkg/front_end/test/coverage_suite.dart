@@ -68,6 +68,8 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
     Uri.base.resolve(".dart_tool/package_config.json"),
     coverageTmpDir.uri,
     silent: true,
+    extraCoverageIgnores: ["coverage-ignore(suite):"],
+    extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
   );
   if (coverageData == null) throw "Failure in coverage.";
 
@@ -126,6 +128,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
       int hitCount = coverageEntry.value.hitCount;
       int missCount = coverageEntry.value.missCount;
       double percent = (hitCount / (hitCount + missCount) * 100);
+      if (percent.isNaN) percent = 100;
       if (options.updateExpectations) {
         updatedExpectations.writeln("  // $percent%.");
         updatedExpectations.writeln("  \"${coverageEntry.key}\": "
@@ -142,6 +145,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
         double expectedPercent = (expected.hitCount /
             (expected.hitCount + expected.missCount) *
             100);
+        if (expectedPercent.isNaN) expectedPercent = 100;
         int requireAtLeast = expectedPercent.floor();
         pass = percent >= requireAtLeast;
         if (!pass) {

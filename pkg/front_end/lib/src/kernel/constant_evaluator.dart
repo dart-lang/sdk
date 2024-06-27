@@ -86,6 +86,7 @@ ConstantEvaluationData transformLibraries(
       constantsTransformer.constantEvaluator.visitedLibraries);
 }
 
+// Coverage-ignore(suite): Only run from expression compilation.
 void transformProcedure(
     Procedure procedure,
     Target target,
@@ -208,6 +209,8 @@ class ConstantsTransformer extends RemovingTransformer {
     transformFieldList(library.fields, library);
 
     if (!keepFields) {
+      // Coverage-ignore: `keepFields` is currently always true. Maybe it should
+      // just be removed?
       // The transformer API does not iterate over `Library.additionalExports`,
       // so we manually delete the references to shaken nodes.
       library.additionalExports.removeWhere((Reference reference) {
@@ -218,6 +221,7 @@ class ConstantsTransformer extends RemovingTransformer {
     _exhaustivenessCache = null;
   }
 
+  // Coverage-ignore(suite): Only run from expression compilation.
   Procedure convertProcedure(Procedure node) {
     _exhaustivenessCache =
         new CfeExhaustivenessCache(constantEvaluator, node.enclosingLibrary);
@@ -2397,7 +2401,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           final List<LocatedMessage> contextMessages = <LocatedMessage>[
             locatedMessageActualError
           ];
-          if (result.context != null) contextMessages.addAll(result.context!);
+          if (result.context != null) {
+            contextMessages.addAll(result.context!);
+          }
           if (contextNode != null && contextNode != result.node) {
             contextMessages.add(
                 createLocatedMessage(contextNode, messageConstEvalContext));
@@ -2503,7 +2509,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return status.error;
     } else if (status is ReturnStatus) {
       if (status.value == null) return null;
-      // Should not be reachable.
+      // Coverage-ignore: Should not be reachable.
       return createEvaluationErrorConstant(
           constructor,
           templateConstEvalError
@@ -3002,7 +3008,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     final Class klass = constructor.enclosingClass;
     if (klass.isAbstract) {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       return createExpressionErrorConstant(
           node, templateAbstractClassInstantiation.withArguments(klass.name));
     }
@@ -3060,7 +3066,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     // Fill in any missing type arguments with "dynamic".
     for (int i = typeArguments.length; i < klass.typeParameters.length; i++) {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       typeArguments.add(const DynamicType());
     }
 
@@ -3096,7 +3102,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (constructor.function.body != null &&
         constructor.function.body is! EmptyStatement &&
         !enableConstFunctions) {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       return createExpressionErrorConstant(
           node, messageConstConstructorWithBody);
     } else if (constructor.isExternal) {
@@ -3268,8 +3274,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           AbortConstant? error = checkAssert(init.statement);
           if (error != null) return error;
         } else {
+          // Coverage-ignore: Probably unreachable.
           // InvalidInitializer or new Initializers.
-          // Probably unreachable. InvalidInitializer is (currently) only
+          // InvalidInitializer is (currently) only
           // created for classes with no constructors that doesn't have a
           // super that takes no arguments. It thus cannot be const.
           // Explicit constructors with incorrect super calls will get a
@@ -3851,7 +3858,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           if (right is BoolConstant || right is UnevaluatedConstant) {
             return right;
           }
-
           return createEvaluationErrorConstant(
               node,
               templateConstEvalInvalidBinaryOperandType.withArguments(
@@ -3873,7 +3879,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           if (right is BoolConstant || right is UnevaluatedConstant) {
             return right;
           }
-
           return createEvaluationErrorConstant(
               node,
               templateConstEvalInvalidBinaryOperandType.withArguments(
@@ -3921,8 +3926,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitInstanceGet(InstanceGet node) {
     if (node.receiver is ThisExpression) {
-      // Probably unreachable unless trying to evaluate non-const stuff as
-      // const.
+      // Coverage-ignore: Probably unreachable unless trying to evaluate
+      // non-const stuff as const.
       // Access "this" during instance creation.
       if (instanceBuilder == null) {
         return createEvaluationErrorConstant(
@@ -3939,7 +3944,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
       // Meant as a "stable backstop for situations where Fasta fails to
       // rewrite various erroneous constructs into invalid expressions".
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       return createEvaluationErrorConstant(
           node,
           templateConstEvalError.withArguments(
@@ -4249,7 +4254,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         } else if (defaultValue is NullConstant) {
           boolConstant = nullConstant;
         } else {
-          // Probably unreachable.
+          // Coverage-ignore: Probably unreachable.
           boolConstant = falseConstant;
         }
       } else {
@@ -4287,8 +4292,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
       return stringConstant;
     }
-    // Unreachable until fromEnvironment is added to other classes in dart:core
-    // than bool, int and String.
+    // Coverage-ignore: Unreachable until fromEnvironment is added to other
+    // classes in dart:core than bool, int and String.
     throw new UnsupportedError(
         'Unexpected fromEnvironment constructor: $target');
   }
@@ -4639,7 +4644,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return canonicalize(
             new InstantiationConstant(constant, convertTypes(types)));
       } else {
-        // Probably unreachable.
+        // Coverage-ignore: Probably unreachable.
         return createEvaluationErrorConstant(
             node,
             templateConstEvalError.withArguments(
@@ -4650,7 +4655,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     // The inner expression in an instantiation can never be null, since
     // instantiations are only inferred on direct references to declarations.
-    // Probably unreachable.
+    // Coverage-ignore: Probably unreachable.
     return createEvaluationErrorConstant(
         node,
         templateConstEvalError.withArguments(
@@ -4682,7 +4687,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return canonicalize(
           new TypedefTearOffConstant(typeParameters, constant, typeArguments));
     } else {
-      // Probably unreachable.
+      // Coverage-ignore: Probably unreachable.
       return createEvaluationErrorConstant(
           node,
           templateConstEvalError.withArguments(
@@ -4827,7 +4832,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&
           constantType.classNode == typeEnvironment.coreTypes.intClass) {
-        // Probably unreachable.
+        // Coverage-ignore: Probably unreachable.
         // With JS semantics, an integer is also a double.
         result = typeEnvironment.isSubtypeOf(
             new InterfaceType(typeEnvironment.coreTypes.doubleClass,
@@ -5059,7 +5064,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return makeBoolConstant(a > b);
     }
 
-    // Probably unreachable.
+    // Coverage-ignore: Probably unreachable.
     return createExpressionErrorConstant(node,
         templateNotConstantExpression.withArguments("Binary '$op' operation"));
   }
@@ -5214,7 +5219,9 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   @override
   ExecutionStatus visitIfStatement(IfStatement node) {
     Constant condition = evaluate(node.condition);
-    if (condition is AbortConstant) return new AbortStatus(condition);
+    if (condition is AbortConstant) {
+      return new AbortStatus(condition);
+    }
     assert(condition is BoolConstant);
     if ((condition as BoolConstant).value) {
       return node.then.accept(this);
@@ -5251,7 +5258,9 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
       }
     }
 
-    if (condition is AbortConstant) return new AbortStatus(condition);
+    if (condition is AbortConstant) {
+      return new AbortStatus(condition);
+    }
     assert(condition is BoolConstant);
     return const ProceedStatus();
   }
@@ -5285,7 +5294,9 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   @override
   ExecutionStatus visitSwitchStatement(SwitchStatement node) {
     final Constant value = evaluate(node.expression);
-    if (value is AbortConstant) return new AbortStatus(value);
+    if (value is AbortConstant) {
+      return new AbortStatus(value);
+    }
 
     for (SwitchCase switchCase in node.cases) {
       if (switchCase.isDefault) return switchCase.body.accept(this);
@@ -5376,7 +5387,9 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
       if (status is! ProceedStatus) return status;
       condition = evaluate(node.condition);
     }
-    if (condition is AbortConstant) return new AbortStatus(condition);
+    if (condition is AbortConstant) {
+      return new AbortStatus(condition);
+    }
     assert(condition is BoolConstant);
     return const ProceedStatus();
   }

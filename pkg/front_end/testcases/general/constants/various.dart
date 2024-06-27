@@ -111,6 +111,16 @@ class Foo {
         this.y = "hello".length;
 }
 
+class FooWithHashCodeField {
+  final int x;
+  final int y;
+  final int hashCode;
+  const FooWithHashCodeField(int x)
+      : this.x = x,
+        this.y = "hello".length,
+        this.hashCode = x * 42;
+}
+
 class ExtendsFoo1 extends Foo {
   // No constructor.
 }
@@ -127,6 +137,12 @@ const Foo foo1 = const Foo(42);
 const Foo foo2 = const Foo(42);
 const bool foosIdentical = identical(foo1, foo2);
 const bool foosEqual = foo1 == foo2;
+
+const FooWithHashCodeField fooWithHashCodeField1 = const FooWithHashCodeField(42);
+const FooWithHashCodeField fooWithHashCodeField2 = const FooWithHashCodeField(42);
+const bool fooWithHashCodeFieldIdentical = identical(fooWithHashCodeField1, fooWithHashCodeField2);
+const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
+
 const Symbol barFoo = const Symbol("Foo");
 const Symbol barFooEqual = const Symbol("Foo=");
 const Symbol tripleShiftSymbol = const Symbol(">>>");
