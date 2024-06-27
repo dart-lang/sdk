@@ -65,19 +65,18 @@ extension NullableObjectUtilExtension on Object? {
 // JSExportedDartFunction <-> Function
 @patch
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
-  // TODO(srujzs): We should unwrap rather than allow arbitrary JS functions
-  // to be called in Dart.
   @patch
-  @pragma('dart2js:prefer-inline')
-  Function get toDart => this._jsFunction;
+  Function get toDart => throw UnimplementedError(
+      "'toDart' should never directly be called. Calls to 'toDart' should have "
+      'been transformed by the interop transformer.');
 }
 
 @patch
 extension FunctionToJSExportedDartFunction on Function {
   @patch
-  @pragma('dart2js:prefer-inline')
-  JSExportedDartFunction get toJS =>
-      js_util.allowInterop(this) as JSExportedDartFunction;
+  JSExportedDartFunction get toJS => throw UnimplementedError(
+      "'toJS' should never directly be called. Calls to 'toJS' should have "
+      'been transformed by the interop transformer.');
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.

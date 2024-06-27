@@ -41,9 +41,14 @@ class JsUtilOptimizer extends Transformer {
   final List<Procedure> _callConstructorUncheckedTargets;
   final CloneVisitorNotMembers _cloner = CloneVisitorWithMembers();
   final Map<Member, _InvocationBuilder?> _externalInvocationBuilders = {};
+  final Procedure _functionToJSTarget;
+  final List<Procedure> _functionToJSTargets;
+  final Procedure _functionToJSNTarget;
   final Procedure _getPropertyTarget;
   final Procedure _getPropertyTrustTypeTarget;
   final Procedure _globalContextTarget;
+  final Procedure _jsExportedDartFunctionToDartTarget;
+  final Procedure _jsFunctionToDart;
   final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
@@ -88,12 +93,25 @@ class JsUtilOptimizer extends Transformer {
             5,
             (i) => _coreTypes.index.getTopLevelProcedure(
                 'dart:js_util', '_callConstructorUnchecked$i')),
+        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
+            'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
+        _functionToJSTargets = List<Procedure>.generate(
+            6,
+            (i) => _coreTypes.index
+                .getTopLevelProcedure('dart:js_util', '_functionToJS$i')),
+        _functionToJSNTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', '_functionToJSN'),
         _getPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
         _getPropertyTrustTypeTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_getPropertyTrustType'),
         _globalContextTarget = _coreTypes.index.getTopLevelProcedure(
             'dart:_js_helper', 'get:staticInteropGlobalContext'),
+        _jsExportedDartFunctionToDartTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_interop',
+                'JSExportedDartFunctionToFunction|get#toDart'),
+        _jsFunctionToDart = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', '_jsFunctionToDart'),
         _objectType = hierarchy.coreTypes.objectNonNullableRawType,
         _setPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
@@ -480,6 +498,10 @@ class JsUtilOptimizer extends Transformer {
       invocation = _lowerCallConstructor(node);
       // TODO(srujzs): Delete the `isPatchedMember` check once
       // https://github.com/dart-lang/sdk/issues/53367 is resolved.
+    } else if (target == _functionToJSTarget) {
+      invocation = _lowerFunctionToJS(node);
+    } else if (target == _jsExportedDartFunctionToDartTarget) {
+      invocation = _lowerJSExportedDartFunctionToDart(node);
     } else if (target.isExternal && !JsInteropChecks.isPatchedMember(target)) {
       final builder = _externalInvocationBuilders.putIfAbsent(
           target, () => _getExternalInvocationBuilder(target));
@@ -661,6 +683,45 @@ class JsUtilOptimizer extends Transformer {
       ..fileOffset = nodeFileOffset
       ..parent = nodeParent;
   }
+
+  /// For the given `dart:js_interop` `Function.toJS` invocation [node], returns
+  /// an invocation of `_functionToJSX` with the given `Function` argument,
+  /// where X is the number of the positional arguments.
+  ///
+  /// If the number of the positional arguments is larger than 5, returns an
+  /// invocation of `_functionToJSN` instead.
+  StaticInvocation _lowerFunctionToJS(StaticInvocation node) {
+    // JS interop checks assert that the static type is available, and that
+    // there are no named arguments or type arguments.
+    final function = node.arguments.positional.single;
+    final functionType =
+        function.getStaticType(_staticTypeContext) as FunctionType;
+    final argumentsLength = functionType.positionalParameters.length;
+    Procedure target;
+    Arguments arguments;
+    if (argumentsLength < _functionToJSTargets.length) {
+      target = _functionToJSTargets[argumentsLength];
+      arguments = Arguments([function]);
+    } else {
+      target = _functionToJSNTarget;
+      arguments = Arguments([function, IntLiteral(argumentsLength)]);
+    }
+    return StaticInvocation(
+        target, arguments..fileOffset = node.arguments.fileOffset)
+      ..fileOffset = node.fileOffset
+      ..parent = node.parent;
+  }
+
+  /// For the given `dart:js_interop` `JSExportedDartFunction.toDart` invocation
+  /// [node], returns an invocation of `_jsFunctionToDart` with the given
+  /// `JSExportedDartFunction` argument.
+  StaticInvocation _lowerJSExportedDartFunctionToDart(StaticInvocation node) =>
+      StaticInvocation(
+          _jsFunctionToDart,
+          Arguments([node.arguments.positional[0]])
+            ..fileOffset = node.arguments.fileOffset)
+        ..fileOffset = node.fileOffset
+        ..parent = node.parent;
 
   /// Returns whether the given [node] is guaranteed to be allowed to interop
   /// with JS.

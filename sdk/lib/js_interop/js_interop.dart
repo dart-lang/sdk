@@ -477,7 +477,8 @@ extension JSFunctionUtilExtension on JSFunction {
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   /// The Dart [Function] that this [JSExportedDartFunction] wrapped.
   ///
-  /// Must be a wrapped Dart [Function].
+  /// Must be a function that was wrapped with
+  /// [FunctionToJSExportedDartFunction.toJS].
   external Function get toDart;
 }
 
@@ -490,6 +491,15 @@ extension FunctionToJSExportedDartFunction on Function {
   /// compile. See
   /// https://dart.dev/interop/js-interop/js-types#requirements-on-external-declarations-and-function-tojs
   /// for more details on what types are allowed.
+  ///
+  /// The max number of arguments that are passed to this [Function] from the
+  /// wrapper JavaScript function is determined by this [Function]'s static
+  /// type. Any extra arguments passed to the JavaScript function after the max
+  /// number of arguments are discarded like they are with regular JavaScript
+  /// functions.
+  ///
+  /// Calling this on the same [Function] again will always result in a new
+  /// JavaScript function.
   external JSExportedDartFunction get toJS;
 }
 

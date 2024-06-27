@@ -64,11 +64,19 @@
   `ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
   extensions on `T` and `ExternalDartReference<T>`, respectively, where `T
   extends Object?`. See [#55342][] and [#55536][] for more details.
+- Fixes some consistency issues with `Function.toJS` across all compilers.
+  Specifically, calling `Function.toJS` on the same function gives you a new JS
+  function (see issue [#55515][]), the max number of args that are passed to the
+  JS function is determined by the static type of the Dart function, and extra
+  args are dropped when passed to the JS function in all compilers (see
+  [#48186][]).
 
 [#55508]: https://github.com/dart-lang/sdk/issues/55508
 [#55267]: https://github.com/dart-lang/sdk/issues/55267
 [#55342]: https://github.com/dart-lang/sdk/issues/55342
 [#55536]: https://github.com/dart-lang/sdk/issues/55536
+[#55515]: https://github.com/dart-lang/sdk/issues/55515
+[#48186]: https://github.com/dart-lang/sdk/issues/48186
 
 ### Tools
 

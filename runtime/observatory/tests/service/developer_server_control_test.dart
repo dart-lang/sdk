@@ -15,7 +15,7 @@ Uri? wsServerUri;
 
 Future<Null> testeeBefore() async {
   print('testee before');
-  // First grab the URL where the VM service is listening and the
+  // First grab the URL where the observatory is listening on and the
   // service protocol version numbers. We expect the URL to be null as
   // the server has not been started yet.
   ServiceProtocolInfo info = await Service.getInfo();

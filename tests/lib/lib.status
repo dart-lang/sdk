@@ -90,6 +90,7 @@ js/static_interop_test/isa/functional_test: SkipByDesign # Issue 42085. CSP poli
 js/static_interop_test/isa/library_renaming_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_proxy_or_ref_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/js_function_arity_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_function_conversions_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_typed_array_test: SkipByDesign # CSP policy disallows injected JS code
 js/static_interop_test/jsobject_type_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
