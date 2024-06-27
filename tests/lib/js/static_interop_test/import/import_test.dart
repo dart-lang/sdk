@@ -17,6 +17,6 @@ void main() {
             '/root_dart/tests/lib/js/static_interop_test/import/module.mjs'
                 .toJS)
         .toDart);
-    Expect.equals(module.testModuleFunction(), 'success');
+    Expect.equals('success', module.testModuleFunction());
   });
 }

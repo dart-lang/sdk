@@ -41,6 +41,6 @@ void main() {
         .createScriptURL(
             '/root_dart/tests/lib/js/static_interop_test/import/module.mjs');
     final module = Module(await importModule(trustedScriptURL).toDart);
-    Expect.equals(module.testModuleFunction(), 'success');
+    Expect.equals('success', module.testModuleFunction());
   });
 }
