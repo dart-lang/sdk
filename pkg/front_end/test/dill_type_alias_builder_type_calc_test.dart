@@ -4,10 +4,10 @@
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/base/hybrid_file_system.dart';
 import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
-import 'package:front_end/src/base/hybrid_file_system.dart';
 
 import 'incremental_suite.dart' as helper;
 

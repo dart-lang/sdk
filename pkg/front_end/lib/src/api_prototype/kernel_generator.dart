@@ -7,22 +7,15 @@ library front_end.kernel_generator;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain, noLength;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart' show Component;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../base/compiler_context.dart' show CompilerContext;
-
+import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart'
     show generateKernel, generateKernelInternal;
-
 import 'compiler_options.dart' show CompilerOptions;
 
 /// Generates a kernel representation of the program whose main library is in

@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/kernel/macro/macro.dart';
-import 'package:front_end/src/testing/kernel_id_testing.dart';
 import 'package:kernel/ast.dart';
+
+import '../../api_prototype/compiler_options.dart';
+import '../../testing/kernel_id_testing.dart';
+import 'macro.dart';
 import 'offsets.dart';
 
 mixin MacroOffsetCheckerMixin implements HooksForTesting {

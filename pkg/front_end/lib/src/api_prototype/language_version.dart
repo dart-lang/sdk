@@ -6,23 +6,18 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, Scanner, ScannerConfiguration, scan;
-
 import 'package:kernel/ast.dart' show Version;
-export 'package:kernel/ast.dart' show Version;
-
 import 'package:package_config/package_config.dart'
     show InvalidLanguageVersion, Package;
 
-import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../base/compiler_context.dart' show CompilerContext;
-
+import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/uri_translator.dart' show UriTranslator;
-
 import 'compiler_options.dart' show CompilerOptions;
-
 import 'experimental_flags.dart' show ExperimentalFlag;
 import 'file_system.dart' show FileSystem, FileSystemException;
+
+export 'package:kernel/ast.dart' show Version;
 
 /// Gets the language version for a specific URI.
 ///

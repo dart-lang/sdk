@@ -2,36 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:core' as type;
+import 'dart:core';
 
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues;
-
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart' as type;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as type
     show Token;
-
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart'
     as type;
-
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-
 import 'package:kernel/ast.dart' as type;
 
+import '../base/combinator.dart' as type;
+import '../base/configuration.dart' as type;
+import '../base/constant_context.dart' as type;
+import '../base/identifiers.dart' as type;
+import '../base/modifier.dart' as type;
+import '../base/operator.dart' as type;
+import '../base/scope.dart' as type;
 import '../builder/constructor_reference_builder.dart' as type;
 import '../builder/declaration_builders.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
 import '../builder/mixin_application_builder.dart' as type;
-import '../builder/type_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
-
-import '../base/combinator.dart' as type;
-import '../base/configuration.dart' as type;
-import '../base/identifiers.dart' as type;
-
+import '../builder/type_builder.dart' as type;
 import '../kernel/body_builder.dart' as type
     show
         Condition,
@@ -40,17 +37,8 @@ import '../kernel/body_builder.dart' as type
         JumpTarget,
         Label;
 import '../kernel/expression_generator.dart' as type;
-
-import '../base/modifier.dart' as type;
-
-import '../base/operator.dart' as type;
-
-import '../base/scope.dart' as type;
-
 import 'outline_builder.dart' as type;
 import 'source_enum_builder.dart' as type show EnumConstantInfo;
-
-import '../base/constant_context.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =

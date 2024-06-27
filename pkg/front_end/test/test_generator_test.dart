@@ -7,11 +7,10 @@ import 'dart:io' show File, stdout;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/kernel/utils.dart';
-import 'package:front_end/src/base/messages.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-
 import 'package:kernel/kernel.dart' show Component;
 
 import 'incremental_suite.dart' as helper;

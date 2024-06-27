@@ -3,21 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File, Platform, Process, ProcessResult;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
-
 import 'package:kernel/ast.dart' show Component, Library;
-
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/target/targets.dart' show TargetFlags;
-
 import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import 'incremental_suite.dart' show getOptions, normalCompileToComponent;
-
 import 'utils/io_utils.dart' show computeRepoDir;
 
 Future<void> main() async {

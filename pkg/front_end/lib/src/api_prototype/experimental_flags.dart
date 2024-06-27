@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared;
-import 'package:kernel/kernel.dart' show Version;
 import 'package:kernel/default_language_version.dart'
     show defaultLanguageVersion;
+import 'package:kernel/kernel.dart' show Version;
 
 part 'experimental_flags_generated.dart';
 

@@ -2,31 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
-import 'dart:io' show File;
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ScannerConfiguration;
-
+import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
+import 'package:_fe_analyzer_shared/src/parser/listener.dart'
+    show UnescapeErrorListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ClassMemberParser, Parser;
-
+import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
-import 'package:_fe_analyzer_shared/src/parser/listener.dart'
-    show UnescapeErrorListener;
-
-import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
-
-import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
-
 import '../source/diet_parser.dart';
-
 import 'parser_ast_helper.dart';
 
 // TODO(jensj): Possibly all the enableX bools should be replaced by an

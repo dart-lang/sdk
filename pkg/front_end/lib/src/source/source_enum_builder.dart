@@ -13,6 +13,9 @@ import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
+import '../base/constant_context.dart';
+import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -41,7 +44,6 @@ import '../codes/cfe_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumContainsRestrictedInstanceDeclaration,
         templateEnumConstantSameNameAsEnclosing;
-import '../base/constant_context.dart';
 import '../kernel/body_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constness.dart';
@@ -49,8 +51,6 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
-import '../base/scope.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';

@@ -5,16 +5,12 @@
 library fasta.test.assert_locations_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
-
 import 'package:expect/expect.dart' show Expect;
-
-import 'package:kernel/ast.dart'
-    show Component, RecursiveVisitor, Procedure, AssertStatement;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
-
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
+import 'package:kernel/ast.dart'
+    show Component, RecursiveVisitor, Procedure, AssertStatement;
 
 /// Span of the condition expression in the assert statement.
 class ConditionSpan {

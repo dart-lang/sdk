@@ -9,18 +9,18 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
+import '../base/modifier.dart';
+import '../base/problems.dart' show unsupported;
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
-import '../base/modifier.dart';
-import '../base/problems.dart' show unsupported;
-import 'source_library_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_class_builder.dart';
+import 'source_library_builder.dart';
 
 typedef BuildNodesCallback = void Function(
     {required Member member, Member? tearOff, required BuiltMemberKind kind});

@@ -3,20 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
-
 import 'package:expect/expect.dart' show Expect;
-
-import 'package:front_end/src/builder/declaration_builders.dart';
-
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
-
+import 'package:front_end/src/builder/declaration_builders.dart';
 import 'package:front_end/src/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
-
 import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
-
 import 'package:front_end/src/kernel/utils.dart';
-
 import 'package:kernel/ast.dart'
     show Field, Library, Name, Component, StringLiteral;
 

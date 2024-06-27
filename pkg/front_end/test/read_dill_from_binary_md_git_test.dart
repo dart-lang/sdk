@@ -7,9 +7,7 @@ import 'dart:io' show File, Platform;
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
 import 'binary_md_dill_reader.dart' show BinaryMdDillReader;
-
 import 'incremental_suite.dart' show getOptions, normalCompileToBytes;
-
 import 'utils/io_utils.dart' show computeRepoDir;
 
 Future<void> main() async {

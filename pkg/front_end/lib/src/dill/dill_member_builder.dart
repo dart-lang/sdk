@@ -16,20 +16,17 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ProcedureStubKind;
 
+import '../base/modifier.dart'
+    show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
+import '../base/problems.dart' show unhandled;
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
-
 import '../builder/procedure_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
-
-import '../base/modifier.dart'
-    show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
-
-import '../base/problems.dart' show unhandled;
 
 abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override

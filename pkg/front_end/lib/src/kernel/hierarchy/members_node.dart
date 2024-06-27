@@ -9,12 +9,6 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/names.dart' show noSuchMethodName;
 
 import '../../base/common.dart';
-import '../../builder/declaration_builders.dart';
-import '../../builder/formal_parameter_builder.dart';
-import '../../builder/library_builder.dart';
-import '../../builder/member_builder.dart';
-import '../../builder/omitted_type_builder.dart';
-import '../../builder/type_builder.dart';
 import '../../base/messages.dart'
     show
         LocatedMessage,
@@ -35,6 +29,12 @@ import '../../base/messages.dart'
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
+import '../../builder/declaration_builders.dart';
+import '../../builder/formal_parameter_builder.dart';
+import '../../builder/library_builder.dart';
+import '../../builder/member_builder.dart';
+import '../../builder/omitted_type_builder.dart';
+import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';

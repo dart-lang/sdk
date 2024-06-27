@@ -19,7 +19,6 @@ import '../kernel/body_builder.dart' show JumpTarget;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
-import 'problems.dart' show internalProblem, unsupported;
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -27,6 +26,7 @@ import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'problems.dart' show internalProblem, unsupported;
 
 enum ScopeKind {
   /// Scope of pattern switch-case statements

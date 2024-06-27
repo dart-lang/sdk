@@ -3,26 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show utf8;
-
 import 'dart:io' show File;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, Token, scan;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' as analyzer
     show Token;
-
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/instrumentation.dart'
     show Instrumentation, InstrumentationValue;
-
-import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/base/messages.dart'
     show noLength, templateUnspecified;
 

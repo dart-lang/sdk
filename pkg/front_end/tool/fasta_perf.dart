@@ -9,20 +9,18 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
-
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
-
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/base/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/source/diet_parser.dart';
 import 'package:front_end/src/source/directive_listener.dart';
-import 'package:front_end/src/base/uri_translator.dart' show UriTranslator;
 
 import 'perf_common.dart';
 

@@ -8,35 +8,24 @@
 library front_end.incremental.hot_reload_e2e_test;
 
 import 'dart:async' show Completer;
-
 import 'dart:convert' show LineSplitter, utf8;
-
 import 'dart:io' show Directory, File, Platform, Process;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
-
 import 'package:expect/expect.dart' show Expect;
-
-import 'package:kernel/ast.dart' show Component;
-
-import 'package:kernel/binary/ast_to_binary.dart';
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
-
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator;
-
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
-
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
 import 'package:front_end/src/base/hybrid_file_system.dart'
     show HybridFileSystem;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:vm/modular/target/vm.dart';
 

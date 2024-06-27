@@ -9,13 +9,10 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-
 import 'package:front_end/src/kernel/utils.dart';
-
 import 'package:kernel/kernel.dart' show Component, Library, LibraryPart;
 
 import 'incremental_suite.dart' as helper;
-
 import "incremental_utils.dart" as util;
 
 Future<void> main(List<String> args) async {

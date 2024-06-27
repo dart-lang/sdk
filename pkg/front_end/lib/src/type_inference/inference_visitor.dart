@@ -15,18 +15,21 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../api_prototype/lowering_predicates.dart';
 import '../base/instrumentation.dart'
     show
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
+import '../base/problems.dart' as problems
+    show internalProblem, unhandled, unsupported;
+import '../base/uri_offset.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder.dart' show combineStatements;
 import '../kernel/collections.dart'
@@ -46,11 +49,8 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
-import '../base/problems.dart' as problems
-    show internalProblem, unhandled, unsupported;
 import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
-import '../base/uri_offset.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';

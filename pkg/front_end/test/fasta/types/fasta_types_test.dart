@@ -3,39 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:async_helper/async_helper.dart" show asyncTest;
-
-import "package:kernel/ast.dart" show Component, DartType;
-
-import "package:kernel/core_types.dart" show CoreTypes;
-
-import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
-
-import 'package:kernel/testing/type_parser_environment.dart'
-    show TypeParserEnvironment;
-
-import 'package:kernel/type_environment.dart';
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
-
+import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
-
+import "package:front_end/src/base/ticker.dart" show Ticker;
 import "package:front_end/src/builder/declaration_builders.dart";
-
-import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
-
 import "package:front_end/src/dill/dill_loader.dart" show DillLoader;
-
 import "package:front_end/src/dill/dill_target.dart" show DillTarget;
-
 import "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart"
     show ClassHierarchyBuilder;
-
-import "package:front_end/src/base/ticker.dart" show Ticker;
+import "package:kernel/ast.dart" show Component, DartType;
+import "package:kernel/core_types.dart" show CoreTypes;
+import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show TypeParserEnvironment;
+import 'package:kernel/type_environment.dart';
 
 import 'kernel_type_parser_test.dart' show parseSdk;
-
 import "shared_type_tests.dart" show SubtypeTest;
 
 void main() {

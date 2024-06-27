@@ -33,7 +33,30 @@ import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/configuration.dart' show Configuration;
+import '../base/export.dart' show Export;
+import '../base/identifiers.dart' show Identifier, QualifiedName;
+import '../base/import.dart' show Import;
+import '../base/modifier.dart'
+    show
+        abstractMask,
+        augmentMask,
+        constMask,
+        externalMask,
+        finalMask,
+        declaresConstConstructorMask,
+        hasInitializerMask,
+        initializingFormalMask,
+        superInitializingFormalMask,
+        lateMask,
+        mixinDeclarationMask,
+        namedMixinApplicationMask,
+        staticMask;
 import '../base/nnbd_mode.dart';
+import '../base/problems.dart' show unexpected, unhandled;
+import '../base/scope.dart';
+import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -58,11 +81,6 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart';
-import '../base/combinator.dart' show CombinatorBuilder;
-import '../base/configuration.dart' show Configuration;
-import '../base/export.dart' show Export;
-import '../base/identifiers.dart' show Identifier, QualifiedName;
-import '../base/import.dart' show Import;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -85,24 +103,6 @@ import '../kernel/utils.dart'
         exportNeverSentinel,
         toKernelCombinators,
         unserializableExportName;
-import '../base/modifier.dart'
-    show
-        abstractMask,
-        augmentMask,
-        constMask,
-        externalMask,
-        finalMask,
-        declaresConstConstructorMask,
-        hasInitializerMask,
-        initializingFormalMask,
-        superInitializingFormalMask,
-        lateMask,
-        mixinDeclarationMask,
-        namedMixinApplicationMask,
-        staticMask;
-import '../base/problems.dart' show unexpected, unhandled;
-import '../base/scope.dart';
-import '../base/uris.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'name_scheme.dart';

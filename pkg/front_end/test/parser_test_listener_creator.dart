@@ -6,9 +6,8 @@ import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'utils/io_utils.dart' show computeRepoDirUri;

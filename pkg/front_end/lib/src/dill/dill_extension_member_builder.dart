@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
-
 import 'dill_member_builder.dart';
 
 abstract class DillExtensionMemberBuilder extends DillMemberBuilder {

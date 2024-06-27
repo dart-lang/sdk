@@ -4,8 +4,6 @@
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:macros/macros.dart' hide Library;
-import 'package:macros/src/executor.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, LibraryId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -15,10 +13,10 @@ import 'package:front_end/src/builder/field_builder.dart';
 import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/kernel/macro/macro.dart';
 import 'package:front_end/src/kernel/macro/offset_checker.dart';
-import 'package:front_end/src/source/source_class_builder.dart';
-import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/macros/macro_serializer.dart';
 import 'package:front_end/src/macros/temp_dir_macro_serializer.dart';
+import 'package:front_end/src/source/source_class_builder.dart';
+import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -26,6 +24,8 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:macros/macros.dart' hide Library;
+import 'package:macros/src/executor.dart';
 
 import '../../utils/kernel_chain.dart';
 

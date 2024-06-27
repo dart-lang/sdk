@@ -7,21 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../builder/builder.dart';
-import '../builder/constructor_reference_builder.dart';
-import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
-import '../builder/metadata_builder.dart';
-import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
-import '../dill/dill_extension_type_member_builder.dart';
-import '../dill/dill_member_builder.dart';
 import '../base/identifiers.dart';
-import '../kernel/body_builder_context.dart';
-import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/hierarchy/class_member.dart';
-import '../kernel/kernel_helper.dart';
 import '../base/messages.dart'
     show
         messageConstFactoryRedirectionToNonConst,
@@ -32,6 +18,20 @@ import '../base/messages.dart'
         templateTypeArgumentMismatch;
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
+import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/type_builder.dart';
+import '../codes/cfe_codes.dart';
+import '../dill/dill_extension_type_member_builder.dart';
+import '../dill/dill_member_builder.dart';
+import '../kernel/body_builder_context.dart';
+import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/kernel_helper.dart';
 import '../type_inference/inference_helper.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';

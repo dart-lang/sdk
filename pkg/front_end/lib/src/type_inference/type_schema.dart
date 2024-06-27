@@ -4,12 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/import_table.dart' show ImportTable;
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/src/printer.dart';
-
-import 'package:kernel/import_table.dart' show ImportTable;
-
 import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer, globalDebuggingNames;
 

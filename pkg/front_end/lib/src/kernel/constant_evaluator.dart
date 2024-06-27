@@ -23,7 +23,6 @@ import 'dart:io' as io;
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
-import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
@@ -37,6 +36,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/lowering_predicates.dart';
+import '../base/common.dart';
 import '../base/nnbd_mode.dart';
 import '../codes/cfe_codes.dart';
 import '../type_inference/delayed_expressions.dart';

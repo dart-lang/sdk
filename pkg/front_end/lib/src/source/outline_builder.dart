@@ -28,20 +28,6 @@ import 'package:kernel/ast.dart'
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
-import '../builder/constructor_reference_builder.dart';
-import '../builder/declaration_builders.dart';
-import '../builder/fixed_type_builder.dart';
-import '../builder/formal_parameter_builder.dart';
-import '../builder/invalid_type_builder.dart';
-import '../builder/library_builder.dart';
-import '../builder/metadata_builder.dart';
-import '../builder/mixin_application_builder.dart';
-import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
-import '../builder/record_type_builder.dart';
-import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
 import '../base/identifiers.dart'
@@ -70,6 +56,20 @@ import '../base/modifier.dart'
 import '../base/operator.dart' show Operator;
 import '../base/problems.dart' show unhandled;
 import '../base/uris.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/fixed_type_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/invalid_type_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/mixin_application_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
+import '../builder/record_type_builder.dart';
+import '../builder/type_builder.dart';
+import '../codes/cfe_codes.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import 'offset_map.dart';

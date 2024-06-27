@@ -21,6 +21,8 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/problems.dart' show unexpected, unhandled, unimplemented;
+import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -41,8 +43,6 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../base/problems.dart' show unexpected, unhandled, unimplemented;
-import '../base/scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';

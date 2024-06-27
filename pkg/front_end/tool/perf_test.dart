@@ -5,6 +5,7 @@
 library front_end.tool.perf_test;
 
 import 'dart:io' show Platform;
+
 import 'perf.dart' as m;
 
 Future<void> main() async {

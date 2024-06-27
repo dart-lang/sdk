@@ -8,9 +8,9 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
+import '../base/scope.dart' show Scope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
-import '../base/scope.dart' show Scope;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class MetadataBuilder {

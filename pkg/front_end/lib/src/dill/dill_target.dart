@@ -3,23 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart' show Source;
-
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../base/compiler_context.dart' show CompilerContext;
-
-import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
-
 import '../base/messages.dart' show FormattedMessage, LocatedMessage, Message;
-
+import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/ticker.dart' show Ticker;
-
 import '../base/uri_translator.dart' show UriTranslator;
-
+import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'dill_loader.dart' show DillLoader;
 
 class DillTarget {

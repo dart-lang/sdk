@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart';
+
 import '../base/messages.dart';
 import 'id_testing_utils.dart';
 

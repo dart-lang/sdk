@@ -28,8 +28,7 @@ import '../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 import '../base/nnbd_mode.dart';
-import '../testing/id_extractor.dart';
-import '../testing/id_testing_utils.dart';
+import '../base/problems.dart' show internalProblem, unhandled;
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -38,12 +37,13 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
-import '../base/problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_procedure_builder.dart';
+import '../testing/id_extractor.dart';
+import '../testing/id_testing_utils.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';

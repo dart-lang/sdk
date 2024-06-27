@@ -4,9 +4,11 @@
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/builder/declaration_builders.dart';
 import 'package:front_end/src/base/compiler_context.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/base/ticker.dart';
+import 'package:front_end/src/base/uri_translator.dart';
+import 'package:front_end/src/builder/declaration_builders.dart';
 import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_loader.dart';
 import 'package:front_end/src/dill/dill_target.dart';
@@ -14,8 +16,6 @@ import 'package:front_end/src/dill/dill_type_alias_builder.dart';
 import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/forest.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
-import 'package:front_end/src/base/ticker.dart';
-import 'package:front_end/src/base/uri_translator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/package_config.dart';

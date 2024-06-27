@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart';
 
+import '../../base/messages.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
-import '../../base/messages.dart';
 import 'class_member.dart';
 import 'delayed.dart';
 import 'hierarchy_node.dart';

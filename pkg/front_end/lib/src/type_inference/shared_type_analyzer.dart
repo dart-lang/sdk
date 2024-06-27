@@ -4,12 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
-import 'package:front_end/src/type_inference/inference_visitor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import '../codes/cfe_codes.dart';
 import 'inference_helper.dart';
+import 'inference_visitor.dart';
 
 /// Implementation of [TypeAnalyzerErrors] that reports errors using the
 /// front end's [InferenceHelper] class.

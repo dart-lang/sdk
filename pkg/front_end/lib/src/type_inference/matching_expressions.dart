@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/type_inference/delayed_expressions.dart';
-import 'package:front_end/src/type_inference/external_ast_helper.dart';
-import 'package:front_end/src/type_inference/matching_cache.dart';
+import 'delayed_expressions.dart';
+import 'external_ast_helper.dart';
+import 'matching_cache.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';

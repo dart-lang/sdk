@@ -4,10 +4,8 @@
 
 import 'package:testing/testing.dart' show Chain, runMe;
 
-import 'spelling_test_base.dart' show SpellContext;
-
 import 'spell_checking_utils.dart' as spell;
-
+import 'spelling_test_base.dart' show SpellContext;
 import 'testing_utils.dart' show checkEnvironment;
 
 void main([List<String> arguments = const []]) =>

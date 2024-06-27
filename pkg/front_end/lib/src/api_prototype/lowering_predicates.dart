@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+
 import '../kernel/late_lowering.dart';
+
 export '../kernel/constructor_tearoff_lowering.dart'
     show
         extractConstructorNameFromTearOff,

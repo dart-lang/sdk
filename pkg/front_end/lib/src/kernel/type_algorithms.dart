@@ -8,6 +8,7 @@ import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
+import '../base/problems.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -28,7 +29,6 @@ import '../codes/cfe_codes.dart'
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 import '../kernel/utils.dart';
-import '../base/problems.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';

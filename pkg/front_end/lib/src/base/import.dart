@@ -10,15 +10,11 @@ import '../builder/builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-
 import '../kernel/load_library_builder.dart';
 import '../kernel/utils.dart' show toKernelCombinators;
-
-import 'combinator.dart' show CombinatorBuilder;
-
-import 'configuration.dart' show Configuration;
-
 import '../source/source_library_builder.dart';
+import 'combinator.dart' show CombinatorBuilder;
+import 'configuration.dart' show Configuration;
 
 class Import {
   /// The library that is importing [imported];

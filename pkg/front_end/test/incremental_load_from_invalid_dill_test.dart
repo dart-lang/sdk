@@ -16,11 +16,12 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler, RecorderForTesting;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Code,
@@ -28,9 +29,8 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         codeInitializeFromDillNotSelfContainedNoDump,
         codeInitializeFromDillUnknownProblem,
         codeInitializeFromDillUnknownProblemNoDump;
-import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/base/incremental_compiler.dart'
-    show IncrementalCompiler, RecorderForTesting;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/kernel.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;

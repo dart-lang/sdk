@@ -4,7 +4,6 @@
 
 library fasta.named_type_builder;
 
-import 'package:front_end/src/util/helpers.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
@@ -34,10 +33,11 @@ import '../base/messages.dart'
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
-import '../kernel/implicit_field_type.dart';
 import '../base/scope.dart';
-import '../source/source_library_builder.dart';
 import '../base/uris.dart';
+import '../kernel/implicit_field_type.dart';
+import '../source/source_library_builder.dart';
+import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';

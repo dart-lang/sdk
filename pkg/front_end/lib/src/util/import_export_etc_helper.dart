@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:front_end/src/util/parser_ast.dart';
-import 'package:front_end/src/util/parser_ast_helper.dart';
+import 'parser_ast.dart';
+import 'parser_ast_helper.dart';
 
 FileInfoHelper getFileInfoHelper(Uint8List zeroTerminatedBytes) {
   ImportExportPartLibraryHelperVisitor visitor =

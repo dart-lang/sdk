@@ -19,8 +19,8 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 import 'package:kernel/ast.dart' show Version;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
-import '../codes/cfe_codes.dart' show codeNativeClauseShouldBeAnnotation;
 import '../base/messages.dart' show Message;
+import '../codes/cfe_codes.dart' show codeNativeClauseShouldBeAnnotation;
 
 abstract class _Chunk implements Comparable<_Chunk> {
   late int originalPosition;

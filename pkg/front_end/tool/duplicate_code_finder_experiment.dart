@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, StringScanner;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show BeginToken, SimpleToken, Token, TokenType;
 

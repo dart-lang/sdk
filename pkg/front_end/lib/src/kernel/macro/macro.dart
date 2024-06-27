@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/macros/uri.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:macros/macros.dart' as macro;
@@ -13,6 +12,7 @@ import 'package:macros/src/executor/span.dart' as macro;
 
 import '../../api_prototype/compiler_options.dart';
 import '../../base/common.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';

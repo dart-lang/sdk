@@ -5,21 +5,14 @@
 library fasta.get_dependencies;
 
 import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
-
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
 import '../api_prototype/file_system.dart' show FileSystem;
-
 import '../base/processed_options.dart' show ProcessedOptions;
-
-import 'compiler_context.dart' show CompilerContext;
-
 import '../dill/dill_target.dart' show DillTarget;
-
 import '../kernel/kernel_target.dart' show KernelTarget;
-
+import 'compiler_context.dart' show CompilerContext;
 import 'uri_translator.dart' show UriTranslator;
 
 Future<List<Uri>> getDependencies(Uri script,

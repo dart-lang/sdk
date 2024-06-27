@@ -20,11 +20,11 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/base/command_line_options.dart';
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/nnbd_mode.dart';
+import 'package:front_end/src/base/problems.dart' show DebugAbort;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation, computePlatformDillName;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Message,
@@ -32,9 +32,9 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFastaUsageLong,
         messageFastaUsageShort,
         templateUnspecified;
-import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation, computePlatformDillName;
 import 'package:front_end/src/kernel/macro/offset_checker.dart';
-import 'package:front_end/src/base/problems.dart' show DebugAbort;
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 import 'package:kernel/target/targets.dart'

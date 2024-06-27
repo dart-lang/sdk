@@ -7,10 +7,9 @@ import "dart:io" show File, Platform;
 import 'package:kernel/ast.dart' show Source;
 import 'package:kernel/target/targets.dart';
 
+import 'base/compiler_context.dart' show CompilerContext;
 import 'base/nnbd_mode.dart' show NnbdMode;
 import 'base/processed_options.dart' show ProcessedOptions;
-
-import 'base/compiler_context.dart' show CompilerContext;
 
 /// Returns the name of the default platform dill file name for the [target]
 /// with the given [nnbdMode].

@@ -4,25 +4,17 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
     show NullabilitySuffix;
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show SharedDynamicType, SharedUnknownType, SharedVoidType;
-
 import 'package:kernel/ast.dart';
-
+import 'package:kernel/names.dart' show callName;
 import 'package:kernel/type_algebra.dart';
-
 import 'package:kernel/type_environment.dart';
 
-import 'package:kernel/names.dart' show callName;
-
 import 'type_inference_engine.dart';
-
 import 'type_schema.dart';
-
 import 'type_schema_environment.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,

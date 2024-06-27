@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import '../tool/coverage_merger.dart' as coverageMerger;
 import 'utils/io_utils.dart';
 

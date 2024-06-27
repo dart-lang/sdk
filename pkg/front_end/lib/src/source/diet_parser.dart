@@ -4,10 +4,9 @@
 
 library fasta.diet_parser;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ClassMemberParser, Listener, MemberKind;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 const bool useImplicitCreationExpressionInCfe = true;
 

@@ -17,21 +17,19 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import 'package:kernel/type_environment.dart';
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
-    as shared;
-
-import '../builder/declaration_builders.dart';
 import '../base/problems.dart' show unsupported;
-import '../type_inference/inference_visitor.dart';
+import '../builder/declaration_builders.dart';
 import '../type_inference/inference_results.dart';
+import '../type_inference/inference_visitor.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
-
 import 'collections.dart';
 
 typedef SharedMatchContext = shared

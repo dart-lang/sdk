@@ -7,6 +7,7 @@
 library front_end.tool.perf_test;
 
 import 'dart:io' show Platform;
+
 import 'fasta_perf.dart' as m show main;
 
 Future<void> main() async {

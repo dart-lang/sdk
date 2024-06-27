@@ -5,7 +5,6 @@
 library fasta.modifier_builder;
 
 import '../base/modifier.dart';
-
 import 'builder.dart';
 
 abstract class ModifierBuilderImpl extends BuilderImpl {

@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
-
 import '../builder/constructor_builder.dart';
 import 'dill_member_builder.dart';
 

@@ -4,22 +4,15 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart'
     show StringScanner;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/kernel.dart'
     show Component, Library, Procedure, DartType, TypeParameter;
 
-import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../base/compiler_context.dart' show CompilerContext;
-
 import '../base/incremental_compiler.dart' show IncrementalCompiler;
-
 import '../base/incremental_serializer.dart' show IncrementalSerializer;
-
+import '../base/processed_options.dart' show ProcessedOptions;
 import 'compiler_options.dart' show CompilerOptions;
 
 export '../base/incremental_serializer.dart' show IncrementalSerializer;

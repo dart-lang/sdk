@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show jsonDecode, utf8;
-
-import 'dart:isolate' show RawReceivePort;
-
 import 'dart:io';
+import 'dart:isolate' show RawReceivePort;
 
 import 'package:front_end/src/base/crash.dart' show defaultServerAddress;
 

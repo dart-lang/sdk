@@ -20,22 +20,8 @@ import 'package:package_config/package_config.dart' hide LanguageVersion;
 import '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, GlobalFeatures;
 import '../api_prototype/file_system.dart' show FileSystem;
-import '../base/nnbd_mode.dart';
-import '../base/processed_options.dart' show ProcessedOptions;
-import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
-import '../builder/field_builder.dart';
-import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
-import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
-import '../builder/procedure_builder.dart';
-import '../builder/type_builder.dart';
 import '../base/compiler_context.dart' show CompilerContext;
 import '../base/crash.dart' show withCrashReporting;
-import '../dill/dill_target.dart' show DillTarget;
-import 'constructor_tearoff_lowering.dart';
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show
@@ -54,8 +40,23 @@ import '../base/messages.dart'
         templateFinalFieldNotInitializedByConstructor,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
+import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show unhandled;
+import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/scope.dart' show AmbiguousBuilder;
+import '../base/ticker.dart' show Ticker;
+import '../base/uri_translator.dart' show UriTranslator;
+import '../builder/builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/field_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/name_iterator.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_builder.dart';
+import '../dill/dill_target.dart' show DillTarget;
 import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
 import '../source/name_scheme.dart';
@@ -65,9 +66,7 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
-import '../base/ticker.dart' show Ticker;
 import '../type_inference/type_schema.dart';
-import '../base/uri_translator.dart' show UriTranslator;
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'constant_evaluator.dart' as constants
     show
@@ -76,6 +75,7 @@ import 'constant_evaluator.dart' as constants
         transformProcedure,
         ConstantCoverage,
         ConstantEvaluationData;
+import 'constructor_tearoff_lowering.dart';
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'macro/macro.dart';

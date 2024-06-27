@@ -6,29 +6,20 @@ import "dart:convert" show json;
 
 import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
     show DiagnosticMessage, getMessageCodeObject;
-
 import "package:async_helper/async_helper.dart" show asyncTest;
-
 import "package:expect/expect.dart" show Expect;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
-
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-
-import "package:front_end/src/base/processed_options.dart"
-    show ProcessedOptions;
-
 import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
-
 import "package:front_end/src/base/messages.dart"
     show Code, codeObjectExtends, codeObjectImplements, codeObjectMixesIn;
-
+import "package:front_end/src/base/processed_options.dart"
+    show ProcessedOptions;
+import "package:front_end/src/kernel_generator_impl.dart";
 import "package:front_end/src/source/source_loader.dart"
     show defaultDartCoreSource;
-
-import "package:front_end/src/kernel_generator_impl.dart";
 
 Future<List<DiagnosticMessage>> outline(String objectHeader) async {
   final Uri base = Uri.parse("org-dartlang-test:///");

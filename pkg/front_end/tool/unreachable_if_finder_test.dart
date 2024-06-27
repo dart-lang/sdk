@@ -5,8 +5,8 @@
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/hybrid_file_system.dart';
-import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/base/messages.dart';
+import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:kernel/ast.dart';
 
 import '../test/compiler_test_helper.dart';
