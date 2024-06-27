@@ -138,10 +138,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 96,
     missCount: 3,
   ),
-  // 50.67607289829512%.
+  // 50.795521508544496%.
   "package:front_end/src/base/incremental_compiler.dart": (
     hitCount: 862,
-    missCount: 839,
+    missCount: 835,
   ),
   // 0.0%.
   "package:front_end/src/base/incremental_serializer.dart": (
@@ -388,10 +388,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 518,
     missCount: 91,
   ),
-  // 71.23287671232876%.
+  // 69.86301369863014%.
   "package:front_end/src/compute_platform_binaries_location.dart": (
-    hitCount: 52,
-    missCount: 21,
+    hitCount: 51,
+    missCount: 22,
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_builder_mixins.dart": (
@@ -478,10 +478,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 385,
     missCount: 31,
   ),
-  // 61.68831168831169%.
+  // 60.89743589743589%.
   "package:front_end/src/kernel/const_conditional_simplifier.dart": (
     hitCount: 95,
-    missCount: 59,
+    missCount: 61,
   ),
   // 69.72789115646259%.
   "package:front_end/src/kernel/constant_collection_builders.dart": (
@@ -758,9 +758,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 159,
     missCount: 20,
   ),
-  // 86.02836879432624%.
+  // 86.01845280340667%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1213,
+    hitCount: 1212,
     missCount: 197,
   ),
   // 93.058568329718%.
@@ -778,10 +778,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 68,
     missCount: 38,
   ),
-  // 84.32539682539682%.
+  // 84.29423459244532%.
   "package:front_end/src/source/source_extension_type_declaration_builder.dart":
       (
-    hitCount: 425,
+    hitCount: 424,
     missCount: 79,
   ),
   // 92.22222222222223%.
@@ -799,14 +799,14 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 295,
     missCount: 35,
   ),
-  // 85.2467024914509%.
+  // 85.1680467608378%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 3490,
-    missCount: 604,
+    hitCount: 3497,
+    missCount: 609,
   ),
-  // 81.8988464951198%.
+  // 81.87472234562416%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1846,
+    hitCount: 1843,
     missCount: 408,
   ),
   // 50.0%.

@@ -81,8 +81,8 @@ class ConstConditionalSimplifier extends RemovingTransformer {
 
   @override
   TreeNode visitAssertBlock(AssertBlock node, TreeNode? removalSentinel) {
-    if (_removeAsserts && removalSentinel != null) {
-      return removalSentinel;
+    if (_removeAsserts) {
+      return removalSentinel ?? new EmptyStatement();
     } else {
       return super.visitAssertBlock(node, removalSentinel);
     }
@@ -91,8 +91,10 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   @override
   TreeNode visitAssertInitializer(
       AssertInitializer node, TreeNode? removalSentinel) {
-    if (_removeAsserts && removalSentinel != null) {
-      return removalSentinel;
+    if (_removeAsserts) {
+      // Initializers only occur in the initializer list, where they are always
+      // removable.
+      return removalSentinel!;
     } else {
       return super.visitAssertInitializer(node, removalSentinel);
     }
@@ -101,8 +103,8 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   @override
   TreeNode visitAssertStatement(
       AssertStatement node, TreeNode? removalSentinel) {
-    if (_removeAsserts && removalSentinel != null) {
-      return removalSentinel;
+    if (_removeAsserts) {
+      return removalSentinel ?? new EmptyStatement();
     } else {
       return super.visitAssertStatement(node, removalSentinel);
     }
