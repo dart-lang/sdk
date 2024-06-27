@@ -128,6 +128,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final TypeParameterScopeBuilder libraryTypeParameterScopeBuilder;
 
+  @override
+  TypeParameterScopeBuilder currentTypeParameterScopeBuilder;
+
   /// Map used to find objects created in the [OutlineBuilder] from within
   /// the [DietListener].
   ///
@@ -141,8 +144,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final List<Export> exports = <Export>[];
 
+  /// List of [PrefixBuilder]s for imports with prefixes.
+  List<PrefixBuilder>? _prefixBuilders;
+
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtensionInScope].
+  Set<ExtensionBuilder>? _extensionsInScope;
+
   SourceCompilationUnitImpl(
-      this._sourceLibraryBuilder, this.libraryTypeParameterScopeBuilder);
+      this._sourceLibraryBuilder, this.libraryTypeParameterScopeBuilder)
+      : currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder;
 
   @override
   SourceLibraryBuilder get sourceLibraryBuilder => _sourceLibraryBuilder;
@@ -176,13 +187,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  TypeParameterScopeBuilder get currentTypeParameterScopeBuilder =>
-      _sourceLibraryBuilder.currentTypeParameterScopeBuilder;
-
-  @override
   void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
       {bool hasMembers = true}) {
-    _sourceLibraryBuilder.currentTypeParameterScopeBuilder =
+    currentTypeParameterScopeBuilder =
         currentTypeParameterScopeBuilder.createNested(kind, name, hasMembers);
   }
 
@@ -203,8 +210,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             identical(name, "<syntax-error>"),
         "${name} != ${currentTypeParameterScopeBuilder.name}");
     TypeParameterScopeBuilder previous = currentTypeParameterScopeBuilder;
-    _sourceLibraryBuilder.currentTypeParameterScopeBuilder =
-        currentTypeParameterScopeBuilder.parent!;
+    currentTypeParameterScopeBuilder = currentTypeParameterScopeBuilder.parent!;
     return previous;
   }
 
@@ -1009,7 +1015,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    _sourceLibraryBuilder.addBuilder(name, enumBuilder, charOffset,
+    addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
 
     offsetMap.registerNamedDeclaration(identifier, enumBuilder);
@@ -1182,7 +1188,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    _sourceLibraryBuilder.addBuilder(className, classBuilder, nameOffset,
+    addBuilder(className, classBuilder, nameOffset,
         getterReference: _indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(identifier, classBuilder);
   }
@@ -1533,7 +1539,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        _sourceLibraryBuilder.addBuilder(fullname, application, charOffset,
+        addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
         supertype = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             application, const NullabilityBuilder.omitted(),
@@ -1641,8 +1647,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    _sourceLibraryBuilder.addBuilder(
-        extensionBuilder.name, extensionBuilder, nameOffset,
+    addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
     if (identifier != null) {
       offsetMap.registerNamedDeclaration(identifier, extensionBuilder);
@@ -1744,7 +1749,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    _sourceLibraryBuilder.addBuilder(extensionTypeDeclarationBuilder.name,
+    addBuilder(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, identifier.nameOffset,
         getterReference: indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(
@@ -1772,7 +1777,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
         .resolveNamedTypes(typeVariables, this);
-    _sourceLibraryBuilder.addBuilder(name, typedefBuilder, charOffset,
+    addBuilder(name, typedefBuilder, charOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -1930,8 +1935,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     }
     _checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
-    _sourceLibraryBuilder.addBuilder(
-        constructorName, constructorBuilder, charOffset,
+    addBuilder(constructorName, constructorBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
       _addNativeMethod(constructorBuilder);
@@ -2083,7 +2087,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
     TypeParameterScopeBuilder savedDeclaration =
         currentTypeParameterScopeBuilder;
-    _sourceLibraryBuilder.currentTypeParameterScopeBuilder = factoryDeclaration;
+    currentTypeParameterScopeBuilder = factoryDeclaration;
     if (returnType is NamedTypeBuilderImpl && !typeVariables.isEmpty) {
       returnType.typeArguments =
           new List<TypeBuilder>.generate(typeVariables.length, (int index) {
@@ -2097,11 +2101,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 InstanceTypeVariableAccessState.Allowed);
       });
     }
-    _sourceLibraryBuilder.currentTypeParameterScopeBuilder = savedDeclaration;
+    currentTypeParameterScopeBuilder = savedDeclaration;
 
     factoryDeclaration.resolveNamedTypes(procedureBuilder.typeVariables, this);
-    _sourceLibraryBuilder.addBuilder(
-        procedureName, procedureBuilder, charOffset,
+    addBuilder(procedureName, procedureBuilder, charOffset,
         getterReference: constructorReference);
     if (nativeMethodName != null) {
       _addNativeMethod(procedureBuilder);
@@ -2257,7 +2260,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         nameScheme,
         nativeMethodName: nativeMethodName);
     _checkTypeVariables(typeVariables, procedureBuilder);
-    _sourceLibraryBuilder.addBuilder(name, procedureBuilder, charOffset,
+    addBuilder(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
     if (nativeMethodName != null) {
       _addNativeMethod(procedureBuilder);
@@ -2435,7 +2438,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         lateSetterReference: lateSetterReference,
         initializerToken: initializerToken,
         constInitializerToken: constInitializerToken);
-    _sourceLibraryBuilder.addBuilder(name, fieldBuilder, charOffset,
+    addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
     return fieldBuilder;
@@ -2716,6 +2719,180 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     return _sourceLibraryBuilder.reportFeatureNotEnabled(
         feature, fileUri, charOffset, length);
   }
+
+  @override
+  Builder addBuilder(String name, Builder declaration, int charOffset,
+      {Reference? getterReference, Reference? setterReference}) {
+    // TODO(ahe): Set the parent correctly here. Could then change the
+    // implementation of MemberBuilder.isTopLevel to test explicitly for a
+    // LibraryBuilder.
+    if (declaration is SourceExtensionBuilder &&
+        declaration.isUnnamedExtension) {
+      assert(
+          currentTypeParameterScopeBuilder == libraryTypeParameterScopeBuilder);
+      declaration.parent = _sourceLibraryBuilder;
+      currentTypeParameterScopeBuilder.extensions!.add(declaration);
+      return declaration;
+    }
+    if (getterReference != null) {
+      loader.buildersCreatedWithReferences[getterReference] = declaration;
+    }
+    if (setterReference != null) {
+      loader.buildersCreatedWithReferences[setterReference] = declaration;
+    }
+    if (currentTypeParameterScopeBuilder == libraryTypeParameterScopeBuilder) {
+      if (declaration is MemberBuilder) {
+        declaration.parent = _sourceLibraryBuilder;
+      } else if (declaration is TypeDeclarationBuilder) {
+        declaration.parent = _sourceLibraryBuilder;
+      } else if (declaration is PrefixBuilder) {
+        assert(declaration.parent == _sourceLibraryBuilder);
+      } else {
+        return unhandled(
+            "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
+      }
+    } else {
+      assert(currentTypeParameterScopeBuilder.parent ==
+          libraryTypeParameterScopeBuilder);
+    }
+    bool isConstructor = declaration is FunctionBuilder &&
+        (declaration.isConstructor || declaration.isFactory);
+    if (!isConstructor && name == currentTypeParameterScopeBuilder.name) {
+      addProblem(
+          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+    }
+    Map<String, Builder> members = isConstructor
+        ? currentTypeParameterScopeBuilder.constructors!
+        : (declaration.isSetter
+            ? currentTypeParameterScopeBuilder.setters!
+            : currentTypeParameterScopeBuilder.members!);
+
+    Builder? existing = members[name];
+
+    if (existing == declaration) return declaration;
+
+    if (declaration.next != null && declaration.next != existing) {
+      unexpected(
+          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
+          "${existing?.fileUri}@${existing?.charOffset}",
+          declaration.charOffset,
+          declaration.fileUri);
+    }
+    declaration.next = existing;
+    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
+      assert(existing.next is! PrefixBuilder);
+      Builder? deferred;
+      Builder? other;
+      if (declaration.deferred) {
+        deferred = declaration;
+        other = existing;
+      } else if (existing.deferred) {
+        deferred = existing;
+        other = declaration;
+      }
+      if (deferred != null) {
+        addProblem(templateDeferredPrefixDuplicated.withArguments(name),
+            deferred.charOffset, noLength, fileUri,
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other!.charOffset, noLength)
+            ]);
+      }
+      return existing
+        ..exportScope.merge(declaration.exportScope,
+            (String name, Builder existing, Builder member) {
+          return _sourceLibraryBuilder.computeAmbiguousDeclaration(
+              name, existing, member, charOffset);
+        });
+    } else if (_isDuplicatedDeclaration(existing, declaration)) {
+      String fullName = name;
+      if (isConstructor) {
+        if (name.isEmpty) {
+          fullName = currentTypeParameterScopeBuilder.name;
+        } else {
+          fullName = "${currentTypeParameterScopeBuilder.name}.$name";
+        }
+      }
+      addProblem(templateDuplicatedDeclaration.withArguments(fullName),
+          charOffset, fullName.length, declaration.fileUri!,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause
+                .withArguments(fullName)
+                .withLocation(
+                    existing!.fileUri!, existing.charOffset, fullName.length)
+          ]);
+    } else if (declaration.isExtension) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the output.
+      currentTypeParameterScopeBuilder.extensions!
+          .add(declaration as SourceExtensionBuilder);
+    } else if (declaration.isAugment) {
+      if (existing != null) {
+        if (declaration.isSetter) {
+          (currentTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
+              .add(declaration);
+        } else {
+          (currentTypeParameterScopeBuilder.augmentations[name] ??= [])
+              .add(declaration);
+        }
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
+    } else if (declaration is PrefixBuilder) {
+      _prefixBuilders ??= <PrefixBuilder>[];
+      _prefixBuilders!.add(declaration);
+    }
+    return members[name] = declaration;
+  }
+
+  bool _isDuplicatedDeclaration(Builder? existing, Builder other) {
+    if (existing == null) return false;
+    if (other.isAugment) return false;
+    Builder? next = existing.next;
+    if (next == null) {
+      if (existing.isGetter && other.isSetter) return false;
+      if (existing.isSetter && other.isGetter) return false;
+    } else {
+      if (next is ClassBuilder && !next.isMixinApplication) return true;
+    }
+    if (existing is ClassBuilder && other is ClassBuilder) {
+      // We allow multiple mixin applications with the same name. An
+      // alternative is to share these mixin applications. This situation can
+      // happen if you have `class A extends Object with Mixin {}` and `class B
+      // extends Object with Mixin {}` in the same library.
+      return !existing.isMixinApplication || !other.isMixinApplication;
+    }
+    return true;
+  }
+
+  @override
+  void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
+    if (_extensionsInScope == null) {
+      _extensionsInScope = <ExtensionBuilder>{};
+      scope.forEachExtension((e) {
+        if (!e.extension.isExtensionTypeDeclaration) {
+          _extensionsInScope!.add(e);
+        }
+      });
+      if (_prefixBuilders != null) {
+        for (PrefixBuilder prefix in _prefixBuilders!) {
+          prefix.exportScope.forEachExtension((e) {
+            if (!e.extension.isExtensionTypeDeclaration) {
+              _extensionsInScope!.add(e);
+            }
+          });
+        }
+      }
+    }
+    _extensionsInScope!.forEach(f);
+  }
+
+  @override
+  void clearExtensionsInScopeCache() {
+    _extensionsInScope = null;
+  }
 }
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
@@ -2754,13 +2931,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   LibraryBuilder? partOfLibrary;
 
   List<MetadataBuilder>? metadata;
-
-  /// The current declaration that is being built. When we start parsing a
-  /// declaration (class, method, and so on), we don't have enough information
-  /// to create a builder and this object records its members and types until,
-  /// for example, [addClass] is called.
-  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
-  TypeParameterScopeBuilder currentTypeParameterScopeBuilder;
 
   /// Non-null if this library causes an error upon access, that is, there was
   /// an error reading its source.
@@ -2836,13 +3006,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool postponedProblemsIssued = false;
   List<PostponedProblem>? postponedProblems;
-
-  /// List of [PrefixBuilder]s for imports with prefixes.
-  List<PrefixBuilder>? _prefixBuilders;
-
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtensionInScope].
-  Set<ExtensionBuilder>? _extensionsInScope;
 
   List<SourceLibraryBuilder>? _augmentationLibraries;
 
@@ -2920,7 +3083,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
-        currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
         _immediateOrigin = origin,
         _omittedTypeDeclarationBuilders = omittedTypes,
         libraryName = new LibraryName(library.reference),
@@ -3242,151 +3404,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  Builder addBuilder(String name, Builder declaration, int charOffset,
-      {Reference? getterReference, Reference? setterReference}) {
-    // TODO(ahe): Set the parent correctly here. Could then change the
-    // implementation of MemberBuilder.isTopLevel to test explicitly for a
-    // LibraryBuilder.
-    if (declaration is SourceExtensionBuilder &&
-        declaration.isUnnamedExtension) {
-      assert(currentTypeParameterScopeBuilder ==
-          compilationUnit.libraryTypeParameterScopeBuilder);
-      declaration.parent = this;
-      currentTypeParameterScopeBuilder.extensions!.add(declaration);
-      return declaration;
-    }
-    if (getterReference != null) {
-      loader.buildersCreatedWithReferences[getterReference] = declaration;
-    }
-    if (setterReference != null) {
-      loader.buildersCreatedWithReferences[setterReference] = declaration;
-    }
-    if (currentTypeParameterScopeBuilder ==
-        compilationUnit.libraryTypeParameterScopeBuilder) {
-      if (declaration is MemberBuilder) {
-        declaration.parent = this;
-      } else if (declaration is TypeDeclarationBuilder) {
-        declaration.parent = this;
-      } else if (declaration is PrefixBuilder) {
-        assert(declaration.parent == this);
-      } else {
-        return unhandled(
-            "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
-      }
-    } else {
-      assert(currentTypeParameterScopeBuilder.parent ==
-          compilationUnit.libraryTypeParameterScopeBuilder);
-    }
-    bool isConstructor = declaration is FunctionBuilder &&
-        (declaration.isConstructor || declaration.isFactory);
-    if (!isConstructor && name == currentTypeParameterScopeBuilder.name) {
-      addProblem(
-          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
-    }
-    Map<String, Builder> members = isConstructor
-        ? currentTypeParameterScopeBuilder.constructors!
-        : (declaration.isSetter
-            ? currentTypeParameterScopeBuilder.setters!
-            : currentTypeParameterScopeBuilder.members!);
-
-    Builder? existing = members[name];
-
-    if (existing == declaration) return declaration;
-
-    if (declaration.next != null && declaration.next != existing) {
-      unexpected(
-          "${declaration.next!.fileUri}@${declaration.next!.charOffset}",
-          "${existing?.fileUri}@${existing?.charOffset}",
-          declaration.charOffset,
-          declaration.fileUri);
-    }
-    declaration.next = existing;
-    if (declaration is PrefixBuilder && existing is PrefixBuilder) {
-      assert(existing.next is! PrefixBuilder);
-      Builder? deferred;
-      Builder? other;
-      if (declaration.deferred) {
-        deferred = declaration;
-        other = existing;
-      } else if (existing.deferred) {
-        deferred = existing;
-        other = declaration;
-      }
-      if (deferred != null) {
-        addProblem(templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset, noLength, fileUri,
-            context: [
-              templateDeferredPrefixDuplicatedCause
-                  .withArguments(name)
-                  .withLocation(fileUri, other!.charOffset, noLength)
-            ]);
-      }
-      return existing
-        ..exportScope.merge(declaration.exportScope,
-            (String name, Builder existing, Builder member) {
-          return computeAmbiguousDeclaration(
-              name, existing, member, charOffset);
-        });
-    } else if (isDuplicatedDeclaration(existing, declaration)) {
-      String fullName = name;
-      if (isConstructor) {
-        if (name.isEmpty) {
-          fullName = currentTypeParameterScopeBuilder.name;
-        } else {
-          fullName = "${currentTypeParameterScopeBuilder.name}.$name";
-        }
-      }
-      addProblem(templateDuplicatedDeclaration.withArguments(fullName),
-          charOffset, fullName.length, declaration.fileUri!,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(fullName)
-                .withLocation(
-                    existing!.fileUri!, existing.charOffset, fullName.length)
-          ]);
-    } else if (declaration.isExtension) {
-      // We add the extension declaration to the extension scope only if its
-      // name is unique. Only the first of duplicate extensions is accessible
-      // by name or by resolution and the remaining are dropped for the output.
-      currentTypeParameterScopeBuilder.extensions!
-          .add(declaration as SourceExtensionBuilder);
-    } else if (declaration.isAugment) {
-      if (existing != null) {
-        if (declaration.isSetter) {
-          (currentTypeParameterScopeBuilder.setterAugmentations[name] ??= [])
-              .add(declaration);
-        } else {
-          (currentTypeParameterScopeBuilder.augmentations[name] ??= [])
-              .add(declaration);
-        }
-      } else {
-        // TODO(cstefantsova): Report an error.
-      }
-    } else if (declaration is PrefixBuilder) {
-      _prefixBuilders ??= <PrefixBuilder>[];
-      _prefixBuilders!.add(declaration);
-    }
-    return members[name] = declaration;
-  }
-
-  bool isDuplicatedDeclaration(Builder? existing, Builder other) {
-    if (existing == null) return false;
-    if (other.isAugment) return false;
-    Builder? next = existing.next;
-    if (next == null) {
-      if (existing.isGetter && other.isSetter) return false;
-      if (existing.isSetter && other.isGetter) return false;
-    } else {
-      if (next is ClassBuilder && !next.isMixinApplication) return true;
-    }
-    if (existing is ClassBuilder && other is ClassBuilder) {
-      // We allow multiple mixin applications with the same name. An
-      // alternative is to share these mixin applications. This situation can
-      // happen if you have `class A extends Object with Mixin {}` and `class B
-      // extends Object with Mixin {}` in the same library.
-      return !existing.isMixinApplication || !other.isMixinApplication;
-    }
-    return true;
+  Builder addBuilder(String name, Builder declaration, int charOffset) {
+    return compilationUnit.addBuilder(name, declaration, charOffset);
   }
 
   /// Checks [scope] for conflicts between setters and non-setters and reports
@@ -4837,7 +4856,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
-            currentTypeParameterScopeBuilder
+            compilationUnit.currentTypeParameterScopeBuilder
                 .registerUnresolvedNamedType(unboundType);
           }
           this.unboundStructuralVariables.addAll(unboundTypeVariables);
@@ -5645,10 +5664,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    assert(currentTypeParameterScopeBuilder.kind ==
+    assert(compilationUnit.currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.library);
     for (ExtensionBuilder _extensionBuilder
-        in currentTypeParameterScopeBuilder.extensions!) {
+        in compilationUnit.currentTypeParameterScopeBuilder.extensions!) {
       ExtensionBuilder extensionBuilder = _extensionBuilder;
       if (extensionBuilder is! SourceExtensionBuilder) continue;
       DartType onType = extensionBuilder.extension.onType;
@@ -5667,28 +5686,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
-    if (_extensionsInScope == null) {
-      _extensionsInScope = <ExtensionBuilder>{};
-      scope.forEachExtension((e) {
-        if (!e.extension.isExtensionTypeDeclaration) {
-          _extensionsInScope!.add(e);
-        }
-      });
-      if (_prefixBuilders != null) {
-        for (PrefixBuilder prefix in _prefixBuilders!) {
-          prefix.exportScope.forEachExtension((e) {
-            if (!e.extension.isExtensionTypeDeclaration) {
-              _extensionsInScope!.add(e);
-            }
-          });
-        }
-      }
-    }
-    _extensionsInScope!.forEach(f);
+    compilationUnit.forEachExtensionInScope(f);
   }
 
   void clearExtensionsInScopeCache() {
-    _extensionsInScope = null;
+    compilationUnit.clearExtensionsInScopeCache();
   }
 
   void registerPendingNullability(

@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Class, Library, ProcedureKind;
+    show AsyncMarker, Class, Library, ProcedureKind, Reference;
 
 import '../api_prototype/experimental_flags.dart';
 import '../fasta/combinator.dart' show CombinatorBuilder;
@@ -471,6 +471,9 @@ abstract class SourceCompilationUnit
       TypeParameterScopeBuilder declaration,
       {required TypeVariableKind kind});
 
+  Builder addBuilder(String name, Builder declaration, int charOffset,
+      {Reference? getterReference, Reference? setterReference});
+
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
   ///
@@ -481,6 +484,10 @@ abstract class SourceCompilationUnit
   void addImportsToScope();
 
   int finishDeferredLoadTearoffs();
+
+  void forEachExtensionInScope(void Function(ExtensionBuilder) f);
+
+  void clearExtensionsInScopeCache();
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
