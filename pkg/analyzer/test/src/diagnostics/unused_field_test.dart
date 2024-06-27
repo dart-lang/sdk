@@ -288,6 +288,29 @@ class A {
     ]);
   }
 
+  test_notUsed_noReference_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  int _ = 0;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 16, 1),
+    ]);
+  }
+
+  test_notUsed_noReference_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  int _ = 0;
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 60, 1),
+    ]);
+  }
+
   test_notUsed_nullAssign() async {
     await assertNoErrorsInCode(r'''
 class A {
