@@ -42,9 +42,6 @@ class InheritanceOverrideVerifier {
       _ClassVerifier verifier;
       if (declaration is ClassDeclaration) {
         var element = declaration.declaredElement!;
-        if (element.isAugmentation) {
-          continue;
-        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -60,11 +57,12 @@ class InheritanceOverrideVerifier {
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
         );
-      } else if (declaration is ClassTypeAlias) {
-        var element = declaration.declaredElement!;
         if (element.isAugmentation) {
+          verifier._checkDirectSuperTypes();
           continue;
         }
+      } else if (declaration is ClassTypeAlias) {
+        var element = declaration.declaredElement!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -79,11 +77,12 @@ class InheritanceOverrideVerifier {
           superclass: declaration.superclass,
           withClause: declaration.withClause,
         );
-      } else if (declaration is EnumDeclaration) {
-        var element = declaration.declaredElement!;
         if (element.isAugmentation) {
+          verifier._checkDirectSuperTypes();
           continue;
         }
+      } else if (declaration is EnumDeclaration) {
+        var element = declaration.declaredElement!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -98,11 +97,12 @@ class InheritanceOverrideVerifier {
           members: declaration.members,
           withClause: declaration.withClause,
         );
-      } else if (declaration is MixinDeclaration) {
-        var element = declaration.declaredElement!;
         if (element.isAugmentation) {
+          verifier._checkDirectSuperTypes();
           continue;
         }
+      } else if (declaration is MixinDeclaration) {
+        var element = declaration.declaredElement!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -117,6 +117,10 @@ class InheritanceOverrideVerifier {
           members: declaration.members,
           onClause: declaration.onClause,
         );
+        if (element.isAugmentation) {
+          verifier._checkDirectSuperTypes();
+          continue;
+        }
       } else {
         continue;
       }
@@ -416,24 +420,21 @@ class _ClassVerifier {
     }
   }
 
-  /// Verify that the given [namedType] does not extend, implement, or mixes-in
-  /// types such as `num` or `String`.
-  bool _checkDirectSuperType(NamedType namedType, ErrorCode errorCode) {
-    if (namedType.isSynthetic) {
-      return false;
-    }
-
+  /// If [type] cannot be subtyped, invokes a function and returns `true`.
+  bool _checkDirectSuperType({
+    required DartType type,
+    void Function()? hasEnum,
+    void Function()? notSubtypable,
+  }) {
     // The SDK implementation may implement disallowed types. For example,
     // JSNumber in dart2js and _Smi in Dart VM both implement int.
     if (library.source.uri.isScheme('dart')) {
       return false;
     }
 
-    DartType type = namedType.typeOrThrow;
     if (type is! InterfaceType) {
       return false;
     }
-
     var typeElement = type.element;
 
     var classElement = this.classElement;
@@ -445,23 +446,42 @@ class _ClassVerifier {
           classElement is MixinElement) {
         return false;
       }
-      reporter.atNode(
-        namedType,
-        CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-      );
+      hasEnum?.call();
       return true;
     }
 
     if (typeProvider.isNonSubtypableClass(typeElement)) {
-      reporter.atNode(
-        namedType,
-        errorCode,
-        arguments: [type],
-      );
+      notSubtypable?.call();
       return true;
     }
 
     return false;
+  }
+
+  /// Verify that the given [namedType] does not extend, implement, or mixes-in
+  /// types such as `num` or `String`.
+  bool _checkDirectSuperTypeNode(NamedType namedType, ErrorCode errorCode) {
+    if (namedType.isSynthetic) {
+      return false;
+    }
+
+    var type = namedType.typeOrThrow;
+    return _checkDirectSuperType(
+      type: type,
+      hasEnum: () {
+        reporter.atNode(
+          namedType,
+          CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
+        );
+      },
+      notSubtypable: () {
+        reporter.atNode(
+          namedType,
+          errorCode,
+          arguments: [type],
+        );
+      },
+    );
   }
 
   /// Verify that direct supertypes are valid, and return `false`.  If there
@@ -471,7 +491,7 @@ class _ClassVerifier {
     var hasError = false;
     if (implementsClause != null) {
       for (var namedType in implementsClause!.interfaces) {
-        if (_checkDirectSuperType(
+        if (_checkDirectSuperTypeNode(
           namedType,
           CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         )) {
@@ -481,7 +501,7 @@ class _ClassVerifier {
     }
     if (onClause != null) {
       for (var namedType in onClause!.superclassConstraints) {
-        if (_checkDirectSuperType(
+        if (_checkDirectSuperTypeNode(
           namedType,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
         )) {
@@ -490,7 +510,7 @@ class _ClassVerifier {
       }
     }
     if (superclass != null) {
-      if (_checkDirectSuperType(
+      if (_checkDirectSuperTypeNode(
         superclass!,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
       )) {
@@ -499,7 +519,7 @@ class _ClassVerifier {
     }
     if (withClause != null) {
       for (var namedType in withClause!.mixinTypes) {
-        if (_checkDirectSuperType(
+        if (_checkDirectSuperTypeNode(
           namedType,
           CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         )) {
@@ -510,7 +530,49 @@ class _ClassVerifier {
         }
       }
     }
-    return hasError;
+
+    if (hasError) {
+      return true;
+    }
+
+    // The code below should return `true` to indicate that even though
+    // the declaration itself does not have sub-typing violations, the merged
+    // augmentation does. So that we stop other verifications in this case.
+
+    // We are interested only in declarations.
+    if (classElement.isAugmentation) {
+      return false;
+    }
+
+    // If no augmentations, we have seen it all.
+    if (classElement.augmentation == null) {
+      return false;
+    }
+
+    if (classElement case ClassElement classElement) {
+      var supertype = classElement.supertype;
+      if (supertype != null) {
+        if (_checkDirectSuperType(type: supertype)) {
+          return true;
+        }
+      }
+    }
+
+    var augmented = classElement.augmented;
+
+    for (var type in augmented.interfaces) {
+      if (_checkDirectSuperType(type: type)) {
+        return true;
+      }
+    }
+
+    for (var type in augmented.mixins) {
+      if (_checkDirectSuperType(type: type)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// Check that [classElement] is not a superinterface to itself.
