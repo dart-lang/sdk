@@ -1152,12 +1152,10 @@ severity: $severity
 
   Future<Null> buildOutline(SourceCompilationUnit compilationUnit) async {
     Token tokens = await tokenize(compilationUnit);
-    OffsetMap offsetMap = new OffsetMap(compilationUnit.fileUri);
-    OutlineBuilder listener = new OutlineBuilder(compilationUnit, offsetMap);
+    OutlineBuilder listener = compilationUnit.createOutlineBuilder();
     new ClassMemberParser(listener,
             allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled)
         .parseUnit(tokens);
-    compilationUnit.offsetMap = offsetMap;
   }
 
   /// Builds all the method bodies found in the given [library].
