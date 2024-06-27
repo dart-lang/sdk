@@ -1770,7 +1770,7 @@ class Listener implements UnescapeErrorListener {
     logEvent('CastPattern');
   }
 
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     logEvent("AssignmentExpression");
   }
 
@@ -2212,8 +2212,8 @@ class Listener implements UnescapeErrorListener {
 
   void beginSwitchExpressionCase() {}
 
-  // TODO(jensj): Should this have a `beginToken`?
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     logEvent("SwitchExpressionCase");
   }
 

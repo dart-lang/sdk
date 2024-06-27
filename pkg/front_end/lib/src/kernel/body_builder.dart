@@ -4094,7 +4094,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     assert(checkState(token, [
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
@@ -8550,7 +8550,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     debugEvent("endSwitchExpressionCase");
     assert(checkState(arrow, [
       unionOfKinds([

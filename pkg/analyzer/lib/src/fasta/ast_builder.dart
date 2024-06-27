@@ -3272,7 +3272,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     debugEvent("SwitchExpressionCase");
     var expression = pop() as ExpressionImpl;
     WhenClauseImpl? whenClause;
@@ -3723,7 +3724,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
 

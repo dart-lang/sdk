@@ -2502,9 +2502,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     seen(token);
-    doPrint('handleAssignmentExpression(' '$token)');
+    seen(endToken);
+    doPrint('handleAssignmentExpression(' '$token, ' '$endToken)');
   }
 
   @override
@@ -3109,12 +3110,18 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     indent--;
+    seen(beginToken);
     seen(when);
     seen(arrow);
     seen(endToken);
-    doPrint('endSwitchExpressionCase(' '$when, ' '$arrow, ' '$endToken)');
+    doPrint('endSwitchExpressionCase('
+        '$beginToken, '
+        '$when, '
+        '$arrow, '
+        '$endToken)');
   }
 
   @override
