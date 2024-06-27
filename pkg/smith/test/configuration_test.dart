@@ -238,6 +238,13 @@ void main() {
                 'configuration name.');
       });
 
+      test("custom configuration", () {
+        final result = Configuration.parse("custom-configuration-1", {});
+        // Succeeds. Since this test runs in JIT mode, should be dartk and vm.
+        expect(result.compiler, Compiler.dartk);
+        expect(result.runtime, Runtime.vm);
+      });
+
       test("empty string", () {
         expectParseError("", {}, 'Name must not be empty.');
       });
