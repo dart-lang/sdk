@@ -2367,7 +2367,7 @@ void FlowGraph::EliminateEnvironments() {
       // See FlowGraphChecker::VisitInstruction.
       if (!current->ComputeCanDeoptimize() &&
           !current->ComputeCanDeoptimizeAfterCall() &&
-          (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
+          (!current->MayThrow() || !block->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.
         // TODO(srdjan): --source-lines needs deopt environments to get at
