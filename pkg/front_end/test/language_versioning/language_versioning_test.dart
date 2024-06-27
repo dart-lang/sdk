@@ -9,8 +9,8 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/language_version.dart' as lv;
+import 'package:front_end/src/base/messages.dart' show FormattedMessage;
 import 'package:front_end/src/builder/library_builder.dart';
-import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show

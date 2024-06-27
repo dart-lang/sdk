@@ -5,13 +5,11 @@
 library fasta.loader;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart' show Class, DartType, ExtensionTypeDeclaration;
 
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
-
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
 
 const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";

@@ -6,7 +6,6 @@ import "dart:convert";
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
-
 import "package:front_end/src/util/textual_outline.dart"
     show TextualOutlineInfoForTesting, textualOutline;
 

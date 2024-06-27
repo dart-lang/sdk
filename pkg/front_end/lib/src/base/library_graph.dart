@@ -6,7 +6,6 @@ library fasta.library_graph;
 
 import 'package:kernel/kernel.dart'
     show Library, LibraryDependency, LibraryPart;
-
 import 'package:kernel/util/graph.dart' show Graph;
 
 import 'uris.dart' show getPartUri;

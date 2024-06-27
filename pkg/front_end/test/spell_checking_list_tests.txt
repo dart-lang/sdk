@@ -50,6 +50,7 @@ arbitrarily
 area
 arglebargle
 arr
+arrive
 asdf
 asserter
 assure
@@ -613,6 +614,7 @@ prematurely
 prerequisite
 press
 pretends
+prettier
 preventing
 primitives
 printouts
@@ -668,6 +670,7 @@ rendition
 reorder
 reordering
 repaint
+replaceable
 representative
 repro
 reproduce
@@ -791,6 +794,7 @@ taskset
 te
 templates
 theoretically
+there'll
 thereby
 thereof
 thread
@@ -834,6 +838,7 @@ uncaught
 uncompiled
 unconverted
 uncover
+uncovered
 uncovers
 underline
 undocumented

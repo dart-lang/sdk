@@ -11,8 +11,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart' show Substitution, uniteNullabilities;
 
+import '../../base/loader.dart' show Loader;
 import '../../builder/declaration_builders.dart';
-import '../../fasta/loader.dart' show Loader;
 import '../../source/source_class_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_loader.dart' show SourceLoader;

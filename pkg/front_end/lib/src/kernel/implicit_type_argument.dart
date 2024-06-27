@@ -15,7 +15,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../fasta/problems.dart' show unhandled, unsupported;
+import '../base/problems.dart' show unhandled, unsupported;
 
 /// Marker type used as type argument on list, set and map literals whenever
 /// type arguments are omitted in the source.

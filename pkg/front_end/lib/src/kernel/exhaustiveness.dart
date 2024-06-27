@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
-import 'package:front_end/src/kernel/constant_evaluator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -17,6 +16,8 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+
+import 'constant_evaluator.dart';
 
 /// AST printer strategy used by default in `CfeTypeOperations.typeToString`.
 const AstTextStrategy textStrategy = const AstTextStrategy(

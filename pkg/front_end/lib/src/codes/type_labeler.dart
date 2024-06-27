@@ -6,9 +6,9 @@ import 'dart:convert' show json;
 
 import 'package:kernel/ast.dart';
 
-import 'denylisted_classes.dart' show denylistedCoreClasses;
 import 'cfe_codes.dart'
     show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
+import 'denylisted_classes.dart' show denylistedCoreClasses;
 
 /// A pretty-printer for Kernel types and constants with the ability to label
 /// raw types with numeric markers in Dart comments (e.g. `/*1*/`) to

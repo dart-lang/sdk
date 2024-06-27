@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/various.dart:162:3: Error: A const constructor can't have a body.
+// pkg/front_end/testcases/general/constants/various.dart:178:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const ClassWithNonEmptyConstConstructor() {
 //   ^^^^^
@@ -39,11 +39,11 @@ library;
 // const y4 = y++;
 //            ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:156:24: Error: Not a constant expression.
 // const function_const = () {};
 //                        ^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Can't access 'this' in a field initializer to read 'y'.
+// pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
 //   final z1 = y;
 //              ^
 //
@@ -71,20 +71,20 @@ library;
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/general/constants/various.dart:128:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
 //                                       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
 //   const ExtendsFoo2();
 //         ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
 //   final z1 = y;
 //              ^
 //
-// pkg/front_end/testcases/general/constants/various.dart:181:14: Error: Not a constant expression.
+// pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
 //   final z2 = x;
 //              ^
 //
@@ -117,13 +117,21 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     : self::Foo::x = x, self::Foo::y = "hello".{core::String::length}{core::int}, super core::Object::•()
     ;
 }
+class FooWithHashCodeField extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  final field core::int y;
+  final field core::int hashCode;
+  const constructor •(core::int x) → self::FooWithHashCodeField
+    : self::FooWithHashCodeField::x = x, self::FooWithHashCodeField::y = "hello".{core::String::length}{core::int}, self::FooWithHashCodeField::hashCode = x.{core::num::*}(42){(core::num) → core::int}, super core::Object::•()
+    ;
+}
 class ExtendsFoo1 extends self::Foo {
   synthetic constructor •() → self::ExtendsFoo1
     ;
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
   const ExtendsFoo2();
         ^^^^^^^^^^^"
     ;
@@ -232,7 +240,7 @@ static const field core::int y4 = let final core::int #t10 = self::y in let fina
 const y4 = y++;
            ^" in #t10;
 static field self::AbstractClassWithConstructor abstractClassWithConstructor;
-static const field self::ExtendsFoo1 extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field self::ExtendsFoo1 extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:128:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
                                       ^^^^^^^^^^^";
@@ -241,6 +249,10 @@ static const field self::Foo foo1 = const self::Foo::•(42);
 static const field self::Foo foo2 = const self::Foo::•(42);
 static const field core::bool foosIdentical = core::identical(self::foo1, self::foo2);
 static const field core::bool foosEqual = self::foo1 =={core::Object::==}{(core::Object) → core::bool} self::foo2;
+static const field self::FooWithHashCodeField fooWithHashCodeField1 = const self::FooWithHashCodeField::•(42);
+static const field self::FooWithHashCodeField fooWithHashCodeField2 = const self::FooWithHashCodeField::•(42);
+static const field core::bool fooWithHashCodeFieldIdentical = core::identical(self::fooWithHashCodeField1, self::fooWithHashCodeField2);
+static const field core::bool fooWithHashCodeFieldEqual = self::fooWithHashCodeField1 =={core::Object::==}{(core::Object) → core::bool} self::fooWithHashCodeField2;
 static const field core::Symbol barFoo = const _in::Symbol::•("Foo");
 static const field core::Symbol barFooEqual = const _in::Symbol::•("Foo=");
 static const field core::Symbol tripleShiftSymbol = const _in::Symbol::•(">>>");
@@ -249,7 +261,7 @@ static const field core::int circularity1 = self::circularity2;
 static const field core::int circularity2 = self::circularity3;
 static const field core::int circularity3 = self::circularity4;
 static const field core::int circularity4 = self::circularity1;
-static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+static const field invalid-type function_const = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:156:24: Error: Not a constant expression.
 const function_const = () {};
                        ^^";
 static field () → Null function_var;
@@ -288,6 +300,7 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
+Evaluated: InstanceGet @ org-dartlang-testcase:///various.dart:120:26 -> IntConstant(5)
 Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:6:31 -> BoolConstant(false)
 Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///various.dart:7:30 -> BoolConstant(false)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///various.dart:20:29 -> BoolConstant(true)
@@ -323,33 +336,38 @@ Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstan
 Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:126:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:127:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:128:28 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:129:29 -> BoolConstant(true)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:130:29 -> SymbolConstant(#Foo)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:131:34 -> SymbolConstant(#Foo=)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:132:40 -> SymbolConstant(#>>>)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:133:37 -> SymbolConstant(#I.Have.Dots)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:155:7 -> InstanceConstant(const ClassWithTypeArguments<int, int, int>{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:157:7 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:159:1 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:187:32 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:188:38 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:189:38 -> BoolConstant(false)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:190:22 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:192:32 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:193:38 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:194:36 -> BoolConstant(true)
-Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:195:24 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:200:66 -> NullConstant(null)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:203:35 -> NullConstant(null)
-Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:35 -> InstantiationConstant(id1<int>)
-Evaluated: Not @ org-dartlang-testcase:///various.dart:208:20 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:210:46 -> BoolConstant(true)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:211:38 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:212:25 -> BoolConstant(true)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:213:40 -> BoolConstant(false)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:214:25 -> NullConstant(null)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:215:40 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 146, effectively constant: 65
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:136:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:137:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:138:28 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:139:29 -> BoolConstant(true)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:141:58 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:142:58 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:143:44 -> BoolConstant(true)
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:144:40 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
+Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:144:65 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:146:29 -> SymbolConstant(#Foo)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:147:34 -> SymbolConstant(#Foo=)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:148:40 -> SymbolConstant(#>>>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:149:37 -> SymbolConstant(#I.Have.Dots)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:171:7 -> InstanceConstant(const ClassWithTypeArguments<int, int, int>{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:173:7 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:175:1 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:203:32 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:204:38 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:205:38 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:206:22 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:208:32 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:209:38 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:210:36 -> BoolConstant(true)
+Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:211:24 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:216:66 -> NullConstant(null)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:219:35 -> NullConstant(null)
+Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:221:35 -> InstantiationConstant(id1<int>)
+Evaluated: Not @ org-dartlang-testcase:///various.dart:224:20 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:226:46 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:227:38 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:228:25 -> BoolConstant(true)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:229:40 -> BoolConstant(false)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:230:25 -> NullConstant(null)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:231:40 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 156, effectively constant: 71

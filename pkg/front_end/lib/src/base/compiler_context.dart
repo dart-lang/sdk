@@ -8,18 +8,13 @@ import 'dart:async' show Zone, runZoned;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
-import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
-
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart'
     show clearStringCanonicalizationCache;
-
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:kernel/ast.dart' show Source;
 
 import '../api_prototype/file_system.dart' show FileSystem;
-
 import '../base/processed_options.dart' show ProcessedOptions;
-
 import 'command_line_reporting.dart' as command_line_reporting;
 
 final Object compilerContextKey = new Object();

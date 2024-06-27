@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart';
 import 'package:macros/macros.dart' as macro;
 import 'package:macros/src/executor.dart' as macro;
 import 'package:macros/src/executor/exception_impls.dart' as macro;
 import 'package:macros/src/executor/introspection_impls.dart' as macro;
-import 'package:kernel/ast.dart';
 
+import '../../base/uris.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../fasta/uris.dart';
 import 'introspectors.dart';
 
 abstract class IdentifierImpl extends macro.IdentifierImpl {

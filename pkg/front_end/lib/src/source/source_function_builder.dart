@@ -18,18 +18,18 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/identifiers.dart';
+import '../base/identifiers.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
-import '../fasta/messages.dart'
+import '../base/messages.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         messagePatchNonExternal,
         noLength,
         templateRequiredNamedParameterHasDefaultValueError;
-import '../fasta/modifier.dart';
-import '../fasta/scope.dart';
+import '../base/modifier.dart';
+import '../base/scope.dart';
 import 'source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;

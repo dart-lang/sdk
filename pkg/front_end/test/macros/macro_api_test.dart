@@ -4,15 +4,15 @@
 
 import 'dart:io' show Platform;
 
-import 'package:front_end/src/api_prototype/terminal_color_support.dart';
-import 'package:macros/src/executor/multi_executor.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/terminal_color_support.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/macros/isolate_macro_serializer.dart';
 import 'package:front_end/src/macros/macro_serializer.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
+import 'package:macros/src/executor/multi_executor.dart';
 
 Future<void> main(List<String> args) async {
   MacroSerializer macroSerializer = new IsolateMacroSerializer();

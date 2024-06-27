@@ -5,7 +5,6 @@
 import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-
 import 'package:kernel/ast.dart' as kernel show Version, defaultLanguageVersion;
 
 import '../utils/io_utils.dart';

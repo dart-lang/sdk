@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/link.dart' show Link, LinkBuilder;
-
 import 'package:expect/expect.dart' show Expect;
 
 void main() {

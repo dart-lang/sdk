@@ -6,9 +6,10 @@ library fasta.type_builder_computer;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
-
 import 'package:kernel/ast.dart';
 
+import '../base/loader.dart' show Loader;
+import '../base/uris.dart' show missingUri;
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/fixed_type_builder.dart';
@@ -22,11 +23,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-
 import '../kernel/utils.dart';
-
-import '../fasta/loader.dart' show Loader;
-import '../fasta/uris.dart' show missingUri;
 
 class TypeBuilderComputer {
   final _TypeBuilderComputerHelper _typeBuilderComputerHelper;

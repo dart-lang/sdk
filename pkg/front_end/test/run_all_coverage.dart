@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import '../tool/coverage_merger.dart' as coverageMerger;
 import 'utils/io_utils.dart';
 
@@ -115,5 +116,7 @@ Future<void> main() async {
     repoDirUri.resolve(".dart_tool/package_config.json"),
     coverageTmpDir.uri,
     silent: false,
+    extraCoverageIgnores: const [],
+    extraCoverageBlockIgnores: const [],
   );
 }

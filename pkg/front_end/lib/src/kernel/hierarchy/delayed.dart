@@ -9,9 +9,9 @@ import 'package:kernel/src/types.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../base/messages.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
-import '../../fasta/messages.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import 'class_member.dart';

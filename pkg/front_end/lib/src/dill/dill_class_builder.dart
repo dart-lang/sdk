@@ -7,16 +7,16 @@ library fasta.dill_class_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/loader.dart';
+import '../base/modifier.dart' show abstractMask, namedMixinApplicationMask;
+import '../base/problems.dart' show unimplemented;
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
-import '../fasta/loader.dart';
-import '../fasta/modifier.dart' show abstractMask, namedMixinApplicationMask;
-import '../fasta/problems.dart' show unimplemented;
-import '../fasta/scope.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 

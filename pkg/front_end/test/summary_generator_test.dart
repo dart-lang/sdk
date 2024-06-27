@@ -5,7 +5,6 @@
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/kernel.dart';
-
 import 'package:test/test.dart';
 
 void main() {

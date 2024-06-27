@@ -10,13 +10,11 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import "../base/problems.dart" show unhandled;
 import '../builder/declaration_builders.dart';
-
-import "../fasta/problems.dart" show unhandled;
-
 import '../source/source_library_builder.dart';
-import 'hierarchy/class_member.dart';
 import 'combined_member_signature.dart';
+import 'hierarchy/class_member.dart';
 import 'kernel_target.dart';
 
 class ForwardingNode {

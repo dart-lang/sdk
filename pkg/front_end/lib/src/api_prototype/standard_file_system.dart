@@ -6,9 +6,8 @@ library front_end.standard_file_system;
 
 import 'dart:io' as io;
 
+import '../base/compiler_context.dart' show CompilerContext;
 import 'file_system.dart';
-
-import '../fasta/compiler_context.dart' show CompilerContext;
 
 /// Concrete implementation of [FileSystem] handling standard URI schemes.
 ///

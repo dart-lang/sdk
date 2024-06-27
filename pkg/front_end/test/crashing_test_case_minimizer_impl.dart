@@ -24,14 +24,14 @@ import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler;
+import 'package:front_end/src/base/messages.dart' show Message;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/builder/library_builder.dart';
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
 import 'package:front_end/src/kernel/utils.dart' show ByteSink;
-import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/util/parser_ast.dart';

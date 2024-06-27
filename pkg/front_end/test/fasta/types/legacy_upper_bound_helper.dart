@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:async_helper/async_helper.dart" show asyncTest;
-
 import "package:expect/expect.dart" show Expect;
-
 import "package:kernel/ast.dart";
-
 import 'package:kernel/testing/type_parser_environment.dart' as parser;
 
 final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");

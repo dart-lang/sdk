@@ -4,6 +4,8 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -13,8 +15,6 @@ import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../dill/dill_member_builder.dart';
-import '../fasta/problems.dart';
-import '../fasta/scope.dart';
 import '../type_inference/type_schema.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';

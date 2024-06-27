@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/builder/builder.dart';
 import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/source/source_class_builder.dart';
@@ -16,10 +17,10 @@ import 'package:front_end/src/source/source_constructor_builder.dart';
 import 'package:front_end/src/source/source_factory_builder.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/source/source_procedure_builder.dart';
-import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
+
 import '../utils/symbolic_language_versions.dart';
 
 Future<void> main(List<String> args) async {

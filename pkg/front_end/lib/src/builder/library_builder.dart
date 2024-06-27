@@ -9,15 +9,15 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Class, Library, ProcedureKind;
+    show AsyncMarker, Class, Library, ProcedureKind, Reference;
 
 import '../api_prototype/experimental_flags.dart';
-import '../fasta/combinator.dart' show CombinatorBuilder;
-import '../fasta/configuration.dart';
-import '../fasta/export.dart' show Export;
-import '../fasta/identifiers.dart';
-import '../fasta/loader.dart' show Loader;
-import '../fasta/messages.dart'
+import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/configuration.dart';
+import '../base/export.dart' show Export;
+import '../base/identifiers.dart';
+import '../base/loader.dart' show Loader;
+import '../base/messages.dart'
     show
         FormattedMessage,
         LocatedMessage,
@@ -26,8 +26,8 @@ import '../fasta/messages.dart'
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
-import '../fasta/problems.dart' show internalProblem;
-import '../fasta/scope.dart';
+import '../base/problems.dart' show internalProblem;
+import '../base/scope.dart';
 import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/source_class_builder.dart';
@@ -119,9 +119,6 @@ abstract class SourceCompilationUnit
 
   // TODO(johnniwinther): Remove this.
   SourceLibraryBuilder get sourceLibraryBuilder;
-
-  // TODO(johnniwinther): Remove this.
-  TypeParameterScopeBuilder get libraryTypeParameterScopeBuilder;
 
   abstract OffsetMap offsetMap;
 
@@ -471,6 +468,9 @@ abstract class SourceCompilationUnit
       TypeParameterScopeBuilder declaration,
       {required TypeVariableKind kind});
 
+  Builder addBuilder(String name, Builder declaration, int charOffset,
+      {Reference? getterReference, Reference? setterReference});
+
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
   ///
@@ -481,6 +481,23 @@ abstract class SourceCompilationUnit
   void addImportsToScope();
 
   int finishDeferredLoadTearoffs();
+
+  void forEachExtensionInScope(void Function(ExtensionBuilder) f);
+
+  void clearExtensionsInScopeCache();
+
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
+      TypeBuilder bottomType, ClassBuilder objectClass);
+
+  /// Computes variances of type parameters on typedefs.
+  ///
+  /// The variance property of type parameters on typedefs is computed from the
+  /// use of the parameters in the right-hand side of the typedef definition.
+  int computeVariances();
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {

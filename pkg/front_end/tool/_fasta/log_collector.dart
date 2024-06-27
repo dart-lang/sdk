@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show jsonDecode, utf8;
-
+import 'dart:io';
 import 'dart:isolate' show RawReceivePort;
 
-import 'dart:io';
-
-import 'package:front_end/src/fasta/crash.dart' show defaultServerAddress;
+import 'package:front_end/src/base/crash.dart' show defaultServerAddress;
 
 void badRequest(HttpRequest request, int status, String message) {
   request.response.statusCode = status;

@@ -4,13 +4,14 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
+
+import '../base/export.dart';
+import '../base/identifiers.dart';
+import '../base/import.dart';
+import '../base/problems.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart';
-import '../fasta/export.dart';
-import '../fasta/identifiers.dart';
-import '../fasta/import.dart';
-import '../fasta/problems.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 

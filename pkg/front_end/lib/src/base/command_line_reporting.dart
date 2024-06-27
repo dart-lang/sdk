@@ -21,8 +21,8 @@ import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 import 'package:kernel/ast.dart' show Location, Source, TreeNode;
 
-import '../compute_platform_binaries_location.dart' show translateSdk;
 import '../codes/cfe_codes.dart' show LocatedMessage, PlainAndColorizedString;
+import '../compute_platform_binaries_location.dart' show translateSdk;
 import 'compiler_context.dart' show CompilerContext;
 import 'crash.dart' show Crash, safeToString;
 import 'messages.dart' show getLocation, getSourceLine;

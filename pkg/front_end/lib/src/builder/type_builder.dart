@@ -7,9 +7,9 @@ library fasta.type_builder;
 import 'package:kernel/ast.dart' show DartType, Supertype, TreeNode;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/messages.dart';
+import '../base/scope.dart';
 import '../kernel/type_algorithms.dart';
-import '../fasta/messages.dart';
-import '../fasta/scope.dart';
 import '../source/source_library_builder.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';

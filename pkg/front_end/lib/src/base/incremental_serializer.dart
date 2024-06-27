@@ -7,9 +7,7 @@ library fasta.incremental_serializer;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/binary/ast_from_binary.dart' show SubComponentView;
-
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
 import 'package:kernel/kernel.dart' show Component, Library, LibraryDependency;
 
 import '../kernel/utils.dart' show ByteSink;

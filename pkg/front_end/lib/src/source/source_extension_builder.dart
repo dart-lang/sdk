@@ -16,8 +16,8 @@ import '../codes/cfe_codes.dart'
         messagePatchDeclarationOrigin,
         noLength;
 import '../kernel/body_builder_context.dart';
-import '../fasta/problems.dart';
-import '../fasta/scope.dart';
+import '../base/problems.dart';
+import '../base/scope.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';

@@ -6,9 +6,10 @@ import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
+
 import '../../test/utils/io_utils.dart' show computeRepoDirUri;
 
 void main(List<String> args) {
@@ -50,7 +51,8 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/messages.dart';
+
+import '../base/messages.dart';
 
 // ignore_for_file: lines_longer_than_80_chars
 

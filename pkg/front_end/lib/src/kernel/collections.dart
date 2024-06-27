@@ -5,18 +5,13 @@
 library fasta.collections;
 
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/src/printer.dart';
-
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
-import '../fasta/messages.dart'
+import '../base/messages.dart'
     show noLength, templateExpectedAfterButGot, templateExpectedButGot;
-
-import '../fasta/problems.dart' show getFileUri, unsupported;
-
+import '../base/problems.dart' show getFileUri, unsupported;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
-
 import 'internal_ast.dart';
 
 /// Mixin for spread and control-flow elements.

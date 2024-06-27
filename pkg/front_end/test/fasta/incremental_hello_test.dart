@@ -5,31 +5,21 @@
 library fasta.test.incremental_dynamic_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
-
 import 'package:expect/expect.dart' show Expect;
-
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
-    show IncrementalCompilerResult;
-
-import 'package:kernel/ast.dart' show Component;
-
-import 'package:kernel/target/targets.dart' show TargetFlags;
-
-import 'package:vm/modular/target/vm.dart' show VmTarget;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
-
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
+import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 void diagnosticMessageHandler(DiagnosticMessage message) {
   throw "Unexpected message: ${message.plainTextFormatted.join('\n')}";

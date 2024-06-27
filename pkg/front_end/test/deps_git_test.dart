@@ -7,14 +7,14 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/base/ticker.dart';
+import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:vm/modular/target/vm.dart' show VmTarget;

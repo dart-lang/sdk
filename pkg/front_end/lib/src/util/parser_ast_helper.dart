@@ -13,7 +13,8 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/messages.dart';
+
+import '../base/messages.dart';
 
 // ignore_for_file: lines_longer_than_80_chars
 

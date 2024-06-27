@@ -6,9 +6,9 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
+import '../base/problems.dart' show unexpected;
 import '../builder/member_builder.dart';
 import '../kernel/hierarchy/class_member.dart';
-import '../fasta/problems.dart' show unexpected;
 import 'inference_visitor_base.dart';
 import 'type_schema_environment.dart';
 

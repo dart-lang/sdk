@@ -3,41 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:convert" show json, utf8;
-
 import "dart:io" show File, gzip;
-
-import "package:kernel/ast.dart" show Component, DartType, Library;
-
-import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
-
-import "package:kernel/core_types.dart" show CoreTypes;
-
-import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
-
-import 'package:kernel/testing/type_parser_environment.dart'
-    show TypeParserEnvironment, parseLibrary;
-
-import "package:kernel/type_environment.dart"
-    show SubtypeCheckMode, TypeEnvironment;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
-
+import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
-
+import "package:front_end/src/base/ticker.dart" show Ticker;
 import "package:front_end/src/builder/declaration_builders.dart";
-
-import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
-
 import "package:front_end/src/dill/dill_loader.dart" show DillLoader;
-
 import "package:front_end/src/dill/dill_target.dart" show DillTarget;
-
 import "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart"
     show ClassHierarchyBuilder;
-
-import "package:front_end/src/fasta/ticker.dart" show Ticker;
+import "package:kernel/ast.dart" show Component, DartType, Library;
+import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
+import "package:kernel/core_types.dart" show CoreTypes;
+import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show TypeParserEnvironment, parseLibrary;
+import "package:kernel/type_environment.dart"
+    show SubtypeCheckMode, TypeEnvironment;
 
 class SubtypesBenchmark {
   final Library library;

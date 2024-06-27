@@ -11,8 +11,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/problems.dart' as problems show internalProblem, unhandled;
 import '../codes/cfe_codes.dart';
-import '../fasta/problems.dart' as problems show internalProblem, unhandled;
 
 abstract class StackListenerImpl extends StackListener {
   LibraryFeatures get libraryFeatures;

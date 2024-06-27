@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:kernel/ast.dart';
 import 'package:front_end/src/kernel/member_covariance.dart';
+import 'package:kernel/ast.dart';
 
 void main() {
   void checkEquals(Covariance a, Covariance b) {

@@ -5,7 +5,6 @@
 library fasta.crash;
 
 import 'dart:convert' show jsonEncode;
-
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 

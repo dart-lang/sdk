@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/fasta/messages.dart';
 
 Future<void> main() async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));

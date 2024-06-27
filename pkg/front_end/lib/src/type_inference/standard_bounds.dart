@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' show DartType, NeverType;
-
 import 'package:kernel/src/standard_bounds.dart';
 
 import 'type_schema.dart' show UnknownType;
-
 import 'type_schema_elimination.dart';
 
 mixin TypeSchemaStandardBounds on StandardBounds {

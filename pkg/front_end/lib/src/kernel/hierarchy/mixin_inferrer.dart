@@ -7,13 +7,13 @@ library fasta.class_hierarchy_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/src/bounds_checks.dart';
+import 'package:kernel/type_algebra.dart';
 
-import '../../builder/declaration_builders.dart';
-import '../../fasta/messages.dart'
+import '../../base/messages.dart'
     show Message, templateMixinInferenceNoMatchingClass;
-import '../../fasta/problems.dart' show unexpected, unsupported;
+import '../../base/problems.dart' show unexpected, unsupported;
+import '../../builder/declaration_builders.dart';
 import '../../type_inference/type_schema.dart';
 
 class BuilderMixinInferrer {

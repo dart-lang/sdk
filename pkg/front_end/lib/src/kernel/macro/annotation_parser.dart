@@ -3,22 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
-import 'package:macros/src/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:macros/src/executor.dart' as macro;
 
+import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/prefix_builder.dart';
-import '../../fasta/scope.dart';
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
-import '../../fasta/uri_offset.dart';
 import 'macro.dart';
 
 List<MacroApplication>? prebuildAnnotations(

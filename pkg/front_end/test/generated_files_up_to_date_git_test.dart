@@ -4,16 +4,16 @@
 
 import "dart:io" show File, exitCode;
 
-import "../tool/_fasta/generate_messages.dart" as generateMessages;
 import "../tool/_fasta/generate_experimental_flags.dart"
     as generateExperimentalFlags;
+import "../tool/_fasta/generate_messages.dart" as generateMessages;
 import "../tool/_fasta/parser_ast_helper_creator.dart"
     as generateParserAstHelper;
+import '../tool/ast_model.dart';
+import '../tool/generate_ast_coverage.dart' as generateAstCoverage;
+import '../tool/generate_ast_equivalence.dart' as generateAstEquivalence;
 import "parser_test_listener_creator.dart" as generateParserTestListener;
 import "parser_test_parser_creator.dart" as generateParserTestParser;
-import '../tool/ast_model.dart';
-import '../tool/generate_ast_equivalence.dart' as generateAstEquivalence;
-import '../tool/generate_ast_coverage.dart' as generateAstCoverage;
 import 'utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();

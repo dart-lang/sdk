@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:macros/macros.dart' as macro;
-import 'package:macros/src/executor/introspection_impls.dart' as macro;
-import 'package:macros/src/executor/remote_instance.dart' as macro;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+import 'package:macros/macros.dart' as macro;
+import 'package:macros/src/executor/introspection_impls.dart' as macro;
+import 'package:macros/src/executor/remote_instance.dart' as macro;
 
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
@@ -16,7 +17,6 @@ import '../../builder/nullability_builder.dart';
 import '../../builder/record_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_loader.dart';
-import '../../fasta/uri_offset.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 import 'introspectors.dart';

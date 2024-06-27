@@ -4,8 +4,8 @@
 
 // @dart=2.14
 
-import 'util.dart';
 import 'generated/datatype.dart';
+import 'util.dart';
 
 typedef TestFunction<T> = void Function(T, Counter);
 typedef DataFunction = List<T> Function<T>(List<T>);

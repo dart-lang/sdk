@@ -16,9 +16,9 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken;
-import 'package:front_end/src/fasta/command_line_reporting.dart'
+import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
-import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/base/messages.dart' show Message;
 import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/source/stack_listener_impl.dart'

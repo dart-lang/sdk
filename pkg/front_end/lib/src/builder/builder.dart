@@ -4,7 +4,7 @@
 
 library fasta.declaration;
 
-import '../fasta/problems.dart' show unsupported;
+import '../base/problems.dart' show unsupported;
 
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same

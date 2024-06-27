@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-import 'package:front_end/src/fasta/command_line_reporting.dart'
+import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;

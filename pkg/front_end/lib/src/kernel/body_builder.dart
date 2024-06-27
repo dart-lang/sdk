@@ -33,8 +33,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/kernel/benchmarker.dart' show Benchmarker;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -44,6 +42,19 @@ import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/constant_context.dart' show ConstantContext;
+import '../base/identifiers.dart'
+    show
+        Identifier,
+        InitializedIdentifier,
+        QualifiedName,
+        SimpleIdentifier,
+        flattenName;
+import '../base/modifier.dart'
+    show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
+import '../base/problems.dart' show internalProblem, unhandled, unsupported;
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -72,19 +83,7 @@ import '../codes/cfe_codes.dart'
         templateLocalVariableUsedBeforeDeclared,
         templateLocalVariableUsedBeforeDeclaredContext;
 import '../codes/cfe_codes.dart' as fasta;
-import '../fasta/constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-import '../fasta/identifiers.dart'
-    show
-        Identifier,
-        InitializedIdentifier,
-        QualifiedName,
-        SimpleIdentifier,
-        flattenName;
-import '../fasta/modifier.dart'
-    show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
-import '../fasta/problems.dart' show internalProblem, unhandled, unsupported;
-import '../fasta/scope.dart';
 import '../source/diet_parser.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
@@ -98,6 +97,7 @@ import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart' show UnknownType;
 import '../util/helpers.dart';
+import 'benchmarker.dart' show Benchmarker;
 import 'body_builder_context.dart';
 import 'collections.dart';
 import 'constness.dart' show Constness;

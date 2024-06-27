@@ -8,6 +8,19 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/constant_context.dart' show ConstantContext;
+import '../base/identifiers.dart';
+import '../base/messages.dart'
+    show
+        LocatedMessage,
+        Message,
+        messageMoreThanOneSuperInitializer,
+        messageRedirectingConstructorWithAnotherInitializer,
+        messageRedirectingConstructorWithMultipleRedirectInitializers,
+        messageRedirectingConstructorWithSuperInitializer,
+        messageSuperInitializerNotLast,
+        noLength;
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -16,9 +29,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../fasta/constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
-import '../fasta/identifiers.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -31,30 +42,19 @@ import '../kernel/kernel_helper.dart'
         TypeDependency,
         finishConstructorAugmentation,
         finishProcedureAugmentation;
-import '../fasta/messages.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageMoreThanOneSuperInitializer,
-        messageRedirectingConstructorWithAnotherInitializer,
-        messageRedirectingConstructorWithMultipleRedirectInitializers,
-        messageRedirectingConstructorWithSuperInitializer,
-        messageSuperInitializerNotLast,
-        noLength;
-import '../fasta/scope.dart';
-import 'source_class_builder.dart';
-import 'source_enum_builder.dart';
-import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
-import 'source_member_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
+import 'source_class_builder.dart';
+import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {

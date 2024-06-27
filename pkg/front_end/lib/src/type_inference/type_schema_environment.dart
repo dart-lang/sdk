@@ -2,36 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
-    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
-
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
+    as shared;
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'package:kernel/type_algebra.dart';
-
-import 'package:kernel/type_environment.dart';
-
 import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
-
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import 'standard_bounds.dart' show TypeSchemaStandardBounds;
-
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
-
 import 'type_demotion.dart';
-
 import 'type_inference_engine.dart';
-
 import 'type_schema.dart' show UnknownType, isKnown;
-
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 
 typedef GeneratedTypeConstraint = shared.GeneratedTypeConstraint<DartType,

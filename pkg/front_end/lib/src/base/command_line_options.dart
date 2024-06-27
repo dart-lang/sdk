@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/options.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/target/targets.dart';
+
+import '../api_prototype/compiler_options.dart';
 
 class Flags {
   // TODO(johnniwinther): What is the right name for this?

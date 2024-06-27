@@ -5,7 +5,6 @@
 library fasta.qualified_name;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
 import 'package:kernel/ast.dart' show Expression;
 
 import '../builder/type_builder.dart';

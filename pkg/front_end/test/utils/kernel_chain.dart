@@ -5,39 +5,27 @@
 library fasta.testing.kernel_chain;
 
 import 'dart:async';
-
 import 'dart:io' show Directory, File, IOSink, Platform;
-
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
-
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show DiagnosticMessage;
-
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/messages.dart'
+    show DiagnosticMessageFromJson;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
-
 import 'package:front_end/src/kernel/utils.dart' show ByteSink;
-
-import 'package:front_end/src/fasta/messages.dart'
-    show DiagnosticMessageFromJson;
-
 import 'package:kernel/ast.dart'
     show
         Block,
@@ -48,19 +36,12 @@ import 'package:kernel/ast.dart'
         ReturnStatement,
         Source,
         Statement;
-
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
 import 'package:kernel/error_formatter.dart' show ErrorFormatter;
-
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
-
 import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
-
 import 'package:kernel/text/ast_to_text.dart' show Printer;
-
 import 'package:testing/testing.dart'
     show
         ChainContext,
@@ -72,7 +53,6 @@ import 'package:testing/testing.dart'
         TestDescription;
 
 import '../fasta/testing/suite.dart' show CompilationSetup, CompileMode;
-
 import '../test_utils.dart';
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();

@@ -7,17 +7,17 @@ library fasta.formal_parameter_builder;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:front_end/src/source/constructor_declaration.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, NullLiteral, VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
-import '../fasta/constant_context.dart' show ConstantContext;
+import '../base/constant_context.dart' show ConstantContext;
+import '../base/modifier.dart';
+import '../base/scope.dart' show Scope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-import '../fasta/modifier.dart';
-import '../fasta/scope.dart' show Scope;
+import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';

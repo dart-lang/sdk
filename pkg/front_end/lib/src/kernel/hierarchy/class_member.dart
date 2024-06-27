@@ -7,14 +7,14 @@ library fasta.class_hierarchy_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../../builder/declaration_builders.dart';
-import '../../fasta/messages.dart'
+import '../../base/messages.dart'
     show
         LocatedMessage,
         messageDeclaredMemberConflictsWithInheritedMembersCause,
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
         templateCombinedMemberSignatureFailed,
         templateExtensionTypeCombinedMemberSignatureFailed;
+import '../../builder/declaration_builders.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;

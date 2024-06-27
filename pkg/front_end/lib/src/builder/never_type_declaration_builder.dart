@@ -7,7 +7,7 @@ library fasta.never_type_builder;
 import 'package:kernel/ast.dart' show DartType, Nullability;
 import 'package:kernel/class_hierarchy.dart';
 
-import '../fasta/uris.dart';
+import '../base/uris.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';

@@ -5,16 +5,11 @@
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
-
 import 'package:front_end/src/base/command_line_options.dart';
-
-import 'package:testing/testing.dart' show StdioProcess;
-
-import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/ast.dart' show Component;
-
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/text/ast_to_text.dart' show componentToString;
+import 'package:testing/testing.dart' show StdioProcess;
 
 Future main() async {
   asyncStart();

@@ -85,7 +85,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '~':
         return new IntConstant(~operand.value);
       default:
-        // Probably unreachable.
+        // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
             node,
             templateNotConstantExpression
@@ -136,7 +136,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '>':
         return evaluator.makeBoolConstant(a > b);
       default:
-        // Probably unreachable.
+        // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
             node,
             templateNotConstantExpression
@@ -202,7 +202,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
         int intValue = _toUint32(operand.value);
         return new DoubleConstant(_truncate32(~intValue).toDouble());
       default:
-        // Probably unreachable.
+        // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
             node,
             templateNotConstantExpression
@@ -259,7 +259,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
       case '>':
         return evaluator.makeBoolConstant(a > b);
       default:
-        // Probably unreachable.
+        // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
             node,
             templateNotConstantExpression

@@ -4,16 +4,17 @@
 
 import 'dart:io';
 
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/util/outline_extractor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/equivalence.dart';
-import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:kernel/target/targets.dart';
-import 'incremental_suite.dart' as helper;
-import 'package:front_end/src/util/outline_extractor.dart';
 import 'package:package_config/package_config.dart';
+
+import 'incremental_suite.dart' as helper;
 
 Future<void> main(List<String> args) async {
   if (args.length != 1) throw "Wants 1 argument.";

@@ -12,8 +12,8 @@ import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/problems.dart' show unhandled;
 import '../builder/declaration_builders.dart';
-import '../fasta/problems.dart' show unhandled;
 import '../source/source_class_builder.dart';
 import 'hierarchy/class_member.dart';
 import 'hierarchy/hierarchy_builder.dart';

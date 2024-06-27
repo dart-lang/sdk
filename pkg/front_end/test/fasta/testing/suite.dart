@@ -32,16 +32,18 @@ import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/crash.dart';
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show AdvancedInvalidationResult, IncrementalCompiler;
+import 'package:front_end/src/base/messages.dart' show LocatedMessage;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+import 'package:front_end/src/base/uri_translator.dart' show UriTranslator;
+import 'package:front_end/src/builder/library_builder.dart' show LibraryBuilder;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/builder/library_builder.dart' show LibraryBuilder;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/crash.dart';
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show AdvancedInvalidationResult, IncrementalCompiler;
 import 'package:front_end/src/kernel/hierarchy/hierarchy_builder.dart'
     show ClassHierarchyBuilder;
 import 'package:front_end/src/kernel/hierarchy/hierarchy_node.dart'
@@ -49,12 +51,10 @@ import 'package:front_end/src/kernel/hierarchy/hierarchy_node.dart'
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/kernel/verifier.dart' show verifyComponent;
-import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/util/parser_ast.dart'
     show IgnoreSomeForCompatibilityAstVisitor, getAST;
 import 'package:front_end/src/util/parser_ast_helper.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart'
     show
         BasicLiteral,

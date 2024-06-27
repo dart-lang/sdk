@@ -6,13 +6,12 @@ library fasta.test.suite_utils;
 
 import 'dart:io';
 
-import 'package:testing/testing.dart' show Step, TestDescription;
 import 'package:testing/src/chain.dart' show CreateContext;
 import 'package:testing/src/log.dart' show Logger, StdoutLogger;
 import 'package:testing/src/suite.dart' as testing show Suite;
+import 'package:testing/testing.dart' show Step, TestDescription;
 
 import '../coverage_helper.dart';
-
 import 'testing/suite.dart';
 
 Future<void> internalMain(

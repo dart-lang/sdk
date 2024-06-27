@@ -64,14 +64,14 @@ import '../codes/cfe_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
-import '../fasta/command_line_reporting.dart' as command_line_reporting;
-import '../fasta/compiler_context.dart' show CompilerContext;
-import '../fasta/messages.dart' show getLocation;
-import '../fasta/problems.dart' show DebugAbort, unimplemented;
-import '../fasta/ticker.dart' show Ticker;
-import '../fasta/uri_translator.dart' show UriTranslator;
 import '../macros/macro_serializer.dart' show MacroSerializer;
+import 'command_line_reporting.dart' as command_line_reporting;
+import 'compiler_context.dart' show CompilerContext;
+import 'messages.dart' show getLocation;
 import 'nnbd_mode.dart';
+import 'problems.dart' show DebugAbort, unimplemented;
+import 'ticker.dart' show Ticker;
+import 'uri_translator.dart' show UriTranslator;
 
 /// All options needed for the front end implementation.
 ///

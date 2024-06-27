@@ -9,7 +9,6 @@ import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../../testing/id_testing_utils.dart' show typeToText;
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
@@ -17,6 +16,7 @@ import '../../builder/named_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../codes/cfe_codes.dart';
 import '../../source/source_library_builder.dart';
+import '../../testing/id_testing_utils.dart' show typeToText;
 import '../../type_inference/type_schema.dart' show UnknownType;
 import 'hierarchy_builder.dart';
 import 'mixin_inferrer.dart';

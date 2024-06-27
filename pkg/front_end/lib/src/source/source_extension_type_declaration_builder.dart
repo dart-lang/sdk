@@ -9,6 +9,9 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/messages.dart';
+import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -24,9 +27,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
-import '../fasta/messages.dart';
-import '../fasta/problems.dart';
-import '../fasta/scope.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
@@ -146,9 +146,9 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalVariableBuilder variable in typeParameters!) {
-            Variance variance = computeTypeVariableBuilderVariance(
-                    variable, typeBuilder, libraryBuilder)
-                .variance!;
+            Variance variance =
+                computeTypeVariableBuilderVariance(variable, typeBuilder)
+                    .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage =

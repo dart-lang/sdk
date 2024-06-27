@@ -3,36 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:async_helper/async_helper.dart" show asyncTest;
-
 import "package:expect/expect.dart" show Expect;
-
-import "package:kernel/ast.dart" show Class, Component, Library;
-
-import "package:kernel/core_types.dart" show CoreTypes;
-
-import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
-
-import 'package:kernel/testing/type_parser_environment.dart'
-    show parseComponent;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
-
+import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
-
+import "package:front_end/src/base/ticker.dart" show Ticker;
 import "package:front_end/src/builder/declaration_builders.dart";
-
-import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
-
 import "package:front_end/src/dill/dill_loader.dart" show DillLoader;
-
 import "package:front_end/src/dill/dill_target.dart" show DillTarget;
-
 import "package:front_end/src/kernel/hierarchy/hierarchy_builder.dart"
     show ClassHierarchyBuilder;
-
-import "package:front_end/src/fasta/ticker.dart" show Ticker;
+import "package:kernel/ast.dart" show Class, Component, Library;
+import "package:kernel/core_types.dart" show CoreTypes;
+import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show parseComponent;
 
 const String expectedHierarchy = """
 Object:
