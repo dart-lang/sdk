@@ -24,6 +24,12 @@ sealed class CandidateSuggestion {
   /// The score computed by a [CompletionMatcher] for this suggestion.
   final double matcherScore;
 
+  /// The relevance score for this suggestion.
+  ///
+  /// The relevance score isn't computed until after the list of candidate
+  /// suggestions has been completed.
+  int relevanceScore = -1;
+
   CandidateSuggestion({required this.matcherScore}) : assert(matcherScore >= 0);
 
   /// The text to be inserted by the completion suggestion.
