@@ -137,7 +137,7 @@ class DuplicateDefinitionVerifier {
       staticSetters: staticSetters,
     );
 
-    for (var accessor in declarationElement.accessors) {
+    for (var accessor in element.accessors) {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(declarationElement, baseName);
