@@ -971,7 +971,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     calls.add('handleAssignmentExpression $token');
   }
 

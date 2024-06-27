@@ -2298,9 +2298,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
-    AssignmentExpressionHandle data =
-        new AssignmentExpressionHandle(ParserAstType.HANDLE, token: token);
+  void handleAssignmentExpression(Token token, Token endToken) {
+    AssignmentExpressionHandle data = new AssignmentExpressionHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        endToken: endToken);
     seen(data);
   }
 
@@ -2931,9 +2933,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     SwitchExpressionCaseEnd data = new SwitchExpressionCaseEnd(
         ParserAstType.END,
+        beginToken: beginToken,
         when: when,
         arrow: arrow,
         endToken: endToken);
@@ -8148,13 +8152,16 @@ class CastPatternHandle extends ParserAstNode {
 
 class AssignmentExpressionHandle extends ParserAstNode {
   final Token token;
+  final Token endToken;
 
-  AssignmentExpressionHandle(ParserAstType type, {required this.token})
+  AssignmentExpressionHandle(ParserAstType type,
+      {required this.token, required this.endToken})
       : super("AssignmentExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "endToken": endToken,
       };
 
   @override
@@ -9531,17 +9538,25 @@ class SwitchExpressionCaseBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitSwitchExpressionCaseBegin(this);
 }
 
-class SwitchExpressionCaseEnd extends ParserAstNode {
+class SwitchExpressionCaseEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
   final Token? when;
   final Token arrow;
+  @override
   final Token endToken;
 
   SwitchExpressionCaseEnd(ParserAstType type,
-      {this.when, required this.arrow, required this.endToken})
+      {required this.beginToken,
+      this.when,
+      required this.arrow,
+      required this.endToken})
       : super("SwitchExpressionCase", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
         "when": when,
         "arrow": arrow,
         "endToken": endToken,

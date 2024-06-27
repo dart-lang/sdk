@@ -5985,7 +5985,7 @@ class Parser {
               ? parseThrowExpression(next, /* allowCascades = */ false)
               : parsePrecedenceExpression(
                   next, level, allowCascades, ConstantPatternContext.none);
-          listener.handleAssignmentExpression(operator);
+          listener.handleAssignmentExpression(operator, token);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
           if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
@@ -6334,7 +6334,7 @@ class Parser {
     if (identical(next.type.precedence, ASSIGNMENT_PRECEDENCE)) {
       Token assignment = next;
       token = parseExpressionWithoutCascade(next);
-      listener.handleAssignmentExpression(assignment);
+      listener.handleAssignmentExpression(assignment, token);
     }
     listener.endCascade();
     return token;
@@ -10302,7 +10302,7 @@ class Parser {
       mayParseFunctionExpressions = false;
       while (true) {
         listener.beginSwitchExpressionCase();
-        next = token.next!;
+        Token beginToken = next = token.next!;
         if (optional('default', next)) {
           reportRecoverableError(next, codes.messageDefaultInSwitchExpression);
           listener.handleNoType(next);
@@ -10336,7 +10336,7 @@ class Parser {
         mayParseFunctionExpressions = true;
         token = parseExpression(token);
         mayParseFunctionExpressions = false;
-        listener.endSwitchExpressionCase(when, arrow, token);
+        listener.endSwitchExpressionCase(beginToken, when, arrow, token);
         ++caseCount;
         next = token.next!;
 

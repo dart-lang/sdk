@@ -1210,8 +1210,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
-    listener?.endSwitchExpressionCase(when, arrow, endToken);
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
+    listener?.endSwitchExpressionCase(beginToken, when, arrow, endToken);
   }
 
   @override
@@ -1358,8 +1359,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
-    listener?.handleAssignmentExpression(token);
+  void handleAssignmentExpression(Token token, Token endToken) {
+    listener?.handleAssignmentExpression(token, endToken);
   }
 
   @override

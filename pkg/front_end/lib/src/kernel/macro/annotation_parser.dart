@@ -1555,7 +1555,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     _unsupported();
   }
 
@@ -1667,7 +1668,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     _unsupported();
   }
 
