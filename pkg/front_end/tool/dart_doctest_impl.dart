@@ -61,7 +61,7 @@ const _portMessageDone = "done";
 // the part declares what file it's part of and if we've compiled other stuff
 // first so we know more stuff).
 class DartDocTest {
-  DocTestIncrementalCompiler? incrementalCompiler;
+  DocTestIncrementalCompiler? savedIncrementalCompiler;
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
@@ -132,9 +132,12 @@ class DartDocTest {
       sb.writeln("}");
     }
 
-    if (incrementalCompiler == null) {
-      setupIncrementalCompiler(uri);
-    }
+    // Setup the incremental compiler.
+    // We only want to reuse it if it didn't crash as that will make it wait
+    // for the crashed compile to finish (and it won't).
+    DocTestIncrementalCompiler incrementalCompiler =
+        savedIncrementalCompiler ?? createIncrementalCompiler(uri);
+    savedIncrementalCompiler = null;
 
     processedOpts.inputs.clear();
     processedOpts.inputs.add(uri);
@@ -145,11 +148,11 @@ class DartDocTest {
     processedOpts.clearFileSystemCache();
     // Invalidate package uri to force re-finding of packages
     // (e.g. if we're now compiling somewhere else).
-    incrementalCompiler!.invalidate(processedOpts.packagesUri);
+    incrementalCompiler.invalidate(processedOpts.packagesUri);
 
     Stopwatch stopwatch = new Stopwatch()..start();
     IncrementalCompilerResult compilerResult =
-        await incrementalCompiler!.computeDelta(entryPoints: [uri]);
+        await incrementalCompiler.computeDelta(entryPoints: [uri]);
     kernel.Component component = compilerResult.component;
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
@@ -161,7 +164,7 @@ class DartDocTest {
     _print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
 
-    await incrementalCompiler!.compileDartDocTestLibrary(
+    await incrementalCompiler.compileDartDocTestLibrary(
         sb.toString(), component.uriToSource[uri]?.importUri ?? uri);
 
     final Uri dartDocMainUri = new Uri(scheme: "dartdoctest", path: "main");
@@ -169,8 +172,8 @@ class DartDocTest {
         .entityForUri(dartDocMainUri)
         .writeAsStringSync(mainFileContent);
 
-    incrementalCompiler!.invalidate(dartDocMainUri);
-    IncrementalCompilerResult compilerMainResult = await incrementalCompiler!
+    incrementalCompiler.invalidate(dartDocMainUri);
+    IncrementalCompilerResult compilerMainResult = await incrementalCompiler
         .computeDelta(entryPoints: [dartDocMainUri], fullComponent: true);
     kernel.Component componentMain = compilerMainResult.component;
     if (errors) {
@@ -270,6 +273,9 @@ class DartDocTest {
     await completer.future;
     tmpDir.deleteSync(recursive: true);
 
+    // We finished successfully. Save the incremental compiler.
+    savedIncrementalCompiler = incrementalCompiler;
+
     if (error) {
       _print("Completed with an error in ${stopwatch.elapsedMilliseconds} ms.");
       return [new TestResult(null, TestOutcome.RuntimeError)];
@@ -300,7 +306,7 @@ class DartDocTest {
     }
   }
 
-  void setupIncrementalCompiler(Uri uri) {
+  DocTestIncrementalCompiler createIncrementalCompiler(Uri uri) {
     options = getOptions();
     TargetFlags targetFlags = new TargetFlags();
     // TODO: Target could possible be something else...
@@ -318,7 +324,7 @@ class DartDocTest {
     };
     processedOpts = new ProcessedOptions(options: options, inputs: [uri]);
     CompilerContext compilerContext = new CompilerContext(processedOpts);
-    this.incrementalCompiler = new DocTestIncrementalCompiler(compilerContext);
+    return new DocTestIncrementalCompiler(compilerContext);
   }
 }
 
