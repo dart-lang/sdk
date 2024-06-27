@@ -86,4 +86,34 @@ class A {
           contextMessages: [message(testFile, 30, 1)]),
     ]);
   }
+
+  test_required_positional_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  int? _;
+  A(this._, this._);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 61, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 81, 1,
+          contextMessages: [message(testFile, 73, 1)]),
+    ]);
+  }
+
+  // TODO(pq): add more tests (https://github.com/dart-lang/sdk/issues/56092)
+  test_required_positional_wildcard() async {
+    await assertErrorsInCode(r'''
+class A {
+  int? _;
+  A(this._, this._);
+}
+''', [
+      error(WarningCode.UNUSED_FIELD, 17, 1),
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER, 37, 1,
+          contextMessages: [message(testFile, 29, 1)]),
+    ]);
+  }
 }

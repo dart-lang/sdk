@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -116,6 +117,16 @@ extension ElementExtension on Element {
     }
     return false;
   }
+
+  /// Return true if this element is a wildcard variable.
+  bool get isWildcardVariable =>
+      name == '_' &&
+      (this is LocalVariableElement ||
+          this is TypeParameterElement ||
+          (this is ParameterElement &&
+              this is! FieldFormalParameterElement &&
+              this is! SuperFormalParameterElement)) &&
+      (library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false);
 }
 
 extension ExecutableElementExtension on ExecutableElement {

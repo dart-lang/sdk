@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
@@ -439,11 +440,4 @@ class _LibraryOrAugmentationImportScope implements Scope {
   ScopeLookupResult lookup(String id) {
     return _nullPrefixScope.lookup(id);
   }
-}
-
-extension on Element {
-  bool get isWildcardVariable =>
-      name == '_' &&
-      (this is LocalVariableElement || this is ParameterElement) &&
-      (library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false);
 }
