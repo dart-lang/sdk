@@ -32,6 +32,7 @@ class MetadataBuilder {
       : charOffset = _beginToken.charOffset,
         hasPatch = _beginToken.next?.lexeme == 'patch';
 
+  // Coverage-ignore(suite): Not run.
   Token? get beginToken => _beginToken;
 
   static void buildAnnotations(
@@ -94,6 +95,7 @@ class MetadataBuilder {
         cloner ??= new CloneVisitorNotMembers();
         Expression annotation =
             cloner.cloneInContext(annotationBuilder._expression!);
+        // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
           annotation = new FileUriExpression(annotation, fileUri)
             ..fileOffset = annotationBuilder.charOffset;

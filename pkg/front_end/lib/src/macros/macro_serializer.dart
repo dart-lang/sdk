@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'isolate_macro_serializer.dart';
 import 'temp_dir_macro_serializer.dart';
 
+// Coverage-ignore(suite): Not run.
 /// Interface for supporting serialization of [Component]s for macro
 /// precompilation.
 abstract class MacroSerializer {

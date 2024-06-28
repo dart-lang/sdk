@@ -38,6 +38,7 @@ import 'macros/macro_target.dart'
     show MacroConfiguration, computeMacroConfiguration;
 import 'source/source_loader.dart' show SourceLoader;
 
+// Coverage-ignore(suite): Not run.
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
 /// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
@@ -102,6 +103,7 @@ Future<InternalCompilerResult> generateKernelInternal(
           dillTarget.loader.appendLibraries(additionalDill);
         }
       } else if (options.hasAdditionalDills) {
+        // Coverage-ignore-block(suite): Not run.
         nameRoot = sdkSummary?.root ?? new CanonicalName.root();
         for (Component additionalDill
             in await options.loadAdditionalDills(nameRoot)) {
@@ -119,15 +121,19 @@ Future<InternalCompilerResult> generateKernelInternal(
       kernelTarget.setEntryPoints(options.inputs);
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
-      kernelTarget.benchmarker?.enterPhase(BenchmarkPhases.precompileMacros);
+      kernelTarget.benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.precompileMacros);
       Map<Uri, ExecutorFactoryToken>? precompiled =
           await precompileMacros(neededPrecompilations, options);
       if (precompiled != null) {
+        // Coverage-ignore-block(suite): Not run.
         kernelTarget.benchmarker
             ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
         continue;
       }
       kernelTarget.benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
       return _buildInternal(
           options: options,
@@ -144,6 +150,7 @@ Future<InternalCompilerResult> generateKernelInternal(
           retainDataForTesting: retainDataForTesting);
     }
   },
+      // Coverage-ignore(suite): Not run.
       () =>
           sourceLoader?.currentUriForCrashReporting ??
           new UriOffset(options.inputs.first, TreeNode.noOffset));
@@ -167,6 +174,7 @@ Future<InternalCompilerResult> _buildInternal(
   Component summaryComponent = buildResult.component!;
   List<int>? summary = null;
   if (buildSummary) {
+    // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
       List<LocatedMessage> errors = verifyComponent(
           options.target, VerificationStage.outline, summaryComponent);
@@ -233,6 +241,7 @@ Future<InternalCompilerResult> _buildInternal(
         verify: options.verify);
     component = buildResult.component;
     if (options.debugDump) {
+      // Coverage-ignore-block(suite): Not run.
       printComponentText(component,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging,
           showOffsets: options.debugDumpShowOffsets);
@@ -243,7 +252,9 @@ Future<InternalCompilerResult> _buildInternal(
   }
   // TODO(johnniwinther): Should we reuse the macro executor on subsequent
   // compilations where possible?
-  buildResult.macroApplications?.close();
+  buildResult.macroApplications
+      // Coverage-ignore(suite): Not run.
+      ?.close();
 
   return new InternalCompilerResult(
       summary: summary,
@@ -303,6 +314,7 @@ class InternalCompilerResult implements CompilerResult {
       this.kernelTargetForTesting});
 }
 
+// Coverage-ignore(suite): Not run.
 /// A fake absolute directory used as the root of a memory-file system in the
 /// compilation below.
 final Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
@@ -318,6 +330,7 @@ final Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
     NeededPrecompilations? neededPrecompilations,
     ProcessedOptions options) async {
+  // Coverage-ignore-block(suite): Not run.
   if (neededPrecompilations != null) {
     if (options.globalFeatures.macros.isEnabled) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
@@ -336,6 +349,7 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
   return null;
 }
 
+// Coverage-ignore(suite): Not run.
 Future<Map<Uri, ExecutorFactoryToken>?> _compileMacros(
     NeededPrecompilations neededPrecompilations,
     ProcessedOptions options) async {

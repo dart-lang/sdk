@@ -137,7 +137,9 @@ Expression createVariableSet(VariableDeclaration variable, Expression value,
         arguments: createArguments([value], fileOffset: fileOffset),
         fileOffset: fileOffset);
   } else {
-    assert(allowFinalAssignment || variable.isAssignable,
+    assert(
+        allowFinalAssignment || variable.isAssignable,
+        // Coverage-ignore(suite): Not run.
         "Cannot assign to variable $variable");
     return new VariableSet(variable, value)..fileOffset = fileOffset;
   }
@@ -151,7 +153,8 @@ LocalFunctionInvocation createLocalFunctionInvocation(
     required int fileOffset}) {
   return new LocalFunctionInvocation(
       variable,
-      arguments ?? createArguments([], fileOffset: fileOffset)
+      arguments ?? // Coverage-ignore(suite): Not run.
+          createArguments([], fileOffset: fileOffset)
         ..fileOffset = fileOffset,
       functionType: variable.type as FunctionType)
     ..fileOffset = fileOffset;

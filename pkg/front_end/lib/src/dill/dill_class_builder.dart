@@ -25,6 +25,7 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
   ConstructorScope get constructorScope;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
       constructorScope.filteredIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
@@ -40,6 +41,7 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
           includeAugmentations: true, includeDuplicates: false);
 
   @override
+  // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
       scope.filteredNameIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
@@ -129,6 +131,7 @@ class DillClassBuilder extends ClassBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<TypeBuilder>? get onTypes => null;
 
   void addField(Field field) {
@@ -154,6 +157,7 @@ class DillClassBuilder extends ClassBuilderImpl
     String name = procedure.name.text;
     switch (procedure.kind) {
       case ProcedureKind.Factory:
+        // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
         scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
@@ -204,6 +208,7 @@ class DillClassBuilder extends ClassBuilderImpl
   bool get isMixinApplication => cls.isMixinApplication;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get declaresConstConstructor => cls.hasConstConstructor;
 
   @override
@@ -212,6 +217,7 @@ class DillClassBuilder extends ClassBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set mixedInTypeBuilder(TypeBuilder? mixin) {
     unimplemented("mixedInType=", -1, null);
   }

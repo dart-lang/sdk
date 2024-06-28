@@ -101,6 +101,7 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
 
+  // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): Add merged scope for extension type declarations.
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ? origin.mergedScope
@@ -109,7 +110,9 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   ExtensionTypeDeclaration get extensionTypeDeclaration => isAugmenting
-      ? origin._extensionTypeDeclaration
+      ?
+      // Coverage-ignore(suite): Not run.
+      origin._extensionTypeDeclaration
       : _extensionTypeDeclaration;
 
   @override
@@ -155,6 +158,7 @@ class SourceExtensionTypeDeclarationBuilder
                     templateWrongTypeParameterVarianceInSuperinterface
                         .withArguments(variable.name, interface);
               } else {
+                // Coverage-ignore-block(suite): Not run.
                 errorMessage =
                     templateInvalidTypeVariableInSupertypeWithVariance
                         .withArguments(variable.variance.keyword, variable.name,
@@ -203,6 +207,7 @@ class SourceExtensionTypeDeclarationBuilder
             if (LibraryBuilder.isFunction(cls, coreLibrary) ||
                 LibraryBuilder.isRecord(cls, coreLibrary)) {
               if (aliasBuilder != null) {
+                // Coverage-ignore-block(suite): Not run.
                 errorMessage = templateSuperExtensionTypeIsIllegalAliased
                     .withArguments(typeBuilder.fullNameForErrors, interface);
                 errorContext = [
@@ -221,6 +226,7 @@ class SourceExtensionTypeDeclarationBuilder
           errorMessage = templateSuperExtensionTypeIsTypeVariable
               .withArguments(typeBuilder.fullNameForErrors);
           if (aliasBuilder != null) {
+            // Coverage-ignore-block(suite): Not run.
             errorContext = [
               messageTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
@@ -374,9 +380,11 @@ class SourceExtensionTypeDeclarationBuilder
             case ClassBuilder():
               typeParameters = declaration.typeVariables;
             case TypeAliasBuilder():
+              // Coverage-ignore(suite): Not run.
               typeParameters = declaration.typeVariables;
             case ExtensionTypeDeclarationBuilder():
               typeParameters = declaration.typeParameters;
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
@@ -596,13 +604,16 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionTypeSetter:
       case BuiltMemberKind.LateSetter:
       case BuiltMemberKind.ExtensionTypeOperator:
+        // Coverage-ignore(suite): Not run.
         unhandled(
             "${memberBuilder.runtimeType}:${memberKind}",
             "addMemberInternal",
             memberBuilder.charOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionTypeRepresentationField:
-        assert(tearOff == null, "Unexpected tear-off $tearOff");
+        assert(
+            tearOff == null, // Coverage-ignore(suite): Not run.
+            "Unexpected tear-off $tearOff");
         extensionTypeDeclaration.addProcedure(member as Procedure);
     }
   }
@@ -626,6 +637,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
       case BuiltMemberKind.ExtensionTypeRepresentationField:
+        // Coverage-ignore(suite): Not run.
         unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
@@ -666,6 +678,7 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceExtensionTypeDeclarationBuilder) {
       augmentation._origin = this;
@@ -699,6 +712,7 @@ class SourceExtensionTypeDeclarationBuilder
   /// builder.
   SourceExtensionTypeConstructorBuilder? lookupConstructor(Name name) {
     if (name.text == "new") {
+      // Coverage-ignore-block(suite): Not run.
       name = new Name("", name.library);
     }
 
@@ -722,6 +736,7 @@ class SourceExtensionTypeDeclarationBuilder
           includeDuplicates: false);
 
   @override
+  // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
       new ClassDeclarationMemberNameIterator<
               SourceExtensionTypeDeclarationBuilder, T>(
@@ -746,6 +761,7 @@ class SourceExtensionTypeDeclarationBuilder
           includeDuplicates: false);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isMixinDeclaration => false;
 
   @override
@@ -789,16 +805,19 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterator<T> localMemberIterator<T extends Builder>() =>
       new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
           T>.local(this, includeDuplicates: false);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
       new ClassDeclarationConstructorIterator<
           SourceExtensionTypeDeclarationBuilder,
           T>.local(this, includeDuplicates: false);
 
+  // Coverage-ignore(suite): Not run.
   /// Returns an iterator the origin extension type declaration and all
   /// augmentations in application order.
   Iterator<SourceExtensionTypeDeclarationBuilder> get declarationIterator =>

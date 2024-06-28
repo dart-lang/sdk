@@ -15,10 +15,13 @@ abstract class DelayedActionPerformer {
 bool isRecordAccessAllowed(SourceLibraryBuilder library) {
   return library
           .loader.target.context.options.globalFeatures.records.isEnabled ||
+      // Coverage-ignore(suite): Not run.
       ExperimentalFlag.records.isEnabledByDefault ||
+      // Coverage-ignore(suite): Not run.
       library.libraryFeatures.records.isEnabled;
 }
 
+// Coverage-ignore(suite): Not run.
 /// Returns `true` if [type] is `Record` from  `dart:core`.
 bool isDartCoreRecord(DartType type) {
   Class? targetClass;

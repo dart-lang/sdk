@@ -16,7 +16,9 @@ class Ticker {
   }
 
   void logMs(Object message) {
-    log((Duration elapsed, Duration sinceStart) {
+    log(
+        // Coverage-ignore(suite): Not run.
+        (Duration elapsed, Duration sinceStart) {
       print("$sinceStart: $message in ${elapsed.inMilliseconds}ms.");
     });
   }
@@ -25,6 +27,7 @@ class Ticker {
     Duration elapsed = sw.elapsed;
     try {
       if (isVerbose) {
+        // Coverage-ignore-block(suite): Not run.
         f(elapsed - previousTick, elapsed);
       }
     } finally {

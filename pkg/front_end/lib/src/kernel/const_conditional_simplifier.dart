@@ -30,7 +30,9 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     ClassHierarchy? classHierarchy,
     bool removeAsserts = false,
   }) : _removeAsserts = removeAsserts {
+    // Coverage-ignore(suite): Not run.
     coreTypes ??= new CoreTypes(_component);
+    // Coverage-ignore(suite): Not run.
     classHierarchy ??= new ClassHierarchy(_component, coreTypes);
     _typeEnvironment = new TypeEnvironment(coreTypes, classHierarchy);
     constantEvaluator = new _ConstantEvaluator(
@@ -64,7 +66,11 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     super.visitConditionalExpression(node, removalSentinel);
     Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
-    return condition.value ? node.then : node.otherwise;
+    return condition.value
+        ? node.then
+        :
+        // Coverage-ignore(suite): Not run.
+        node.otherwise;
   }
 
   @override
@@ -72,6 +78,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     super.visitIfStatement(node, removalSentinel);
     Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
+    // Coverage-ignore(suite): Not run.
     if (condition.value) {
       return node.then;
     } else {
@@ -80,6 +87,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TreeNode visitAssertBlock(AssertBlock node, TreeNode? removalSentinel) {
     if (_removeAsserts) {
       return removalSentinel ?? new EmptyStatement();
@@ -89,6 +97,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TreeNode visitAssertInitializer(
       AssertInitializer node, TreeNode? removalSentinel) {
     if (_removeAsserts) {
@@ -101,6 +110,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TreeNode visitAssertStatement(
       AssertStatement node, TreeNode? removalSentinel) {
     if (_removeAsserts) {
@@ -138,11 +148,15 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   Constant? _evaluateFunctionInvocation(FunctionNode node) {
     if (node.typeParameters.isNotEmpty ||
+        // Coverage-ignore(suite): Not run.
         node.requiredParameterCount != 0 ||
+        // Coverage-ignore(suite): Not run.
         node.positionalParameters.isNotEmpty ||
+        // Coverage-ignore(suite): Not run.
         node.namedParameters.isNotEmpty) {
       return null;
     }
+    // Coverage-ignore-block(suite): Not run.
     Statement? body = node.body;
     if (body is! ReturnStatement) return null;
     Expression? expression = body.expression;
@@ -171,6 +185,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   Constant? _evaluateStaticFieldGet(Field field) {
     if (_shouldNotInline(field)) return null;
     if (!field.isFinal) return null;
+    // Coverage-ignore-block(suite): Not run.
     Expression? initializer = field.initializer;
     if (initializer == null) return null;
     return _evaluate(initializer);
@@ -179,16 +194,19 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   Constant? _lookupStaticFieldGet(Field field) => _staticFieldCache.putIfAbsent(
       field, () => _evaluateStaticFieldGet(field));
 
+  // Coverage-ignore(suite): Not run.
   Constant? _evaluateStaticGetter(Procedure getter) {
     if (_shouldNotInline(getter)) return null;
     return _evaluateFunctionInvocation(getter.function);
   }
 
+  // Coverage-ignore(suite): Not run.
   Constant? _lookupStaticGetter(Procedure getter) => _functionCache.putIfAbsent(
       getter.function, () => _evaluateStaticGetter(getter));
 
   Constant? _lookupStaticGet(Member target) {
     if (target is Field) return _lookupStaticFieldGet(target);
+    // Coverage-ignore(suite): Not run.
     return _lookupStaticGetter(target as Procedure);
   }
 
@@ -196,16 +214,19 @@ class _ConstantEvaluator extends TryConstantEvaluator {
   Constant visitStaticGet(StaticGet node) =>
       _lookupStaticGet(node.target) ?? super.visitStaticGet(node);
 
+  // Coverage-ignore(suite): Not run.
   Constant? _evaluateLocalFunctionInvocation(LocalFunctionInvocation node) {
     if (_shouldNotInline(node.variable)) return null;
     return _evaluateFunctionInvocation(node.localFunction.function);
   }
 
+  // Coverage-ignore(suite): Not run.
   Constant? _lookupLocalFunctionInvocation(LocalFunctionInvocation node) =>
       _localFunctionCache.putIfAbsent(node.localFunction.function,
           () => _evaluateLocalFunctionInvocation(node));
 
   @override
+  // Coverage-ignore(suite): Not run.
   Constant visitLocalFunctionInvocation(LocalFunctionInvocation node) =>
       _lookupLocalFunctionInvocation(node) ??
       super.visitLocalFunctionInvocation(node);

@@ -174,8 +174,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               typeParameters = declaration.typeVariables;
             case TypeAliasBuilder():
               typeParameters = declaration.typeVariables;
+            // Coverage-ignore(suite): Not run.
             case ExtensionTypeDeclarationBuilder():
               typeParameters = declaration.typeParameters;
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
@@ -500,6 +502,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
       // TODO(johnniwinther): How should we handle this case?
       case OmittedTypeDeclarationBuilder():
       case null:

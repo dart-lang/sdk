@@ -43,6 +43,7 @@ class DillTarget {
           accessor: loader.coreLibraryCompilationUnit);
     }
     if (context.compilingPlatform) {
+      // Coverage-ignore-block(suite): Not run.
       for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
         loader.read(Uri.parse(uri), 0,
             accessor: loader.coreLibraryCompilationUnit);
@@ -62,7 +63,9 @@ class DillTarget {
     return processedOptions.format(
         fileUri != null
             ? message.withLocation(fileUri, charOffset, length)
-            : message.withoutLocation(),
+            :
+            // Coverage-ignore(suite): Not run.
+            message.withoutLocation(),
         severity,
         messageContext,
         involvedFiles: involvedFiles);
@@ -70,12 +73,18 @@ class DillTarget {
 
   void buildOutlines({bool suppressFinalizationErrors = false}) {
     if (loader.libraries.isNotEmpty) {
-      benchmarker?.enterPhase(BenchmarkPhases.dill_buildOutlines);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.dill_buildOutlines);
       loader.buildOutlines();
-      benchmarker?.enterPhase(BenchmarkPhases.dill_finalizeExports);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.dill_finalizeExports);
       loader.finalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);
-      benchmarker?.enterPhase(BenchmarkPhases.unknownDillTarget);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.unknownDillTarget);
     }
     isLoaded = true;
   }

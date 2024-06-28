@@ -21,9 +21,11 @@ import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 import 'introspectors.dart';
 
+// Coverage-ignore(suite): Not run.
 final IdentifierImpl omittedTypeIdentifier =
     new OmittedTypeIdentifier(id: macro.RemoteInstance.uniqueId);
 
+// Coverage-ignore(suite): Not run.
 class MacroTypes {
   final MacroIntrospection _introspection;
   final SourceLoader _sourceLoader;
@@ -311,6 +313,7 @@ class MacroTypes {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _StaticTypeImpl extends macro.StaticTypeImpl {
   final MacroTypes types;
   final DartType type;
@@ -369,6 +372,7 @@ class _StaticTypeImpl extends macro.StaticTypeImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _NamedStaticTypeImpl extends _StaticTypeImpl
     implements macro.NamedStaticType {
   @override
@@ -386,6 +390,7 @@ class _NamedStaticTypeImpl extends _StaticTypeImpl
   });
 }
 
+// Coverage-ignore(suite): Not run.
 // ignore: missing_override_of_must_be_overridden
 class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {
   final OmittedTypeBuilder typeBuilder;

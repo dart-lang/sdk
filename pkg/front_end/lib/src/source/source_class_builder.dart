@@ -143,7 +143,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void set isConflictingAugmentationMember(bool value) {
-    assert(_isConflictingAugmentationMember == null,
+    assert(
+        _isConflictingAugmentationMember == null,
+        // Coverage-ignore(suite): Not run.
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
@@ -187,9 +189,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
-  MergedClassMemberScope get mergedScope => _mergedScope ??=
-      isAugmenting ? origin.mergedScope : new MergedClassMemberScope(this);
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
+      ?
+      // Coverage-ignore(suite): Not run.
+      origin.mergedScope
+      : new MergedClassMemberScope(this);
 
+  // Coverage-ignore(suite): Not run.
   List<SourceClassBuilder>? get augmentationsForTesting => _augmentations;
 
   SourceClassBuilder? actualOrigin;
@@ -214,6 +220,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     void buildBuilders(Builder declaration) {
       if (declaration.parent != this) {
         if (declaration.parent?.origin != origin) {
+          // Coverage-ignore-block(suite): Not run.
           if (fileUri != declaration.parent?.fileUri) {
             unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
                 fileUri);
@@ -256,7 +263,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
+        // Coverage-ignore(suite): Not run.
         actualCls.superclass!.isMixinDeclaration) {
+      // Coverage-ignore-block(suite): Not run.
       // Declared mixins have interfaces that can be implemented, but they
       // cannot be extended.  However, a mixin declaration with a single
       // superclass constraint is encoded with the constraint as the supertype,
@@ -390,11 +399,13 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterator<T> localMemberIterator<T extends Builder>() =>
       new ClassDeclarationMemberIterator<SourceClassBuilder, T>.local(this,
           includeDuplicates: false);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
       new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.local(this,
           includeDuplicates: false);
@@ -406,6 +417,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           includeDuplicates: false);
 
   @override
+  // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
       new ClassDeclarationMemberNameIterator<SourceClassBuilder, T>(
           const _SourceClassBuilderAugmentationAccess(), this,
@@ -559,6 +571,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       int originLength = typeVariables?.length ?? 0;
       int augmentationLength = augmentation.typeVariables?.length ?? 0;
       if (originLength != augmentationLength) {
+        // Coverage-ignore-block(suite): Not run.
         augmentation.addProblem(messagePatchClassTypeVariablesMismatch,
             augmentation.charOffset, noLength, context: [
           messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
@@ -570,6 +583,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
           augmentation.charOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
@@ -667,6 +681,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
           while (customValuesDeclaration?.next != null) {
+            // Coverage-ignore-block(suite): Not run.
             customValuesDeclaration = customValuesDeclaration?.next;
           }
           libraryBuilder.addProblem(
@@ -682,6 +697,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
           while (customValuesDeclaration?.next != null) {
+            // Coverage-ignore-block(suite): Not run.
             customValuesDeclaration = customValuesDeclaration?.next;
           }
           libraryBuilder.addProblem(
@@ -729,6 +745,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
+    // Coverage-ignore(suite): Not run.
     if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
       // TODO(johnniwinther): Merge this check with the loop above.
       bool isMacroFound = false;
@@ -755,6 +772,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       int nameOffset = target.typeName.nameOffset;
       int nameLength = target.typeName.nameLength;
       if (aliasBuilder != null) {
+        // Coverage-ignore-block(suite): Not run.
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
               aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
@@ -780,6 +798,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
       if (decl is VoidTypeDeclarationBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         fail(superClassType, messageExtendsVoid, aliasBuilder);
       } else if (decl is NeverTypeDeclarationBuilder) {
         fail(superClassType, messageExtendsNever, aliasBuilder);
@@ -819,7 +838,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (classHierarchyNode.isMixinApplication) {
-      assert(mixedInTypeBuilder != null,
+      assert(
+          mixedInTypeBuilder != null,
+          // Coverage-ignore(suite): Not run.
           "No mixed in type builder for mixin application $this.");
       ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
       ClassHierarchyNode? mixinSuperClassNode =
@@ -864,8 +885,11 @@ class SourceClassBuilder extends ClassBuilderImpl
                 this.charOffset,
                 noLength);
           } else if (interface.cls.name == "FutureOr" &&
+              // Coverage-ignore(suite): Not run.
               interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
+              // Coverage-ignore(suite): Not run.
               interface.cls.enclosingLibrary.importUri.path == "async") {
+            // Coverage-ignore-block(suite): Not run.
             addProblem(messageImplementsFutureOr, this.charOffset, noLength);
           } else if (implemented.contains(interface)) {
             // Aggregate repetitions.
@@ -881,6 +905,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (decl != superClass) {
           // TODO(eernst): Have all 'restricted supertype' checks in one place.
           if (decl is VoidTypeDeclarationBuilder) {
+            // Coverage-ignore-block(suite): Not run.
             fail(type, messageImplementsVoid, aliasBuilder);
           } else if (decl is NeverTypeDeclarationBuilder) {
             fail(type, messageImplementsNever, aliasBuilder);
@@ -966,6 +991,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               variance.keyword,
               supertype.typeName!.name);
         } else {
+          // Coverage-ignore-block(suite): Not run.
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
                   typeVariables![i].variance.keyword,
@@ -1062,6 +1088,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     SourceLibraryBuilder library = this.libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
         !variance.greaterThanOrEqual(typeParameter.variance)) {
+      // Coverage-ignore-block(suite): Not run.
       Message message;
       if (isReturnType) {
         message = templateInvalidTypeVariableVariancePositionInReturnType
@@ -1127,6 +1154,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             required BuiltMemberKind kind}) {
           _addMemberToClass(builder, member);
           if (tearOff != null) {
+            // Coverage-ignore-block(suite): Not run.
             _addMemberToClass(builder, tearOff);
           }
         });
@@ -1150,7 +1178,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
       if (memberBuilder.isConflictingAugmentationMember) {
-        if (member is Field && member.isStatic ||
+        if (member is Field &&
+                // Coverage-ignore(suite): Not run.
+                member.isStatic ||
             member is Procedure && member.isStatic) {
           member.name = new Name(
               '${member.name}'
@@ -1300,6 +1330,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else {
+          // Coverage-ignore-block(suite): Not run.
           assert(
               false,
               "Unexpected procedure kind in override check: "
@@ -1422,6 +1453,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               .performNullabilityAwareMutualSubtypesCheck(
                   declaredBound, computedBound)
               .isSubtypeWhenUsingNullabilities()) {
+            // Coverage-ignore-block(suite): Not run.
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
@@ -1718,6 +1750,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
+          // Coverage-ignore-block(suite): Not run.
           reportInvalidOverride(
               isInterfaceCheck,
               declaredMember,
@@ -1753,6 +1786,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           isInterfaceCheck);
       if (declaredParameter.isRequired &&
           !interfaceNamedParameters.current.isRequired) {
+        // Coverage-ignore-block(suite): Not run.
         reportInvalidOverride(
             isInterfaceCheck,
             declaredMember,
@@ -1926,6 +1960,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Returns an iterator the origin class and all augmentations in application
   /// order.
   Iterator<SourceClassBuilder> get declarationIterator =>
@@ -1953,9 +1988,11 @@ bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
 int? getOverlookedOverrideProblemChoice(DeclarationBuilder declarationBuilder) {
   String uri = '${declarationBuilder.libraryBuilder.importUri}';
   if (uri == 'dart:js' &&
+      // Coverage-ignore(suite): Not run.
       declarationBuilder.fileUri.pathSegments.last == 'js.dart') {
     return 0;
   } else if (uri == 'dart:_interceptors' &&
+      // Coverage-ignore(suite): Not run.
       declarationBuilder.fileUri.pathSegments.last == 'js_number.dart') {
     return 1;
   }

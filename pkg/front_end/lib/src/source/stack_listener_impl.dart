@@ -40,10 +40,12 @@ abstract class StackListenerImpl extends StackListener {
 
   /// Used to report an internal error encountered in the stack listener.
   @override
+  // Coverage-ignore(suite): Not run.
   Never internalProblem(Message message, int charOffset, Uri uri) {
     return problems.internalProblem(message, charOffset, uri);
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Used to report an unexpected situation encountered in the stack
   /// listener.
   Never unhandled(String what, String where, int charOffset, Uri? uri) {

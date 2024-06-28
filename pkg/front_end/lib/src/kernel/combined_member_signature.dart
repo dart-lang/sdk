@@ -202,7 +202,10 @@ abstract class CombinedMemberSignatureBase {
   /// different type.
   bool get neededLegacyErasure {
     _ensureCombinedMemberSignatureType();
-    return _neededLegacyErasureIndices?.contains(canonicalMemberIndex) ?? false;
+    return _neededLegacyErasureIndices
+            // Coverage-ignore(suite): Not run.
+            ?.contains(canonicalMemberIndex) ??
+        false;
   }
 
   /// Returns `true` if nnbd top merge and normalization was needed to compute
@@ -261,6 +264,7 @@ abstract class CombinedMemberSignatureBase {
                 norm(_coreTypes, getMemberType(index)));
             assert(
                 _combinedMemberSignatureType != null,
+                // Coverage-ignore(suite): Not run.
                 "No combined member signature found for "
                 "${_mutualSubtypes!.values.map((int i) => getMemberType(i))} "
                 "for members ${members}");
@@ -364,7 +368,9 @@ abstract class CombinedMemberSignatureBase {
         }
       }
       return instantiator.substitute(type.withoutTypeParameters);
-    } else if (typeParameterCount != 0) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (typeParameterCount != 0) {
       return null;
     }
     return type;
@@ -412,6 +418,7 @@ abstract class CombinedMemberSignatureBase {
               combinedMemberSignatureType as FunctionType,
               copyLocation: copyLocation);
           break;
+        // Coverage-ignore(suite): Not run.
         case ProcedureKind.Factory:
           throw new UnsupportedError(
               'Unexpected canonical member kind ${member.kind} for $member');
@@ -447,6 +454,7 @@ abstract class CombinedMemberSignatureBase {
     int startFileOffset;
     int fileOffset;
     if (copyLocation) {
+      // Coverage-ignore-block(suite): Not run.
       fileUri = member.fileUri;
       startFileOffset =
           member is Procedure ? member.fileStartOffset : member.fileOffset;
@@ -486,6 +494,7 @@ abstract class CombinedMemberSignatureBase {
     int startFileOffset;
     int fileOffset;
     if (copyLocation) {
+      // Coverage-ignore-block(suite): Not run.
       fileUri = member.fileUri;
       startFileOffset =
           member is Procedure ? member.fileStartOffset : member.fileOffset;
@@ -504,7 +513,9 @@ abstract class CombinedMemberSignatureBase {
                 type: type, isCovariantByDeclaration: isCovariantByDeclaration)
               ..isCovariantByClass = isCovariantByClass
               ..fileOffset = copyLocation
-                  ? parameter?.fileOffset ?? fileOffset
+                  ?
+                  // Coverage-ignore(suite): Not run.
+                  parameter?.fileOffset ?? fileOffset
                   : fileOffset
           ]),
       isAbstract: true,
@@ -531,6 +542,7 @@ abstract class CombinedMemberSignatureBase {
     int startFileOffset;
     int fileOffset;
     if (copyLocation) {
+      // Coverage-ignore-block(suite): Not run.
       fileUri = procedure.fileUri;
       startFileOffset = procedure.fileStartOffset;
       fileOffset = procedure.fileOffset;
@@ -554,7 +566,11 @@ abstract class CombinedMemberSignatureBase {
           initializer: cloner.cloneOptional(parameter.initializer))
         ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
         ..isCovariantByClass = parameter.isCovariantByClass
-        ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
+        ..fileOffset = copyLocation
+            ?
+            // Coverage-ignore(suite): Not run.
+            parameter.fileOffset
+            : fileOffset);
     }
     List<VariableDeclaration> namedParameters = [];
     int namedParameterCount = function.namedParameters.length;
@@ -568,7 +584,11 @@ abstract class CombinedMemberSignatureBase {
           initializer: cloner.cloneOptional(parameter.initializer))
         ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
         ..isCovariantByClass = parameter.isCovariantByClass
-        ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
+        ..fileOffset = copyLocation
+            ?
+            // Coverage-ignore(suite): Not run.
+            parameter.fileOffset
+            : fileOffset);
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
       for (NamedType namedType in functionType.namedParameters) {
@@ -584,7 +604,11 @@ abstract class CombinedMemberSignatureBase {
             initializer: cloner.cloneOptional(parameter.initializer))
           ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
           ..isCovariantByClass = parameter.isCovariantByClass
-          ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
+          ..fileOffset = copyLocation
+              ?
+              // Coverage-ignore(suite): Not run.
+              parameter.fileOffset
+              : fileOffset);
       }
     }
     return new Procedure(

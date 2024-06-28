@@ -91,6 +91,7 @@ export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 export 'compiler_state.dart' show InitializedCompilerState;
 
+// Coverage-ignore(suite): Not run.
 InitializedCompilerState initializeCompiler(
     InitializedCompilerState? oldState,
     Target target,
@@ -140,6 +141,7 @@ InitializedCompilerState initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
+// Coverage-ignore(suite): Not run.
 Future<Component?> compile(
     InitializedCompilerState state,
     bool verbose,

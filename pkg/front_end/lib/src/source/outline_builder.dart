@@ -567,6 +567,7 @@ class OutlineBuilder extends StackListenerImpl {
   void popDeclarationContext([DeclarationContext? expectedContext]) {
     assert(
         expectedContext == null || expectedContext == declarationContext,
+        // Coverage-ignore(suite): Not run.
         "Unexpected declaration context: "
         "Expected $expectedContext, actual $declarationContext.");
     _declarationContext = _declarationContext.tail!;
@@ -649,6 +650,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     Object? names = pop();
     if (names is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(names);
     } else {
       push(new CombinatorBuilder.hide(names as Iterable<String>,
@@ -661,6 +663,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("Show");
     Object? names = pop();
     if (names is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(names);
     } else {
       push(new CombinatorBuilder.show(names as Iterable<String>,
@@ -736,7 +739,9 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(importKeyword.charOffset);
     if (prefix is! Identifier?) {
-      assert(prefix is ParserRecovery,
+      assert(
+          prefix is ParserRecovery,
+          // Coverage-ignore(suite): Not run.
           "Unexpected prefix $prefix (${prefix.runtimeType}).");
       return;
     }
@@ -778,11 +783,13 @@ class OutlineBuilder extends StackListenerImpl {
     int charOffset = popCharOffset();
     String uri = pop() as String;
     if (equalSign != null) {
+      // Coverage-ignore-block(suite): Not run.
       popCharOffset();
     }
     String condition = popIfNotNull(equalSign) as String? ?? "true";
     Object? dottedName = pop();
     if (dottedName is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(dottedName);
     } else {
       push(new Configuration(charOffset, dottedName as String, condition, uri));
@@ -797,6 +804,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<String>? names = popIdentifierList(count);
     if (names == null) {
+      // Coverage-ignore-block(suite): Not run.
       push(new ParserRecovery(firstIdentifier.charOffset));
     } else {
       push(names.join('.'));
@@ -842,6 +850,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
     debugEvent("handleInvalidOperatorName");
     push(new SimpleIdentifier(token));
@@ -904,6 +913,7 @@ class OutlineBuilder extends StackListenerImpl {
       pop(); // Char offset.
       Object? name = pop();
       if (name is ParserRecovery) {
+        // Coverage-ignore-block(suite): Not run.
         nativeMethodName = '';
       } else {
         nativeMethodName = name as String; // String.
@@ -914,6 +924,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
     List<String> list =
@@ -933,6 +944,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(checkState(
         null, repeatedKind(ValueKinds.IdentifierOrParserRecovery, count)));
     push(popIdentifierList(count) ??
+        // Coverage-ignore(suite): Not run.
         (count == 0 ? NullValues.IdentifierList : new ParserRecovery(-1)));
   }
 
@@ -946,11 +958,14 @@ class OutlineBuilder extends StackListenerImpl {
     Object? suffix = pop();
     Object prefix = pop()!;
     if (prefix is! Identifier) {
+      // Coverage-ignore-block(suite): Not run.
       assert(prefix is ParserRecovery,
           "Unexpected prefix $prefix (${prefix.runtimeType})");
       push(prefix);
     } else if (suffix is! Identifier) {
-      assert(suffix is ParserRecovery,
+      assert(
+          suffix is ParserRecovery,
+          // Coverage-ignore(suite): Not run.
           "Unexpected suffix $suffix (${suffix.runtimeType})");
       push(suffix);
     } else {
@@ -981,6 +996,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void endLibraryAugmentation(
       Token augmentKeyword, Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryAugmentation");
@@ -1105,6 +1121,7 @@ class OutlineBuilder extends StackListenerImpl {
     DeclarationContext declarationContext;
     switch (kind) {
       case DeclarationKind.TopLevel:
+        // Coverage-ignore(suite): Not run.
         throw new UnsupportedError('Unexpected top level body.');
       case DeclarationKind.Class:
         declarationContext = DeclarationContext.ClassBody;
@@ -1118,6 +1135,7 @@ class OutlineBuilder extends StackListenerImpl {
       case DeclarationKind.ExtensionType:
         declarationContext = DeclarationContext.ExtensionTypeBody;
         break;
+      // Coverage-ignore(suite): Not run.
       case DeclarationKind.Enum:
         declarationContext = DeclarationContext.Enum;
         break;
@@ -1333,6 +1351,7 @@ class OutlineBuilder extends StackListenerImpl {
     inAbstractOrSealedClass = false;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       _builderFactory
           .endNestedDeclaration(
               TypeParameterScopeKind.classDeclaration, "<syntax-error>")
@@ -1440,14 +1459,18 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       _builderFactory
           .endNestedDeclaration(
               TypeParameterScopeKind.mixinDeclaration, "<syntax-error>")
           .resolveNamedTypes(typeVariables, _problemReporting);
     } else {
       Identifier identifier = name as Identifier;
-      int startOffset =
-          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      int startOffset = metadata == null
+          ? beginToken.charOffset
+          :
+          // Coverage-ignore(suite): Not run.
+          metadata.first.charOffset;
       String classNameForErrors = identifier.name;
       if (supertypeConstraints != null) {
         for (TypeBuilder supertype in supertypeConstraints) {
@@ -1854,6 +1877,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBody");
     if (nativeMethodName != null) {
@@ -1864,6 +1888,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodyIgnored");
   }
@@ -1881,6 +1906,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
     if (nativeMethodName != null) {
+      // Coverage-ignore-block(suite): Not run.
       push(MethodBody.Regular);
     } else {
       push(MethodBody.Abstract);
@@ -1909,6 +1935,7 @@ class OutlineBuilder extends StackListenerImpl {
     DeclarationContext declarationContext;
     switch (declarationKind) {
       case DeclarationKind.TopLevel:
+        // Coverage-ignore(suite): Not run.
         assert(
             false,
             "Expected top level method to be handled by "
@@ -1978,15 +2005,18 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     if (covariantToken != null) {
+      // Coverage-ignore-block(suite): Not run.
       modifiers ??= <Modifier>[];
       modifiers.add(Covariant);
     }
     if (varFinalOrConst != null) {
       String lexeme = varFinalOrConst.lexeme;
       if (identical('var', lexeme)) {
+        // Coverage-ignore-block(suite): Not run.
         modifiers ??= <Modifier>[];
         modifiers.add(Var);
       } else if (identical('final', lexeme)) {
+        // Coverage-ignore-block(suite): Not run.
         modifiers ??= <Modifier>[];
         modifiers.add(Final);
       } else {
@@ -2147,7 +2177,9 @@ class OutlineBuilder extends StackListenerImpl {
         _builderFactory.endNestedDeclaration(scopeKind, "#method");
 
     if (identifier is! Identifier) {
-      assert(identifier is ParserRecovery,
+      assert(
+          identifier is ParserRecovery,
+          // Coverage-ignore(suite): Not run.
           "Unexpected identifier $identifier (${identifier.runtimeType})");
       nativeMethodName = null;
       inConstructor = false;
@@ -2188,6 +2220,7 @@ class OutlineBuilder extends StackListenerImpl {
             template = templateOperatorParameterMismatch2;
             break;
 
+          // Coverage-ignore(suite): Not run.
           default:
             unhandled("$requiredArgumentCount", "operatorRequiredArgumentCount",
                 identifier.nameOffset, uri);
@@ -2224,8 +2257,11 @@ class OutlineBuilder extends StackListenerImpl {
         isAbstract = false;
       }
       if (returnType != null && !returnType.isVoidType) {
-        addProblem(messageNonVoidReturnSetter,
-            returnType.charOffset ?? beginToken.charOffset, noLength);
+        addProblem(
+            messageNonVoidReturnSetter,
+            returnType.charOffset ?? // Coverage-ignore(suite): Not run.
+                beginToken.charOffset,
+            noLength);
         // Use implicit void as recovery.
         returnType = null;
       }
@@ -2233,8 +2269,11 @@ class OutlineBuilder extends StackListenerImpl {
     if (operator == Operator.indexSet &&
         returnType != null &&
         !returnType.isVoidType) {
-      addProblem(messageNonVoidReturnOperator,
-          returnType.charOffset ?? beginToken.offset, noLength);
+      addProblem(
+          messageNonVoidReturnOperator,
+          returnType.charOffset ?? // Coverage-ignore(suite): Not run.
+              beginToken.offset,
+          noLength);
       // Use implicit void as recovery.
       returnType = null;
     }
@@ -2354,8 +2393,11 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers &= ~constMask;
       }
       if (returnType != null) {
-        addProblem(messageConstructorWithReturnType,
-            returnType.charOffset ?? beginToken.offset, noLength);
+        addProblem(
+            messageConstructorWithReturnType,
+            returnType.charOffset ?? // Coverage-ignore(suite): Not run.
+                beginToken.offset,
+            noLength);
         returnType = null;
       }
       final int startCharOffset =
@@ -2378,6 +2420,7 @@ class OutlineBuilder extends StackListenerImpl {
               methodKind == _MethodKind.mixinConstructor);
     } else {
       if (isConst) {
+        // Coverage-ignore-block(suite): Not run.
         // TODO(danrubel): consider removing this
         // because it is an error to have a const method.
         modifiers &= ~constMask;
@@ -2455,6 +2498,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleNamedRecordField(Token colon) {
     debugEvent("handleNamedRecordField");
     assert(checkState(colon, [
@@ -2601,6 +2645,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleInvalidTypeArguments(Token token) {
     debugEvent("handleInvalidTypeArguments");
     pop(NullValues.TypeArguments);
@@ -2613,6 +2658,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleNonNullAssertExpression(Token bang) {}
 
   @override
@@ -2817,6 +2863,7 @@ class OutlineBuilder extends StackListenerImpl {
       Object? last = pop();
       count--;
       if (last is ParserRecovery) {
+        // Coverage-ignore-block(suite): Not run.
         discard(count);
       } else if (last is List<FormalParameterBuilder>) {
         formals = const FixedNullableList<FormalParameterBuilder>()
@@ -2860,6 +2907,7 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
+            // Coverage-ignore-block(suite): Not run.
             addProblem(
                 templateDuplicatedParameterName.withArguments(formal.name),
                 formal.charOffset,
@@ -3040,7 +3088,9 @@ class OutlineBuilder extends StackListenerImpl {
         EnumConstantInfo? info = enumConstantInfos[index];
         if (info == null) {
           parsedEnumConstantInfos = enumConstantInfos.take(index).toList();
-        } else if (parsedEnumConstantInfos != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (parsedEnumConstantInfos != null) {
           parsedEnumConstantInfos.add(info);
         }
       }
@@ -3068,6 +3118,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (identifier is Identifier) {
       if (enumConstantInfos == null) {
         if (!leftBrace.isSynthetic) {
+          // Coverage-ignore-block(suite): Not run.
           addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
               identifier.token.length);
         }
@@ -3295,6 +3346,7 @@ class OutlineBuilder extends StackListenerImpl {
       // Create a nested declaration that is ended below by
       // `library.addFunctionType`.
       if (name is ParserRecovery) {
+        // Coverage-ignore-block(suite): Not run.
         pop(NullValues.Metadata); // Metadata.
         _builderFactory
             .endNestedDeclaration(
@@ -3322,6 +3374,7 @@ class OutlineBuilder extends StackListenerImpl {
           pop(NullValues.NominalVariables) as List<NominalVariableBuilder>?;
       name = pop();
       if (name is ParserRecovery) {
+        // Coverage-ignore-block(suite): Not run.
         pop(NullValues.Metadata); // Metadata.
         _builderFactory
             .endNestedDeclaration(
@@ -3486,6 +3539,7 @@ class OutlineBuilder extends StackListenerImpl {
       /* metadata = */ ValueKinds.MetadataListOrNull,
     ]));
     if (externalToken != null && lateToken != null) {
+      // Coverage-ignore-block(suite): Not run.
       handleRecoverableError(
           messageExternalLateField, externalToken, externalToken);
       externalToken = null;
@@ -3539,7 +3593,9 @@ class OutlineBuilder extends StackListenerImpl {
       handleRecoverableError(
           messageAbstractLateField, abstractToken, abstractToken);
       abstractToken = null;
-    } else if (externalToken != null && lateToken != null) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (externalToken != null && lateToken != null) {
       handleRecoverableError(
           messageExternalLateField, externalToken, externalToken);
       externalToken = null;
@@ -3650,6 +3706,7 @@ class OutlineBuilder extends StackListenerImpl {
       typeParameters[index].bound = bound;
       if (variance != null) {
         if (!libraryFeatures.variance.isEnabled) {
+          // Coverage-ignore-block(suite): Not run.
           reportVarianceModifierNotEnabled(variance);
         }
         typeParameters[index].variance =
@@ -3668,6 +3725,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     if (inConstructorName) {
+      // Coverage-ignore-block(suite): Not run.
       addProblem(messageConstructorWithTypeParameters,
           offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
       inConstructorName = false;
@@ -3745,6 +3803,7 @@ class OutlineBuilder extends StackListenerImpl {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.
           if (typeArguments != null || suffix != null) {
+            // Coverage-ignore-block(suite): Not run.
             _compilationUnit.reportFeatureNotEnabled(
                 libraryFeatures.enhancedEnums, uri, charOffset, noLength);
           }
@@ -3765,6 +3824,7 @@ class OutlineBuilder extends StackListenerImpl {
     DeclarationContext declarationContext;
     switch (declarationKind) {
       case DeclarationKind.TopLevel:
+        // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Unexpected top level factory method.");
       case DeclarationKind.Class:
         declarationContext = DeclarationContext.ClassFactory;
@@ -3832,6 +3892,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (name is! Identifier) {
+      // Coverage-ignore-block(suite): Not run.
       assert(name is ParserRecovery,
           "Unexpected name $name (${name.runtimeType}).");
       _builderFactory.endNestedDeclaration(
@@ -3954,6 +4015,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     if (!libraryFeatures.constFunctions.isEnabled) {
+      // Coverage-ignore-block(suite): Not run.
       handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
     }
   }
@@ -4190,10 +4252,13 @@ extension on MemberKind {
         return false;
       case MemberKind.NonStaticMethod:
       case MemberKind.ExtensionTypeNonStaticMethod:
+      // Coverage-ignore(suite): Not run.
       // These can be inferred but cannot hold parameters so the cases are
       // dead code:
       case MemberKind.NonStaticField:
+      // Coverage-ignore(suite): Not run.
       case MemberKind.StaticField:
+      // Coverage-ignore(suite): Not run.
       case MemberKind.TopLevelField:
         return true;
     }

@@ -21,6 +21,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   const _InvalidTypeFinder();
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool visitAuxiliaryType(
       AuxiliaryType node, Set<TypedefType> visitedTypedefs) {
     if (node is UnknownType) {
@@ -89,6 +90,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool visitTypedefType(TypedefType node, Set<TypedefType> visitedTypedefs) {
     // The unaliased type should be checked, but it's faster to check the type
     // arguments and the RHS separately than do the unaliasing because it avoids
@@ -119,6 +121,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool visitIntersectionType(
       IntersectionType node, Set<TypedefType> visitedTypedefs) {
     return node.right.accept1(this, visitedTypedefs);

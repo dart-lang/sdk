@@ -33,6 +33,7 @@ List<LocatedMessage> verifyComponent(
   return listener.errors;
 }
 
+// Coverage-ignore(suite): Not run.
 class FastaVerificationErrorListener implements VerificationErrorListener {
   List<LocatedMessage> errors = [];
 

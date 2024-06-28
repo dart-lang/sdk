@@ -4,6 +4,7 @@
 
 part of 'declaration_builders.dart';
 
+// Coverage-ignore(suite): Not run.
 /// [TypeDeclaration] wrapper for an [OmittedTypeBuilder].
 ///
 /// This is used in macro generated code to create type annotations from

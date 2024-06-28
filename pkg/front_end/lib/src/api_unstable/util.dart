@@ -12,6 +12,7 @@ bool equalLists<T>(List<T>? a, List<T>? b) {
   return true;
 }
 
+// Coverage-ignore(suite): Not run.
 bool equalSets<K>(Set<K>? a, Set<K>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
@@ -22,6 +23,7 @@ bool equalSets<K>(Set<K>? a, Set<K>? b) {
   return true;
 }
 
+// Coverage-ignore(suite): Not run.
 bool equalMaps<K, V>(Map<K, V>? a, Map<K, V>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;

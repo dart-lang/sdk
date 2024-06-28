@@ -32,26 +32,34 @@ class OffsetMap {
   OffsetMap(this.uri);
 
   void registerImport(Token importKeyword, Import import) {
-    assert(importKeyword.lexeme == 'import',
+    assert(
+        importKeyword.lexeme == 'import',
+        // Coverage-ignore(suite): Not run.
         "Invalid token for import: $importKeyword.");
     _imports[importKeyword.charOffset] = import;
   }
 
   Import lookupImport(Token importKeyword) {
-    assert(importKeyword.lexeme == 'import',
+    assert(
+        importKeyword.lexeme == 'import',
+        // Coverage-ignore(suite): Not run.
         "Invalid token for import: $importKeyword.");
     return _checkDirective(_imports[importKeyword.charOffset], '<import>',
         importKeyword.charOffset);
   }
 
   void registerExport(Token exportKeyword, Export export) {
-    assert(exportKeyword.lexeme == 'export',
+    assert(
+        exportKeyword.lexeme == 'export',
+        // Coverage-ignore(suite): Not run.
         "Invalid token for export: $exportKeyword.");
     _exports[exportKeyword.charOffset] = export;
   }
 
   Export lookupExport(Token exportKeyword) {
-    assert(exportKeyword.lexeme == 'export',
+    assert(
+        exportKeyword.lexeme == 'export',
+        // Coverage-ignore(suite): Not run.
         "Invalid token for export: $exportKeyword.");
     return _checkDirective(_exports[exportKeyword.charOffset], '<export>',
         exportKeyword.charOffset);
@@ -59,13 +67,15 @@ class OffsetMap {
 
   void registerPart(Token partKeyword, LibraryPart part) {
     assert(
-        partKeyword.lexeme == 'part', "Invalid token for part: $partKeyword.");
+        partKeyword.lexeme == 'part', // Coverage-ignore(suite): Not run.
+        "Invalid token for part: $partKeyword.");
     _parts[partKeyword.charOffset] = part;
   }
 
   LibraryPart lookupPart(Token partKeyword) {
     assert(
-        partKeyword.lexeme == 'part', "Invalid token for part: $partKeyword.");
+        partKeyword.lexeme == 'part', // Coverage-ignore(suite): Not run.
+        "Invalid token for part: $partKeyword.");
     return _checkDirective(
         _parts[partKeyword.charOffset], '<part>', partKeyword.charOffset);
   }

@@ -32,6 +32,7 @@ Expression _makeForwardingCall(
     return new ConstructorInvocation(target, args)
       ..fileOffset = function.fileOffset;
   } else {
+    // Coverage-ignore-block(suite): Not run.
     throw 'Unexpected target for redirecting factory:'
         ' ${target.runtimeType} $target';
   }

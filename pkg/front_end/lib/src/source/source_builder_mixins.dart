@@ -60,6 +60,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       Builder? objectSetter =
           objectClassBuilder.lookupLocalMember(name, setter: true);
       if (objectGetter != null && !objectGetter.isStatic ||
+          // Coverage-ignore(suite): Not run.
           objectSetter != null && !objectSetter.isStatic) {
         addProblem(
             // TODO(johnniwinther): Use a different error message for extension
@@ -70,6 +71,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
             name.length);
       }
       if (declaration.parent != this) {
+        // Coverage-ignore-block(suite): Not run.
         if (fileUri != declaration.parent!.fileUri) {
           unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
               fileUri);
@@ -107,10 +109,12 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
             includeAugmentations: true));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
-      count += declaration.buildBodyNodes((
-          {required Member member,
-          Member? tearOff,
-          required BuiltMemberKind kind}) {
+      count += declaration.buildBodyNodes(
+          // Coverage-ignore(suite): Not run.
+          (
+              {required Member member,
+              Member? tearOff,
+              required BuiltMemberKind kind}) {
         _buildMember(declaration, member, tearOff, kind,
             addMembersToLibrary: addMembersToLibrary);
       });
@@ -134,7 +138,9 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
-      } else if (builder is SourceConstructorBuilder) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (builder is SourceConstructorBuilder) {
         builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(false, "Unexpected member: $builder.");
@@ -311,6 +317,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
     scope.forEachLocalSetter((String name, Builder setter) {
       Builder? constructor = constructorScope.lookupLocalMember(name);
       if (constructor == null || !setter.isStatic) return;
+      // Coverage-ignore-block(suite): Not run.
       addProblem(templateConflictsWithConstructor.withArguments(name),
           setter.charOffset, noLength);
       addProblem(templateConflictsWithSetter.withArguments(name),

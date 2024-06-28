@@ -127,6 +127,7 @@ VarianceCalculationValue computeTypeVariableBuilderVariance(
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         case BuiltinTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?
         case OmittedTypeDeclarationBuilder():
         case null:
@@ -376,15 +377,19 @@ TypeBuilder _substituteNamedTypeBuilder(
           newArguments[i] = substitutedArgument;
         }
       }
+    // Coverage-ignore(suite): Not run.
     case NominalVariableBuilder():
       // Handled above.
       throw new UnsupportedError("Unexpected NominalVariableBuilder");
+    // Coverage-ignore(suite): Not run.
     case StructuralVariableBuilder():
       // Handled above.
       throw new UnsupportedError("Unexpected StructuralVariableBuilder");
+    // Coverage-ignore(suite): Not run.
     case InvalidTypeDeclarationBuilder():
       // Don't substitute.
       break;
+    // Coverage-ignore(suite): Not run.
     case ExtensionBuilder():
     case BuiltinTypeDeclarationBuilder():
     // TODO(johnniwinther): How should we handle this case?
@@ -748,12 +753,17 @@ List<NamedTypeBuilder> findVariableUsesInType(
       }
       break;
     case FunctionTypeBuilder(
+        // Coverage-ignore(suite): Not run.
         :List<StructuralVariableBuilder>? typeVariables,
+        // Coverage-ignore(suite): Not run.
         :List<ParameterBuilder>? formals,
+        // Coverage-ignore(suite): Not run.
         :TypeBuilder returnType
       ):
+      // Coverage-ignore(suite): Not run.
       uses.addAll(findVariableUsesInType(variable, returnType));
       if (typeVariables != null) {
+        // Coverage-ignore-block(suite): Not run.
         for (StructuralVariableBuilder dependentVariable in typeVariables) {
           if (dependentVariable.bound != null) {
             uses.addAll(
@@ -766,6 +776,7 @@ List<NamedTypeBuilder> findVariableUsesInType(
         }
       }
       if (formals != null) {
+        // Coverage-ignore-block(suite): Not run.
         for (ParameterBuilder formal in formals) {
           uses.addAll(findVariableUsesInType(variable, formal.type));
         }
@@ -780,6 +791,7 @@ List<NamedTypeBuilder> findVariableUsesInType(
         }
       }
       if (namedFields != null) {
+        // Coverage-ignore-block(suite): Not run.
         for (RecordTypeFieldBuilder field in namedFields) {
           uses.addAll(findVariableUsesInType(variable, field.type));
         }
@@ -868,6 +880,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
                 }
               }
               if (hasInbound) {
+                // Coverage-ignore-block(suite): Not run.
                 typesAndDependencies.add(type);
                 typesAndDependencies.add(const <Object>[]);
               }
@@ -887,6 +900,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
                   List<Object> dependencies =
                       findInboundReferences(type.typeVariables!);
                   if (dependencies.length != 0) {
+                    // Coverage-ignore-block(suite): Not run.
                     typesAndDependencies.add(type);
                     typesAndDependencies.add(dependencies);
                   }
@@ -898,6 +912,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
               List<Object> dependencies =
                   findInboundReferences(declaration.typeParameters!);
               if (dependencies.length != 0) {
+                // Coverage-ignore-block(suite): Not run.
                 typesAndDependencies.add(type);
                 typesAndDependencies.add(dependencies);
               }
@@ -907,6 +922,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
           case ExtensionBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
+          // Coverage-ignore(suite): Not run.
           // TODO(johnniwinther): How should we handle this case?
           case OmittedTypeDeclarationBuilder():
           case null:
@@ -931,6 +947,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
                 .addAll(findRawTypesWithInboundReferences(variable.bound));
           }
           if (variable.defaultType != null) {
+            // Coverage-ignore-block(suite): Not run.
             typesAndDependencies.addAll(
                 findRawTypesWithInboundReferences(variable.defaultType));
           }
@@ -1094,6 +1111,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
                 visitTypeVariables(type.typeVariables);
               }
             case ExtensionBuilder():
+              // Coverage-ignore(suite): Not run.
               visitTypeVariables(declaration.typeParameters);
             case ExtensionTypeDeclarationBuilder():
               visitTypeVariables(declaration.typeParameters);
@@ -1110,6 +1128,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
             case BuiltinTypeDeclarationBuilder():
               // Do nothing.
               break;
+            // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
             case OmittedTypeDeclarationBuilder():
             case null:
@@ -1136,6 +1155,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
                 findRawTypePathsToDeclaration(variable.bound, end, visited));
           }
           if (variable.defaultType != null) {
+            // Coverage-ignore-block(suite): Not run.
             paths.addAll(findRawTypePathsToDeclaration(
                 variable.defaultType, end, visited));
           }
@@ -1492,5 +1512,6 @@ class RawTypeCycleElement {
 
   RawTypeCycleElement(this.type, this.typeVariable)
       : assert(typeVariable is NominalVariableBuilder? ||
+            // Coverage-ignore(suite): Not run.
             typeVariable is StructuralVariableBuilder?);
 }

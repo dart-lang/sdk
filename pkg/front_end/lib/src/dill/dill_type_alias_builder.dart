@@ -32,6 +32,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
       : super(null, typedef.name, parent, typedef.fileOffset);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder> get metadata {
     return unimplemented("metadata", -1, null);
   }
@@ -46,6 +47,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get fromDill => true;
 
   @override

@@ -153,6 +153,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       !isSuperInitializingFormal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
 
   VariableDeclaration build(SourceLibraryBuilder library) {
@@ -319,6 +320,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   FunctionTypeParameterBuilder(this.kind, this.type, this.name);
 
   @override
+  // Coverage-ignore(suite): Not run.
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,

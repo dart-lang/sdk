@@ -14,6 +14,7 @@ import 'package:kernel/text/ast_to_text.dart'
 /// Determines whether a type schema contains `?` somewhere inside it.
 bool isKnown(DartType schema) => !schema.accept(const _HasUnknownVisitor());
 
+// Coverage-ignore(suite): Not run.
 /// Converts a [DartType] to a string, representing the unknown type as `?`.
 String typeSchemaToString(DartType schema) {
   StringBuffer buffer = new StringBuffer();
@@ -22,6 +23,7 @@ String typeSchemaToString(DartType schema) {
   return '$buffer';
 }
 
+// Coverage-ignore(suite): Not run.
 /// Extension of [Printer] that represents the unknown type as `?`.
 class TypeSchemaPrinter extends Printer {
   TypeSchemaPrinter(StringSink sink,
@@ -54,6 +56,7 @@ class UnknownType extends AuxiliaryType implements SharedUnknownType {
   Nullability get declaredNullability => Nullability.undetermined;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Nullability get nullability => Nullability.undetermined;
 
   @override
@@ -72,15 +75,18 @@ class UnknownType extends AuxiliaryType implements SharedUnknownType {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor<dynamic> v) {}
 
   @override
   UnknownType withDeclaredNullability(Nullability nullability) => this;
 
   @override
+  // Coverage-ignore(suite): Not run.
   UnknownType toNonNull() => this;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
   }

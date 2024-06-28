@@ -346,6 +346,7 @@ class Scope extends MutableScope {
         }
 
         if (existingGetter == null) {
+          // Coverage-ignore-block(suite): Not run.
           // No existing getter.
           if (replacementGetterFromSetter != null) {
             // We might have had one implicitly from the setter. Use it here,
@@ -358,8 +359,10 @@ class Scope extends MutableScope {
           // The existing getter should be replaced.
           if (replacementGetterFromGetter != null) {
             // With a new getter.
-            (_local ??= {})[name] = replacementGetterFromGetter;
+            (_local ??= // Coverage-ignore(suite): Not run.
+                {})[name] = replacementGetterFromGetter;
           } else {
+            // Coverage-ignore-block(suite): Not run.
             // With `null`, i.e. removed. This means that the getter is
             // implicitly available through the setter. (This is currently not
             // possible, but handled here to match the case for setters below).
@@ -373,16 +376,16 @@ class Scope extends MutableScope {
           if (replacementSetterFromGetter != null) {
             // We might have had one implicitly from the getter. Use it here,
             // if so.
-            (_setters ??= {})[name] =
-                replacementSetterFromGetter as MemberBuilder;
+            (_setters ??= // Coverage-ignore(suite): Not run.
+                {})[name] = replacementSetterFromGetter as MemberBuilder;
           }
         } else if (existingSetter.parent ==
             replacementLibraryBuilderFromSetter) {
           // The existing setter should be replaced.
           if (replacementSetterFromSetter != null) {
             // With a new setter.
-            (_setters ??= {})[name] =
-                replacementSetterFromSetter as MemberBuilder;
+            (_setters ??= // Coverage-ignore(suite): Not run.
+                {})[name] = replacementSetterFromSetter as MemberBuilder;
           } else {
             // With `null`, i.e. removed. This means that the setter is
             // implicitly available through the getter. This happens when the
@@ -395,6 +398,7 @@ class Scope extends MutableScope {
       }
     }
     if (_extensions != null) {
+      // Coverage-ignore-block(suite): Not run.
       bool needsPatching = false;
       for (ExtensionBuilder extensionBuilder in _extensions!) {
         if (replacementMap.containsKey(extensionBuilder.parent)) {
@@ -424,6 +428,7 @@ class Scope extends MutableScope {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   Scope copyWithParent(Scope parent, String debugName) {
     return new Scope(
         kind: kind,
@@ -435,6 +440,7 @@ class Scope extends MutableScope {
         isModifiable: isModifiable);
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Don't use this. Use [becomePartOf] instead.
   void set parent(_) => unsupported("parent=", -1, null);
 
@@ -515,8 +521,15 @@ class Scope extends MutableScope {
     Builder? builder = map[name];
     if (builder == null) return null;
     if (builder.next != null) {
-      return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
-          builder, charOffset, fileUri);
+      return new AmbiguousBuilder(
+          name.isEmpty
+              ?
+              // Coverage-ignore(suite): Not run.
+              classNameOrDebugName
+              : name,
+          builder,
+          charOffset,
+          fileUri);
     } else if (!isInstanceScope && builder.isDeclarationInstanceMember) {
       return null;
     } else if (builder is MemberBuilder && builder.isConflictingSetter) {
@@ -576,7 +589,8 @@ class Scope extends MutableScope {
 
   void addLocalMember(String name, Builder member, {required bool setter}) {
     if (setter) {
-      (_setters ??= {})[name] = member as MemberBuilder;
+      (_setters ??= // Coverage-ignore(suite): Not run.
+          {})[name] = member as MemberBuilder;
     } else {
       (_local ??= {})[name] = member;
     }
@@ -683,11 +697,13 @@ class Scope extends MutableScope {
     }
 
     if (scope._local != null) {
-      map = _local ??= {};
+      map = _local ??= // Coverage-ignore(suite): Not run.
+          {};
       scope._local?.forEach(mergeMember);
     }
     if (scope._setters != null) {
-      map = _setters ??= {};
+      map = _setters ??= // Coverage-ignore(suite): Not run.
+          {};
       scope._setters?.forEach(mergeMember);
     }
     if (scope._extensions != null) {
@@ -704,6 +720,7 @@ class Scope extends MutableScope {
     return "$buffer";
   }
 
+  // Coverage-ignore(suite): Not run.
   int writeOn(StringSink sink) {
     int nestingLevel = (_parent?.writeOn(sink) ?? -1) + 1;
     String indent = "  " * nestingLevel;
@@ -871,6 +888,7 @@ class AccessErrorBuilder extends ProblemBuilder {
   Builder? get parent => builder.parent;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isFinal => builder.isFinal;
 
   @override
@@ -902,6 +920,7 @@ class AccessErrorBuilder extends ProblemBuilder {
   bool get isStatic => builder.isStatic;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isTopLevel => builder.isTopLevel;
 
   @override
@@ -911,6 +930,7 @@ class AccessErrorBuilder extends ProblemBuilder {
   bool get isLocal => builder.isLocal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Message get message => templateAccessError.withArguments(name);
 }
 
@@ -919,11 +939,13 @@ class AmbiguousBuilder extends ProblemBuilder {
       : super(name, builder, charOffset, fileUri);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? get parent => null;
 
   @override
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
+  // Coverage-ignore(suite): Not run.
   // TODO(ahe): Also provide context.
 
   Builder getFirstDeclaration() {
@@ -937,33 +959,43 @@ class AmbiguousBuilder extends ProblemBuilder {
 
 mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
+  // Coverage-ignore(suite): Not run.
   MemberDataForTesting? get dataForTesting => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member get member => throw new UnsupportedError('$runtimeType.member');
 
   @override
+  // Coverage-ignore(suite): Not run.
   Name get memberName => throw new UnsupportedError('$runtimeType.memberName');
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get readTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get invokeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Member> get exportedMembers => const [];
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExternal => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAbstract => false;
 
   @override
@@ -999,6 +1031,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
+  // Coverage-ignore(suite): Not run.
   ProcedureKind? get kind => null;
 
   @override
@@ -1010,29 +1043,35 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildOutlineNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildOutlineNodes.");
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int buildBodyNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildBodyNodes.");
     return 0;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localMembers => const <ClassMember>[];
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters => const <ClassMember>[];
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
@@ -1124,7 +1163,8 @@ class ScopeIterator implements Iterator<Builder> {
 
   @override
   Builder get current {
-    return _current ?? (throw new StateError('No element'));
+    return _current ?? // Coverage-ignore(suite): Not run.
+        (throw new StateError('No element'));
   }
 }
 
@@ -1192,7 +1232,8 @@ class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
 
   @override
   String get name {
-    return _name ?? (throw new StateError('No element'));
+    return _name ?? // Coverage-ignore(suite): Not run.
+        (throw new StateError('No element'));
   }
 }
 
@@ -1222,7 +1263,8 @@ class ConstructorScopeIterator implements Iterator<MemberBuilder> {
 
   @override
   MemberBuilder get current {
-    return _current ?? (throw new StateError('No element'));
+    return _current ?? // Coverage-ignore(suite): Not run.
+        (throw new StateError('No element'));
   }
 }
 
@@ -1261,7 +1303,8 @@ class ConstructorScopeNameIterator extends ConstructorScopeIterator
 
   @override
   String get name {
-    return _name ?? (throw new StateError('No element'));
+    return _name ?? // Coverage-ignore(suite): Not run.
+        (throw new StateError('No element'));
   }
 }
 
@@ -1352,6 +1395,7 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   List<T> toList() {
     List<T> list = [];
     while (moveNext()) {
@@ -1421,6 +1465,7 @@ abstract class MergedScope<T extends Builder> {
                 ? templateNonPatchLibraryConflict.withArguments(name)
                 : templateNonAugmentationLibraryConflict.withArguments(name);
           } else {
+            // Coverage-ignore-block(suite): Not run.
             message = inPatchLibrary
                 ? templateNonPatchClassMemberConflict.withArguments(name)
                 : templateNonAugmentationClassMemberConflict
@@ -1456,7 +1501,9 @@ abstract class MergedScope<T extends Builder> {
         } else {
           message = inPatchLibrary
               ? templateUnmatchedPatchDeclaration.withArguments(name)
-              : templateUnmatchedAugmentationDeclaration.withArguments(name);
+              :
+              // Coverage-ignore(suite): Not run.
+              templateUnmatchedAugmentationDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
             message, newBuilder.charOffset, name.length, newBuilder.fileUri);
@@ -1617,7 +1664,9 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               inPatchLibrary
                   ? templateNonPatchConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors)
-                  : templateNonAugmentationConstructorConflict
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  templateNonAugmentationConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors),
               newConstructor.charOffset,
               noLength,
@@ -1635,7 +1684,9 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               inPatchLibrary
                   ? templateUnmatchedPatchConstructor
                       .withArguments(newConstructor.fullNameForErrors)
-                  : templateUnmatchedAugmentationConstructor
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  templateUnmatchedAugmentationConstructor
                       .withArguments(newConstructor.fullNameForErrors),
               newConstructor.charOffset,
               noLength,
@@ -1644,6 +1695,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           _originConstructorScope.addLocalMember(name, newConstructor);
           for (ConstructorScope augmentationConstructorScope
               in _augmentationConstructorScopes.values) {
+            // Coverage-ignore-block(suite): Not run.
             _addConstructorToAugmentationScope(
                 augmentationConstructorScope, name, newConstructor);
           }
@@ -1651,6 +1703,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         if (inPatchLibrary &&
             !name.startsWith('_') &&
             !_allowInjectedPublicMember(newConstructor)) {
+          // Coverage-ignore-block(suite): Not run.
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
@@ -1694,6 +1747,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
       return true;
     }
     if (newBuilder.isStatic) {
+      // Coverage-ignore-block(suite): Not run.
       return _origin.name.startsWith('_');
     }
     // TODO(johnniwinther): Restrict the use of injected public class members.
@@ -1705,6 +1759,7 @@ extension on Builder {
   bool get isAugmentation {
     Builder self = this;
     if (self is SourceLibraryBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       return self.isAugmentationLibrary;
     } else if (self is SourceClassBuilder) {
       return self.isAugmentation;
@@ -1758,6 +1813,7 @@ extension on Builder {
     } else if (self is SourceExtensionBuilder) {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionTypeDeclarationBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       return _hasPatchAnnotation(self.metadata);
     }
     return false;
@@ -1777,6 +1833,7 @@ class IteratorSequence<T> implements Iterator<T> {
     if (_current != null) {
       return _current!.current;
     }
+    // Coverage-ignore-block(suite): Not run.
     throw new StateError("No current element");
   }
 

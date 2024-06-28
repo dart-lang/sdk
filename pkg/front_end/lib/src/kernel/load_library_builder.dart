@@ -55,6 +55,7 @@ class LoadLibraryBuilder extends BuilderImpl {
       this._importCharOffset, this._combinators);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => parent.fileUri;
 
   LoadLibrary createLoadLibrary(
@@ -64,6 +65,7 @@ class LoadLibraryBuilder extends BuilderImpl {
 
   Procedure createTearoffMethod(Forest forest) {
     if (tearoff != null) {
+      // Coverage-ignore-block(suite): Not run.
       return tearoff!;
     }
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
@@ -84,5 +86,6 @@ class LoadLibraryBuilder extends BuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => 'loadLibrary';
 }

@@ -72,7 +72,9 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
             fileUri,
             charOffset,
             hasFunctionFormalParameterSyntax)
-        : new _InferredFunctionTypeBuilder(
+        :
+        // Coverage-ignore(suite): Not run.
+        new _InferredFunctionTypeBuilder(
             returnType,
             typeVariables,
             formals,
@@ -98,11 +100,13 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   String get debugName => "Function";
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isVoidType => false;
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
     if (typeVariables != null) {
+      // Coverage-ignore-block(suite): Not run.
       buffer.write("<");
       bool isFirst = true;
       for (StructuralVariableBuilder t in typeVariables!) {
@@ -117,6 +121,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     }
     buffer.write("(");
     if (formals != null) {
+      // Coverage-ignore-block(suite): Not run.
       bool isFirst = true;
       for (ParameterBuilder t in formals!) {
         if (!isFirst) {
@@ -143,7 +148,9 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(hierarchy != null || isExplicit, "Cannot build $this.");
+    assert(
+        hierarchy != null || isExplicit, // Coverage-ignore(suite): Not run.
+        "Cannot build $this.");
     DartType builtReturnType =
         returnType.buildAliased(library, TypeUse.returnType, hierarchy);
     List<DartType> positionalParameters = <DartType>[];
@@ -258,6 +265,7 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// A function type that needs type inference to be fully defined.
 ///
 /// This occurs through macros where return type or parameter types can be

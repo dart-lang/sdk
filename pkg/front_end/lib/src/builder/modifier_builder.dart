@@ -34,6 +34,7 @@ abstract class ModifierBuilderImpl extends BuilderImpl {
   @override
   bool get isAugment => (modifiers & augmentMask) != 0;
 
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     return buffer..write(name);
   }

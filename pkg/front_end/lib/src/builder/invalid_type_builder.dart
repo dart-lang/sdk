@@ -36,16 +36,19 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Supertype? buildMixedInType(LibraryBuilder library) {
     return null;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     return null;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
@@ -60,19 +63,24 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   bool get isExplicit => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isVoidType => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeName? get typeName => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   NullabilityBuilder get nullabilityBuilder =>
       const NullabilityBuilder.inherent();
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) => buffer;
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) {
     return this;
   }

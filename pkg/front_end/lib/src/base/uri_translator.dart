@@ -21,6 +21,7 @@ class UriTranslator {
   List<Uri>? getDartPatches(String libraryName) =>
       dartLibraries.libraryInfoFor(libraryName)?.patches;
 
+  // Coverage-ignore(suite): Not run.
   bool isPlatformImplementation(Uri uri) {
     if (!uri.isScheme("dart")) return false;
     String path = uri.path;
@@ -67,7 +68,9 @@ class UriTranslator {
             : _packageUriNotFoundNoReport)(uri);
       }
       return translated;
-    } on ArgumentError catch (e) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on ArgumentError catch (e) {
       // TODO(sigmund): catch a more precise error when
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
       if (reportMessage) {
@@ -88,6 +91,7 @@ class UriTranslator {
     return null;
   }
 
+  // Coverage-ignore(suite): Not run.
   static Uri? _packageUriNotFoundNoReport(Uri uri) {
     return null;
   }

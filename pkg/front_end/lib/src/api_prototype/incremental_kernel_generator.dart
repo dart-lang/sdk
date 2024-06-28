@@ -17,6 +17,7 @@ import 'compiler_options.dart' show CompilerOptions;
 
 export '../base/incremental_serializer.dart' show IncrementalSerializer;
 
+// Coverage-ignore(suite): Not run.
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(
       CompilerOptions options, List<Uri> entryPoints,
@@ -138,6 +139,7 @@ abstract class IncrementalKernelGenerator {
   void setExperimentalFeaturesForTesting(Set<String> features);
 }
 
+// Coverage-ignore(suite): Not run.
 bool isLegalIdentifier(String identifier) {
   return StringScanner.isLegalIdentifier(identifier);
 }

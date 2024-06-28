@@ -1,3 +1,4 @@
+// Coverage-ignore(suite): Not run.
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -91,6 +92,7 @@ class Benchmarker {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class PhaseTiming {
   final BenchmarkPhases phase;
   int _runtime = 0;
@@ -125,6 +127,7 @@ class PhaseTiming {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class SubdivideTiming {
   final BenchmarkSubdivides phase;
   int _runtime = 0;

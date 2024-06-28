@@ -19,6 +19,7 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   VariableBuilderImpl(this.variable, this.fileUri);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? get parent => null;
 
   @override
@@ -31,12 +32,14 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   bool get isConst => variable.isConst;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isFinal => variable.isFinal;
 
   @override
   bool get isAssignable => variable.isAssignable;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => variable.name ?? "<unnamed>";
 
   @override

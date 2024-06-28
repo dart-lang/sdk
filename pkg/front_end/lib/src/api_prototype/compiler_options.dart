@@ -299,6 +299,7 @@ class CompilerOptions {
   /// launched again.
   Set<Uri> runningPrecompilations = {};
 
+  // Coverage-ignore(suite): Not run.
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt into the experiment with the given [flag].
   ///
@@ -328,6 +329,7 @@ class CompilerOptions {
             experimentReleasedVersionForTesting);
   }
 
+  // Coverage-ignore(suite): Not run.
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic = true,
       bool ignoreVerbose = true,
@@ -406,6 +408,7 @@ Map<String, bool> parseExperimentalArguments(Iterable<String>? arguments) {
     for (String argument in arguments) {
       for (String feature in argument.split(',')) {
         if (feature.startsWith('no-')) {
+          // Coverage-ignore-block(suite): Not run.
           result[feature.substring(3)] = false;
         } else {
           result[feature] = true;
@@ -437,14 +440,17 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
       bool value = experiments[experiment]!;
       ExperimentalFlag? flag = parseExperimentalFlag(experiment);
       if (flag == null) {
+        // Coverage-ignore-block(suite): Not run.
         onError("Unknown experiment: " + experiment);
       } else if (flags.containsKey(flag)) {
+        // Coverage-ignore-block(suite): Not run.
         if (flags[flag] != value) {
           onError(
               "Experiment specified with conflicting values: " + experiment);
         }
       } else {
         if (flag.isExpired) {
+          // Coverage-ignore-block(suite): Not run.
           if (value != flag.isEnabledByDefault) {
             /// Produce an error when the value is not the default value.
             if (value) {
@@ -505,6 +511,7 @@ class InvocationMode {
     Set<InvocationMode> result = {};
     for (String name in arg.split(',')) {
       if (name.isNotEmpty) {
+        // Coverage-ignore-block(suite): Not run.
         InvocationMode? mode = fromName(name);
         if (mode == null) {
           String message = "Unknown invocation mode '$name'.";
@@ -521,6 +528,7 @@ class InvocationMode {
     return result;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Returns the [InvocationMode] with the given [name].
   static InvocationMode? fromName(String name) {
     for (InvocationMode invocationMode in values) {
@@ -553,10 +561,12 @@ class Verbosity {
 
   static const List<Verbosity> values = const [error, warning, info, all];
 
+  // Coverage-ignore(suite): Not run.
   /// Returns the names of all options.
   static List<String> get allowedValues =>
       [for (Verbosity value in values) value.name];
 
+  // Coverage-ignore(suite): Not run.
   /// Returns a map from option name to option help messages.
   static Map<String, String> get allowedValuesHelp =>
       {for (Verbosity value in values) value.name: value.help};
@@ -576,6 +586,7 @@ class Verbosity {
         return verbosity;
       }
     }
+    // Coverage-ignore-block(suite): Not run.
     String message = "Unknown verbosity '$name'.";
     if (onError != null) {
       onError(message);
@@ -584,6 +595,7 @@ class Verbosity {
     throw new UnsupportedError(message);
   }
 
+  // Coverage-ignore(suite): Not run.
   static bool shouldPrint(Verbosity verbosity, DiagnosticMessage message) {
     Severity severity = message.severity;
     switch (verbosity) {
@@ -638,6 +650,7 @@ class Verbosity {
   String toString() => 'Verbosity($name)';
 }
 
+// Coverage-ignore(suite): Not run.
 /// Interface for hooking into the compilation pipeline for testing.
 class HooksForTesting {
   /// Called before the intermediate macro augmentation libraries have been

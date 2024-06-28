@@ -401,9 +401,11 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       : super(null, -1);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSynthetic => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? get parent => null;
 
   @override
@@ -416,6 +418,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   Loader get loader;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get modifiers => 0;
 
   @override
@@ -491,6 +494,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     Builder? cls = (bypassLibraryPrivacy ? scope : exportScope)
         .lookup(className, -1, fileUri);
     if (cls is TypeAliasBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;
       // No type arguments are available, but this method is only called in
       // order to find constructors of specific non-generic classes (errors),
@@ -508,10 +512,13 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         if (!cls.isAbstract) {
           return constructor;
         }
-      } else if (constructor.isFactory) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (constructor.isFactory) {
         return constructor;
       }
     }
+    // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
             "$className.$constructorName", importUri),
@@ -537,6 +544,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     return buffer..write(isPart || isAugmenting ? fileUri : importUri);
   }

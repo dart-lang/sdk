@@ -17,7 +17,8 @@ class HybridFileSystem implements FileSystem {
   final FileSystem physical;
 
   HybridFileSystem(this.memory, [FileSystem? _physical])
-      : physical = _physical ?? StandardFileSystem.instance;
+      : physical = _physical ?? // Coverage-ignore(suite): Not run.
+            StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) =>
@@ -36,12 +37,17 @@ class HybridFileSystemEntity implements FileSystemEntity {
 
   Future<FileSystemEntity> get delegate async {
     if (_delegate != null) {
+      // Coverage-ignore-block(suite): Not run.
       return _delegate!;
     }
     FileSystemEntity entity = _fs.memory.entityForUri(uri);
-    if (((!uri.isScheme('file') && !uri.isScheme('data')) &&
+    if (((!uri.isScheme('file') &&
+                // Coverage-ignore(suite): Not run.
+                !uri.isScheme('data')) &&
+            // Coverage-ignore(suite): Not run.
             _fs.physical is StandardFileSystem) ||
         await entity.exists()) {
+      // Coverage-ignore-block(suite): Not run.
       _delegate = entity;
       return _delegate!;
     }
@@ -49,9 +55,11 @@ class HybridFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<bool> exists() async => (await delegate).exists();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<bool> existsAsyncIfPossible() async =>
       (await delegate).existsAsyncIfPossible();
 
@@ -59,9 +67,11 @@ class HybridFileSystemEntity implements FileSystemEntity {
   Future<List<int>> readAsBytes() async => (await delegate).readAsBytes();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<List<int>> readAsBytesAsyncIfPossible() async =>
       (await delegate).readAsBytesAsyncIfPossible();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<String> readAsString() async => (await delegate).readAsString();
 }

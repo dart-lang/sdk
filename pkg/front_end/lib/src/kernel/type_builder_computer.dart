@@ -101,6 +101,7 @@ class _TypeBuilderComputerHelper
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder visitNeverType(NeverType node,
       Map<TypeParameter, NominalVariableBuilder> pendingNominalVariables) {
     return new NamedTypeBuilderImpl.forDartType(node, neverDeclaration,
@@ -150,6 +151,7 @@ class _TypeBuilderComputerHelper
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder visitFutureOrType(FutureOrType node,
       Map<TypeParameter, NominalVariableBuilder> pendingNominalVariables) {
     TypeBuilder argument =
@@ -244,12 +246,14 @@ class _TypeBuilderComputerHelper
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder visitIntersectionType(IntersectionType node,
       Map<TypeParameter, NominalVariableBuilder> pendingNominalVariables) {
     throw "Not implemented";
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder visitTypedefType(TypedefType node,
       Map<TypeParameter, NominalVariableBuilder> pendingNominalVariables) {
     throw "Not implemented";

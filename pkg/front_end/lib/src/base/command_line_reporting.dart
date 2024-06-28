@@ -44,7 +44,9 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
     }
     String? prefix = severityPrefixes[severity];
     String messageTextTmp = prefix == null
-        ? message.problemMessage
+        ?
+        // Coverage-ignore(suite): Not run.
+        message.problemMessage
         : "$prefix: ${message.problemMessage}";
     if (message.correctionMessage != null) {
       messageTextTmp += "\n${message.correctionMessage}";
@@ -58,6 +60,7 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
         break;
 
       case Severity.warning:
+        // Coverage-ignore(suite): Not run.
         messageTextColorized = magenta(messageTextPlain);
         break;
 
@@ -65,10 +68,12 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
         messageTextColorized = green(messageTextPlain);
         break;
 
+      // Coverage-ignore(suite): Not run.
       case Severity.info:
         messageTextColorized = yellow(messageTextPlain);
         break;
 
+      // Coverage-ignore(suite): Not run.
       case Severity.ignored:
         return unhandled("$severity", "format", -1, null);
     }
@@ -95,6 +100,7 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
       );
     }
   } catch (error, trace) {
+    // Coverage-ignore-block(suite): Not run.
     print("Crash when formatting: "
         "[${message.code.name}] ${safeToString(message.problemMessage)}\n"
         "${safeToString(error)}\n"
@@ -119,6 +125,7 @@ String formatErrorMessage(String? sourceLine, Location? location,
     int lengthInSourceLine = min(indentation.length, sourceLine.length);
     for (int i = 0; i < lengthInSourceLine; i++) {
       if (sourceLine.codeUnitAt(i) == $TAB) {
+        // Coverage-ignore-block(suite): Not run.
         indentation[i] = $TAB;
       }
     }
@@ -145,13 +152,18 @@ String formatErrorMessage(String? sourceLine, Location? location,
 bool isHidden(Severity severity) {
   switch (severity) {
     case Severity.error:
+    // Coverage-ignore(suite): Not run.
     case Severity.internalProblem:
+    // Coverage-ignore(suite): Not run.
     case Severity.context:
+    // Coverage-ignore(suite): Not run.
     case Severity.info:
       return false;
 
+    // Coverage-ignore(suite): Not run.
     case Severity.warning:
       return hideWarnings;
+    // Coverage-ignore(suite): Not run.
     case Severity.ignored:
       return true;
   }
@@ -164,12 +176,15 @@ bool shouldThrowOn(Severity severity) {
     case Severity.error:
       return CompilerContext.current.options.throwOnErrorsForDebugging;
 
+    // Coverage-ignore(suite): Not run.
     case Severity.internalProblem:
       return true;
 
+    // Coverage-ignore(suite): Not run.
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
 
+    // Coverage-ignore(suite): Not run.
     case Severity.info:
     case Severity.ignored:
     case Severity.context:

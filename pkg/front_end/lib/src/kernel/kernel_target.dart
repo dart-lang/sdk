@@ -198,6 +198,7 @@ class KernelTarget {
           accessor: loader.coreLibraryCompilationUnit);
     }
     if (context.compilingPlatform) {
+      // Coverage-ignore-block(suite): Not run.
       for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
         loader.read(Uri.parse(uri), 0,
             accessor: loader.coreLibraryCompilationUnit);
@@ -217,7 +218,9 @@ class KernelTarget {
     return processedOptions.format(
         fileUri != null
             ? message.withLocation(fileUri, charOffset, length)
-            : message.withoutLocation(),
+            :
+            // Coverage-ignore(suite): Not run.
+            message.withoutLocation(),
         severity,
         messageContext,
         involvedFiles: involvedFiles);
@@ -262,6 +265,7 @@ class KernelTarget {
     Source source = new Source(lineStarts, sourceCode, importUri, fileUri);
     uriToSource[fileUri] = source;
     if (_hasAddedSources) {
+      // Coverage-ignore-block(suite): Not run.
       // The sources have already been added to the component in [link] so we
       // have to add source directly here to create a consistent component.
       component?.uriToSource[fileUri] = excludeSource
@@ -271,6 +275,7 @@ class KernelTarget {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void removeSourceInformation(Uri fileUri) {
     uriToSource.remove(fileUri);
     if (_hasAddedSources) {
@@ -308,10 +313,12 @@ class KernelTarget {
           String packageName = package.name;
           Uri packageUri = package.packageUriRoot;
           if (packageUri.hasFragment == true) {
+            // Coverage-ignore-block(suite): Not run.
             packageUri = packageUri.removeFragment();
           }
           String prefix = "${packageUri}";
           if (asString.startsWith(prefix)) {
+            // Coverage-ignore-block(suite): Not run.
             Uri reversed = Uri.parse(
                 "package:$packageName/${asString.substring(prefix.length)}");
             if (entryPoint == uriTranslator.translate(reversed)) {
@@ -332,27 +339,37 @@ class KernelTarget {
     _hasComputedNeededPrecompilations = true;
     if (loader.roots.isEmpty) return null;
     return await withCrashReporting<NeededPrecompilations?>(() async {
-      benchmarker?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
       await loader.buildOutlines();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveParts);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_resolveParts);
       loader.resolveParts();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_becomeCoreLibrary);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_becomeCoreLibrary);
       loader.coreLibrary.becomeCoreLibrary();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeMacroDeclarations);
       NeededPrecompilations? result =
           context.options.globalFeatures.macros.isEnabled
               ? loader.computeMacroDeclarations()
               : null;
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownComputeNeededPrecompilations);
       return result;
     }, () => loader.currentUriForCrashReporting);
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 1 macros.
   Future<void> _buildForPhase1(MacroApplications macroApplications,
@@ -374,6 +391,7 @@ class KernelTarget {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 2 macros.
   void _buildForPhase2(List<SourceLibraryBuilder> augmentationLibraries) {
@@ -385,6 +403,7 @@ class KernelTarget {
     loader.resolveConstructors(augmentationLibraries);
   }
 
+  // Coverage-ignore(suite): Not run.
   Future<void> _applyMacroPhase2(
       MacroApplications macroApplications,
       List<SourceClassBuilder> sortedSourceClassBuilders,
@@ -415,6 +434,7 @@ class KernelTarget {
     await applyDeclarationMacros();
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Builds [augmentationLibraries] to the state expected after applying phase
   /// 3 macros.
   void _buildForPhase3(List<SourceLibraryBuilder> augmentationLibraries) {
@@ -423,10 +443,12 @@ class KernelTarget {
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
     if (loader.roots.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       return new BuildResult();
     }
     return await withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
+        // Coverage-ignore-block(suite): Not run.
         NeededPrecompilations? neededPrecompilations =
             await computeNeededPrecompilations();
         // To support macros, the needed macro libraries must be compiled be
@@ -441,27 +463,40 @@ class KernelTarget {
         }
       }
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeLibraryScopes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeLibraryScopes);
       loader.computeLibraryScopes(loader.loadedLibraryBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
       MacroApplications? macroApplications =
           await loader.computeMacroApplications();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_setupTopAndBottomTypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_setupTopAndBottomTypes);
       setupTopAndBottomTypes();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveTypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_resolveTypes);
       loader.resolveTypes(loader.sourceLibraryBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeVariances);
       loader.computeVariances(loader.sourceLibraryBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeDefaultTypes);
       loader.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClassBuilder);
 
       if (macroApplications != null) {
+        // Coverage-ignore-block(suite): Not run.
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyTypeMacros);
         macroApplications.enterTypeMacroPhase();
         List<SourceLibraryBuilder> augmentationLibraries =
@@ -471,39 +506,56 @@ class KernelTarget {
         await _buildForPhase1(macroApplications, augmentationLibraries);
       }
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkSemantics);
       List<SourceClassBuilder>? sortedSourceClassBuilders;
       List<SourceExtensionTypeDeclarationBuilder>?
           sortedSourceExtensionTypeBuilders;
       (sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders) =
           loader.checkClassCycles(objectClassBuilder);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
       loader.finishTypeVariables(
           loader.sourceLibraryBuilders, objectClassBuilder, dynamicType);
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_createTypeInferenceEngine);
       loader.createTypeInferenceEngine();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_buildComponent);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildComponent);
       loader.buildOutlineNodes();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_installDefaultSupertypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_installDefaultSupertypes);
       installDefaultSupertypes();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_link);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_link);
       component =
           link(new List<Library>.of(loader.libraries), nameRoot: nameRoot);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeCoreTypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeCoreTypes);
       computeCoreTypes();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
       loader.buildClassHierarchy(sortedSourceClassBuilders,
           sortedSourceExtensionTypeBuilders, objectClassBuilder);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
       loader.checkSupertypes(
           sortedSourceClassBuilders,
           sortedSourceExtensionTypeBuilders,
@@ -512,29 +564,40 @@ class KernelTarget {
           underscoreEnumClass);
 
       if (macroApplications != null) {
+        // Coverage-ignore-block(suite): Not run.
         await _applyMacroPhase2(macroApplications, sortedSourceClassBuilders,
             sortedSourceExtensionTypeBuilders);
       }
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
       installSyntheticConstructors(sortedSourceClassBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
       loader.resolveConstructors(loader.sourceLibraryBuilders);
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchyMembers);
       loader.buildClassHierarchyMembers(
           sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeHierarchy);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeHierarchy);
       loader.computeHierarchy();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_computeShowHideElements);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeShowHideElements);
       loader.computeShowHideElements();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       List<DelayedDefaultValueCloner>?
           typedefTearOffsDelayedDefaultValueCloners =
           loader.installTypedefTearOffs();
@@ -542,49 +605,69 @@ class KernelTarget {
           ?.forEach(registerDelayedDefaultValueCloner);
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
       loader.computeFieldPromotability();
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
       loader.performTopLevelInference(sortedSourceClassBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkOverrides);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkOverrides);
       loader.checkOverrides(sortedSourceClassBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
       loader.checkAbstractMembers(sortedSourceClassBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
       // TODO(johnniwinther): Add an interface for registering delayed actions.
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
       loader.buildOutlineExpressions(
           loader.hierarchy, delayedDefaultValueCloners);
       delayedDefaultValueCloners.forEach(registerDelayedDefaultValueCloner);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
       loader.checkRedirectingFactories(
           sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders);
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);
       finishSynthesizedParameters(forOutline: true);
 
-      benchmarker?.enterPhase(BenchmarkPhases.outline_checkMainMethods);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_checkMainMethods);
       loader.checkMainMethods();
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildOutlines);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.unknownBuildOutlines);
 
       // For whatever reason sourceClassBuilders is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -610,12 +693,14 @@ class KernelTarget {
       bool verify = false,
       bool allowVerificationErrorForTesting = false}) async {
     if (loader.roots.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       return new BuildResult(macroApplications: macroApplications);
     }
     return await withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
 
       if (macroApplications != null) {
+        // Coverage-ignore-block(suite): Not run.
         benchmarker?.enterPhase(BenchmarkPhases.body_applyDefinitionMacros);
         macroApplications.enterDefinitionMacroPhase();
         List<SourceLibraryBuilder> augmentationLibraries =
@@ -631,58 +716,85 @@ class KernelTarget {
         _buildForPhase3(augmentationLibraries);
       }
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_buildBodies);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_buildBodies);
       await loader.buildBodies(loader.sourceLibraryBuilders);
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_checkMixinSuperAccesses);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_checkMixinSuperAccesses);
       loader.checkMixinSuperAccesses();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishSynthesizedParameters);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_finishSynthesizedParameters);
       finishSynthesizedParameters();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishDeferredLoadTearoffs);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_finishDeferredLoadTearoffs);
       loader.finishDeferredLoadTearoffs();
 
       benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.body_finishNoSuchMethodForwarders);
       loader.finishNoSuchMethodForwarders();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
       List<SourceClassBuilder>? sourceClasses = [];
       List<SourceExtensionTypeDeclarationBuilder>? extensionTypeDeclarations =
           [];
       loader.collectSourceClasses(sourceClasses, extensionTypeDeclarations);
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishAugmentationMethods);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_finishAugmentationMethods);
       loader.buildBodyNodes();
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
       finishAllConstructors(sourceClasses, extensionTypeDeclarations);
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
       if (loader.macroClass != null) {
+        // Coverage-ignore-block(suite): Not run.
         checkMacroApplications(loader.hierarchy, loader.macroClass!,
             loader.sourceLibraryBuilders, macroApplications);
       }
       if (macroApplications != null) {
+        // Coverage-ignore-block(suite): Not run.
         macroApplications.buildMergedAugmentationLibraries(component!);
       }
 
       if (verify) {
-        benchmarker?.enterPhase(BenchmarkPhases.body_verify);
+        benchmarker
+            // Coverage-ignore(suite): Not run.
+            ?.enterPhase(BenchmarkPhases.body_verify);
         _verify(
             allowVerificationErrorForTesting: allowVerificationErrorForTesting);
       }
 
-      benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
       installAllComponentProblems(loader.allComponentProblems);
 
-      benchmarker?.enterPhase(BenchmarkPhases.unknownBuildComponent);
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.unknownBuildComponent);
 
       // For whatever reason sourceClasses is kept alive for some amount
       // of time, meaning that all source library builders will be kept alive
@@ -691,7 +803,9 @@ class KernelTarget {
       sourceClasses = null;
       extensionTypeDeclarations = null;
 
-      context.options.hooksForTesting?.onBuildComponentComplete(component!);
+      context.options.hooksForTesting
+          // Coverage-ignore(suite): Not run.
+          ?.onBuildComponentComplete(component!);
 
       return new BuildResult(
           component: component, macroApplications: macroApplications);
@@ -720,7 +834,9 @@ class KernelTarget {
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {
       uriToSource[uri] = excludeSource
-          ? new Source(source.lineStarts, const <int>[], source.importUri,
+          ?
+          // Coverage-ignore(suite): Not run.
+          new Source(source.lineStarts, const <int>[], source.importUri,
               source.fileUri)
           : source;
     }
@@ -756,6 +872,7 @@ class KernelTarget {
       Builder? declaration =
           firstRoot.exportScope.lookup("main", -1, firstRoot.fileUri);
       if (declaration is AmbiguousBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
@@ -765,7 +882,9 @@ class KernelTarget {
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);
 
-    assert(_getLibraryNnbdModeError(component) == null,
+    assert(
+        _getLibraryNnbdModeError(component) == null,
+        // Coverage-ignore(suite): Not run.
         "Got error: ${_getLibraryNnbdModeError(component)}");
 
     ticker.logMs("Linked component");
@@ -818,10 +937,13 @@ class KernelTarget {
         if (component.mode == NonNullableByDefaultCompiledMode.Strong) {
           if (library.nonNullableByDefaultCompiledMode !=
               NonNullableByDefaultCompiledMode.Strong) {
+            // Coverage-ignore-block(suite): Not run.
             return "Expected library ${library.importUri} to be strong, "
                 "but was ${library.nonNullableByDefaultCompiledMode}";
           }
-        } else if (component.mode == NonNullableByDefaultCompiledMode.Weak) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (component.mode == NonNullableByDefaultCompiledMode.Weak) {
           if (library.nonNullableByDefaultCompiledMode !=
               NonNullableByDefaultCompiledMode.Weak) {
             return "Expected library ${library.importUri} to be weak, "
@@ -1004,6 +1126,7 @@ class KernelTarget {
         }
 
         if (!isConstructorAdded) {
+          // Coverage-ignore-block(suite): Not run.
           builder.addSyntheticConstructor(_makeDefaultConstructor(
               builder, constructorReference, tearOffReference));
         }
@@ -1014,6 +1137,7 @@ class KernelTarget {
       case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
       // TODO(johnniwinther): How should we handle this case?
       case OmittedTypeDeclarationBuilder():
       case null:
@@ -1276,6 +1400,7 @@ class KernelTarget {
           }
         }
         if (!found && uri.path != "mirrors") {
+          // Coverage-ignore-block(suite): Not run.
           // dart:mirrors is optional.
           throw "Can't find $uri";
         }
@@ -1342,7 +1467,10 @@ class KernelTarget {
           Initializer initializer;
           if (superTarget == null) {
             int offset = constructor.fileOffset;
-            if (offset == -1 && constructor.isSynthetic) {
+            if (offset == -1 &&
+                // Coverage-ignore(suite): Not run.
+                constructor.isSynthetic) {
+              // Coverage-ignore-block(suite): Not run.
               offset = cls.fileOffset;
             }
             classBuilder.addProblem(
@@ -1360,6 +1488,7 @@ class KernelTarget {
           initializer.parent = constructor;
         }
         if (constructor.function.body == null) {
+          // Coverage-ignore-block(suite): Not run.
           /// >If a generative constructor c is not a redirecting constructor
           /// >and no body is provided, then c implicitly has an empty body {}.
           /// We use an empty statement instead.
@@ -1470,7 +1599,9 @@ class KernelTarget {
             if (uri == 'dart:html' ||
                 uri == 'dart:svg' ||
                 uri == 'dart:_native_typed_data' ||
-                uri == 'dart:_interceptors' && file == 'js_string.dart') {
+                uri == 'dart:_interceptors' &&
+                    // Coverage-ignore(suite): Not run.
+                    file == 'js_string.dart') {
               // TODO(johnniwinther): Use external getters instead of final
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
@@ -1548,7 +1679,9 @@ class KernelTarget {
         loader.coreTypes,
         loader.libraries,
         new KernelDiagnosticReporter(loader),
-        logger: (String msg) => ticker.logMs(msg),
+        logger:
+            // Coverage-ignore(suite): Not run.
+            (String msg) => ticker.logMs(msg),
         changedStructureNotifier: changedStructureNotifier);
 
     TypeEnvironment environment =
@@ -1570,8 +1703,10 @@ class KernelTarget {
             enableConstructorTearOff:
                 globalFeatures.constructorTearoffs.isEnabled,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-            exhaustivenessDataForTesting:
-                loader.dataForTesting?.exhaustivenessData);
+            exhaustivenessDataForTesting: loader
+                .dataForTesting
+                // Coverage-ignore(suite): Not run.
+                ?.exhaustivenessData);
     ticker.logMs("Evaluated constants");
 
     markLibrariesUsed(constantEvaluationData.visitedLibraries);
@@ -1600,6 +1735,7 @@ class KernelTarget {
 
   ChangedStructureNotifier? get changedStructureNotifier => null;
 
+  // Coverage-ignore(suite): Not run.
   void runProcedureTransformations(Procedure procedure) {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
@@ -1635,7 +1771,9 @@ class KernelTarget {
     // for legacy mode.
     assert(
         globalFeatures.nonNullable.isEnabled ||
+            // Coverage-ignore(suite): Not run.
             loader.nnbdMode == NnbdMode.Weak,
+        // Coverage-ignore(suite): Not run.
         "Non-weak nnbd mode found without experiment enabled: "
         "${loader.nnbdMode}.");
     return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
@@ -1646,7 +1784,9 @@ class KernelTarget {
     List<LocatedMessage> errors = verifyComponent(context.options.target,
         VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
-    assert(allowVerificationErrorForTesting || errors.isEmpty,
+    assert(
+        allowVerificationErrorForTesting || errors.isEmpty,
+        // Coverage-ignore(suite): Not run.
         "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
@@ -1659,6 +1799,7 @@ class KernelTarget {
     ticker.logMs("Verified component");
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Return `true` if the given [library] was built by this [KernelTarget]
   /// from sources, and not loaded from a [DillTarget].
   /// Note that this is meant for debugging etc and that it is slow, each

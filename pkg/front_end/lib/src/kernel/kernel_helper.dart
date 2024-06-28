@@ -309,6 +309,7 @@ void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
     Expression annotation = annotations[i];
     if (annotation is FileUriExpression &&
         annotation.fileUri == annotatableFileUri) {
+      // Coverage-ignore-block(suite): Not run.
       annotations[i] = annotation.expression..parent = annotatable;
     }
   }

@@ -85,7 +85,9 @@ class BuilderMixinInferrer {
       if (mixinSuperclass.implementedTypes.length == 2) {
         s0 = mixinSuperclass.implementedTypes[0];
         s1 = mixinSuperclass.implementedTypes[1];
-      } else if (mixinSuperclass.implementedTypes.length == 1) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (mixinSuperclass.implementedTypes.length == 1) {
         s0 = mixinSuperclass.supertype!;
         s1 = mixinSuperclass.implementedTypes.first;
       } else {
@@ -102,6 +104,7 @@ class BuilderMixinInferrer {
       Supertype? supertype =
           asInstantiationOf(baseType, mixinSupertype.classNode);
       if (supertype == null) {
+        // Coverage-ignore-block(suite): Not run.
         reportProblem(
             templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
                 baseType.classNode.name, mixinSupertype.asInterfaceType),
@@ -133,6 +136,7 @@ class BuilderMixinInferrer {
     // Generate constraints based on the mixin's supertype.
     generateConstraints(mixinClass, baseType, mixinSupertype);
     if (_mixinInferenceSolution.isUnsolvable) {
+      // Coverage-ignore-block(suite): Not run.
       reportProblem(
           templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
               baseType.classNode.name, mixinSupertype.asInterfaceType),
@@ -141,6 +145,7 @@ class BuilderMixinInferrer {
     // Generate new type parameters with the solution as bounds.
     List<TypeParameter> parameters;
     if (_mixinInferenceSolution.isUnsolvable) {
+      // Coverage-ignore-block(suite): Not run.
       parameters = [...mixinClass.typeParameters];
     } else {
       parameters = [
@@ -177,11 +182,13 @@ class BuilderMixinInferrer {
     return new Supertype(superclass, arguments);
   }
 
+  // Coverage-ignore(suite): Not run.
   void reportProblem(Message message, Class kernelClass) {
     int length = cls.isMixinApplication ? 1 : cls.fullNameForErrors.length;
     cls.addProblem(message, cls.charOffset, length);
   }
 
+  // Coverage-ignore(suite): Not run.
   Never reportUnsupportedProblem(String operation) {
     return unsupported(operation, cls.charOffset, cls.fileUri);
   }
@@ -226,21 +233,26 @@ class _MixinInferenceSolution {
       return <TypeParameter, DartType>{type1.parameter: type2};
     }
     if (type2 is TypeParameterType &&
+        // Coverage-ignore(suite): Not run.
         typeParametersToSolveFor.contains(type2.parameter)) {
+      // Coverage-ignore-block(suite): Not run.
       return <TypeParameter, DartType>{type2.parameter: type1};
     }
     switch (type1) {
       case AuxiliaryType():
+        // Coverage-ignore(suite): Not run.
         return unsupportedErrorReporter.reportUnsupportedProblem(
             "_MixinInferenceSolution._solveForEquality"
             "(${type1.runtimeType}, ${type2.runtimeType})");
       case InvalidType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! InvalidType) {
           return null;
         } else {
           return <TypeParameter, DartType>{};
         }
       case DynamicType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! DynamicType) {
           return null;
         } else {
@@ -253,12 +265,14 @@ class _MixinInferenceSolution {
           return <TypeParameter, DartType>{};
         }
       case NeverType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! NeverType) {
           return null;
         } else {
           return <TypeParameter, DartType>{};
         }
       case NullType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! NullType) {
           return null;
         } else {
@@ -310,9 +324,11 @@ class _MixinInferenceSolution {
           }
           Map<String, NamedType> namedParameterByName1 = <String, NamedType>{
             for (NamedType namedType in type1.namedParameters)
-              namedType.name: namedType
+              namedType // Coverage-ignore(suite): Not run.
+                  .name: namedType
           };
           for (NamedType namedType in type2.namedParameters) {
+            // Coverage-ignore-block(suite): Not run.
             if (!namedParameterByName1.containsKey(namedType.name)) {
               return null;
             } else {
@@ -333,10 +349,12 @@ class _MixinInferenceSolution {
           return result;
         }
       case TypedefType():
+        // Coverage-ignore(suite): Not run.
         return unsupportedErrorReporter.reportUnsupportedProblem(
             "_MixinInferenceSolution._solveForEquality"
             "(${type1.runtimeType}, ${type2.runtimeType})");
       case FutureOrType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! FutureOrType) {
           return null;
         } else {
@@ -344,11 +362,13 @@ class _MixinInferenceSolution {
               unsupportedErrorReporter: unsupportedErrorReporter);
         }
       case IntersectionType():
+        // Coverage-ignore(suite): Not run.
         // Intersection types can't appear in supertypes.
         return unsupportedErrorReporter.reportUnsupportedProblem(
             "_MixinInferenceSolution._solveForEquality"
             "(${type1.runtimeType}, ${type2.runtimeType})");
       case TypeParameterType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! TypeParameterType ||
             type1.parameter != type2.parameter ||
             type1.nullability != type2.nullability) {
@@ -366,6 +386,7 @@ class _MixinInferenceSolution {
           return <TypeParameter, DartType>{};
         }
       case RecordType():
+        // Coverage-ignore(suite): Not run.
         if (type2 is! RecordType) {
           return null;
         } else {
@@ -429,6 +450,7 @@ class _MixinInferenceSolution {
           }
           return result;
         }
+      // Coverage-ignore(suite): Not run.
       case ExtensionType():
         if (type2 is! ExtensionType) {
           return null;
@@ -463,6 +485,7 @@ class _MixinInferenceSolution {
     } else {
       for (TypeParameter typeParameter in result1.keys) {
         if (result2.containsKey(typeParameter)) {
+          // Coverage-ignore-block(suite): Not run.
           if (result1[typeParameter] != result2[typeParameter]) {
             return null;
           }

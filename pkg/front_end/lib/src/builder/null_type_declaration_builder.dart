@@ -22,6 +22,7 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   String get debugName => "NullTypeBuilder";
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType buildAliasedType(
       LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder,
@@ -35,6 +36,7 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
       Nullability nullability,

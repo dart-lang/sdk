@@ -206,6 +206,7 @@ abstract class Generator {
     } else {
       if (_helper.constantContext != ConstantContext.none &&
           selector.name != lengthName) {
+        // Coverage-ignore-block(suite): Not run.
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
@@ -312,10 +313,13 @@ class VariableUseGenerator extends Generator {
 
   VariableUseGenerator(
       ExpressionGeneratorHelper helper, Token token, this.variable)
-      : assert(variable.isAssignable, 'Variable $variable is not assignable'),
+      : assert(
+            variable.isAssignable, // Coverage-ignore(suite): Not run.
+            'Variable $variable is not assignable'),
         super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "VariableUseGenerator";
 
   @override
@@ -399,6 +403,7 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", variable: ");
@@ -428,6 +433,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
       : super(helper, token, variable);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ForInLateFinalVariableUseGenerator";
 
   @override
@@ -474,6 +480,7 @@ class PropertyAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "PropertyAccessGenerator";
 
   @override
@@ -487,6 +494,7 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", receiver: ");
@@ -564,6 +572,7 @@ class PropertyAccessGenerator extends Generator {
   static Generator make(ExpressionGeneratorHelper helper, Token token,
       Expression receiver, Name name, bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
+      // Coverage-ignore-block(suite): Not run.
       return new ThisPropertyAccessGenerator(helper, token, name,
           thisVariable: null,
           thisOffset: receiver.fileOffset,
@@ -624,6 +633,7 @@ class ThisPropertyAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ThisPropertyAccessGenerator";
 
   @override
@@ -707,6 +717,7 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
@@ -727,9 +738,11 @@ class NullAwarePropertyAccessGenerator extends Generator {
         super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "NullAwarePropertyAccessGenerator";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => name.text;
 
   @override
@@ -796,6 +809,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -810,6 +824,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", receiver: ");
@@ -833,9 +848,11 @@ class SuperPropertyAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "SuperPropertyAccessGenerator";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => name.text;
 
   @override
@@ -905,6 +922,7 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -933,6 +951,7 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
@@ -956,9 +975,11 @@ class IndexedAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => "[]";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "IndexedAccessGenerator";
 
   @override
@@ -1067,6 +1088,7 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -1082,6 +1104,7 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", receiver: ");
@@ -1095,6 +1118,7 @@ class IndexedAccessGenerator extends Generator {
       Expression receiver, Expression index,
       {required bool isNullAware}) {
     if (helper.forest.isThisExpression(receiver)) {
+      // Coverage-ignore-block(suite): Not run.
       return new ThisIndexedAccessGenerator(helper, token, index,
           thisOffset: receiver.fileOffset, isNullAware: isNullAware);
     } else {
@@ -1118,9 +1142,11 @@ class ThisIndexedAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => "[]";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ThisIndexedAccessGenerator";
 
   @override
@@ -1172,6 +1198,7 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -1180,6 +1207,7 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -1187,6 +1215,7 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
@@ -1206,9 +1235,11 @@ class SuperIndexedAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => "[]";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "SuperIndexedAccessGenerator";
 
   @override
@@ -1304,6 +1335,7 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -1311,6 +1343,7 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
@@ -1417,6 +1450,7 @@ class StaticAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "StaticAccessGenerator";
 
   @override
@@ -1524,6 +1558,7 @@ class StaticAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", targetName: ");
     sink.write(targetName);
@@ -1624,7 +1659,9 @@ class ExtensionInstanceAccessGenerator extends Generator {
         assert(!getterBuilder.isStatic);
         readTarget = getterBuilder.readTarget as Procedure?;
         invokeTarget = getterBuilder.invokeTarget as Procedure?;
-      } else if (getterBuilder.isOperator) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         invokeTarget = getterBuilder.invokeTarget as Procedure?;
       } else {
@@ -1640,6 +1677,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
         writeTarget = setterBuilder.writeTarget as Procedure?;
+        // Coverage-ignore-block(suite): Not run.
         targetName ??= setterBuilder.name;
       } else {
         return unhandled(
@@ -1662,6 +1700,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "InstanceExtensionAccessGenerator";
 
   @override
@@ -1798,6 +1837,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -1805,6 +1845,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", targetName: ");
     sink.write(targetName);
@@ -1918,6 +1959,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     if (getterBuilder != null) {
       assert(!getterBuilder.isStatic);
       if (getterBuilder is AccessErrorBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         AccessErrorBuilder error = getterBuilder;
         getterBuilder = error.builder;
         // We should only see an access error here if we've looked up a setter
@@ -1985,6 +2027,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ExplicitExtensionIndexedAccessGenerator";
 
   @override
@@ -2056,6 +2099,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       {required bool forEffect}) {
     Expression write;
     if (writeTarget == null) {
+      // Coverage-ignore-block(suite): Not run.
       write = _makeInvalidWrite(value);
     } else {
       write = new ExtensionSet(
@@ -2223,6 +2267,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", targetName: ");
     sink.write(targetName);
@@ -2296,6 +2341,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     Procedure? readTarget;
     if (getterBuilder != null) {
       if (getterBuilder is AccessErrorBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         AccessErrorBuilder error = getterBuilder;
         getterBuilder = error.builder;
         // We should only see an access error here if we've looked up a setter
@@ -2336,14 +2382,17 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => "[]";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ExplicitExtensionIndexedAccessGenerator";
 
   @override
   Expression buildSimpleRead() {
     if (readTarget == null) {
+      // Coverage-ignore-block(suite): Not run.
       return _makeInvalidRead(UnresolvedKind.Method);
     }
     VariableDeclarationImpl? variable;
@@ -2374,6 +2423,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     if (writeTarget == null) {
+      // Coverage-ignore-block(suite): Not run.
       return _makeInvalidWrite(value);
     }
     VariableDeclarationImpl? variable;
@@ -2485,6 +2535,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -2500,6 +2551,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
@@ -2548,12 +2600,14 @@ class ExplicitExtensionAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported(
         "ExplicitExtensionAccessGenerator.plainNameForRead", fileOffset, _uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ExplicitExtensionAccessGenerator";
 
   @override
@@ -2562,11 +2616,13 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return _makeInvalidRead();
@@ -2624,6 +2680,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
       Selector selector, int operatorOffset, bool isNullAware) {
     selector.reportNewAsSelector();
     if (_helper.constantContext != ConstantContext.none) {
+      // Coverage-ignore-block(suite): Not run.
       _helper.addProblem(
           messageNotAConstantExpression, fileOffset, token.length);
     }
@@ -2671,6 +2728,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(Expression value) {
     return _helper.buildProblem(
         messageExplicitExtensionAsLvalue, fileOffset, lengthForToken(token));
@@ -2682,6 +2740,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Builder? getter = extensionBuilder.lookupLocalMemberByName(indexGetName);
     Builder? setter = extensionBuilder.lookupLocalMemberByName(indexSetName);
     if (getter == null && setter == null) {
+      // Coverage-ignore-block(suite): Not run.
       return new UnresolvedNameGenerator(_helper, token, indexGetName,
           unresolvedReadKind: UnresolvedKind.Method);
     }
@@ -2704,6 +2763,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", extensionBuilder: ");
     sink.write(extensionBuilder);
@@ -2720,9 +2780,11 @@ class LoadLibraryGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => 'loadLibrary';
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "LoadLibraryGenerator";
 
   @override
@@ -2735,11 +2797,13 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     Expression read = buildSimpleRead();
@@ -2749,6 +2813,7 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
@@ -2760,6 +2825,7 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
@@ -2773,6 +2839,7 @@ class LoadLibraryGenerator extends Generator {
       {bool isTypeArgumentsInForest = false}) {
     if (_forest.argumentsPositional(arguments).length > 0 ||
         _forest.argumentsNamed(arguments).length > 0) {
+      // Coverage-ignore-block(suite): Not run.
       _helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
@@ -2780,6 +2847,7 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -2787,6 +2855,7 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", builder: ");
     sink.write(builder);
@@ -2817,6 +2886,7 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return _helper.wrapInDeferredCheck(
@@ -2827,6 +2897,7 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
@@ -2843,6 +2914,7 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _helper.wrapInDeferredCheck(
@@ -2869,11 +2941,13 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported("deferredAccessor.plainNameForRead", fileOffset, _uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "DeferredAccessGenerator";
 
   @override
@@ -2890,6 +2964,7 @@ class DeferredAccessGenerator extends Generator {
     LocatedMessage message;
     if (type is NamedTypeBuilder &&
         type.declaration is InvalidTypeDeclarationBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       InvalidTypeDeclarationBuilder declaration =
           type.declaration as InvalidTypeDeclarationBuilder;
       message = declaration.message;
@@ -2943,6 +3018,7 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -2950,6 +3026,7 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", prefixGenerator: ");
     sink.write(prefixGenerator);
@@ -3000,6 +3077,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   String get targetName => typeName.name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "TypeUseGenerator";
 
   @override
@@ -3008,6 +3086,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       {required bool allowPotentiallyConstantType,
       required bool performTypeCanonicalization}) {
     if (declaration is OmittedTypeDeclarationBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       // TODO(johnniwinther): Report errors when this occurs in-body or with
       // type arguments.
       // TODO(johnniwinther): Handle nullability.
@@ -3044,6 +3123,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", declaration: ");
     sink.write(declaration);
@@ -3099,11 +3179,17 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 ClassBuilder() => true,
                 ExtensionBuilder() => false,
                 ExtensionTypeDeclarationBuilder() => true,
+                // Coverage-ignore(suite): Not run.
                 TypeAliasBuilder() => false,
+                // Coverage-ignore(suite): Not run.
                 NominalVariableBuilder() => false,
+                // Coverage-ignore(suite): Not run.
                 StructuralVariableBuilder() => false,
+                // Coverage-ignore(suite): Not run.
                 InvalidTypeDeclarationBuilder() => false,
+                // Coverage-ignore(suite): Not run.
                 BuiltinTypeDeclarationBuilder() => false,
+                // Coverage-ignore(suite): Not run.
                 // TODO(johnniwinther): How should we handle this case?
                 OmittedTypeDeclarationBuilder() => false,
                 null => false,
@@ -3116,6 +3202,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           .toList();
       if (aliasedTypeArguments != null &&
           aliasedTypeArguments.length != aliasBuilder.typeVariablesCount) {
+        // Coverage-ignore-block(suite): Not run.
         _helper.libraryBuilder.addProblem(
             templateTypeArgumentMismatch
                 .withArguments(aliasBuilder.typeVariablesCount),
@@ -3176,6 +3263,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         if (send is PropertySelector) {
           assert(
               send.typeArguments == null,
+              // Coverage-ignore(suite): Not run.
               "Unexpected non-null typeArguments of "
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
@@ -3232,11 +3320,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                           in declarationBuilder.cls.typeParameters) {
                         builtTypeArguments.add(typeParameter.defaultType);
                       }
+                    // Coverage-ignore(suite): Not run.
                     case ExtensionTypeDeclarationBuilder():
                       for (TypeParameter typeParameter in declarationBuilder
                           .extensionTypeDeclaration.typeParameters) {
                         builtTypeArguments.add(typeParameter.defaultType);
                       }
+                    // Coverage-ignore(suite): Not run.
                     case ExtensionBuilder():
                       throw new UnsupportedError(
                           "Unexpected declaration $declarationBuilder");
@@ -3266,6 +3356,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                         name.text, nameOffset, _uri, _helper.libraryBuilder);
                 if (tearOffLowering != null) {
                   if (tearOffLowering.isFactory) {
+                    // Coverage-ignore-block(suite): Not run.
                     return _helper.forest.createConstructorTearOff(
                         token.charOffset, tearOffLowering);
                   } else {
@@ -3367,6 +3458,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               offsetForToken(send.token), send.typeArguments, arguments,
               isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       // `SomeType?.toString` is the same as `SomeType.toString`, not
       // `(SomeType).toString`.
       return super.buildSelectorAccess(send, operatorOffset, isNullAware);
@@ -3479,6 +3571,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   Expression get expression;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ReadOnlyAccessGenerator";
 
   @override
@@ -3571,6 +3664,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", expression: ");
@@ -3592,6 +3686,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
       required UnresolvedKind kind,
       int? charOffset});
 
+  // Coverage-ignore(suite): Not run.
   Name get name => unsupported("name", fileOffset, _uri);
 
   @override
@@ -3605,6 +3700,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression_Generator_Initializer doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -3620,11 +3716,13 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = -1,
       bool voidContext = false,
@@ -3654,22 +3752,26 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildSimpleRead() {
     return buildError(kind: UnresolvedKind.Member);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression _makeInvalidRead(UnresolvedKind unresolvedKind) {
     return buildError(kind: unresolvedKind);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(Expression value) {
     return buildError(rhs: value, kind: UnresolvedKind.Setter);
   }
@@ -3695,6 +3797,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -3723,6 +3826,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "UnresolvedNameGenerator";
 
   @override
@@ -3771,6 +3875,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
@@ -3797,11 +3902,13 @@ abstract class ContextAwareGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported("plainNameForRead", token.charOffset, _helper.uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Never doInvocation(
       int charOffset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -3809,17 +3916,20 @@ abstract class ContextAwareGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = -1,
       bool voidContext = false,
@@ -3829,29 +3939,34 @@ abstract class ContextAwareGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset = -1, bool voidContext = false}) {
     return _makeInvalidWrite(null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = -1, bool voidContext = false}) {
     return _makeInvalidWrite(null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Never _makeInvalidRead([UnresolvedKind? unresolvedKind]) {
     return unsupported("makeInvalidRead", token.charOffset, _helper.uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(Expression? value) {
     return _helper.buildProblem(messageIllegalAssignmentToNonAssignable,
         fileOffset, lengthForToken(token));
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -3869,6 +3984,7 @@ class DelayedAssignment extends ContextAwareGenerator {
       : super(helper, token, generator);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "DelayedAssignment";
 
   @override
@@ -3898,18 +4014,22 @@ class DelayedAssignment extends ContextAwareGenerator {
       return generator.buildCompoundAssignment(multiplyName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
+      // Coverage-ignore-block(suite): Not run.
       return generator.buildCompoundAssignment(percentName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
       return generator.buildCompoundAssignment(ampersandName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
+      // Coverage-ignore-block(suite): Not run.
       return generator.buildCompoundAssignment(divisionName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
+      // Coverage-ignore-block(suite): Not run.
       return generator.buildCompoundAssignment(leftShiftName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
+      // Coverage-ignore-block(suite): Not run.
       return generator.buildCompoundAssignment(rightShiftName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical(">>>=", assignmentOperator)) {
@@ -3919,7 +4039,9 @@ class DelayedAssignment extends ContextAwareGenerator {
       return generator.buildIfNullAssignment(
           value, const DynamicType(), fileOffset,
           voidContext: voidContext);
-    } else if (identical("^=", assignmentOperator)) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (identical("^=", assignmentOperator)) {
       return generator.buildCompoundAssignment(caretName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
@@ -3945,6 +4067,7 @@ class DelayedAssignment extends ContextAwareGenerator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", value: ");
     printNodeOn(value, sink);
@@ -3961,6 +4084,7 @@ class DelayedPostfixIncrement extends ContextAwareGenerator {
       : super(helper, token, generator);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "DelayedPostfixIncrement";
 
   @override
@@ -3976,6 +4100,7 @@ class DelayedPostfixIncrement extends ContextAwareGenerator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", binaryOperator: ");
     sink.write(binaryOperator.text);
@@ -3992,6 +4117,7 @@ class PrefixUseGenerator extends Generator {
   String get _plainNameForRead => prefix.name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "PrefixUseGenerator";
 
   @override
@@ -4003,12 +4129,14 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return _makeInvalidRead();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
@@ -4018,6 +4146,7 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _makeInvalidRead();
@@ -4026,6 +4155,7 @@ class PrefixUseGenerator extends Generator {
   @override
   /* Expression | Generator */ Object qualifiedLookup(Token nameToken) {
     if (_helper.constantContext != ConstantContext.none && prefix.deferred) {
+      // Coverage-ignore-block(suite): Not run.
       _helper.addProblem(
           templateCantUseDeferredPrefixAsConstant.withArguments(token),
           fileOffset,
@@ -4040,6 +4170,7 @@ class PrefixUseGenerator extends Generator {
               new DeferredAccessGenerator(_helper, nameToken, this, result);
         }
       } else {
+        // Coverage-ignore-block(suite): Not run.
         _helper.wrapInDeferredCheck(result as Expression, prefix, fileOffset);
       }
     }
@@ -4060,7 +4191,9 @@ class PrefixUseGenerator extends Generator {
   @override
   Expression_Generator buildSelectorAccess(
       Selector selector, int operatorOffset, bool isNullAware) {
-    assert(selector.name.text == selector.token.lexeme,
+    assert(
+        selector.name.text == selector.token.lexeme,
+        // Coverage-ignore(suite): Not run.
         "'${selector.name.text}' != ${selector.token.lexeme}");
     selector.reportNewAsSelector();
     Object result = qualifiedLookup(selector.token);
@@ -4088,6 +4221,7 @@ class PrefixUseGenerator extends Generator {
   Expression _makeInvalidWrite(Expression value) => _makeInvalidRead();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -4095,6 +4229,7 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", prefix: ");
     sink.write(prefix.name);
@@ -4117,23 +4252,28 @@ class UnexpectedQualifiedUseGenerator extends Generator {
       "${prefixGenerator._plainNameForRead}.${token.lexeme}";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "UnexpectedQualifiedUseGenerator";
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildSimpleRead() => _makeInvalidRead(UnresolvedKind.Member);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(value);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return _makeInvalidRead(UnresolvedKind.Member);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
@@ -4143,12 +4283,14 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _makeInvalidRead(UnresolvedKind.Member);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -4180,6 +4322,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -4187,6 +4330,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", prefixGenerator: ");
     prefixGenerator.printOn(sink);
@@ -4201,12 +4345,15 @@ class ParserErrorGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => "#parser-error";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ParserErrorGenerator";
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {}
 
   Expression buildProblem() {
@@ -4223,12 +4370,14 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return buildProblem();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
@@ -4238,22 +4387,26 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildProblem();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildProblem();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression _makeInvalidRead([UnresolvedKind? unresolvedKind]) =>
       buildProblem();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(Expression value) => buildProblem();
 
   @override
@@ -4262,6 +4415,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression doInvocation(
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
@@ -4269,6 +4423,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildSelectorAccess(
       Selector send, int operatorOffset, bool isNullAware) {
     return buildProblem();
@@ -4296,6 +4451,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression invokeConstructor(
       List<TypeBuilder>? typeArguments,
       String name,
@@ -4308,6 +4464,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
@@ -4381,12 +4538,14 @@ class ThisAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported(
         "${isSuper ? 'super' : 'this'}.plainNameForRead", fileOffset, _uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ThisAccessGenerator";
 
   @override
@@ -4500,6 +4659,7 @@ class ThisAccessGenerator extends Generator {
       }
       return result;
     }
+    // Coverage-ignore(suite): Not run.
     return super.buildEqualsOperation(token, right, isNot: isNot);
   }
 
@@ -4511,6 +4671,7 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildSuperInvocation(binaryName,
           _forest.createArguments(offset, <Expression>[right]), offset);
     }
+    // Coverage-ignore(suite): Not run.
     return super.buildBinaryOperation(token, binaryName, right);
   }
 
@@ -4521,6 +4682,7 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildSuperInvocation(
           unaryName, _forest.createArgumentsEmpty(offset), offset);
     }
+    // Coverage-ignore(suite): Not run.
     return super.buildUnaryOperation(token, unaryName);
   }
 
@@ -4552,17 +4714,20 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return buildAssignmentError();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     return buildAssignmentError();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
@@ -4572,12 +4737,14 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildAssignmentError();
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return buildAssignmentError();
@@ -4599,6 +4766,7 @@ class ThisAccessGenerator extends Generator {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   Expression buildAssignmentError() {
     return _helper.buildProblem(
         isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
@@ -4607,6 +4775,7 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", isInitializer: ");
     sink.write(isInitializer);
@@ -4627,9 +4796,11 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead => token.lexeme;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "IncompleteErrorGenerator";
 
   @override
@@ -4660,6 +4831,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", message: ");
     sink.write(message.code.name);
@@ -4700,6 +4872,7 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
       _helper.forest.createParenthesized(expression.fileOffset, expression);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "ParenthesizedExpressionGenerator";
 
   @override
@@ -4713,7 +4886,9 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
           isConstantExpression: selector.isPotentiallyConstant);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
+          // Coverage-ignore(suite): Not run.
           selector.name != lengthName) {
+        // Coverage-ignore-block(suite): Not run.
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
@@ -4767,6 +4942,7 @@ abstract class Selector {
 
   List<TypeBuilder>? get typeArguments => null;
 
+  // Coverage-ignore(suite): Not run.
   bool get isTypeArgumentsInForest => true;
 
   Arguments? get arguments => null;
@@ -4827,6 +5003,7 @@ class InvocationSelector extends Selector {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => 'InvocationSelector';
 
   @override
@@ -4842,6 +5019,7 @@ class InvocationSelector extends Selector {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
@@ -4870,6 +5048,7 @@ class PropertySelector extends Selector {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => 'PropertySelector';
 
   @override
@@ -4884,6 +5063,7 @@ class PropertySelector extends Selector {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
@@ -4898,9 +5078,11 @@ class AugmentSuperAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _debugName => "AugmentSuperGenerator";
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported("augment super.plainNameForRead", fileOffset, _uri);
   }
@@ -4982,6 +5164,7 @@ class AugmentSuperAccessGenerator extends Generator {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
+    // Coverage-ignore-block(suite): Not run.
     VariableDeclarationImpl read =
         _helper.createVariableDeclarationForValue(_createRead());
     Expression binary = _helper.forest.createBinary(offset,
@@ -5011,6 +5194,7 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", augmentSuperTarget: ");
     sink.write(augmentSuperTarget);

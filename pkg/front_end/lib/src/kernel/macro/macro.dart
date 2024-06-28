@@ -47,6 +47,7 @@ class MacroDeclarationData {
   List<Map<Uri, Map<String, List<String>>>> neededPrecompilations = [];
 }
 
+// Coverage-ignore(suite): Not run.
 class MacroApplication {
   final UriOffset uriOffset;
   final ClassBuilder classBuilder;
@@ -115,6 +116,7 @@ class MacroApplication {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
   Map<SourceLibraryBuilder, String> libraryTypesResult = {};
@@ -182,6 +184,7 @@ class MacroExecutionResultsForTesting {
   List<macro.MacroExecutionResult> definitionsResults = [];
 }
 
+// Coverage-ignore(suite): Not run.
 class ApplicationDataForTesting {
   final ApplicationData applicationData;
   final MacroApplication macroApplication;
@@ -216,6 +219,7 @@ class ExtensionTypeMacroApplicationData {
   Map<MemberBuilder, ApplicationData> memberApplications = {};
 }
 
+// Coverage-ignore(suite): Not run.
 /// Macro classes that need to be precompiled.
 class NeededPrecompilations {
   /// Map from library uris to macro class names and the names of constructor
@@ -226,6 +230,7 @@ class NeededPrecompilations {
   NeededPrecompilations(this.macroDeclarations);
 }
 
+// Coverage-ignore(suite): Not run.
 void checkMacroApplications(
     ClassHierarchy hierarchy,
     Class macroClass,
@@ -396,6 +401,7 @@ void checkMacroApplications(
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class MacroApplications {
   final SourceLoader _sourceLoader;
   final macro.MacroExecutor _macroExecutor;
@@ -1262,6 +1268,7 @@ class MacroApplications {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 macro.DeclarationKind _declarationKind(macro.Declaration declaration) {
   if (declaration is macro.ConstructorDeclaration) {
     return macro.DeclarationKind.constructor;
@@ -1286,6 +1293,7 @@ macro.DeclarationKind _declarationKind(macro.Declaration declaration) {
       "Unexpected declaration ${declaration} (${declaration.runtimeType})");
 }
 
+// Coverage-ignore(suite): Not run.
 /// Data needed to apply a list of macro applications to a macro target.
 abstract class ApplicationData {
   final MacroIntrospection _macroIntrospection;
@@ -1304,6 +1312,7 @@ abstract class ApplicationData {
   String get textForTesting;
 }
 
+// Coverage-ignore(suite): Not run.
 class LibraryApplicationData extends ApplicationData {
   macro.MacroTarget? _macroTarget;
 
@@ -1325,6 +1334,7 @@ class LibraryApplicationData extends ApplicationData {
   String get textForTesting => libraryBuilder.importUri.toString();
 }
 
+// Coverage-ignore(suite): Not run.
 /// Data needed to apply a list of macro applications to a class or member.
 abstract class DeclarationApplicationData extends ApplicationData {
   macro.Declaration? _declaration;
@@ -1341,6 +1351,7 @@ abstract class DeclarationApplicationData extends ApplicationData {
   macro.DeclarationKind get declarationKind => _declarationKind(declaration);
 }
 
+// Coverage-ignore(suite): Not run.
 class ClassApplicationData extends DeclarationApplicationData {
   final SourceClassBuilder _classBuilder;
 
@@ -1360,6 +1371,7 @@ class ClassApplicationData extends DeclarationApplicationData {
   String get textForTesting => _classBuilder.name;
 }
 
+// Coverage-ignore(suite): Not run.
 class ExtensionTypeApplicationData extends DeclarationApplicationData {
   final SourceExtensionTypeDeclarationBuilder _extensionTypeDeclarationBuilder;
 
@@ -1379,6 +1391,7 @@ class ExtensionTypeApplicationData extends DeclarationApplicationData {
   String get textForTesting => _extensionTypeDeclarationBuilder.name;
 }
 
+// Coverage-ignore(suite): Not run.
 class MemberApplicationData extends DeclarationApplicationData {
   final MemberBuilder _memberBuilder;
 
@@ -1406,6 +1419,7 @@ class MemberApplicationData extends DeclarationApplicationData {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 extension on macro.MacroExecutionResult {
   bool get isNotEmpty =>
       enumValueAugmentations.isNotEmpty ||
@@ -1470,6 +1484,7 @@ extension on macro.MacroExecutionResult {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 extension DeclarationKindHelper on macro.DeclarationKind {
   /// Returns the plural form description for the declaration kind.
   String plural() => switch (this) {
