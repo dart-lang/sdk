@@ -877,7 +877,6 @@ severity: $severity
 
   Future<Token> tokenize(SourceCompilationUnit compilationUnit,
       {bool suppressLexicalErrors = false}) async {
-    SourceLibraryBuilder libraryBuilder = compilationUnit.sourceLibraryBuilder;
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
     Uri fileUri = compilationUnit.fileUri;
 
@@ -940,21 +939,21 @@ severity: $severity
             enableTripleShift: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.tripleShift,
                 compilationUnit.importUri,
-                libraryBuilder.packageLanguageVersion.version),
+                compilationUnit.packageLanguageVersion.version),
             enableExtensionMethods:
                 target.isExperimentEnabledInLibraryByVersion(
                     ExperimentalFlag.extensionMethods,
                     compilationUnit.importUri,
-                    libraryBuilder.packageLanguageVersion.version),
+                    compilationUnit.packageLanguageVersion.version),
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.nonNullable,
                 compilationUnit.importUri,
-                libraryBuilder.packageLanguageVersion.version),
-            forAugmentationLibrary: libraryBuilder.isAugmentationLibrary),
+                compilationUnit.packageLanguageVersion.version),
+            forAugmentationLibrary: compilationUnit.forAugmentationLibrary),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
-        libraryBuilder.registerExplicitLanguageVersion(
+        compilationUnit.registerExplicitLanguageVersion(
             new Version(version.major, version.minor),
             offset: version.offset,
             length: version.length);
@@ -973,35 +972,35 @@ severity: $severity
       /// We use the [importUri] of the created [Library] and not the
       /// [importUri] of the [LibraryBuilder] since it might be an augmentation
       /// library which is not directly part of the output.
-      Uri importUri = libraryBuilder.library.importUri;
-      if (libraryBuilder.isAugmenting) {
-        // For augmentation libraries we create a "fake" import uri.
+      Uri importUri = compilationUnit.library.importUri;
+      if (compilationUnit.isAugmenting) {
+        // For patch libraries we create a "fake" import uri.
         // We cannot use the import uri from the augmented library because
         // several different files would then have the same import uri,
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
-        if (libraryBuilder.isPatchLibrary) {
+        if (compilationUnit.forPatchLibrary) {
           // TODO(johnniwinther): Use augmentation-like solution for patching.
           List<String> newPathSegments =
               new List<String>.of(importUri.pathSegments);
-          newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
+          newPathSegments.add(compilationUnit.fileUri.pathSegments.last);
           newPathSegments[0] = "${newPathSegments[0]}-patch";
           importUri = importUri.replace(pathSegments: newPathSegments);
         } else {
-          importUri = libraryBuilder.importUri;
+          importUri = compilationUnit.importUri;
         }
       }
       target.addSourceInformation(
-          importUri, libraryBuilder.fileUri, result.lineStarts, source);
+          importUri, compilationUnit.fileUri, result.lineStarts, source);
     }
-    libraryBuilder.issuePostponedProblems();
-    libraryBuilder.markLanguageVersionFinal();
+    compilationUnit.issuePostponedProblems();
+    compilationUnit.markLanguageVersionFinal();
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        libraryBuilder.addProblem(error.assertionMessage, offsetForToken(token),
-            lengthForToken(token), fileUri);
+        compilationUnit.addProblem(error.assertionMessage,
+            offsetForToken(token), lengthForToken(token), fileUri);
       }
       token = token.next!;
     }

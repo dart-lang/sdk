@@ -158,10 +158,25 @@ class SourceCompilationUnitImpl
       : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder;
 
   @override
-  SourceLibraryBuilder get sourceLibraryBuilder => _sourceLibraryBuilder;
+  LanguageVersion get packageLanguageVersion =>
+      _sourceLibraryBuilder.packageLanguageVersion;
+
+  @override
+  void registerExplicitLanguageVersion(Version version,
+      {int offset = 0, int length = noLength}) {
+    _sourceLibraryBuilder.registerExplicitLanguageVersion(version,
+        offset: offset, length: length);
+  }
 
   @override
   LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
+
+  @override
+  bool get forAugmentationLibrary =>
+      _sourceLibraryBuilder.isAugmentationLibrary;
+
+  @override
+  bool get forPatchLibrary => _sourceLibraryBuilder.isPatchLibrary;
 
   @override
   bool get isDartLibrary =>
@@ -279,6 +294,16 @@ class SourceCompilationUnitImpl
       }
       accessProblem = message;
     }
+  }
+
+  @override
+  void issuePostponedProblems() {
+    _sourceLibraryBuilder.issuePostponedProblems();
+  }
+
+  @override
+  void markLanguageVersionFinal() {
+    _sourceLibraryBuilder.markLanguageVersionFinal();
   }
 
   @override
@@ -3300,6 +3325,10 @@ class SourceCompilationUnitImpl
       }
     }
   }
+
+  @override
+  // TODO(johnniwinther): Avoid using [_sourceLibraryBuilder.library] here.
+  Uri get originImportUri => _sourceLibraryBuilder.library.importUri;
 }
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
@@ -3396,7 +3425,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// of the package it belongs to, if present, or the current language version
   /// otherwise.
   ///
-  /// This language version we be used as the language version for the library
+  /// This language version will be used as the language version for the library
   /// if the library does not contain an explicit @dart= annotation.
   final LanguageVersion packageLanguageVersion;
 
