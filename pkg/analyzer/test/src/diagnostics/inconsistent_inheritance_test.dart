@@ -179,6 +179,42 @@ abstract class C implements A, B {}
     ]);
   }
 
+  test_enum_returnType() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B {
+  String foo();
+}
+
+enum E implements A, B {v}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 78, 1),
+    ]);
+  }
+
+  test_enum_returnType_augmentation() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B {
+  String foo();
+}
+
+enum E implements A {v}
+
+augment enum E implements B {
+  augment v;
+}
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 78, 1),
+    ]);
+  }
+
   test_mixin_implements_parameterType() async {
     await assertErrorsInCode(r'''
 abstract class A {
