@@ -101,11 +101,6 @@ mixin ResourceProviderMixin {
     return newFile(path, content);
   }
 
-  @Deprecated('Use newAnalysisOptionsYamlFile() instead')
-  File newAnalysisOptionsYamlFile2(String directoryPath, String content) {
-    return newAnalysisOptionsYamlFile(directoryPath, content);
-  }
-
   File newBlazeBuildFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.blazeBuild);
     return newFile(path, content);
@@ -119,12 +114,6 @@ mixin ResourceProviderMixin {
   File newFile(String path, String content) {
     String convertedPath = convertPath(path);
     return resourceProvider.getFile(convertedPath)..writeAsStringSync(content);
-  }
-
-  @Deprecated('Use newFile() instead')
-  File newFile2(String path, String content) {
-    String convertedPath = convertPath(path);
-    return resourceProvider.getFile(content)..writeAsStringSync(convertedPath);
   }
 
   Folder newFolder(String path) {

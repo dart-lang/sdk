@@ -395,7 +395,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile2(
+    newFile(
       path,
       config.toContent(
         toUriStr: toUriStr,
@@ -567,11 +567,11 @@ abstract class _ContextResolutionTest
   String get testFilePath => '/test/lib/test.dart';
 
   void addTestFile(String content) {
-    newFile2(testFilePath, content);
+    newFile(testFilePath, content);
   }
 
   @override
-  File newFile2(String path, String content) {
+  File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
       throw StateError('Only dart files can be changed after analysis.');
     }
