@@ -313,7 +313,9 @@ class ProcessedOptions {
   Future<bool> validateOptions({bool errorOnMissingInput = true}) async {
     _validated = true;
 
-    if (verbose) print(debugString());
+    if (verbose) {
+      print(debugString());
+    }
 
     if (errorOnMissingInput && inputs.isEmpty) {
       reportWithoutLocation(messageMissingInput, Severity.error);
@@ -520,7 +522,9 @@ class ProcessedOptions {
     String name = target.name;
     // TODO(sigmund): Eek! We should get to the point where there is no
     // fasta-specific targets and the target names are meaningful.
-    if (name.endsWith('_fasta')) name = name.substring(0, name.length - 6);
+    if (name.endsWith('_fasta')) {
+      name = name.substring(0, name.length - 6);
+    }
 
     if (librariesSpecificationUri == null ||
         !await fileSystem.entityForUri(librariesSpecificationUri!).exists()) {
@@ -551,7 +555,9 @@ class ProcessedOptions {
   /// This is an asynchronous getter since file system operations may be
   /// required to locate/read the packages file.
   Future<PackageConfig> _getPackages() async {
-    if (_packages != null) return _packages!;
+    if (_packages != null) {
+      return _packages!;
+    }
     _packageConfigAndUri = null;
     if (_raw.packagesFileUri != null) {
       _packageConfigAndUri =

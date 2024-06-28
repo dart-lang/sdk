@@ -9505,7 +9505,9 @@ class BodyBuilder extends StackListenerImpl
   List<DartType> buildDartTypeArguments(
       List<TypeBuilder>? unresolvedTypes, TypeUse typeUse,
       {required bool allowPotentiallyConstantType}) {
-    if (unresolvedTypes == null) return <DartType>[];
+    if (unresolvedTypes == null) {
+      return <DartType>[];
+    }
     return new List<DartType>.generate(
         unresolvedTypes.length,
         (int i) => buildDartType(unresolvedTypes[i], typeUse,

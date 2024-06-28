@@ -24,7 +24,9 @@ class Ticker {
   void log(void f(Duration elapsed, Duration sinceStart)) {
     Duration elapsed = sw.elapsed;
     try {
-      if (isVerbose) f(elapsed - previousTick, elapsed);
+      if (isVerbose) {
+        f(elapsed - previousTick, elapsed);
+      }
     } finally {
       previousTick = sw.elapsed;
     }

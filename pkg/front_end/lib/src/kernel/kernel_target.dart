@@ -422,7 +422,9 @@ class KernelTarget {
   }
 
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
-    if (loader.roots.isEmpty) return new BuildResult();
+    if (loader.roots.isEmpty) {
+      return new BuildResult();
+    }
     return await withCrashReporting<BuildResult>(() async {
       if (!_hasComputedNeededPrecompilations) {
         NeededPrecompilations? neededPrecompilations =

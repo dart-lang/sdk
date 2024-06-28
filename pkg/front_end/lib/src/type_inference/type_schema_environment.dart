@@ -357,7 +357,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
     } else {
       // Prefer the known bound, if any.
-      if (isKnown(constraint.upper)) return constraint.upper;
+      if (isKnown(constraint.upper)) {
+        return constraint.upper;
+      }
       if (isKnown(constraint.lower)) return constraint.lower;
 
       // Otherwise take whatever bound has partial information,

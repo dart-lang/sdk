@@ -143,7 +143,9 @@ abstract class _SortableChunk extends _TokenChunk {
 
   @override
   int compareTo(_Chunk o) {
-    if (o is! _SortableChunk) return super.compareTo(o);
+    if (o is! _SortableChunk) {
+      return super.compareTo(o);
+    }
 
     _SortableChunk other = o;
 

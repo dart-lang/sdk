@@ -388,10 +388,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 518,
     missCount: 91,
   ),
-  // 69.86301369863014%.
+  // 71.23287671232876%.
   "package:front_end/src/compute_platform_binaries_location.dart": (
-    hitCount: 51,
-    missCount: 22,
+    hitCount: 52,
+    missCount: 21,
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_builder_mixins.dart": (
@@ -423,10 +423,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 129,
     missCount: 25,
   ),
-  // 84.61538461538461%.
+  // 85.05154639175258%.
   "package:front_end/src/dill/dill_library_builder.dart": (
     hitCount: 330,
-    missCount: 60,
+    missCount: 58,
   ),
   // 77.03349282296651%.
   "package:front_end/src/dill/dill_loader.dart": (
