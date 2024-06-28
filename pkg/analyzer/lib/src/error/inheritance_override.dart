@@ -28,13 +28,12 @@ class InheritanceOverrideVerifier {
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
   final ErrorReporter _reporter;
-  final bool _strictCasts;
 
   InheritanceOverrideVerifier(
-      this._typeSystem, this._inheritance, this._reporter,
-      {required bool strictCasts})
-      : _typeProvider = _typeSystem.typeProvider,
-        _strictCasts = strictCasts;
+    this._typeSystem,
+    this._inheritance,
+    this._reporter,
+  ) : _typeProvider = _typeSystem.typeProvider;
 
   void verifyUnit(CompilationUnit unit) {
     var library = unit.declaredElement!.library as LibraryElementImpl;
@@ -51,7 +50,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -72,7 +70,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -92,7 +89,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
@@ -112,7 +108,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -158,7 +153,6 @@ class _ClassVerifier {
   final LibraryElementImpl library;
   final Uri libraryUri;
   final InterfaceElement classElement;
-  final bool strictCasts;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -181,7 +175,6 @@ class _ClassVerifier {
     required this.library,
     required this.classNameToken,
     required this.classElement,
-    required this.strictCasts,
     this.implementsClause,
     this.members = const [],
     this.onClause,
