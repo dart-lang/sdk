@@ -602,6 +602,23 @@ class B implements A {
     ]);
   }
 
+  test_method_returnType_interface_fromAugmentation() async {
+    await assertErrorsInCode('''
+class A {
+  int foo() => 0;
+}
+
+class B {
+  String foo() => '';
+}
+
+augment class B implements A {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 3,
+          contextMessages: [message(testFile, 16, 3)]),
+    ]);
+  }
+
   test_method_returnType_interface_grandparent() async {
     await assertErrorsInCode('''
 abstract class A {
@@ -643,6 +660,23 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 65, 1,
           contextMessages: [message(testFile, 16, 1)]),
+    ]);
+  }
+
+  test_method_returnType_superclass_fromAugmentation() async {
+    await assertErrorsInCode('''
+class A {
+  int foo() => 0;
+}
+
+class B {
+  String foo() => '';
+}
+
+augment class B extends A {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 3,
+          contextMessages: [message(testFile, 16, 3)]),
     ]);
   }
 
@@ -694,7 +728,7 @@ class B extends A {
     ]);
   }
 
-  test_mixin_field_type() async {
+  test_mixin_field_type_on() async {
     await assertErrorsInCode(r'''
 class A {
   String foo = '';
@@ -711,7 +745,7 @@ mixin M on A {
     ]);
   }
 
-  test_mixin_getter_type() async {
+  test_mixin_getter_type_on() async {
     await assertErrorsInCode(r'''
 class A {
   String get foo => '';
@@ -726,7 +760,7 @@ mixin M on A {
     ]);
   }
 
-  test_mixin_method_returnType() async {
+  test_mixin_method_returnType_on() async {
     await assertErrorsInCode(r'''
 class A {
   String foo() => '';
@@ -741,7 +775,24 @@ mixin M on A {
     ]);
   }
 
-  test_mixin_setter_type() async {
+  test_mixin_method_returnType_on_fromAugmentation() async {
+    await assertErrorsInCode(r'''
+class A {
+  int foo() => 0;
+}
+
+mixin M {
+  String foo() => '';
+}
+
+augment mixin M on A {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 3,
+          contextMessages: [message(testFile, 16, 3)]),
+    ]);
+  }
+
+  test_mixin_setter_type_on() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(String _) {}
