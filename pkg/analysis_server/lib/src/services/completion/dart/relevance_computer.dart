@@ -86,46 +86,48 @@ class RelevanceComputer {
   }
 
   /// Compute the relevance for the given [CandidateSuggestion].
-  int computeRelevance(CandidateSuggestion suggestion,
-      {double inheritanceDistance = 0.0, bool isNotImportedLibrary = false}) {
+  int computeRelevance(CandidateSuggestion suggestion) {
     var neverType = request.libraryElement.typeProvider.neverType;
     switch (suggestion) {
       case ClassSuggestion():
         return computeTopLevelRelevance(suggestion.element,
             elementType:
                 instantiateInstanceElement(suggestion.element, neverType),
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case ClosureSuggestion():
         return Relevance.closure;
       case ConstructorSuggestion():
         return _computeConstructorRelevance(
-            suggestion.element, neverType, isNotImportedLibrary);
+            suggestion.element, neverType, suggestion.isNotImported);
       case EnumConstantSuggestion():
         return _computeEnumConstRelevance(
-            suggestion, isNotImportedLibrary, inheritanceDistance);
+            suggestion, suggestion.isNotImported, 0.0);
       case EnumSuggestion():
         return computeTopLevelRelevance(suggestion.element,
             elementType:
                 instantiateInstanceElement(suggestion.element, neverType),
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case ExtensionSuggestion():
         return computeTopLevelRelevance(suggestion.element,
             elementType: suggestion.element.extendedType,
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case ExtensionTypeSuggestion():
         return computeTopLevelRelevance(suggestion.element,
             elementType:
                 instantiateInstanceElement(suggestion.element, neverType),
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case FieldSuggestion():
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
+          // TODO(brianwilkerson): We are assuming that the enum constant is
+          //  imported because it appears to be the case that we never create a
+          //  `FieldSuggestion` on an enum constant except when adding members
+          //  of the enclosing declaration. We should enforce this assumption.
           return computeTopLevelRelevance(fieldElement,
-              elementType: fieldElement.type,
-              isNotImportedLibrary: isNotImportedLibrary);
+              elementType: fieldElement.type, isNotImportedLibrary: false);
         } else {
           return computeFieldElementRelevance(
-              fieldElement, inheritanceDistance);
+              fieldElement, suggestion.inheritanceDistance(featureComputer));
         }
       case FormalParameterSuggestion():
         return _computeFormalParameterRelevance(suggestion);
@@ -146,17 +148,20 @@ class RelevanceComputer {
       case LocalFunctionSuggestion():
         return computeTopLevelRelevance(suggestion.element,
             elementType: suggestion.element.returnType,
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case LocalVariableSuggestion():
         return _computeLocalVariableRelevance(suggestion);
       case MethodSuggestion():
         return _computeMethodRelevance(
-            suggestion.element, inheritanceDistance, isNotImportedLibrary);
+          suggestion.element,
+          suggestion.inheritanceDistance(featureComputer),
+          suggestion.isNotImported,
+        );
       case MixinSuggestion():
         return computeTopLevelRelevance(suggestion.element,
             elementType:
                 instantiateInstanceElement(suggestion.element, neverType),
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case NamedArgumentSuggestion():
         var parameter = suggestion.parameter;
         if (parameter.isRequiredNamed || parameter.hasRequired) {
@@ -170,7 +175,10 @@ class RelevanceComputer {
         return Relevance.override;
       case PropertyAccessSuggestion():
         return _computePropertyAccessorRelevance(
-            suggestion.element, inheritanceDistance, isNotImportedLibrary);
+          suggestion.element,
+          suggestion.inheritanceDistance(featureComputer),
+          suggestion.isNotImported,
+        );
       case RecordFieldSuggestion():
         var contextType = featureComputer.contextTypeFeature(
             request.contextType, suggestion.field.type);
@@ -181,27 +189,30 @@ class RelevanceComputer {
         return Relevance.requiredNamedArgument;
       case StaticFieldSuggestion():
         return _computeStaticFieldRelevance(
-            suggestion.element, inheritanceDistance, isNotImportedLibrary);
+          suggestion.element,
+          0.0,
+          suggestion.isNotImported,
+        );
       case SuperParameterSuggestion():
         return Relevance.superFormalParameter;
       case TopLevelFunctionSuggestion():
         var function = suggestion.element;
         return computeTopLevelRelevance(function,
             elementType: function.returnType,
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case TopLevelPropertyAccessSuggestion():
         return _computeTopLevelPropertyAccessorRelevance(
-            suggestion.element, isNotImportedLibrary);
+            suggestion.element, suggestion.isNotImported);
       case TopLevelVariableSuggestion():
         var variable = suggestion.element;
         return computeTopLevelRelevance(variable,
             elementType: variable.type,
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case TypeAliasSuggestion():
         var typeAlias = suggestion.element;
         return computeTopLevelRelevance(typeAlias,
             elementType: _instantiateTypeAlias(typeAlias),
-            isNotImportedLibrary: isNotImportedLibrary);
+            isNotImportedLibrary: suggestion.isNotImported);
       case TypeParameterSuggestion():
         return _computeTypeParameterRelevance(suggestion.element);
       case UriSuggestion():

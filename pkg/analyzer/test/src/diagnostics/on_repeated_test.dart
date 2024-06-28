@@ -24,6 +24,27 @@ mixin M on A, A {}
     ]);
   }
 
+  test_2times_augmentation() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {}
+mixin M on A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment mixin M on A {}
+''');
+
+    await assertErrorsInFile2(a, []);
+
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.ON_REPEATED, 46, 1),
+    ]);
+  }
+
   test_2times_viaTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
