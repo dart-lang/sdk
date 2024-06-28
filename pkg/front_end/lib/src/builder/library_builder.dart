@@ -173,6 +173,16 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length);
 
+  /// Reports [message] on all compilation units that access this compilation
+  /// unit.
+  void addProblemAtAccessors(Message message);
+
+  Iterable<LibraryAccess> get accessors;
+
+  /// Non-null if this library causes an error upon access, that is, there was
+  /// an error reading its source.
+  abstract Message? accessProblem;
+
   void addSyntheticImport(
       {required String uri,
       required String? prefix,

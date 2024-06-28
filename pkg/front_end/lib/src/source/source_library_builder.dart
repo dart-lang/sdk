@@ -259,6 +259,29 @@ class SourceCompilationUnitImpl
   }
 
   @override
+  final List<LibraryAccess> accessors = [];
+
+  @override
+  Message? accessProblem;
+
+  @override
+  void addProblemAtAccessors(Message message) {
+    if (accessProblem == null) {
+      if (accessors.isEmpty && loader.roots.contains(this.importUri)) {
+        // This is the entry point library, and nobody access it directly. So
+        // we need to report a problem.
+        loader.addProblem(message, -1, 1, null);
+      }
+      for (int i = 0; i < accessors.length; i++) {
+        LibraryAccess access = accessors[i];
+        access.accessor.addProblem(
+            message, access.charOffset, access.length, access.fileUri);
+      }
+      accessProblem = message;
+    }
+  }
+
+  @override
   Iterable<Uri> get dependencies sync* {
     for (Export export in exports) {
       yield export.exportedCompilationUnit.importUri;
@@ -284,7 +307,7 @@ class SourceCompilationUnitImpl
   bool get isPart => _sourceLibraryBuilder.isPart;
 
   @override
-  bool get isSynthetic => _sourceLibraryBuilder.isSynthetic;
+  bool get isSynthetic => accessProblem != null;
 
   @override
   bool get isUnsupported => _sourceLibraryBuilder.isUnsupported;
@@ -307,7 +330,10 @@ class SourceCompilationUnitImpl
   @override
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {
-    _sourceLibraryBuilder.recordAccess(accessor, charOffset, length, fileUri);
+    accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
+    if (accessProblem != null) {
+      addProblem(accessProblem!, charOffset, length, fileUri);
+    }
   }
 
   @override
@@ -3299,8 +3325,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final bool isUnsupported;
 
-  final List<LibraryAccess> accessors = [];
-
   @override
   String? name;
 
@@ -3312,10 +3336,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   LibraryBuilder? partOfLibrary;
 
   List<MetadataBuilder>? metadata;
-
-  /// Non-null if this library causes an error upon access, that is, there was
-  /// an error reading its source.
-  Message? accessProblem;
 
   @override
   final Library library;
@@ -3681,7 +3701,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       compilationUnit.unresolvedNamedTypes;
 
   @override
-  bool get isSynthetic => accessProblem != null;
+  bool get isSynthetic => compilationUnit.isSynthetic;
 
   bool get isInferenceUpdate1Enabled =>
       libraryFeatures.inferenceUpdate1.isSupported &&
@@ -4215,32 +4235,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // relativize when printing a message, but still store the full URI in
     // .dill files.
     return name ?? "<library '$fileUri'>";
-  }
-
-  @override
-  void recordAccess(
-      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {
-    accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
-    if (accessProblem != null) {
-      addProblem(accessProblem!, charOffset, length, fileUri);
-    }
-  }
-
-  /// Reports [message] on all libraries that access this library.
-  void addProblemAtAccessors(Message message) {
-    if (accessProblem == null) {
-      if (accessors.isEmpty && loader.roots.contains(this.importUri)) {
-        // This is the entry point library, and nobody access it directly. So
-        // we need to report a problem.
-        loader.addProblem(message, -1, 1, null);
-      }
-      for (int i = 0; i < accessors.length; i++) {
-        LibraryAccess access = accessors[i];
-        access.accessor.addProblem(
-            message, access.charOffset, access.length, access.fileUri);
-      }
-      accessProblem = message;
-    }
   }
 
   @override
