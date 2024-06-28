@@ -236,8 +236,9 @@ final class JSDataViewImpl implements ByteData {
   WasmExternRef? get toExternRef => _ref;
 
   @override
-  JSArrayBufferImpl get buffer =>
-      JSArrayBufferImpl.fromRef(_dataViewBuffer(toExternRef));
+  JSArrayBufferImpl get buffer => _immutable
+      ? JSArrayBufferImpl.fromRefImmutable(_dataViewBuffer(toExternRef))
+      : JSArrayBufferImpl.fromRef(_dataViewBuffer(toExternRef));
 
   @override
   @pragma("wasm:prefer-inline")
