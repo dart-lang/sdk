@@ -5020,6 +5020,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
+    node.metadata.accept(this);
+    visitDocumentationComment(node.documentationComment);
+  }
+
+  @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     node.body.localVariableInfo = _localVariableInfo;
     node.metadata.accept(this);

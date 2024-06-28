@@ -1548,7 +1548,7 @@ abstract class A {
   /// [p3] and [p4]
   mc(int p3, p4());
 
-  /// [p5]
+  /// [p5] and [p6]
   md(int p5, {int p6});
 }
 ''');
@@ -1590,6 +1590,14 @@ CommentReference
   expression: SimpleIdentifier
     token: p5
     staticElement: self::@class::A::@method::md::@parameter::p5
+    staticType: null
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p6]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p6
+    staticElement: self::@class::A::@method::md::@parameter::p6
     staticType: null
 ''');
   }
@@ -1642,6 +1650,30 @@ CommentReference
 ''');
   }
 
+  test_docImport_fromExport() async {
+    newFile('$testPackageLibPath/one.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/two.dart', r'''
+export 'one.dart';
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'two.dart';
+library;
+
+/// [C]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('C]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: C
+    staticElement: package:test/one.dart::@class::C
+    staticType: null
+''');
+  }
+
   test_docImport_newKeyword() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {
@@ -1683,6 +1715,47 @@ CommentReference
       staticElement: package:test/foo.dart::@class::A::@constructor::named
       staticType: null
     staticElement: package:test/foo.dart::@class::A::@constructor::named
+    staticType: null
+''');
+  }
+
+  test_docImport_onLibrary() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+///
+/// Text [A].
+library;
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: A
+    staticElement: package:test/foo.dart::@class::A
+    staticType: null
+''');
+  }
+
+  test_docImport_topLevelFunction() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+void foo() {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: package:test/foo.dart::@function::foo
     staticType: null
 ''');
   }
