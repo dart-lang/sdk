@@ -15,8 +15,8 @@ import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:collection/collection.dart';
 
 typedef StaticOptions
     = Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>;
@@ -68,7 +68,7 @@ abstract class AbstractSemanticTokensHandler<T>
         var serverTokens = resolvedUnit != null
             ? await getServerResult(resolvedUnit.unit, range)
             : <SemanticTokenInfo>[];
-        var pluginHighlightRegions = getPluginResults(path).flattenedToList2;
+        var pluginHighlightRegions = getPluginResults(path).flattenedToList;
 
         if (token.isCancellationRequested) {
           return cancelled();

@@ -9,7 +9,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IterableExtensionTest);
-    defineReflectiveTests(IterableIterableExtensionTest);
     defineReflectiveTests(IterableMapEntryExtensionTest);
     defineReflectiveTests(ListExtensionTest);
     defineReflectiveTests(MapExtensionTest);
@@ -19,13 +18,6 @@ main() {
 
 @reflectiveTest
 class IterableExtensionTest {
-  test_whereNotType() {
-    expect(<Object>['0', 1, '2'].whereNotType<int>(), ['0', '2']);
-  }
-}
-
-@reflectiveTest
-class IterableIterableExtensionTest {
   test_asElementToIndexMap() {
     expect(
       <String>[].asElementToIndexMap,
@@ -38,26 +30,8 @@ class IterableIterableExtensionTest {
     );
   }
 
-  test_flattenedToList() {
-    expect(
-      [
-        [0],
-        [1, 2],
-        [3, 3]
-      ].flattenedToList2,
-      [0, 1, 2, 3, 3],
-    );
-  }
-
-  test_flattenedToSet() {
-    expect(
-      [
-        [0, 0],
-        [1, 2, 1],
-        [3, 3]
-      ].flattenedToSet2,
-      {0, 1, 2, 3},
-    );
+  test_whereNotType() {
+    expect(<Object>['0', 1, '2'].whereNotType<int>(), ['0', '2']);
   }
 }
 

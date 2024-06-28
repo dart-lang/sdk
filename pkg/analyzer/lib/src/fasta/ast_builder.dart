@@ -66,7 +66,7 @@ import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -3116,7 +3116,7 @@ class AstBuilder extends StackListener {
     debugEvent("SwitchBlock");
 
     var membersList = popTypedList2<List<SwitchMemberImpl>>(caseCount);
-    var members = membersList.flattenedToList2;
+    var members = membersList.flattenedToList;
 
     Set<String> labels = <String>{};
     for (var member in members) {
