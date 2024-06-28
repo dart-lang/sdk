@@ -458,10 +458,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 128,
   ),
-  // 92.1639300493926%.
+  // 92.06539074960128%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 6904,
-    missCount: 587,
+    hitCount: 6927,
+    missCount: 597,
   ),
   // 91.26984126984127%.
   "package:front_end/src/kernel/body_builder_context.dart": (
@@ -488,10 +488,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 205,
     missCount: 89,
   ),
-  // 85.85694379934975%.
+  // 85.16024152345565%.
   "package:front_end/src/kernel/constant_evaluator.dart": (
-    hitCount: 3697,
-    missCount: 609,
+    hitCount: 3667,
+    missCount: 639,
   ),
   // 97.59036144578313%.
   "package:front_end/src/kernel/constant_int_folder.dart": (
@@ -618,10 +618,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 43,
     missCount: 5,
   ),
-  // 0.1984126984126984%.
+  // 0.19801980198019803%.
   "package:front_end/src/kernel/macro/annotation_parser.dart": (
     hitCount: 2,
-    missCount: 1006,
+    missCount: 1008,
   ),
   // 0.0%.
   "package:front_end/src/kernel/macro/identifiers.dart": (
@@ -799,14 +799,14 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 295,
     missCount: 35,
   ),
-  // 85.1680467608378%.
+  // 85.15720204728248%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 3497,
+    hitCount: 3494,
     missCount: 609,
   ),
-  // 81.87472234562416%.
+  // 81.82628062360801%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1843,
+    hitCount: 1837,
     missCount: 408,
   ),
   // 50.0%.
@@ -949,9 +949,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 78,
     missCount: 1312,
   ),
-  // 86.54205607476636%.
+  // 85.79439252336448%.
   "package:front_end/src/util/textual_outline.dart": (
-    hitCount: 463,
-    missCount: 72,
+    hitCount: 459,
+    missCount: 76,
   ),
 };

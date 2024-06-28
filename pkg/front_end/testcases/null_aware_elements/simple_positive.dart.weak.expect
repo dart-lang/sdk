@@ -1,0 +1,127 @@
+//
+// Problems in component:
+//
+// sdk/lib/core/core.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/async/async.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/collection/collection.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/convert/convert.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/developer/developer.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/ffi/ffi.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/internal/internal.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/isolate/isolate.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/math/math.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/mirrors/mirrors.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/typed_data/typed_data.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/vmservice_io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/vmservice/vmservice.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/builtin.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/html/dartium/nativewrappers.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/io/io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/cli/cli.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method foo1(core::int? x) → dynamic
+  return block {
+    final core::List<core::int> #t1 = <core::int>[];
+    final has-declared-initializer core::Iterable<core::int>? #t2 = null;
+    if(!(#t2 == null))
+      #t1.{core::List::addAll}{Invariant}(#t2{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+  } =>#t1;
+static method foo2(core::String? x) → dynamic
+  return block {
+    final core::Set<core::String> #t3 = col::LinkedHashSet::•<core::String>();
+    final has-declared-initializer core::Iterable<core::String>? #t4 = null;
+    if(!(#t4 == null))
+      #t3.{core::Set::addAll}{Invariant}(#t4{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+  } =>#t3;
+static method foo3(core::bool? x, core::num y) → dynamic
+  return block {
+    final core::Map<core::bool, core::num> #t5 = <core::bool, core::num>{};
+    final has-declared-initializer core::Map<core::bool, core::num>? #t6 = null;
+    if(!(#t6 == null))
+      #t5.{core::Map::addAll}{Invariant}(#t6{core::Map<core::bool, core::num>}){(core::Map<core::bool, core::num>) → void};
+  } =>#t5;
+static method bar1(core::int? x) → dynamic
+  return block {
+    final core::List<core::int> #t7 = <core::int>[];
+    final has-declared-initializer core::Iterable<core::int>? #t8 = null;
+    if(!(#t8 == null))
+      #t7.{core::List::addAll}{Invariant}(#t8{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+  } =>#t7;
+static method bar2(core::int? x, core::bool b) → dynamic
+  return block {
+    final core::Set<core::int> #t9 = col::LinkedHashSet::•<core::int>();
+    if(b) {
+      final has-declared-initializer core::Iterable<core::int>? #t10 = null;
+      if(!(#t10 == null))
+        #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    }
+  } =>#t9;
+static method bar3(core::int? x) → dynamic
+  return block {
+    final core::Set<core::int> #t11 = col::LinkedHashSet::•<core::int>();
+    for (dynamic _ in <dynamic>[]) {
+      final has-declared-initializer core::Iterable<core::int>? #t12 = null;
+      if(!(#t12 == null))
+        #t11.{core::Set::addAll}{Invariant}(#t12{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    }
+  } =>#t11;
+static method bar4(core::String x, core::bool? y) → dynamic
+  return block {
+    final core::Map<core::String, core::bool> #t13 = <core::String, core::bool>{};
+    final has-declared-initializer core::Map<core::String, core::bool>? #t14 = null;
+    if(!(#t14 == null))
+      #t13.{core::Map::addAll}{Invariant}(#t14{core::Map<core::String, core::bool>}){(core::Map<core::String, core::bool>) → void};
+  } =>#t13;
+static method bar5(core::int? x, core::num y) → dynamic
+  return block {
+    final core::Map<core::int, core::num> #t15 = <core::int, core::num>{};
+    final has-declared-initializer core::Map<core::int, core::num>? #t16 = null;
+    if(!(#t16 == null))
+      #t15.{core::Map::addAll}{Invariant}(#t16{core::Map<core::int, core::num>}){(core::Map<core::int, core::num>) → void};
+  } =>#t15;
+static method bar6(core::double? x, core::Symbol? y) → dynamic
+  return block {
+    final core::Map<core::double, core::Symbol> #t17 = <core::double, core::Symbol>{};
+    final has-declared-initializer core::Map<core::double, core::Symbol>? #t18 = null;
+    if(!(#t18 == null))
+      #t17.{core::Map::addAll}{Invariant}(#t18{core::Map<core::double, core::Symbol>}){(core::Map<core::double, core::Symbol>) → void};
+  } =>#t17;
+static method bar7(core::num? x, core::double? y, core::bool b) → dynamic
+  return block {
+    final core::Map<core::num, core::double> #t19 = <core::num, core::double>{};
+    if(b) {
+      final has-declared-initializer core::Map<core::num, core::double>? #t20 = null;
+      if(!(#t20 == null))
+        #t19.{core::Map::addAll}{Invariant}(#t20{core::Map<core::num, core::double>}){(core::Map<core::num, core::double>) → void};
+    }
+  } =>#t19;
+static method bar8(core::num? x, core::double? y) → dynamic
+  return block {
+    final core::Map<core::num, core::double> #t21 = <core::num, core::double>{};
+    for (dynamic _ in <dynamic>[]) {
+      final has-declared-initializer core::Map<core::num, core::double>? #t22 = null;
+      if(!(#t22 == null))
+        #t21.{core::Map::addAll}{Invariant}(#t22{core::Map<core::num, core::double>}){(core::Map<core::num, core::double>) → void};
+    }
+  } =>#t21;

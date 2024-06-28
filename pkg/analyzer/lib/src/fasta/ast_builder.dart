@@ -147,6 +147,9 @@ class AstBuilder extends StackListener {
   /// `true` if class-modifiers is enabled
   final bool enableClassModifiers;
 
+  /// `true` if null-aware elements is enabled
+  final bool enableNullAwareElements;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -174,6 +177,8 @@ class AstBuilder extends StackListener {
         enableInlineClass = _featureSet.isEnabled(Feature.inline_class),
         enableSealedClass = _featureSet.isEnabled(Feature.sealed_class),
         enableClassModifiers = _featureSet.isEnabled(Feature.class_modifiers),
+        enableNullAwareElements =
+            _featureSet.isEnabled(Feature.null_aware_elements),
         uri = uri ?? fileUri;
 
   @override
@@ -4746,9 +4751,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     assert(optional(':', colon));
     debugEvent("LiteralMapEntry");
+
+    // TODO(cstefantsova): Handle null-aware map entries.
+    if (!enableNullAwareElements &&
+        (nullAwareKeyToken != null || nullAwareValueToken != null)) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.null_aware_elements,
+        startToken: nullAwareKeyToken ?? nullAwareValueToken!,
+      );
+    }
 
     var value = pop() as ExpressionImpl;
     var key = pop() as ExpressionImpl;
@@ -5034,6 +5049,18 @@ class AstBuilder extends StackListener {
         operator: bang,
       ),
     );
+  }
+
+  @override
+  void handleNullAwareElement(Token nullAwareElement) {
+    debugEvent('NullAwareElement');
+    // TODO(cstefantsova): Handle null-aware elements.
+    if (!enableNullAwareElements) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.null_aware_elements,
+        startToken: nullAwareElement,
+      );
+    }
   }
 
   @override

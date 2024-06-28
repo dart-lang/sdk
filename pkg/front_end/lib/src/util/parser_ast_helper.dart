@@ -1449,9 +1449,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     LiteralMapEntryHandle data = new LiteralMapEntryHandle(ParserAstType.HANDLE,
-        colon: colon, endToken: endToken);
+        colon: colon,
+        endToken: endToken,
+        nullAwareKeyToken: nullAwareKeyToken,
+        nullAwareValueToken: nullAwareValueToken);
     seen(data);
   }
 
@@ -2450,6 +2454,14 @@ abstract class AbstractParserAstListener implements Listener {
     SpreadExpressionHandle data = new SpreadExpressionHandle(
         ParserAstType.HANDLE,
         spreadToken: spreadToken);
+    seen(data);
+  }
+
+  @override
+  void handleNullAwareElement(Token nullAwareToken) {
+    NullAwareElementHandle data = new NullAwareElementHandle(
+        ParserAstType.HANDLE,
+        nullAwareToken: nullAwareToken);
     seen(data);
   }
 
@@ -6234,15 +6246,22 @@ class LibraryNameEnd extends ParserAstNode {
 class LiteralMapEntryHandle extends ParserAstNode {
   final Token colon;
   final Token endToken;
+  final Token? nullAwareKeyToken;
+  final Token? nullAwareValueToken;
 
   LiteralMapEntryHandle(ParserAstType type,
-      {required this.colon, required this.endToken})
+      {required this.colon,
+      required this.endToken,
+      this.nullAwareKeyToken,
+      this.nullAwareValueToken})
       : super("LiteralMapEntry", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
         "endToken": endToken,
+        "nullAwareKeyToken": nullAwareKeyToken,
+        "nullAwareValueToken": nullAwareValueToken,
       };
 
   @override
@@ -8481,6 +8500,21 @@ class SpreadExpressionHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitSpreadExpressionHandle(this);
 }
 
+class NullAwareElementHandle extends ParserAstNode {
+  final Token nullAwareToken;
+
+  NullAwareElementHandle(ParserAstType type, {required this.nullAwareToken})
+      : super("NullAwareElement", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "nullAwareToken": nullAwareToken,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNullAwareElementHandle(this);
+}
+
 class RestPatternHandle extends ParserAstNode {
   final Token dots;
   final bool hasSubPattern;
@@ -10281,6 +10315,7 @@ abstract class ParserAstVisitor<R> {
   R visitIfControlFlowEnd(IfControlFlowEnd node);
   R visitIfElseControlFlowEnd(IfElseControlFlowEnd node);
   R visitSpreadExpressionHandle(SpreadExpressionHandle node);
+  R visitNullAwareElementHandle(NullAwareElementHandle node);
   R visitRestPatternHandle(RestPatternHandle node);
   R visitFunctionTypedFormalParameterBegin(
       FunctionTypedFormalParameterBegin node);
@@ -11440,6 +11475,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitSpreadExpressionHandle(SpreadExpressionHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNullAwareElementHandle(NullAwareElementHandle node) =>
       node.visitChildren(this);
 
   @override

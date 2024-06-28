@@ -4995,11 +4995,29 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
     Expression key = popForValue();
-    push(forest.createMapEntry(offsetForToken(colon), key, value));
+    if (nullAwareKeyToken == null && nullAwareValueToken == null) {
+      push(forest.createMapEntry(offsetForToken(colon), key, value));
+    } else {
+      if (!libraryFeatures.nullAwareElements.isEnabled) {
+        addProblem(
+            templateExperimentNotEnabledOffByDefault
+                .withArguments(ExperimentalFlag.nullAwareElements.name),
+            (nullAwareKeyToken ?? nullAwareValueToken!).offset,
+            noLength);
+      }
+      // TODO(cstefantsova): Replace the following no-op with the node for
+      // handling null-aware elements.
+      push(forest.createSpreadElement(
+          offsetForToken(nullAwareKeyToken ?? nullAwareValueToken!),
+          forest.createNullLiteral(
+              offsetForToken(nullAwareKeyToken ?? nullAwareValueToken!)),
+          isNullAware: true));
+    }
   }
 
   String symbolPartToString(name) {
@@ -7127,6 +7145,24 @@ class BodyBuilder extends StackListenerImpl
     // This is matched by the call to [deferNode] in
     // [handleElseControlFlow].
     typeInferrer.assignedVariables.storeInfo(node, assignedVariablesInfo);
+  }
+
+  @override
+  void handleNullAwareElement(Token nullAwareElement) {
+    debugEvent("NullAwareElement");
+    // TODO(cstefantsova): Replace the following no-op with the node for
+    // handling null-aware elements.
+    if (!libraryFeatures.nullAwareElements.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.nullAwareElements.name),
+          nullAwareElement.offset,
+          noLength);
+    }
+    pop(); // Expression.
+    push(forest.createSpreadElement(offsetForToken(nullAwareElement),
+        forest.createNullLiteral(offsetForToken(nullAwareElement)),
+        isNullAware: true));
   }
 
   @override
