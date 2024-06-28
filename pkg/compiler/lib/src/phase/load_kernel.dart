@@ -144,7 +144,8 @@ void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
           evaluationMode: options.useLegacySubtyping
               ? fe.EvaluationMode.weak
               : fe.EvaluationMode.strong,
-          shouldNotInline: shouldNotInline)
+          shouldNotInline: shouldNotInline,
+          removeAsserts: !options.enableUserAssertions)
       .run();
 }
 

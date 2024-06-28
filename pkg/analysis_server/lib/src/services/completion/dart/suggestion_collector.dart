@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
 
 /// An object that collects the candidate suggestions produced by the steps.
 class SuggestionCollector {
-  /// The maximum number of suggestions that will be returned.
+  /// The maximum number of suggestions that will be returned, or `-1` if there
+  /// is no maximum.
   final int maxSuggestions;
 
   /// The list of candidate suggestions that have been collected.
@@ -38,6 +40,8 @@ class SuggestionCollector {
   SuggestionCollector({required this.maxSuggestions});
 
   /// Adds the candidate [suggestion] to the list of suggestions.
+  ///
+  /// This method should not be invoked after [finalize] has been invoked.
   void addSuggestion(CandidateSuggestion suggestion) {
     // Insert the suggestion into the list in sorted order.
     if (suggestions.isEmpty) {
@@ -72,6 +76,36 @@ class SuggestionCollector {
         } else {
           break;
         }
+      }
+    }
+  }
+
+  /// Finalize the list of suggestions.
+  ///
+  /// This method should be invoked after all of the suggestions have been added
+  /// to the results. It performs three operations:
+  /// - Compute a relevance score for each of the suggestions.
+  /// - Sort the suggestions based on both the matcher score and the relevance
+  ///   score.
+  /// - Truncate the list of suggestions.
+  void finalize(RelevanceComputer computer) {
+    // Compute a relevance score for each of the suggestions.
+    for (var candidate in suggestions) {
+      candidate.relevanceScore = computer.computeRelevance(candidate);
+    }
+    // Sort the suggestions based on both the matcher score and the relevance
+    // score.
+    suggestions.sort((first, second) {
+      if (first.matcherScore == second.matcherScore) {
+        return first.relevanceScore.compareTo(second.relevanceScore);
+      }
+      return second.matcherScore.compareTo(first.matcherScore);
+    });
+    // Truncate the list of suggestions.
+    if (maxSuggestions >= 0) {
+      var length = suggestions.length;
+      if (length >= maxSuggestions) {
+        suggestions.removeRange(maxSuggestions, length);
       }
     }
   }

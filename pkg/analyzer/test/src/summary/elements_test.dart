@@ -58537,6 +58537,395 @@ library
 ''');
   }
 
+  test_augmented_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension type A(int it) implements I2 {}
+extension type I2(int it) {}
+''');
+
+    configuration.withConstructors = false;
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension type A(int it) implements I1 {}
+extension type I1(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @40
+        augmentation: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int
+        interfaces
+          I1
+        fields
+          final it @46
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+        augmented
+          interfaces
+            I1
+            I2
+          fields
+            self::@extensionType::A::@field::it
+          accessors
+            self::@extensionType::A::@getter::it
+      I1 @82
+        representation: self::@extensionType::I1::@field::it
+        primaryConstructor: self::@extensionType::I1::@constructor::new
+        typeErasure: int
+        fields
+          final it @89
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensionTypes
+          augment A @52
+            augmentationTarget: self::@extensionType::A
+            interfaces
+              I2
+          I2 @94
+            representation: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: self::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            typeErasure: int
+            fields
+              final it @101
+                type: int
+            accessors
+              synthetic get it @-1
+                returnType: int
+''');
+  }
+
+  test_augmented_interfaces_chain() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+import augment 'b.dart';
+augment extension type A(int it) implements I2 {}
+extension type I2(int it) {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment extension type A(int it) implements I3 {}
+extension type I3(int it) {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension type A(int it) implements I1 {}
+extension type I1(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @40
+        augmentation: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int
+        interfaces
+          I1
+        fields
+          final it @46
+            type: int
+        constructors
+          @40
+            parameters
+              requiredPositional final this.it @46
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+        augmented
+          interfaces
+            I1
+            I2
+            I3
+          fields
+            self::@extensionType::A::@field::it
+          constructors
+            self::@extensionType::A::@constructor::new
+          accessors
+            self::@extensionType::A::@getter::it
+      I1 @82
+        representation: self::@extensionType::I1::@field::it
+        primaryConstructor: self::@extensionType::I1::@constructor::new
+        typeErasure: int
+        fields
+          final it @89
+            type: int
+        constructors
+          @82
+            parameters
+              requiredPositional final this.it @89
+                type: int
+                field: self::@extensionType::I1::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensionTypes
+          augment A @77
+            augmentationTarget: self::@extensionType::A
+            augmentation: self::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            interfaces
+              I2
+          I2 @119
+            representation: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: self::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            typeErasure: int
+            fields
+              final it @126
+                type: int
+            constructors
+              @119
+                parameters
+                  requiredPositional final this.it @126
+                    type: int
+                    field: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            accessors
+              synthetic get it @-1
+                returnType: int
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            extensionTypes
+              augment A @49
+                augmentationTarget: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                interfaces
+                  I3
+              I3 @91
+                representation: self::@augmentation::package:test/b.dart::@extensionType::I3::@field::it
+                primaryConstructor: self::@augmentation::package:test/b.dart::@extensionType::I3::@constructor::new
+                typeErasure: int
+                fields
+                  final it @98
+                    type: int
+                constructors
+                  @91
+                    parameters
+                      requiredPositional final this.it @98
+                        type: int
+                        field: self::@augmentation::package:test/b.dart::@extensionType::I3::@field::it
+                accessors
+                  synthetic get it @-1
+                    returnType: int
+''');
+  }
+
+  test_augmented_interfaces_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension type A<T2>(int it) implements I2<T2> {}
+extension type I2<E>(int it) {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension type A<T>(int it) implements I1 {}
+extension type I1(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @40
+        typeParameters
+          covariant T @42
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int
+        interfaces
+          I1
+        fields
+          final it @49
+            type: int
+        constructors
+          @40
+            parameters
+              requiredPositional final this.it @49
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+        augmented
+          interfaces
+            I1
+            I2<T>
+          fields
+            self::@extensionType::A::@field::it
+          constructors
+            self::@extensionType::A::@constructor::new
+          accessors
+            self::@extensionType::A::@getter::it
+      I1 @85
+        representation: self::@extensionType::I1::@field::it
+        primaryConstructor: self::@extensionType::I1::@constructor::new
+        typeErasure: int
+        fields
+          final it @92
+            type: int
+        constructors
+          @85
+            parameters
+              requiredPositional final this.it @92
+                type: int
+                field: self::@extensionType::I1::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensionTypes
+          augment A @52
+            typeParameters
+              covariant T2 @54
+                defaultType: dynamic
+            augmentationTarget: self::@extensionType::A
+            interfaces
+              I2<T2>
+          I2 @102
+            typeParameters
+              covariant E @105
+                defaultType: dynamic
+            representation: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: self::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            typeErasure: int
+            fields
+              final it @112
+                type: int
+            constructors
+              @102
+                parameters
+                  requiredPositional final this.it @112
+                    type: int
+                    field: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            accessors
+              synthetic get it @-1
+                returnType: int
+''');
+  }
+
+  test_augmented_interfaces_generic_mismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+augment library 'test.dart';
+augment extension type A<T2, T3>(int it) implements I2<T2> {}
+extension type I2<E>(int it) {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+extension type A<T>(int it) implements I1 {}
+extension type I1(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @40
+        typeParameters
+          covariant T @42
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int
+        interfaces
+          I1
+        fields
+          final it @49
+            type: int
+        constructors
+          @40
+            parameters
+              requiredPositional final this.it @49
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+        augmented
+          interfaces
+            I1
+          fields
+            self::@extensionType::A::@field::it
+          constructors
+            self::@extensionType::A::@constructor::new
+          accessors
+            self::@extensionType::A::@getter::it
+      I1 @85
+        representation: self::@extensionType::I1::@field::it
+        primaryConstructor: self::@extensionType::I1::@constructor::new
+        typeErasure: int
+        fields
+          final it @92
+            type: int
+        constructors
+          @85
+            parameters
+              requiredPositional final this.it @92
+                type: int
+                field: self::@extensionType::I1::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        extensionTypes
+          augment A @52
+            typeParameters
+              covariant T2 @54
+                defaultType: dynamic
+              covariant T3 @58
+                defaultType: dynamic
+            augmentationTarget: self::@extensionType::A
+            interfaces
+              I2<T2>
+          I2 @106
+            typeParameters
+              covariant E @109
+                defaultType: dynamic
+            representation: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: self::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            typeErasure: int
+            fields
+              final it @116
+                type: int
+            constructors
+              @106
+                parameters
+                  requiredPositional final this.it @116
+                    type: int
+                    field: self::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+            accessors
+              synthetic get it @-1
+                returnType: int
+''');
+  }
+
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
 augment library 'test.dart';

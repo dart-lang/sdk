@@ -1944,20 +1944,23 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           return argument;
         }
       }
-    } else if (element == commonElements.assertHelper ||
-        element == commonElements.assertTest) {
-      if (node.inputs.length == 1) {
-        HInstruction argument = node.inputs[0];
-        if (argument is HConstant) {
-          ConstantValue constant = argument.constant;
-          if (constant is BoolConstantValue) {
-            bool value = constant is TrueConstantValue;
-            if (element == commonElements.assertTest) {
-              // `assertTest(argument)` effectively negates the argument.
-              return _graph.addConstantBool(!value, _closedWorld);
+    } else {
+      final isAssertHelper = commonElements.isAssertHelper(element);
+      final isAssertTest = commonElements.isAssertTest(element);
+      if (isAssertHelper || isAssertTest) {
+        if (node.inputs.length == 1) {
+          HInstruction argument = node.inputs[0];
+          if (argument is HConstant) {
+            ConstantValue constant = argument.constant;
+            if (constant is BoolConstantValue) {
+              bool value = constant is TrueConstantValue;
+              if (isAssertTest) {
+                // `assertTest(argument)` effectively negates the argument.
+                return _graph.addConstantBool(!value, _closedWorld);
+              }
+              // `assertHelper(true)` is a no-op, other values throw.
+              if (value) return argument;
             }
-            // `assertHelper(true)` is a no-op, other values throw.
-            if (value) return argument;
           }
         }
       }

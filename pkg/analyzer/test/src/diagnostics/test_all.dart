@@ -899,6 +899,8 @@ import 'unused_label_test.dart' as unused_label;
 import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_result_test.dart' as unused_result;
 import 'unused_shown_name_test.dart' as unused_shown_name;
+import 'uri_does_not_exist_in_doc_import_test.dart'
+    as uri_does_not_exist_in_doc_import;
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_native_extension_test.dart' as use_of_native_extension;
@@ -1512,6 +1514,7 @@ main() {
     unused_result.main();
     unused_shown_name.main();
     uri_does_not_exist.main();
+    uri_does_not_exist_in_doc_import.main();
     uri_with_interpolation.main();
     use_of_native_extension.main();
     use_of_nullable_value_test.main();

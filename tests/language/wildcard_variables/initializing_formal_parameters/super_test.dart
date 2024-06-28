@@ -13,7 +13,7 @@ void main() {
   var c = C(1);
   Expect.equals(1, c._);
 
-  var cWithPositional = C.withPositional(1, 100);
+  var cWithPositional = C.superAndPositional(1, 100);
   Expect.equals(1, cWithPositional._);
 
   var multipleSuperParameters = MultipleSuperParameters(1, 2, 3);

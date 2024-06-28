@@ -3748,3 +3748,7 @@ WarningCode.UNUSED_RESULT_WITH_MESSAGE:
     There is no predictable common way in which a result _should_ be used.
 WarningCode.UNUSED_SHOWN_NAME:
   status: hasFix
+WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
+  status: needsFix
+  notes: |-
+    The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST

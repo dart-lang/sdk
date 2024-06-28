@@ -505,7 +505,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .addConstructors(errorReporter, augmented, members);
       }
 
-      _checkForConflictingClassMembers();
+      _checkForConflictingClassMembers(element);
       _checkForFinalNotInitializedInClass(element, members);
       _checkForBadFunctionUse(
         superclass: node.extendsClause?.superclass,
@@ -815,7 +815,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(node.implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
-      _checkForConflictingClassMembers();
+      _checkForConflictingClassMembers(element);
       _checkForConflictingGenerics(node);
       libraryVerificationContext.constructorFieldsVerifier
           .addConstructors(errorReporter, augmented, members);
@@ -1245,7 +1245,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
-      _checkForConflictingClassMembers();
+      _checkForConflictingClassMembers(element);
       _checkForFinalNotInitializedInClass(element, members);
       _checkForMainFunction1(node.name, declarationElement);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
@@ -2351,7 +2351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
-  void _checkForConflictingClassMembers() {
+  void _checkForConflictingClassMembers(InterfaceElement fragment) {
     var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
       return;
@@ -2423,7 +2423,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // getter declared in the enclosing class vs. inherited method
-    for (PropertyAccessorElement accessor in enclosingClass.accessors) {
+    for (PropertyAccessorElement accessor in fragment.accessors) {
       String name = accessor.displayName;
 
       // find inherited method or property accessor

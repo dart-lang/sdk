@@ -2088,11 +2088,13 @@ final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryImportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
+  final bool isDocImport;
 
   LibraryImportState({
     required this.unlinked,
     required this.selectedUri,
     required this.uris,
+    required this.isDocImport,
   });
 
   /// If [importedSource] corresponds to a library, returns it.
@@ -2118,6 +2120,7 @@ final class LibraryImportWithFile
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   }) {
     importedFile.referencingFiles.add(container.file);
   }
@@ -2157,6 +2160,7 @@ final class LibraryImportWithInSummarySource
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   });
 
   @override
@@ -2179,6 +2183,7 @@ final class LibraryImportWithUri<U extends DirectiveUriWithUri>
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   });
 }
 
@@ -2189,6 +2194,7 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   });
 }
 
@@ -2239,7 +2245,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
     }
 
     var docImports = file.unlinked2.libraryDirective?.docImports
-        .map(_buildLibraryImportState)
+        .map((i) => _buildLibraryImportState(i, isDocImport: true))
         .toFixedList();
     return _docImports = docImports ?? [];
   }
@@ -2286,8 +2292,9 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   }
 
   List<LibraryImportState> get libraryImports {
-    return _libraryImports ??=
-        file.unlinked2.imports.map(_buildLibraryImportState).toFixedList();
+    return _libraryImports ??= file.unlinked2.imports
+        .map((i) => _buildLibraryImportState(i, isDocImport: false))
+        .toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.
@@ -2363,7 +2370,9 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   /// Creates a [LibraryImportState] with the given unlinked [directive].
   LibraryImportState _buildLibraryImportState(
-      UnlinkedLibraryImportDirective directive) {
+    UnlinkedLibraryImportDirective directive, {
+    required bool isDocImport,
+  }) {
     var uris = file._buildNamespaceDirectiveUris(directive);
     var selectedUri = uris.selected;
     switch (selectedUri) {
@@ -2373,30 +2382,35 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithInSummarySource():
         return LibraryImportWithInSummarySource(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithUri():
         return LibraryImportWithUri(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithString():
         return LibraryImportWithUriStr(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithoutString():
         return LibraryImportState(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
     }
   }
