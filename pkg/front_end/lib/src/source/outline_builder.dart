@@ -777,7 +777,9 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("EndConditionalUri");
     int charOffset = popCharOffset();
     String uri = pop() as String;
-    if (equalSign != null) popCharOffset();
+    if (equalSign != null) {
+      popCharOffset();
+    }
     String condition = popIfNotNull(equalSign) as String? ?? "true";
     Object? dottedName = pop();
     if (dottedName is ParserRecovery) {

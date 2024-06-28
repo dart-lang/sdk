@@ -314,7 +314,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       buffer.write("<");
       bool first = true;
       for (TypeBuilder t in typeArguments) {
-        if (!first) buffer.write(", ");
+        if (!first) {
+          buffer.write(", ");
+        }
         first = false;
         t.printOn(buffer);
       }

@@ -63,7 +63,9 @@ class LoadLibraryBuilder extends BuilderImpl {
   }
 
   Procedure createTearoffMethod(Forest forest) {
-    if (tearoff != null) return tearoff!;
+    if (tearoff != null) {
+      return tearoff!;
+    }
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);

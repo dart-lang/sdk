@@ -6991,8 +6991,19 @@ class Parser {
         hasSetEntry ??= !isMapEntry;
         if (isMapEntry) {
           Token colon = token.next!;
-          token = parseExpression(colon);
-          listener.handleLiteralMapEntry(colon, token.next!);
+          Token next = colon.next!;
+          if (optional('?', next)) {
+            // Null-aware value. For example:
+            //   <int, String>{ x: ?y }
+            token = parseExpression(next);
+            listener.handleLiteralMapEntry(colon, token,
+                nullAwareKeyToken: null, nullAwareValueToken: next);
+          } else {
+            // Non null-aware entry. For example:
+            //   <bool, num>{ x: y }
+            token = parseExpression(colon);
+            listener.handleLiteralMapEntry(colon, token.next!);
+          }
         }
       } else {
         while (info != null) {
@@ -7000,8 +7011,19 @@ class Parser {
             token = parseExpression(token);
             if (optional(':', token.next!)) {
               Token colon = token.next!;
-              token = parseExpression(colon);
-              listener.handleLiteralMapEntry(colon, token.next!);
+              Token next = colon.next!;
+              if (optional('?', next)) {
+                token = parseExpression(next);
+                // Null-aware value. For example:
+                //   <double, Symbol>{ if (b) x: ?y }
+                listener.handleLiteralMapEntry(colon, token,
+                    nullAwareKeyToken: null, nullAwareValueToken: next);
+              } else {
+                // Non null-aware entry. For example:
+                //   <String, int>{ if (b) x : y }
+                token = parseExpression(colon);
+                listener.handleLiteralMapEntry(colon, token.next!);
+              }
             }
           } else {
             token = info.parse(token, this);

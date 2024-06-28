@@ -47,7 +47,9 @@ class LazyLibraryScope extends LazyScope {
 
   @override
   void ensureScope() {
-    if (libraryBuilder == null) throw new StateError("No library builder.");
+    if (libraryBuilder == null) {
+      throw new StateError("No library builder.");
+    }
     libraryBuilder!.ensureLoaded();
   }
 }
@@ -168,7 +170,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void ensureLoaded() {
-    if (!isReadyToBuild) throw new StateError("Not ready to build.");
+    if (!isReadyToBuild) {
+      throw new StateError("Not ready to build.");
+    }
     if (isBuilt && !isBuiltAndMarked) {
       isBuiltAndMarked = true;
       finalizeExports();

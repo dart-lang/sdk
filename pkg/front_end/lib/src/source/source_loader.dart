@@ -409,7 +409,7 @@ class SourceLoader extends Loader {
         : null;
   }
 
-  SourceLibraryBuilder _createSourceLibraryBuilder(
+  SourceCompilationUnit _createSourceCompilationUnit(
       Uri uri,
       Uri? fileUri,
       SourceLibraryBuilder? origin,
@@ -504,16 +504,17 @@ class SourceLoader extends Loader {
         referenceIsPartOwner: referenceIsPartOwner,
         isAugmentation: isAugmentation,
         isPatch: isPatch);
+    SourceCompilationUnit compilationUnit = libraryBuilder.compilationUnit;
     if (packageLanguageVersionProblem != null) {
       libraryBuilder.addPostponedProblem(
-          packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
+          packageLanguageVersionProblem, 0, noLength, compilationUnit.fileUri);
     }
 
     if (addAsRoot) {
       roots.add(uri);
     }
 
-    _checkForDartCore(uri, libraryBuilder, libraryBuilder.compilationUnit);
+    _checkForDartCore(uri, libraryBuilder, compilationUnit);
 
     Uri libraryUri = origin?.importUri ?? uri;
     if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
@@ -522,9 +523,9 @@ class SourceLoader extends Loader {
     if (uri.isScheme("dart")) {
       target.readPatchFiles(libraryBuilder);
     }
-    _unparsedLibraries.addLast(libraryBuilder.compilationUnit);
+    _unparsedLibraries.addLast(compilationUnit);
 
-    return libraryBuilder;
+    return compilationUnit;
   }
 
   DillLibraryBuilder? _lookupDillLibraryBuilder(Uri uri) {
@@ -689,16 +690,15 @@ class SourceLoader extends Loader {
         compilationUnit = _lookupDillLibraryBuilder(uri)?.mainCompilationUnit;
       }
       if (compilationUnit == null) {
-        compilationUnit = _createSourceLibraryBuilder(
-                uri,
-                fileUri,
-                origin as SourceLibraryBuilder?,
-                referencesFromIndex,
-                referenceIsPartOwner,
-                isAugmentation,
-                isPatch,
-                addAsRoot)
-            .compilationUnit;
+        compilationUnit = _createSourceCompilationUnit(
+            uri,
+            fileUri,
+            origin as SourceLibraryBuilder?,
+            referencesFromIndex,
+            referenceIsPartOwner,
+            isAugmentation,
+            isPatch,
+            addAsRoot);
       }
       _compilationUnits[uri] = compilationUnit;
     }
@@ -867,19 +867,19 @@ severity: $severity
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
-  /// The [SourceLibraryBuilder]s for the `dart:` libraries that are not
+  /// The [SourceCompilationUnit]s for the `dart:` libraries that are not
   /// available.
   ///
   /// We special-case the errors for accessing these libraries and report
   /// it at the end of [buildOutlines] to ensure that all import paths are
   /// part of the error message.
-  Set<SourceLibraryBuilder> _unavailableDartLibraries = {};
+  Set<SourceCompilationUnit> _unavailableDartLibraries = {};
 
   Future<Token> tokenize(SourceCompilationUnit compilationUnit,
       {bool suppressLexicalErrors = false}) async {
     SourceLibraryBuilder libraryBuilder = compilationUnit.sourceLibraryBuilder;
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
-    Uri fileUri = libraryBuilder.fileUri;
+    Uri fileUri = compilationUnit.fileUri;
 
     // Lookup the file URI in the cache.
     Uint8List? bytes = sourceBytes[fileUri];
@@ -887,12 +887,12 @@ severity: $severity
     if (bytes == null) {
       // Error recovery.
       if (fileUri.isScheme(untranslatableUriScheme)) {
-        Uri importUri = libraryBuilder.importUri;
+        Uri importUri = compilationUnit.importUri;
         if (importUri.isScheme('dart')) {
           // We report this error later in [buildOutlines].
-          _unavailableDartLibraries.add(libraryBuilder);
+          _unavailableDartLibraries.add(compilationUnit);
         } else {
-          libraryBuilder.addProblemAtAccessors(
+          compilationUnit.addProblemAtAccessors(
               templateUntranslatableUri.withArguments(importUri));
         }
         bytes = synthesizeSourceForMissingFile(importUri, null);
@@ -901,10 +901,10 @@ severity: $severity
         return internalProblem(
             templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
-            libraryBuilder.importUri);
+            compilationUnit.importUri);
       } else if (fileUri.isScheme(MALFORMED_URI_SCHEME)) {
-        libraryBuilder.addProblemAtAccessors(messageExpectedUri);
-        bytes = synthesizeSourceForMissingFile(libraryBuilder.importUri, null);
+        compilationUnit.addProblemAtAccessors(messageExpectedUri);
+        bytes = synthesizeSourceForMissingFile(compilationUnit.importUri, null);
       }
       if (bytes != null) {
         Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
@@ -923,9 +923,9 @@ severity: $severity
       } on FileSystemException catch (e) {
         Message message = templateCantReadFile.withArguments(
             fileUri, target.context.options.osErrorMessage(e.message));
-        libraryBuilder.addProblemAtAccessors(message);
+        compilationUnit.addProblemAtAccessors(message);
         rawBytes =
-            synthesizeSourceForMissingFile(libraryBuilder.importUri, message);
+            synthesizeSourceForMissingFile(compilationUnit.importUri, message);
       }
       Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
       zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
@@ -939,16 +939,16 @@ severity: $severity
         configuration: new ScannerConfiguration(
             enableTripleShift: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.tripleShift,
-                libraryBuilder.importUri,
+                compilationUnit.importUri,
                 libraryBuilder.packageLanguageVersion.version),
             enableExtensionMethods:
                 target.isExperimentEnabledInLibraryByVersion(
                     ExperimentalFlag.extensionMethods,
-                    libraryBuilder.importUri,
+                    compilationUnit.importUri,
                     libraryBuilder.packageLanguageVersion.version),
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
                 ExperimentalFlag.nonNullable,
-                libraryBuilder.importUri,
+                compilationUnit.importUri,
                 libraryBuilder.packageLanguageVersion.version),
             forAugmentationLibrary: libraryBuilder.isAugmentationLibrary),
         languageVersionChanged:
@@ -961,9 +961,9 @@ severity: $severity
       }
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift:
-              libraryBuilder.libraryFeatures.tripleShift.isEnabled,
+              compilationUnit.libraryFeatures.tripleShift.isEnabled,
           enableExtensionMethods:
-              libraryBuilder.libraryFeatures.extensionMethods.isEnabled,
+              compilationUnit.libraryFeatures.extensionMethods.isEnabled,
           enableNonNullable: true);
     });
     Token token = result.tokens;
@@ -1073,9 +1073,9 @@ severity: $severity
     if (_unavailableDartLibraries.isNotEmpty) {
       CompilationUnit? rootLibrary = rootCompilationUnit;
       LoadedLibraries? loadedLibraries;
-      for (SourceLibraryBuilder libraryBuilder in _unavailableDartLibraries) {
+      for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
-        Uri importUri = libraryBuilder.importUri;
+        Uri importUri = compilationUnit.importUri;
         Message message =
             templateUnavailableDartLibrary.withArguments(importUri);
         if (rootLibrary != null) {
@@ -1091,7 +1091,7 @@ severity: $severity
             if (importChain.containsAll(verboseImportChain)) {
               context = [
                 templateImportChainContextSimple
-                    .withArguments(libraryBuilder.importUri,
+                    .withArguments(compilationUnit.importUri,
                         importChain.map((part) => '    $part\n').join())
                     .withoutLocation(),
               ];
@@ -1099,7 +1099,7 @@ severity: $severity
               context = [
                 templateImportChainContext
                     .withArguments(
-                        libraryBuilder.importUri,
+                        compilationUnit.importUri,
                         importChain.map((part) => '    $part\n').join(),
                         verboseImportChain.map((part) => '    $part\n').join())
                     .withoutLocation(),
@@ -1108,12 +1108,12 @@ severity: $severity
           }
         }
         // We only include the [context] on the first library access.
-        if (libraryBuilder.accessors.isEmpty) {
+        if (compilationUnit.accessors.isEmpty) {
           // This is the entry point library, and nobody access it directly. So
           // we need to report a problem.
           addProblem(message, -1, 1, null, context: context);
         } else {
-          LibraryAccess access = libraryBuilder.accessors.first;
+          LibraryAccess access = compilationUnit.accessors.first;
           access.accessor.addProblem(
               message, access.charOffset, access.length, access.fileUri,
               context: context);
@@ -1121,21 +1121,20 @@ severity: $severity
       }
       // All subsequent library accesses are reported here without the context
       // message.
-      for (SourceLibraryBuilder libraryBuilder in _unavailableDartLibraries) {
-        Uri importUri = libraryBuilder.importUri;
+      for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
+        Uri importUri = compilationUnit.importUri;
         Message message =
             templateUnavailableDartLibrary.withArguments(importUri);
 
-        if (libraryBuilder.accessors.length > 1) {
-          for (int i = 1; i < libraryBuilder.accessors.length; i++) {
-            LibraryAccess access = libraryBuilder.accessors[i];
+        if (compilationUnit.accessors.length > 1) {
+          for (LibraryAccess access in compilationUnit.accessors) {
             access.accessor.addProblem(
                 message, access.charOffset, access.length, access.fileUri);
           }
         }
         // Mark the library with an access problem so that it will be marked
         // as synthetic and so that subsequent accesses will be reported.
-        libraryBuilder.accessProblem ??= message;
+        compilationUnit.accessProblem ??= message;
       }
       _unavailableDartLibraries.clear();
     }

@@ -1587,10 +1587,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     seen(colon);
     seen(endToken);
-    doPrint('handleLiteralMapEntry(' '$colon, ' '$endToken)');
+    seen(nullAwareKeyToken);
+    seen(nullAwareValueToken);
+    doPrint('handleLiteralMapEntry('
+        '$colon, '
+        '$endToken, '
+        '$nullAwareKeyToken, '
+        '$nullAwareValueToken)');
   }
 
   @override
@@ -2644,6 +2651,12 @@ class ParserTestListener implements Listener {
   void handleSpreadExpression(Token spreadToken) {
     seen(spreadToken);
     doPrint('handleSpreadExpression(' '$spreadToken)');
+  }
+
+  @override
+  void handleNullAwareElement(Token nullAwareToken) {
+    seen(nullAwareToken);
+    doPrint('handleNullAwareElement(' '$nullAwareToken)');
   }
 
   @override

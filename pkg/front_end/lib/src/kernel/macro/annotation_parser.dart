@@ -1967,7 +1967,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     _unhandled('map entry');
   }
 
@@ -2185,6 +2186,11 @@ class _MacroListener implements Listener {
 
   @override
   void endConstantPattern(Token? constKeyword) {
+    _unsupported();
+  }
+
+  @override
+  void handleNullAwareElement(Token spreadToken) {
     _unsupported();
   }
 

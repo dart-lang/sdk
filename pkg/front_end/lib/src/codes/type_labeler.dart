@@ -202,7 +202,9 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       for (int i = node.requiredParameterCount;
           i < node.positionalParameters.length;
           i++) {
-        if (!first) result.add(", ");
+        if (!first) {
+          result.add(", ");
+        }
         node.positionalParameters[i].accept(this);
         first = false;
       }
@@ -213,7 +215,9 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       result.add("{");
       first = true;
       for (int i = 0; i < node.namedParameters.length; i++) {
-        if (!first) result.add(", ");
+        if (!first) {
+          result.add(", ");
+        }
         node.namedParameters[i].type.accept(this);
         result.add(" ${node.namedParameters[i].name}");
         first = false;
@@ -392,7 +396,9 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(">{");
     bool first = true;
     for (ConstantMapEntry entry in node.entries) {
-      if (!first) result.add(", ");
+      if (!first) {
+        result.add(", ");
+      }
       entry.key.accept(this);
       result.add(": ");
       entry.value.accept(this);

@@ -1046,7 +1046,8 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     calls.add('handleLiteralMapEntry $colon, $endToken');
   }
 

@@ -595,7 +595,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     nextGoodKernelTarget.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
-    if (_userBuilders!.isEmpty) _userBuilders = null;
+    if (_userBuilders!.isEmpty) {
+      _userBuilders = null;
+    }
     return newDillLibraryBuilders;
   }
 
