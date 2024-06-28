@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -209,19 +210,21 @@ final class ExtensionTypeSuggestion extends ImportableSuggestion {
 }
 
 /// The information about a candidate suggestion based on a field.
-final class FieldSuggestion extends CandidateSuggestion {
+final class FieldSuggestion extends CandidateSuggestion with MemberSuggestion {
   /// The element on which the suggestion is based.
+  @override
   final FieldElement element;
 
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
+  @override
   final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   FieldSuggestion(
       {required this.element,
-      required this.referencingInterface,
-      required super.matcherScore});
+      required super.matcherScore,
+      required this.referencingInterface});
 
   @override
   String get completion => element.name;
@@ -299,6 +302,10 @@ sealed class ImportableSuggestion extends CandidateSuggestion {
     var prefixName = prefix;
     return prefixName == null ? '' : '$prefixName.';
   }
+
+  /// Whether this is suggesing an element that is not yet imported into the
+  /// library in which completion was requested.
+  bool get isNotImported => importData?.isNotImported ?? false;
 
   /// The prefix to be used in order to access the element.
   String? get prefix => importData?.prefix;
@@ -467,13 +474,44 @@ final class LocalVariableSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
-/// The information about a candidate suggestion based on a method.
-final class MethodSuggestion extends ExecutableSuggestion {
+/// Behavior common to suggestions that are for members of a class, enum, mixin,
+/// etc.
+mixin MemberSuggestion {
   /// The element on which the suggestion is based.
+  Element get element;
+
+  /// The element defined by the declaration in which the suggestion is to be
+  /// applied, or `null` if the completion is in a static context.
+  InterfaceElement? get referencingInterface;
+
+  /// Returns the value of the inheritance distance feature.
+  ///
+  /// Uses the [featureComputer] to compute the value.
+  double inheritanceDistance(FeatureComputer featureComputer) {
+    var inheritanceDistance = 0.0;
+    var element = this.element;
+    if (!(element is FieldElement && element.isEnumConstant)) {
+      var declaringClass = element.enclosingElement;
+      var referencingInterface = this.referencingInterface;
+      if (referencingInterface != null && declaringClass is InterfaceElement) {
+        inheritanceDistance = featureComputer.inheritanceDistanceFeature(
+            referencingInterface, declaringClass);
+      }
+    }
+    return inheritanceDistance;
+  }
+}
+
+/// The information about a candidate suggestion based on a method.
+final class MethodSuggestion extends ExecutableSuggestion
+    with MemberSuggestion {
+  /// The element on which the suggestion is based.
+  @override
   final MethodElement element;
 
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
+  @override
   final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
@@ -575,12 +613,15 @@ final class OverrideSuggestion extends CandidateSuggestion {
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
-final class PropertyAccessSuggestion extends ImportableSuggestion {
+final class PropertyAccessSuggestion extends ImportableSuggestion
+    with MemberSuggestion {
   /// The element on which the suggestion is based.
+  @override
   final PropertyAccessorElement element;
 
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
+  @override
   final InterfaceElement? referencingInterface;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
@@ -793,25 +834,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = uri.toString();
       }
     }
-    var inheritanceDistance = 0.0;
-    if (suggestion is FieldSuggestion && !suggestion.element.isEnumConstant) {
-      inheritanceDistance = _inheritanceDistance(
-          suggestion.referencingInterface, suggestion.element.enclosingElement);
-    } else if (suggestion is MethodSuggestion) {
-      inheritanceDistance = _inheritanceDistance(
-          suggestion.referencingInterface, suggestion.element.enclosingElement);
-    } else if (suggestion is PropertyAccessSuggestion) {
-      var referencingClass = suggestion.referencingInterface;
-      var declaringClass = suggestion.element.enclosingElement;
-      if (referencingClass != null && declaringClass is InterfaceElement) {
-        inheritanceDistance = request.featureComputer
-            .inheritanceDistanceFeature(referencingClass, declaringClass);
-      }
-    }
 
-    var relevance = relevanceComputer.computeRelevance(suggestion,
-        isNotImportedLibrary: isNotImportedLibrary,
-        inheritanceDistance: inheritanceDistance);
+    var relevance = relevanceComputer.computeRelevance(suggestion);
     switch (suggestion) {
       case ClassSuggestion():
         suggestInterface(suggestion.element,
@@ -850,8 +874,13 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         if (fieldElement.isEnumConstant) {
           suggestEnumConstant(fieldElement, relevance: relevance);
         } else {
-          suggestField(fieldElement,
-              inheritanceDistance: inheritanceDistance, relevance: relevance);
+          var inheritanceDistance =
+              suggestion.inheritanceDistance(request.featureComputer);
+          suggestField(
+            fieldElement,
+            inheritanceDistance: inheritanceDistance,
+            relevance: relevance,
+          );
         }
       case FormalParameterSuggestion():
         suggestFormalParameter(
@@ -896,6 +925,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         var kind = request.target.isFunctionalArgument()
             ? CompletionSuggestionKind.IDENTIFIER
             : suggestion.kind;
+        var inheritanceDistance =
+            suggestion.inheritanceDistance(request.featureComputer);
         suggestMethod(
           suggestion.element,
           kind: kind,
@@ -921,8 +952,13 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           skipAt: suggestion.skipAt,
         );
       case PropertyAccessSuggestion():
-        suggestAccessor(suggestion.element,
-            inheritanceDistance: inheritanceDistance, relevance: relevance);
+        var inheritanceDistance =
+            suggestion.inheritanceDistance(request.featureComputer);
+        suggestAccessor(
+          suggestion.element,
+          inheritanceDistance: inheritanceDistance,
+          relevance: relevance,
+        );
       case RecordFieldSuggestion():
         suggestRecordField(
             field: suggestion.field,
@@ -971,17 +1007,5 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
     for (var suggestion in suggestions) {
       await suggestFromCandidate(suggestion);
     }
-  }
-
-  /// Returns the inheritance distance from the [referencingClass] to the
-  /// [declaringClass].
-  double _inheritanceDistance(
-      InterfaceElement? referencingClass, Element? declaringClass) {
-    var distance = 0.0;
-    if (referencingClass != null && declaringClass is InterfaceElement) {
-      distance = request.featureComputer
-          .inheritanceDistanceFeature(referencingClass, declaringClass);
-    }
-    return distance;
   }
 }
