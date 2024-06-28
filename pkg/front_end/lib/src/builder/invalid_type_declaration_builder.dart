@@ -21,6 +21,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       : super(null, 0, name, null, message.charOffset);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri? get fileUri => message.uri;
 
   @override

@@ -72,7 +72,9 @@ class CompilerContext {
   }
 
   static void recordDependency(Uri uri) {
-    if (!uri.isScheme("file") && !uri.isScheme("http")) {
+    if (!uri.isScheme("file") &&
+        // Coverage-ignore(suite): Not run.
+        !uri.isScheme("http")) {
       throw new ArgumentError("Expected a file or http URI, but got: '$uri'.");
     }
     CompilerContext? context = Zone.current[compilerContextKey];
@@ -84,6 +86,7 @@ class CompilerContext {
   static CompilerContext get current {
     CompilerContext? context = Zone.current[compilerContextKey];
     if (context == null) {
+      // Coverage-ignore-block(suite): Not run.
       // Note: we throw directly and don't use internalProblem, because
       // internalProblem depends on having a compiler context available.
       String problemMessage =

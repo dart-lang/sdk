@@ -36,7 +36,9 @@ class Export {
     if (combinators != null) {
       for (CombinatorBuilder combinator in combinators!) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;
-        if (combinator.isHide && combinator.names.contains(name)) return false;
+        if (combinator.isHide &&
+            // Coverage-ignore(suite): Not run.
+            combinator.names.contains(name)) return false;
       }
     }
     return exporter.addToExportScope(name, member, charOffset);

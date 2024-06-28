@@ -45,6 +45,7 @@ const String exportDynamicSentinel = '<dynamic>';
 /// 'Never' from 'dart:core'.
 const String exportNeverSentinel = '<Never>';
 
+// Coverage-ignore(suite): Not run.
 void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
   if (node == null) {
     sink.write("null");
@@ -54,6 +55,7 @@ void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 void printQualifiedNameOn(Member? member, StringSink sink) {
   if (member == null) {
     sink.write("null");
@@ -69,6 +71,7 @@ void printQualifiedNameOn(Member? member, StringSink sink) {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Print the given [component].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are
 /// printed.
@@ -86,6 +89,7 @@ void printComponentText(Component? component,
   print(sb);
 }
 
+// Coverage-ignore(suite): Not run.
 /// Write [component] to file only including libraries that match [filter].
 Future<Null> writeComponentToFile(Component component, Uri uri,
     {bool Function(Library library)? filter}) async {
@@ -99,6 +103,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Serialize the libraries in [component] that match [filter].
 Uint8List serializeComponent(Component component,
     {bool Function(Library library)? filter,
@@ -115,6 +120,7 @@ Uint8List serializeComponent(Component component,
 
 const String kDebugClassName = "#DebugClass";
 
+// Coverage-ignore(suite): Not run.
 class _CollectLibraryDependencies extends RecursiveVisitor {
   Set<LibraryDependency> foundLibraryDependencies = {};
 
@@ -129,6 +135,7 @@ class _CollectLibraryDependencies extends RecursiveVisitor {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 Component createExpressionEvaluationComponent(Procedure procedure) {
   Library realLibrary = procedure.enclosingLibrary;
 
@@ -195,6 +202,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
   return component;
 }
 
+// Coverage-ignore(suite): Not run.
 List<int> serializeProcedure(Procedure procedure) {
   return serializeComponent(createExpressionEvaluationComponent(procedure));
 }
@@ -209,6 +217,7 @@ class ByteSink implements Sink<List<int>> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void close() {}
 }
 

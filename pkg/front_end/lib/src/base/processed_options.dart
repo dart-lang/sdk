@@ -96,6 +96,7 @@ class ProcessedOptions {
   /// not been computed yet.
   PackageConfig? get _packages => _packageConfigAndUri?.packageConfig;
 
+  // Coverage-ignore(suite): Not run.
   /// Resolve and return [packagesUri].
   Future<Uri> resolvePackagesFileUri() async {
     await _getPackages();
@@ -145,6 +146,7 @@ class ProcessedOptions {
   List<int>? _sdkSummaryBytes;
   bool _triedLoadingSdkSummary = false;
 
+  // Coverage-ignore(suite): Not run.
   /// Get the bytes of the SDK outline, if any.
   Future<List<int>?> loadSdkSummaryBytes() async {
     if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
@@ -172,6 +174,7 @@ class ProcessedOptions {
 
   bool get debugDump => _raw.debugDump;
 
+  // Coverage-ignore(suite): Not run.
   bool get debugDumpShowOffsets => _raw.debugDumpShowOffsets;
 
   bool get omitPlatform => _raw.omitPlatform;
@@ -182,12 +185,15 @@ class ProcessedOptions {
 
   bool get throwOnErrorsForDebugging => _raw.throwOnErrorsForDebugging;
 
+  // Coverage-ignore(suite): Not run.
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
+  // Coverage-ignore(suite): Not run.
   bool get emitDeps => _raw.emitDeps;
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
+  // Coverage-ignore(suite): Not run.
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
   bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;
@@ -206,6 +212,7 @@ class ProcessedOptions {
   int fatalDiagnosticCount = 0;
 
   MacroSerializer? _macroSerializer;
+  // Coverage-ignore(suite): Not run.
   MacroSerializer get macroSerializer =>
       _macroSerializer ??= _raw.macroSerializer ?? new MacroSerializer();
 
@@ -244,11 +251,13 @@ class ProcessedOptions {
       {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
     if (CompilerContext.current.options.setExitCodeOnProblem) {
+      // Coverage-ignore-block(suite): Not run.
       exitCode = 1;
     }
     reportDiagnosticMessage(
         format(message, severity, context, involvedFiles: involvedFiles));
     if (command_line_reporting.shouldThrowOn(severity)) {
+      // Coverage-ignore-block(suite): Not run.
       if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
         // Skip this one. The interesting one comes later.
         return;
@@ -265,7 +274,8 @@ class ProcessedOptions {
   }
 
   void reportDiagnosticMessage(DiagnosticMessage message) {
-    (_raw.onDiagnostic ?? defaultDiagnosticMessageHandler)(message);
+    (_raw.onDiagnostic ?? // Coverage-ignore(suite): Not run.
+        defaultDiagnosticMessageHandler)(message);
   }
 
   /// Returns [error] as a message from the OS.
@@ -274,9 +284,11 @@ class ProcessedOptions {
   /// be a fixed string, otherwise the toString of [error] will be returned.
   String osErrorMessage(Object? error) {
     if (_raw.omitOsMessageForTesting) return '<os-message>';
+    // Coverage-ignore(suite): Not run.
     return '$error';
   }
 
+  // Coverage-ignore(suite): Not run.
   void defaultDiagnosticMessageHandler(DiagnosticMessage message) {
     if (Verbosity.shouldPrint(_raw.verbosity, message)) {
       printDiagnosticMessage(message, print);
@@ -292,6 +304,7 @@ class ProcessedOptions {
   /// info message about the null safety compilation mode is emitted.
   void reportNullSafetyCompilationModeInfo() {
     if (_raw.invocationModes.contains(InvocationMode.compile)) {
+      // Coverage-ignore-block(suite): Not run.
       switch (nnbdMode) {
         case NnbdMode.Weak:
           reportWithoutLocation(messageCompilingWithoutSoundNullSafety,
@@ -314,16 +327,20 @@ class ProcessedOptions {
     _validated = true;
 
     if (verbose) {
+      // Coverage-ignore-block(suite): Not run.
       print(debugString());
     }
 
     if (errorOnMissingInput && inputs.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(messageMissingInput, Severity.error);
       return false;
     }
 
     if (_raw.sdkRoot != null &&
+        // Coverage-ignore(suite): Not run.
         !await fileSystem.entityForUri(sdkRoot!).exists()) {
+      // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
           templateSdkRootNotFound.withArguments(sdkRoot!), Severity.error);
       return false;
@@ -331,12 +348,14 @@ class ProcessedOptions {
 
     Uri? summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
+      // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
           templateSdkSummaryNotFound.withArguments(summary), Severity.error);
       return false;
     }
 
     if (compileSdk && summary != null) {
+      // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
           messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
           Severity.internalProblem);
@@ -344,6 +363,7 @@ class ProcessedOptions {
     }
 
     for (Uri source in _raw.additionalDills) {
+      // Coverage-ignore-block(suite): Not run.
       // TODO(ahe): Remove this check, the compiler itself should handle and
       // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
@@ -359,6 +379,7 @@ class ProcessedOptions {
       bool value = entry.value;
       if (experimentalFlag.isExpired &&
           value != experimentalFlag.isEnabledByDefault) {
+        // Coverage-ignore-block(suite): Not run.
         if (value) {
           reportWithoutLocation(
               templateExperimentExpiredEnabled
@@ -390,6 +411,7 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
+  // Coverage-ignore(suite): Not run.
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
 
@@ -400,12 +422,14 @@ class ProcessedOptions {
 
   Target? _target;
   Target get target => _target ??= _raw.target ??
+      // Coverage-ignore(suite): Not run.
       new NoneTarget(
           new TargetFlags(soundNullSafety: nnbdMode == NnbdMode.Strong));
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns the minimum language version needed for a library with the given
   /// [importUri] to opt into the experiment with the given [flag].
   ///
@@ -444,6 +468,7 @@ class ProcessedOptions {
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component?> loadSdkSummary(CanonicalName? nameRoot) async {
     if (_sdkSummaryComponent == null) {
+      // Coverage-ignore-block(suite): Not run.
       if (sdkSummary == null) return null;
       List<int>? bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
@@ -462,6 +487,7 @@ class ProcessedOptions {
     _sdkSummaryComponent = platform;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Get the components for each of the underlying `additionalDill`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
@@ -483,6 +509,7 @@ class ProcessedOptions {
     return _additionalDillComponents!;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(List<int> bytes, CanonicalName? nameRoot,
       {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {
@@ -503,6 +530,7 @@ class ProcessedOptions {
   /// required to locate/read the packages file as well as SDK metadata.
   Future<UriTranslator> getUriTranslator({bool bypassCache = false}) async {
     if (bypassCache) {
+      // Coverage-ignore-block(suite): Not run.
       _uriTranslator = null;
       _packageConfigAndUri = null;
     }
@@ -523,12 +551,14 @@ class ProcessedOptions {
     // TODO(sigmund): Eek! We should get to the point where there is no
     // fasta-specific targets and the target names are meaningful.
     if (name.endsWith('_fasta')) {
+      // Coverage-ignore-block(suite): Not run.
       name = name.substring(0, name.length - 6);
     }
 
     if (librariesSpecificationUri == null ||
         !await fileSystem.entityForUri(librariesSpecificationUri!).exists()) {
       if (compileSdk) {
+        // Coverage-ignore-block(suite): Not run.
         reportWithoutLocation(
             templateSdkSpecificationNotFound
                 .withArguments(librariesSpecificationUri!),
@@ -542,7 +572,9 @@ class ProcessedOptions {
           librariesSpecificationUri!,
           (Uri uri) => fileSystem.entityForUri(uri).readAsString());
       return spec.specificationFor(name);
-    } on LibrariesSpecificationException catch (e) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(
           templateCannotReadSdkSpecification.withArguments('${e.error}'),
           Severity.error);
@@ -556,6 +588,7 @@ class ProcessedOptions {
   /// required to locate/read the packages file.
   Future<PackageConfig> _getPackages() async {
     if (_packages != null) {
+      // Coverage-ignore-block(suite): Not run.
       return _packages!;
     }
     _packageConfigAndUri = null;
@@ -565,6 +598,7 @@ class ProcessedOptions {
       return _packages!;
     }
 
+    // Coverage-ignore-block(suite): Not run.
     if (inputs.isEmpty) {
       _packageConfigAndUri = _PackageConfigAndUri.empty;
       return _packages!;
@@ -608,13 +642,17 @@ class ProcessedOptions {
       if (fileContents is Uint8List) {
         return fileContents;
       } else {
+        // Coverage-ignore-block(suite): Not run.
         return new Uint8List.fromList(fileContents);
       }
-    } on FileSystemException catch (e) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on FileSystemException catch (e) {
       reportWithoutLocation(
           templateCantReadFile.withArguments(uri, osErrorMessage(e.message)),
           Severity.error);
     } catch (e) {
+      // Coverage-ignore-block(suite): Not run.
       Message message = templateExceptionReadingFile.withArguments(uri, '$e');
       reportWithoutLocation(message, Severity.error);
       // We throw a new exception to ensure that the message include the uri
@@ -637,11 +675,14 @@ class ProcessedOptions {
     Uint8List? contents =
         requestedUri == new Uri() ? null : await _readFile(requestedUri);
     if (contents == null) {
+      // Coverage-ignore-block(suite): Not run.
       return _PackageConfigAndUri.empty;
     }
 
     try {
-      void Function(Object error) onError = (Object error) {
+      void Function(Object error) onError =
+          // Coverage-ignore(suite): Not run.
+          (Object error) {
         if (error is FormatException) {
           report(
               templatePackagesFileFormat
@@ -658,20 +699,25 @@ class ProcessedOptions {
       return new _PackageConfigAndUri(
           PackageConfig.parseBytes(contents, requestedUri, onError: onError),
           requestedUri);
-    } on FormatException catch (e) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on FormatException catch (e) {
       report(
           templatePackagesFileFormat
               .withArguments(e.message)
               .withLocation(requestedUri, e.offset ?? -1, noLength),
           Severity.error);
     } catch (e) {
+      // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
           templateCantReadFile.withArguments(requestedUri, "$e"),
           Severity.error);
     }
+    // Coverage-ignore(suite): Not run.
     return _PackageConfigAndUri.empty;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Create a [PackageConfig] given the Uri to a `package_config.json` file,
   /// and use it in these options.
   ///
@@ -681,6 +727,7 @@ class ProcessedOptions {
     return _packageConfigAndUri!.packageConfig;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Finds a package resolution strategy using a [FileSystem].
   ///
   /// The [scriptUri] points to a Dart script with a valid scheme accepted by
@@ -753,6 +800,7 @@ class ProcessedOptions {
     _computedSdkDefaults = true;
     Uri? root = _raw.sdkRoot;
     if (root != null) {
+      // Coverage-ignore-block(suite): Not run.
       // Normalize to always end in '/'
       if (!root.path.endsWith('/')) {
         root = root.replace(path: root.path + '/');
@@ -766,7 +814,9 @@ class ProcessedOptions {
 
     if (_raw.sdkSummary != null) {
       _sdkSummary = _raw.sdkSummary;
-    } else if (!compileSdk) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (!compileSdk) {
       // Infer based on the sdkRoot, but only when `compileSdk` is false,
       // otherwise the default intent was to compile the sdk from sources and
       // not to load an sdk summary file.
@@ -776,6 +826,7 @@ class ProcessedOptions {
     if (_raw.librariesSpecificationUri != null) {
       _librariesSpecificationUri = _raw.librariesSpecificationUri;
     } else if (compileSdk) {
+      // Coverage-ignore-block(suite): Not run.
       _librariesSpecificationUri = sdkRoot!.resolve('lib/libraries.json');
     }
   }
@@ -831,6 +882,7 @@ class ProcessedOptions {
     return '$sb';
   }
 
+  // Coverage-ignore(suite): Not run.
   Future<List<int>?> _readAsBytes(FileSystemEntity file) async {
     try {
       return await file.readAsBytes();
@@ -844,6 +896,7 @@ class ProcessedOptions {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   MultiMacroExecutor get macroExecutor {
     if (_raw.macroExecutor != null) return _raw.macroExecutor!;
 
@@ -886,9 +939,11 @@ class ProcessedOptions {
     return executor;
   }
 
+  // Coverage-ignore(suite): Not run.
   SerializationMode get macroSerializationMode =>
       _raw.macroSerializationMode ??= SerializationMode.byteData;
 
+  // Coverage-ignore(suite): Not run.
   /// The currently running precompilations.
   Set<Uri> get runningPrecompilations => _raw.runningPrecompilations;
 
@@ -896,15 +951,18 @@ class ProcessedOptions {
 
   HooksForTesting? get hooksForTesting => _raw.hooksForTesting;
 
+  // Coverage-ignore(suite): Not run.
   bool get showGeneratedMacroSourcesForTesting =>
       _raw.showGeneratedMacroSourcesForTesting;
 
+  // Coverage-ignore(suite): Not run.
   /// Disposes macro executor and serializer if configured.
   Future<void> dispose() async {
     await _raw.macroExecutor?.closeAndReset();
     await macroSerializer.close();
   }
 
+  // Coverage-ignore(suite): Not run.
   bool equivalent(ProcessedOptions other,
       {bool ignoreOnDiagnostic = true,
       bool ignoreVerbose = true,
@@ -916,6 +974,7 @@ class ProcessedOptions {
 
 /// A package config and the `URI` it was loaded from.
 class _PackageConfigAndUri {
+  // Coverage-ignore(suite): Not run.
   static final _PackageConfigAndUri empty =
       new _PackageConfigAndUri(PackageConfig.empty, new Uri());
 

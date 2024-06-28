@@ -17,6 +17,7 @@ import '../../builder/nullability_builder.dart';
 import '../../builder/type_builder.dart';
 import 'introspectors.dart';
 
+// Coverage-ignore(suite): Not run.
 abstract class IdentifierImpl extends macro.IdentifierImpl {
   IdentifierImpl({
     required int id,
@@ -97,6 +98,7 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class TypeBuilderIdentifier extends IdentifierImpl {
   final TypeBuilder typeBuilder;
   final LibraryBuilder libraryBuilder;
@@ -147,6 +149,7 @@ class TypeBuilderIdentifier extends IdentifierImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
   final TypeDeclarationBuilder typeDeclarationBuilder;
   final LibraryBuilder libraryBuilder;
@@ -191,6 +194,7 @@ class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class MemberBuilderIdentifier extends IdentifierImpl {
   final MemberBuilder memberBuilder;
 
@@ -232,6 +236,7 @@ class MemberBuilderIdentifier extends IdentifierImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class FormalParameterBuilderIdentifier extends IdentifierImpl {
   final LibraryBuilder libraryBuilder;
   final FormalParameterBuilder parameterBuilder;
@@ -266,6 +271,7 @@ class FormalParameterBuilderIdentifier extends IdentifierImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class OmittedTypeIdentifier extends IdentifierImpl {
   OmittedTypeIdentifier({required int id}) : super(id: id, name: 'dynamic');
 

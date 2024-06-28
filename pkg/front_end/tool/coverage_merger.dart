@@ -651,6 +651,8 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     "debug",
     "debugString",
     "toString",
+    "hashCode",
+    "==",
     "debugName",
     "writeNullabilityOn",
   };
@@ -772,7 +774,10 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     }
 
     if (allSortedIndex >= allSorted.length ||
-        allSorted[allSortedIndex] > endToken.charEnd) {
+        // We use >= here because e.g. "assert(a, 'msg')" has `a.charEnd` and
+        // `,.charOffset` to be equal but it logically belongs to the comma
+        //(which for whatever reason can a possible coverage point).
+        allSorted[allSortedIndex] >= endToken.charEnd) {
       // Nothing inside this block can be covered by the VM anyway.
       return false;
     }
@@ -793,7 +798,10 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
     }
 
     if (hitsSortedIndex >= hitsSorted.length ||
-        hitsSorted[hitsSortedIndex] > endToken.charEnd) {
+        // We use >= here because e.g. "assert(a, 'msg')" has `a.charEnd` and
+        // `,.charOffset` to be equal but it logically belongs to the comma
+        //(which for whatever reason can a possible coverage point).
+        hitsSorted[hitsSortedIndex] >= endToken.charEnd) {
       // No hits at all or next hit is after this "block".
       potentiallyAddCommentTokens.add(new _CommentOn(
         commentOnToken: tokenWithPossibleComment,

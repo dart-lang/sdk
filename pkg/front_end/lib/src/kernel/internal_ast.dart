@@ -124,6 +124,7 @@ TypeArgumentsInfo getTypeArgumentsInfo(Arguments arguments) {
       return new ExtensionMethodTypeArgumentsInfo(arguments);
     }
   } else {
+    // Coverage-ignore-block(suite): Not run.
     // This code path should only be taken in situations where there are no
     // type arguments at all, e.g. calling a user-definable operator.
     assert(arguments.types.isEmpty);
@@ -143,6 +144,7 @@ List<DartType>? getExplicitTypeArguments(Arguments arguments) {
           .toList();
     }
   } else {
+    // Coverage-ignore-block(suite): Not run.
     // This code path should only be taken in situations where there are no
     // type arguments at all, e.g. calling a user-definable operator.
     assert(arguments.types.isEmpty);
@@ -156,28 +158,33 @@ bool hasExplicitTypeArguments(Arguments arguments) {
 
 mixin InternalTreeNode implements TreeNode {
   @override
+  // Coverage-ignore(suite): Not run.
   void replaceChild(TreeNode child, TreeNode replacement) {
     // Do nothing. The node should not be part of the resulting AST, anyway.
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
     unsupported(
         "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
     unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
         -1, null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
     unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Common base class for internal statements.
 abstract class InternalStatement extends AuxiliaryStatement {
   @override
@@ -231,6 +238,7 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter state) {
     // TODO(johnniwinther): Implement this.
   }
@@ -258,6 +266,7 @@ class TryStatement extends InternalStatement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('try ');
     printer.writeStatement(tryBlock);
@@ -299,6 +308,7 @@ class BreakStatementImpl extends BreakStatement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isContinue) {
       printer.write('continue ');
@@ -310,6 +320,7 @@ class BreakStatementImpl extends BreakStatement {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Common base class for internal expressions.
 abstract class InternalExpression extends AuxiliaryExpression {
   @override
@@ -346,6 +357,7 @@ abstract class InternalExpression extends AuxiliaryExpression {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Common base class for internal initializers.
 abstract class InternalInitializer extends AuxiliaryInitializer {
   @override
@@ -526,6 +538,7 @@ class Cascade extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
     printer.writeVariableDeclaration(variable);
@@ -569,6 +582,7 @@ class DeferredCheck extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('let ');
     printer.writeVariableDeclaration(variable);
@@ -608,6 +622,7 @@ class FactoryConstructorInvocation extends StaticInvocation
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -648,6 +663,7 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -688,6 +704,7 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -749,6 +766,7 @@ class IfNullExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(left, minimumPrecedence: Precedence.CONDITIONAL);
     printer.write(' ?? ');
@@ -773,6 +791,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
+      // Coverage-ignore-block(suite): Not run.
       return -0.0;
     }
     BigInt intValue = new BigInt.from(negated ? -value : value);
@@ -794,6 +813,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
   @override
   void toTextInternal(AstPrinter printer) {
     if (literal == null) {
+      // Coverage-ignore-block(suite): Not run.
       printer.write('$value');
     } else {
       printer.write(literal!);
@@ -809,6 +829,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
 
+  // Coverage-ignore(suite): Not run.
   double? asDouble({bool negated = false}) {
     BigInt? intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
     if (intValue == null) {
@@ -838,6 +859,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write(literal);
   }
@@ -902,6 +924,7 @@ class ExpressionInvocation extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(expression);
     printer.writeArguments(arguments);
@@ -938,6 +961,7 @@ class NullAwareMethodInvocation extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     Expression methodInvocation = invocation;
     if (methodInvocation is InstanceInvocation) {
@@ -999,6 +1023,7 @@ class NullAwarePropertyGet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     Expression propertyGet = read;
     if (propertyGet is PropertyGet) {
@@ -1048,6 +1073,7 @@ class NullAwarePropertySet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     Expression propertySet = write;
     if (propertySet is InstanceSet) {
@@ -1094,6 +1120,7 @@ class ReturnStatementImpl extends ReturnStatement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isArrow) {
       printer.write('=>');
@@ -1219,6 +1246,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableDeclaration(this,
         isLate: isLate || lateGetter != null, type: lateType ?? type);
@@ -1259,6 +1287,7 @@ class LoadLibraryImpl extends LoadLibrary {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write(import.name!);
     printer.write('.loadLibrary');
@@ -1289,6 +1318,7 @@ class LoadLibraryTearOff extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write(import.name!);
     printer.write('.loadLibrary');
@@ -1345,6 +1375,7 @@ class IfNullPropertySet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('.');
@@ -1392,6 +1423,7 @@ class IfNullSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(read);
     printer.write(' ?? ');
@@ -1547,6 +1579,7 @@ class CompoundPropertySet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('.');
@@ -1690,6 +1723,7 @@ class IndexGet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('[');
@@ -1741,6 +1775,7 @@ class IndexSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('[');
@@ -1849,6 +1884,7 @@ class ExtensionIndexSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write(extension.name);
     if (explicitTypeArguments != null) {
@@ -2137,6 +2173,7 @@ class CompoundIndexSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('[');
@@ -2245,6 +2282,7 @@ class NullAwareCompoundSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('?.');
@@ -2332,6 +2370,7 @@ class NullAwareIfNullSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver);
     printer.write('?.');
@@ -2646,6 +2685,7 @@ class EqualsExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(left, minimumPrecedence: Precedence.EQUALITY);
     if (isNot) {
@@ -2680,9 +2720,11 @@ class BinaryExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.binaryPrecedence[binaryName.text]!;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(left, minimumPrecedence: precedence);
     printer.write(' ${binaryName.text} ');
@@ -2706,6 +2748,7 @@ class UnaryExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PREFIX;
 
   @override
@@ -2714,6 +2757,7 @@ class UnaryExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (unaryName == unaryMinusName) {
       printer.write('-');
@@ -2739,6 +2783,7 @@ class ParenthesizedExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.CALLEE;
 
   @override
@@ -2747,6 +2792,7 @@ class ParenthesizedExpression extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('(');
     printer.writeExpression(expression);
@@ -2776,11 +2822,13 @@ Expression clonePureExpression(Expression node) {
   } else if (node is VariableGet) {
     assert(
         node.variable.isFinal && !node.variable.isLate,
+        // Coverage-ignore(suite): Not run.
         "Trying to clone VariableGet of non-final variable"
         " ${node.variable}.");
     return new VariableGet(node.variable, node.promotedType)
       ..fileOffset = node.fileOffset;
   }
+  // Coverage-ignore-block(suite): Not run.
   throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
 }
 
@@ -2813,9 +2861,11 @@ class MethodInvocation extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
     printer.write('.');
@@ -2850,9 +2900,11 @@ class PropertyGet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
     printer.write('.');
@@ -2895,6 +2947,7 @@ class PropertySet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
     printer.write('.');
@@ -2931,9 +2984,11 @@ class AugmentSuperInvocation extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
     printer.writeArguments(arguments);
@@ -2964,9 +3019,11 @@ class AugmentSuperGet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
   }
@@ -3002,6 +3059,7 @@ class AugmentSuperSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super = ');
     printer.writeExpression(value);
@@ -3033,6 +3091,7 @@ class InternalRecordLiteral extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (isConst) {
       printer.write('const ');
@@ -3086,6 +3145,7 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
     printer.writeExpression(expression);
@@ -3112,6 +3172,7 @@ class IfCaseElement extends InternalExpression with ControlFlowElement {
     MapLiteralEntry? otherwiseEntry;
     Expression? otherwise = this.otherwise;
     if (otherwise != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (otherwise is ControlFlowElement) {
         ControlFlowElement otherwiseElement = otherwise;
         otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
@@ -3162,6 +3223,7 @@ class IfCaseMapEntry extends TreeNode
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
     expression.toTextInternal(printer);
@@ -3214,6 +3276,7 @@ class PatternForElement extends InternalExpression
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
@@ -3273,6 +3336,7 @@ class PatternForMapEntry extends TreeNode
       required this.body});
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
@@ -3332,6 +3396,7 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
 
   Procedure get target => targetReference.asProcedure;
 
+  // Coverage-ignore(suite): Not run.
   void set target(Procedure target) {
     // Getter vs setter doesn't matter for procedures.
     targetReference = getNonNullableMemberReferenceGetter(target);
@@ -3343,6 +3408,7 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('this');
     if (target.name.text.isNotEmpty) {
@@ -3383,6 +3449,7 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(fieldReference);
     printer.write(" = ");

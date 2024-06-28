@@ -87,9 +87,11 @@ class OperatorIdentifier implements Identifier {
   @override
   String get name => operator.text;
 
+  // Coverage-ignore(suite): Not run.
   int get charOffset => token.charOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get firstOffset => token.charOffset;
 
   @override
@@ -99,14 +101,17 @@ class OperatorIdentifier implements Identifier {
   int get nameOffset => token.charOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression? get initializer => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   QualifiedName withQualifier(Object qualifier) {
     return unsupported("withQualifier", charOffset, null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeName get typeName {
     return unsupported("typeName", charOffset, null);
   }
@@ -123,11 +128,13 @@ class InitializedIdentifier extends SimpleIdentifier {
       : super(identifier.token);
 
   @override
+  // Coverage-ignore(suite): Not run.
   QualifiedName withQualifier(Object qualifier) {
     return unsupported("withQualifier", charOffset, null);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeName get typeName {
     return unsupported("typeName", charOffset, null);
   }
@@ -154,6 +161,7 @@ class QualifiedName extends SimpleIdentifier {
   int get nameOffset => token.charOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   QualifiedName withQualifier(Object qualifier) {
     return unsupported("withQualifier", charOffset, null);
   }
@@ -173,7 +181,9 @@ void flattenQualifiedNameOn(
     flattenQualifiedNameOn(qualifier, buffer, charOffset, fileUri);
   } else if (qualifier is Identifier) {
     buffer.write(qualifier.name);
-  } else if (qualifier is String) {
+  }
+  // Coverage-ignore(suite): Not run.
+  else if (qualifier is String) {
     buffer.write(qualifier);
   } else {
     unhandled("${qualifier.runtimeType}", "flattenQualifiedNameOn", charOffset,

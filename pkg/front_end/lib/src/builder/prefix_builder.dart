@@ -62,6 +62,7 @@ class PrefixBuilder extends BuilderImpl {
         exportScope.lookupLocalMember(name, setter: member.isSetter);
     Builder result;
     if (existing != null) {
+      // Coverage-ignore-block(suite): Not run.
       result = parent.computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
@@ -75,5 +76,6 @@ class PrefixBuilder extends BuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
 }

@@ -48,6 +48,7 @@ class TryConstantEvaluator extends ConstantEvaluator {
             enableTripleShift: true);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Constant evaluate(StaticTypeContext staticTypeContext, Expression node,
       {TreeNode? contextNode}) {
     return evaluateOrNull(staticTypeContext, node, contextNode: contextNode)!;
@@ -62,6 +63,7 @@ class TryConstantEvaluator extends ConstantEvaluator {
       {TreeNode? contextNode, bool requireConstant = true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ConstantExpression) {
+      // Coverage-ignore-block(suite): Not run.
       Constant constant = node.constant;
       // TODO(fishythefish): Add more control over what to do with
       // [UnevaluatedConstant]s.
@@ -80,6 +82,7 @@ class TryConstantEvaluator extends ConstantEvaluator {
       return constant;
     }
     if (requireConstant) {
+      // Coverage-ignore-block(suite): Not run.
       return super.evaluate(staticTypeContext, node, contextNode: contextNode);
     } else {
       Constant constant =
@@ -102,11 +105,13 @@ class _ErrorReporter implements ErrorReporter {
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     if (requiresConstant) {
+      // Coverage-ignore-block(suite): Not run.
       _reportError(message, context);
     }
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// [Constant] visitor that returns `true` if the visitor constant contains
 /// an [UnevaluatedConstant].
 class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {

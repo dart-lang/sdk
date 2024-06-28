@@ -4,6 +4,7 @@
 
 part of 'declaration_builders.dart';
 
+// Coverage-ignore(suite): Not run.
 abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   TypeBuilder get type;
 
@@ -227,6 +228,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         if (typeVariables != null) {
           if (typeArguments == null ||
               typeVariables.length != typeArguments.length) {
+            // Coverage-ignore-block(suite): Not run.
             typeArguments = <TypeBuilder>[
               for (NominalVariableBuilder typeVariable in typeVariables)
                 typeVariable.defaultType!
@@ -243,6 +245,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                   unboundTypeVariables: unboundTypeVariables);
         }
         _typeAliasesUsedInUnaliasing.addAll(usedTypeAliasBuilders);
+      // Coverage-ignore(suite): Not run.
       case ExtensionBuilder():
         unexpected(
             "type", "${rhsTypeDeclaration.runtimeType}", charOffset, fileUri);
@@ -349,6 +352,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         return _cachedUnaliasedDeclaration = this;
       }
       if (builders.contains(current)) {
+        // Coverage-ignore-block(suite): Not run.
         // Cyclic type alias.
         currentAliasBuilder.libraryBuilder.addProblem(
             templateCyclicTypedef.withArguments(this.name),
@@ -452,6 +456,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         }
         if ((currentAliasBuilder.typeVariables?.length ?? 0) !=
             currentTypeArguments.length) {
+          // Coverage-ignore-block(suite): Not run.
           if (previousAliasBuilder != null) {
             previousAliasBuilder.libraryBuilder.addProblem(
                 templateTypeArgumentMismatch.withArguments(
@@ -492,6 +497,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             }
             return declarationBuilder;
           }
+          // Coverage-ignore(suite): Not run.
           // This can be null, e.g, `substitutedBuilder is FunctionTypeBuilder`
           return substitutedBuilder.declaration;
         }
@@ -532,7 +538,9 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     while (currentDeclarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
       TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
-      assert(nextTypeBuilder is NamedTypeBuilder,
+      assert(
+          nextTypeBuilder is NamedTypeBuilder,
+          // Coverage-ignore(suite): Not run.
           "Expected NamedTypeBuilder, got '${nextTypeBuilder.runtimeType}'.");
       NamedTypeBuilder namedNextTypeBuilder =
           nextTypeBuilder as NamedTypeBuilder;
@@ -540,6 +548,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       int index = 0;
       if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
         if (currentAliasBuilder.typeVariables != null) {
+          // Coverage-ignore-block(suite): Not run.
           List<TypeBuilder> defaultTypeArguments =
               new List<TypeBuilder>.generate(
                   currentAliasBuilder.typeVariables!.length, (int i) {
@@ -561,6 +570,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           namedNextTypeBuilder.declaration;
       TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
       if (nextDeclarationBuilder is NominalVariableBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         // We have reached the end of the type alias chain which yields a
         // type argument, which may become a type alias, possibly with its
         // own similar chain.

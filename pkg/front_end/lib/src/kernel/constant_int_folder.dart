@@ -174,6 +174,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int? asInt(Constant constant) {
     if (constant is DoubleConstant && _valueIsInteger(constant.value)) {
       return constant.value.toInt();

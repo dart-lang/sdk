@@ -360,9 +360,13 @@ sealed class TypeBuilder {
     TypeBuilder result = substitute(this, substitution,
         unboundTypes: unboundTypesInternal,
         unboundTypeVariables: unboundTypeVariablesInternal);
-    assert(unboundTypes != null || unboundTypesInternal.isEmpty,
+    assert(
+        unboundTypes != null || unboundTypesInternal.isEmpty,
+        // Coverage-ignore(suite): Not run.
         "Non-empty unbound types: $unboundTypesInternal.");
-    assert(unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
+    assert(
+        unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
+        // Coverage-ignore(suite): Not run.
         "Non-empty unbound type variables: $unboundTypeVariables.");
     return result;
   }
@@ -557,15 +561,19 @@ class PredefinedTypeName implements TypeName {
   int get nameOffset => TreeNode.noOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get nameLength => noLength;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName => name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameLength => noLength;
 }
 
@@ -584,6 +592,7 @@ class SyntheticTypeName implements TypeName {
   SyntheticTypeName(this.name, this.nameOffset);
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get nameLength => noLength;
 
   @override
@@ -593,9 +602,11 @@ class SyntheticTypeName implements TypeName {
   String get fullName => name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameLength => noLength;
 }
 

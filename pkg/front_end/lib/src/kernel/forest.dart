@@ -446,7 +446,12 @@ class Forest {
       Expression? condition,
       List<Expression> updaters,
       Statement body) {
-    return new ForStatement(variables ?? [], condition, updaters, body)
+    return new ForStatement(
+        variables ?? // Coverage-ignore(suite): Not run.
+            [],
+        condition,
+        updaters,
+        body)
       ..fileOffset = fileOffset;
   }
 
@@ -582,14 +587,17 @@ class Forest {
 
   bool isErroneousNode(Object? node) {
     if (node is ExpressionStatement) {
+      // Coverage-ignore-block(suite): Not run.
       ExpressionStatement statement = node;
       node = statement.expression;
     }
     if (node is VariableDeclaration) {
+      // Coverage-ignore-block(suite): Not run.
       VariableDeclaration variable = node;
       node = variable.initializer;
     }
     if (node is Let) {
+      // Coverage-ignore-block(suite): Not run.
       Let let = node;
       node = let.variable.initializer;
     }
@@ -713,15 +721,21 @@ class Forest {
   }
 
   ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
-    assert(target is Constructor || (target is Procedure && target.isFactory),
+    assert(
+        target is Constructor || (target is Procedure && target.isFactory),
+        // Coverage-ignore(suite): Not run.
         "Unexpected constructor tear off target: $target");
     return new ConstructorTearOff(target)..fileOffset = fileOffset;
   }
 
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
-    assert(procedure.kind == ProcedureKind.Method,
+    assert(
+        procedure.kind == ProcedureKind.Method,
+        // Coverage-ignore(suite): Not run.
         "Unexpected static tear off target: $procedure");
-    assert(!procedure.isRedirectingFactory,
+    assert(
+        !procedure.isRedirectingFactory,
+        // Coverage-ignore(suite): Not run.
         "Unexpected static tear off target: $procedure");
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
   }
@@ -902,26 +916,31 @@ class _VariablesDeclaration extends AuxiliaryStatement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept<R>(v) {
     throw unsupported("accept", fileOffset, uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept1<R, A>(v, arg) {
     throw unsupported("accept1", fileOffset, uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Never visitChildren(v) {
     throw unsupported("visitChildren", fileOffset, uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Never transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Never transformOrRemoveChildren(v) {
     throw unsupported("transformOrRemoveChildren", fileOffset, uri);
   }
@@ -932,6 +951,7 @@ class _VariablesDeclaration extends AuxiliaryStatement {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     for (int index = 0; index < declarations.length; index++) {
       if (index > 0) {

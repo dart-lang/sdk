@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:kernel/ast.dart';
 
+// Coverage-ignore(suite): Not run.
 /// Class that maps offsets from an intermediate augmentation library to the
 /// merged augmentation library.
 class ReOffset {
@@ -70,6 +71,7 @@ class ReOffset {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Recursive visitor that tracks the current file URI.
 abstract class FileUriVisitor extends RecursiveVisitor {
   /// Called before the `FileUriNode` [node] is visited.
@@ -183,6 +185,7 @@ abstract class FileUriVisitor extends RecursiveVisitor {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Visitor that replaces offsets in intermediate augmentation libraries with
 /// the offsets for the merged augmentation libraries.
 class ReOffsetVisitor extends FileUriVisitor {
@@ -287,6 +290,7 @@ class ReOffsetVisitor extends FileUriVisitor {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// A range of file offset.
 ///
 /// Used to computed the file offsets of nested ranges.
@@ -302,6 +306,7 @@ class OffsetRange {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 extension OffsetRangeExtension on OffsetRange? {
   OffsetRange include(OffsetRange range) {
     OffsetRange? self = this;

@@ -51,6 +51,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   String get debugName => "TypeVariableBuilderBase";
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(name);
     if (bound != null) {
@@ -64,6 +65,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   String toString() => "${printOn(new StringBuffer())}";
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeVariableBuilderBase get origin => actualOrigin ?? this;
 
   Variance get variance;
@@ -129,6 +131,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
       {Map<TypeVariableBuilderBase, TypeVariableTraversalState>?
           typeVariablesTraversalState,
       Map<TypeVariableBuilderBase, TypeVariableBuilderBase>? cycleElements}) {
+    // Coverage-ignore(suite): Not run.
     typeVariablesTraversalState ??= {};
     cycleElements ??= {};
 
@@ -321,6 +324,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
+      // Coverage-ignore-block(suite): Not run.
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
@@ -343,6 +347,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
+      // Coverage-ignore-block(suite): Not run.
       library.addProblem(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
@@ -379,6 +384,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
         library.registerPendingNullability(
             this.fileUri!, this.charOffset, type);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
                 name, library.importUri),
@@ -409,7 +415,8 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
         const NullabilityBuilder.nullable(),
         /* arguments = */ null,
         TypeUse.typeParameterBound,
-        fileUri ?? missingUri,
+        fileUri ?? // Coverage-ignore(suite): Not run.
+            missingUri,
         charOffset,
         /* hierarchy = */ null,
         hasExplicitTypeArguments: false);
@@ -503,6 +510,7 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
         case ExtensionBuilder():
         case BuiltinTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?
         case OmittedTypeDeclarationBuilder():
         case null:
@@ -538,6 +546,7 @@ void _sortAllTypeVariablesTopologicallyFromRoot(
           internalDependents.add(field.type);
         }
       }
+    // Coverage-ignore(suite): Not run.
     case OmittedTypeBuilder():
     case FixedTypeBuilder():
     case InvalidTypeBuilder():
@@ -617,31 +626,38 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   Variance get variance => parameter.variance;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set variance(Variance value) {
     parameter.variance = value;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasUnsetParameterBound =>
       identical(parameter.bound, StructuralParameter.unsetBoundSentinel);
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get parameterBound => parameter.bound;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set parameterBound(DartType bound) {
     parameter.bound = bound;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Nullability get nullabilityFromParameterBound =>
       StructuralParameterType.computeNullabilityFromBound(parameter);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasUnsetParameterDefaultType => identical(
       parameter.defaultType, StructuralParameter.unsetDefaultTypeSentinel);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set parameterDefaultType(DartType defaultType) {
     parameter.defaultType = defaultType;
   }
@@ -655,6 +671,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   int get hashCode => parameter.hashCode;
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(name);
     if (bound != null) {
@@ -684,6 +701,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
       ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
+      // Coverage-ignore-block(suite): Not run.
       library.addProblem(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
@@ -712,6 +730,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
             StructuralParameterType.computeNullabilityFromBound(parameter);
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       nullability = nullabilityBuilder.build();
     }
     StructuralParameterType type = buildAliasedTypeWithBuiltArguments(
@@ -722,6 +741,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
         library.registerPendingFunctionTypeNullability(
             this.fileUri!, this.charOffset, type);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
                 name, library.importUri),
@@ -743,6 +763,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
+      // Coverage-ignore-block(suite): Not run.
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
@@ -763,7 +784,8 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
         const NullabilityBuilder.nullable(),
         /* arguments = */ null,
         TypeUse.typeParameterBound,
-        fileUri ?? missingUri,
+        fileUri ?? // Coverage-ignore(suite): Not run.
+            missingUri,
         charOffset,
         /* hierarchy = */ null,
         hasExplicitTypeArguments: false);
@@ -786,6 +808,7 @@ class StructuralVariableBuilder extends TypeVariableBuilderBase {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void applyAugmentation(covariant StructuralVariableBuilder augmentation) {
     augmentation.actualOrigin = this;
   }

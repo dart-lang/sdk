@@ -62,9 +62,13 @@ class NameScheme {
       required ContainerName? containerName,
       required ContainerType containerType,
       bool isSynthesized = false}) {
-    assert(isSynthesized || fieldNameType == FieldNameType.Field,
+    assert(
+        isSynthesized || fieldNameType == FieldNameType.Field,
+        // Coverage-ignore(suite): Not run.
         "Unexpected field name type for non-synthesized field: $fieldNameType");
-    assert((containerName == null) == (containerType == ContainerType.Library),
+    assert(
+        (containerName == null) == (containerType == ContainerType.Library),
+        // Coverage-ignore(suite): Not run.
         "Missing container name for ${containerType}");
 
     String baseName;
@@ -117,12 +121,14 @@ class NameScheme {
             return new ExtensionProcedureName(
                 libraryName, containerName!, containerType, kind, name,
                 isStatic: isStatic);
+          // Coverage-ignore(suite): Not run.
           case ProcedureKind.Factory:
             throw new UnsupportedError('Unexpected procedure kind ${kind}');
         }
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   static String createProcedureNameForTesting(
       {required ContainerName? containerName,
       required ContainerType containerType,
@@ -162,12 +168,14 @@ class NameScheme {
             case ProcedureKind.Operator:
               kindInfix = '';
               break;
+            // Coverage-ignore(suite): Not run.
             case ProcedureKind.Factory:
               throw new UnsupportedError(
                   'Unexpected extension method kind ${kind}');
           }
         }
         return '${extensionName}|${kindInfix}${name}';
+      // Coverage-ignore(suite): Not run.
       case ContainerType.Library:
       case ContainerType.Class:
         return name;
@@ -358,7 +366,9 @@ abstract class MemberName {
   factory MemberName(LibraryName libraryName, String text) =>
       text.startsWith('_')
           ? new PrivateMemberName(libraryName, text)
-          : new PublicMemberName(text);
+          :
+          // Coverage-ignore(suite): Not run.
+          new PublicMemberName(text);
 
   /// Returns the current [Name] for this member name.
   Name get name;
@@ -387,6 +397,7 @@ class PublicMemberName implements MemberName {
         name = new Name(text);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void updateMemberName() {}
 
   @override

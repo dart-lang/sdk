@@ -33,6 +33,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   // * Else if T is R* and Null <: S then factor(R, S)
   // * Else if T is R* then factor(R, S)*
   if (T.declaredNullability == Nullability.legacy) {
+    // Coverage-ignore-block(suite): Not run.
     DartType R = T.withDeclaredNullability(Nullability.nonNullable);
     DartType factor_RS = factorType(typeEnvironment, R, S);
     if (typeEnvironment.isSubtypeOf(
@@ -53,6 +54,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
       return factorType(typeEnvironment, R, S);
     }
     if (typeEnvironment.isSubtypeOf(R, S, SubtypeCheckMode.withNullabilities)) {
+      // Coverage-ignore-block(suite): Not run.
       return factorType(typeEnvironment, future_R, S);
     }
   }

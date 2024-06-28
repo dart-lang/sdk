@@ -90,6 +90,7 @@ abstract class HierarchyNodeBuilder {
         if (interfaces.length == 1) {
           return null;
         } else {
+          // Coverage-ignore-block(suite): Not run.
           interfaces = interfaces.toList();
           interfaces.removeAt(i);
           return _ignoreFunction(interfaces);
@@ -319,6 +320,7 @@ class ClassHierarchyNode {
   /// If `true`, [mixedInNode] is non-null.
   bool get isMixinApplication => mixedInNode != null;
 
+  // Coverage-ignore(suite): Not run.
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
       ClassHierarchyBuilder hierarchy) {
@@ -369,6 +371,7 @@ class ClassHierarchyNode {
     return "$sb";
   }
 
+  // Coverage-ignore(suite): Not run.
   static int compareMaxInheritancePath(
       ClassHierarchyNode a, ClassHierarchyNode b) {
     return b.maxInheritancePath.compareTo(a.maxInheritancePath);

@@ -109,16 +109,22 @@ abstract class BodyBuilderContext {
 
   bool get isConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isExternalConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isExternalFunction => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isSetter => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isConstConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isFactory => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod => false;
 
   bool get isDeclarationInstanceContext {
@@ -151,10 +157,13 @@ abstract class BodyBuilderContext {
 
   ConstantContext get constantContext => ConstantContext.none;
 
+  // Coverage-ignore(suite): Not run.
   bool get isLateField => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isAbstractField => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isExternalField => false;
 
   bool get isMixinClass => _declarationContext.isMixinClass;
@@ -216,6 +225,7 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError("${runtimeType}.memberCharOffset");
   }
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     return null;
   }
@@ -241,6 +251,7 @@ abstract class BodyBuilderDeclarationContext {
         return new _SourceClassBodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
       } else if (declarationBuilder is DillClassBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         return new _DillClassBodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
       } else if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
@@ -286,6 +297,7 @@ abstract class BodyBuilderDeclarationContext {
 
   bool get isMixinClass => false;
 
+  // Coverage-ignore(suite): Not run.
   bool get isEnumClass => false;
 
   String get className {
@@ -304,6 +316,7 @@ abstract class BodyBuilderDeclarationContext {
 
   bool get declaresConstConstructor => false;
 
+  // Coverage-ignore(suite): Not run.
   bool isObjectClass(CoreTypes coreTypes) => false;
 }
 
@@ -415,6 +428,7 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _DillClassBodyBuilderDeclarationContext
     extends BodyBuilderDeclarationContext
     with _DeclarationBodyBuilderDeclarationContextMixin {
@@ -506,6 +520,7 @@ class LibraryBodyBuilderContext extends BodyBuilderContext {
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -530,6 +545,7 @@ class ClassBodyBuilderContext extends BodyBuilderContext
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -546,6 +562,7 @@ class EnumBodyBuilderContext extends BodyBuilderContext
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -562,6 +579,7 @@ class ExtensionBodyBuilderContext extends BodyBuilderContext
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -581,6 +599,7 @@ class ExtensionTypeBodyBuilderContext extends BodyBuilderContext
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -596,6 +615,7 @@ class TypedefBodyBuilderContext extends BodyBuilderContext {
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
@@ -715,6 +735,7 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
     return _member.isNative;
   }
@@ -979,9 +1000,11 @@ class ParameterBodyBuilderContext extends BodyBuilderContext {
             inConstFields: inConstFields);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasFormalParameters => false;
 }
 
+// Coverage-ignore(suite): Not run.
 class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext
     with _MemberBodyBuilderContext<SourceProcedureBuilder> {
   @override

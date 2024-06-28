@@ -146,6 +146,7 @@ abstract class MembersNodeBuilder {
       ClassMember existing;
       ClassMember duplicate;
       assert(a.fileUri == b.fileUri ||
+          // Coverage-ignore(suite): Not run.
           a.name.text == "toString" &&
               (a.fileUri.isScheme("org-dartlang-sdk") &&
                       a.fileUri.pathSegments.isNotEmpty &&
@@ -155,6 +156,7 @@ abstract class MembersNodeBuilder {
                       b.fileUri.pathSegments.last == "enum.dart"));
 
       if (a.fileUri != b.fileUri) {
+        // Coverage-ignore-block(suite): Not run.
         if (a.fileUri.isScheme("org-dartlang-sdk")) {
           existing = a;
           duplicate = b;
@@ -281,6 +283,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           DartType? inferredParameterType;
           if (combinedMemberSignatureType == null) {
             inferredParameterType = const InvalidType();
+            // Coverage-ignore(suite): Not run.
             cantInferParameterTypes ??= [];
             cantInferParameterTypes.add(declaredParameter);
           } else {
@@ -670,6 +673,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         if (tuple == null) {
           memberMap[name] = new _Tuple.declareMember(classMember);
         } else {
+          // Coverage-ignore-block(suite): Not run.
           tuple.declaredMember = classMember;
         }
         if (name == noSuchMethodName &&
@@ -873,6 +877,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
     ClassHierarchyNodeDataForTesting? dataForTesting;
     if (retainDataForTesting) {
+      // Coverage-ignore-block(suite): Not run.
       dataForTesting = new ClassHierarchyNodeDataForTesting(
           abstractMembers,
           declaredOverridesMap,
@@ -967,6 +972,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       computeClassInterfaceMember(noSuchMethodName, noSuchMethod);
     }
     noSuchMethodMember = interfaceMemberMap[noSuchMethodName] ??
+        // Coverage-ignore(suite): Not run.
         classMemberMap[noSuchMethodName];
 
     memberMap.forEach(computeClassInterfaceMember);
@@ -1028,20 +1034,24 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       /// the interface members separately.
       assert(
           classMemberMap.length == interfaceMemberMap.length,
+          // Coverage-ignore(suite): Not run.
           "Class/interface member mismatch. Class members: "
           "$classMemberMap, interface members: $interfaceMemberMap.");
       assert(
           classSetterMap.length == interfaceSetterMap.length,
+          // Coverage-ignore(suite): Not run.
           "Class/interface setter mismatch. Class setters: "
           "$classSetterMap, interface setters: $interfaceSetterMap.");
       assert(
           classMemberMap.keys.every((Name name) =>
               identical(classMemberMap[name], interfaceMemberMap?[name])),
+          // Coverage-ignore(suite): Not run.
           "Class/interface member mismatch. Class members: "
           "$classMemberMap, interface members: $interfaceMemberMap.");
       assert(
           classSetterMap.keys.every((Name name) =>
               identical(classSetterMap[name], interfaceSetterMap?[name])),
+          // Coverage-ignore(suite): Not run.
           "Class/interface setter mismatch. Class setters: "
           "$classSetterMap, interface setters: $interfaceSetterMap.");
       interfaceMemberMap = null;
@@ -1155,6 +1165,7 @@ class ClassMembersNode {
     return "$sb";
   }
 
+  // Coverage-ignore(suite): Not run.
   void printMembers(
       List<ClassMember> members, StringBuffer sb, String heading) {
     sb.write("  ");
@@ -1170,6 +1181,7 @@ class ClassMembersNode {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   void printMemberMap(
       Map<Name, ClassMember> memberMap, StringBuffer sb, String heading) {
     List<ClassMember> members = memberMap.values.toList();
@@ -1194,8 +1206,11 @@ class ClassMembersNode {
   }
 
   ClassMember? getDispatchTarget(Name name, bool isSetter) {
-    ClassMember? result =
-        isSetter ? classSetterMap[name] : classMemberMap[name];
+    ClassMember? result = isSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        classSetterMap[name]
+        : classMemberMap[name];
     if (result == null) {
       return null;
     }
@@ -1208,6 +1223,7 @@ class ClassMembersNode {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class ClassHierarchyNodeDataForTesting {
   final List<ClassMember> abstractMembers;
   final Map<ClassMember, Set<ClassMember>> declaredOverrides;
@@ -1272,6 +1288,7 @@ class _Tuple {
 
   ClassMember? get declaredMember => _declaredGetable;
 
+  // Coverage-ignore(suite): Not run.
   void set declaredMember(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
@@ -1287,6 +1304,7 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _declaredSetable == null,
+        // Coverage-ignore(suite): Not run.
         "Declared setter already set to $_declaredSetable, "
         "trying to set it to $value.");
     _declaredSetable = value;
@@ -1298,6 +1316,7 @@ class _Tuple {
     assert(!value!.forSetter);
     assert(
         _extendedGetable == null,
+        // Coverage-ignore(suite): Not run.
         "Extended member already set to $_extendedGetable, "
         "trying to set it to $value.");
     _extendedGetable = value;
@@ -1309,6 +1328,7 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _extendedSetable == null,
+        // Coverage-ignore(suite): Not run.
         "Extended setter already set to $_extendedSetable, "
         "trying to set it to $value.");
     _extendedSetable = value;
@@ -1320,6 +1340,7 @@ class _Tuple {
     assert(!value!.forSetter);
     assert(
         _mixedInGetable == null,
+        // Coverage-ignore(suite): Not run.
         "Mixed in member already set to $_mixedInGetable, "
         "trying to set it to $value.");
     _mixedInGetable = value;
@@ -1331,6 +1352,7 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _mixedInSetable == null,
+        // Coverage-ignore(suite): Not run.
         "Mixed in setter already set to $_mixedInSetable, "
         "trying to set it to $value.");
     _mixedInSetable = value;
@@ -1502,6 +1524,7 @@ class _Tuple {
         // The case is handled for consistency.
         if (definingGetable.isStatic ||
             definingGetable.isProperty != tupleMixedInMember.isProperty) {
+          // Coverage-ignore-block(suite): Not run.
           builder.reportInheritanceConflict(
               definingGetable, tupleMixedInMember);
         } else {
@@ -1515,6 +1538,7 @@ class _Tuple {
         !tupleMixedInSetter.isStatic &&
         !tupleMixedInSetter.isDuplicate &&
         !tupleMixedInSetter.isSynthesized) {
+      // Coverage-ignore-block(suite): Not run.
       /// We treat
       ///
       ///   class Mixin {
@@ -1712,7 +1736,9 @@ class _Tuple {
         if (implementedGetable == null) {
           // On the first skipped member we add all previous.
           implementedGetables ??= tupleImplementedMembers.take(i).toList();
-        } else if (implementedGetables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (implementedGetables != null) {
           // If already skipping members we add [implementedGetable]
           // explicitly.
           implementedGetables.add(implementedGetable);
@@ -1773,7 +1799,9 @@ class _Tuple {
         if (implementedSetable == null) {
           // On the first skipped setter we add all previous.
           implementedSetables ??= tupleImplementedSetters.take(i).toList();
-        } else if (implementedSetables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (implementedSetables != null) {
           // If already skipping setters we add [implementedSetable]
           // explicitly.
           implementedSetables.add(implementedSetable);
@@ -2275,7 +2303,9 @@ class _SanitizedMember {
       ///      method() {}
       ///    }
       ///    class Class extends Super {}
-      assert(!_extendedMember.isAbstract,
+      assert(
+          !_extendedMember.isAbstract,
+          // Coverage-ignore(suite): Not run.
           "Abstract extended member: ${_extendedMember}");
 
       classMember = _extendedMember;
@@ -2616,6 +2646,7 @@ class _Overrides {
       assert(
           declaredMember.isSourceDeclaration &&
               declaredMember.declarationBuilder.origin == _classBuilder,
+          // Coverage-ignore(suite): Not run.
           "Only declared members can override: ${declaredMember}");
       hasDeclaredMembers = true;
       if (declaredMember.isProperty) {
@@ -2624,11 +2655,13 @@ class _Overrides {
       } else {
         assert(
             declaredMethod == null,
+            // Coverage-ignore(suite): Not run.
             "Multiple methods unexpectedly declared: "
             "${declaredMethod} and ${declaredMember}.");
         declaredMethod = declaredMember;
       }
       if (_dataForTesting != null && aliasForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         _dataForTesting.aliasMap[aliasForTesting] = declaredMember;
       }
     }
@@ -2659,7 +2692,9 @@ class _Overrides {
   /// instead default to `dynamic`.
   void registerMixedInOverride(ClassMember mixedInMember,
       {ClassMember? aliasForTesting}) {
-    assert(mixedInMember.declarationBuilder != _classBuilder,
+    assert(
+        mixedInMember.declarationBuilder != _classBuilder,
+        // Coverage-ignore(suite): Not run.
         "Only mixin members can override by application: ${mixedInMember}");
     if (_classBuilder is SourceClassBuilder) {
       hasDeclaredMembers = true;
@@ -2669,11 +2704,13 @@ class _Overrides {
       } else {
         assert(
             mixedInMethod == null,
+            // Coverage-ignore(suite): Not run.
             "Multiple methods unexpectedly declared in mixin: "
             "${mixedInMethod} and ${mixedInMember}.");
         mixedInMethod = mixedInMember;
       }
       if (_dataForTesting != null && aliasForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         _dataForTesting.aliasMap[aliasForTesting] = mixedInMember;
       }
     }
@@ -2701,10 +2738,12 @@ class _Overrides {
     if (_classBuilder is SourceClassBuilder) {
       assert(
           inheritedMember.declarationBuilder != _classBuilder,
+          // Coverage-ignore(suite): Not run.
           "Only inherited members can implement by inheritance: "
           "${inheritedMember}");
       _inheritedImplementsMap[inheritedMember] = overrides;
       if (_dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         _dataForTesting.aliasMap[aliasForTesting] = inheritedMember;
       }
     }
@@ -2811,6 +2850,7 @@ void _toSet(DeclarationBuilder declarationBuilder,
   for (ClassMember member in members) {
     if (member.hasDeclarations &&
         declarationBuilder == member.declarationBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       _toSet(declarationBuilder, member.declarations, result);
     } else {
       result.add(member);

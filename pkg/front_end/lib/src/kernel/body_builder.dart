@@ -495,6 +495,7 @@ class BodyBuilder extends StackListenerImpl
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isDartLibrary =>
       libraryBuilder.origin.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
@@ -547,6 +548,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     assert(
         expectedScopeKinds == null || expectedScopeKinds.contains(scope.kind),
+        // Coverage-ignore(suite): Not run.
         "Expected the current scope to be one of the kinds "
         "${expectedScopeKinds.map((k) => "'${k}'").join(", ")}, "
         "but got '${scope.kind}'.");
@@ -772,7 +774,9 @@ class BodyBuilder extends StackListenerImpl
       return forest.createConstantPattern(node.buildSimpleRead());
     } else if (node is Expression) {
       return forest.createConstantPattern(node);
-    } else if (node is ProblemBuilder) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (node is ProblemBuilder) {
       // ignore: unused_local_variable
       Expression expression =
           buildProblem(node.message, node.charOffset, noLength);
@@ -834,6 +838,7 @@ class BodyBuilder extends StackListenerImpl
       switchScope!.unclaimedForwardDeclarations!
           .forEach((String name, JumpTarget declaration) {
         if (outerSwitchScope == null) {
+          // Coverage-ignore-block(suite): Not run.
           for (Statement statement in declaration.users) {
             statement.parent!.replaceChild(
                 statement,
@@ -860,6 +865,7 @@ class BodyBuilder extends StackListenerImpl
           buildProblem(message, offset, name.length, context: context)
             ..parent = variable;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       variable.initializer = wrapInLocatedProblem(
           variable.initializer!, message.withLocation(uri, offset, name.length),
           context: context)
@@ -965,6 +971,7 @@ class BodyBuilder extends StackListenerImpl
       pop(); // Type arguments (ignored, already reported by parser).
       Object? expression = pop();
       if (expression is Identifier) {
+        // Coverage-ignore-block(suite): Not run.
         Identifier identifier = expression;
         expression = new UnresolvedNameGenerator(this, identifier.token,
             new Name(identifier.name, libraryBuilder.nameOrigin),
@@ -987,7 +994,9 @@ class BodyBuilder extends StackListenerImpl
           // TODO(johnniwinther): Stop using the type of the generator here.
           // Ask a property instead.
           (expression is! ReadOnlyAccessGenerator ||
+              // Coverage-ignore(suite): Not run.
               expression is TypeUseGenerator ||
+              // Coverage-ignore(suite): Not run.
               expression is ParenthesizedExpressionGenerator)) {
         Expression value = toValue(expression);
         push(wrapInProblem(value, fasta.messageExpressionNotMetadata,
@@ -1153,6 +1162,7 @@ class BodyBuilder extends StackListenerImpl
     if (hasDelayedActions) {
       assert(
           delayedActionPerformers != null,
+          // Coverage-ignore(suite): Not run.
           "Body builder has delayed actions that cannot be performed: "
           "${[
             ...delayedRedirectingFactoryInvocations,
@@ -1195,6 +1205,7 @@ class BodyBuilder extends StackListenerImpl
           if (formal.isInitializingFormal) {
             List<Initializer> initializers;
             if (_context.isExternalConstructor) {
+              // Coverage-ignore-block(suite): Not run.
               initializers = <Initializer>[
                 buildInvalidInitializer(
                     buildProblem(
@@ -1280,6 +1291,7 @@ class BodyBuilder extends StackListenerImpl
     } else if (node is Generator) {
       initializers = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
+      // Coverage-ignore-block(suite): Not run.
       initializers = <Initializer>[
         // TODO(jensj): Does this offset make sense?
         buildSuperInitializer(
@@ -1368,6 +1380,7 @@ class BodyBuilder extends StackListenerImpl
         }
         if (inferInitializer) {
           if (!parameter.initializerWasInferred) {
+            // Coverage-ignore(suite): Not run.
             initializer ??= forest.createNullLiteral(
                 // TODO(ahe): Should store: originParameter.fileOffset
                 // https://github.com/dart-lang/sdk/issues/32289
@@ -1425,7 +1438,9 @@ class BodyBuilder extends StackListenerImpl
           formals!.parameters!.length != 1 ||
           formals.parameters!.single.isOptionalPositional) {
         int charOffset = formals?.charOffset ??
+            // Coverage-ignore(suite): Not run.
             body?.fileOffset ??
+            // Coverage-ignore(suite): Not run.
             _context.memberCharOffset;
         if (body == null) {
           body = new EmptyStatement()..fileOffset = charOffset;
@@ -1536,6 +1551,7 @@ class BodyBuilder extends StackListenerImpl
     Library ensureLibraryLoaded = member.enclosingLibrary;
     LibraryBuilder? builder = libraryBuilder.loader
             .lookupLoadedLibraryBuilder(ensureLibraryLoaded.importUri) ??
+        // Coverage-ignore(suite): Not run.
         libraryBuilder.loader.target.dillTarget.loader
             .lookupLibraryBuilder(ensureLibraryLoaded.importUri);
     if (builder is DillLibraryBuilder) {
@@ -1572,6 +1588,7 @@ class BodyBuilder extends StackListenerImpl
           return sub.substituteType(nextTypeArguments[i]);
         }, growable: true);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         typeArguments = <DartType>[];
       }
       target = nextMember;
@@ -1680,7 +1697,9 @@ class BodyBuilder extends StackListenerImpl
     ];
     typeAliasedConstructorInvocations.clear();
     for (TypeAliasedConstructorInvocation invocation in invocations) {
-      assert(invocation.hasBeenInferred || isOrphaned(invocation),
+      assert(
+          invocation.hasBeenInferred || isOrphaned(invocation),
+          // Coverage-ignore(suite): Not run.
           "Node $invocation has not been inferred.");
 
       Expression? replacement;
@@ -1720,7 +1739,9 @@ class BodyBuilder extends StackListenerImpl
         typeAliasedFactoryInvocations.toList();
     typeAliasedFactoryInvocations.clear();
     for (TypeAliasedFactoryInvocation invocation in invocations) {
-      assert(invocation.hasBeenInferred || isOrphaned(invocation),
+      assert(
+          invocation.hasBeenInferred || isOrphaned(invocation),
+          // Coverage-ignore(suite): Not run.
           "Node $invocation has not been inferred.");
 
       Expression? replacement;
@@ -1769,6 +1790,7 @@ class BodyBuilder extends StackListenerImpl
       _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations,
           allowFurtherDelays: allowFurtherDelays);
       if (delayedRedirectingFactoryInvocations.isNotEmpty) {
+        // Coverage-ignore-block(suite): Not run.
         for (StaticInvocation invocation
             in delayedRedirectingFactoryInvocations) {
           internalProblem(
@@ -1783,6 +1805,7 @@ class BodyBuilder extends StackListenerImpl
       _unaliasTypeAliasedFactoryInvocations(
           delayedTypeAliasedFactoryInvocations);
       if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
+        // Coverage-ignore-block(suite): Not run.
         for (StaticInvocation invocation
             in delayedTypeAliasedFactoryInvocations) {
           internalProblem(
@@ -1797,6 +1820,7 @@ class BodyBuilder extends StackListenerImpl
       _unaliasTypeAliasedConstructorInvocations(
           delayedTypeAliasedConstructorInvocations);
       if (delayedTypeAliasedConstructorInvocations.isNotEmpty) {
+        // Coverage-ignore-block(suite): Not run.
         for (ConstructorInvocation invocation
             in delayedTypeAliasedConstructorInvocations) {
           internalProblem(
@@ -1861,12 +1885,15 @@ class BodyBuilder extends StackListenerImpl
         parent.addAnnotation(expression);
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       temporaryParent = new ListLiteral(expressions);
     }
     performBacklogComputations(allowFurtherDelays: false);
+    // Coverage-ignore(suite): Not run.
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
+  // Coverage-ignore(suite): Not run.
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
     assert(redirectingFactoryInvocations.isEmpty);
@@ -2084,6 +2111,7 @@ class BodyBuilder extends StackListenerImpl
     } else if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isSuperInitializingFormal) {
+          // Coverage-ignore-block(suite): Not run.
           if (formal.isNamed) {
             NamedExpression superParameterAsArgument = new NamedExpression(
                 formal.name,
@@ -2458,6 +2486,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ParenthesizedExpression");
     Expression value = popForValue();
     if (value is ShadowLargeIntLiteral) {
+      // Coverage-ignore-block(suite): Not run.
       // We need to know that the expression was parenthesized because we will
       // treat -n differently from -(n).  If the expression occurs in a double
       // context, -n is a double literal and -(n) is an application of unary- to
@@ -2696,6 +2725,7 @@ class BodyBuilder extends StackListenerImpl
     Scope headScope = pop() as Scope;
     assert(
         headScope.classNameOrDebugName == "switch block",
+        // Coverage-ignore(suite): Not run.
         "Expected to have scope 'switch block', "
         "but got '${headScope.classNameOrDebugName}'.");
     if (value is Pattern) {
@@ -2932,6 +2962,7 @@ class BodyBuilder extends StackListenerImpl
         push(forest.createOrPattern(token.charOffset, left, right,
             orPatternJointVariables: jointVariables));
         break;
+      // Coverage-ignore(suite): Not run.
       default:
         internalProblem(
             fasta.templateInternalProblemUnhandled
@@ -2980,6 +3011,7 @@ class BodyBuilder extends StackListenerImpl
               token.charOffset,
               token.length));
         } else {
+          // Coverage-ignore-block(suite): Not run.
           push(buildProblem(fasta.templateInvalidOperator.withArguments(token),
               token.charOffset, token.length));
         }
@@ -3211,9 +3243,12 @@ class BodyBuilder extends StackListenerImpl
       bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoMember.withArguments(name.text)
+        ?
+        // Coverage-ignore(suite): Not run.
+        fasta.templateSuperclassHasNoMember.withArguments(name.text)
         : fasta.templateMemberNotFound.withArguments(name.text);
     if (reportWarning) {
+      // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, name.text.length,
           context: context);
     }
@@ -3228,6 +3263,7 @@ class BodyBuilder extends StackListenerImpl
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.text)
         : fasta.templateGetterNotFound.withArguments(name.text);
     if (reportWarning) {
+      // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, name.text.length,
           context: context);
     }
@@ -3242,6 +3278,7 @@ class BodyBuilder extends StackListenerImpl
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.text)
         : fasta.templateSetterNotFound.withArguments(name.text);
     if (reportWarning) {
+      // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, name.text.length,
           context: context);
     }
@@ -3268,6 +3305,7 @@ class BodyBuilder extends StackListenerImpl
         ? fasta.templateSuperclassHasNoMethod.withArguments(name.text)
         : fasta.templateMethodNotFound.withArguments(name.text);
     if (reportWarning) {
+      // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, length, context: context);
     }
     return message;
@@ -3275,7 +3313,9 @@ class BodyBuilder extends StackListenerImpl
 
   Message warnUnresolvedConstructor(Name name, {bool isSuper = false}) {
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
+        ?
+        // Coverage-ignore(suite): Not run.
+        fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
         : fasta.templateConstructorNotFound.withArguments(name.text);
     return message;
   }
@@ -3304,6 +3344,7 @@ class BodyBuilder extends StackListenerImpl
       if (!context.inDeclaration &&
           constantContext != ConstantContext.none &&
           !context.allowedInConstantExpression) {
+        // Coverage-ignore-block(suite): Not run.
         addProblem(fasta.messageNotAConstantExpression, token.charOffset,
             token.length);
       }
@@ -3585,8 +3626,10 @@ class BodyBuilder extends StackListenerImpl
     Object? node = pop();
     Object? qualifier = pop();
     if (qualifier is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(qualifier);
     } else if (node is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(node);
     } else {
       Identifier identifier = node as Identifier;
@@ -3618,6 +3661,7 @@ class BodyBuilder extends StackListenerImpl
       List<Object>? parts = const FixedNullableList<Object>()
           .popNonNullable(stack, count, /* dummyValue = */ 0);
       if (parts == null) {
+        // Coverage-ignore-block(suite): Not run.
         push(new ParserRecovery(endToken.charOffset));
         return;
       }
@@ -3669,6 +3713,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleScript(Token token) {
     debugEvent("Script");
   }
@@ -3894,6 +3939,7 @@ class BodyBuilder extends StackListenerImpl
   void pushNewLocalVariable(Expression? initializer, {Token? equalsToken}) {
     Object? node = pop();
     if (node is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(node);
       return;
     }
@@ -3951,6 +3997,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("NoFieldInitializer");
     constantContext = _context.constantContext;
     if (constantContext == ConstantContext.inferred) {
+      // Coverage-ignore-block(suite): Not run.
       // Creating a null value to prevent the Dart VM from crashing.
       push(forest.createNullLiteral(offsetForToken(token)));
     } else {
@@ -3965,6 +4012,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("InitializedIdentifier");
     Object? node = pop();
     if (node is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(node);
       return;
     }
@@ -4012,6 +4060,7 @@ class BodyBuilder extends StackListenerImpl
       currentLocalVariableModifiers = pop() as int;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (node is ParserRecovery) {
+        // Coverage-ignore-block(suite): Not run.
         push(node);
         return;
       }
@@ -4032,6 +4081,7 @@ class BodyBuilder extends StackListenerImpl
       currentLocalVariableModifiers = pop() as int;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (variables == null) {
+        // Coverage-ignore-block(suite): Not run.
         push(new ParserRecovery(offsetForToken(endToken)));
         return;
       }
@@ -4087,6 +4137,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleInvalidTopLevelBlock(Token token) {
     // TODO(danrubel): Consider improved recovery by adding this block
     // as part of a synthetic top level function.
@@ -4133,6 +4184,7 @@ class BodyBuilder extends StackListenerImpl
 
   void exitLoopOrSwitch(Statement statement) {
     if (problemInLoopOrSwitch != null) {
+      // Coverage-ignore-block(suite): Not run.
       push(problemInLoopOrSwitch);
       problemInLoopOrSwitch = null;
     } else {
@@ -4157,6 +4209,7 @@ class BodyBuilder extends StackListenerImpl
           new VariableDeclarationImpl.forEffect(variableOrExpression);
       return <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
+      // Coverage-ignore-block(suite): Not run.
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
           variableOrExpression.expression);
       return <VariableDeclaration>[variable];
@@ -4164,14 +4217,17 @@ class BodyBuilder extends StackListenerImpl
       return forest
           .variablesDeclarationExtractDeclarations(variableOrExpression);
     } else if (variableOrExpression is List<Object>) {
+      // Coverage-ignore-block(suite): Not run.
       List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
     } else if (variableOrExpression is PatternVariableDeclaration) {
+      // Coverage-ignore-block(suite): Not run.
       return <VariableDeclaration>[];
     } else if (variableOrExpression is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       return <VariableDeclaration>[];
     } else if (variableOrExpression == null) {
       return <VariableDeclaration>[];
@@ -4487,6 +4543,7 @@ class BodyBuilder extends StackListenerImpl
           <Statement>[variableOrExpression, ...intermediateVariables!, result]);
     }
     if (variableOrExpression is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       problemInLoopOrSwitch ??= buildProblemStatement(
           fasta.messageSyntheticToken, variableOrExpression.charOffset,
           suppressMessage: true);
@@ -4556,6 +4613,7 @@ class BodyBuilder extends StackListenerImpl
     DartType typeArgument;
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
+        // Coverage-ignore-block(suite): Not run.
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(leftBracket),
@@ -4761,6 +4819,7 @@ class BodyBuilder extends StackListenerImpl
     if (setOrMapEntries != null) {
       for (dynamic entry in setOrMapEntries) {
         if (entry is MapLiteralEntry) {
+          // Coverage-ignore-block(suite): Not run.
           // TODO(danrubel): report the error on the colon
           addProblem(fasta.templateExpectedButGot.withArguments(','),
               entry.fileOffset, 1);
@@ -5004,6 +5063,7 @@ class BodyBuilder extends StackListenerImpl
       push(forest.createMapEntry(offsetForToken(colon), key, value));
     } else {
       if (!libraryFeatures.nullAwareElements.isEnabled) {
+        // Coverage-ignore-block(suite): Not run.
         addProblem(
             templateExperimentNotEnabledOffByDefault
                 .withArguments(ExperimentalFlag.nullAwareElements.name),
@@ -5036,6 +5096,7 @@ class BodyBuilder extends StackListenerImpl
     if (identifierCount == 1) {
       Object? part = pop();
       if (part is ParserRecovery) {
+        // Coverage-ignore-block(suite): Not run.
         push(new ParserErrorGenerator(
             this, hashToken, fasta.messageSyntheticToken));
       } else {
@@ -5046,6 +5107,7 @@ class BodyBuilder extends StackListenerImpl
       List<Identifier>? parts = const FixedNullableList<Identifier>()
           .popNonNullable(stack, identifierCount, dummyIdentifier);
       if (parts == null) {
+        // Coverage-ignore-block(suite): Not run.
         push(new ParserErrorGenerator(
             this, hashToken, fasta.messageSyntheticToken));
         return;
@@ -5173,6 +5235,7 @@ class BodyBuilder extends StackListenerImpl
         if (existing == null) {
           scope.addLocalMember(name, builder, setter: false);
         } else {
+          // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.charOffset);
         }
       }
@@ -5195,6 +5258,7 @@ class BodyBuilder extends StackListenerImpl
         if (existing == null) {
           scope.addLocalMember(name, builder, setter: false);
         } else {
+          // Coverage-ignore-block(suite): Not run.
           reportDuplicatedDeclaration(existing, name, builder.charOffset);
         }
       }
@@ -5263,7 +5327,9 @@ class BodyBuilder extends StackListenerImpl
     push(new RecordTypeFieldBuilder(
         [],
         type is ParserRecovery
-            ? new InvalidTypeBuilderImpl(uri, type.charOffset)
+            ?
+            // Coverage-ignore(suite): Not run.
+            new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
         fieldName,
         name is Identifier ? name.nameOffset : TreeNode.noOffset,
@@ -5318,6 +5384,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleVoidKeywordWithTypeArguments(Token token) {
     assert(checkState(token, <ValueKind>[
       /* arguments */ ValueKinds.TypeArgumentsOrNull,
@@ -5441,6 +5508,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ThrowExpression");
     Expression expression = popForValue();
     if (constantContext != ConstantContext.none) {
+      // Coverage-ignore-block(suite): Not run.
       push(buildProblem(
           fasta.templateNotConstantExpression.withArguments('Throw'),
           throwToken.offset,
@@ -5991,7 +6059,10 @@ class BodyBuilder extends StackListenerImpl
       suffix = suffixObject;
     } else {
       assert(
-          suffixObject == null || suffixObject is ParserRecovery,
+          suffixObject == null ||
+              // Coverage-ignore(suite): Not run.
+              suffixObject is ParserRecovery,
+          // Coverage-ignore(suite): Not run.
           "Unexpected qualified name suffix $suffixObject "
           "(${suffixObject.runtimeType})");
       // There was a `.` without a suffix.
@@ -6036,6 +6107,7 @@ class BodyBuilder extends StackListenerImpl
     }
     String name;
     if (identifier != null && suffix != null) {
+      // Coverage-ignore-block(suite): Not run.
       name = "${identifier.name}.${suffix.name}";
     } else if (identifier != null) {
       name = identifier.name;
@@ -6125,6 +6197,7 @@ class BodyBuilder extends StackListenerImpl
       if (isConstructorInvocation) {
         if (constantContext == ConstantContext.required &&
             constness == Constness.implicit) {
+          // Coverage-ignore-block(suite): Not run.
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
@@ -6408,6 +6481,7 @@ class BodyBuilder extends StackListenerImpl
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
     if (inMetadata && typeArguments != null) {
       if (!libraryFeatures.genericMetadata.isEnabled) {
+        // Coverage-ignore-block(suite): Not run.
         handleRecoverableError(fasta.messageMetadataTypeArguments,
             nameLastToken.next!, nameLastToken.next!);
       }
@@ -6426,6 +6500,7 @@ class BodyBuilder extends StackListenerImpl
           typeArguments, name, arguments, nameToken, nameLastToken, constness,
           inImplicitCreationContext: inImplicitCreationContext));
     } else if (type is ParserRecovery) {
+      // Coverage-ignore-block(suite): Not run.
       push(new ParserErrorGenerator(
           this, nameToken, fasta.messageSyntheticToken));
     } else if (type is InvalidExpression) {
@@ -6523,6 +6598,7 @@ class BodyBuilder extends StackListenerImpl
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind}) {
     if (arguments == null) {
+      // Coverage-ignore-block(suite): Not run.
       return buildProblem(fasta.messageMissingArgumentList,
           nameToken.charOffset, nameToken.length);
     }
@@ -6542,6 +6618,7 @@ class BodyBuilder extends StackListenerImpl
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
+        // Coverage-ignore-block(suite): Not run.
         // TODO(eernst): Use position of type arguments, not nameToken.
         return evaluateArgumentsBefore(
             arguments,
@@ -6578,6 +6655,7 @@ class BodyBuilder extends StackListenerImpl
                 target = null;
               } else if (constructorBuilder.isConstructor) {
                 if (typeDeclarationBuilder.isAbstract) {
+                  // Coverage-ignore-block(suite): Not run.
                   return evaluateArgumentsBefore(
                       arguments,
                       buildAbstractClassInstantiationError(
@@ -6614,9 +6692,11 @@ class BodyBuilder extends StackListenerImpl
               if (constructorBuilder == null) {
                 // Not found. Reported below.
               } else if (constructorBuilder is AmbiguousMemberBuilder) {
+                // Coverage-ignore-block(suite): Not run.
                 message = constructorBuilder.message
                     .withLocation(uri, charOffset, noLength);
               } else if (constructorBuilder.isConstructor ||
+                  // Coverage-ignore(suite): Not run.
                   constructorBuilder.isFactory) {
                 Member target = constructorBuilder.invokeTarget!;
                 return buildStaticInvocation(target, arguments,
@@ -6630,12 +6710,14 @@ class BodyBuilder extends StackListenerImpl
                   arguments: arguments,
                   message: message,
                   kind: UnresolvedKind.Constructor);
+            // Coverage-ignore(suite): Not run.
             case InvalidTypeDeclarationBuilder():
               LocatedMessage message = typeDeclarationBuilder.message;
               return evaluateArgumentsBefore(
                   arguments,
                   buildProblem(message.messageObject, nameToken.charOffset,
                       nameToken.lexeme.length));
+            // Coverage-ignore(suite): Not run.
             case TypeAliasBuilder():
             case NominalVariableBuilder():
             case StructuralVariableBuilder():
@@ -6658,6 +6740,7 @@ class BodyBuilder extends StackListenerImpl
               List<TypeBuilder>? unaliasedTypeArgumentBuilders =
                   aliasBuilder.unaliasTypeArguments(const []);
               if (unaliasedTypeArgumentBuilders == null) {
+                // Coverage-ignore-block(suite): Not run.
                 // TODO(eernst): This is a wrong number of type arguments,
                 // occurring indirectly (in an alias of an alias, etc.).
                 return evaluateArgumentsBefore(
@@ -6677,11 +6760,17 @@ class BodyBuilder extends StackListenerImpl
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
             case TypeAliasBuilder():
+            // Coverage-ignore(suite): Not run.
             case NominalVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case StructuralVariableBuilder():
+            // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
+            // Coverage-ignore(suite): Not run.
             case InvalidTypeDeclarationBuilder():
+            // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
+            // Coverage-ignore(suite): Not run.
             // TODO(johnniwinther): How should we handle this case?
             case OmittedTypeDeclarationBuilder():
             case null:
@@ -6712,6 +6801,7 @@ class BodyBuilder extends StackListenerImpl
             int numberOfTypeParameters =
                 aliasBuilder.typeVariables?.length ?? 0;
             if (numberOfTypeParameters != typeArgumentBuilders.length) {
+              // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): Use position of type arguments, not nameToken.
               return evaluateArgumentsBefore(
                   arguments,
@@ -6724,6 +6814,7 @@ class BodyBuilder extends StackListenerImpl
             List<TypeBuilder>? unaliasedTypeArgumentBuilders =
                 aliasBuilder.unaliasTypeArguments(typeArgumentBuilders);
             if (unaliasedTypeArgumentBuilders == null) {
+              // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): This is a wrong number of type arguments,
               // occurring indirectly (in an alias of an alias, etc.).
               return evaluateArgumentsBefore(
@@ -6760,6 +6851,7 @@ class BodyBuilder extends StackListenerImpl
               forest.argumentsSetTypeArguments(arguments, []);
             } else {
               if (forest.argumentsTypeArguments(arguments).isEmpty) {
+                // Coverage-ignore-block(suite): Not run.
                 // No type arguments provided to unaliased class, use defaults.
                 List<DartType> result = new List<DartType>.generate(
                     typeVariables.length,
@@ -6776,7 +6868,9 @@ class BodyBuilder extends StackListenerImpl
         case StructuralVariableBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
+        // Coverage-ignore(suite): Not run.
         // TODO(johnniwinther): How should we handle this case?
         case OmittedTypeDeclarationBuilder():
         case null:
@@ -6843,6 +6937,7 @@ class BodyBuilder extends StackListenerImpl
         if (constructorBuilder == null) {
           // Not found. Reported below.
         } else if (constructorBuilder is AmbiguousMemberBuilder) {
+          // Coverage-ignore-block(suite): Not run.
           message = constructorBuilder.message
               .withLocation(uri, charOffset, noLength);
         } else {
@@ -6869,6 +6964,7 @@ class BodyBuilder extends StackListenerImpl
       case StructuralVariableBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
+      // Coverage-ignore(suite): Not run.
       // TODO(johnniwinther): How should we handle this case?
       case OmittedTypeDeclarationBuilder():
       case null:
@@ -6888,6 +6984,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     if (!libraryFeatures.constFunctions.isEnabled) {
@@ -7087,7 +7184,9 @@ class BodyBuilder extends StackListenerImpl
       } else {
         int offset = elseEntry is Expression
             ? elseEntry.fileOffset
-            : offsetForToken(ifToken);
+            :
+            // Coverage-ignore(suite): Not run.
+            offsetForToken(ifToken);
         node = new MapLiteralEntry(
             buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
                 offset, 1),
@@ -7103,6 +7202,7 @@ class BodyBuilder extends StackListenerImpl
             node = forest.createIfMapEntry(offsetForToken(ifToken),
                 condition.expression, thenMapEntry, elseEntry);
           } else {
+            // Coverage-ignore-block(suite): Not run.
             node = forest.createIfCaseMapEntry(offsetForToken(ifToken),
                 prelude: [],
                 expression: condition.expression,
@@ -7121,7 +7221,9 @@ class BodyBuilder extends StackListenerImpl
       } else {
         int offset = thenEntry is Expression
             ? thenEntry.fileOffset
-            : offsetForToken(ifToken);
+            :
+            // Coverage-ignore(suite): Not run.
+            offsetForToken(ifToken);
         node = new MapLiteralEntry(
             buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
                 offset, 1),
@@ -7153,6 +7255,7 @@ class BodyBuilder extends StackListenerImpl
     // TODO(cstefantsova): Replace the following no-op with the node for
     // handling null-aware elements.
     if (!libraryFeatures.nullAwareElements.isEnabled) {
+      // Coverage-ignore-block(suite): Not run.
       addProblem(
           templateExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.nullAwareElements.name),
@@ -7256,6 +7359,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       assert(
           identifier is ParserRecovery,
+          // Coverage-ignore(suite): Not run.
           "Unexpected argument name: "
           "${identifier} (${identifier.runtimeType})");
       push(identifier);
@@ -7282,6 +7386,7 @@ class BodyBuilder extends StackListenerImpl
     // scope?
     Builder? existing = scope.lookupLocalMember(name.name, setter: false);
     if (existing != null) {
+      // Coverage-ignore-block(suite): Not run.
       reportDuplicatedDeclaration(existing, name.name, name.nameOffset);
     }
     push(new FunctionDeclarationImpl(
@@ -7513,7 +7618,9 @@ class BodyBuilder extends StackListenerImpl
       /* break target = */ ValueKinds.BreakTarget,
     ]));
     Condition condition = pop() as Condition;
-    assert(condition.patternGuard == null,
+    assert(
+        condition.patternGuard == null,
+        // Coverage-ignore(suite): Not run.
         "Unexpected pattern in do statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement body = popStatement();
@@ -7549,6 +7656,7 @@ class BodyBuilder extends StackListenerImpl
     if (scope.parent != null) {
       enterLocalScope(scope.parent!);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       createAndEnterLocalScope(
           debugName: 'forIn', kind: ScopeKind.statementLocalScope);
     }
@@ -7785,6 +7893,7 @@ class BodyBuilder extends StackListenerImpl
     JumpTarget breakTarget = exitBreakTarget()!;
     List<BreakStatementImpl>? continueStatements;
     if (continueTarget.hasUsers) {
+      // Coverage-ignore-block(suite): Not run.
       LabeledStatement labeledStatement = forest.createLabeledStatement(body);
       continueStatements =
           continueTarget.resolveContinues(forest, labeledStatement);
@@ -7815,6 +7924,7 @@ class BodyBuilder extends StackListenerImpl
     typeInferrer.assignedVariables
         .storeInfo(forInStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (BreakStatementImpl continueStatement in continueStatements) {
         continueStatement.targetStatement = forInStatement;
       }
@@ -7899,6 +8009,7 @@ class BodyBuilder extends StackListenerImpl
       push(forest.createRethrowStatement(
           offsetForToken(rethrowToken), offsetForToken(endToken)));
     } else {
+      // Coverage-ignore-block(suite): Not run.
       push(new ExpressionStatement(buildProblem(fasta.messageRethrowNotCatch,
           offsetForToken(rethrowToken), lengthForToken(rethrowToken)))
         ..fileOffset = offsetForToken(rethrowToken));
@@ -7930,7 +8041,9 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Statement body = popStatement();
     Condition condition = pop() as Condition;
-    assert(condition.patternGuard == null,
+    assert(
+        condition.patternGuard == null,
+        // Coverage-ignore(suite): Not run.
         "Unexpected pattern in while statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
@@ -8013,6 +8126,7 @@ class BodyBuilder extends StackListenerImpl
         conditionLastToken = nextToken;
       }
       if (conditionLastToken.isEof) {
+        // Coverage-ignore-block(suite): Not run.
         endOffset = startOffset = -1;
       } else {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
@@ -8125,6 +8239,7 @@ class BodyBuilder extends StackListenerImpl
         if (scope.hasLocalLabel(labelName)) {
           // TODO(ahe): Should validate this is a goto target.
           if (!scope.claimLabel(labelName)) {
+            // Coverage-ignore-block(suite): Not run.
             addProblem(
                 fasta.templateDuplicateLabelInSwitchStatement
                     .withArguments(labelName),
@@ -8349,6 +8464,7 @@ class BodyBuilder extends StackListenerImpl
     assert(
         scope.kind == ScopeKind.switchCase ||
             scope.kind == ScopeKind.jointVariables,
+        // Coverage-ignore(suite): Not run.
         "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
         "or '${ScopeKind.jointVariables}', but got '${scope.kind}.");
     Map<String, List<int>>? usedNamesOffsets = scope.usedNames;
@@ -8504,7 +8620,9 @@ class BodyBuilder extends StackListenerImpl
     exitSwitchScope();
     exitLocalScope();
     Condition condition = pop() as Condition;
-    assert(condition.patternGuard == null,
+    assert(
+        condition.patternGuard == null,
+        // Coverage-ignore(suite): Not run.
         "Unexpected pattern in switch statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     Statement switchStatement;
@@ -8519,6 +8637,7 @@ class BodyBuilder extends StackListenerImpl
         if (switchCase is PatternSwitchCase) {
           patternSwitchCase = switchCase;
         } else {
+          // Coverage-ignore-block(suite): Not run.
           List<PatternGuard> patterns = new List<PatternGuard>.generate(
               switchCase.expressions.length, (int index) {
             return forest.createPatternGuard(
@@ -8648,7 +8767,9 @@ class BodyBuilder extends StackListenerImpl
 
     List<SwitchExpressionCase> cases = pop() as List<SwitchExpressionCase>;
     Condition condition = pop() as Condition;
-    assert(condition.patternGuard == null,
+    assert(
+        condition.patternGuard == null,
+        // Coverage-ignore(suite): Not run.
         "Unexpected pattern in switch expression: ${condition.patternGuard}.");
     Expression expression = condition.expression;
     push(forest.createSwitchExpression(
@@ -8735,12 +8856,14 @@ class BodyBuilder extends StackListenerImpl
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.messageBreakOutsideOfLoop, breakKeyword.charOffset));
     } else if (target == null || !target.isBreakTarget) {
+      // Coverage-ignore-block(suite): Not run.
       Token labelToken = breakKeyword.next!;
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateInvalidBreakTarget.withArguments(name!),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
+      // Coverage-ignore-block(suite): Not run.
       push(buildProblemTargetOutsideLocalFunction(name, breakKeyword));
     } else {
       Statement statement =
@@ -8750,6 +8873,7 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   Statement buildProblemTargetOutsideLocalFunction(
       String? name, Token keyword) {
     Statement problem;
@@ -8804,16 +8928,19 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     if (target == null) {
+      // Coverage-ignore-block(suite): Not run.
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.messageContinueWithoutLabelInCase, continueKeyword.charOffset,
           length: continueKeyword.length));
     } else if (!target.isContinueTarget) {
+      // Coverage-ignore-block(suite): Not run.
       Token labelToken = continueKeyword.next!;
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateInvalidContinueTarget.withArguments(name!),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
+      // Coverage-ignore-block(suite): Not run.
       push(buildProblemTargetOutsideLocalFunction(name, continueKeyword));
     } else {
       Statement statement = forest.createContinueStatement(
@@ -8906,6 +9033,7 @@ class BodyBuilder extends StackListenerImpl
     TypeVariableBuilderBase variable = typeVariables[index];
     variable.bound = bound;
     if (variance != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (!libraryFeatures.variance.isEnabled) {
         reportVarianceModifierNotEnabled(variance);
       }
@@ -8938,7 +9066,11 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    for (int i = 0; i < unboundTypeVariables.length; ++i) {
+    for (int i = 0;
+        i < unboundTypeVariables.length;
+        // Coverage-ignore(suite): Not run.
+        ++i) {
+      // Coverage-ignore-block(suite): Not run.
       unboundTypeVariables[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
@@ -8991,6 +9123,7 @@ class BodyBuilder extends StackListenerImpl
           expression, message.withLocation(uri, fileOffset, length),
           context: context);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       addProblem(message, fileOffset, length, context: context);
       return expression;
     }
@@ -9026,6 +9159,7 @@ class BodyBuilder extends StackListenerImpl
         context: context, suppressMessage: suppressMessage));
   }
 
+  // Coverage-ignore(suite): Not run.
   Statement wrapInProblemStatement(Statement statement, Message message) {
     // TODO(askesc): Produce explicit error statement wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
@@ -9147,6 +9281,7 @@ class BodyBuilder extends StackListenerImpl
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
           if (!typeEnvironment.isSubtypeOf(
               formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
+            // Coverage-ignore-block(suite): Not run.
             libraryBuilder.addProblem(
                 fasta.templateInitializingFormalTypeMismatch
                     .withArguments(name, formalType, builder.fieldType),
@@ -9230,12 +9365,14 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
     push(new SimpleIdentifier(token));
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleInvalidFunctionBody(Token token) {
     if (_context.isNativeMethod) {
       push(NullValues.FunctionBody);
@@ -9380,6 +9517,7 @@ class BodyBuilder extends StackListenerImpl
     List<Expression> expressions =
         new List<Expression>.of(forest.argumentsPositional(arguments));
     for (NamedExpression named in forest.argumentsNamed(arguments)) {
+      // Coverage-ignore-block(suite): Not run.
       expressions.add(named.value);
     }
     for (Expression argument in expressions.reversed) {
@@ -9542,6 +9680,7 @@ class BodyBuilder extends StackListenerImpl
       List<TypeBuilder>? unresolvedTypes, TypeUse typeUse,
       {required bool allowPotentiallyConstantType}) {
     if (unresolvedTypes == null) {
+      // Coverage-ignore-block(suite): Not run.
       return <DartType>[];
     }
     return new List<DartType>.generate(
@@ -9718,6 +9857,7 @@ class BodyBuilder extends StackListenerImpl
       case '>=':
         kind = RelationalPatternKind.greaterThanEqual;
         break;
+      // Coverage-ignore(suite): Not run.
       default:
         internalProblem(
             fasta.templateInternalProblemUnhandled
@@ -9832,7 +9972,9 @@ class BodyBuilder extends StackListenerImpl
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
     // Note: if `default` appears in a switch expression, parser error recovery
     // treats it as a wildcard pattern.
-    assert(wildcard.lexeme == '_' || wildcard.lexeme == 'default');
+    assert(wildcard.lexeme == '_' ||
+        // Coverage-ignore(suite): Not run.
+        wildcard.lexeme == 'default');
     push(forest.createWildcardPattern(wildcard.charOffset, patternType));
   }
 
@@ -10040,12 +10182,15 @@ class LabelTarget implements JumpTarget {
             JumpTargetKind.Continue, functionNestingLevel, fileUri, charOffset);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<Statement> get users => unsupported("users", charOffset, fileUri);
 
   @override
+  // Coverage-ignore(suite): Not run.
   JumpTargetKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
@@ -10068,23 +10213,27 @@ class LabelTarget implements JumpTarget {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void addGoto(Statement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void resolveBreaks(
       Forest forest, LabeledStatement target, Statement targetStatement) {
     breakTarget.resolveBreaks(forest, target, targetStatement);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<BreakStatementImpl>? resolveContinues(
       Forest forest, LabeledStatement target) {
     return continueTarget.resolveContinues(forest, target);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void resolveGotos(Forest forest, SwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
@@ -10213,7 +10362,11 @@ Block combineStatements(Statement statement, Statement body) {
     return body;
   } else {
     return new Block(<Statement>[
-      if (statement is Block) ...statement.statements else statement,
+      if (statement is Block)
+        ...statement // Coverage-ignore(suite): Not run.
+            .statements
+      else
+        statement,
       body
     ])
       ..fileOffset = statement.fileOffset;
@@ -10238,6 +10391,7 @@ Block combineStatements(Statement statement, Statement body) {
 /// )
 String debugName(String className, String name, [String? prefix]) {
   String result = name.isEmpty ? className : "$className.$name";
+  // Coverage-ignore(suite): Not run.
   return prefix == null ? result : "$prefix.$result";
 }
 
@@ -10245,10 +10399,13 @@ String debugName(String className, String name, [String? prefix]) {
 // of objects can be anticipated and handle these directly.
 String getNodeName(Object node) {
   if (node is Identifier) {
+    // Coverage-ignore-block(suite): Not run.
     return node.name;
   } else if (node is Builder) {
     return node.fullNameForErrors;
-  } else if (node is QualifiedName) {
+  }
+  // Coverage-ignore(suite): Not run.
+  else if (node is QualifiedName) {
     return flattenName(node, node.charOffset, null);
   } else {
     return unhandled("${node.runtimeType}", "getNodeName", -1, null);
@@ -10292,7 +10449,9 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
         ..hasBeenInferred = node.hasBeenInferred;
       bodyBuilder.redirectingFactoryInvocations.add(result);
       return result;
-    } else if (node is TypeAliasedFactoryInvocation) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (node is TypeAliasedFactoryInvocation) {
       TypeAliasedFactoryInvocation result = new TypeAliasedFactoryInvocation(
           node.typeAliasBuilder, node.target, clone(node.arguments),
           isConst: node.isConst)
@@ -10300,12 +10459,14 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
       bodyBuilder.typeAliasedFactoryInvocations.add(result);
       return result;
     }
+    // Coverage-ignore(suite): Not run.
     return super.visitStaticInvocation(node);
   }
 
   @override
   TreeNode visitConstructorInvocation(ConstructorInvocation node) {
     if (node is TypeAliasedConstructorInvocation) {
+      // Coverage-ignore-block(suite): Not run.
       TypeAliasedConstructorInvocation result =
           new TypeAliasedConstructorInvocation(
               node.typeAliasBuilder, node.target, clone(node.arguments),
@@ -10323,6 +10484,7 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
       return ArgumentsImpl.clone(node, node.positional.map(clone).toList(),
           node.named.map(clone).toList(), node.types.map(visitType).toList());
     }
+    // Coverage-ignore(suite): Not run.
     return super.visitArguments(node);
   }
 }
@@ -10344,11 +10506,13 @@ bool isOrphaned(TreeNode node) {
   if (member == null) {
     return true;
   }
+  // Coverage-ignore-block(suite): Not run.
   _FindChildVisitor visitor = new _FindChildVisitor(node);
   member.accept(visitor);
   return !visitor.foundNode;
 }
 
+// Coverage-ignore(suite): Not run.
 class _FindChildVisitor extends VisitorDefault<void> with VisitorVoidMixin {
   final TreeNode soughtNode;
   bool foundNode = false;

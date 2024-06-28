@@ -314,6 +314,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     assert(
         overriddenMembers.every((overriddenMember) =>
             overriddenMember.declarationBuilder != classBuilder),
+        // Coverage-ignore(suite): Not run.
         "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);
@@ -349,12 +350,17 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
-    assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
+    assert(
+        !hasBodyBeenBuilt, // Coverage-ignore(suite): Not run.
+        "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
     if (!hasInitializer &&
         initializer != null &&
+        // Coverage-ignore(suite): Not run.
         initializer is! NullLiteral &&
+        // Coverage-ignore(suite): Not run.
         !isConst &&
+        // Coverage-ignore(suite): Not run.
         !isFinal) {
       internalProblem(
           messageInternalProblemAlreadyInitialized, charOffset, fileUri);
@@ -496,6 +502,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _constInitializerToken = null;
   }
 
+  // Coverage-ignore(suite): Not run.
   bool get hasOutlineExpressionsBuilt => _constInitializerToken == null;
 
   DartType get fieldType => _fieldEncoding.type;
@@ -842,6 +849,7 @@ class SourceFieldMember extends BuilderClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? getTearOff(ClassMembersBuilder membersBuilder) {
     // Ensure field type is computed.
     getMember(membersBuilder);
@@ -971,14 +979,18 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   late_lowering.IsSetEncoding get isSetEncoding {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return _isSetEncoding ??=
         late_lowering.computeIsSetEncoding(_type!, _isSetStrategy);
   }
 
   @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
       _field.initializer = new StaticInvocation(coreTypes.createSentinelMethod,
           new Arguments([], types: [_type!])..fileOffset = fileOffset)
@@ -1030,7 +1042,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   /// sound encoding of fields with type variable type of undetermined
   /// nullability.
   Expression _createFieldRead({bool needsPromotion = false}) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     if (needsPromotion) {
       VariableDeclaration variable = new VariableDeclaration.forValue(
           _createFieldGet(_field),
@@ -1095,13 +1109,17 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   DartType get type {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return _type!;
   }
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is InferredType,
+    assert(
+        _type == null || _type is InferredType,
+        // Coverage-ignore(suite): Not run.
         "Type has already been computed for field $name.");
     _type = value;
     if (value is! InferredType) {
@@ -1162,6 +1180,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isExtensionMember = isExtensionMember;
       isInstanceMember = false;
     } else if (isExtensionTypeMember) {
+      // Coverage-ignore-block(suite): Not run.
       _field
         ..isStatic = fieldBuilder.isStatic
         ..isExtensionTypeMember = true;
@@ -1268,7 +1287,9 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   @override
   Statement _createSetterBody(
       CoreTypes coreTypes, String name, VariableDeclaration parameter) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(
         coreTypes, fileOffset, name, parameter, _type!,
         shouldReturnValue: false,
@@ -1284,7 +1305,9 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   @override
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression? initializer) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
         coreTypes, fileOffset, name, type,
         createVariableRead: _createFieldRead,
@@ -1384,7 +1407,9 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
   @override
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression? initializer) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializer(
         coreTypes, fileOffset, name, _type!, initializer!,
         createVariableRead: _createFieldRead,
@@ -1451,7 +1476,9 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   @override
   Statement _createSetterBody(
       CoreTypes coreTypes, String name, VariableDeclaration parameter) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
         coreTypes, fileOffset, name, parameter, type,
         shouldReturnValue: false,
@@ -1503,7 +1530,9 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   @override
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression? initializer) {
-    assert(_type != null, "Type has not been computed for field $name.");
+    assert(
+        _type != null, // Coverage-ignore(suite): Not run.
+        "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializerWithRecheck(
         coreTypes, fileOffset, name, _type!, initializer!,
         createVariableRead: _createFieldRead,
@@ -1522,6 +1551,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Statement _createSetterBody(
           CoreTypes coreTypes, String name, VariableDeclaration parameter) =>
       throw new UnsupportedError(
@@ -1613,6 +1643,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   DeclarationBuilder get declarationBuilder => fieldBuilder.declarationBuilder!;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isObjectMember(ClassBuilder objectClass) {
     return declarationBuilder == objectClass;
   }
@@ -1642,6 +1673,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Name get name => _name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = declarationBuilder.fullNameForErrors;
@@ -1667,6 +1699,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get hasDeclarations => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError("$runtimeType.declarations");
 
@@ -1798,14 +1831,18 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
   @override
   DartType get type {
-    assert(_type != null,
+    assert(
+        _type != null,
+        // Coverage-ignore(suite): Not run.
         "Type has not been computed for field ${_fieldBuilder.name}.");
     return _type!;
   }
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is InferredType,
+    assert(
+        _type == null || _type is InferredType,
+        // Coverage-ignore(suite): Not run.
         "Type has already been computed for field ${_fieldBuilder.name}.");
     _type = value;
     if (value is! InferredType) {
@@ -1861,6 +1898,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         Procedure? setter = _setter;
         if (setter != null) {
           if (setter.kind == ProcedureKind.Method) {
+            // Coverage-ignore-block(suite): Not run.
             setter.function.positionalParameters[1].type = value;
           } else {
             setter.function.positionalParameters.first.type = value;
@@ -1935,6 +1973,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void setGenericCovariantImpl() {
     _setter!.function.positionalParameters.first.isCovariantByClass = true;
   }
@@ -2039,14 +2078,18 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   DartType get type {
-    assert(_type != null,
+    assert(
+        _type != null,
+        // Coverage-ignore(suite): Not run.
         "Type has not been computed for field ${_fieldBuilder.name}.");
     return _type!;
   }
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is InferredType,
+    assert(
+        _type == null || _type is InferredType,
+        // Coverage-ignore(suite): Not run.
         "Type has already been computed for field ${_fieldBuilder.name}.");
     _type = value;
     if (value is! InferredType) {
@@ -2103,9 +2146,11 @@ class RepresentationFieldEncoding implements FieldEncoding {
   Member get readTarget => _getter;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Member> get exportedMembers => [_getter];
 
   @override
@@ -2125,6 +2170,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
       const <ClassMember>[];
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     // Not needed.
   }

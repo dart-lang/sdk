@@ -16,6 +16,7 @@ class _HasPromotedTypeVariableVisitor extends FindTypeVisitor {
   const _HasPromotedTypeVariableVisitor();
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool visitIntersectionType(IntersectionType node) => true;
 }
 

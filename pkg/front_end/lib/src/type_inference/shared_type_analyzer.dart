@@ -46,7 +46,9 @@ class SharedTypeAnalyzerErrors
         nullSafetyEnabled
             ? templateSwitchExpressionNotSubtype.withArguments(
                 caseExpressionType, scrutineeType)
-            : templateSwitchExpressionNotAssignable.withArguments(
+            :
+            // Coverage-ignore(suite): Not run.
+            templateSwitchExpressionNotAssignable.withArguments(
                 scrutineeType, caseExpressionType),
         caseExpression.fileOffset,
         noLength,

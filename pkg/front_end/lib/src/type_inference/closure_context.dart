@@ -119,6 +119,7 @@ class _SyncClosureContext implements ClosureContext {
   final InferenceVisitorBase inferrer;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAsync => false;
 
   /// The typing expectation for the subexpression of a `return` statement
@@ -129,6 +130,7 @@ class _SyncClosureContext implements ClosureContext {
   DartType get returnContext => _returnContext;
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get yieldContext => const UnknownType();
 
   @override
@@ -200,6 +202,7 @@ class _SyncClosureContext implements ClosureContext {
           ..parent = statement;
       } else if (!(returnType is VoidType || returnType is DynamicType) &&
           expressionType is VoidType) {
+        // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T is neither void
         // nor dynamic, and S is void.
         statement.expression = inferrer.helper.wrapInProblem(
@@ -249,6 +252,7 @@ class _SyncClosureContext implements ClosureContext {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleYield(
       YieldStatement node, ExpressionInferenceResult expressionResult) {
     node.expression = expressionResult.expression..parent = node;
@@ -343,6 +347,7 @@ class _SyncClosureContext implements ClosureContext {
       if (resultStatement is Block) {
         resultStatement.statements.add(returnStatement);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         resultStatement =
             new Block(<Statement>[resultStatement, returnStatement])
               ..fileOffset = fileOffset;
@@ -359,6 +364,7 @@ class _AsyncClosureContext implements ClosureContext {
   final InferenceVisitorBase inferrer;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAsync => true;
 
   /// The typing expectation for the subexpression of a `return` statement
@@ -372,6 +378,7 @@ class _AsyncClosureContext implements ClosureContext {
   DartType get returnContext => _returnContext;
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get yieldContext => const UnknownType();
 
   @override
@@ -442,8 +449,11 @@ class _AsyncClosureContext implements ClosureContext {
           inferrer.typeSchemaEnvironment.flatten(expressionType);
       if (emittedValueType is VoidType &&
           !(flattenedExpressionType is VoidType ||
+              // Coverage-ignore(suite): Not run.
               flattenedExpressionType is DynamicType ||
+              // Coverage-ignore(suite): Not run.
               flattenedExpressionType is NullType)) {
+        // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T_v is void, and
         // flatten(S) is neither void, dynamic, Null.
         statement.expression = inferrer.helper.wrapInProblem(
@@ -456,6 +466,7 @@ class _AsyncClosureContext implements ClosureContext {
       } else if (!(emittedValueType is VoidType ||
               emittedValueType is DynamicType) &&
           flattenedExpressionType is VoidType) {
+        // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T_v is neither void
         // nor dynamic, and flatten(S) is void.
         statement.expression = inferrer.helper.wrapInProblem(
@@ -515,6 +526,7 @@ class _AsyncClosureContext implements ClosureContext {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleYield(
       YieldStatement node, ExpressionInferenceResult expressionResult) {
     node.expression = expressionResult.expression..parent = node;
@@ -610,6 +622,7 @@ class _AsyncClosureContext implements ClosureContext {
       if (resultStatement is Block) {
         resultStatement.statements.add(returnStatement);
       } else {
+        // Coverage-ignore-block(suite): Not run.
         resultStatement =
             new Block(<Statement>[resultStatement, returnStatement])
               ..fileOffset = fileOffset;
@@ -641,6 +654,7 @@ class _SyncStarClosureContext implements ClosureContext {
   final DartType _yieldElementContext;
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get returnContext => const UnknownType();
 
   @override
@@ -671,6 +685,7 @@ class _SyncStarClosureContext implements ClosureContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
+  // Coverage-ignore(suite): Not run.
   void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {}
 
   @override
@@ -716,7 +731,9 @@ class _SyncStarClosureContext implements ClosureContext {
               .getStandardUpperBound(inferredElementType, type);
         }
       }
-    } else if (hasImplicitReturn) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (hasImplicitReturn) {
       // No explicit returns we have an implicit `return null`.
       inferredElementType = const NullType();
     } else {
@@ -730,6 +747,7 @@ class _SyncStarClosureContext implements ClosureContext {
 
     if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
         _yieldElementContext, SubtypeCheckMode.withNullabilities)) {
+      // Coverage-ignore-block(suite): Not run.
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
@@ -774,6 +792,7 @@ class _AsyncStarClosureContext implements ClosureContext {
   final DartType _yieldElementContext;
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get returnContext => const UnknownType();
 
   @override
@@ -804,6 +823,7 @@ class _AsyncStarClosureContext implements ClosureContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
+  // Coverage-ignore(suite): Not run.
   void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {}
 
   @override
@@ -849,7 +869,9 @@ class _AsyncStarClosureContext implements ClosureContext {
               .getStandardUpperBound(inferredElementType, elementType);
         }
       }
-    } else if (hasImplicitReturn) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (hasImplicitReturn) {
       // No explicit returns we have an implicit `return null`.
       inferredElementType = const NullType();
     } else {

@@ -75,6 +75,7 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
       retainDataForTesting ? new MemberDataForTesting() : null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildOutlineNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
@@ -85,12 +86,14 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAugmentation => false;
 
   @override
   bool get isConflictingAugmentationMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set isConflictingAugmentationMember(bool value) {
     assert(false,
         "Unexpected call to $runtimeType.isConflictingAugmentationMember=");
@@ -116,8 +119,11 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   MemberDataForTesting? dataForTesting;
 
   SourceMemberBuilderImpl(Builder parent, int charOffset, [Uri? fileUri])
-      : dataForTesting =
-            retainDataForTesting ? new MemberDataForTesting() : null,
+      : dataForTesting = retainDataForTesting
+            ?
+            // Coverage-ignore(suite): Not run.
+            new MemberDataForTesting()
+            : null,
         super(parent, charOffset, fileUri);
 
   @override
@@ -135,7 +141,9 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   }
 
   void set isConflictingSetter(bool value) {
-    assert(_isConflictingSetter == null,
+    assert(
+        _isConflictingSetter == null,
+        // Coverage-ignore(suite): Not run.
         '$this.isConflictingSetter has already been fixed.');
     _isConflictingSetter = value;
   }
@@ -149,22 +157,27 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
 
   @override
   void set isConflictingAugmentationMember(bool value) {
-    assert(_isConflictingAugmentationMember == null,
+    assert(
+        _isConflictingAugmentationMember == null,
+        // Coverage-ignore(suite): Not run.
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
+  // Coverage-ignore(suite): Not run.
   ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     if (isClassMember) {
       buffer.write(classBuilder!.name);

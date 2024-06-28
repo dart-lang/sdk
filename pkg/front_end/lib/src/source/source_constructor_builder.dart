@@ -153,6 +153,7 @@ abstract class AbstractSourceConstructorBuilder
     _hasFormalsInferred = true;
   }
 
+  // Coverage-ignore(suite): Not run.
   void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
 
   void _buildFormals(Member member) {
@@ -352,6 +353,7 @@ abstract class AbstractSourceConstructorBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
@@ -362,10 +364,12 @@ abstract class AbstractSourceConstructorBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localMembers =>
       throw new UnsupportedError('${runtimeType}.localMembers');
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
 }
@@ -449,6 +453,7 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 
   @override
@@ -464,6 +469,7 @@ class DeclaredSourceConstructorBuilder
       _constructor as Member;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -473,6 +479,7 @@ class DeclaredSourceConstructorBuilder
   FunctionNode get function => _constructor.function;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Member> get exportedMembers => [constructor];
 
   @override
@@ -481,12 +488,14 @@ class DeclaredSourceConstructorBuilder
   @override
   DeclaredSourceConstructorBuilder get origin => actualOrigin ?? this;
 
+  // Coverage-ignore(suite): Not run.
   List<SourceConstructorBuilder>? get augmentationsForTesting => _augmentations;
 
   @override
   bool get isDeclarationInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isClassInstanceMember => false;
 
   @override
@@ -895,6 +904,7 @@ class DeclaredSourceConstructorBuilder
         (_augmentations ??= []).add(augmentation);
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       reportAugmentationMismatch(augmentation);
     }
   }
@@ -1015,13 +1025,16 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
         super(constructor, constructorTearOff, parent);
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   DeclarationBuilder get declarationBuilder => classBuilder!;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isRedirecting {
     for (Initializer initializer in constructor.initializers) {
       if (initializer is RedirectingInitializer) {
@@ -1083,6 +1096,7 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
@@ -1156,6 +1170,7 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 
   SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
@@ -1165,9 +1180,12 @@ class SourceExtensionTypeConstructorBuilder
   Member get member => _constructor;
 
   @override
-  Member get readTarget => _constructorTearOff ?? _constructor;
+  Member get readTarget =>
+      _constructorTearOff ?? // Coverage-ignore(suite): Not run.
+      _constructor;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -1177,9 +1195,11 @@ class SourceExtensionTypeConstructorBuilder
   FunctionNode get function => _constructor.function;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Member> get exportedMembers => [_constructor];
 
   @override
+  // Coverage-ignore(suite): Not run.
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
@@ -1424,16 +1444,19 @@ class ExtensionTypeInitializerToStatementConverter
         ..fileOffset = node.fileOffset;
       return;
     }
+    // Coverage-ignore-block(suite): Not run.
     throw new UnsupportedError(
         "Unexpected initializer $node (${node.runtimeType})");
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitAssertInitializer(AssertInitializer node) {
     statements.add(node.statement);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitFieldInitializer(FieldInitializer node) {
     thisVariable
       ..initializer = (node.value..parent = thisVariable)
@@ -1441,6 +1464,7 @@ class ExtensionTypeInitializerToStatementConverter
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitInvalidInitializer(InvalidInitializer node) {
     statements.add(new ExpressionStatement(
         new InvalidExpression(null)..fileOffset = node.fileOffset)
@@ -1459,6 +1483,7 @@ class ExtensionTypeInitializerToStatementConverter
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void visitSuperInitializer(SuperInitializer node) {
     // TODO(johnniwinther): Report error for this case.
   }

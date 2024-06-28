@@ -204,7 +204,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   bool get isAnonymousMixinApplication {
-    return isMixinApplication && !isNamedMixinApplication;
+    return isMixinApplication &&
+        // Coverage-ignore(suite): Not run.
+        !isNamedMixinApplication;
   }
 
   @override
@@ -236,6 +238,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       {bool setter = false, bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (builder == null && isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       builder = origin.scope.lookupLocalMember(name, setter: setter);
     }
     if (required && builder == null) {
@@ -271,6 +274,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
   }
 
+  // Coverage-ignore(suite): Not run.
   InterfaceType get legacyRawType {
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
@@ -291,11 +295,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType rawType(Nullability nullability) {
     switch (nullability) {
       case Nullability.legacy:
+        // Coverage-ignore(suite): Not run.
         return legacyRawType;
       case Nullability.nullable:
         return nullableRawType;
       case Nullability.nonNullable:
         return nonNullableRawType;
+      // Coverage-ignore(suite): Not run.
       case Nullability.undetermined:
         return unhandled("$nullability", "rawType", TreeNode.noOffset, noUri);
     }
@@ -329,13 +335,17 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return rawType(nullability);
     }
     if (aliasedTypeWithBuiltArgumentsCacheNonNullable != null &&
+        // Coverage-ignore(suite): Not run.
         nullability == Nullability.nonNullable) {
+      // Coverage-ignore-block(suite): Not run.
       assert(aliasedTypeWithBuiltArgumentsCacheNonNullable!.classReference ==
           cls.reference);
       assert(arguments.isEmpty);
       return aliasedTypeWithBuiltArgumentsCacheNonNullable!;
     } else if (aliasedTypeWithBuiltArgumentsCacheNullable != null &&
+        // Coverage-ignore(suite): Not run.
         nullability == Nullability.nullable) {
+      // Coverage-ignore-block(suite): Not run.
       assert(aliasedTypeWithBuiltArgumentsCacheNullable!.classReference ==
           cls.reference);
       assert(arguments.isEmpty);
@@ -343,6 +353,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     InterfaceType type = new InterfaceType(cls, nullability, arguments);
     if (arguments.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeVariablesCount == 0);
       if (nullability == Nullability.nonNullable) {
         aliasedTypeWithBuiltArgumentsCacheNonNullable = type;
@@ -373,6 +384,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         libraryBuilder.importUri.path == "core" &&
         library is SourceLibraryBuilder &&
         !isRecordAccessAllowed(library)) {
+      // Coverage-ignore-block(suite): Not run.
       library.reportFeatureNotEnabled(
           library.libraryFeatures.records, fileUri, charOffset, name.length);
       return const InvalidType();
@@ -390,7 +402,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
-    Class cls = isAugmenting ? origin.cls : this.cls;
+    Class cls = isAugmenting
+        ?
+        // Coverage-ignore(suite): Not run.
+        origin.cls
+        : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
@@ -418,6 +434,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
     if (isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       assert(identical(instanceClass, origin.cls),
           "Found ${origin.cls} expected $instanceClass");
       if (isSuper) {
@@ -442,7 +459,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     Member? target = isSuper
         ? hierarchy.getDispatchTarget(instanceClass, name, setter: isSetter)
-        : hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
+        :
+        // Coverage-ignore(suite): Not run.
+        hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
     if (isSuper && target == null) {
       if (cls.isMixinDeclaration) {
         target =

@@ -113,11 +113,13 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 
   @override
   DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
 
+  // Coverage-ignore(suite): Not run.
   List<SourceFactoryBuilder>? get augmentationsForTesting => _augmentations;
 
   @override
@@ -156,12 +158,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   Member? get readTarget => origin._factoryTearOff ?? _procedure;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
   Member? get invokeTarget => _procedure;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Member> get exportedMembers => [_procedure];
 
   @override
@@ -226,10 +230,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localMembers =>
       throw new UnsupportedError('${runtimeType}.localMembers');
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
 
@@ -250,6 +256,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
         new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
     if (isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
     }
   }
@@ -262,6 +269,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
         (_augmentations ??= []).add(augmentation);
       }
     } else {
+      // Coverage-ignore-block(suite): Not run.
       reportAugmentationMismatch(augmentation);
     }
   }
@@ -282,6 +290,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
@@ -324,6 +333,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors {
     return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
         "${name.isEmpty ? '' : '.$name'}";
@@ -397,6 +407,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     // Ensure that constant factories only have constant targets/bodies.
     if (isConst && !target.isConst) {
+      // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messageConstFactoryRedirectionToNonConst,
           charOffset, noLength, fileUri);
     }
@@ -512,7 +523,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
       if (targetBuilder is FunctionBuilder) {
         target = targetBuilder.member;
-      } else if (targetBuilder is DillMemberBuilder) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (targetBuilder is DillMemberBuilder) {
         target = targetBuilder.member;
       } else {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
@@ -557,6 +570,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             ?.map(substitution.substituteType)
             .toList();
       } else {
+        // Coverage-ignore-block(suite): Not run.
         typeArguments = redirectingFactoryTarget.typeArguments;
       }
       target = redirectingFactoryTarget.target;
@@ -565,6 +579,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (target is Constructor ||
         target is Procedure &&
             (target.isFactory || target.isExtensionTypeMember)) {
+      // Coverage-ignore(suite): Not run.
       typeArguments ??= [];
       if (_factoryTearOff != null) {
         delayedDefaultValueCloners.add(buildRedirectingFactoryTearOffBody(
@@ -590,6 +605,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     SourceFactoryBuilder redirectingOrigin = origin;
     if (redirectingOrigin is RedirectingFactoryBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       redirectingOrigin.typeArguments = typeArguments;
     }
   }
@@ -599,6 +615,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
@@ -663,6 +680,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         // [typeParameter].
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
+          // Coverage-ignore-block(suite): Not run.
           libraryBuilder.addProblemForRedirectingFactory(
               factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(

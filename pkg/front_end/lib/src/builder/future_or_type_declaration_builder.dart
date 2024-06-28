@@ -12,6 +12,7 @@ import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
+// Coverage-ignore(suite): Not run.
 class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   FutureOrTypeDeclarationBuilder(
       DartType type, LibraryBuilder compilationUnit, int charOffset)

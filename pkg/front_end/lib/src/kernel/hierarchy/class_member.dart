@@ -64,6 +64,7 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
       {required this.isDeclaredAsField})
       : assert(
             member.enclosingTypeDeclaration != null,
+            // Coverage-ignore(suite): Not run.
             "Type declaration member without enclosing type "
             "declaration $member.");
 
@@ -89,7 +90,8 @@ class TypeDeclarationInstanceMemberResult implements MemberResult {
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     DartType type = switch (kind) {
-      ClassMemberKind.Method => member.getterType,
+      ClassMemberKind.Method => // Coverage-ignore(suite): Not run.
+        member.getterType,
       ClassMemberKind.Getter => member.getterType,
       ClassMemberKind.Setter => member.setterType,
     };
@@ -132,7 +134,8 @@ class StaticMemberResult implements MemberResult {
   DartType getMemberType(
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     return switch (kind) {
-      ClassMemberKind.Method => member.getterType,
+      ClassMemberKind.Method => // Coverage-ignore(suite): Not run.
+        member.getterType,
       ClassMemberKind.Getter => member.getterType,
       ClassMemberKind.Setter => member.setterType,
     };
@@ -172,6 +175,7 @@ class ExtensionTypeMemberResult implements MemberResult {
       ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
     FunctionType type = member.getterType as FunctionType;
     if (type.typeParameters.isNotEmpty) {
+      // Coverage-ignore-block(suite): Not run.
       type = FunctionTypeInstantiator.instantiate(
           type,
           membersBuilder.hierarchyBuilder.types.getTypeArgumentsAsInstanceOf(
@@ -179,6 +183,7 @@ class ExtensionTypeMemberResult implements MemberResult {
     }
     switch (kind) {
       case ClassMemberKind.Method:
+        // Coverage-ignore(suite): Not run.
         // For methods [member] is the tear-off so the member type is the return
         // type.
         return type.returnType;
@@ -349,18 +354,22 @@ abstract class SynthesizedMember extends ClassMember {
   bool get isProperty => memberKind != ClassMemberKind.Method;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations => throw new UnimplementedError();
 
   @override
+  // Coverage-ignore(suite): Not run.
   void inferType(ClassMembersBuilder membersBuilder) {}
 
   @override
   bool get isDuplicate => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isField => throw new UnimplementedError();
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isGetter => throw new UnimplementedError();
 
   @override
@@ -376,9 +385,11 @@ abstract class SynthesizedMember extends ClassMember {
   bool get isStatic => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSynthesized => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
 
   @override
@@ -389,9 +400,11 @@ abstract class SynthesizedMember extends ClassMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? getTearOff(ClassMembersBuilder membersBuilder) {
     // Ensure member is computed.
     getMember(membersBuilder);
@@ -623,6 +636,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         assert(
             _covariance ==
                 new Covariance.fromMember(_member!, forSetter: forSetter),
+            // Coverage-ignore(suite): Not run.
             "Unexpected covariance for combined members signature "
             "$_member. Found $_covariance, expected "
             "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");
@@ -651,6 +665,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
   ClassMember get interfaceMember => this;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isObjectMember(ClassBuilder objectClass) {
     return false;
   }
@@ -679,6 +694,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       declarations.map((ClassMember m) => m.fullName).join("%");
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String suffix = isSetter ? "=" : "";
     return "${fullNameForErrors}$suffix";
@@ -803,11 +819,13 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   ClassMember get interfaceMember => implementedInterfaceMember;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isObjectMember(ClassBuilder objectClass) {
     return inheritedClassMember.isObjectMember(objectClass);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isSameDeclaration(ClassMember other) {
     // TODO(johnniwinther): Optimize this.
     return false;
@@ -846,6 +864,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
     assert(
         !(implementedInterfaceMember.isNoSuchMethodForwarder &&
             !inheritedClassMember.isNoSuchMethodForwarder),
+        // Coverage-ignore(suite): Not run.
         "The inherited $inheritedClassMember has "
         "isNoSuchMethodForwarder="
         "${inheritedClassMember.isNoSuchMethodForwarder} but "
@@ -871,6 +890,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   String get fullNameForErrors => inheritedClassMember.fullNameForErrors;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName => inheritedClassMember.fullName;
 
   @override
@@ -908,6 +928,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasDeclarations => true;
 
   void _ensureMemberAndCovariance(ClassMembersBuilder membersBuilder) {
@@ -983,6 +1004,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
         assert(
             _covariance ==
                 new Covariance.fromMember(_member!, forSetter: forSetter),
+            // Coverage-ignore(suite): Not run.
             "Unexpected covariance for combined members signature "
             "$_member. Found $_covariance, expected "
             "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");
@@ -1008,36 +1030,45 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ClassMember get interfaceMember => this;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isObjectMember(ClassBuilder objectClass) {
     return false;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isSameDeclaration(ClassMember other) {
     // TODO(johnniwinther): Optimize this.
     return false;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNoSuchMethodForwarder => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get charOffset => declarations.first.charOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => declarations.first.fileUri;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAbstract => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors =>
       declarations.map((ClassMember m) => m.fullName).join("%");
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullName {
     String suffix = isSetter ? "=" : "";
     return "${fullNameForErrors}$suffix";

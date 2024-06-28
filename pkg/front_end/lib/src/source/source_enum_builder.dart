@@ -164,6 +164,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+    // Coverage-ignore(suite): Not run.
     supertypeBuilder ??= new NamedTypeBuilderImpl(
         const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
@@ -256,6 +257,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           !customIndexDeclaration.isAbstract) {
         // Retrieve the earliest declaration for error reporting.
         while (customIndexDeclaration?.next != null) {
+          // Coverage-ignore-block(suite): Not run.
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
@@ -633,6 +635,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
             "", charOffset, fileUri, libraryBuilder);
         if (superConstructor == null || !superConstructor.isConstructor) {
+          // Coverage-ignore-block(suite): Not run.
           // TODO(ahe): Ideally, we would also want to check that [Object]'s
           // unnamed constructor requires no arguments. But that information
           // isn't always available at this point, and it's not really a
@@ -862,11 +865,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
         ? classHierarchy.getDispatchTarget(cls.superclass!, toStringName)
         : null;
     Procedure? toStringSuperTarget = superToString is Procedure &&
+            // Coverage-ignore(suite): Not run.
             superToString.enclosingClass != classHierarchy.coreTypes.objectClass
         ? superToString
         : null;
 
     if (toStringSuperTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       toStringBuilder.member.transformerFlags |= TransformerFlag.superCalls;
       toStringBuilder.body = new ReturnStatement(new SuperMethodInvocation(
           toStringName, new Arguments([]), toStringSuperTarget));

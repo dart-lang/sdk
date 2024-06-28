@@ -16,6 +16,7 @@ Set<String> getExperimentEnvironment() {
   Map<String, String> environment = Platform.environment;
   for (String experiment in _known) {
     if (environment[experiment] == "true") {
+      // Coverage-ignore-block(suite): Not run.
       enabled.add(experiment);
     }
   }

@@ -91,6 +91,7 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
+      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
   assert(
@@ -99,6 +100,7 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
+      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
 
@@ -153,6 +155,7 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
               declarationConstructor.isFactory) ||
           (declarationConstructor is Procedure &&
               declarationConstructor.isStatic),
+      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $declarationConstructor "
       "(${declarationConstructor.runtimeType}).");
   assert(
@@ -161,6 +164,7 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
               implementationConstructor.isFactory) ||
           (implementationConstructor is Procedure &&
               implementationConstructor.isStatic),
+      // Coverage-ignore(suite): Not run.
       "Unexpected constructor tear off target $implementationConstructor "
       "(${declarationConstructor.runtimeType}).");
 
@@ -225,6 +229,7 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
       function,
       substitution,
       libraryBuilder);
+  // Coverage-ignore(suite): Not run.
   delayedDefaultValueCloners?.add(delayedDefaultValueCloner);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
@@ -254,7 +259,9 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
   if (!freshTypeParameters.substitution.isEmpty) {
     if (typeArguments.length != typeParameters.length) {
       // Error case: Use default types as type arguments.
-      typeArguments = new List<DartType>.generate(typeParameters.length,
+      typeArguments = new List<DartType>.generate(
+          typeParameters.length,
+          // Coverage-ignore(suite): Not run.
           (int index) => typeParameters[index].defaultType);
     }
     if (typeArguments.isNotEmpty) {
@@ -423,6 +430,7 @@ class LoweredTypedefTearOff {
           Expression targetTearOff;
           if (target is Constructor ||
               target is Procedure && target.isFactory) {
+            // Coverage-ignore-block(suite): Not run.
             targetTearOff = new ConstructorTearOff(target!);
           } else {
             targetTearOff = new StaticTearOff(target as Procedure);

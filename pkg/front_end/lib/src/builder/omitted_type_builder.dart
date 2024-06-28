@@ -26,6 +26,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int? get charOffset => null;
 
   @override
@@ -37,19 +38,24 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri? get fileUri => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isVoidType => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeName? get typeName => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   NullabilityBuilder get nullabilityBuilder =>
       const NullabilityBuilder.omitted();
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) {
     return this;
   }
@@ -85,12 +91,14 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
   String get debugName => 'ImplicitTypeBuilder';
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) => buffer;
 
   @override
   bool get isExplicit => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasType => true;
 
   @override
@@ -121,6 +129,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     if (hierarchy != null) {
@@ -140,12 +149,14 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
 
   Inferable? _inferable;
 
+  // Coverage-ignore(suite): Not run.
   Inferable? get inferable => _inferable;
 
   @override
   void registerInferable(Inferable inferable) {
     assert(
         _inferable == null,
+        // Coverage-ignore(suite): Not run.
         "Inferable $_inferable has already been register, "
         "trying to register $inferable.");
     _inferable = inferable;
@@ -164,7 +175,9 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
       } else {
         registerInferredType(const DynamicType());
       }
-      assert(hasType, "No type computed for $this");
+      assert(
+          hasType, // Coverage-ignore(suite): Not run.
+          "No type computed for $this");
     }
     return type;
   }
@@ -173,6 +186,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
   String get debugName => 'InferredTypeBuilder';
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write('(inferable=');
     buffer.write(inferable);
@@ -181,6 +195,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// A type defined in terms of another omitted type.
 ///
 /// This is used in macro generated code to create type annotations from

@@ -170,6 +170,7 @@ class BooleanExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) =>
       typeEnvironment.coreTypes.boolNonNullableRawType;
 
@@ -195,6 +196,7 @@ class IntegerExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) =>
       typeEnvironment.coreTypes.intNonNullableRawType;
 
@@ -202,6 +204,7 @@ class IntegerExpression extends AbstractDelayedExpression {
   void registerUse() {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) => identical(this, expression);
 }
 
@@ -225,6 +228,7 @@ class DelayedAndExpression implements DelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) =>
       typeEnvironment.coreTypes.boolNonNullableRawType;
 
@@ -238,6 +242,7 @@ class DelayedAndExpression implements DelayedExpression {
   bool uses(DelayedExpression expression) =>
       identical(this, expression) ||
       _left.uses(expression) ||
+      // Coverage-ignore(suite): Not run.
       _right.uses(expression);
 
   @override
@@ -376,6 +381,7 @@ class DelayedOrExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) =>
       typeEnvironment.coreTypes.boolNonNullableRawType;
 
@@ -386,6 +392,7 @@ class DelayedOrExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) ||
       _left.uses(expression) ||
@@ -414,6 +421,7 @@ class EffectExpression implements DelayedExpression {
       {List<Expression>? effects, required bool inCacheInitializer}) {
     DelayedExpression? lateEffect = _lateEffect;
     if (lateEffect != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (effects != null) {
         effects.add(lateEffect.createExpression(typeEnvironment,
             effects: effects, inCacheInitializer: inCacheInitializer));
@@ -436,6 +444,7 @@ class EffectExpression implements DelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return _result.getType(typeEnvironment);
   }
@@ -444,14 +453,18 @@ class EffectExpression implements DelayedExpression {
   void registerUse() {
     _effect.registerUse();
     _result.registerUse();
-    _lateEffect?.registerUse();
+    _lateEffect
+        // Coverage-ignore(suite): Not run.
+        ?.registerUse();
   }
 
   @override
   bool uses(DelayedExpression expression) =>
       identical(this, expression) ||
       _effect.uses(expression) ||
+      // Coverage-ignore(suite): Not run.
       _result.uses(expression) ||
+      // Coverage-ignore(suite): Not run.
       (_lateEffect != null && _lateEffect.uses(expression));
 
   @override
@@ -464,6 +477,7 @@ class EffectExpression implements DelayedExpression {
     _effect.createStatements(typeEnvironment, results, effects: effects);
     _result.createStatements(typeEnvironment, results, effects: effects);
     if (_lateEffect != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (effects != null) {
         _lateEffect.createStatements(typeEnvironment, effects);
       } else {
@@ -484,6 +498,7 @@ class EffectExpression implements DelayedExpression {
       createStatements(typeEnvironment, results, effects: statementEffects);
       return null;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       return createExpression(typeEnvironment,
           inCacheInitializer: false, effects: expressionEffects);
     }
@@ -510,6 +525,7 @@ class DelayedAssignment extends DelayedExpression {
   Expression createExpression(TypeEnvironment typeEnvironment,
       {List<Expression>? effects, required bool inCacheInitializer}) {
     if (effects != null && hasEffect) {
+      // Coverage-ignore-block(suite): Not run.
       VariableDeclaration tempVariable =
           _cache.createTemporaryVariable(_type, fileOffset: fileOffset);
       effects.add(createVariableSet(_target, createVariableGet(tempVariable),
@@ -563,6 +579,7 @@ class DelayedAssignment extends DelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
@@ -603,6 +620,7 @@ class DelayedIsExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
@@ -638,6 +656,7 @@ class DelayedAsExpression extends AbstractDelayedExpression {
     Expression operand = _operand.createExpression(typeEnvironment,
         effects: effects, inCacheInitializer: inCacheInitializer);
     if (isCovarianceCheck) {
+      // Coverage-ignore-block(suite): Not run.
       return createAsExpression(operand, _type,
           forNonNullableByDefault: true,
           isCovarianceCheck: true,
@@ -666,6 +685,7 @@ class DelayedAsExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _operand.uses(expression);
 }
@@ -697,6 +717,7 @@ class DelayedNullAssertExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _operand.uses(expression);
 }
@@ -718,6 +739,7 @@ class DelayedNullCheckExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
@@ -728,6 +750,7 @@ class DelayedNullCheckExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _operand.uses(expression);
 }
@@ -787,6 +810,7 @@ class DelayedInstanceGet extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _receiver.uses(expression);
 }
@@ -827,6 +851,7 @@ class DelayedDynamicGet extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _receiver.uses(expression);
 }
@@ -861,6 +886,7 @@ class DelayedFunctionTearOff extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _receiver.uses(expression);
 }
@@ -911,6 +937,7 @@ class DelayedDynamicInvocation extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) {
     if (identical(this, expression)) return true;
     if (_receiver.uses(expression)) return true;
@@ -957,6 +984,7 @@ class DelayedRecordIndexGet extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _receiver.uses(expression);
 }
@@ -977,6 +1005,7 @@ class DelayedRecordNameGet extends AbstractDelayedExpression {
                     .where((element) => element.name == _name)
                     .length ==
                 1,
+            // Coverage-ignore(suite): Not run.
             "Invalid record type $_recordType for named access of '$_name'.");
 
   @override
@@ -1003,6 +1032,7 @@ class DelayedRecordNameGet extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) || _receiver.uses(expression);
 }
@@ -1053,6 +1083,7 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) {
     if (identical(this, expression)) return true;
     if (_receiver.uses(expression)) return true;
@@ -1108,6 +1139,7 @@ class DelayedExtensionInvocation extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) {
     if (identical(this, expression)) return true;
     for (DelayedExpression argument in _arguments) {
@@ -1157,6 +1189,7 @@ class DelayedEqualsExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) =>
       identical(this, expression) ||
       _left.uses(expression) ||
@@ -1177,6 +1210,7 @@ class DelayedNotExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getType(TypeEnvironment typeEnvironment) {
     return typeEnvironment.coreTypes.boolNonNullableRawType;
   }
@@ -1187,6 +1221,7 @@ class DelayedNotExpression extends AbstractDelayedExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool uses(DelayedExpression expression) {
     return identical(this, expression) || _expression.uses(expression);
   }

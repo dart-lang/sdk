@@ -4,6 +4,7 @@
 
 import 'dart:io' show Directory, File, GZipCodec;
 
+// Coverage-ignore(suite): Not run.
 Uri saveAsGzip(List<int> data, String filename) {
   // TODO(jensj): This should be done via the FileSystem instead, but it
   // currently doesn't support writing.

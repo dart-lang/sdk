@@ -48,10 +48,12 @@ class DillExtensionTypeDeclarationBuilder
       String name = procedure.name.text;
       switch (procedure.kind) {
         case ProcedureKind.Factory:
+          // Coverage-ignore(suite): Not run.
           throw new UnsupportedError(
               "Unexpected procedure kind in extension type declaration: "
               "$procedure (${procedure.kind}).");
         case ProcedureKind.Setter:
+          // Coverage-ignore(suite): Not run.
           scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
               setter: true);
           break;
@@ -84,7 +86,9 @@ class DillExtensionTypeDeclarationBuilder
           } else {
             Procedure procedure = descriptor.memberReference.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
-            assert(tearOff != null, "No tear found for ${descriptor}");
+            assert(
+                tearOff != null, // Coverage-ignore(suite): Not run.
+                "No tear found for ${descriptor}");
             scope.addLocalMember(
                 name.text,
                 new DillExtensionTypeInstanceMethodBuilder(

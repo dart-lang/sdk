@@ -45,6 +45,7 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             memberMap[name] =
                 new _Tuple.declareExtensionTypeGetable(classMember);
           } else {
+            // Coverage-ignore-block(suite): Not run.
             tuple.declaredExtensionTypeGetable = classMember;
           }
         } else {
@@ -52,6 +53,7 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             memberMap[name] =
                 new _Tuple.declareNonExtensionTypeGetable(classMember);
           } else {
+            // Coverage-ignore-block(suite): Not run.
             tuple.declaredNonExtensionTypeGetable = classMember;
           }
         }
@@ -67,6 +69,7 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             tuple.declaredExtensionTypeSetable = classMember;
           }
         } else {
+          // Coverage-ignore-block(suite): Not run.
           if (tuple == null) {
             memberMap[name] =
                 new _Tuple.declareNonExtensionTypeSetable(classMember);
@@ -314,6 +317,7 @@ class _Tuple {
         this._declaredExtensionTypeSetable = declaredSetable,
         this.name = declaredSetable.name;
 
+  // Coverage-ignore(suite): Not run.
   _Tuple.declareNonExtensionTypeSetable(ClassMember declaredSetable)
       : assert(declaredSetable.forSetter),
         this._declaredNonExtensionTypeSetable = declaredSetable,
@@ -334,6 +338,7 @@ class _Tuple {
   ClassMember? get declaredExtensionTypeGetable =>
       _declaredExtensionTypeGetable;
 
+  // Coverage-ignore(suite): Not run.
   void set declaredExtensionTypeGetable(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
@@ -355,10 +360,12 @@ class _Tuple {
     assert(value!.forSetter);
     assert(
         _declaredExtensionTypeSetable == null,
+        // Coverage-ignore(suite): Not run.
         "Declared extension type setable already set to "
         "$_declaredExtensionTypeSetable, trying to set it to $value.");
     assert(
         _declaredNonExtensionTypeSetable == null,
+        // Coverage-ignore(suite): Not run.
         "Declared non-extension type setable already set to "
         "$_declaredNonExtensionTypeSetable, trying to set the declared "
         "extension type setable to $value.");
@@ -368,6 +375,7 @@ class _Tuple {
   ClassMember? get declaredNonExtensionTypeGetable =>
       _declaredNonExtensionTypeGetable;
 
+  // Coverage-ignore(suite): Not run.
   void set declaredNonExtensionTypeGetable(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
@@ -385,6 +393,7 @@ class _Tuple {
   ClassMember? get declaredNonExtensionTypeSetable =>
       _declaredNonExtensionTypeSetable;
 
+  // Coverage-ignore(suite): Not run.
   void set declaredNonExtensionTypeSetable(ClassMember? value) {
     assert(value!.forSetter);
     assert(
@@ -596,6 +605,7 @@ class _Tuple {
             ///       implements Interface {}
             definingGetable = implementedGetable;
           } else if (definingGetable.isStatic) {
+            // Coverage-ignore-block(suite): Not run.
             ///   class Interface {
             ///     method() {}
             ///   }
@@ -613,7 +623,9 @@ class _Tuple {
           // On the first skipped member we add all previous.
           implementedNonExtensionTypeGetables ??=
               tupleImplementedNonExtensionTypeGetables.take(i).toList();
-        } else if (implementedNonExtensionTypeGetables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (implementedNonExtensionTypeGetables != null) {
           // If already skipping members we add [implementedGetable]
           // explicitly.
           implementedNonExtensionTypeGetables.add(implementedGetable);
@@ -666,6 +678,7 @@ class _Tuple {
             /// class Class implements Interface {}
             definingSetable = implementedSetable;
           } else if (definingSetable.isStatic) {
+            // Coverage-ignore-block(suite): Not run.
             ///   class Interface {
             ///     set setter(value) {}
             ///   }
@@ -679,6 +692,7 @@ class _Tuple {
             implementedSetable = null;
           }
         }
+        // Coverage-ignore(suite): Not run.
         if (implementedSetable == null) {
           // On the first skipped setter we add all previous.
           implementedNonExtensionTypeSetables ??=
@@ -693,7 +707,9 @@ class _Tuple {
         // No setters were skipped so we use the full list.
         implementedNonExtensionTypeSetables =
             tupleImplementedNonExtensionTypeSetables;
-      } else if (implementedNonExtensionTypeSetables.isEmpty) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (implementedNonExtensionTypeSetables.isEmpty) {
         // No setters were included.
         implementedNonExtensionTypeSetables = null;
       }
@@ -751,7 +767,9 @@ class _Tuple {
           // On the first skipped member we add all previous.
           implementedExtensionTypeGetables ??=
               tupleImplementedExtensionTypeGetables.take(i).toList();
-        } else if (implementedExtensionTypeGetables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (implementedExtensionTypeGetables != null) {
           // If already skipping members we add [implementedGetable]
           // explicitly.
           implementedExtensionTypeGetables.add(implementedGetable);
@@ -802,6 +820,7 @@ class _Tuple {
             /// class Class implements Interface {}
             definingSetable = implementedSetable;
           } else if (definingSetable.isStatic) {
+            // Coverage-ignore-block(suite): Not run.
             ///   class Interface {
             ///     set setter(value) {}
             ///   }
@@ -818,7 +837,9 @@ class _Tuple {
           // On the first skipped setter we add all previous.
           implementedExtensionTypeSetables ??=
               tupleImplementedExtensionTypeSetables.take(i).toList();
-        } else if (implementedExtensionTypeSetables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (implementedExtensionTypeSetables != null) {
           // If already skipping setters we add [implementedSetable]
           // explicitly.
           implementedExtensionTypeSetables.add(implementedSetable);

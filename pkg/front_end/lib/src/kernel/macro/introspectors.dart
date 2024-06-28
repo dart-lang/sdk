@@ -25,6 +25,7 @@ import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 import 'types.dart';
 
+// Coverage-ignore(suite): Not run.
 class MacroIntrospection {
   final SourceLoader _sourceLoader;
   late final MacroTypes types = new MacroTypes(this, _sourceLoader);
@@ -666,6 +667,7 @@ class MacroIntrospection {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   final SourceLoader sourceLoader;
 
@@ -713,6 +715,7 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     implements macro.DeclarationPhaseIntrospector {
   final ClassHierarchyBuilder classHierarchy;
@@ -847,6 +850,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
     implements macro.DefinitionPhaseIntrospector {
   _DefinitionPhaseIntrospector(

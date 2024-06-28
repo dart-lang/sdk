@@ -24,7 +24,9 @@ class StandardFileSystem implements FileSystem {
   FileSystemEntity entityForUri(Uri uri) {
     if (uri.isScheme('file')) {
       return new _IoFileSystemEntity(uri);
-    } else if (!uri.hasScheme) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (!uri.hasScheme) {
       // TODO(askesc): Empty schemes should have been handled elsewhere.
       return new _IoFileSystemEntity(Uri.base.resolveUri(uri));
     } else if (uri.isScheme('data')) {
@@ -56,6 +58,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
       return new Future.value(true);
     }
     if (io.FileSystemEntity.isDirectorySync(uri.toFilePath())) {
+      // Coverage-ignore-block(suite): Not run.
       return new Future.value(true);
     }
     // TODO(CFE-team): What about [Link]s?
@@ -63,6 +66,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<bool> existsAsyncIfPossible() async {
     if (await new io.File.fromUri(uri).exists()) {
       return true;
@@ -86,6 +90,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<List<int>> readAsBytesAsyncIfPossible() async {
     try {
       CompilerContext.recordDependency(uri);
@@ -100,7 +105,9 @@ class _IoFileSystemEntity implements FileSystemEntity {
     try {
       CompilerContext.recordDependency(uri);
       return await new io.File.fromUri(uri).readAsString();
-    } on io.FileSystemException catch (exception) {
+    }
+    // Coverage-ignore(suite): Not run.
+    on io.FileSystemException catch (exception) {
       throw _toFileSystemException(exception);
     }
   }
@@ -118,6 +125,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Concrete implementation of [FileSystemEntity] for data: URIs.
 class DataFileSystemEntity implements FileSystemEntity {
   @override

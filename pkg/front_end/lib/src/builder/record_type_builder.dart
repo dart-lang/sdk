@@ -63,7 +63,9 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     return isExplicit
         ? new _ExplicitRecordTypeBuilder(
             positional, named, nullabilityBuilder, fileUri, charOffset)
-        : new _InferredRecordTypeBuilder(
+        :
+        // Coverage-ignore(suite): Not run.
+        new _InferredRecordTypeBuilder(
             positional, named, nullabilityBuilder, fileUri, charOffset);
   }
 
@@ -71,12 +73,14 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeName? get typeName => null;
 
   @override
   String get debugName => "Record";
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isVoidType => false;
 
   @override
@@ -92,12 +96,14 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         }
         field.type.printOn(buffer);
         if (field.name != null) {
+          // Coverage-ignore-block(suite): Not run.
           buffer.write(" ");
           buffer.write(field.name);
         }
       }
     }
     if (namedFields != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (!isFirst) {
         buffer.write(", ");
       }
@@ -131,7 +137,9 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    assert(hierarchy != null || isExplicit, "Cannot build $this.");
+    assert(
+        hierarchy != null || isExplicit, // Coverage-ignore(suite): Not run.
+        "Cannot build $this.");
     const List<String> forbiddenObjectMemberNames = [
       "noSuchMethod",
       "toString",
@@ -264,6 +272,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
@@ -271,6 +280,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Supertype? buildMixedInType(LibraryBuilder library) {
     return buildSupertype(library, TypeUse.classWithType);
   }
@@ -290,6 +300,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     }
     List<RecordTypeFieldBuilder>? clonedNamed;
     if (namedFields != null) {
+      // Coverage-ignore-block(suite): Not run.
       clonedNamed = new List<RecordTypeFieldBuilder>.generate(
           namedFields!.length, (int i) {
         RecordTypeFieldBuilder entry = namedFields![i];
@@ -334,6 +345,7 @@ class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// A record type that needs type inference to be fully defined.
 ///
 /// This occurs through macros where field types can be defined in terms of

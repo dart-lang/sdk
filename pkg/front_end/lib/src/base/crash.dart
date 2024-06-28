@@ -61,6 +61,7 @@ void resetCrashReporting() {
 
 Future<T> reportCrash<T>(error, StackTrace trace,
     [Uri? uri, int? charOffset]) async {
+  // Coverage-ignore(suite): Not run.
   Future<void> note(String note) async {
     stderr.write(note);
     await stderr.flush();
@@ -68,6 +69,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
 
   if (hasCrashed) return new Future<T>.error(error, trace);
   if (error is Crash) {
+    // Coverage-ignore-block(suite): Not run.
     trace = error.trace ?? trace;
     uri = error.uri ?? uri;
     charOffset = error.charOffset ?? charOffset;
@@ -97,6 +99,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
           new Crash(uri, charOffset, error, trace).._hasBeenReported = true,
           trace);
     }
+    // Coverage-ignore-block(suite): Not run.
     await note("\nSending crash report data");
     request.persistentConnection = false;
     request.bufferOutput = false;
@@ -109,9 +112,11 @@ Future<T> reportCrash<T>(error, StackTrace trace,
     await request.close();
     await note(".");
   } catch (e, s) {
+    // Coverage-ignore-block(suite): Not run.
     await note("\n${safeToString(e)}\n$s\n");
     await note("\n\n\nFE::ERROR::$json\n\n\n");
   }
+  // Coverage-ignore-block(suite): Not run.
   client.close(force: true);
   await note("\n");
   return new Future<T>.error(error, trace);
@@ -121,6 +126,7 @@ String safeToString(Object object) {
   try {
     return "$object";
   } catch (e) {
+    // Coverage-ignore-block(suite): Not run.
     return "Error when converting ${object.runtimeType} to string.";
   }
 }

@@ -20,6 +20,7 @@ class BuilderGraph implements Graph<Uri> {
     List<Uri> neighbors = [];
     LibraryBuilder? libraryBuilder = libraryBuilders[vertex];
     if (libraryBuilder == null) {
+      // Coverage-ignore-block(suite): Not run.
       throw "Library not found: $vertex";
     }
     for (Uri importUri in libraryBuilder.dependencies) {

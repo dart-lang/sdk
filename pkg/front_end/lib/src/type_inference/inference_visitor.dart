@@ -191,6 +191,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   /// Used to report an internal error encountered in the stack listener.
   @override
+  // Coverage-ignore(suite): Not run.
   Never internalProblem(Message message, int charOffset, Uri uri) {
     return problems.internalProblem(message, charOffset, uri);
   }
@@ -290,10 +291,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (coreTypes.isBottom(result.inferredType)) {
       flowAnalysis.handleExit();
       if (shouldThrowUnsoundnessException &&
+          // Coverage-ignore(suite): Not run.
           // Don't throw on expressions that inherently return the bottom type.
           !(result.nullAwareAction is Throw ||
               result.nullAwareAction is Rethrow ||
               result.nullAwareAction is InvalidExpression)) {
+        // Coverage-ignore-block(suite): Not run.
         Expression replacement = createLet(
             createVariable(result.expression, result.inferredType),
             createReachabilityError(
@@ -367,6 +370,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return nullAwareGuards;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Computes uri and offset for [node] for internal errors in a way that is
   /// safe for both top-level and full inference.
   UriOffset _computeUriOffset(TreeNode node) {
@@ -375,6 +379,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new UriOffset(uri, fileOffset);
   }
 
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult _unhandledExpression(
       Expression node, DartType typeContext) {
     UriOffset uriOffset = _computeUriOffset(node);
@@ -389,6 +394,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // therefore doesn't specify the type context for the subterms.
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.body = (bodyResult.statement as Block)..parent = node;
     }
     ExpressionInferenceResult valueResult =
@@ -398,6 +404,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitConstantExpression(
       ConstantExpression node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -414,6 +421,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         resultType = const DynamicType();
         break;
       case DynamicAccessKind.Never:
+        // Coverage-ignore(suite): Not run.
         resultType = NeverType.fromNullability(Nullability.nonNullable);
         break;
       case DynamicAccessKind.Invalid:
@@ -425,6 +433,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceGet(
       InstanceGet node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -433,6 +442,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceTearOff(
       InstanceTearOff node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -441,6 +451,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitDynamicInvocation(
       DynamicInvocation node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -449,6 +460,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitDynamicSet(
       DynamicSet node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -457,6 +469,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitEqualsCall(
       EqualsCall node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -465,6 +478,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitEqualsNull(
       EqualsNull node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -473,6 +487,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitFunctionInvocation(
       FunctionInvocation node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -481,6 +496,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceInvocation(
       InstanceInvocation node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -489,6 +505,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceGetterInvocation(
       InstanceGetterInvocation node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -497,6 +514,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceSet(
       InstanceSet node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -505,6 +523,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitLocalFunctionInvocation(
       LocalFunctionInvocation node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -522,6 +541,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitFunctionTearOff(
       FunctionTearOff node, DartType typeContext) {
     // This node is created as part of a lowering and doesn't need inference.
@@ -539,6 +559,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitInstanceCreation(
       InstanceCreation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -570,6 +591,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.expression = expressionResult.expression..parent = node;
     assert(
         expressionResult.inferredType is FunctionType,
+        // Coverage-ignore(suite): Not run.
         "Expected a FunctionType from tearing off a constructor from "
         "a typedef, but got '${expressionResult.inferredType.runtimeType}'.");
     FunctionType expressionType = expressionResult.inferredType as FunctionType;
@@ -592,23 +614,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitListConcatenation(
       ListConcatenation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitMapConcatenation(
       MapConcatenation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitSetConcatenation(
       SetConcatenation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
   }
 
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult _unhandledStatement(Statement node) {
     UriOffset uriOffset = _computeUriOffset(node);
     return problems.unhandled("${node.runtimeType}", "InferenceVisitor",
@@ -616,31 +642,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitAssertBlock(AssertBlock node) {
     return _unhandledStatement(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitTryCatch(TryCatch node) {
     return _unhandledStatement(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitTryFinally(TryFinally node) {
     return _unhandledStatement(node);
   }
 
+  // Coverage-ignore(suite): Not run.
   Never _unhandledInitializer(Initializer node) {
     problems.unhandled("${node.runtimeType}", "InferenceVisitor",
         node.fileOffset, node.location!.file);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitInvalidInitializer(InvalidInitializer node) {
     _unhandledInitializer(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitLocalInitializer(LocalInitializer node) {
     _unhandledInitializer(node);
   }
@@ -709,6 +741,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.recordNamed:
         case ObjectAccessTargetKind.nullableExtensionTypeMember:
         case ObjectAccessTargetKind.extensionTypeRepresentation:
+        // Coverage-ignore(suite): Not run.
         case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
           break;
       }
@@ -785,6 +818,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InitializerInferenceResult visitAssertInitializer(AssertInitializer node) {
     StatementInferenceResult result = inferStatement(node.statement);
     if (result.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.statement = (result.statement as AssertStatement)..parent = node;
     }
     return const SuccessfulInitializerInferenceResult();
@@ -825,6 +859,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case TypeParameterType():
           return _isIncompatibleWithAwait(type.parameter.bound);
         case StructuralParameterType():
+          // Coverage-ignore(suite): Not run.
           return _isIncompatibleWithAwait(type.parameter.bound);
         case IntersectionType():
           return _isIncompatibleWithAwait(type.right);
@@ -900,7 +935,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<Statement>? result = _visitStatements<Statement>(node.statements);
     if (result != null) {
       Block block = new Block(result)..fileOffset = node.fileOffset;
-      libraryBuilder.loader.dataForTesting?.registerAlias(node, block);
+      libraryBuilder.loader.dataForTesting
+          // Coverage-ignore(suite): Not run.
+          ?.registerAlias(node, block);
       return new StatementInferenceResult.single(block);
     } else {
       return const StatementInferenceResult();
@@ -1198,6 +1235,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression readReceiver;
     Expression writeReceiver;
     if (isPureExpression(receiver)) {
+      // Coverage-ignore-block(suite): Not run.
       readReceiver = receiver;
       writeReceiver = clonePureExpression(receiver);
     } else {
@@ -1215,6 +1253,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression read;
     if (readTarget.isMissing) {
+      // Coverage-ignore-block(suite): Not run.
       read = createMissingPropertyGet(
           node.readOffset, readType, node.propertyName,
           receiver: readReceiver);
@@ -1309,6 +1348,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.doStatement_bodyBegin(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
     flowAnalysis.doStatement_conditionBegin();
@@ -1425,7 +1465,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Returns the function type of [factory] when called through [typedef].
   FunctionType _computeAliasedFactoryFunctionType(
       Procedure factory, Typedef typedef) {
-    assert(factory.isFactory || factory.isExtensionTypeMember,
+    assert(
+        factory.isFactory || factory.isExtensionTypeMember,
+        // Coverage-ignore(suite): Not run.
         "Only run this method on a factory: $factory");
     ensureMemberType(factory);
     FunctionNode function = factory.function;
@@ -1451,9 +1493,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             substitution.substituteType(decl.type))
         .toList(growable: false);
     List<NamedType> named = function.namedParameters
-        .map((VariableDeclaration decl) => new NamedType(
-            decl.name!, substitution.substituteType(decl.type),
-            isRequired: decl.isRequired))
+        .map(
+            // Coverage-ignore(suite): Not run.
+            (VariableDeclaration decl) => new NamedType(
+                decl.name!, substitution.substituteType(decl.type),
+                isRequired: decl.isRequired))
         .toList(growable: false);
     named.sort();
     return new FunctionType(
@@ -1543,6 +1587,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       variable = tempVariable;
     }
     if (expressionEffects != null) {
+      // Coverage-ignore-block(suite): Not run.
       StatementInferenceResult bodyResult = inferStatement(expressionEffects);
       if (bodyResult.hasChanged) {
         expressionEffects = bodyResult.statement;
@@ -1598,6 +1643,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (syntheticAssignment is PropertySet) {
       return new PropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is AbstractSuperPropertySet) {
+      // Coverage-ignore-block(suite): Not run.
       return new AbstractSuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is SuperPropertySet) {
       return new SuperPropertyForInVariable(syntheticAssignment);
@@ -1606,6 +1652,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
       return problems.unhandled(
           "${syntheticAssignment.runtimeType}",
@@ -1639,8 +1686,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (expressionEffects != null) {
       StatementInferenceResult result = inferStatement(expressionEffects);
-      expressionEffects =
-          result.hasChanged ? result.statement : expressionEffects;
+      expressionEffects = result.hasChanged
+          ?
+          // Coverage-ignore(suite): Not run.
+          result.statement
+          : expressionEffects;
     }
 
     return new ForInResult(variable, iterableResult.expression,
@@ -1677,6 +1727,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, patternVariableDeclaration.pattern)) {
+      // Coverage-ignore-block(suite): Not run.
       patternVariableDeclaration.pattern = (rewrite as Pattern)
         ..parent = patternVariableDeclaration;
     }
@@ -1707,6 +1758,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     syntheticAssignment =
         forInVariable.inferAssignment(this, result.elementType);
     if (syntheticAssignment is VariableSet) {
+      // Coverage-ignore-block(suite): Not run.
       flowAnalysis.write(node, variable, result.elementType, null);
     }
 
@@ -1751,6 +1803,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body = combineStatements(result.expressionSideEffects!, body);
     }
     if (result.syntheticAssignment != null) {
+      // Coverage-ignore-block(suite): Not run.
       body = combineStatements(
           createExpressionStatement(result.syntheticAssignment!), body);
     }
@@ -1773,7 +1826,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
 
-    Statement body = bodyResult.hasChanged ? bodyResult.statement : node.body;
+    Statement body = bodyResult.hasChanged
+        ?
+        // Coverage-ignore(suite): Not run.
+        bodyResult.statement
+        : node.body;
     if (result.expressionSideEffects != null) {
       body = combineStatements(result.expressionSideEffects!, body);
     }
@@ -1786,7 +1843,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isAsync: node.isAsync)
       ..fileOffset = node.fileOffset
       ..bodyOffset = node.bodyOffset;
-    libraryBuilder.loader.dataForTesting?.registerAlias(node, replacement);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(node, replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -1806,6 +1865,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         StatementInferenceResult variableResult = inferStatement(variable);
         if (variableResult.hasChanged) {
+          // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
             variables = <VariableDeclaration>[];
             variables.addAll(node.variables.sublist(0, index));
@@ -1817,12 +1877,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               variables.add(variable as VariableDeclaration);
             }
           }
-        } else if (variables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (variables != null) {
           variables.add(variable);
         }
       }
     }
     if (variables != null) {
+      // Coverage-ignore-block(suite): Not run.
       node.variables.clear();
       node.variables.addAll(variables);
       setParents(variables, node);
@@ -1841,6 +1904,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.for_bodyBegin(node, node.condition);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
     flowAnalysis.for_updaterBegin();
@@ -1872,7 +1936,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.hasImplicitReturnType ? null : node.function.returnType;
     FunctionType inferredType =
         visitFunctionNode(node.function, null, returnContext, node.fileOffset);
-    if (dataForTesting != null && node.hasImplicitReturnType) {
+    if (dataForTesting != null &&
+        // Coverage-ignore(suite): Not run.
+        node.hasImplicitReturnType) {
+      // Coverage-ignore-block(suite): Not run.
       dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
@@ -1892,6 +1959,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
     if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
@@ -2000,6 +2068,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       StatementInferenceResult otherwiseResult =
           inferStatement(node.otherwise!);
       if (otherwiseResult.hasChanged) {
+        // Coverage-ignore-block(suite): Not run.
         node.otherwise = otherwiseResult.statement..parent = node;
       }
     }
@@ -2032,10 +2101,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite(NullValues.Statement);
     if (!identical(node.otherwise, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       node.otherwise = (rewrite as Statement)..parent = node;
     }
     rewrite = popRewrite();
     if (!identical(node.then, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       node.then = (rewrite as Statement)..parent = node;
     }
     rewrite = popRewrite(NullValues.Expression);
@@ -2085,6 +2156,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression? error = checkWebIntLiteralsErrorIfUnexact(
         node.value, node.literal, node.fileOffset);
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       return new ExpressionInferenceResult(const DynamicType(), error);
     }
     DartType inferredType = coreTypes.intRawType(Nullability.nonNullable);
@@ -2094,6 +2166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitShadowLargeIntLiteral(
       ShadowLargeIntLiteral node, DartType typeContext) {
     if (isDoubleContext(typeContext)) {
+      // Coverage-ignore-block(suite): Not run.
       double? doubleValue = node.asDouble();
       if (doubleValue != null) {
         Expression replacement = new DoubleLiteral(doubleValue)
@@ -2106,6 +2179,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     int? intValue = node.asInt64();
     if (intValue == null) {
+      // Coverage-ignore-block(suite): Not run.
       Expression replacement = helper.buildProblem(
           templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
           node.fileOffset,
@@ -2115,6 +2189,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression? error = checkWebIntLiteralsErrorIfUnexact(
         intValue, node.literal, node.fileOffset);
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       return new ExpressionInferenceResult(const DynamicType(), error);
     }
     Expression replacement = new IntLiteral(intValue);
@@ -2159,6 +2234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StatementInferenceResult bodyResult = inferStatement(node.body);
     flowAnalysis.labeledStatement_end();
     if (bodyResult.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
     return const StatementInferenceResult();
@@ -2223,6 +2299,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               context: getWhyNotPromotedContext(
                   flowAnalysis.whyNotPromoted(receiver)(),
                   element,
+                  // Coverage-ignore(suite): Not run.
                   (type) => !type.isPotentiallyNullable));
         }
 
@@ -2273,6 +2350,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             context: getWhyNotPromotedContext(
                 flowAnalysis.whyNotPromoted(receiver)(),
                 element,
+                // Coverage-ignore(suite): Not run.
                 (type) => !type.isPotentiallyNullable));
         _copyNonPromotionReasonToReplacement(element, replacement);
       }
@@ -2355,11 +2433,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite(NullValues.Expression);
     if (!identical(element.otherwise, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       element.otherwise = (rewrite as Expression?)?..parent = element;
     }
 
     rewrite = popRewrite();
     if (!identical(element.then, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       element.then = (rewrite as Expression)..parent = element;
     }
 
@@ -2367,6 +2447,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     rewrite = popRewrite(NullValues.Expression);
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
+      // Coverage-ignore-block(suite): Not run.
       patternGuard.guard = guardError..parent = patternGuard;
     } else {
       if (!identical(patternGuard.guard, rewrite)) {
@@ -2381,11 +2462,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(patternGuard.pattern, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
     }
 
     rewrite = popRewrite();
     if (!identical(element.expression, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       element.expression = (rewrite as Expression)..parent = patternGuard;
     }
 
@@ -2428,6 +2511,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       Object? rewrite = popRewrite(NullValues.Expression);
       if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+        // Coverage-ignore-block(suite): Not run.
         patternVariableDeclaration.pattern = (rewrite as Pattern)
           ..parent = patternVariableDeclaration;
       }
@@ -2464,6 +2548,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         StatementInferenceResult variableResult = inferStatement(variable);
         if (variableResult.hasChanged) {
+          // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
             variables = <VariableDeclaration>[];
             variables.addAll(element.variables.sublist(0, index));
@@ -2475,12 +2560,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               variables.add(variable as VariableDeclaration);
             }
           }
-        } else if (variables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (variables != null) {
           variables.add(variable);
         }
       }
     }
     if (variables != null) {
+      // Coverage-ignore-block(suite): Not run.
       element.variables.clear();
       element.variables.addAll(variables);
       setParents(variables, element);
@@ -2539,6 +2627,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     result.expressionSideEffects?.parent = element;
 
     if (element.problem != null) {
+      // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult problemResult = inferExpression(
           element.problem!, const UnknownType(),
           isVoidAllowed: true);
@@ -2587,7 +2676,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void _copyNonPromotionReasonToReplacement(
       TreeNode oldNode, TreeNode replacement) {
     if (!identical(oldNode, replacement) &&
-        dataForTesting?.flowAnalysisResult != null) {
+        dataForTesting
+                // Coverage-ignore(suite): Not run.
+                ?.flowAnalysisResult !=
+            null) {
+      // Coverage-ignore-block(suite): Not run.
       dataForTesting!.flowAnalysisResult.nonPromotionReasons[replacement] =
           dataForTesting!.flowAnalysisResult.nonPromotionReasons[oldNode]!;
     }
@@ -2663,7 +2756,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           listType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
           typeOperations: operations,
-          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          inferenceResultForTesting: dataForTesting
+              // Coverage-ignore(suite): Not run.
+              ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null);
@@ -2686,6 +2781,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!);
       if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
       }
@@ -2714,6 +2810,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitRecordLiteral(
       RecordLiteral node, DartType typeContext) {
     // TODO(cstefantsova): Implement this method.
@@ -2797,6 +2894,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Create a list or set with the elements up to the first non-expression.
       if (isSet) {
         if (libraryBuilder.loader.target.backendTarget.supportsSetLiterals) {
+          // Coverage-ignore-block(suite): Not run.
           // Include the elements up to the first non-expression in the set
           // literal.
           result = _createVariable(
@@ -2904,11 +3002,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (elseStatements != null && elseStatements.isNotEmpty) {
       elseBody = elseStatements.length == 1
           ? elseStatements.first
-          : _createBlock(elseStatements);
+          :
+          // Coverage-ignore(suite): Not run.
+          _createBlock(elseStatements);
     }
     IfStatement ifStatement =
         _createIf(element.fileOffset, element.condition, thenBody, elseBody);
-    libraryBuilder.loader.dataForTesting?.registerAlias(element, ifStatement);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(element, ifStatement);
     body.add(ifStatement);
   }
 
@@ -2931,12 +3033,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     Statement thenBody = thenStatements.length == 1
         ? thenStatements.first
-        : _createBlock(thenStatements);
+        :
+        // Coverage-ignore(suite): Not run.
+        _createBlock(thenStatements);
     Statement? elseBody;
     if (elseStatements != null && elseStatements.isNotEmpty) {
       elseBody = elseStatements.length == 1
           ? elseStatements.first
-          : _createBlock(elseStatements);
+          :
+          // Coverage-ignore(suite): Not run.
+          _createBlock(elseStatements);
     }
     IfCaseStatement ifCaseStatement = _createIfCase(
         element.fileOffset,
@@ -2946,6 +3052,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         thenBody,
         elseBody);
     libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
         ?.registerAlias(element, ifCaseStatement);
     body.addAll(element.prelude);
     body.add(ifCaseStatement);
@@ -2962,7 +3069,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(element.fileOffset,
         element.variables, element.condition, element.updates, loopBody);
-    libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(element, loop);
     body.add(loop);
   }
 
@@ -2977,11 +3086,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _translateElement(
         element.body, receiverType, elementType, result, statements,
         isSet: isSet);
-    Statement loopBody =
-        statements.length == 1 ? statements.first : _createBlock(statements);
+    Statement loopBody = statements.length == 1
+        ? statements.first
+        :
+        // Coverage-ignore(suite): Not run.
+        _createBlock(statements);
     ForStatement loop = _createForStatement(element.fileOffset,
         element.variables, element.condition, element.updates, loopBody);
-    libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(element, loop);
     body.add(element.patternVariableDeclaration);
     body.addAll(element.intermediateVariables);
     body.add(loop);
@@ -2995,8 +3109,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (prologue == null) {
       statements = <Statement>[];
     } else {
-      statements =
-          prologue is Block ? prologue.statements : <Statement>[prologue];
+      statements = prologue is Block
+          ?
+          // Coverage-ignore(suite): Not run.
+          prologue.statements
+          : <Statement>[prologue];
     }
     _translateElement(
         element.body, receiverType, elementType, result, statements,
@@ -3004,12 +3121,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     if (element.problem != null) {
+      // Coverage-ignore-block(suite): Not run.
       body.add(_createExpressionStatement(element.problem!));
     }
     ForInStatement loop = _createForInStatement(
         element.fileOffset, element.variable, element.iterable, loopBody,
         isAsync: element.isAsync);
-    libraryBuilder.loader.dataForTesting?.registerAlias(element, loop);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(element, loop);
     body.add(loop);
   }
 
@@ -3250,12 +3370,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         thenBody.length == 1 ? thenBody.first : _createBlock(thenBody);
     Statement? elseStatement;
     if (elseBody != null && elseBody.isNotEmpty) {
-      elseStatement =
-          elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
+      elseStatement = elseBody.length == 1
+          ? elseBody.first
+          :
+          // Coverage-ignore(suite): Not run.
+          _createBlock(elseBody);
     }
     IfStatement ifStatement = _createIf(
         entry.fileOffset, entry.condition, thenStatement, elseStatement);
-    libraryBuilder.loader.dataForTesting?.registerAlias(entry, ifStatement);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(entry, ifStatement);
     body.add(ifStatement);
   }
 
@@ -3274,12 +3399,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _translateEntry(entry.otherwise!, receiverType, keyType, valueType,
           result, elseBody = <Statement>[]);
     }
-    Statement thenStatement =
-        thenBody.length == 1 ? thenBody.first : _createBlock(thenBody);
+    Statement thenStatement = thenBody.length == 1
+        ? thenBody.first
+        :
+        // Coverage-ignore(suite): Not run.
+        _createBlock(thenBody);
     Statement? elseStatement;
     if (elseBody != null && elseBody.isNotEmpty) {
-      elseStatement =
-          elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
+      elseStatement = elseBody.length == 1
+          ? elseBody.first
+          :
+          // Coverage-ignore(suite): Not run.
+          _createBlock(elseBody);
     }
     IfCaseStatement ifStatement = _createIfCase(
         entry.fileOffset,
@@ -3288,7 +3419,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         entry.patternGuard,
         thenStatement,
         elseStatement);
-    libraryBuilder.loader.dataForTesting?.registerAlias(entry, ifStatement);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(entry, ifStatement);
     body.addAll(entry.prelude);
     body.add(ifStatement);
   }
@@ -3307,7 +3440,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition, entry.updates, loopBody);
-    libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(entry, loop);
     body.add(loop);
   }
 
@@ -3325,7 +3460,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         statements.length == 1 ? statements.first : _createBlock(statements);
     ForStatement loop = _createForStatement(entry.fileOffset, entry.variables,
         entry.condition, entry.updates, loopBody);
-    libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(entry, loop);
     body.add(entry.patternVariableDeclaration);
     body.addAll(entry.intermediateVariables);
     body.add(loop);
@@ -3343,20 +3480,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (prologue == null) {
       statements = <Statement>[];
     } else {
-      statements =
-          prologue is Block ? prologue.statements : <Statement>[prologue];
+      statements = prologue is Block
+          ?
+          // Coverage-ignore(suite): Not run.
+          prologue.statements
+          : <Statement>[prologue];
     }
     _translateEntry(
         entry.body, receiverType, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : _createBlock(statements);
     if (entry.problem != null) {
+      // Coverage-ignore-block(suite): Not run.
       body.add(_createExpressionStatement(entry.problem!));
     }
     ForInStatement loop = _createForInStatement(
         entry.fileOffset, entry.variable, entry.iterable, loopBody,
         isAsync: entry.isAsync);
-    libraryBuilder.loader.dataForTesting?.registerAlias(entry, loop);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(entry, loop);
     body.add(loop);
   }
 
@@ -3520,6 +3663,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           parts.add(spreadExpression);
         }
       } else if (element is IfElement) {
+        // Coverage-ignore-block(suite): Not run.
         if (currentPart != null) {
           parts.add(makeLiteral(node.fileOffset, currentPart));
           currentPart = null;
@@ -3532,6 +3676,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         parts.add(_createConditionalExpression(
             element.fileOffset, condition, then, otherwise, iterableType));
       } else if (element is ForElement || element is ForInElement) {
+        // Coverage-ignore-block(suite): Not run.
         // Rejected earlier.
         problems.unhandled("${element.runtimeType}", "_translateConstListOrSet",
             element.fileOffset, helper.uri);
@@ -3594,6 +3739,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           parts.add(spreadExpression);
         }
       } else if (entry is IfMapEntry) {
+        // Coverage-ignore-block(suite): Not run.
         if (currentPart != null) {
           parts.add(makeLiteral(node.fileOffset, currentPart));
           currentPart = null;
@@ -3606,6 +3752,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         parts.add(_createConditionalExpression(
             entry.fileOffset, condition, then, otherwise, collectionType));
       } else if (entry is ForMapEntry || entry is ForInMapEntry) {
+        // Coverage-ignore-block(suite): Not run.
         // Rejected earlier.
         problems.unhandled("${entry.runtimeType}", "_translateConstMap",
             entry.fileOffset, helper.uri);
@@ -3646,6 +3793,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new VariableGet(variable, promotedType)
         ..fileOffset = variable.fileOffset;
     }
+    // Coverage-ignore(suite): Not run.
     return _createVariableGet(variable);
   }
 
@@ -3678,7 +3826,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _createAdd(
       Expression receiver, InterfaceType receiverType, Expression argument,
       {required bool isSet}) {
-    assert(argument.fileOffset != TreeNode.noOffset,
+    assert(
+        argument.fileOffset != TreeNode.noOffset,
+        // Coverage-ignore(suite): Not run.
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(
@@ -3693,7 +3843,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createAddAll(Expression receiver, InterfaceType receiverType,
       Expression argument, bool isSet) {
-    assert(argument.fileOffset != TreeNode.noOffset,
+    assert(
+        argument.fileOffset != TreeNode.noOffset,
+        // Coverage-ignore(suite): Not run.
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(isSet
@@ -3709,7 +3861,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createMapAddAll(
       Expression receiver, InterfaceType receiverType, Expression argument) {
-    assert(argument.fileOffset != TreeNode.noOffset,
+    assert(
+        argument.fileOffset != TreeNode.noOffset,
+        // Coverage-ignore(suite): Not run.
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(engine.mapAddAllFunctionType);
@@ -3921,6 +4075,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               context: getWhyNotPromotedContext(
                   flowAnalysis.whyNotPromoted(receiver)(),
                   entry,
+                  // Coverage-ignore(suite): Not run.
                   (type) => !type.isPotentiallyNullable));
           _copyNonPromotionReasonToReplacement(entry, problem);
           replacement = new SpreadMapEntry(problem, isNullAware: false)
@@ -3939,6 +4094,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             context: getWhyNotPromotedContext(
                 flowAnalysis.whyNotPromoted(receiver)(),
                 entry,
+                // Coverage-ignore(suite): Not run.
                 (type) => !type.isPotentiallyNullable));
         _copyNonPromotionReasonToReplacement(entry, problem);
         replacement = new MapLiteralEntry(problem, new NullLiteral())
@@ -4021,6 +4177,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             context: getWhyNotPromotedContext(
                 flowAnalysis.whyNotPromoted(receiver)(),
                 entry,
+                // Coverage-ignore(suite): Not run.
                 (type) => !type.isPotentiallyNullable));
         _copyNonPromotionReasonToReplacement(entry, keyError);
       }
@@ -4197,11 +4354,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite(NullValues.Expression);
     if (!identical(entry.otherwise, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       entry.otherwise = (rewrite as MapLiteralEntry?)?..parent = entry;
     }
 
     rewrite = popRewrite();
     if (!identical(entry.then, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       entry.then = (rewrite as MapLiteralEntry)..parent = entry;
     }
 
@@ -4209,9 +4368,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     rewrite = popRewrite(NullValues.Expression);
     InvalidExpression? guardError = analysisResult.nonBooleanGuardError;
     if (guardError != null) {
+      // Coverage-ignore-block(suite): Not run.
       patternGuard.guard = guardError..parent = patternGuard;
     } else {
       if (!identical(patternGuard.guard, rewrite)) {
+        // Coverage-ignore-block(suite): Not run.
         patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
       }
       if (analysisResult.guardType is DynamicType) {
@@ -4223,11 +4384,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(patternGuard.pattern, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       patternGuard.pattern = (rewrite as Pattern)..parent = patternGuard;
     }
 
     rewrite = popRewrite();
     if (!identical(entry.expression, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       entry.expression = (rewrite as Expression)..parent = patternGuard;
     }
 
@@ -4267,6 +4430,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       Object? rewrite = popRewrite(NullValues.Expression);
       if (!identical(patternVariableDeclaration.pattern, rewrite)) {
+        // Coverage-ignore-block(suite): Not run.
         patternVariableDeclaration.pattern = (rewrite as Pattern)
           ..parent = patternVariableDeclaration;
       }
@@ -4302,6 +4466,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         StatementInferenceResult variableResult = inferStatement(variable);
         if (variableResult.hasChanged) {
+          // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
             variables = <VariableDeclaration>[];
             variables.addAll(entry.variables.sublist(0, index));
@@ -4313,12 +4478,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               variables.add(variable as VariableDeclaration);
             }
           }
-        } else if (variables != null) {
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (variables != null) {
           variables.add(variable);
         }
       }
     }
     if (variables != null) {
+      // Coverage-ignore-block(suite): Not run.
       entry.variables.clear();
       entry.variables.addAll(variables);
       setParents(variables, entry);
@@ -4388,6 +4556,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     entry.expressionEffects = result.expressionSideEffects;
     result.expressionSideEffects?.parent = entry;
     if (entry.problem != null) {
+      // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult problemResult = inferExpression(
           entry.problem!, const UnknownType(),
           isVoidAllowed: true);
@@ -4627,7 +4796,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           mapType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
           typeOperations: operations,
-          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          inferenceResultForTesting: dataForTesting
+              // Coverage-ignore(suite): Not run.
+              ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null);
@@ -4703,7 +4874,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 setType, typeParametersToInfer, typeContext,
                 isConst: node.isConst,
                 typeOperations: operations,
-                inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+                inferenceResultForTesting: dataForTesting
+                    // Coverage-ignore(suite): Not run.
+                    ?.typeInferenceResult,
                 treeNodeForTesting: node);
         List<DartType> inferredTypesForSet = typeSchemaEnvironment
             .choosePreliminaryTypes(gatherer, typeParametersToInfer, null);
@@ -4752,6 +4925,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!);
       if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
       }
@@ -4845,6 +5019,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new ExpressionInferenceResult(
           result.inferredType, result.applyResult(invocation));
     } else {
+      // Coverage-ignore-block(suite): Not run.
       // TODO(johnniwinther): Handle augmentation of field with inferred types.
       TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
       Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>();
@@ -5390,7 +5565,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitSuperIndexSet(
       SuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget indexSetTarget = thisType!.classNode.isMixinDeclaration
-        ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter,
+        ?
+        // Coverage-ignore(suite): Not run.
+        new ObjectAccessTarget.interfaceMember(thisType!, node.setter,
             hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, node.setter);
 
@@ -5428,7 +5605,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
-    assert(indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
+    assert(
+        indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
+        // Coverage-ignore(suite): Not run.
         'Unexpected index set target $indexSetTarget.');
     instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
         new InstrumentationValueForMember(node.setter));
@@ -6021,7 +6200,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   bool _isNull(Expression node) {
     return node is NullLiteral ||
-        node is ConstantExpression && node.constant is NullConstant;
+        node is ConstantExpression &&
+            // Coverage-ignore(suite): Not run.
+            node.constant is NullConstant;
   }
 
   /// Creates an equals expression of using [left] and [right] as operands.
@@ -6067,6 +6248,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         equalsTarget.isInstanceMember ||
             equalsTarget.isObjectMember ||
             equalsTarget.isNever,
+        // Coverage-ignore(suite): Not run.
         "Unexpected equals target $equalsTarget for "
         "$left ($leftType) == $right.");
     if (instrumentation != null && leftType == const DynamicType()) {
@@ -6218,10 +6400,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
         if ((binaryTarget.isInstanceMember || binaryTarget.isObjectMember) &&
             instrumentation != null &&
             leftType == const DynamicType()) {
+          // Coverage-ignore-block(suite): Not run.
           instrumentation!.record(uriForInstrumentation, fileOffset, 'target',
               new InstrumentationValueForMember(binaryTarget.member!));
         }
@@ -6251,6 +6435,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = fileOffset;
         }
         break;
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
@@ -6264,6 +6449,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       List<LocatedMessage>? context = getWhyNotPromotedContext(
           whyNotPromoted?.call(),
           binary,
+          // Coverage-ignore(suite): Not run.
           (type) => !type.isPotentiallyNullable);
       return new ExpressionInferenceResult(
           binaryType,
@@ -6343,10 +6529,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
         if ((unaryTarget.isInstanceMember || unaryTarget.isObjectMember) &&
             instrumentation != null &&
             expressionType == const DynamicType()) {
+          // Coverage-ignore-block(suite): Not run.
           instrumentation!.record(uriForInstrumentation, fileOffset, 'target',
               new InstrumentationValueForMember(unaryTarget.member!));
         }
@@ -6359,6 +6547,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..fileOffset = fileOffset;
 
         if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+          // Coverage-ignore-block(suite): Not run.
           if (instrumentation != null) {
             instrumentation!.record(uriForInstrumentation, fileOffset,
                 'checkReturn', new InstrumentationValueForType(expressionType));
@@ -6369,6 +6558,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = fileOffset;
         }
         break;
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
@@ -6380,7 +6570,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (unaryTarget.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
-          whyNotPromoted(), unary, (type) => !type.isPotentiallyNullable);
+          whyNotPromoted(),
+          unary, // Coverage-ignore(suite): Not run.
+          (type) => !type.isPotentiallyNullable);
       // TODO(johnniwinther): Special case 'unary-' in messages. It should
       // probably be referred to as "Unary operator '-' ...".
       return new ExpressionInferenceResult(
@@ -6390,7 +6582,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               templateNullableOperatorCallError.withArguments(
                   unaryName.text, expressionType),
               unary.fileOffset,
-              unaryName == unaryMinusName ? 1 : unaryName.text.length,
+              unaryName == unaryMinusName
+                  ? 1
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  unaryName.text.length,
               context: context));
     }
     return new ExpressionInferenceResult(unaryType, unary);
@@ -6473,6 +6669,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
         InstanceAccessKind kind;
         switch (readTarget.kind) {
@@ -6482,9 +6679,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableInstanceMember:
             kind = InstanceAccessKind.Nullable;
             break;
+          // Coverage-ignore(suite): Not run.
           case ObjectAccessTargetKind.objectMember:
             kind = InstanceAccessKind.Object;
             break;
+          // Coverage-ignore(suite): Not run.
           default:
             throw new UnsupportedError('Unexpected target kind $readTarget');
         }
@@ -6511,6 +6710,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ..fileOffset = fileOffset;
         }
         break;
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
@@ -6601,6 +6801,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
         InstanceAccessKind kind;
         switch (writeTarget.kind) {
@@ -6610,9 +6811,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableInstanceMember:
             kind = InstanceAccessKind.Nullable;
             break;
+          // Coverage-ignore(suite): Not run.
           case ObjectAccessTargetKind.objectMember:
             kind = InstanceAccessKind.Object;
             break;
+          // Coverage-ignore(suite): Not run.
           default:
             throw new UnsupportedError('Unexpected target kind $writeTarget');
         }
@@ -6623,6 +6826,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             interfaceTarget: writeTarget.classMember as Procedure)
           ..fileOffset = fileOffset;
         break;
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
@@ -6776,6 +6980,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
         InstanceAccessKind kind;
         switch (writeTarget.kind) {
@@ -6785,9 +6990,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableInstanceMember:
             kind = InstanceAccessKind.Nullable;
             break;
+          // Coverage-ignore(suite): Not run.
           case ObjectAccessTargetKind.objectMember:
             kind = InstanceAccessKind.Object;
             break;
+          // Coverage-ignore(suite): Not run.
           default:
             throw new UnsupportedError('Unexpected target kind $writeTarget');
         }
@@ -6795,6 +7002,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             interfaceTarget: writeTarget.classMember!)
           ..fileOffset = fileOffset;
         break;
+      // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.extensionTypeRepresentation:
@@ -7483,6 +7691,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isSetter: true, instrumented: true, includeExtensionMethods: true);
     if (target.isInstanceMember || target.isObjectMember) {
       if (instrumentation != null && receiverType == const DynamicType()) {
+        // Coverage-ignore-block(suite): Not run.
         instrumentation!.record(uriForInstrumentation, node.fileOffset,
             'target', new InstrumentationValueForMember(target.member!));
       }
@@ -7515,8 +7724,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
           thisType!, member,
           hasNonObjectMemberAccess: true);
-      if (target.isInstanceMember || target.isObjectMember) {
+      if (target.isInstanceMember ||
+          // Coverage-ignore(suite): Not run.
+          target.isObjectMember) {
         if (instrumentation != null && receiverType == const DynamicType()) {
+          // Coverage-ignore-block(suite): Not run.
           instrumentation!.record(uriForInstrumentation, node.fileOffset,
               'target', new InstrumentationValueForMember(target.member!));
         }
@@ -7684,6 +7896,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitRecordIndexGet(
       RecordIndexGet node, DartType typeContext) {
     ExpressionInferenceResult result =
@@ -7720,6 +7933,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitRecordNameGet(
       RecordNameGet node, DartType typeContext) {
     ExpressionInferenceResult result =
@@ -7926,7 +8140,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           setType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
           typeOperations: operations,
-          inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+          inferenceResultForTesting: dataForTesting
+              // Coverage-ignore(suite): Not run.
+              ?.typeInferenceResult,
           treeNodeForTesting: node);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, typeParametersToInfer, null);
@@ -7950,6 +8166,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer, typeParametersToInfer, inferredTypes!);
       if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
             inferredTypes;
       }
@@ -8045,6 +8262,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType type = target.getterType;
 
     if (target is Procedure && target.kind == ProcedureKind.Method) {
+      // Coverage-ignore-block(suite): Not run.
       Expression tearOff = new StaticTearOff(node.target as Procedure)
         ..fileOffset = node.fileOffset;
       return instantiateTearOff(type, typeContext, tearOff);
@@ -8117,6 +8335,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAbstractSuperMethodInvocation(
       AbstractSuperMethodInvocation node, DartType typeContext) {
     instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
@@ -8135,6 +8354,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAbstractSuperPropertyGet(
       AbstractSuperPropertyGet node, DartType typeContext) {
     instrumentation?.record(uriForInstrumentation, node.fileOffset, 'target',
@@ -8153,6 +8373,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAbstractSuperPropertySet(
       AbstractSuperPropertySet node, DartType typeContext) {
     ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
@@ -8287,6 +8508,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(expression, rewrite)) {
+      // Coverage-ignore-block(suite): Not run.
       expression = rewrite as Expression;
       node.expression = expression..parent = node;
     }
@@ -8295,6 +8517,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (analysisResult.isExhaustive &&
         !analysisResult.hasDefault &&
         shouldThrowUnsoundnessException) {
+      // Coverage-ignore-block(suite): Not run.
       if (!analysisResult.lastCaseTerminates) {
         LabeledStatement breakTarget;
         if (node.parent is LabeledStatement) {
@@ -8324,6 +8547,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(checkStack(node, stackBase, [/*empty*/]));
 
+    // Coverage-ignore(suite): Not run.
     return replacement != null
         ? new StatementInferenceResult.single(replacement)
         : const StatementInferenceResult();
@@ -8351,6 +8575,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int i = node.cases.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
       if (!identical(rewrite, node.cases[i])) {
+        // Coverage-ignore-block(suite): Not run.
         node.cases[i] = (rewrite as PatternSwitchCase)..parent = node;
       }
     }
@@ -8422,6 +8647,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   templateJointPatternVariablesMismatch
                       .withArguments(jointVariable.name!),
                   switchCase.jointVariableFirstUseOffsets?[i] ??
+                      // Coverage-ignore(suite): Not run.
                       jointVariable.fileOffset,
                   noLength)
                 ..parent = jointVariable;
@@ -8479,6 +8705,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void visitCatch(Catch node) {
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
   }
@@ -8527,11 +8754,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result = new TryFinally(
           result,
           finalizerResult!.hasChanged
-              ? finalizerResult.statement
+              ?
+              // Coverage-ignore(suite): Not run.
+              finalizerResult.statement
               : node.finallyBlock!)
         ..fileOffset = node.fileOffset;
     }
-    libraryBuilder.loader.dataForTesting?.registerAlias(node, result);
+    libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(node, result);
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return new StatementInferenceResult.single(result);
   }
@@ -8633,6 +8864,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       instrumentation?.record(uriForInstrumentation, node.fileOffset, 'type',
           new InstrumentationValueForType(inferredType));
       if (dataForTesting != null) {
+        // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
             inferredType;
       }
@@ -8831,6 +9063,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitVariableGet(
       VariableGet node, DartType typeContext) {
     if (node is! VariableGetImpl) {
+      // Coverage-ignore-block(suite): Not run.
       // This node is created as part of a lowering and doesn't need inference.
       return new ExpressionInferenceResult(
           node.promotedType ?? node.variable.type, node);
@@ -8873,11 +9106,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     bool isUnassigned = !flowAnalysis.isAssigned(variable);
     if (isUnassigned) {
-      dataForTesting?.flowAnalysisResult.potentiallyUnassignedNodes.add(node);
+      dataForTesting
+          // Coverage-ignore(suite): Not run.
+          ?.flowAnalysisResult // Coverage-ignore(suite): Not run.
+          .potentiallyUnassignedNodes // Coverage-ignore(suite): Not run.
+          .add(node);
     }
     bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
     if (isDefinitelyUnassigned) {
-      dataForTesting?.flowAnalysisResult.definitelyUnassignedNodes.add(node);
+      dataForTesting
+          // Coverage-ignore(suite): Not run.
+          ?.flowAnalysisResult // Coverage-ignore(suite): Not run.
+          .definitelyUnassignedNodes // Coverage-ignore(suite): Not run.
+          .add(node);
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
@@ -8898,6 +9139,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         if (isUnassigned) {
           if (variable.isFinal) {
+            // Coverage-ignore-block(suite): Not run.
             return new ExpressionInferenceResult(
                 resultType,
                 helper.wrapInProblem(
@@ -8935,6 +9177,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.whileStatement_bodyBegin(node, node.condition);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
+      // Coverage-ignore-block(suite): Not run.
       node.body = bodyResult.statement..parent = node;
     }
     flowAnalysis.whileStatement_end();
@@ -8986,6 +9229,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitCheckLibraryIsLoaded(
       CheckLibraryIsLoaded node, DartType typeContext) {
     // TODO(cstefantsova): Figure out the suitable nullability for that.
@@ -9046,6 +9290,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression? error = checkWebIntLiteralsErrorIfUnexact(
             receiver.value, receiver.literal, receiver.fileOffset);
         if (error != null) {
+          // Coverage-ignore-block(suite): Not run.
           return new ExpressionInferenceResult(const DynamicType(), error);
         }
       } else if (node.expression is ShadowLargeIntLiteral) {
@@ -9053,6 +9298,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.expression as ShadowLargeIntLiteral;
         if (!receiver.isParenthesized) {
           if (isDoubleContext(typeContext)) {
+            // Coverage-ignore-block(suite): Not run.
             double? doubleValue = receiver.asDouble(negated: true);
             if (doubleValue != null) {
               Expression replacement = new DoubleLiteral(doubleValue)
@@ -9064,6 +9310,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           int? intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
+            // Coverage-ignore-block(suite): Not run.
             Expression error = helper.buildProblem(
                 templateIntegerLiteralIsOutOfRange
                     .withArguments(receiver.literal),
@@ -9074,6 +9321,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           Expression? error = checkWebIntLiteralsErrorIfUnexact(
               intValue, receiver.literal, receiver.fileOffset);
           if (error != null) {
+            // Coverage-ignore-block(suite): Not run.
             return new ExpressionInferenceResult(const DynamicType(), error);
           }
           expressionResult = new ExpressionInferenceResult(
@@ -9312,12 +9560,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Object? popRewrite([NullValue? nullValue]) {
     Object entry = _rewriteStack.removeLast();
     if (_debugRewriteStack) {
+      // Coverage-ignore-block(suite): Not run.
       assert(_debugPrint('POP ${entry.runtimeType} $entry'));
     }
     if (entry is! NullValue) {
       return entry;
     }
-    assert(nullValue == entry,
+    assert(
+        nullValue == entry,
+        // Coverage-ignore(suite): Not run.
         "Unexpected null value. Expected ${nullValue}, actual $entry");
     return null;
   }
@@ -9325,11 +9576,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Pushes an entry onto [_rewriteStack].
   void pushRewrite(Object node) {
     if (_debugRewriteStack) {
+      // Coverage-ignore-block(suite): Not run.
       assert(_debugPrint('PUSH ${node.runtimeType} $node'));
     }
     _rewriteStack.add(node);
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Helper function used to print information to the console in debug mode.
   /// This method returns `true` so that it can be conveniently called inside of
   /// an `assert` statement.
@@ -9418,11 +9671,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           elementType: node.typeArgument, elements: node.patterns);
     } else if (node is MapPattern) {
       return analyzeMapPatternSchema(
-          typeArguments: node.keyType != null && node.valueType != null
-              ? (keyType: node.keyType!, valueType: node.valueType!)
+          typeArguments: node.keyType != null &&
+                  // Coverage-ignore(suite): Not run.
+                  node.valueType != null
+              ?
+              // Coverage-ignore(suite): Not run.
+              (keyType: node.keyType!, valueType: node.valueType!)
               : null,
           elements: node.entries);
     } else if (node is NamedPattern) {
+      // Coverage-ignore-block(suite): Not run.
       return dispatchPatternSchema(node.pattern);
     } else if (node is NullAssertPattern) {
       return analyzeNullCheckOrAssertPatternSchema(node.pattern,
@@ -9433,6 +9691,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (node is ObjectPattern) {
       return analyzeObjectPatternSchema(node.requiredType);
     } else if (node is OrPattern) {
+      // Coverage-ignore-block(suite): Not run.
       return analyzeLogicalOrPatternSchema(node.left, node.right);
     } else if (node is RecordPattern) {
       return analyzeRecordPatternSchema(
@@ -9446,6 +9705,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     node: element, name: null, pattern: element)
           ]);
     } else if (node is RelationalPattern) {
+      // Coverage-ignore-block(suite): Not run.
       return analyzeRelationalPatternSchema();
     } else if (node is RestPattern) {
       // This pattern can't appear on it's own.
@@ -9457,6 +9717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (node is InvalidPattern) {
       return const InvalidType();
     } else {
+      // Coverage-ignore-block(suite): Not run.
       return problems.unhandled("${node.runtimeType}", "dispatchPatternSchema",
           node is TreeNode ? node.fileOffset : TreeNode.noOffset, helper.uri);
     }
@@ -9518,6 +9779,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         body.statements.add(syntheticBreak);
         syntheticBreak.parent = body;
       } else {
+        // Coverage-ignore-block(suite): Not run.
         body = new Block([body, syntheticBreak])..fileOffset = body.fileOffset;
         case_.body = body..parent = case_;
       }
@@ -9534,6 +9796,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           popRewrite(); // CaseHead
         }
       } else {
+        // Coverage-ignore-block(suite): Not run.
         popRewrite(); // CaseHead
       }
     } else {
@@ -9547,6 +9810,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           popRewrite(); // CaseHead
         }
       } else {
+        // Coverage-ignore-block(suite): Not run.
         popRewrite(); // CaseHead
       }
     }
@@ -9836,6 +10100,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       replacement =
           new InvalidPattern(error, declaredVariables: node.declaredVariables)
             ..fileOffset = error.fileOffset;
@@ -9871,6 +10136,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       replacement =
           new InvalidPattern(error, declaredVariables: node.declaredVariables)
             ..fileOffset = error.fileOffset;
@@ -9949,11 +10215,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.right)) {
+      // Coverage-ignore-block(suite): Not run.
       node.right = (rewrite as Pattern)..parent = node;
     }
 
     rewrite = popRewrite();
     if (!identical(rewrite, node.left)) {
+      // Coverage-ignore-block(suite): Not run.
       node.left = (rewrite as Pattern)..parent = node;
     }
 
@@ -9984,6 +10252,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       replacement =
           new InvalidPattern(error, declaredVariables: node.declaredVariables)
             ..fileOffset = error.fileOffset;
@@ -9991,11 +10260,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.right)) {
+      // Coverage-ignore-block(suite): Not run.
       node.right = (rewrite as Pattern)..parent = node;
     }
 
     rewrite = popRewrite();
     if (!identical(rewrite, node.left)) {
+      // Coverage-ignore-block(suite): Not run.
       node.left = (rewrite as Pattern)..parent = node;
     }
 
@@ -10055,6 +10326,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.pattern)) {
+      // Coverage-ignore-block(suite): Not run.
       node.pattern = (rewrite as Pattern)..parent = node;
     }
 
@@ -10085,6 +10357,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       replacement =
           new InvalidPattern(error, declaredVariables: node.declaredVariables)
             ..fileOffset = error.fileOffset;
@@ -10092,6 +10365,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.pattern)) {
+      // Coverage-ignore-block(suite): Not run.
       node.pattern = (rewrite as Pattern)..parent = node;
     }
 
@@ -10119,6 +10393,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(rewrite, node.pattern)) {
+      // Coverage-ignore-block(suite): Not run.
       node.pattern = (rewrite as Pattern)..parent = node;
     }
 
@@ -10243,6 +10518,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           lengthType, lessThanOrEqualsName, node.fileOffset,
           includeExtensionMethods: true, isSetter: false);
       assert(lessThanOrEqualsInvokeTarget.isInstanceMember ||
+          // Coverage-ignore(suite): Not run.
           lessThanOrEqualsInvokeTarget.isObjectMember);
 
       node.lengthCheckTarget =
@@ -10253,6 +10529,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           lengthType, equalsName, node.fileOffset,
           includeExtensionMethods: true, isSetter: false);
       assert(equalsInvokeTarget.isInstanceMember ||
+          // Coverage-ignore(suite): Not run.
           equalsInvokeTarget.isObjectMember);
 
       node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
@@ -10310,6 +10587,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       replacement =
           new InvalidPattern(error, declaredVariables: node.declaredVariables)
             ..fileOffset = error.fileOffset;
@@ -10395,6 +10673,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           field.accessKind = ObjectAccessKind.Direct;
           field.resultType = fieldTarget.getGetterType(this);
         case ObjectAccessTargetKind.superMember:
+          // Coverage-ignore(suite): Not run.
           problems.unsupported(
               'Object field target $fieldTarget', node.fileOffset, helper.uri);
         case ObjectAccessTargetKind.extensionMember:
@@ -10414,6 +10693,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.dynamic:
           field.accessKind = ObjectAccessKind.Dynamic;
           break;
+        // Coverage-ignore(suite): Not run.
         case ObjectAccessTargetKind.never:
           field.accessKind = ObjectAccessKind.Dynamic;
           break;
@@ -10567,6 +10847,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.nullableRecordNamed:
           case ObjectAccessTargetKind.extensionTypeRepresentation:
           case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+            // Coverage-ignore(suite): Not run.
             problems.unsupported('Relational pattern target $invokeTarget',
                 node.fileOffset, helper.uri);
           case ObjectAccessTargetKind.extensionMember:
@@ -10622,6 +10903,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.patternTypeMismatchInIrrefutableContextError;
     if (error != null) {
+      // Coverage-ignore-block(suite): Not run.
       replacement =
           new InvalidPattern(error, declaredVariables: node.declaredVariables)
             ..fileOffset = error.fileOffset;
@@ -10673,6 +10955,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int i = node.entries.length - 1; i >= 0; i--) {
       Object? rewrite = popRewrite();
       if (!identical(node.entries[i], rewrite)) {
+        // Coverage-ignore-block(suite): Not run.
         node.entries[i] = (rewrite as MapPatternEntry)..parent = node;
       }
     }
@@ -10762,6 +11045,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (resolvedType is RecordType) {
         node.lookupType = resolvedType;
       } else {
+        // Coverage-ignore-block(suite): Not run.
         // In case of the matched type being an invalid type we use the
         // required type instead.
         node.lookupType = requiredType;
@@ -10773,6 +11057,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Object? rewrite = popRewrite();
       if (subPattern is NamedPattern) {
         if (!identical(rewrite, subPattern.pattern)) {
+          // Coverage-ignore-block(suite): Not run.
           subPattern.pattern = (rewrite as Pattern)..parent = subPattern;
         }
       } else {
@@ -10912,7 +11197,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
             typeOperations: operations,
-            inferenceResultForTesting: dataForTesting?.typeInferenceResult,
+            inferenceResultForTesting: dataForTesting
+                // Coverage-ignore(suite): Not run.
+                ?.typeInferenceResult,
             treeNodeForTesting: treeNodeForTesting);
     return typeSchemaEnvironment.chooseFinalTypes(
         gatherer, typeParametersToInfer, null);
@@ -11027,6 +11314,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           context.offsets);
       pushRewrite(element);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       problems.unsupported(
           "${element.runtimeType}", element.fileOffset, helper.uri);
     }
@@ -11091,6 +11379,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       Object? rewrite = popRewrite();
       if (!identical(rewrite, restPattern.subPattern)) {
+        // Coverage-ignore-block(suite): Not run.
         restPattern.subPattern = (rewrite as Pattern)..parent = restPattern;
       }
     } else {
@@ -11127,11 +11416,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       covariant MapPatternEntry entryElement, DartType keyType) {
     Object? rewrite = popRewrite();
     if (!identical(rewrite, entryElement.value)) {
+      // Coverage-ignore-block(suite): Not run.
       entryElement.value = rewrite as Pattern..parent = entryElement;
     }
 
     rewrite = popRewrite();
     if (!identical(rewrite, entryElement.key)) {
+      // Coverage-ignore-block(suite): Not run.
       entryElement.key = (rewrite as Expression)..parent = entryElement;
     }
 
@@ -11183,6 +11474,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAuxiliaryExpression(
       AuxiliaryExpression node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -11194,10 +11486,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node is InternalInitializer) {
       return node.acceptInference(this);
     }
+    // Coverage-ignore(suite): Not run.
     return _unhandledInitializer(node);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   StatementInferenceResult visitAuxiliaryStatement(AuxiliaryStatement node) {
     return _unhandledStatement(node);
   }

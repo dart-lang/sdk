@@ -35,45 +35,54 @@ abstract class InferredType extends AuxiliaryType {
       _InferredTypeUse;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Nullability get declaredNullability =>
       unsupported("declaredNullability", charOffset ?? -1, fileUri);
 
   @override
+  // Coverage-ignore(suite): Not run.
   Nullability get nullability {
     unsupported("nullability", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get nonTypeVariableBound {
     throw unsupported("nonTypeVariableBound", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasNonObjectMemberAccess {
     throw unsupported("hasNonObjectMemberAccess", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept<R>(DartTypeVisitor<R> v) {
     throw unsupported("accept", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) {
     throw unsupported("accept1", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Never visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InferredType withDeclaredNullability(Nullability nullability) {
     return unsupported("withNullability", charOffset ?? -1, fileUri);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   InferredType toNonNull() {
     return unsupported("toNonNullable", charOffset ?? -1, fileUri);
   }
@@ -92,9 +101,11 @@ class _ImplicitFieldTypeRoot extends InferredType {
   _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => fieldBuilder.fileUri;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get charOffset => fieldBuilder.charOffset;
 
   @override
@@ -134,7 +145,10 @@ class _ImplicitFieldTypeRoot extends InferredType {
               fieldBuilder.fileUri,
               enclosingClassThisType,
               fieldBuilder.libraryBuilder,
-              fieldBuilder.dataForTesting?.inferenceData);
+              fieldBuilder
+                  .dataForTesting
+                  // Coverage-ignore(suite): Not run.
+                  ?.inferenceData);
       BodyBuilderContext bodyBuilderContext =
           fieldBuilder.createBodyBuilderContext(
               inOutlineBuildingPhase: false,
@@ -166,11 +180,13 @@ class _ImplicitFieldTypeRoot extends InferredType {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('<implicit-field-type:$fieldBuilder>');
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
     return other is _ImplicitFieldTypeRoot &&
@@ -190,27 +206,33 @@ class _InferredTypeUse extends InferredType {
   _InferredTypeUse(this.inferableTypeUse) : super._();
 
   @override
+  // Coverage-ignore(suite): Not run.
   int? get charOffset => inferableTypeUse.typeBuilder.charOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri? get fileUri => inferableTypeUse.typeBuilder.fileUri;
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType computeType(ClassHierarchyBase hierarchy) {
     return inferType(hierarchy);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType inferType(ClassHierarchyBase hierarchy) {
     return inferableTypeUse.inferType(hierarchy);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('<inferred-type:${inferableTypeUse.typeBuilder}>');
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
     return other is _InferredTypeUse &&

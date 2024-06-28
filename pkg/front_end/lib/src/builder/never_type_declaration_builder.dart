@@ -38,6 +38,7 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType buildAliasedTypeWithBuiltArguments(
       LibraryBuilder library,
       Nullability nullability,

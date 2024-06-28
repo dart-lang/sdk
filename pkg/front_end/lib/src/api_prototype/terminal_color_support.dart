@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/util/colors.dart' show enableColors;
 
 export 'package:_fe_analyzer_shared/src/util/colors.dart' show enableColors;
 
+// Coverage-ignore(suite): Not run.
 void printDiagnosticMessage(
     DiagnosticMessage message, void Function(String) println) {
   if (enableColors) {

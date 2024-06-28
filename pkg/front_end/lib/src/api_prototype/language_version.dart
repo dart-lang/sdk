@@ -19,6 +19,7 @@ import 'file_system.dart' show FileSystem, FileSystemException;
 
 export 'package:kernel/ast.dart' show Version;
 
+// Coverage-ignore(suite): Not run.
 /// Gets the language version for a specific URI.
 ///
 /// Note that this returning some language version, doesn't mean there aren't
@@ -128,6 +129,7 @@ Future<VersionAndPackageUri> languageVersionForUri(
   });
 }
 
+// Coverage-ignore(suite): Not run.
 /// Returns `true` if the language version of [uri] does not support null
 /// safety.
 Future<bool> uriUsesLegacyLanguageVersion(
@@ -142,6 +144,7 @@ Future<bool> uriUsesLegacyLanguageVersion(
       versionAndLibraryUri.version);
 }
 
+// Coverage-ignore(suite): Not run.
 class VersionAndPackageUri {
   final Version version;
   final Uri packageUri;

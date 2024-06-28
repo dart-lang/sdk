@@ -24,6 +24,7 @@ class StatementInferenceResult {
     if (statements.length == 0) {
       return const StatementInferenceResult();
     } else if (statements.length == 1) {
+      // Coverage-ignore-block(suite): Not run.
       return new SingleStatementInferenceResult(statements.single);
     } else {
       return new MultipleStatementInferenceResult(fileOffset, statements);
@@ -32,12 +33,15 @@ class StatementInferenceResult {
 
   bool get hasChanged => false;
 
+  // Coverage-ignore(suite): Not run.
   Statement get statement =>
       throw new UnsupportedError('StatementInferenceResult.statement');
 
+  // Coverage-ignore(suite): Not run.
   int get statementCount =>
       throw new UnsupportedError('StatementInferenceResult.statementCount');
 
+  // Coverage-ignore(suite): Not run.
   List<Statement> get statements =>
       throw new UnsupportedError('StatementInferenceResult.statements');
 }
@@ -55,6 +59,7 @@ class SingleStatementInferenceResult implements StatementInferenceResult {
   int get statementCount => 1;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<Statement> get statements =>
       throw new UnsupportedError('SingleStatementInferenceResult.statements');
 }
@@ -76,6 +81,7 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   bool get hasChanged => true;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Statement get statement {
     if (statements.length == 1) {
       return statements.single;
@@ -147,9 +153,11 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else if (expression is TypeAliasedConstructorInvocation) {
+        // Coverage-ignore-block(suite): Not run.
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else if (expression is TypeAliasedFactoryInvocation) {
+        // Coverage-ignore-block(suite): Not run.
         return InvocationInferenceResult._insertHoistedExpressions(
             expression, hoistedArguments);
       } else if (expression is ConstructorInvocation) {
@@ -353,7 +361,9 @@ class ExpressionInferenceResult {
 
   ExpressionInferenceResult(this.inferredType, this.expression,
       {this.postCoercionType = null})
-      : assert(isKnown(inferredType), "$inferredType is not known.");
+      : assert(
+            isKnown(inferredType), // Coverage-ignore(suite): Not run.
+            "$inferredType is not known.");
 
   /// The guards used for null-aware access if the expression is part of a
   /// null-shorting.
@@ -457,6 +467,7 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType? get postCoercionType => null;
 
   @override

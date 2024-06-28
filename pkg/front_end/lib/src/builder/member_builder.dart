@@ -251,6 +251,7 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isProperty => memberKind != ClassMemberKind.Method;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get declarations =>
       throw new UnsupportedError("$runtimeType.declarations");
 

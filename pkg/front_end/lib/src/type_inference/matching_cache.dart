@@ -91,6 +91,7 @@ class MatchingCache {
       if (jointVariable != null) {
         _variableAliases[variable] = jointVariable;
       } else {
+        // Coverage-ignore-block(suite): Not run.
         // Error case. This variable is only declared one of the branches and
         // therefore not joint. Include the variable in the declarations.
         registerDeclaration(variable);
@@ -145,7 +146,9 @@ class MatchingCache {
     return _cacheKeyMap[cacheKey] = new Cache(
         cacheKey,
         this,
-        '${useVerboseEncodingForDebugging ? '${cacheKey.name}' : ''}'
+        '${useVerboseEncodingForDebugging ?
+            // Coverage-ignore(suite): Not run.
+            '${cacheKey.name}' : ''}'
         '#${this._matchingCacheIndex}'
         '#${_cachedExpressionIndex++}',
         isLate: isLate,
@@ -305,7 +308,9 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      assert(typeArguments != null,
+      assert(
+          typeArguments != null,
+          // Coverage-ignore(suite): Not run.
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(
           receiver.cacheKey, staticTarget, typeArguments!, propertyName);
@@ -329,7 +334,9 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      assert(typeArguments != null,
+      assert(
+          typeArguments != null,
+          // Coverage-ignore(suite): Not run.
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
           typeArguments!, operator, [right.cacheKey]);
@@ -355,6 +362,7 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
@@ -398,6 +406,7 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
@@ -427,6 +436,7 @@ class MatchingCache {
     const String propertyName = 'tail[]';
     CacheKey cacheKey;
     if (staticTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
@@ -460,6 +470,7 @@ class MatchingCache {
     const String propertyName = 'sublist[]';
     CacheKey cacheKey;
     if (staticTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(
@@ -490,6 +501,7 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
@@ -516,6 +528,7 @@ class MatchingCache {
       required int fileOffset}) {
     CacheKey cacheKey;
     if (staticTarget != null) {
+      // Coverage-ignore-block(suite): Not run.
       assert(typeArguments != null,
           "No type arguments provided for static target $staticTarget.");
       cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
@@ -567,6 +580,7 @@ class ExpressionKey extends CacheKey {
   ExpressionKey(this.expression);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '${expression.toText(defaultAstTextStrategy)}';
 
   @override
@@ -586,6 +600,7 @@ class ConstantKey extends CacheKey {
   ConstantKey(this.constant);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '${constant.toText(defaultAstTextStrategy)}';
 
   @override
@@ -605,6 +620,7 @@ class IntegerKey extends CacheKey {
   IntegerKey(this.value);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '$value';
 
   @override
@@ -625,6 +641,7 @@ class IsKey extends CacheKey {
   IsKey(this.receiver, this.type);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name =>
       '${receiver.name}_is_${type.toText(defaultAstTextStrategy)}';
 
@@ -646,6 +663,7 @@ class AsKey extends CacheKey {
   AsKey(this.receiver, this.type);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '${receiver.name}_as_${type}';
 
   @override
@@ -665,6 +683,7 @@ class NullCheckKey extends CacheKey {
   NullCheckKey(this.operand);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '${operand.name}?';
 
   @override
@@ -684,6 +703,7 @@ class NullAssertKey extends CacheKey {
   NullAssertKey(this.operand);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '${operand.name}!';
 
   @override
@@ -706,6 +726,7 @@ class DynamicAccessKey extends CacheKey {
   DynamicAccessKey(this.receiver, this.propertyName, [this.arguments]);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name {
     StringBuffer sb = new StringBuffer();
     sb.write('${receiver.name}_${propertyName}');
@@ -745,6 +766,7 @@ class StaticAccessKey extends CacheKey {
       [this.arguments]);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name {
     StringBuffer sb = new StringBuffer();
     sb.write('${receiver.name}_${target}_${typeArguments}');
@@ -784,6 +806,7 @@ class AndKey extends CacheKey {
   AndKey(this.left, this.right);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => '${left.name}_&&_${right.name}';
 
   @override
@@ -891,6 +914,7 @@ class PromotedCacheableExpression
   @override
   CacheableExpression promote(DartType type) {
     if (type == _promotedType) return this;
+    // Coverage-ignore(suite): Not run.
     return new PromotedCacheableExpression(_expression, type);
   }
 }
@@ -910,6 +934,7 @@ class CovariantCheckCacheableExpression
       {required this.fileOffset});
 
   @override
+  // Coverage-ignore(suite): Not run.
   CacheKey get cacheKey => _expression.cacheKey;
 
   @override
@@ -938,12 +963,14 @@ class CovariantCheckCacheableExpression
 
   @override
   bool uses(DelayedExpression expression) {
+    // Coverage-ignore-block(suite): Not run.
     return identical(this, expression) || _expression.uses(expression);
   }
 
   @override
   CacheableExpression promote(DartType type) {
     if (type == _checkedType) return this;
+    // Coverage-ignore(suite): Not run.
     return new PromotedCacheableExpression(_expression, type);
   }
 }
@@ -1115,6 +1142,7 @@ class Cache {
             ..isLate = _isLate
             ..name = _name;
           if (_isLate) {
+            // Coverage-ignore-block(suite): Not run.
             // Avoid step debugging on the declaration of caching variables.
             // TODO(johnniwinther): Find a more systematic way of omitting
             // offsets for better step debugging.
@@ -1124,7 +1152,9 @@ class Cache {
         }
         result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
       } else {
-        assert(_isLate, "Unexpected non-late cache ${cacheKey.name}");
+        assert(
+            _isLate, // Coverage-ignore(suite): Not run.
+            "Unexpected non-late cache ${cacheKey.name}");
 
         VariableDeclaration? variable = _variable;
         VariableDeclaration? isSetVariable = _isSetVariable;

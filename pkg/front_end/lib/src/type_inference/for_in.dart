@@ -74,6 +74,7 @@ class PatternVariableDeclarationForInVariable implements ForInVariable {
   PatternVariableDeclarationForInVariable(this.patternVariableDeclaration);
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType computeElementType(InferenceVisitorBase visitor) {
     return (patternVariableDeclaration.initializer as VariableGet)
         .variable
@@ -117,6 +118,7 @@ class PropertyForInVariable implements ForInVariable {
       if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
         if (visitor.instrumentation != null &&
             receiverType == const DynamicType()) {
+          // Coverage-ignore-block(suite): Not run.
           visitor.instrumentation!.record(
               visitor.uriForInstrumentation,
               propertySet.fileOffset,
@@ -147,6 +149,7 @@ class PropertyForInVariable implements ForInVariable {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class AbstractSuperPropertyForInVariable implements ForInVariable {
   final AbstractSuperPropertySet superPropertySet;
 
@@ -197,7 +200,9 @@ class SuperPropertyForInVariable implements ForInVariable {
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
         isSetter: true, instrumented: true);
-    assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
+    assert(writeTarget.isInstanceMember ||
+        // Coverage-ignore(suite): Not run.
+        writeTarget.isObjectMember);
     return _writeType = writeTarget.getSetterType(visitor);
   }
 

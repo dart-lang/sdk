@@ -26,6 +26,7 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getNullabilityObliviousStandardLowerBoundInternal(type1, type2) {
     // For any type T, SLB(?, T) = SLB(T, ?) = T.
     if (type1 is UnknownType) {
@@ -54,6 +55,7 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType getNullabilityObliviousStandardUpperBoundInternal(
       DartType type1, DartType type2) {
     // For any type T, SUB(?, T) = SUB(T, ?) = T.

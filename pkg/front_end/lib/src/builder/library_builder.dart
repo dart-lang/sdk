@@ -5,7 +5,7 @@
 library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:kernel/ast.dart' show Class, Library;
+import 'package:kernel/ast.dart' show Class, Library, Version;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
@@ -18,6 +18,7 @@ import '../base/messages.dart'
         LocatedMessage,
         Message,
         ProblemReporting,
+        noLength,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
@@ -48,7 +49,9 @@ sealed class CompilationUnit {
   /// This is the canonical uri for the compilation unit, for instance
   /// 'dart:core'.
   Uri get importUri;
+
   Uri get fileUri;
+
   bool get isSynthetic;
 
   /// If true, the library is not supported through the 'dart.library.*' value
@@ -109,10 +112,40 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   @override
   SourceLoader get loader;
 
-  // TODO(johnniwinther): Remove this.
-  SourceLibraryBuilder get sourceLibraryBuilder;
-
   OffsetMap get offsetMap;
+
+  /// The language version of this compilation unit as defined by the language
+  /// version of the package it belongs to, if present, or the current language
+  /// version otherwise.
+  ///
+  /// This language version will be used as the language version for the
+  /// compilation unit if the compilation unit does not contain an explicit
+  /// `@dart=` annotation.
+  LanguageVersion get packageLanguageVersion;
+
+  /// Set the language version to an explicit major and minor version.
+  ///
+  /// The default language version specified by the `package_config.json` file
+  /// is passed to the constructor, but the library can have source code that
+  /// specifies another one which should be supported.
+  ///
+  /// Only the first registered language version is used.
+  ///
+  /// [offset] and [length] refers to the offset and length of the source code
+  /// specifying the language version.
+  void registerExplicitLanguageVersion(Version version,
+      {int offset = 0, int length = noLength});
+
+  // TODO(johnniwinther): Remove this.
+  bool get forAugmentationLibrary;
+
+  // TODO(johnniwinther): Remove this.
+  bool get forPatchLibrary;
+
+  /// If this is an compilation unit for an augmentation library, returns the
+  /// import uri for the origin library. Otherwise the [importUri] for the
+  /// compilation unit itself.
+  Uri get originImportUri;
 
   LibraryFeatures get libraryFeatures;
 
@@ -182,6 +215,10 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// Non-null if this library causes an error upon access, that is, there was
   /// an error reading its source.
   abstract Message? accessProblem;
+
+  void issuePostponedProblems();
+
+  void markLanguageVersionFinal();
 
   void addSyntheticImport(
       {required String uri,
@@ -364,9 +401,11 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       : super(null, -1);
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isSynthetic => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? get parent => null;
 
   @override
@@ -379,6 +418,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   Loader get loader;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get modifiers => 0;
 
   @override
@@ -454,6 +494,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     Builder? cls = (bypassLibraryPrivacy ? scope : exportScope)
         .lookup(className, -1, fileUri);
     if (cls is TypeAliasBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;
       // No type arguments are available, but this method is only called in
       // order to find constructors of specific non-generic classes (errors),
@@ -471,10 +512,13 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         if (!cls.isAbstract) {
           return constructor;
         }
-      } else if (constructor.isFactory) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (constructor.isFactory) {
         return constructor;
       }
     }
+    // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
             "$className.$constructorName", importUri),
@@ -500,6 +544,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     return buffer..write(isPart || isAugmenting ? fileUri : importUri);
   }

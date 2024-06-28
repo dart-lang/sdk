@@ -197,6 +197,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable => false;
 
   /// Returns `true` if this member is augmented, either by being the origin
@@ -283,6 +284,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           return formal;
         }
       }
+      // Coverage-ignore(suite): Not run.
       // If we have any formals we should find the one we're looking for.
       assert(false, "$identifier not found in $formals");
     }
@@ -309,7 +311,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     // body with null.
     TreeNode? parent = function.parent;
     if (!(newBody == null &&
+        // Coverage-ignore(suite): Not run.
         parent is Procedure &&
+        // Coverage-ignore(suite): Not run.
         parent.isForwardingSemiStub)) {
       function.body = newBody;
       newBody?.parent = function;
@@ -317,6 +321,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 
   void buildFunction() {
@@ -440,6 +445,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
@@ -469,6 +475,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   bool hasBuiltOutlineExpressions = false;
 
+  // Coverage-ignore(suite): Not run.
   bool get needsDefaultValuesBuiltAsOutlineExpressions {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
@@ -544,6 +551,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           constructor.member as Constructor, arguments)
         ..isConst = true;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       annotation =
           new StaticInvocation(constructor.member as Procedure, arguments)
             ..isConst = true;
@@ -554,6 +562,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool checkAugmentation(SourceFunctionBuilder augmentation) {
     if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
+      // Coverage-ignore-block(suite): Not run.
       augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
           augmentation.charOffset, noLength, augmentation.fileUri!, context: [
         messagePatchDeclarationOrigin.withLocation(
@@ -565,6 +574,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void reportAugmentationMismatch(Builder augmentation) {
     libraryBuilder.addProblem(messagePatchDeclarationMismatch,
         augmentation.charOffset, noLength, augmentation.fileUri!, context: [

@@ -64,7 +64,9 @@ bool isNotMalformedUriScheme(Uri uri) => !uri.isScheme(MALFORMED_URI_SCHEME);
 Uri getPartUri(Uri parentUri, LibraryPart part) {
   try {
     return parentUri.resolve(part.partUri);
-  } on FormatException {
+  }
+  // Coverage-ignore(suite): Not run.
+  on FormatException {
     // This is also done in [SourceLibraryBuilder.resolve]
     return new Uri(
         scheme: MALFORMED_URI_SCHEME,

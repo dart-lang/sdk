@@ -75,13 +75,18 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
 
+  // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): Add merged scope for extensions.
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ? origin.mergedScope
       : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
 
   @override
-  Extension get extension => isAugmenting ? origin._extension : _extension;
+  Extension get extension => isAugmenting
+      ?
+      // Coverage-ignore(suite): Not run.
+      origin._extension
+      : _extension;
 
   @override
   BodyBuilderContext createBodyBuilderContext(
@@ -115,6 +120,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void addMemberInternal(SourceMemberBuilder memberBuilder,
       BuiltMemberKind memberKind, Member member, Member? tearOff) {
     unhandled("${memberBuilder.runtimeType}:${memberKind}", "addMemberInternal",
@@ -143,6 +149,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionTypeFactory:
       case BuiltMemberKind.ExtensionTypeRedirectingFactory:
       case BuiltMemberKind.ExtensionTypeRepresentationField:
+        // Coverage-ignore(suite): Not run.
         unhandled(
             "${memberBuilder.runtimeType}:${memberKind}",
             "addMemberDescriptorInternal",
@@ -176,6 +183,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceExtensionBuilder) {
       augmentation._origin = this;

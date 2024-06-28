@@ -4,6 +4,7 @@
 
 part of 'declaration_builders.dart';
 
+// Coverage-ignore(suite): Not run.
 abstract class ITypeDeclarationBuilder implements Builder {
   String get name;
 

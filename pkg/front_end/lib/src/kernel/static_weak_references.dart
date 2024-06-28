@@ -23,6 +23,7 @@ import 'constant_evaluator.dart' show ErrorReporter;
 class StaticWeakReferences {
   static const String weakTearoffReferencePragma = 'weak-tearoff-reference';
 
+  // Coverage-ignore(suite): Not run.
   static bool isWeakReference(StaticInvocation node) =>
       node.target.hasWeakTearoffReferencePragma;
 
@@ -47,6 +48,7 @@ class StaticWeakReferences {
     return false;
   }
 
+  // Coverage-ignore(suite): Not run.
   static void validateWeakReferenceUse(
       StaticInvocation node, ErrorReporter errorReporter) {
     final Arguments arguments = node.arguments;
@@ -76,6 +78,7 @@ class StaticWeakReferences {
         .withLocation(node.location!.file, node.fileOffset, 1));
   }
 
+  // Coverage-ignore(suite): Not run.
   static void validateWeakReferenceDeclaration(
       Annotatable node, ErrorReporter errorReporter) {
     if (node is! Procedure ||
@@ -105,6 +108,7 @@ class StaticWeakReferences {
     node.hasWeakTearoffReferencePragma = true;
   }
 
+  // Coverage-ignore(suite): Not run.
   // Returns argument expression of the weak reference.
   // Assumes weak reference is valid.
   static Expression getWeakReferenceArgument(StaticInvocation node) {
@@ -112,6 +116,7 @@ class StaticWeakReferences {
     return node.arguments.positional.single;
   }
 
+  // Coverage-ignore(suite): Not run.
   // Returns target method of the weak reference.
   // Assumes weak reference is valid.
   static Procedure getWeakReferenceTarget(StaticInvocation node) {

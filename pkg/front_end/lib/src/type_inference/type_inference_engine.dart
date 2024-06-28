@@ -116,6 +116,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool visitTypedefType(TypedefType node) {
     return node.unalias.accept(this);
   }
@@ -132,6 +133,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool visitIntersectionType(IntersectionType node) {
     return node.left.accept(this);
   }
@@ -352,6 +354,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
     } else {
@@ -362,6 +365,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       return new TypeInferrerImpl(this, uri, false, thisType, library,
           assignedVariables, dataForTesting, unknownFunction);
     }
+    // Coverage-ignore(suite): Not run.
     return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
         assignedVariables, dataForTesting, benchmarker!, unknownFunction);
   }
@@ -372,6 +376,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
     } else {
@@ -382,6 +387,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       return new TypeInferrerImpl(this, uri, true, thisType, library,
           assignedVariables, dataForTesting, unknownFunction);
     }
+    // Coverage-ignore(suite): Not run.
     return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
         assignedVariables, dataForTesting, benchmarker!, unknownFunction);
   }
@@ -457,6 +463,7 @@ class OperationsCfe
       typeEnvironment.coreTypes.boolRawType(Nullability.nonNullable);
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
 
   @override
@@ -466,6 +473,7 @@ class OperationsCfe
   DartType get errorType => const InvalidType();
 
   @override
+  // Coverage-ignore(suite): Not run.
   DartType get intType => throw new UnimplementedError('TODO(paulberry)');
 
   @override
@@ -515,11 +523,13 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isExtensionType(DartType type) {
     return type is ExtensionType;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isInterfaceType(DartType type) {
     return type is InterfaceType;
   }
@@ -535,6 +545,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isObject(DartType type) {
     return type is InterfaceType &&
         type.classNode == typeEnvironment.objectClass &&
@@ -688,6 +699,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isTypeSchemaSatisfied(
           {required DartType typeSchema, required DartType type}) =>
       isSubtypeOf(type, typeSchema);
@@ -863,17 +875,20 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool typeSchemaIsSubtypeOfTypeSchema(
       DartType leftSchema, DartType rightSchema) {
     return isSubtypeOf(leftSchema, rightSchema);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool typeIsSubtypeOfTypeSchema(DartType leftType, DartType rightSchema) {
     return isSubtypeOf(leftType, rightSchema);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool typeSchemaIsSubtypeOfType(DartType leftSchema, DartType rightType) {
     return isSubtypeOf(leftSchema, rightType);
   }
@@ -883,14 +898,17 @@ class OperationsCfe
     switch (modifier) {
       case NullabilitySuffix.none:
         return computeTypeWithoutNullabilityMarker(type);
+      // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
+      // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.star:
         return type.withDeclaredNullability(Nullability.legacy);
     }
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
     if (type is TypeDeclarationType) {
       switch (type) {
@@ -905,6 +923,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeDeclarationKind? getTypeSchemaDeclarationKind(DartType typeSchema) {
     return getTypeDeclarationKind(typeSchema);
   }

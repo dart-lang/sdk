@@ -9,6 +9,7 @@ import '../base/processed_options.dart';
 import '../kernel_generator_impl.dart';
 import 'compiler_options.dart';
 
+// Coverage-ignore(suite): Not run.
 /// Creates a summary representation of the build unit whose source files are in
 /// [sources].
 ///

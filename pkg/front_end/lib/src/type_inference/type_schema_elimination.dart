@@ -59,6 +59,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
     if (node is UnknownType) {
       return isLeastClosure ? bottomType : topType;
     }
+    // Coverage-ignore-block(suite): Not run.
     throw new UnsupportedError(
         "Unsupported auxiliary type $node (${node.runtimeType}).");
   }
@@ -74,8 +75,9 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
             topType.classNode.enclosingLibrary.importUri.isScheme("dart") &&
             topType.classNode.enclosingLibrary.importUri.path == "core" &&
             topType.classNode.name == "Object");
-    assert(
-        bottomType == const NeverType.nonNullable() || bottomType is NullType);
+    assert(bottomType == const NeverType.nonNullable() ||
+        // Coverage-ignore(suite): Not run.
+        bottomType is NullType);
     _TypeSchemaEliminationVisitor visitor =
         new _TypeSchemaEliminationVisitor(topType, bottomType);
     DartType? result = schema.accept1(
