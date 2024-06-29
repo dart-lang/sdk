@@ -1719,6 +1719,28 @@ CommentReference
 ''');
   }
 
+  test_docImport_onField() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+class C {
+  /// Text [A].
+  int x = 1;
+}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: A
+    staticElement: package:test/foo.dart::@class::A
+    staticType: null
+''');
+  }
+
   test_docImport_onLibrary() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
@@ -1728,6 +1750,26 @@ class A {}
 ///
 /// Text [A].
 library;
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: A
+    staticElement: package:test/foo.dart::@class::A
+    staticType: null
+''');
+  }
+
+  test_docImport_onTopLevelVariable() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+/// Text [A].
+int x = 1;
 ''');
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''

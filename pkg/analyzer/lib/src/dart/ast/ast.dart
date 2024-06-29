@@ -17170,8 +17170,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
 ///      | 'late'? <varOrType> <initializedIdentifierList> ';'
 ///      | 'external' <finalVarOrType> <identifierList> ';'
 ///
-/// (Note: there's no <topLevelVariableDeclaration> production in the grammar;
-/// this is a subset of the grammar production <topLevelDeclaration>, which
+/// (Note: there's no `<topLevelVariableDeclaration>` production in the grammar;
+/// this is a subset of the grammar production `<topLevelDeclaration>`, which
 /// encompasses everything that can appear inside a Dart file after part
 /// directives).
 abstract final class TopLevelVariableDeclaration

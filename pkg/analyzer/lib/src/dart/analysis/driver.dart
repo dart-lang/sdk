@@ -57,6 +57,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
@@ -349,7 +350,7 @@ class AnalysisDriver {
   /// in this driver.
   List<String> get enabledPluginNames => analysisOptionsMap.entries
       .map((e) => e.options.enabledPluginNames)
-      .flattenedToList2;
+      .flattenedToList;
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -677,7 +678,7 @@ class AnalysisDriver {
 
     // Discover files in package/lib folders.
     if (_sourceFactory.packageMap case var packageMap?) {
-      var folders = packageMap.values.flattenedToList2;
+      var folders = packageMap.values.flattenedToList;
       for (var folder in folders) {
         discoverRecursively(folder);
       }

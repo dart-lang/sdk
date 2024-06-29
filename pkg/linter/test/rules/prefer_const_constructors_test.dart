@@ -276,7 +276,7 @@ class A {
   }
 
   test_deferred_arg() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
 }
@@ -298,7 +298,7 @@ main() {
   }
 
   test_deferredConstructorCall() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
 }

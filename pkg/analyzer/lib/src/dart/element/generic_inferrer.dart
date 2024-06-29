@@ -31,7 +31,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:collection/collection.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
 ///
@@ -604,7 +604,7 @@ class GenericInferrer {
         .where((l) =>
             l.every((c) => c.isSatisfiedBy(inferred, _typeSystemOperations)) ==
             expected)
-        .flattenedToList2;
+        .flattenedToList;
 
     String unsatisfied =
         _formatConstraints(isSatisfied(false), _typeSystemOperations);

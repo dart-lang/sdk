@@ -417,10 +417,11 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceOverrideVerifier = InheritanceOverrideVerifier(
-        _typeSystem, _inheritance, errorReporter,
-        strictCasts: _analysisOptions.strictCasts);
-    inheritanceOverrideVerifier.verifyUnit(unit);
+    InheritanceOverrideVerifier(
+      _typeSystem,
+      _inheritance,
+      errorReporter,
+    ).verifyUnit(unit);
 
     //
     // Use the ErrorVerifier to compute errors.

@@ -195,7 +195,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
                   .whereType<LibraryExportWithFile>()
                   .map((export) => export.exportedLibrary),
             ])
-        .flattenedToList2
+        .flattenedToList
         .nonNulls
         .toSet();
 

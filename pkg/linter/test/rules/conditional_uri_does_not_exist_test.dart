@@ -37,7 +37,7 @@ import ''
   }
 
   test_missingFiles() async {
-    newFile2('$testPackageRootPath/lib/exists.dart', '');
+    newFile('$testPackageRootPath/lib/exists.dart', '');
 
     await assertDiagnostics(
       r'''

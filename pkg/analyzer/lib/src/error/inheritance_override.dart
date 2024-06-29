@@ -28,13 +28,12 @@ class InheritanceOverrideVerifier {
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
   final ErrorReporter _reporter;
-  final bool _strictCasts;
 
   InheritanceOverrideVerifier(
-      this._typeSystem, this._inheritance, this._reporter,
-      {required bool strictCasts})
-      : _typeProvider = _typeSystem.typeProvider,
-        _strictCasts = strictCasts;
+    this._typeSystem,
+    this._inheritance,
+    this._reporter,
+  ) : _typeProvider = _typeSystem.typeProvider;
 
   void verifyUnit(CompilationUnit unit) {
     var library = unit.declaredElement!.library as LibraryElementImpl;
@@ -51,7 +50,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -72,7 +70,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -92,7 +89,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
@@ -112,7 +108,6 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameToken: declaration.name,
           classElement: element,
-          strictCasts: _strictCasts,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -158,7 +153,6 @@ class _ClassVerifier {
   final LibraryElementImpl library;
   final Uri libraryUri;
   final InterfaceElement classElement;
-  final bool strictCasts;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -181,7 +175,6 @@ class _ClassVerifier {
     required this.library,
     required this.classNameToken,
     required this.classElement,
-    required this.strictCasts,
     this.implementsClause,
     this.members = const [],
     this.onClause,
@@ -196,10 +189,13 @@ class _ClassVerifier {
       return true;
     }
 
-    var classElement = this.classElement;
-    if (classElement is! EnumElement &&
-        classElement is ClassElement &&
-        !classElement.isAbstract &&
+    var fragment = classElement;
+    var augmented = fragment.augmented;
+    var declaration = augmented.declaration;
+
+    if (declaration is! EnumElement &&
+        declaration is ClassElement &&
+        !declaration.isAbstract &&
         implementsDartCoreEnum) {
       reporter.atToken(
         classNameToken,
@@ -208,23 +204,23 @@ class _ClassVerifier {
       return true;
     }
 
-    if (_checkForRecursiveInterfaceInheritance(classElement)) {
+    if (_checkForRecursiveInterfaceInheritance(declaration)) {
       return true;
     }
 
     // Compute the interface of the class.
-    var interface = inheritance.getInterface(classElement);
+    var interface = inheritance.getInterface(declaration);
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
       _reportInconsistentInheritance(classNameToken, conflict);
     }
 
-    if (classElement.supertype != null) {
-      directSuperInterfaces.add(classElement.supertype!);
+    if (declaration.supertype != null) {
+      directSuperInterfaces.add(declaration.supertype!);
     }
-    if (classElement is MixinElement) {
-      directSuperInterfaces.addAll(classElement.superclassConstraints);
+    if (augmented is AugmentedMixinElement) {
+      directSuperInterfaces.addAll(augmented.superclassConstraints);
     }
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
@@ -235,14 +231,14 @@ class _ClassVerifier {
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
     var mixinNodes = withClause?.mixinTypes;
-    var mixinTypes = classElement.mixins;
+    var mixinTypes = declaration.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
       _checkDeclaredMembers(mixinNodes![i], mixinType, mixinIndex: i);
       directSuperInterfaces.add(mixinType);
     }
 
-    directSuperInterfaces.addAll(classElement.interfaces);
+    directSuperInterfaces.addAll(augmented.interfaces);
 
     // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
@@ -253,7 +249,7 @@ class _ClassVerifier {
           var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
-          if (!member.isStatic && classElement is! EnumElement) {
+          if (!member.isStatic && declaration is! EnumElement) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
@@ -271,7 +267,7 @@ class _ClassVerifier {
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
-        if (!member.isStatic && classElement is! EnumElement) {
+        if (!member.isStatic && declaration is! EnumElement) {
           _checkIllegalEnumValuesDeclaration(member.name);
         }
       }
@@ -283,10 +279,10 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-    ).checkInterface(classElement, interface);
+    ).checkInterface(declaration, interface);
 
-    if (classElement is ClassElement && !classElement.isAbstract ||
-        classElement is EnumElement) {
+    if (declaration is ClassElement && !declaration.isAbstract ||
+        declaration is EnumElement) {
       List<ExecutableElement>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -302,11 +298,11 @@ class _ClassVerifier {
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
-          if (_isNotImplementedInConcreteSuperClass(classElement, name)) {
+          if (_isNotImplementedInConcreteSuperClass(declaration, name)) {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (classElement is EnumElement &&
+          if (declaration is EnumElement &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }

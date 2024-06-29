@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   _fe_analyzer_shared: ^72.0.0
-  collection: ^1.17.0
+  collection: ^1.19.0
   convert: ^3.0.0
   crypto: ^3.0.0
   glob: ^2.0.0
