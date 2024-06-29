@@ -317,7 +317,8 @@ class GrowableList<E> extends _ModifiableList<E> {
       return add(element);
     }
 
-    if ((index < 0) || (index > length)) {
+    // index < 0 || index > length
+    if (index.gtU(length)) {
       throw RangeError.range(index, 0, length);
     }
 
@@ -367,7 +368,8 @@ class GrowableList<E> extends _ModifiableList<E> {
   }
 
   void insertAll(int index, Iterable<E> iterable) {
-    if (index < 0 || index > length) {
+    // index < 0 || index > length
+    if (index.gtU(length)) {
       throw RangeError.range(index, 0, length);
     }
     if (iterable is! WasmListBase) {
