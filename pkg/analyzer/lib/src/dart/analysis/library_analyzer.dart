@@ -429,6 +429,7 @@ class LibraryAnalyzer {
     ErrorVerifier errorVerifier = ErrorVerifier(
       errorReporter,
       _libraryElement,
+      unit.declaredElement!,
       _typeProvider,
       _inheritance,
       _libraryVerificationContext,

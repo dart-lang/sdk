@@ -162,6 +162,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The current library that is being analyzed.
   final LibraryElementImpl _currentLibrary;
 
+  /// The current unit that is being analyzed.
+  final CompilationUnitElementImpl _currentUnit;
+
   /// The type representing the type 'int'.
   late final InterfaceType _intType;
 
@@ -255,6 +258,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ErrorVerifier(
     this.errorReporter,
     this._currentLibrary,
+    this._currentUnit,
     this._typeProvider,
     this._inheritanceManager,
     this.libraryContext,
@@ -268,6 +272,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
           _inheritanceManager,
           _currentLibrary,
+          _currentUnit,
           errorReporter,
           libraryContext.duplicationDefinitionContext,
         ) {
@@ -2374,7 +2379,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
-    for (MethodElement method in enclosingClass.methods) {
+    for (MethodElement method in fragment.methods) {
+      if (method.source != _currentUnit.source) {
+        continue;
+      }
+
       String name = method.name;
 
       // find inherited property accessors
