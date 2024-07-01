@@ -168,10 +168,11 @@ class DartCompletionManager {
 
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    await builder.suggestFromCandidates(
-        collector.suggestions, collector.preferConstants);
+    await builder.suggestFromCandidates(collector.suggestions,
+        collector.preferConstants, collector.completionLocation);
 
     var notImportedSuggestions = this.notImportedSuggestions;
+
     if (notImportedSuggestions != null && collector.isIncomplete) {
       notImportedSuggestions.isIncomplete = true;
     }

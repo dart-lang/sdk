@@ -24,27 +24,27 @@ class A { @override ^ foo() {}}
 ''');
     assertResponse(r'''
 suggestions
+  final
+    kind: keyword
+  static
+    kind: keyword
   void
     kind: keyword
   const
     kind: keyword
-  covariant
-    kind: keyword
-  dynamic
+  set
     kind: keyword
   factory
     kind: keyword
-  final
+  covariant
+    kind: keyword
+  dynamic
     kind: keyword
   get
     kind: keyword
   late
     kind: keyword
   operator
-    kind: keyword
-  set
-    kind: keyword
-  static
     kind: keyword
   var
     kind: keyword
@@ -290,19 +290,25 @@ class A { foo() ^ Foo foo;}
 ''');
     assertResponse(r'''
 suggestions
+  final
+    kind: keyword
+  static
+    kind: keyword
+  void
+    kind: keyword
+  const
+    kind: keyword
+  set
+    kind: keyword
+  factory
+    kind: keyword
   async
     kind: keyword
   async*
     kind: keyword
-  const
-    kind: keyword
   covariant
     kind: keyword
   dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
     kind: keyword
   get
     kind: keyword
@@ -310,15 +316,9 @@ suggestions
     kind: keyword
   operator
     kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
   sync*
     kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
