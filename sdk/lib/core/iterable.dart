@@ -369,8 +369,7 @@ abstract mixin class Iterable<E> {
   /// final result = numbers.reduce((value, element) => value + element);
   /// print(result); // 17.5
   /// ```
-  /// If the iterable has no elements it will throw a state error.
-  /// Consider using [fold] if the collection may be empty.
+  /// Consider using [fold] if the iterable may be empty.
   E reduce(E combine(E value, E element)) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) {
