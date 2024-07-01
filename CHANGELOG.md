@@ -38,9 +38,14 @@
 
 #### `dart:io`
 
+- **Breaking Change** [#55786][]: `SecurityContext` is now `final`. This means
+  that `SecurityContext` can no longer be subclassed. `SecurityContext`
+  subclasses were never able to interoperate with other parts of `dart:io`.
+
 - A `ConnectionTask` can now be created using an existing `Future<Socket>`.
   Fixes [#55562].
 
+[#55786]: https://github.com/dart-lang/sdk/issues/55786
 [#55562]: https://github.com/dart-lang/sdk/issues/55562
 
 #### `dart:typed_data`

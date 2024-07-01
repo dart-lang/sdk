@@ -43,7 +43,7 @@ class TlsProtocolVersion {
 /// iOS note: Some methods to add, remove, and inspect certificates are not yet
 /// implemented. However, the platform's built-in trusted certificates can
 /// be used, by way of [SecurityContext.defaultContext].
-abstract interface class SecurityContext {
+abstract final class SecurityContext {
   /// Creates a new [SecurityContext].
   ///
   /// By default, the created [SecurityContext] contains no keys or certificates.
