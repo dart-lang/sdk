@@ -40,6 +40,10 @@ class RelevanceComputer {
   /// computed. In the latter case, [_hasContainingMemberName] will be `false`.
   String? _cachedContainingMemberName;
 
+  /// A textual representation of the location at which completion was
+  /// requested.
+  String? completionLocation;
+
   RelevanceComputer(this.request, this.listener)
       : featureComputer = request.featureComputer;
 
@@ -323,8 +327,7 @@ class RelevanceComputer {
   /// Compute the value of the _element kind_ feature for the given [element] in
   /// the completion context.
   double _computeElementKind(Element element, {double? distance}) {
-    // TODO(keertip): Use completionLocation from SuggestionCollector.
-    var location = request.opType.completionLocation;
+    var location = completionLocation;
     var elementKind = featureComputer.elementKindFeature(element, location,
         distance: distance);
     if (elementKind < 0.0) {
@@ -381,9 +384,8 @@ class RelevanceComputer {
     }
     var contextType =
         featureComputer.contextTypeFeature(request.contextType, elementType);
-    // TODO(keertip): Use completionLocation from SuggestionCollector.
-    var keywordFeature = featureComputer.keywordFeature(
-        keyword, request.opType.completionLocation);
+    var keywordFeature =
+        featureComputer.keywordFeature(keyword, completionLocation);
     return computeScore(
       contextType: contextType,
       keyword: keywordFeature,

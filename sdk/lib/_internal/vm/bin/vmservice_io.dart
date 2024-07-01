@@ -96,21 +96,11 @@ class _DebuggingSession {
     bool disableServiceAuthCodes,
     bool enableDevTools,
   ) async {
-    final dartDir = File(Platform.executable).parent.path;
-    final dart = 'dart${Platform.isWindows ? '.exe' : ''}';
-    var executable = [
+    final dartDir = File(Platform.resolvedExecutable).parent.path;
+    final executable = [
       dartDir,
-      dart,
+      'dart${Platform.isWindows ? '.exe' : ''}',
     ].join(Platform.pathSeparator);
-
-    // If the directory of dart is '.' it's likely that dart is on the user's
-    // PATH. If so, './dart' might not exist and we should be using 'dart'
-    // instead.
-    if (dartDir == '.' &&
-        (await FileSystemEntity.type(executable)) ==
-            FileSystemEntityType.notFound) {
-      executable = dart;
-    }
     _process = await Process.start(
       executable,
       [
@@ -143,7 +133,7 @@ class _DebuggingSession {
           // is changed to ensure consistency.
           const devToolsMessagePrefix =
               'The Dart DevTools debugger and profiler is available at:';
-          serverPrint('$devToolsMessagePrefix $devToolsUri');
+          print('$devToolsMessagePrefix $devToolsUri');
         }
         if (result
             case {
@@ -151,7 +141,7 @@ class _DebuggingSession {
                 'uri': String dtdUri,
               }
             } when _printDtd) {
-          serverPrint('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
+          print('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
         }
       } else {
         printError(result['error'] ?? result);
@@ -318,37 +308,18 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
 
 Uri? serverInformationCallback() => _lazyServerBoot().serverAddress;
 
-Future<void> _toggleWebServer(Server server) async {
-  // Toggle HTTP server.
-  if (server.running) {
-    await server.shutdown(true).then((_) async {
-      ddsInstance?.shutdown();
-      ddsInstance = null;
-      await VMService().clearState();
-      serverFuture = null;
-    });
-  } else {
-    await server.startup().then((_) async {
-      if (_waitForDdsToAdvertiseService) {
-        ddsInstance = _DebuggingSession();
-        await ddsInstance!.start(
-          _ddsIP,
-          _ddsPort.toString(),
-          _authCodesDisabled,
-          _serveDevtools,
-        );
-      }
-    });
-  }
-}
-
 Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
   if (silenceOutput != null) {
     silentObservatory = silenceOutput;
   }
   final _server = _lazyServerBoot();
   if (_server.running != enable) {
-    await _toggleWebServer(_server);
+    if (enable) {
+      await _server.startup();
+      // TODO: if dds is enabled a dds instance needs to be started.
+    } else {
+      await _server.shutdown(true);
+    }
   }
   return _server.serverAddress;
 }
@@ -358,13 +329,32 @@ void webServerAcceptNewWebSocketConnections(bool enable) {
   _server.acceptNewWebSocketConnections = enable;
 }
 
-Future<void> _onSignal(ProcessSignal signal) async {
+_onSignal(ProcessSignal signal) async {
   if (serverFuture != null) {
     // Still waiting.
     return;
   }
-  final server = _lazyServerBoot();
-  await _toggleWebServer(server);
+  final _server = _lazyServerBoot();
+  // Toggle HTTP server.
+  if (_server.running) {
+    _server.shutdown(true).then((_) async {
+      ddsInstance?.shutdown();
+      await VMService().clearState();
+      serverFuture = null;
+    });
+  } else {
+    _server.startup().then((_) {
+      if (_waitForDdsToAdvertiseService) {
+        ddsInstance = _DebuggingSession()
+          ..start(
+            _ddsIP,
+            _ddsPort.toString(),
+            _authCodesDisabled,
+            _serveDevtools,
+          );
+      }
+    });
+  }
 }
 
 Timer? _registerSignalHandlerTimer;
@@ -410,10 +400,18 @@ main() {
   // can be delivered and waiting loaders can be cancelled.
   VMService();
   if (_autoStart) {
-    assert(server == null);
     final _server = _lazyServerBoot();
-    assert(!_server.running);
-    _toggleWebServer(_server);
+    _server.startup().then((_) {
+      if (_waitForDdsToAdvertiseService) {
+        ddsInstance = _DebuggingSession()
+          ..start(
+            _ddsIP,
+            _ddsPort.toString(),
+            _authCodesDisabled,
+            _serveDevtools,
+          );
+      }
+    });
     // It's just here to push an event on the event loop so that we invoke the
     // scheduled microtasks.
     Timer.run(() {});

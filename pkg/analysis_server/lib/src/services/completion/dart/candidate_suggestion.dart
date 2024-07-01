@@ -1000,10 +1000,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
   }
 
   /// Add a suggestion for each of the candidate [suggestions].
-  Future<void> suggestFromCandidates(
-      List<CandidateSuggestion> suggestions, bool preferConstants) async {
+  Future<void> suggestFromCandidates(List<CandidateSuggestion> suggestions,
+      bool preferConstants, String? completionLocation) async {
     relevanceComputer.preferConstants =
         preferConstants || request.inConstantContext;
+    relevanceComputer.completionLocation = completionLocation;
     for (var suggestion in suggestions) {
       await suggestFromCandidate(suggestion);
     }

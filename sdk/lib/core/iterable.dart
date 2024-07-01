@@ -369,6 +369,7 @@ abstract mixin class Iterable<E> {
   /// final result = numbers.reduce((value, element) => value + element);
   /// print(result); // 17.5
   /// ```
+  /// Consider using [fold] if the iterable can be empty.
   E reduce(E combine(E value, E element)) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) {

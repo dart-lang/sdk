@@ -1920,11 +1920,9 @@ replacement
 suggestions
   final
     kind: keyword
-  static
-    kind: keyword
-  void
-    kind: keyword
   const
+    kind: keyword
+  var
     kind: keyword
   abstract
     kind: keyword
@@ -1936,7 +1934,9 @@ suggestions
     kind: keyword
   late
     kind: keyword
-  var
+  static
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -2341,19 +2341,19 @@ class X {dynamic f(a,b,c) {return a + b * c ^;}}
 ''');
     assertResponse(r'''
 suggestions
-  const
+  true
+    kind: keyword
+  null
     kind: keyword
   false
     kind: keyword
-  null
+  this
+    kind: keyword
+  const
     kind: keyword
   super
     kind: keyword
   switch
-    kind: keyword
-  this
-    kind: keyword
-  true
     kind: keyword
 ''');
   }
@@ -4640,25 +4640,31 @@ class x {}^
 ''');
     assertResponse(r'''
 suggestions
+  class
+    kind: keyword
+  num
+    kind: class
+  const
+    kind: keyword
+  void
+    kind: keyword
+  final
+    kind: keyword
+  enum
+    kind: keyword
+  typedef
+    kind: keyword
   abstract
     kind: keyword
   base
-    kind: keyword
-  class
-    kind: keyword
-  const
     kind: keyword
   covariant
     kind: keyword
   dynamic
     kind: keyword
-  enum
-    kind: keyword
   extension
     kind: keyword
   external
-    kind: keyword
-  final
     kind: keyword
   interface
     kind: keyword
@@ -4666,15 +4672,9 @@ suggestions
     kind: keyword
   mixin
     kind: keyword
-  num
-    kind: class
   sealed
     kind: keyword
-  typedef
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
