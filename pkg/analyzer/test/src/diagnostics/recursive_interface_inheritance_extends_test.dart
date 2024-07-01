@@ -34,4 +34,13 @@ class C extends C {
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS, 6, 1),
     ]);
   }
+
+  test_class_inAugmentation() async {
+    await assertErrorsInCode(r'''
+class A {}
+augment class A extends A {}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS, 6, 1),
+    ]);
+  }
 }

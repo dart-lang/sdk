@@ -730,6 +730,8 @@ import 'recursive_interface_inheritance_extends_test.dart'
     as recursive_interface_inheritance_extends;
 import 'recursive_interface_inheritance_implements_test.dart'
     as recursive_interface_inheritance_implements;
+import 'recursive_interface_inheritance_on_test.dart'
+    as recursive_interface_inheritance_on;
 import 'recursive_interface_inheritance_test.dart'
     as recursive_interface_inheritance;
 import 'recursive_interface_inheritance_with_test.dart'
@@ -1392,6 +1394,7 @@ main() {
     recursive_factory_redirect.main();
     recursive_interface_inheritance_extends.main();
     recursive_interface_inheritance_implements.main();
+    recursive_interface_inheritance_on.main();
     recursive_interface_inheritance.main();
     recursive_interface_inheritance_with.main();
     redeclare_on_non_redeclaring_member.main();

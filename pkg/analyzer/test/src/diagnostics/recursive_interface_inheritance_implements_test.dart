@@ -25,6 +25,16 @@ class A implements A {}
     ]);
   }
 
+  test_class_inAugmentation() async {
+    await assertErrorsInCode('''
+class A {}
+augment class A implements A {}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 6,
+          1),
+    ]);
+  }
+
   test_class_tail() async {
     await assertErrorsInCode(r'''
 abstract class A implements A {}
@@ -43,6 +53,15 @@ class B = A with M implements B;
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS, 28,
           1),
+    ]);
+  }
+
+  test_mixin() async {
+    await assertErrorsInCode(r'''
+mixin A implements B {}
+mixin B implements A {}''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
     ]);
   }
 }
