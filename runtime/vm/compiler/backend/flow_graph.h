@@ -52,9 +52,34 @@ class BlockIterator : public ValueObject {
   intptr_t current_;
 };
 
-struct ConstantAndRepresentation {
-  const Object& constant;
-  Representation representation;
+class ConstantAndRepresentation {
+ public:
+  ConstantAndRepresentation(const Object& constant, Representation rep)
+      : constant_(constant),
+        representation_(rep),
+        hash_(ComputeHash(constant)) {}
+
+  const Object& constant() const { return constant_; }
+  Representation representation() const { return representation_; }
+  uword hash() const { return hash_; }
+
+ private:
+  static inline uword ComputeHash(const Object& constant) {
+    // Caveat: a null might be hiding inside a handle which overrides
+    // CanonicalizeHash() and does not check for |null| before computing the
+    // hash. Thus doing Instance::Cast(constant).CanonicalizeHash() and
+    // Instance::Handle(constant.ptr()).CanonicalizeHash() will produce
+    // different results. To work-around this problem check for null first.
+    if (constant.IsNull()) {
+      return kNullIdentityHash;
+    }
+    return constant.IsInstance() ? Instance::Cast(constant).CanonicalizeHash()
+                                 : Utils::WordHash(constant.GetClassId());
+  }
+
+  const Object& constant_;
+  Representation representation_;
+  uword hash_;
 };
 
 struct ConstantPoolTrait {
@@ -62,32 +87,15 @@ struct ConstantPoolTrait {
   typedef ConstantAndRepresentation Key;
   typedef ConstantInstr* Pair;
 
-  static Key KeyOf(Pair kv) {
-    return ConstantAndRepresentation{kv->value(), kv->representation()};
-  }
+  static Key KeyOf(Pair kv) { return {kv->value(), kv->representation()}; }
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline uword Hash(Key key) {
-    if (key.constant.IsSmi()) {
-      return Smi::Cast(key.constant).Value();
-    }
-    if (key.constant.IsDouble()) {
-      return static_cast<intptr_t>(bit_cast<int32_t, float>(
-          static_cast<float>(Double::Cast(key.constant).value())));
-    }
-    if (key.constant.IsMint()) {
-      return static_cast<intptr_t>(Mint::Cast(key.constant).value());
-    }
-    if (key.constant.IsString()) {
-      return String::Cast(key.constant).Hash();
-    }
-    return key.constant.GetClassId();
-  }
+  static inline uword Hash(Key key) { return key.hash(); }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    return (kv->value().ptr() == key.constant.ptr()) &&
-           (kv->representation() == key.representation);
+    return (kv->value().ptr() == key.constant().ptr()) &&
+           (kv->representation() == key.representation());
   }
 };
 
