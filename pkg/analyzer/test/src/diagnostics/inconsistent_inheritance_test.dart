@@ -15,6 +15,76 @@ main() {
 
 @reflectiveTest
 class InconsistentInheritanceTest extends PubPackageResolutionTest {
+  test_class_augmentWithInterface_augmentWithMixin() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+import augment 'c.dart';
+
+mixin A {
+  void foo(int _);
+}
+
+abstract class B {
+  void foo(String _);
+}
+
+abstract class C extends Object {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment abstract class C implements B {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+augment library 'a.dart';
+
+augment abstract class C with A {}
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 142, 1),
+    ]);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
+  test_class_augmentWithMixin_augmentWithInterface() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+import augment 'c.dart';
+
+mixin A {
+  void foo(int _);
+}
+
+abstract class B {
+  void foo(String _);
+}
+
+abstract class C extends Object {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment abstract class C with A {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+augment library 'a.dart';
+
+augment abstract class C implements B {}
+''');
+
+    await assertErrorsInFile2(a, [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 142, 1),
+    ]);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+  }
+
   /// https://github.com/dart-lang/sdk/issues/47026
   test_class_covariantInSuper_withTwoUnrelated() async {
     await assertErrorsInCode('''
