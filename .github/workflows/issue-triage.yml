@@ -24,7 +24,7 @@ jobs:
         with:
           repository: dart-lang/ecosystem
 
-      - uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
+      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
 
       - run: dart pub get
         working-directory: pkgs/sdk_triage_bot
