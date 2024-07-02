@@ -37,6 +37,19 @@ void main() async {
 }
 ''';
 
+final ffiScript = r'''
+import "dart:ffi";
+
+void main() {
+  print('ffi native callback test!');
+  final function = NativeCallable<Void Function()>.isolateLocal(() {})
+    ..keepIsolateAlive = false;
+  final asDart = function.nativeFunction.asFunction<void Function()>();
+  asDart();
+  print('Done: ffi native callback test!');
+}
+''';
+
 void Function(String) onVmServicesData(
   TestProject p, {
   bool expectDevtoolsMsg = true,
@@ -500,6 +513,37 @@ void main(List<String> args) => print("$b $args");
       p.relativeFilePath,
     ], onData);
     await server.close();
+  });
+
+  test('regression test for dartbug.com/56064', () async {
+    final p = project(mainSrc: ffiScript);
+    Process process = await p.start([
+      'run',
+      '--enable-vm-service',
+      '--no-dds',
+      '--disable-service-auth-codes',
+      '--pause-isolates-on-unhandled-exceptions',
+      p.relativeFilePath,
+    ]);
+    final completer = Completer<void>();
+    late StreamSubscription sub;
+    sub = process.stdout.transform(utf8.decoder).listen((event) async {
+      if (event.contains(dartVMServiceRegExp)) {
+        await sub.cancel();
+        completer.complete();
+      }
+    });
+    // Wait for process to start and print VM service message.
+    await completer.future;
+    // Now wait for the process to terminate, if the issue is not fixed
+    // the process will not terminate as it will be paused on the exception,
+    // we timeout and return 255 in that case.
+    int exitCode = await process.exitCode.timeout(const Duration(seconds: 5),
+        onTimeout: () {
+      process.kill();
+      return 255;
+    });
+    expect(exitCode, 0);
   });
 
   test('without verbose CFE info', () async {
