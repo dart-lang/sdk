@@ -517,7 +517,7 @@ class Response extends RequestOrResponse {
     jsonObject[ID] = id;
     var error = this.error;
     if (error != null) {
-      jsonObject[ERROR] = error.toJson();
+      jsonObject[ERROR] = error.toJson(clientUriConverter: null);
     }
     var result = this.result;
     if (result != null) {
@@ -537,8 +537,9 @@ class Response extends RequestOrResponse {
       RequestError? decodedError;
       var error = json[Response.ERROR];
       if (error is Map) {
-        decodedError =
-            RequestError.fromJson(ResponseDecoder(null), '.error', error);
+        decodedError = RequestError.fromJson(
+            ResponseDecoder(null), '.error', error,
+            clientUriConverter: null);
       }
 
       Map<String, Object?>? decodedResult;

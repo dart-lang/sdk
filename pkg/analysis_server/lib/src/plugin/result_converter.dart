@@ -25,13 +25,25 @@ class ResultConverter {
   server.AnalysisNavigationParams convertAnalysisNavigationParams(
       plugin.AnalysisNavigationParams params) {
     return server.AnalysisNavigationParams.fromJson(
-        decoder, '', params.toJson());
+      decoder,
+      '',
+      params.toJson(),
+      // Converter not needed because the plugin class toJson'd above is always
+      // file paths.
+      clientUriConverter: null,
+    );
   }
 
   server.EditGetRefactoringResult convertEditGetRefactoringResult(
       RefactoringKind kind, plugin.EditGetRefactoringResult result) {
     return server.EditGetRefactoringResult.fromJson(
-        server.ResponseDecoder(kind), '', result.toJson());
+      server.ResponseDecoder(kind),
+      '',
+      result.toJson(),
+      // Converter not needed because the plugin class toJson'd above is always
+      // file paths.
+      clientUriConverter: null,
+    );
   }
 
   SourceChange convertPrioritizedSourceChange(

@@ -21,7 +21,8 @@ class EditFormatHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = EditFormatParams.fromRequest(request);
+    var params = EditFormatParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
 
     String unformattedCode;

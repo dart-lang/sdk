@@ -43,7 +43,8 @@ class EditGetFixesHandler extends LegacyHandler
 
   @override
   Future<void> handle() async {
-    var params = EditGetFixesParams.fromRequest(request);
+    var params = EditGetFixesParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     var offset = params.offset;
 

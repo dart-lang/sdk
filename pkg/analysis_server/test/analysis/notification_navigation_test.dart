@@ -188,7 +188,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams({
         AnalysisService.NAVIGATION: [testFile.path],
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await _resultsAvailable.future;
     assertRegionsSorted();
@@ -197,7 +197,8 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
-      var params = AnalysisNavigationParams.fromNotification(notification);
+      var params = AnalysisNavigationParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       if (params.file == testFile.path || params.file == augmentFilePath) {
         regions = params.regions;
         targets = params.targets;

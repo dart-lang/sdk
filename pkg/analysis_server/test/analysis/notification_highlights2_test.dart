@@ -2577,7 +2577,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
       fail('SERVER_NOTIFICATION_ERROR');
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       if (params.file == testFile.path) {
         regions = params.regions;
         _resultsAvailable.complete();

@@ -923,7 +923,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: AddContentOverlay(''),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -954,7 +954,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: RemoveContentOverlay(),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // The file has errors.
@@ -1153,7 +1153,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         aPath: AddContentOverlay('error2'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
@@ -1181,7 +1181,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         aPath: RemoveContentOverlay(),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
@@ -1412,7 +1412,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         aPath: AddContentOverlay('error2'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
@@ -1434,7 +1434,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         aPath: RemoveContentOverlay(),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
@@ -1459,7 +1459,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         [a.path, c.path],
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -1493,7 +1493,7 @@ AnalysisErrors
     var response = await handleRequest(
       AnalysisSetPriorityFilesParams(
         ['a.dart'],
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1509,7 +1509,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         [convertPath('$testPackageLibPath/a.dart')],
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -1519,7 +1519,7 @@ AnalysisErrors
         [workspaceRootPath],
         ['foo'],
         packageRoots: {},
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1537,7 +1537,7 @@ AnalysisErrors
         [workspaceRootPath],
         [convertPath('/foo/../bar')],
         packageRoots: {},
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1555,7 +1555,7 @@ AnalysisErrors
         ['foo'],
         [],
         packageRoots: {},
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1573,7 +1573,7 @@ AnalysisErrors
         [convertPath('/foo/../bar')],
         [],
         packageRoots: {},
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1977,7 +1977,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: AddContentOverlay(''),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // A new errors notification was received, no errors.
@@ -1996,7 +1996,7 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: AddContentOverlay('var v = 0'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -2021,7 +2021,7 @@ AnalysisErrors
         testFile.path: ChangeContentOverlay([
           SourceEdit(9, 0, ';'),
         ]),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // A new errors notification was received, no errors.
@@ -2037,7 +2037,7 @@ AnalysisErrors
     var response = await handleRequest(
       AnalysisUpdateContentParams({
         'a.dart': AddContentOverlay(''),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     expect(response, isResponseFailure('0'));
   }
@@ -2066,13 +2066,13 @@ AnalysisErrors
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: AddContentOverlay(initialContent),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     var response = await handleRequest(
       AnalysisUpdateContentParams({
         testFile.path: ChangeContentOverlay([edit]),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -2105,7 +2105,8 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       filesHighlights[getFile(params.file)] = params.regions;
       _resultsAvailable.complete();
     }
@@ -2281,11 +2282,13 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded = AnalysisFlushResultsParams.fromNotification(notification);
+      var decoded = AnalysisFlushResultsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       notifications.add((notification.event, decoded));
     }
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       notifications.add((notification.event, decoded));
     }
   }

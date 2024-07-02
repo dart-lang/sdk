@@ -24,14 +24,15 @@ class FlutterBase extends PubPackageAnalysisServerTest {
   ) async {
     var response = await getWidgetDescriptionResponse(search);
     expect(response.error, isNull);
-    return FlutterGetWidgetDescriptionResult.fromResponse(response);
+    return FlutterGetWidgetDescriptionResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
   }
 
   Future<Response> getWidgetDescriptionResponse(String search) async {
     var request = FlutterGetWidgetDescriptionParams(
       testFile.path,
       findOffset(search),
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     return await handleRequest(request);
   }
 

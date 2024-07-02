@@ -68,9 +68,10 @@ class CompletionDriver with ExpectMixin {
       completionOffset,
       1 << 16,
       timeout: 60 * 1000,
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: null);
     var response = await server.handleRequest(request);
-    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    var result = CompletionGetSuggestions2Result.fromResponse(response,
+        clientUriConverter: null);
     replacementOffset = result.replacementOffset;
     replacementLength = result.replacementLength;
     return result.suggestions;
@@ -81,10 +82,12 @@ class CompletionDriver with ExpectMixin {
     if (notification.event == COMPLETION_NOTIFICATION_EXISTING_IMPORTS) {
       var params = CompletionExistingImportsParams.fromNotification(
         notification,
+        clientUriConverter: null,
       );
       fileToExistingImports[params.file] = params.imports;
     } else if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: null);
       filesErrors[decoded.file] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       // Ignored.

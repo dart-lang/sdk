@@ -30,7 +30,8 @@ class EditGetAssistsHandler extends LegacyHandler
 
   @override
   Future<void> handle() async {
-    var params = EditGetAssistsParams.fromRequest(request);
+    var params = EditGetAssistsParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     var offset = params.offset;
     var length = params.length;

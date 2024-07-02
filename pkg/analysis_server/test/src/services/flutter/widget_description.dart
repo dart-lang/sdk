@@ -34,7 +34,7 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     protocol.FlutterWidgetProperty property,
     String expected,
   ) {
-    var json = property.toJson();
+    var json = property.toJson(clientUriConverter: null);
     _removeNotInterestingElements(json);
 
     var actual = JsonEncoder.withIndent('  ').convert(json);

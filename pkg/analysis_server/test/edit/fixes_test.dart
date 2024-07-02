@@ -41,8 +41,8 @@ class FixesTest extends PubPackageAnalysisServerTest {
     // if there are no contexts.
     await waitForTasksFinished();
 
-    var request =
-        EditGetFixesParams(convertPath(outsideFile), 0).toRequest('0');
+    var request = EditGetFixesParams(convertPath(outsideFile), 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -115,7 +115,8 @@ bar() {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetFixesParams('test.dart', 0).toRequest('0');
+    var request = EditGetFixesParams('test.dart', 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -126,7 +127,7 @@ bar() {
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -195,14 +196,16 @@ dependencies:
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         name: AddContentOverlay(contents),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(File file, int offset) async {
-    var request = EditGetFixesParams(file.path, offset).toRequest('0');
+    var request = EditGetFixesParams(file.path, offset)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditGetFixesResult.fromResponse(response);
+    var result = EditGetFixesResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     return result.fixes;
   }
 

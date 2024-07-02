@@ -28,7 +28,7 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
     await handleSuccessfulRequest(
       FlutterSetSubscriptionsParams({
         service: [file.path],
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -41,7 +41,8 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == FLUTTER_NOTIFICATION_OUTLINE) {
-      var params = FlutterOutlineParams.fromNotification(notification);
+      var params = FlutterOutlineParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       if (params.file == testFile.path) {
         outline = params.outline;
         _outlineReceived.complete();

@@ -67,7 +67,8 @@ class ServerDartFixPromptTest extends PubPackageAnalysisServerTest {
 @reflectiveTest
 class ServerDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_getVersion() async {
-    var request = ServerGetVersionParams().toRequest('0');
+    var request = ServerGetVersionParams()
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     expect(
         response.toJson(),
@@ -87,8 +88,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
 
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
-    await serverChannel.simulateResponseFromClient(
-        ServerOpenUrlRequestResult().toResponse(request.id));
+    await serverChannel.simulateResponseFromClient(ServerOpenUrlRequestResult()
+        .toResponse(request.id, clientUriConverter: server.uriConverter));
     await responseFuture;
   }
 
@@ -105,8 +106,9 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
       if (requestId >= 0) {
         // This is a bit of a kludge, but the first time this function is called
         // we won't set the request, we'll just test the default state.
-        var request = ServerSetClientCapabilitiesParams(requests)
-            .toRequest(requestId.toString());
+        var request = ServerSetClientCapabilitiesParams(requests).toRequest(
+            requestId.toString(),
+            clientUriConverter: server.uriConverter);
         await handleSuccessfulRequest(request);
       }
       requestId++;
@@ -131,7 +133,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Tell the server we support URIs.
     await handleSuccessfulRequest(
         ServerSetClientCapabilitiesParams([], supportsUris: true)
-            .toRequest('-1'));
+            .toRequest('-1', clientUriConverter: server.uriConverter));
 
     // Set the roots using a URI. Since the helper methods will to through
     // toJson() (which will convert paths to URIs) we need to pass the JSON
@@ -155,15 +157,15 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
 
     // If not supplied.
-    await handleSuccessfulRequest(
-        ServerSetClientCapabilitiesParams([]).toRequest('-1'));
+    await handleSuccessfulRequest(ServerSetClientCapabilitiesParams([])
+        .toRequest('-1', clientUriConverter: server.uriConverter));
     expect(server.clientCapabilities.supportsUris, isNull);
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
 
     // If set explicitly to false.
     await handleSuccessfulRequest(
         ServerSetClientCapabilitiesParams([], supportsUris: false)
-            .toRequest('-1'));
+            .toRequest('-1', clientUriConverter: server.uriConverter));
     expect(server.clientCapabilities.supportsUris, isFalse);
     expect(server.uriConverter.supportedNonFileSchemes, isEmpty);
   }
@@ -173,7 +175,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Explicitly tell the server we do not support URIs.
     await handleSuccessfulRequest(
         ServerSetClientCapabilitiesParams([], supportsUris: false)
-            .toRequest('-1'));
+            .toRequest('-1', clientUriConverter: server.uriConverter));
 
     // Try to send a URI anyway.
     var request = Request('1', 'analysis.setAnalysisRoots', {
@@ -200,7 +202,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // verify the analysis.errors notification.
     await handleSuccessfulRequest(
         ServerSetClientCapabilitiesParams([], supportsUris: true)
-            .toRequest('10'));
+            .toRequest('10', clientUriConverter: server.uriConverter));
     await pumpEventQueue(times: 5000);
 
     // Trigger analysis.
@@ -237,7 +239,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Tell the server we support URIs.
     await handleSuccessfulRequest(
         ServerSetClientCapabilitiesParams([], supportsUris: true)
-            .toRequest('10'));
+            .toRequest('10', clientUriConverter: server.uriConverter));
     await pumpEventQueue(times: 5000);
 
     // Send a GetErrors request. The response has nested FilePaths inside the
@@ -280,8 +282,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   Future<void> test_setSubscriptions_success() async {
     expect(server.serverServices, isEmpty);
     // send request
-    var request =
-        ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest('0');
+    var request = ServerSetSubscriptionsParams([ServerService.STATUS])
+        .toRequest('0', clientUriConverter: server.uriConverter);
     await handleSuccessfulRequest(request);
     // set of services has been changed
     expect(server.serverServices, contains(ServerService.STATUS));
@@ -298,7 +300,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     await serverChannel.simulateResponseFromClient(
-        ServerShowMessageRequestResult(action: 'a').toResponse(request.id));
+        ServerShowMessageRequestResult(action: 'a')
+            .toResponse(request.id, clientUriConverter: server.uriConverter));
     var response = await responseFuture;
     expect(response, 'a');
   }
@@ -314,13 +317,15 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     // Simulate the response.
     var request = serverChannel.serverRequestsSent[0];
     await serverChannel.simulateResponseFromClient(
-        ServerShowMessageRequestResult().toResponse(request.id));
+        ServerShowMessageRequestResult()
+            .toResponse(request.id, clientUriConverter: server.uriConverter));
     var response = await responseFuture;
     expect(response, isNull);
   }
 
   Future<void> test_shutdown() async {
-    var request = ServerShutdownParams().toRequest('0');
+    var request = ServerShutdownParams()
+        .toRequest('0', clientUriConverter: server.uriConverter);
     await handleSuccessfulRequest(request);
   }
 }

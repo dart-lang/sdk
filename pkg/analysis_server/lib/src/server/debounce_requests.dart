@@ -66,12 +66,20 @@ class _DebounceRequests {
         if (requestOrResponse.method == COMPLETION_REQUEST_GET_SUGGESTIONS2) {
           if (abortCompletionRequests) {
             discardedRequests.add(requestOrResponse);
-            var params =
-                CompletionGetSuggestions2Params.fromRequest(requestOrResponse);
+            var params = CompletionGetSuggestions2Params.fromRequest(
+              requestOrResponse,
+              // We can use a null converter here because we're not using the
+              // path for anything.
+              clientUriConverter: null,
+            );
             var offset = params.offset;
             channel.sendResponse(
-              CompletionGetSuggestions2Result(offset, 0, [], true)
-                  .toResponse(requestOrResponse.id),
+              CompletionGetSuggestions2Result(offset, 0, [], true).toResponse(
+                requestOrResponse.id,
+                // We can use a null converter here because we're not sending
+                // any path.
+                clientUriConverter: null,
+              ),
             );
             continue;
           } else {

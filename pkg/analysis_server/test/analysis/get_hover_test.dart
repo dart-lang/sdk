@@ -31,7 +31,8 @@ class AnalysisHoverBlazeTest extends BlazeWorkspaceAnalysisServerTest {
 class A {}
 ''');
 
-    var request = AnalysisGetHoverParams(testFile.path, 0).toRequest('0');
+    var request = AnalysisGetHoverParams(testFile.path, 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -50,9 +51,11 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
   Future<HoverInformation?> prepareHoverAt(int offset, {File? inFile}) async {
     inFile ??= testFile;
     await waitForTasksFinished();
-    var request = AnalysisGetHoverParams(inFile.path, offset).toRequest('0');
+    var request = AnalysisGetHoverParams(inFile.path, offset)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = AnalysisGetHoverResult.fromResponse(response);
+    var result = AnalysisGetHoverResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     return result.hovers.firstOrNull;
   }
 
@@ -1303,7 +1306,8 @@ foo(double myParameter) {}
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = AnalysisGetHoverParams('test.dart', 0).toRequest('0');
+    var request = AnalysisGetHoverParams('test.dart', 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1315,7 +1319,7 @@ foo(double myParameter) {}
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
-            .toRequest('0');
+            .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,

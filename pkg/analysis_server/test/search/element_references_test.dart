@@ -76,9 +76,10 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     await waitForTasksFinished();
     var request = SearchFindElementReferencesParams(
             testFile.path, offset, includePotential)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = SearchFindElementReferencesResult.fromResponse(response);
+    var result = SearchFindElementReferencesResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     searchId = result.id;
     searchElement = result.element;
     if (searchId != null) {

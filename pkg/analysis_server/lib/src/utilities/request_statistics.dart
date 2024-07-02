@@ -173,7 +173,9 @@ class RequestStatisticsHelper {
         'server.log',
         <String, Object>{
           'time': DateTime.now().millisecondsSinceEpoch,
-          'kind': kind.toJson(),
+          'kind': kind.toJson(
+            clientUriConverter: null,
+          ),
           'data': data,
           'sdkVersion': _sdkVersion,
         },

@@ -422,7 +422,7 @@ void f() {
 
   Request _createGetNavigationRequest(String file, int offset, int length) {
     return AnalysisGetNavigationParams(file, offset, length)
-        .toRequest(requestId);
+        .toRequest(requestId, clientUriConverter: server.uriConverter);
   }
 
   Future<void> _getNavigation({
@@ -443,7 +443,8 @@ void f() {
 
     var request = _createGetNavigationRequest(file.path, offset, length);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = AnalysisGetNavigationResult.fromResponse(response);
+    var result = AnalysisGetNavigationResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;

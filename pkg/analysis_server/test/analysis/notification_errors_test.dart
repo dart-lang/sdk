@@ -28,10 +28,12 @@ class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       filesErrors[getFile(decoded.file)] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded = AnalysisFlushResultsParams.fromNotification(notification);
+      var decoded = AnalysisFlushResultsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       for (var file in decoded.files) {
         filesErrors[getFile(file)] = null;
       }
@@ -242,7 +244,8 @@ transforms:
 
     // Send a getHover request for the file that will cause it to be read from disk.
     await handleSuccessfulRequest(
-      AnalysisGetHoverParams(brokenFile.path, 0).toRequest('0'),
+      AnalysisGetHoverParams(brokenFile.path, 0)
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -268,7 +271,8 @@ analyzer:
 
     // Triggering the file to be processed should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisGetHoverParams(excludedFile.path, 0).toRequest('0'),
+      AnalysisGetHoverParams(excludedFile.path, 0)
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -276,7 +280,8 @@ analyzer:
 
     // Opening the file should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([excludedFile.path]).toRequest('0'),
+      AnalysisSetPriorityFilesParams([excludedFile.path])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -361,7 +366,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -382,7 +387,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -394,7 +399,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
 
     await waitForTasksFinished();
@@ -419,7 +424,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: AddContentOverlay('err'),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -436,7 +441,7 @@ void f() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         brokenFile.path: RemoveContentOverlay(),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

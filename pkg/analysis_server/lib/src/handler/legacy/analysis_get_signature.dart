@@ -18,7 +18,8 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = AnalysisGetSignatureParams.fromRequest(request);
+    var params = AnalysisGetSignatureParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {

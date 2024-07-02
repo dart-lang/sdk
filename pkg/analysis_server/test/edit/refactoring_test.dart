@@ -119,7 +119,7 @@ void f(A a, B b, C c, D d) {
             findOffset(search),
             0,
             false)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -231,7 +231,7 @@ void f(A a, B b, C c, D d) {
             findOffset(search),
             0,
             false)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -348,7 +348,7 @@ void f() {
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -364,7 +364,7 @@ void f() {
             0,
             0,
             true)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -672,7 +672,8 @@ void f(bool b) {
     return waitForTasksFinished().then((_) {
       return _sendExtractRequest();
     }).then((Response response) {
-      var result = EditGetRefactoringResult.fromResponse(response);
+      var result = EditGetRefactoringResult.fromResponse(response,
+          clientUriConverter: server.uriConverter);
       assertResultProblemsFatal(result.initialProblems);
       // ...there is no any feedback
       expect(result.feedback, isNull);
@@ -805,7 +806,8 @@ int? res(int b) {
   Future<ExtractMethodFeedback> _computeInitialFeedback() async {
     await waitForTasksFinished();
     var response = await _sendExtractRequest();
-    var result = EditGetRefactoringResult.fromResponse(response);
+    var result = EditGetRefactoringResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     return result.feedback as ExtractMethodFeedback;
   }
 
@@ -873,9 +875,10 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   Future<void> getRefactorings(int offset, int length) async {
     var request =
         EditGetAvailableRefactoringsParams(testFile.path, offset, length)
-            .toRequest('0');
+            .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = EditGetAvailableRefactoringsResult.fromResponse(response);
+    var result = EditGetAvailableRefactoringsResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     kinds = result.kinds;
   }
 
@@ -894,9 +897,10 @@ class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   /// [length].
   Future<void> getRefactoringsInFile(File file, int offset, int length) async {
     var request = EditGetAvailableRefactoringsParams(file.path, offset, length)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var result = EditGetAvailableRefactoringsResult.fromResponse(response);
+    var result = EditGetAvailableRefactoringsResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     kinds = result.kinds;
   }
 
@@ -971,8 +975,8 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request =
-        EditGetAvailableRefactoringsParams('test.dart', 0, 0).toRequest('0');
+    var request = EditGetAvailableRefactoringsParams('test.dart', 0, 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -984,7 +988,7 @@ class MyWidget extends StatelessWidget {
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetAvailableRefactoringsParams(
             convertPath('/foo/../bar/test.dart'), 0, 0)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -1228,7 +1232,7 @@ void f() {
             findOffset(search),
             0,
             false)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -1366,7 +1370,7 @@ void f() {
     var request = EditGetRefactoringParams(RefactoringKind.INLINE_METHOD,
             testFile.path, findOffset(search), 0, false,
             options: options)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 }
@@ -1422,7 +1426,8 @@ import 'new_folder/file.dart';
   Future<Response> _cancelMoveRequest() {
     // 0 is the id from _sendMoveRequest
     // 1 is another arbitrary id for the cancel request
-    var request = ServerCancelRequestParams('0').toRequest('1');
+    var request = ServerCancelRequestParams('0')
+        .toRequest('1', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -1438,7 +1443,7 @@ import 'new_folder/file.dart';
     var request = EditGetRefactoringParams(
             RefactoringKind.MOVE_FILE, item, 0, 0, false,
             options: options)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -1455,7 +1460,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
     var request = EditGetRefactoringParams(RefactoringKind.RENAME,
             testFile.path, findOffset(search), 0, validateOnly,
             options: options)
-        .toRequest(id);
+        .toRequest(id, clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 
@@ -2858,7 +2863,8 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
       await waitForTasksFinished();
     }
     var response = await requestSender();
-    return EditGetRefactoringResult.fromResponse(response);
+    return EditGetRefactoringResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
   }
 
   Future<Response> sendRequest(
@@ -2867,7 +2873,7 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
     var request = EditGetRefactoringParams(
             kind, testFile.path, offset, length, validateOnly,
             options: options)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     return serverChannel.simulateRequestFromClient(request);
   }
 

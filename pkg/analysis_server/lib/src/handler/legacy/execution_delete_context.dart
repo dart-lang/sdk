@@ -16,7 +16,9 @@ class ExecutionDeleteContextHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var contextId = ExecutionDeleteContextParams.fromRequest(request).id;
+    var contextId = ExecutionDeleteContextParams.fromRequest(request,
+            clientUriConverter: server.uriConverter)
+        .id;
     server.executionContext.contextMap.remove(contextId);
     sendResult(ExecutionDeleteContextResult());
   }
