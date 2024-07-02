@@ -204,7 +204,7 @@ enum [!A!] {
 ''');
     setAugmentationContent(r'''
 augment enum [!A!] {
-  one,
+  two,
 }
 ''');
 
