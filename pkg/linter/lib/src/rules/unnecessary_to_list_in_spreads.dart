@@ -32,14 +32,15 @@ children: <Widget>[
 class UnnecessaryToListInSpreads extends LintRule {
   static const LintCode code = LintCode('unnecessary_to_list_in_spreads',
       "Unnecessary use of 'toList' in a spread.",
-      correctionMessage: "Try removing the invocation of 'toList'.");
+      correctionMessage: "Try removing the invocation of 'toList'.",
+      hasPublishedDocs: true);
 
   UnnecessaryToListInSpreads()
       : super(
           name: 'unnecessary_to_list_in_spreads',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

@@ -31,14 +31,15 @@ class PreferNullAwareOperators extends LintRule {
       'prefer_null_aware_operators',
       "Use the null-aware operator '?.' rather than an explicit 'null' "
           'comparison.',
-      correctionMessage: "Try using '?.'.");
+      correctionMessage: "Try using '?.'.",
+      hasPublishedDocs: true);
 
   PreferNullAwareOperators()
       : super(
             name: 'prefer_null_aware_operators',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

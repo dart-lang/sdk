@@ -235,7 +235,7 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
   tags = UntaggedObject::CanonicalBit::update(false, tags);
-  tags = UntaggedObject::NewBit::update(true, tags);
+  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(true, tags);
   tags = UntaggedObject::ImmutableBit::update(
       IsUnmodifiableTypedDataViewClassId(cid), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
@@ -497,7 +497,7 @@ class IdentityMap {
         malloc(hash_table_capacity_ * sizeof(uint32_t)));
     for (intptr_t i = 0; i < hash_table_capacity_; i++) {
       hash_table_[i] = 0;
-      if (check_for_safepoint && (((i + 1) % KB) == 0)) {
+      if (check_for_safepoint && (((i + 1) % kSlotsPerInterruptCheck) == 0)) {
         thread_->CheckForSafepoint();
       }
     }
@@ -513,7 +513,7 @@ class IdentityMap {
         }
         probe = (probe + 1) & mask;
       }
-      if (check_for_safepoint && (((id + 2) % KB) == 0)) {
+      if (check_for_safepoint && (((id + 2) % kSlotsPerInterruptCheck) == 0)) {
         thread_->CheckForSafepoint();
       }
     }

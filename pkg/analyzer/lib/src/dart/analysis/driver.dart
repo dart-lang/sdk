@@ -57,6 +57,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes analysis results for Dart files.
@@ -95,7 +96,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 365;
+  static const int DATA_VERSION = 369;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -349,7 +350,7 @@ class AnalysisDriver {
   /// in this driver.
   List<String> get enabledPluginNames => analysisOptionsMap.entries
       .map((e) => e.options.enabledPluginNames)
-      .flattenedToList2;
+      .flattenedToList;
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -526,6 +527,10 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
+  void afterPerformWork() {
+    _fsState.parsedFileStateCache.clear();
+  }
+
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
   ///
@@ -673,7 +678,7 @@ class AnalysisDriver {
 
     // Discover files in package/lib folders.
     if (_sourceFactory.packageMap case var packageMap?) {
-      var folders = packageMap.values.flattenedToList2;
+      var folders = packageMap.values.flattenedToList;
       for (var folder in folders) {
         discoverRecursively(folder);
       }
@@ -1151,7 +1156,10 @@ class AnalysisDriver {
 
     FileState file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
-    CompilationUnit unit = file.parse(listener);
+    CompilationUnit unit = file.parse(
+      errorListener: listener,
+      performance: OperationPerformanceImpl('<root>'),
+    );
     return ParsedUnitResultImpl(
       session: currentSession,
       fileState: file,
@@ -1586,7 +1594,6 @@ class AnalysisDriver {
     );
 
     _fsState = FileSystemState(
-      _logger,
       _byteStore,
       _resourceProvider,
       name,
@@ -1848,25 +1855,35 @@ class AnalysisDriver {
   }
 
   Future<void> _getUnitElement(String path) async {
-    FileState file = _fsState.getFileForPath(path);
+    await scheduler.accumulatedPerformance.runAsync(
+      'getUnitElement',
+      (performance) async {
+        FileState file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    var kind = file.kind;
-    var library = kind.library ?? kind.asLibrary;
+        // Prepare the library - the file itself, or the known library.
+        var kind = file.kind;
+        var library = kind.library ?? kind.asLibrary;
 
-    await libraryContext.load(
-      targetLibrary: library,
-      performance: OperationPerformanceImpl('<root>'),
+        await performance.runAsync(
+          'libraryContext',
+          (performance) async {
+            await libraryContext.load(
+              targetLibrary: library,
+              performance: performance,
+            );
+          },
+        );
+
+        var element = libraryContext.computeUnitElement(library, file);
+        var result = UnitElementResultImpl(
+          session: currentSession,
+          fileState: file,
+          element: element,
+        );
+
+        _unitElementRequestedFiles.completeAll(path, result);
+      },
     );
-
-    var element = libraryContext.computeUnitElement(library, file);
-    var result = UnitElementResultImpl(
-      session: currentSession,
-      fileState: file,
-      element: element,
-    );
-
-    _unitElementRequestedFiles.completeAll(path, result);
   }
 
   bool _hasLibraryByUri(String uriStr) {
@@ -2430,6 +2447,7 @@ class AnalysisDriverScheduler {
 
       // Ask the driver to perform a chunk of work.
       await bestDriver.performWork();
+      bestDriver.afterPerformWork();
 
       // Schedule one more cycle.
       _hasWork.notify();

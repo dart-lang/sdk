@@ -1,5 +1,5 @@
 name: dtd
-version: 2.2.1
+version: 2.3.0
 description: A package for communicating with the Dart Tooling Daemon.
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/dtd
 

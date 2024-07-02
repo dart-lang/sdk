@@ -467,7 +467,7 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildTypesForClass(
-      ClassDeclaration clazz, ClassTypeBuilder builder) {
+      ClassDeclaration clazz, ClassTypeBuilder builder) async {
     List<Object> buildTypeParam(
         TypeParameterDeclaration typeParam, bool isFirst) {
       return [
@@ -516,6 +516,10 @@ mixin $mixinName implements $interfaceName {
   int get x => 1;
 }'''));
 
+    // ignore: deprecated_member_use_from_same_package
+    final mySuperClass = await builder.resolveIdentifier(
+        Uri.parse('package:foo/bar.dart'), 'MySuperclass');
+    builder.extendsType(NamedTypeAnnotationCode(name: mySuperClass));
     builder.appendInterfaces([RawTypeAnnotationCode.fromString(interfaceName)]);
     builder.appendMixins([RawTypeAnnotationCode.fromString(mixinName)]);
   }
@@ -796,6 +800,75 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
     ''';
     }''',
   ]);
+}
+
+class DanglingTaskMacro
+    implements
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro {
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    Future.value('hello').then((_) => Future.value('world'));
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    Future.value('hello').then((_) => Future.value('world'));
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) {
+    Future.value('hello').then((_) => Future.value('world'));
+  }
+}
+
+class DanglingTimerMacro
+    implements
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro {
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    Timer.run(() {});
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    Timer.run(() {});
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) {
+    Timer.run(() {});
+  }
+}
+
+class DanglingPeriodicTimerMacro
+    implements
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro {
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    Timer.periodic(Duration(seconds: 1), (_) {});
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    Timer.periodic(Duration(seconds: 1), (_) {});
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) {
+    Timer.periodic(Duration(seconds: 1), (_) {});
+  }
 }
 
 extension on String {

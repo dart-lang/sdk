@@ -13,9 +13,9 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
-  constructor _internal({core::bool value = false}) → self2::Class
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _internal({core::bool value = false}) → self2::Class
     ;
   @_in::patch
   external constructor patched() → self2::Class;
@@ -35,9 +35,9 @@ abstract class _SubClass&Class&Mixin = self2::Class with self2::Mixin /*isAnonym
     : super self2::Class::_internal(value: value)
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class SubClass extends self2::_SubClass&Class&Mixin {
-  constructor _internal() → self2::SubClass
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _internal() → self2::SubClass
     ;
   @_in::patch
   external constructor patched() → self2::SubClass;

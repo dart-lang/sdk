@@ -1,0 +1,9 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/part_self.dart: Error: A file can't be a part of itself.
+//
+import self as self;
+
+part part_self.dart;

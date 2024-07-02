@@ -456,6 +456,16 @@
         "timeout": 240
       }
     },
+    "dart2wasm-asserts-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+      "options": {
+        "host-asserts": true,
+        "enable-asserts": true,
+        "dart2wasm-options": [
+          "-O0"
+        ],
+        "timeout": 60
+      }
+    },
     "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "host-asserts": true,
@@ -674,6 +684,18 @@
           ],
           "fileset": "front-end",
           "shards": 3
+        },
+        {
+          "name": "front_end coverage",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "--enable-asserts",
+            "pkg/front_end/test/coverage_suite.dart",
+            "-ncfe-unittest-asserts-${mode}-${system}"
+          ],
+          "fileset": "front-end",
+          "shards": 1
         },
         {
           "name": "front_end unit tests (with git)",
@@ -1371,6 +1393,17 @@
           ]
         },
         {
+          "name": "build dart debug arm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--arch=arm",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
           "name": "build dart debug riscv64",
           "script": "tools/build.py",
           "arguments": [
@@ -1397,6 +1430,17 @@
           "arguments": [
             "--mode=release",
             "--arch=x64",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart release arm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=arm",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
@@ -2558,6 +2602,38 @@
     },
     {
       "builders": [
+        "dart2wasm-asserts-linux-chrome"
+      ],
+      "meta": {
+        "description": "dart2wasm tests with assertions enabled"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart2wasm",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "-ndart2wasm-asserts-linux-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2wasm-linux-chrome",
         "dart2wasm-linux-d8",
         "dart2wasm-linux-firefox"
@@ -2922,6 +2998,17 @@
             "native_toolchain_c",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"
+          ]
+        },
+        {
+          "name": "analyze third_party/pkg authored packages",
+          "script": "${build_root}/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--suppress-analytics",
+            "--fatal-infos",
+            "third_party/pkg/dap",
+            "third_party/pkg/language_server_protocol"
           ]
         },
         {

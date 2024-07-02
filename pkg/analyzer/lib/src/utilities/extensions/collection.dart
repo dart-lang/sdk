@@ -27,26 +27,6 @@ extension IterableExtension<E> on Iterable<E> {
   }
 }
 
-extension IterableIterableExtension<T> on Iterable<Iterable<T>> {
-  /// Elements of each iterable in this iterable.
-  ///
-  /// At the moment of writing, this method is `2.75` times faster than
-  /// `expand((e) => e)`, and `3.5` faster than `flattened` from
-  /// `package:collection`.
-  List<T> get flattenedToList2 {
-    return [
-      for (var elements in this) ...elements,
-    ];
-  }
-
-  /// Elements of each iterable in this iterable.
-  Set<T> get flattenedToSet2 {
-    return {
-      for (var elements in this) ...elements,
-    };
-  }
-}
-
 extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
   Map<K, V> get mapFromEntries => Map.fromEntries(this);
 }

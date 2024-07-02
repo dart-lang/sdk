@@ -44,14 +44,14 @@ class GoodExample {
 class UnnecessaryLate extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_late', "Unnecessary 'late' modifier.",
-      correctionMessage: "Try removing the 'late'.");
+      correctionMessage: "Try removing the 'late'.", hasPublishedDocs: true);
 
   UnnecessaryLate()
       : super(
             name: 'unnecessary_late',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

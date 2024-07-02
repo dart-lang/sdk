@@ -325,7 +325,8 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(bool leave_safepoint,
-                                   bool ignore_unwind_in_progress = false);
+                                   bool ignore_unwind_in_progress = false,
+                                   bool set_tag = true);
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
@@ -783,12 +784,16 @@ class Assembler : public AssemblerBase {
     AddImmediate(reg, Immediate(value), width);
   }
   void AddRegisters(Register dest, Register src) { addq(dest, src); }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    leaq(dest, Address(src, scale, value));
+                 int32_t disp) override {
+    if (base == kNoRegister) {
+      leaq(dest, Address(index, scale, disp));
+    } else {
+      leaq(dest, Address(base, index, scale, disp));
+    }
   }
   void AddImmediate(Register dest, Register src, int64_t value);
   void AddImmediate(const Address& address, const Immediate& imm);
@@ -1305,12 +1310,14 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch) {
+                              Register scratch,
+                              bool is_shared) {
     LoadCompressedSmi(
         scratch, compiler::FieldAddress(
                      field, target::Field::host_offset_or_field_id_offset()));
     const intptr_t field_table_offset =
-        compiler::target::Thread::field_table_values_offset();
+        is_shared ? compiler::target::Thread::shared_field_table_values_offset()
+                  : compiler::target::Thread::field_table_values_offset();
     LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leaq(address, Address(address, scratch, TIMES_HALF_WORD_SIZE, 0));

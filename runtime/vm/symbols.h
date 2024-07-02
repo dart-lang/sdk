@@ -291,7 +291,6 @@ class ObjectPointerVisitor;
   V(_ConstMap, "_ConstMap")                                                    \
   V(_ConstSet, "_ConstSet")                                                    \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
-  V(_CyclicInitializationError, "_CyclicInitializationError")                  \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -514,6 +513,8 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
+  V(dyn_module_callable, "dyn-module:callable")                                \
+  V(dyn_module_extendable, "dyn-module:extendable")                            \
   V(end, "end")                                                                \
   V(executable, "executable")                                                  \
   V(from, "from")                                                              \
@@ -558,7 +559,6 @@ class ObjectPointerVisitor;
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
   V(vm_cachable_idempotent, "vm:cachable-idempotent")                          \
   V(vm_never_inline, "vm:never-inline")                                        \
-  V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_recognized, "vm:recognized")                                            \

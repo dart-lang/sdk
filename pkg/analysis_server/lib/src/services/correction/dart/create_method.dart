@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,13 +23,13 @@ class CreateMethod extends ResolvedCorrectionProducer {
   /// Initializes a newly created instance that will create either an equality
   /// (`operator ==`) method or `hashCode` getter based on the existing other
   /// half of the pair.
-  CreateMethod.equalityOrHashCode()
+  CreateMethod.equalityOrHashCode({required super.context})
       : _kind = _MethodKind.equalityOrHashCode,
         applicability = CorrectionApplicability.acrossSingleFile;
 
   /// Initializes a newly created instance that will create a method based on an
   /// invocation of an undefined method.
-  CreateMethod.method()
+  CreateMethod.method({required super.context})
       : _kind = _MethodKind.method,
         applicability = CorrectionApplicability.singleLocation;
 

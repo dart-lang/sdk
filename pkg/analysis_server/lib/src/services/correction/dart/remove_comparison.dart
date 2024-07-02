@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
@@ -22,12 +22,12 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   final FixKind multiFixKind;
 
   /// Initialize a newly created instance with [DartFixKind.REMOVE_COMPARISON].
-  RemoveComparison()
+  RemoveComparison({required super.context})
       : fixKind = DartFixKind.REMOVE_COMPARISON,
         multiFixKind = DartFixKind.REMOVE_COMPARISON_MULTI;
 
   /// Initialize a newly created instance with [DartFixKind.REMOVE_TYPE_CHECK].
-  RemoveComparison.typeCheck()
+  RemoveComparison.typeCheck({required super.context})
       : fixKind = DartFixKind.REMOVE_TYPE_CHECK,
         multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
 

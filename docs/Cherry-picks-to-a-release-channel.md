@@ -76,7 +76,7 @@ This is a patch release that:
 ...
 ```
 
-Link to your cherry-pick request as subsequently filed below. You can upload the changelist again with the final link once the github issue has been filed. The cherry-pick request on github is often more useful for users than the original bug, since it explains the rationale concisely and links to the underlying bug for more information.
+Link to your cherry-pick request as subsequently filed below. You can upload the changelist again with the final link once the GitHub issue has been filed. The cherry-pick request on GitHub is often more useful for users than the original bug, since it explains the rationale concisely and links to the underlying bug for more information.
 
 If the cherry-pick is infrastructure only and is invisible to users, the `Changelog-Exempt: ...` footer exempts the change from the changelog requirement.
 

@@ -52,14 +52,15 @@ Object baz(Thing myThing) {
 
 class AvoidTypeToString extends LintRule {
   static const LintCode code = LintCode('avoid_type_to_string',
-      "Using 'toString' on a 'Type' is not safe in production code.");
+      "Using 'toString' on a 'Type' is not safe in production code.",
+      hasPublishedDocs: true);
 
   AvoidTypeToString()
       : super(
             name: 'avoid_type_to_string',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

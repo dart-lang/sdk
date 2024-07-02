@@ -492,8 +492,7 @@ class KFunctionData extends KMemberData {
       ConstantValue? defaultValue;
       if (isOptional) {
         if (parameter.initializer != null) {
-          defaultValue =
-              elementMap.getConstantValue(node, parameter.initializer);
+          defaultValue = elementMap.getConstantValue(parameter.initializer);
         } else {
           defaultValue = NullConstantValue();
         }

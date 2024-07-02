@@ -272,7 +272,7 @@ class UploadFeed(webapp.RequestHandler):
             section = findSectionByTitle(sectionTitle)
             if section != None:
                 if feed.key() in section.feeds:
-                    logging.warn('Already contains feed %s, replacing' % feedId)
+                    logging.warning('Already contains feed %s, replacing' % feedId)
                     section.feeds.remove(feed.key())
 
                 # Add the feed to the section.

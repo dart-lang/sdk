@@ -658,22 +658,25 @@ class FrontendCompiler implements CompilerInterface {
         ];
       }
       results = await _runWithPrintRedirection(() => compileToKernel(
-          _mainSource, compilerOptions,
-          additionalSources: _additionalSources,
-          nativeAssets: _nativeAssets,
-          includePlatform: options['link-platform'],
-          deleteToStringPackageUris: options['delete-tostring-package-uri'],
-          keepClassNamesImplementing: options['keep-class-names-implementing'],
-          aot: options['aot'],
-          targetOS: options['target-os'],
-          useGlobalTypeFlowAnalysis: options['tfa'],
-          useRapidTypeAnalysis: options['rta'],
-          environmentDefines: environmentDefines,
-          enableAsserts: options['enable-asserts'],
-          useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
-          minimalKernel: options['minimal-kernel'],
-          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
-          fromDillFile: options['from-dill']));
+          new KernelCompilationArguments(
+              source: _mainSource,
+              options: compilerOptions,
+              additionalSources: _additionalSources,
+              nativeAssets: _nativeAssets,
+              includePlatform: options['link-platform'],
+              deleteToStringPackageUris: options['delete-tostring-package-uri'],
+              keepClassNamesImplementing:
+                  options['keep-class-names-implementing'],
+              aot: options['aot'],
+              targetOS: options['target-os'],
+              useGlobalTypeFlowAnalysis: options['tfa'],
+              useRapidTypeAnalysis: options['rta'],
+              environmentDefines: environmentDefines,
+              enableAsserts: options['enable-asserts'],
+              useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
+              minimalKernel: options['minimal-kernel'],
+              treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
+              fromDillFile: options['from-dill'])));
     }
     if (results!.component != null) {
       transformer?.transform(results.component!);
@@ -776,13 +779,11 @@ class FrontendCompiler implements CompilerInterface {
       return;
     }
 
-    final KernelCompilationResults results =
-        await _runWithPrintRedirection(() => compileToKernel(
-              null,
-              _compilerOptions,
+    final KernelCompilationResults results = await _runWithPrintRedirection(
+        () => compileToKernel(new KernelCompilationArguments(
+              options: _compilerOptions,
               nativeAssets: _nativeAssets,
-              environmentDefines: {},
-            ));
+            )));
     _nativeAssetsLibrary = results.nativeAssetsLibrary;
   }
 

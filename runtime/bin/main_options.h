@@ -30,8 +30,6 @@ namespace bin {
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
-// we define sound_null_safety as an unused option here just to make sure
-// scripts that were passing in this option do not break.
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(version, version_option)                                                   \
   V(compile_all, compile_all)                                                  \
@@ -55,8 +53,7 @@ namespace bin {
   V(serve_devtools, enable_devtools)                                           \
   V(no_serve_observatory, disable_observatory)                                 \
   V(serve_observatory, enable_observatory)                                     \
-  V(print_dtd, print_dtd)                                                      \
-  V(sound_null_safety, sound_null_safety)
+  V(print_dtd, print_dtd)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -107,6 +104,7 @@ class Options {
   static bool ParseArguments(int argc,
                              char** argv,
                              bool vm_run_app_snapshot,
+                             bool parsing_dart_vm_options,
                              CommandLineOptions* vm_options,
                              char** script_name,
                              CommandLineOptions* dart_options,

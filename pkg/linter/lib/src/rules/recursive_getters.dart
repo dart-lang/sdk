@@ -38,14 +38,15 @@ int get field => _field;
 class RecursiveGetters extends LintRule {
   static const LintCode code = LintCode(
       'recursive_getters', "The getter '{0}' recursively returns itself.",
-      correctionMessage: 'Try changing the value being returned.');
+      correctionMessage: 'Try changing the value being returned.',
+      hasPublishedDocs: true);
 
   RecursiveGetters()
       : super(
             name: 'recursive_getters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

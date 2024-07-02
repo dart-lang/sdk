@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 Set<Object> _computeExplicitlyTypedParameterSet(
@@ -217,6 +218,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else {
       rawType = getFreshTypeParameters(rawType.typeFormals)
           .applyToFunctionType(rawType);
+      inferenceLogWriter?.enterGenericInference(rawType.typeFormals, rawType);
 
       inferrer = resolver.typeSystem.setupGenericTypeInference(
         typeParameters: rawType.typeFormals,

@@ -11,7 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/in_scope_completion
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -83,11 +83,69 @@ class DartCompletionManager {
     this.notImportedSuggestions,
   });
 
+  /// Return a suggestion collector containing a list of the suggestions that
+  /// should be returned to the client.
+  Future<SuggestionCollector> computeCandidateSuggestions({
+    required int maxSuggestions,
+    required OperationPerformanceImpl performance,
+    required DartCompletionRequest request,
+    bool suggestOverrides = true,
+    bool suggestUris = true,
+  }) async {
+    request.checkAborted();
+
+    var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
+    try {
+      var selection = request.unit.select(offset: request.offset, length: 0);
+      if (selection == null) {
+        throw AbortCompletion();
+      }
+      var tokenData = TokenData.fromSelection(selection);
+      var targetPrefix = tokenData?.prefix ?? '';
+      var matcher =
+          targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
+      var state = CompletionState(request, selection, budget, matcher);
+      var operations = performance.run(
+        'InScopeCompletionPass',
+        (performance) {
+          var pass = InScopeCompletionPass(
+            state: state,
+            collector: collector,
+            skipImports: skipImports,
+            suggestOverrides: suggestOverrides,
+            suggestUris: suggestUris,
+          );
+          pass.computeSuggestions();
+          state.request.collectorLocationName = collector.completionLocation;
+          return pass.notImportedOperations;
+        },
+      );
+
+      request.checkAborted();
+      if (operations.isNotEmpty && notImportedSuggestions != null) {
+        await performance.runAsync(
+          'NotImportedCompletionPass',
+          (performance) async {
+            await NotImportedCompletionPass(
+                    state: state, collector: collector, operations: operations)
+                .computeSuggestions(performance: performance);
+          },
+        );
+      }
+    } on InconsistentAnalysisException {
+      // The state of the code being analyzed has changed, so results are likely
+      // to be inconsistent. Just abort the operation.
+      throw AbortCompletion();
+    }
+    return collector;
+  }
+
   Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
     OperationPerformanceImpl performance, {
     bool enableOverrideContributor = true,
     bool enableUriContributor = true,
+    required int maxSuggestions,
     required bool useFilter,
   }) async {
     request.checkAborted();
@@ -101,80 +159,25 @@ class DartCompletionManager {
       return const [];
     }
 
-    request.checkAborted();
+    var collector = await computeCandidateSuggestions(
+        maxSuggestions: maxSuggestions,
+        performance: performance,
+        request: request,
+        suggestOverrides: enableOverrideContributor,
+        suggestUris: enableUriContributor);
 
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
+    await builder.suggestFromCandidates(collector.suggestions,
+        collector.preferConstants, collector.completionLocation);
 
     var notImportedSuggestions = this.notImportedSuggestions;
-
-    var collector = SuggestionCollector();
-    try {
-      var selection = request.unit.select(offset: request.offset, length: 0);
-      if (selection == null) {
-        throw AbortCompletion();
-      }
-      var matcher = request.targetPrefix.isEmpty
-          ? NoPrefixMatcher()
-          : FuzzyMatcher(request.targetPrefix);
-      var state = CompletionState(request, selection, budget, matcher);
-      var operations = performance.run(
-        'InScopeCompletionPass',
-        (performance) {
-          return _runFirstPass(
-            state: state,
-            collector: collector,
-            builder: builder,
-            suggestOverrides: enableOverrideContributor,
-            suggestUris: enableUriContributor,
-          );
-        },
-      );
-      request.checkAborted();
-      if (operations.isNotEmpty && notImportedSuggestions != null) {
-        await performance.runAsync(
-          'NotImportedCompletionPass',
-          (performance) async {
-            await NotImportedCompletionPass(
-                    state: state, collector: collector, operations: operations)
-                .computeSuggestions(performance: performance);
-          },
-        );
-      }
-      await builder.suggestFromCandidates(collector.suggestions);
-    } on InconsistentAnalysisException {
-      // The state of the code being analyzed has changed, so results are likely
-      // to be inconsistent. Just abort the operation.
-      throw AbortCompletion();
-    }
 
     if (notImportedSuggestions != null && collector.isIncomplete) {
       notImportedSuggestions.isIncomplete = true;
     }
 
     return builder.suggestions.toList();
-  }
-
-  /// Run the first pass of the code completion algorithm.
-  ///
-  /// Returns the operations that need to be performed in the second pass.
-  List<NotImportedOperation> _runFirstPass({
-    required CompletionState state,
-    required SuggestionCollector collector,
-    required SuggestionBuilder builder,
-    required bool suggestOverrides,
-    required bool suggestUris,
-  }) {
-    var pass = InScopeCompletionPass(
-      state: state,
-      collector: collector,
-      skipImports: skipImports,
-      suggestOverrides: suggestOverrides,
-      suggestUris: suggestUris,
-    );
-    pass.computeSuggestions();
-    state.request.collectorLocationName = collector.completionLocation;
-    return pass.notImportedOperations;
   }
 }
 
@@ -454,4 +457,79 @@ class NotImportedSuggestions {
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.
   bool isIncomplete = false;
+}
+
+/// Information about the token containing the selection.
+class TokenData {
+  /// The token containing the offset.
+  ///
+  /// The token can be any token, including a comment token.
+  final Token token;
+
+  /// The prefix before the selection offset.
+  ///
+  /// This will be an empty string if the token isn't either an identifier or
+  /// keyword, or if the selection offset is at the beginning of the token.
+  final String prefix;
+
+  TokenData._(this.token, this.prefix);
+
+  /// Returns token data representing the token containing the offset of the
+  /// [selection], or `null` if the offset isn't within any token.
+  static TokenData? fromSelection(Selection selection) {
+    var coveringNode = selection.coveringNode;
+    var selectionOffset = selection.offset;
+    // Start at the last token in the covering node and walk backward in the
+    // token stream until we've found the left-most token whose offset is before
+    // the `selectionOffset`.
+    var currentToken = coveringNode.endToken;
+    while ((currentToken.isSynthetic ||
+            currentToken.offset > selectionOffset ||
+            (currentToken.offset == selectionOffset &&
+                !currentToken.isKeywordOrIdentifier)) &&
+        !currentToken.isEof) {
+      currentToken = currentToken.previous!;
+    }
+    if (currentToken.isEof) {
+      return null;
+    }
+    if (selectionOffset > currentToken.end) {
+      // The selection is between two tokens. Check to see whether it's inside a
+      // comment token.
+      Token? commentToken = currentToken.next!.precedingComments;
+      while (commentToken != null) {
+        if (selectionOffset >= commentToken.offset &&
+            selectionOffset <= commentToken.end) {
+          return TokenData._(commentToken, '');
+        }
+        commentToken = commentToken.next;
+      }
+      return null;
+    }
+    if (currentToken.isKeywordOrIdentifier) {
+      var offsetInToken = selectionOffset - currentToken.offset;
+      var prefix = currentToken.lexeme.substring(0, offsetInToken);
+      return TokenData._(currentToken, prefix);
+    } else if (currentToken.type == TokenType.STRING) {
+      // Compute a prefix inside string literals to support completion of URIs
+      // in directives.
+      var lexeme = currentToken.lexeme;
+      var startOfContent = 1;
+      if (lexeme.startsWith("r'''") || lexeme.startsWith('r"""')) {
+        startOfContent = 4;
+      } else if (lexeme.startsWith("r'") || lexeme.startsWith('r"')) {
+        startOfContent = 2;
+      } else if (lexeme.startsWith("'''") || lexeme.startsWith('"""')) {
+        startOfContent = 3;
+      }
+      var offsetInToken = selectionOffset - currentToken.offset;
+      if (offsetInToken < startOfContent) {
+        // The cursor is inside the opening quote sequence.
+        return TokenData._(currentToken, '');
+      }
+      var prefix = currentToken.lexeme.substring(startOfContent, offsetInToken);
+      return TokenData._(currentToken, prefix);
+    }
+    return TokenData._(currentToken, '');
+  }
 }

@@ -19,24 +19,26 @@ import 'api_prototype/file_system.dart' show FileSystem;
 import 'api_prototype/front_end.dart' show CompilerOptions, CompilerResult;
 import 'api_prototype/kernel_generator.dart';
 import 'api_prototype/memory_file_system.dart';
+import 'base/compiler_context.dart' show CompilerContext;
+import 'base/crash.dart' show withCrashReporting;
+import 'base/hybrid_file_system.dart';
+import 'base/instrumentation.dart';
 import 'base/nnbd_mode.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
-import 'fasta/codes/fasta_codes.dart' show LocatedMessage;
-import 'fasta/compiler_context.dart' show CompilerContext;
-import 'fasta/crash.dart' show withCrashReporting;
-import 'fasta/dill/dill_target.dart' show DillTarget;
-import 'fasta/hybrid_file_system.dart';
-import 'fasta/kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
-import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
-import 'fasta/kernel/macro/macro.dart';
-import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
-import 'fasta/kernel/verifier.dart' show verifyComponent;
-import 'fasta/source/source_loader.dart' show SourceLoader;
-import 'fasta/uri_offset.dart';
-import 'fasta/uri_translator.dart' show UriTranslator;
+import 'base/uri_offset.dart';
+import 'base/uri_translator.dart' show UriTranslator;
+import 'codes/cfe_codes.dart' show LocatedMessage;
+import 'dill/dill_target.dart' show DillTarget;
+import 'kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
+import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
+import 'kernel/macro/macro.dart';
+import 'kernel/utils.dart' show printComponentText, serializeComponent;
+import 'kernel/verifier.dart' show verifyComponent;
 import 'macros/macro_target.dart'
     show MacroConfiguration, computeMacroConfiguration;
+import 'source/source_loader.dart' show SourceLoader;
 
+// Coverage-ignore(suite): Not run.
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
 /// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
@@ -56,14 +58,19 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
   });
 }
 
-Future<CompilerResult> generateKernelInternal(
+/// Note that if [buildSummary] is true it will be default serialize the summary
+/// but this can be disabled by setting [serializeIfBuildingSummary] to false.
+Future<InternalCompilerResult> generateKernelInternal(
     {bool buildSummary = false,
+    bool serializeIfBuildingSummary = true,
     bool buildComponent = true,
     bool truncateSummary = false,
     bool includeOffsets = true,
-    bool retainDataForTesting = false,
     bool includeHierarchyAndCoreTypes = false,
-    Benchmarker? benchmarker}) async {
+    bool retainDataForTesting = false,
+    Benchmarker? benchmarker,
+    Instrumentation? instrumentation,
+    List<Component>? additionalDillsForTesting}) async {
   ProcessedOptions options = CompilerContext.current.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
@@ -71,7 +78,7 @@ Future<CompilerResult> generateKernelInternal(
   FileSystem fs = options.fileSystem;
 
   SourceLoader? sourceLoader;
-  return withCrashReporting<CompilerResult>(() async {
+  return withCrashReporting<InternalCompilerResult>(() async {
     while (true) {
       // TODO(johnniwinther): How much can we reuse between iterations?
       UriTranslator uriTranslator = await options.getUriTranslator();
@@ -90,7 +97,13 @@ Future<CompilerResult> generateKernelInternal(
       // By using the nameRoot of the summary, we enable sharing the
       // sdkSummary between multiple invocations.
       CanonicalName? nameRoot;
-      if (options.hasAdditionalDills) {
+      if (additionalDillsForTesting != null) {
+        for (Component additionalDill in additionalDillsForTesting) {
+          loadedComponents.add(additionalDill);
+          dillTarget.loader.appendLibraries(additionalDill);
+        }
+      } else if (options.hasAdditionalDills) {
+        // Coverage-ignore-block(suite): Not run.
         nameRoot = sdkSummary?.root ?? new CanonicalName.root();
         for (Component additionalDill
             in await options.loadAdditionalDills(nameRoot)) {
@@ -104,18 +117,23 @@ Future<CompilerResult> generateKernelInternal(
       KernelTarget kernelTarget =
           new KernelTarget(fs, false, dillTarget, uriTranslator);
       sourceLoader = kernelTarget.loader;
+      sourceLoader!.instrumentation = instrumentation;
       kernelTarget.setEntryPoints(options.inputs);
       NeededPrecompilations? neededPrecompilations =
           await kernelTarget.computeNeededPrecompilations();
-      kernelTarget.benchmarker?.enterPhase(BenchmarkPhases.precompileMacros);
+      kernelTarget.benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.precompileMacros);
       Map<Uri, ExecutorFactoryToken>? precompiled =
           await precompileMacros(neededPrecompilations, options);
       if (precompiled != null) {
+        // Coverage-ignore-block(suite): Not run.
         kernelTarget.benchmarker
             ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
         continue;
       }
       kernelTarget.benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
       return _buildInternal(
           options: options,
@@ -124,6 +142,7 @@ Future<CompilerResult> generateKernelInternal(
           sdkSummary: sdkSummary,
           loadedComponents: loadedComponents,
           buildSummary: buildSummary,
+          serializeIfBuildingSummary: serializeIfBuildingSummary,
           truncateSummary: truncateSummary,
           buildComponent: buildComponent,
           includeOffsets: includeOffsets,
@@ -131,18 +150,20 @@ Future<CompilerResult> generateKernelInternal(
           retainDataForTesting: retainDataForTesting);
     }
   },
+      // Coverage-ignore(suite): Not run.
       () =>
           sourceLoader?.currentUriForCrashReporting ??
           new UriOffset(options.inputs.first, TreeNode.noOffset));
 }
 
-Future<CompilerResult> _buildInternal(
+Future<InternalCompilerResult> _buildInternal(
     {required ProcessedOptions options,
     required KernelTarget kernelTarget,
     required CanonicalName? nameRoot,
     required Component? sdkSummary,
     required List<Component> loadedComponents,
     required bool buildSummary,
+    required bool serializeIfBuildingSummary,
     required bool truncateSummary,
     required bool buildComponent,
     required bool includeOffsets,
@@ -153,6 +174,7 @@ Future<CompilerResult> _buildInternal(
   Component summaryComponent = buildResult.component!;
   List<int>? summary = null;
   if (buildSummary) {
+    // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
       List<LocatedMessage> errors = verifyComponent(
           options.target, VerificationStage.outline, summaryComponent);
@@ -189,9 +211,6 @@ Future<CompilerResult> _buildInternal(
       case NnbdMode.Strong:
         compiledMode = NonNullableByDefaultCompiledMode.Strong;
         break;
-      case NnbdMode.Agnostic:
-        compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-        break;
     }
     if (kernelTarget.loader.hasInvalidNnbdModeLibrary) {
       compiledMode = NonNullableByDefaultCompiledMode.Invalid;
@@ -207,9 +226,11 @@ Future<CompilerResult> _buildInternal(
       options.target.performOutlineTransformations(trimmedSummaryComponent);
       options.ticker.logMs("Transformed outline");
     }
-    // Don't include source (but do add it above to include importUris).
-    summary = serializeComponent(trimmedSummaryComponent,
-        includeSources: false, includeOffsets: includeOffsets);
+    if (serializeIfBuildingSummary) {
+      // Don't include source (but do add it above to include importUris).
+      summary = serializeComponent(trimmedSummaryComponent,
+          includeSources: false, includeOffsets: includeOffsets);
+    }
     options.ticker.logMs("Generated outline");
   }
 
@@ -220,6 +241,7 @@ Future<CompilerResult> _buildInternal(
         verify: options.verify);
     component = buildResult.component;
     if (options.debugDump) {
+      // Coverage-ignore-block(suite): Not run.
       printComponentText(component,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging,
           showOffsets: options.debugDumpShowOffsets);
@@ -230,7 +252,9 @@ Future<CompilerResult> _buildInternal(
   }
   // TODO(johnniwinther): Should we reuse the macro executor on subsequent
   // compilations where possible?
-  buildResult.macroApplications?.close();
+  buildResult.macroApplications
+      // Coverage-ignore(suite): Not run.
+      ?.close();
 
   return new InternalCompilerResult(
       summary: summary,
@@ -290,6 +314,7 @@ class InternalCompilerResult implements CompilerResult {
       this.kernelTargetForTesting});
 }
 
+// Coverage-ignore(suite): Not run.
 /// A fake absolute directory used as the root of a memory-file system in the
 /// compilation below.
 final Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
@@ -305,6 +330,7 @@ final Uri _defaultDir = Uri.parse('org-dartlang-macro:///a/b/c/');
 Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
     NeededPrecompilations? neededPrecompilations,
     ProcessedOptions options) async {
+  // Coverage-ignore-block(suite): Not run.
   if (neededPrecompilations != null) {
     if (options.globalFeatures.macros.isEnabled) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
@@ -323,6 +349,7 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
   return null;
 }
 
+// Coverage-ignore(suite): Not run.
 Future<Map<Uri, ExecutorFactoryToken>?> _compileMacros(
     NeededPrecompilations neededPrecompilations,
     ProcessedOptions options) async {

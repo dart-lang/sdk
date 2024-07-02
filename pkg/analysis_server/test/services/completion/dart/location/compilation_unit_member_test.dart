@@ -142,6 +142,12 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -156,18 +162,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
@@ -330,25 +330,29 @@ class A {}
 ''');
     assertResponse(r'''
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
   class
     kind: keyword
   const
+    kind: keyword
+  void
+    kind: keyword
+  final
+    kind: keyword
+  enum
+    kind: keyword
+  typedef
+    kind: keyword
+  abstract
+    kind: keyword
+  base
     kind: keyword
   covariant
     kind: keyword
   dynamic
     kind: keyword
-  enum
-    kind: keyword
   extension
     kind: keyword
   external
-    kind: keyword
-  final
     kind: keyword
   interface
     kind: keyword
@@ -358,11 +362,7 @@ suggestions
     kind: keyword
   sealed
     kind: keyword
-  typedef
-    kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }
@@ -392,6 +392,12 @@ import "foo";
 ''');
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -406,18 +412,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
@@ -583,6 +583,12 @@ part of foo;
     // TODO(brianwilkerson): We should not be suggesting directives.
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -597,18 +603,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late
@@ -926,6 +926,12 @@ suggestions
 ''');
     assertResponse(r'''
 suggestions
+  import '';
+    kind: keyword
+    selection: 8
+  export '';
+    kind: keyword
+    selection: 8
   abstract
     kind: keyword
   base
@@ -940,18 +946,12 @@ suggestions
     kind: keyword
   enum
     kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
   extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
   interface
     kind: keyword
   late

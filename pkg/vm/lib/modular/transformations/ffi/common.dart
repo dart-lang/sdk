@@ -7,7 +7,7 @@
 
 library vm.transformations.ffi;
 
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,

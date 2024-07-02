@@ -2927,7 +2927,10 @@ void LoadClassIdInstr::InferRange(uword* lower, uword* upper) {
   if (cid != kDynamicCid) {
     *lower = *upper = cid;
   } else if (CompilerState::Current().is_aot()) {
-    *upper = IsolateGroup::Current()->class_table()->NumCids();
+    IsolateGroup* isolate_group = IsolateGroup::Current();
+    *upper = isolate_group->has_dynamically_extendable_classes()
+                 ? kClassIdTagMax
+                 : isolate_group->class_table()->NumCids();
 
     HierarchyInfo* hi = Thread::Current()->hierarchy_info();
     if (hi != nullptr) {
@@ -2935,12 +2938,14 @@ void LoadClassIdInstr::InferRange(uword* lower, uword* upper) {
       if (type.IsType() && !type.IsFutureOrType() &&
           !Instance::NullIsAssignableTo(type)) {
         const auto& type_class = Class::Handle(type.type_class());
-        const auto& ranges =
-            hi->SubtypeRangesForClass(type_class, /*include_abstract=*/false,
-                                      /*exclude_null=*/true);
-        if (ranges.length() > 0) {
-          *lower = ranges[0].cid_start;
-          *upper = ranges[ranges.length() - 1].cid_end;
+        if (!type_class.has_dynamically_extendable_subtypes()) {
+          const auto& ranges =
+              hi->SubtypeRangesForClass(type_class, /*include_abstract=*/false,
+                                        /*exclude_null=*/true);
+          if (ranges.length() > 0) {
+            *lower = ranges[0].cid_start;
+            *upper = ranges[ranges.length() - 1].cid_end;
+          }
         }
       }
     }

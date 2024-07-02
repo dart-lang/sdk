@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -43,7 +43,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
   Future<AnalysisError> _findErrorToFix(
-      {bool Function(AnalysisError)? errorFilter, int? length}) async {
+      {bool Function(AnalysisError)? errorFilter}) async {
     var errors = testAnalysisResult.errors;
     if (errorFilter != null) {
       if (errors.length == 1) {
@@ -304,7 +304,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// [expected] output.
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
-      int? length,
       String? target,
       int? expectedNumberOfFixesForKind,
       String? matchFixMessage,
@@ -312,7 +311,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     expected = normalizeSource(expected);
     var error = await _findErrorToFix(
       errorFilter: errorFilter,
-      length: length,
     );
     var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,

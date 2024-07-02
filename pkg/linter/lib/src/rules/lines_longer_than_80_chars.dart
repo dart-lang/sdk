@@ -51,7 +51,7 @@ class LinesLongerThan80Chars extends LintRule {
             name: 'lines_longer_than_80_chars',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -195,8 +195,10 @@ class _Visitor extends SimpleAstVisitor {
         end = lineInfo.getOffsetOfLine(i + 1) - 1;
         var length = end - start;
         if (length > 80) {
-          if (context.currentUnit.content[end] == _lf &&
-              context.currentUnit.content[end - 1] == _cr) {
+          var content = node.declaredElement?.source.contents.data;
+          if (content != null &&
+              content[end] == _lf &&
+              content[end - 1] == _cr) {
             end--;
           }
         }

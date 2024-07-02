@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -15,6 +15,8 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
   String _oldAnnotation = '';
 
   String _newAnnotation = '';
+
+  ChangeTypeAnnotation({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -29,13 +31,13 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var declaration = coveredNode?.parent;
+    var declaration = coveringNode?.parent;
     if (declaration is! VariableDeclaration) {
       return;
     }
 
     var initializer = declaration.initializer;
-    if (initializer == null || initializer != coveredNode) {
+    if (initializer == null || initializer != coveringNode) {
       return;
     }
 

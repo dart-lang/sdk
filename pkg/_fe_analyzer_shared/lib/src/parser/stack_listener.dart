@@ -130,7 +130,8 @@ abstract class StackListener extends Listener with StackChecker {
   @override
   Uri get uri;
 
-  Uri get importUri;
+  /// Returns `true` if the current file is part of a `dart:` library.
+  bool get isDartLibrary;
 
   void discard(int n) {
     for (int i = 0; i < n; i++) {
@@ -402,8 +403,7 @@ abstract class StackListener extends Listener with StackChecker {
       // Ignored. This error is handled by the BodyBuilder.
       return true;
     } else if (code == codeBuiltInIdentifierInDeclaration) {
-      if (importUri.isScheme("dart")) return true;
-      if (uri.isScheme("org-dartlang-sdk")) return true;
+      if (isDartLibrary) return true;
       return false;
     } else {
       return false;

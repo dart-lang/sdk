@@ -19,7 +19,6 @@ class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
 
-// TODO(riscv): Introduce random LR/SC failures.
 // TODO(riscv): Dynamic rounding mode and other FSCR state.
 class Simulator {
  public:

@@ -134,6 +134,30 @@ void g() {
 ''');
   }
 
+  Future<void> test_function_returnType_future() async {
+    await resolveTestCode(r'''
+Future<int> f() => Future.value(0);
+''');
+
+    await assertHasAssistAt('=>', r'''
+Future<int> f() async => Future.value(0);
+''');
+  }
+
+  Future<void> test_function_returnType_futureOr() async {
+    await resolveTestCode(r'''
+import 'dart:async';
+
+FutureOr<int> f() => 0;
+''');
+
+    await assertHasAssistAt('=>', r'''
+import 'dart:async';
+
+Future<int> f() async => 0;
+''');
+  }
+
   Future<void> test_getter_expression_noSpace() async {
     await resolveTestCode('''
 class C {

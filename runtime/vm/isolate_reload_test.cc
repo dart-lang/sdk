@@ -5410,7 +5410,7 @@ static void TestReloadWithFieldChange(const char* prefix,
                                       const char* to_type,
                                       const char* to_init) {
   // clang-format off
-  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr,
+  CStringUniquePtr kScript(OS::SCreate(nullptr,
                                                      R"(
     import 'dart:typed_data';
 
@@ -5438,7 +5438,7 @@ static void TestReloadWithFieldChange(const char* prefix,
   from_type,
   from_init,
   suffix,
-  verify), std::free);
+  verify));
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), nullptr);
@@ -5446,7 +5446,7 @@ static void TestReloadWithFieldChange(const char* prefix,
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // clang-format off
-  auto kReloadScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  CStringUniquePtr kReloadScript(OS::SCreate(nullptr, R"(
     import 'dart:typed_data';
 
     void doubleEq(double got, double expected) {
@@ -5472,7 +5472,7 @@ static void TestReloadWithFieldChange(const char* prefix,
       }
     }
   )", prefix, to_type, to_init, suffix,
-  verify), std::free);
+  verify));
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());

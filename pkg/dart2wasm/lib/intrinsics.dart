@@ -10,6 +10,7 @@ import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_forwarders.dart';
 import 'translator.dart';
+import 'types.dart';
 
 typedef CodeGenCallback = void Function(CodeGenerator);
 
@@ -112,6 +113,7 @@ class Intrinsifier {
   };
 
   Translator get translator => codeGen.translator;
+  Types get types => codeGen.translator.types;
   w.InstructionsBuilder get b => codeGen.b;
 
   DartType dartTypeOf(Expression exp) => codeGen.dartTypeOf(exp);
@@ -248,6 +250,16 @@ class Intrinsifier {
               codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
               b.i64_lt_u();
               return boolType;
+            case "geU":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_ge_u();
+              return boolType;
+            case "gtU":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_gt_u();
+              return boolType;
             default:
               throw 'Unknown WasmI64 member $name';
           }
@@ -313,9 +325,11 @@ class Intrinsifier {
         }
       }
       if (constIndex != null) {
-        ListConstant list = receiver.constant as ListConstant;
-        Expression element = ConstantExpression(list.entries[constIndex]);
-        return codeGen.wrap(element, typeOfExp(element));
+        final entries = (receiver.constant as ListConstant).entries;
+        if (0 <= constIndex && constIndex < entries.length) {
+          Expression element = ConstantExpression(entries[constIndex]);
+          return codeGen.wrap(element, typeOfExp(element));
+        }
       }
 
       return null;
@@ -433,13 +447,41 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
-    if (target.enclosingLibrary.name == "dart.core") {
-      if (target.name.text == "_isIntrinsified") {
-        // This is part of the VM's [BigInt] implementation. We just return false.
-        // TODO(joshualitt): Can we find another way to reuse this patch file
-        // without hardcoding this case?
-        b.i32_const(0);
-        return w.NumType.i32;
+    if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
+      switch (target.name.text) {
+        case "_isIntrinsified":
+          // This is part of the VM's [BigInt] implementation. We just return false.
+          // TODO(joshualitt): Can we find another way to reuse this patch file
+          // without hardcoding this case?
+          b.i32_const(0);
+          return w.NumType.i32;
+        case "_noSubstitutionIndex":
+          b.i32_const(RuntimeTypeInformation.noSubstitutionIndex);
+          return w.NumType.i32;
+        case "_typeRulesSupers":
+          final type = translator
+              .translateStorageType(types.rtt.typeRulesSupersType)
+              .unpacked;
+          translator.constants
+              .instantiateConstant(null, b, types.rtt.typeRulesSupers, type);
+          return type;
+        case "_canonicalSubstitutionTable":
+          final type = translator
+              .translateStorageType(types.rtt.substitutionTableConstantType)
+              .unpacked;
+          translator.constants.instantiateConstant(
+              null, b, types.rtt.substitutionTableConstant, type);
+          return type;
+        case "_typeNames":
+          final type =
+              translator.translateStorageType(types.rtt.typeNamesType).unpacked;
+          if (translator.options.minify) {
+            b.ref_null((type as w.RefType).heapType);
+          } else {
+            translator.constants
+                .instantiateConstant(null, b, types.rtt.typeNames, type);
+          }
+          return type;
       }
     }
 
@@ -668,12 +710,6 @@ class Intrinsifier {
             return w.NumType.i32;
           }
           break;
-        case "_getTypeRulesSupers":
-          return translator.types.makeTypeRulesSupers(b);
-        case "_getTypeRulesSubstitutions":
-          return translator.types.makeTypeRulesSubstitutions(b);
-        case "_getTypeNames":
-          return translator.types.makeTypeNames(b);
         case "_isObjectClassId":
           final classId = node.arguments.positional.single;
 
@@ -1575,8 +1611,8 @@ class Intrinsifier {
           function, translator.nullableObjectArrayType, 0, (_, __) {});
 
       b.else_();
-      // List argument may be a custom list type, convert it to `_ListBase`
-      // with `_List.of`.
+      // List argument may be a custom list type, convert it to `WasmListBase`
+      // with `WasmListBase.of`.
       translator.constants.instantiateConstant(
         function,
         b,

@@ -61,14 +61,15 @@ Item? bestDeal(List<Item> cart) {
 class AvoidInitToNull extends LintRule {
   static const LintCode code = LintCode(
       'avoid_init_to_null', "Redundant initialization to 'null'.",
-      correctionMessage: 'Try removing the initializer.');
+      correctionMessage: 'Try removing the initializer.',
+      hasPublishedDocs: true);
 
   AvoidInitToNull()
       : super(
             name: 'avoid_init_to_null',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

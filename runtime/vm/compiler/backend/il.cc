@@ -319,6 +319,9 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
 
   Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
+  if (type_class.has_dynamically_extendable_subtypes()) {
+    return false;
+  }
 
   // We can use class id range checks only if we don't have to test type
   // arguments.
@@ -364,6 +367,9 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
+  if (type_class.has_dynamically_extendable_subtypes()) {
+    return false;
+  }
 
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&
@@ -1392,10 +1398,17 @@ bool Value::NeedsWriteBarrier() {
 
     // Strictly speaking, the incremental barrier can only be skipped for
     // immediate objects (Smis) or permanent objects (vm-isolate heap or
-    // image pages). Here we choose to skip the barrier for any constant on
-    // the assumption it will remain reachable through the object pool.
+    // image pages). For AOT, we choose to skip the barrier for any constant on
+    // the assumptions it will remain reachable through the object pool and it
+    // is on a page created by snapshot loading that is marked so as to never be
+    // evacuated.
     if (value->BindsToConstant()) {
-      return false;
+      if (FLAG_precompiled_mode) {
+        return false;
+      } else {
+        const Object& constant = value->BoundConstant();
+        return constant.ptr()->IsHeapObject() && !constant.InVMIsolateHeap();
+      }
     }
 
     // Follow the chain of redefinitions as redefined value could have a more
@@ -3778,26 +3791,8 @@ Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* CalculateElementAddressInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (index()->BindsToSmiConstant() && offset()->BindsToSmiConstant()) {
-    const intptr_t offset_in_bytes = Utils::AddWithWrapAround(
-        Utils::MulWithWrapAround<intptr_t>(index()->BoundSmiConstant(),
-                                           index_scale()),
-        offset()->BoundSmiConstant());
-
-    if (offset_in_bytes == 0) return base()->definition();
-
-    if (compiler::target::IsSmi(offset_in_bytes)) {
-      auto* const Z = flow_graph->zone();
-      auto* const new_adjust = new (Z) CalculateElementAddressInstr(
-          base()->CopyWithType(Z),
-          new (Z) Value(
-              flow_graph->GetConstant(Object::smi_zero(), kUnboxedIntPtr)),
-          /*index_scale=*/1,
-          new (Z) Value(flow_graph->GetConstant(
-              Smi::Handle(Smi::New(offset_in_bytes)), kUnboxedIntPtr)));
-      flow_graph->InsertBefore(this, new_adjust, env(), FlowGraph::kValue);
-      return new_adjust;
-    }
+  if (IsNoop()) {
+    return base()->definition();
   }
   return this;
 }
@@ -4069,7 +4064,6 @@ UnboxInstr* UnboxInstr::Create(Representation to,
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
-      ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
       return new UnboxInstr(to, value, deopt_id, speculative_mode);
 
     default:
@@ -4558,7 +4552,9 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Note: static fields ids won't be changed by hot-reload.
   const intptr_t field_table_offset =
-      compiler::target::Thread::field_table_values_offset();
+      field().is_shared()
+          ? compiler::target::Thread::shared_field_table_values_offset()
+          : compiler::target::Thread::field_table_values_offset();
   const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
 
   __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
@@ -4575,33 +4571,29 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
     ASSERT(field().has_initializer());
+    ASSERT(field().is_late());
     auto object_store = compiler->isolate_group()->object_store();
     const Field& original_field = Field::ZoneHandle(field().Original());
 
-    compiler::Label no_call, call_initializer;
+    compiler::Label no_call;
     __ CompareObject(result, Object::sentinel());
-    if (!field().is_late()) {
-      __ BranchIf(EQUAL, &call_initializer);
-      __ CompareObject(result, Object::transition_sentinel());
-    }
     __ BranchIf(NOT_EQUAL, &no_call);
 
     auto& stub = Code::ZoneHandle(compiler->zone());
-    __ Bind(&call_initializer);
     if (field().needs_load_guard()) {
       stub = object_store->init_static_field_stub();
-    } else if (field().is_late()) {
+    } else {
       // The stubs below call the initializer function directly, so make sure
       // one is created.
       original_field.EnsureInitializerFunction();
-      stub = field().is_final()
-                 ? object_store->init_late_final_static_field_stub()
-                 : object_store->init_late_static_field_stub();
-    } else {
-      // We call to runtime for non-late fields because the stub would need to
-      // catch any exception generated by the initialization function to change
-      // the value of the static field from the transition sentinel to null.
-      stub = object_store->init_static_field_stub();
+      stub =
+          field().is_shared()
+              ? (field().is_final()
+                     ? object_store->init_shared_late_final_static_field_stub()
+                     : object_store->init_shared_late_static_field_stub())
+              : (field().is_final()
+                     ? object_store->init_late_final_static_field_stub()
+                     : object_store->init_late_static_field_stub());
     }
 
     __ LoadObject(InitStaticFieldABI::kFieldReg, original_field);
@@ -5115,7 +5107,7 @@ LocationSummary* TestRangeInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM)
-  const bool needs_temp = true;
+  const bool needs_temp = (lower() != 0);
 #else
   const bool needs_temp = false;
 #endif
@@ -5141,14 +5133,18 @@ Condition TestRangeInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   }
 
   Register in = locs()->in(0).reg();
+  if (lower == 0) {
+    __ CompareImmediate(in, upper);
+  } else {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM)
-  Register temp = locs()->temp(0).reg();
+    Register temp = locs()->temp(0).reg();
 #else
-  Register temp = TMP;
+    Register temp = TMP;
 #endif
-  __ AddImmediate(temp, in, -lower);
-  __ CompareImmediate(temp, upper - lower);
+    __ AddImmediate(temp, in, -lower);
+    __ CompareImmediate(temp, upper - lower);
+  }
   ASSERT((kind() == Token::kIS) || (kind() == Token::kISNOT));
   return kind() == Token::kIS ? UNSIGNED_LESS_EQUAL : UNSIGNED_GREATER;
 }
@@ -5228,18 +5224,8 @@ void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
 
 static FunctionPtr FindBinarySmiOp(Zone* zone, const String& name) {
   const auto& smi_class = Class::Handle(zone, Smi::Class());
-  auto& smi_op_target = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (smi_op_target.IsNull() &&
-      Function::IsDynamicInvocationForwarderName(name)) {
-    const String& demangled = String::Handle(
-        zone, Function::DemangleDynamicInvocationForwarderName(name));
-    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
-  }
-#endif
-  return smi_op_target.ptr();
+  return Resolver::ResolveDynamicAnyArgs(zone, smi_class, name,
+                                         /*allow_add=*/true);
 }
 
 void InstanceCallInstr::EnsureICData(FlowGraph* graph) {
@@ -7265,6 +7251,67 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   return kLibcPowRuntimeEntry;
 }
 
+Definition* InvokeMathCFunctionInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!CompilerState::Current().is_aot() &&
+      TargetCPUFeatures::double_truncate_round_supported()) {
+    Token::Kind op_kind = Token::kILLEGAL;
+    switch (recognized_kind_) {
+      case MethodRecognizer::kDoubleTruncateToDouble:
+        op_kind = Token::kTRUNCATE;
+        break;
+      case MethodRecognizer::kDoubleFloorToDouble:
+        op_kind = Token::kFLOOR;
+        break;
+      case MethodRecognizer::kDoubleCeilToDouble:
+        op_kind = Token::kCEILING;
+        break;
+      default:
+        return this;
+    }
+    auto* instr = new UnaryDoubleOpInstr(
+        op_kind, new Value(InputAt(0)->definition()), GetDeoptId(),
+        Instruction::kNotSpeculative, kUnboxedDouble);
+    flow_graph->InsertBefore(this, instr, env(), FlowGraph::kValue);
+    return instr;
+  }
+
+  return this;
+}
+
+bool DoubleToIntegerInstr::SupportsFloorAndCeil() {
+#if defined(TARGET_ARCH_X64)
+  return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
+  return true;
+#else
+  return false;
+#endif
+}
+
+Definition* DoubleToIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (SupportsFloorAndCeil() &&
+      (recognized_kind() == MethodRecognizer::kDoubleToInteger)) {
+    if (auto* arg = value()->definition()->AsInvokeMathCFunction()) {
+      switch (arg->recognized_kind()) {
+        case MethodRecognizer::kDoubleFloorToDouble:
+          // x.floorToDouble().toInt() => x.floor()
+          recognized_kind_ = MethodRecognizer::kDoubleFloorToInt;
+          value()->BindTo(arg->InputAt(0)->definition());
+          break;
+        case MethodRecognizer::kDoubleCeilToDouble:
+          // x.ceilToDouble().toInt() => x.ceil()
+          recognized_kind_ = MethodRecognizer::kDoubleCeilToInt;
+          value()->BindTo(arg->InputAt(0)->definition());
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  return this;
+}
+
 TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)
     : TemplateDefinition(deopt_id) {
   SetInputAt(0, lhs);
@@ -7820,6 +7867,98 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ StoreToSlotNoBarrier(locs()->in(kValuePos).reg(), instance_reg, slot(),
                             memory_order_);
+  }
+}
+
+LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  auto* const summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
+  summary->set_in(kBasePos, Location::RequiresRegister());
+  // Only use a Smi constant for the index if multiplying it by the index
+  // scale would be an int32 constant.
+  const intptr_t scale_shift = Utils::ShiftForPowerOfTwo(index_scale());
+  summary->set_in(kIndexPos, LocationRegisterOrSmiConstant(
+                                 index(), kMinInt32 >> scale_shift,
+                                 kMaxInt32 >> scale_shift));
+  // Only use a Smi constant for the offset if it is an int32 constant.
+  summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset(), kMinInt32,
+                                                            kMaxInt32));
+  // Special case for when both inputs are appropriate constants.
+  if (summary->in(kIndexPos).IsConstant() &&
+      summary->in(kOffsetPos).IsConstant()) {
+    const int64_t offset_in_bytes = Utils::AddWithWrapAround<int64_t>(
+        Utils::MulWithWrapAround<int64_t>(index()->BoundSmiConstant(),
+                                          index_scale()),
+        offset()->BoundSmiConstant());
+    if (!Utils::IsInt(32, offset_in_bytes)) {
+      // The offset in bytes calculated from the index and offset cannot
+      // fit in a 32-bit immediate, so pass the index as a register instead.
+      summary->set_in(kIndexPos, Location::RequiresRegister());
+    }
+  }
+
+  // Currently this instruction can only be used in optimized mode as it takes
+  // and puts untagged values on the stack, and the canonicalization pass should
+  // always remove no-op uses of this instruction. Flag this for handling if
+  // this ever changes.
+  ASSERT(opt && !IsNoop());
+  summary->set_out(0, Location::RequiresRegister());
+
+  return summary;
+}
+
+void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register base_reg = locs()->in(kBasePos).reg();
+  const Location& index_loc = locs()->in(kIndexPos);
+  const Location& offset_loc = locs()->in(kOffsetPos);
+  const Register result_reg = locs()->out(0).reg();
+
+  ASSERT(!IsNoop());
+
+  if (index_loc.IsConstant()) {
+    const int64_t index = Smi::Cast(index_loc.constant()).Value();
+    ASSERT(Utils::IsInt(32, index));
+    const int64_t scaled_index = index * index_scale();
+    ASSERT(Utils::IsInt(32, scaled_index));
+    if (offset_loc.IsConstant()) {
+      const int64_t disp =
+          scaled_index + Smi::Cast(offset_loc.constant()).Value();
+      ASSERT(Utils::IsInt(32, disp));
+      __ AddScaled(result_reg, kNoRegister, base_reg, TIMES_1, disp);
+    } else {
+      __ AddScaled(result_reg, base_reg, offset_loc.reg(), TIMES_1,
+                   scaled_index);
+    }
+  } else {
+    Register index_reg = index_loc.reg();
+    ASSERT(RepresentationUtils::IsUnboxedInteger(
+        RequiredInputRepresentation(kIndexPos)));
+    auto scale = ToScaleFactor(index_scale(), /*index_unboxed=*/true);
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+    if (scale == TIMES_16) {
+      COMPILE_ASSERT(kSmiTagShift == 1);
+      // A ScaleFactor of TIMES_16 is invalid for x86, so box the index as a Smi
+      // (using the result register to store it to avoid allocating a writable
+      // register for the index) to reduce the ScaleFactor to TIMES_8.
+      __ MoveAndSmiTagRegister(result_reg, index_reg);
+      index_reg = result_reg;
+      scale = TIMES_8;
+    }
+#endif
+    if (offset_loc.IsConstant()) {
+      const intptr_t disp = Smi::Cast(offset_loc.constant()).Value();
+      ASSERT(Utils::IsInt(32, disp));
+      __ AddScaled(result_reg, base_reg, index_reg, scale, disp);
+    } else {
+      // No architecture can do this case in a single instruction.
+      __ AddScaled(result_reg, base_reg, index_reg, scale, /*disp=*/0);
+      __ AddRegisters(result_reg, offset_loc.reg());
+    }
   }
 }
 

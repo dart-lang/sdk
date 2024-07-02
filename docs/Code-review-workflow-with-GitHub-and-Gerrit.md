@@ -7,9 +7,9 @@
 
 There are several ways to contribute code in GitHub, for example
 
-1. forking and creating pull request from a forked repo (https://help.github.com/articles/fork-a-repo)
-1. branching within the main repo, and doing pull requests from one branch to another.
-1. working on a local branch, creating a code review using Gerrit, push directly into master (this article).
+1. Forking and creating pull request from a forked repo (https://help.github.com/articles/fork-a-repo)
+1. Branching within the main repo, and doing pull requests from one branch to another.
+1. Working on a local branch, creating a code review using Gerrit, push directly into main (this article).
 
 ## Step 1: get the source
 
@@ -32,7 +32,7 @@ There is a `codereview.settings` file in the repo to configure things automatica
 
 ## Step 3: Create a branch for your new changes
 
-Pick a branch name not existing locally nor in the remote repo, we recommend that you use your user name as a prefix to make things simpler.
+Pick a branch name not existing locally nor in the remote repo, we recommend that you use your username as a prefix to make things simpler.
 
     > cd sdk                          # the repo created above
     > git checkout -b uname_example   # new branch

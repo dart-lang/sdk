@@ -1,3 +1,11 @@
+# 4.2.4+1
+- Added missing type to `Event` in `postEvent`.
+- [DAP] Instaces with both fields and getters of the same name will no longer show duplicates in `variables` responses.
+- `bin/dds.dart` now closes the `stderr` pipe after writing its JSON to the stream.
+
+# 4.2.3
+- Added missing await of `WebSocketChannel.ready` in `startDartDevelopmentService`.
+
 # 4.2.2
 - [DAP] Exceptions that occur while the debug adapter is connecting to the VM Service and configuring isolates will no longer cause the debug adapter to terminate. Instead, the errors are reporting via a `console` `OutputEvent` and the adapter will shut down gracefully.
 

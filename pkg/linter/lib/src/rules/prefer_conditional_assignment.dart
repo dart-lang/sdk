@@ -70,14 +70,15 @@ class PreferConditionalAssignment extends LintRule {
   static const LintCode code = LintCode('prefer_conditional_assignment',
       "The 'if' statement could be replaced by a null-aware assignment.",
       correctionMessage:
-          "Try using the '??=' operator to conditionally assign a value.");
+          "Try using the '??=' operator to conditionally assign a value.",
+      hasPublishedDocs: true);
 
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

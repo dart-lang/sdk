@@ -1,10 +1,10 @@
 {
   "comment:0": "This adds to the default libraries found in the platform.",
-  "none": {
+  "vm": {
     "include": [
       {
         "path": "extra_libraries.json",
-        "target": "_none"
+        "target": "_vm"
       },
       {
         "target": "common"

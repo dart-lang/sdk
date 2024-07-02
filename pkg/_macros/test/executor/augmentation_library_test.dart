@@ -22,7 +22,18 @@ void main() {
         kind: IdentifierKind.topLevelMember,
         staticScope: null,
         uri: Uri.parse('dart:core'));
-
+    final objectIdentifier = TestIdentifier(
+        id: RemoteInstance.uniqueId,
+        name: 'Object',
+        kind: IdentifierKind.topLevelMember,
+        staticScope: null,
+        uri: Uri.parse('dart:core'));
+    final superclassIdentifier = TestIdentifier(
+        id: RemoteInstance.uniqueId,
+        name: 'SomeSuperclass',
+        kind: IdentifierKind.topLevelMember,
+        uri: null,
+        staticScope: null);
     final interfaceIdentifiers = [
       for (var i = 0; i < 2; i++)
         TestIdentifier(
@@ -71,6 +82,12 @@ void main() {
           MacroExecutionResultImpl(
             diagnostics: [],
             enumValueAugmentations: {},
+            extendsTypeAugmentations: {
+              for (var j in [0, 2])
+                classes.keys.firstWhere(
+                        (identifier) => identifier.name == 'Foo$i$j'):
+                    NamedTypeAnnotationCode(name: superclassIdentifier),
+            },
             interfaceAugmentations: {
               for (var j = 0; j < 3; j++)
                 classes.keys
@@ -125,29 +142,29 @@ void main() {
         prefix0.int get i1j0 => 1;
         prefix0.int get i1j1 => 2;
         prefix0.int get i1j2 => 3;
-        augment class Foo00 {
+        augment class Foo00 extends SomeSuperclass {
           prefix0.int get i => 0;
           prefix0.int get j => 0;
+        }
+        augment class Foo02 extends SomeSuperclass implements I0, I1 {
+          prefix0.int get i => 0;
+          prefix0.int get j => 2;
+        }
+        augment class Foo10 extends SomeSuperclass with M0 {
+          prefix0.int get i => 1;
+          prefix0.int get j => 0;
+        }
+        augment class Foo12 extends SomeSuperclass with M0 implements I0, I1 {
+          prefix0.int get i => 1;
+          prefix0.int get j => 2;
         }
         augment class Foo01 implements I0 {
           prefix0.int get i => 0;
           prefix0.int get j => 1;
         }
-        augment class Foo02 implements I0, I1 {
-          prefix0.int get i => 0;
-          prefix0.int get j => 2;
-        }
-        augment class Foo10 with M0 {
-          prefix0.int get i => 1;
-          prefix0.int get j => 0;
-        }
         augment class Foo11 with M0 implements I0 {
           prefix0.int get i => 1;
           prefix0.int get j => 1;
-        }
-        augment class Foo12 with M0 implements I0, I1 {
-          prefix0.int get i => 1;
-          prefix0.int get j => 2;
         }
       '''));
     });
@@ -187,6 +204,7 @@ void main() {
         MacroExecutionResultImpl(
           diagnostics: [],
           enumValueAugmentations: {},
+          extendsTypeAugmentations: {},
           interfaceAugmentations: {},
           mixinAugmentations: {},
           typeAugmentations: {},
@@ -246,6 +264,7 @@ void main() {
         MacroExecutionResultImpl(
             diagnostics: [],
             enumValueAugmentations: {},
+            extendsTypeAugmentations: {},
             interfaceAugmentations: {},
             mixinAugmentations: {},
             typeAugmentations: {},
@@ -317,6 +336,7 @@ void main() {
         MacroExecutionResultImpl(
           diagnostics: [],
           enumValueAugmentations: {},
+          extendsTypeAugmentations: {},
           interfaceAugmentations: {},
           mixinAugmentations: {},
           typeAugmentations: {},
@@ -422,7 +442,7 @@ void main() {
           myEnum.identifier: [
             DeclarationCode.fromParts(['a(1),\n']),
           ],
-        }, typeAugmentations: {
+        }, extendsTypeAugmentations: {}, typeAugmentations: {
           myEnum.identifier: [
             DeclarationCode.fromParts(['MyEnum(', myField.identifier, ');\n']),
             DeclarationCode.fromParts(
@@ -505,6 +525,7 @@ void main() {
         MacroExecutionResultImpl(
             diagnostics: [],
             enumValueAugmentations: {},
+            extendsTypeAugmentations: {},
             typeAugmentations: {
               myExtension.identifier: [
                 DeclarationCode.fromParts([
@@ -564,6 +585,7 @@ void main() {
           MacroExecutionResultImpl(
               diagnostics: [],
               enumValueAugmentations: {},
+              extendsTypeAugmentations: {},
               typeAugmentations: {
                 clazz.identifier: [
                   DeclarationCode.fromParts(['']),
@@ -602,6 +624,77 @@ void main() {
             }
           '''));
       }
+    });
+
+    test('copies generic types and bounds', () async {
+      final clazz = ClassDeclarationImpl(
+          id: RemoteInstance.uniqueId,
+          identifier:
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
+          library: Fixtures.library,
+          metadata: [],
+          typeParameters: [
+            TypeParameterDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: 'T'),
+                library: Fixtures.library,
+                metadata: [],
+                bound: NamedTypeAnnotationImpl(
+                    id: RemoteInstance.uniqueId,
+                    isNullable: false,
+                    identifier: objectIdentifier,
+                    typeArguments: [])),
+            TypeParameterDeclarationImpl(
+                id: RemoteInstance.uniqueId,
+                identifier:
+                    IdentifierImpl(id: RemoteInstance.uniqueId, name: 'S'),
+                library: Fixtures.library,
+                metadata: [],
+                bound: null),
+          ],
+          interfaces: [],
+          hasAbstract: false,
+          hasBase: false,
+          hasExternal: false,
+          hasFinal: false,
+          hasInterface: false,
+          hasMixin: false,
+          hasSealed: false,
+          mixins: [],
+          superclass: null);
+
+      var results = [
+        MacroExecutionResultImpl(
+            diagnostics: [],
+            enumValueAugmentations: {},
+            extendsTypeAugmentations: {},
+            typeAugmentations: {
+              clazz.identifier: [
+                DeclarationCode.fromParts(['']),
+              ]
+            },
+            interfaceAugmentations: {},
+            mixinAugmentations: {},
+            newTypeNames: [],
+            libraryAugmentations: []),
+      ];
+      var library = _TestExecutor().buildAugmentationLibrary(
+          Fixtures.library.uri,
+          results,
+          (Identifier i) =>
+              i == clazz.identifier ? clazz : throw UnimplementedError(),
+          (Identifier i) => (i as TestIdentifier).resolved,
+          (OmittedTypeAnnotation i) =>
+              (i as TestOmittedTypeAnnotation).inferredType);
+      expect(library, equalsIgnoringWhitespace('''
+            augment library 'package:foo/bar.dart';
+
+            import 'dart:core' as prefix0;
+
+            augment class MyClass<T extends prefix0.Object, S> {
+            }
+          '''));
     });
   });
 }

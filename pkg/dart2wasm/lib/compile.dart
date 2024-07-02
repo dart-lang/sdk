@@ -81,7 +81,11 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     mode = wasm.Mode.regular;
   }
   final WasmTarget target = WasmTarget(
-      removeAsserts: !options.translatorOptions.enableAsserts, mode: mode);
+      enableExperimentalFfi: options.translatorOptions.enableExperimentalFfi,
+      enableExperimentalWasmInterop:
+          options.translatorOptions.enableExperimentalWasmInterop,
+      removeAsserts: !options.translatorOptions.enableAsserts,
+      mode: mode);
   CompilerOptions compilerOptions = CompilerOptions()
     ..target = target
     // This is a dummy directory that always exists. This option should be
@@ -92,7 +96,10 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     ..sdkRoot = Uri.file('.')
     ..librariesSpecificationUri = options.librariesSpecPath
     ..packagesFileUri = options.packagesPath
-    ..environmentDefines = options.environment
+    ..environmentDefines = {
+      'dart.tool.dart2wasm': 'true',
+      ...options.environment,
+    }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
@@ -122,6 +129,7 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     "dart:_internal",
     "dart:_js_helper",
     "dart:_js_types",
+    "dart:_list",
     "dart:_string",
     "dart:_wasm",
     "dart:async",
@@ -157,6 +165,15 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
   }
 
   mixin_deduplication.transformComponent(component);
+
+  // Patch `dart:_internal`s `mainTearOff` getter.
+  final internalLib = component.libraries
+      .singleWhere((lib) => lib.importUri.toString() == 'dart:_internal');
+  final mainTearOff = internalLib.procedures
+      .singleWhere((procedure) => procedure.name.text == 'mainTearOff');
+  mainTearOff.isExternal = false;
+  mainTearOff.function.body = ReturnStatement(
+      ConstantExpression(StaticTearOffConstant(component.mainMethod!)));
 
   // Keep the flags in-sync with
   // pkg/vm/test/transformations/type_flow/transformer_test.dart

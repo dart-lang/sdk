@@ -122,7 +122,7 @@ const Map<String, dynamic> data = {
 };
 
 void main() {
-  Env env = new Env('', isNonNullableByDefault: true);
+  Env env = new Env('');
   data.forEach((String input, dynamic output) {
     List<String> parts = input.split(' vs ');
     DartType aType = env.parseType(parts[0]);

@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analysis_server.dart' hide MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -55,6 +55,27 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var result = expectedResult.map((method) => method.toJson()).toSet();
 
     expect(registeredMethods, equals(result));
+  }
+
+  /// Expects successful initialization, but a window/showMessage warning
+  /// [expectedMessage] for the given [experimentalCapabilities].
+  Future<void> expectInvalidExperimentalParams(
+    Map<String, Object?> experimentalCapabilities,
+    String expectedMessage,
+  ) async {
+    var warning = showMessageNotifications
+        .firstWhere((m) => m.type == MessageType.Warning);
+
+    await initialize(experimentalCapabilities: experimentalCapabilities);
+    var message = (await warning).message;
+
+    expect(
+      message,
+      allOf(
+        contains('errors parsing your experimental client capabilities'),
+        contains(expectedMessage),
+      ),
+    );
   }
 
   TextDocumentRegistrationOptions registrationOptionsFor(
@@ -934,6 +955,57 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(
         workspaceFolders: [withTrailingSlashUri(projectFolderUri)]);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void> test_invalidExperimental_commands() async {
+    await expectInvalidExperimentalParams(
+      {'commands': 1},
+      'ClientCapabilities.experimental.commands must be a List<String>?',
+    );
+  }
+
+  Future<void> test_invalidExperimental_dartCodeAction() async {
+    await expectInvalidExperimentalParams(
+      {'dartCodeAction': 1},
+      'ClientCapabilities.experimental.dartCodeAction must be a Map<String, Object?>?',
+    );
+  }
+
+  Future<void>
+      test_invalidExperimental_dartCodeAction_commandParameterSupport() async {
+    await expectInvalidExperimentalParams(
+      {
+        'dartCodeAction': {'commandParameterSupport': 1}
+      },
+      'ClientCapabilities.experimental.dartCodeAction.commandParameterSupport must be a Map<String, Object?>?',
+    );
+  }
+
+  Future<void>
+      test_invalidExperimental_dartCodeAction_commandParameterSupport_supportedKinds() async {
+    await expectInvalidExperimentalParams(
+      {
+        'dartCodeAction': {
+          'commandParameterSupport': {'supportedKinds': 1}
+        }
+      },
+      'ClientCapabilities.experimental.dartCodeAction.commandParameterSupport.supportedKinds must be a List<String>?',
+    );
+  }
+
+  Future<void> test_invalidExperimental_snippetTextEdit() async {
+    await expectInvalidExperimentalParams(
+      {'snippetTextEdit': 1},
+      'ClientCapabilities.experimental.snippetTextEdit must be a bool?',
+    );
+  }
+
+  Future<void>
+      test_invalidExperimental_supportsDartTextDocumentContentProvider() async {
+    await expectInvalidExperimentalParams(
+      {'supportsDartTextDocumentContentProvider': 1},
+      'ClientCapabilities.experimental.supportsDartTextDocumentContentProvider must be a bool?',
+    );
   }
 
   Future<void> test_nonFileScheme_rootUri() async {

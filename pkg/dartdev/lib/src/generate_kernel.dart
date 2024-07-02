@@ -150,7 +150,7 @@ Future<void> ensureCompilationServerIsRunning(
   }
   try {
     Directory(p.dirname(serverInfoFile.path)).createSync(recursive: true);
-    late final Process frontendServerProcess;
+    final Process frontendServerProcess;
     if (File(sdk.frontendServerAotSnapshot).existsSync()) {
       frontendServerProcess = await Process.start(
         sdk.dartAotRuntime,

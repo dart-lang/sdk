@@ -50,7 +50,8 @@ void StubCodeCompiler::GenerateInitStaticFieldStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final) {
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
+                                                       bool is_shared) {
   const Register kResultReg = InitStaticFieldABI::kResultReg;
   const Register kFieldReg = InitStaticFieldABI::kFieldReg;
   const Register kAddressReg = InitLateStaticFieldInternalRegs::kAddressReg;
@@ -71,7 +72,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final) {
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ MoveRegister(kResultReg, CallingConventions::kReturnReg);
   __ PopRegister(kFieldReg);
-  __ LoadStaticFieldAddress(kAddressReg, kFieldReg, kScratchReg);
+  __ LoadStaticFieldAddress(kAddressReg, kFieldReg, kScratchReg, is_shared);
 
   Label throw_exception;
   if (is_final) {
@@ -101,11 +102,19 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final) {
 }
 
 void StubCodeCompiler::GenerateInitLateStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/false);
+  GenerateInitLateStaticFieldStub(/*is_final=*/false, /*is_shared=*/false);
 }
 
 void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true);
+  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/false);
+}
+
+void StubCodeCompiler::GenerateInitSharedLateStaticFieldStub() {
+  GenerateInitLateStaticFieldStub(/*is_final=*/false, /*is_shared=*/true);
+}
+
+void StubCodeCompiler::GenerateInitSharedLateFinalStaticFieldStub() {
+  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/true);
 }
 
 void StubCodeCompiler::GenerateInitInstanceFieldStub() {
@@ -1339,7 +1348,8 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
     const intptr_t fixed_size_plus_alignment_padding =
         (target::Record::field_offset(0) +
          target::ObjectAlignment::kObjectAlignment - 1);
-    __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
+    __ AddScaled(temp_reg, kNoRegister, temp_reg,
+                 TIMES_COMPRESSED_HALF_WORD_SIZE,
                  fixed_size_plus_alignment_padding);
     __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -142,7 +143,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_createSource() {
     File file = getFile(exists: true);
 
-    Source source = file.createSource();
+    Source source = FileSource(file);
     expect(source, isNotNull);
     expect(source.fullName, defaultFilePath);
     expect(source.uri, Uri.file(defaultFilePath));

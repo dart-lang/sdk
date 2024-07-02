@@ -44,15 +44,15 @@ provide a name in the `library` directive.
 class DanglingLibraryDocComments extends LintRule {
   static const LintCode code = LintCode(
       'dangling_library_doc_comments', 'Dangling library doc comment.',
-      correctionMessage:
-          "Add a 'library' directive after the library comment.");
+      correctionMessage: "Add a 'library' directive after the library comment.",
+      hasPublishedDocs: true);
 
   DanglingLibraryDocComments()
       : super(
             name: 'dangling_library_doc_comments',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

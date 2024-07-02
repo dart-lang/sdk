@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -60,7 +61,7 @@ class ImportElementsComputer {
           //
           var importedFile = resourceProvider.getFile(importedElements.path);
           var uri = uriConverter.pathToUri(importedFile.path);
-          var importedSource = importedFile.createSource(uri);
+          var importedSource = FileSource(importedFile, uri);
           var importUri = _getLibrarySourceUri(libraryElement, importedSource);
           var description = _getInsertionDescription(importUri);
           builder.addInsertion(description.offset, (builder) {

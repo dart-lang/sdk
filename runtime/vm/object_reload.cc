@@ -777,7 +777,8 @@ void CallSiteResetter::Reset(const ICData& ic) {
       name_ = ic.target_name();
       const Class& smi_class = Class::Handle(zone_, Smi::Class());
       const Function& smi_op_target = Function::Handle(
-          zone_, Resolver::ResolveDynamicAnyArgs(zone_, smi_class, name_));
+          zone_, Resolver::ResolveDynamicAnyArgs(zone_, smi_class, name_,
+                                                 /*allow_add=*/true));
       GrowableArray<intptr_t> class_ids(2);
       Function& target = Function::Handle(zone_);
       ic.GetCheckAt(0, &class_ids, &target);

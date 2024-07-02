@@ -16,7 +16,7 @@ class ReanalyzeHandler extends LspMessageHandler<void, void> {
   Method get handlesMessage => CustomMethods.reanalyze;
 
   @override
-  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
   Future<ErrorOr<void>> handle(

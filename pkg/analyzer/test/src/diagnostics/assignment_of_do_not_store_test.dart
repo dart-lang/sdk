@@ -55,6 +55,62 @@ class AssignmentOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_class_containingInstanceGetter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  String get v => '';
+}
+
+String f = A().v;
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 5),
+    ]);
+  }
+
+  test_class_containingInstanceMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  String v() => '';
+}
+
+String f = A().v();
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 89, 7),
+    ]);
+  }
+
+  test_class_containingStaticGetter() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  static String get v => '';
+}
+
+String f = A.v;
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 98, 3),
+    ]);
+  }
+
+  test_class_containingStaticMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+class A {
+  static String v() => '';
+}
+
+String f = A.v();
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 5),
+    ]);
+  }
+
   test_classMemberGetter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -73,24 +129,6 @@ class B {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_classMemberVariable() async {
-    await assertErrorsInCode('''
-import 'package:meta/meta.dart';
-
-class A{
-  @doNotStore
-  final f = '';
-}
-
-class B {
-  String f = A().f;
-}
-''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 99, 5),
-    ]);
-  }
-
   test_classStaticGetter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -105,24 +143,6 @@ class B {
 }
 ''', [
       error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 113, 3),
-    ]);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_classStaticVariable() async {
-    await assertErrorsInCode('''
-import 'package:meta/meta.dart';
-
-class A{
-  @doNotStore
-  static final f = '';
-}
-
-class B {
-  String f = A.f;
-}
-''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 3),
     ]);
   }
 
@@ -171,6 +191,23 @@ class B {
     ]);
   }
 
+  test_mixin_containingInstanceMethod() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@doNotStore
+mixin M {
+  String v() => '';
+}
+
+abstract class A {
+  M get m;
+  late String f = m.v();
+}
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 126, 5),
+    ]);
+  }
+
   test_tearOff() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -199,56 +236,23 @@ class A {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_topLevelVariable() async {
+  test_topLevelGetter_binaryExpression() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-final v = '';
+String? get v => '';
 
 class A {
-  final f = v;
+  final f = v ?? v;
 }
 ''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 90, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 95, 1),
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_topLevelVariable_assignment_field() async {
-    await assertErrorsInCode('''
-import 'package:meta/meta.dart';
-
-String top = A().f;
-
-class A{
-  @doNotStore
-  final f = '';
-}
-''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5,
-          messageContains: ["'f'"]),
-    ]);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_topLevelVariable_assignment_functionExpression() async {
-    await assertErrorsInCode('''
-import 'package:meta/meta.dart';
-
-@doNotStore
-String _v = '';
-
-var c = ()=> _v;
-
-String v = c();
-''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 76, 2),
-    ]);
-  }
-
-  test_topLevelVariable_assignment_getter() async {
+  test_topLevelGVariable_assignment_getter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
@@ -259,6 +263,37 @@ String get v => '';
 ''', [
       error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1,
           messageContains: ["'v'"]),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_field() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+String top = A().f;
+
+class A{
+  @doNotStore
+  String get f => '';
+}
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5,
+          messageContains: ["'f'"]),
+    ]);
+  }
+
+  test_topLevelVariable_assignment_functionExpression() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String get _v => '';
+
+var c = () => _v;
+
+String v = c();
+''', [
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 82, 2),
     ]);
   }
 
@@ -275,23 +310,6 @@ class A{
 ''', [
       error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7,
           messageContains: ["'v'"]),
-    ]);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_topLevelVariable_binaryExpression() async {
-    await assertErrorsInCode('''
-import 'package:meta/meta.dart';
-
-@doNotStore
-final String? v = '';
-
-class A {
-  final f = v ?? v;
-}
-''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 1),
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 1),
     ]);
   }
 
@@ -316,21 +334,20 @@ class A {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
   test_topLevelVariable_ternary() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
 
 @doNotStore
-final v = '';
+String get v => '';
 
 class A {
   static bool c = false;
   final f = c ? v : v;
 }
 ''', [
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 112, 1),
-      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 116, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 118, 1),
+      error(WarningCode.ASSIGNMENT_OF_DO_NOT_STORE, 122, 1),
     ]);
   }
 }

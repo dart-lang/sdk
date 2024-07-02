@@ -1000,14 +1000,12 @@ std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateGroupId()
   return formatted_isolate_group_id;
 }
 
-TimelineTrackMetadata::TimelineTrackMetadata(
-    intptr_t pid,
-    intptr_t tid,
-    Utils::CStringUniquePtr&& track_name)
+TimelineTrackMetadata::TimelineTrackMetadata(intptr_t pid,
+                                             intptr_t tid,
+                                             CStringUniquePtr&& track_name)
     : pid_(pid), tid_(tid), track_name_(std::move(track_name)) {}
 
-void TimelineTrackMetadata::set_track_name(
-    Utils::CStringUniquePtr&& track_name) {
+void TimelineTrackMetadata::set_track_name(CStringUniquePtr&& track_name) {
   track_name_ = std::move(track_name);
 }
 
@@ -1540,13 +1538,13 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
   if (entry->value == nullptr) {
     entry->value = new TimelineTrackMetadata(
         process_id, trace_id,
-        Utils::CreateCStringUniquePtr(
+        CStringUniquePtr(
             Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
   } else {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
     ASSERT(process_id == value->pid());
-    value->set_track_name(Utils::CreateCStringUniquePtr(
+    value->set_track_name(CStringUniquePtr(
         Utils::StrDup(thread_name == nullptr ? "" : thread_name)));
   }
 }

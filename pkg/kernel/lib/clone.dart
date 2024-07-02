@@ -104,6 +104,23 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     return _activeFileUri == null ? TreeNode.noOffset : fileOffset;
   }
 
+  bool _assertFileUriTarget(TreeNode node, TreeNode clone) {
+    if (node is FileUriNode && clone is FileUriNode) {
+      if (node.fileUri != clone.fileUri) {
+        assert(
+            false,
+            "Original and clone disagrees on file uri: "
+            "${node.fileUri} vs ${clone.fileUri}");
+        return false;
+      }
+      return true;
+    } else if (node is! FileUriNode && clone is! FileUriNode) {
+      return true;
+    }
+    assert(false, "Original and clone disagrees on being a file uri node.");
+    return false;
+  }
+
   T clone<T extends TreeNode>(T node) {
     final Uri? activeFileUriSaved = _activeFileUri;
     if (node is FileUriNode) {
@@ -111,6 +128,9 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     }
     final TreeNode result = node.accept(this)
       ..fileOffset = _cloneFileOffset(node.fileOffset);
+
+    assert(_assertFileUriTarget(node, result));
+
     _activeFileUri = activeFileUriSaved;
     return result as T;
   }
@@ -122,7 +142,10 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
       _activeFileUri = node.fileUri;
     }
     TreeNode? result = node.accept(this);
-    if (result != null) result.fileOffset = _cloneFileOffset(node.fileOffset);
+    if (result != null) {
+      result.fileOffset = _cloneFileOffset(node.fileOffset);
+      assert(_assertFileUriTarget(node, result));
+    }
     _activeFileUri = activeFileUriSaved;
     return result as T?;
   }
@@ -386,6 +409,10 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitConstantExpression(ConstantExpression node) {
+    if (node is FileUriConstantExpression) {
+      return new FileUriConstantExpression(visitConstant(node.constant),
+          type: visitType(node.type), fileUri: node.fileUri);
+    }
     return new ConstantExpression(
         visitConstant(node.constant), visitType(node.type));
   }
@@ -1078,6 +1105,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
     setParents(result.annotations, result);
 
+    assert(_assertFileUriTarget(node, result));
+
     _activeFileUri = activeFileUriSaved;
     return result;
   }
@@ -1100,6 +1129,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
     setParents(result.annotations, result);
+
+    assert(_assertFileUriTarget(node, result));
 
     _activeFileUri = activeFileUriSaved;
     return result;
@@ -1141,6 +1172,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
     setParents(result.annotations, result);
+
+    assert(_assertFileUriTarget(node, result));
 
     _activeFileUri = activeFileUriSaved;
     return result;

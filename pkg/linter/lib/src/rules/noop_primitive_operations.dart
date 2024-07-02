@@ -46,6 +46,7 @@ string = ''
 string = 'hello\n'
     'world\n'
     '';
+```
 ''';
 
 class NoopPrimitiveOperations extends LintRule {
@@ -58,7 +59,7 @@ class NoopPrimitiveOperations extends LintRule {
           name: 'noop_primitive_operations',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

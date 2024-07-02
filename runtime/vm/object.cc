@@ -830,7 +830,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Allocate and initialize the sentinel values.
   {
     *sentinel_ ^= Sentinel::New();
-    *transition_sentinel_ ^= Sentinel::New();
   }
 
   // Allocate and initialize optimizing compiler constants.
@@ -1254,6 +1253,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   error_str = String::New("Background Compilation Failed", Heap::kOld);
   *background_compilation_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
+  error_str = String::New("No debuggable code where breakpoint was requested",
+                          Heap::kOld);
+  *no_debuggable_code_error_ =
+      LanguageError::New(error_str, Report::kError, Heap::kOld);
   error_str = String::New("Out of memory", Heap::kOld);
   *out_of_memory_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
@@ -1312,8 +1315,6 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(empty_async_exception_handlers_->IsExceptionHandlers());
   ASSERT(!sentinel_->IsSmi());
   ASSERT(sentinel_->IsSentinel());
-  ASSERT(!transition_sentinel_->IsSmi());
-  ASSERT(transition_sentinel_->IsSentinel());
   ASSERT(!unknown_constant_->IsSmi());
   ASSERT(unknown_constant_->IsSentinel());
   ASSERT(!non_constant_->IsSmi());
@@ -2735,7 +2736,7 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::AlwaysSetBit::update(true, tags);
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewBit::update(!is_old, tags);
+  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
       Object::ShouldHaveImmutabilityBitSet(class_id), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
@@ -3154,6 +3155,17 @@ void Class::set_is_future_subtype(bool value) const {
 void Class::set_can_be_future(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(CanBeFutureBit::update(value, state_bits()));
+}
+
+void Class::set_is_dynamically_extendable(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsDynamicallyExtendableBit::update(value, state_bits()));
+}
+
+void Class::set_has_dynamically_extendable_subtypes(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(
+      HasDynamicallyExtendableSubtypesBit::update(value, state_bits()));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -4235,8 +4247,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 }
 
 FunctionPtr Function::GetDynamicInvocationForwarder(
-    const String& mangled_name,
-    bool allow_add /*=true*/) const {
+    const String& mangled_name) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -4254,10 +4265,6 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
       kernel::NeedsDynamicInvocationForwarder(*this);
   if (!needs_dyn_forwarder) {
     return ptr();
-  }
-
-  if (!allow_add) {
-    return Function::null();
   }
 
   // If we failed to find it and possibly need to create it, use a write lock.
@@ -11330,13 +11337,14 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
 }
 
 CodePtr Function::EnsureHasCode() const {
-  if (HasCode()) return CurrentCode();
+  if (HasCode()) {
+    return CurrentCode();
+  }
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
-  const Object& result =
-      Object::Handle(zone, Compiler::CompileFunction(thread, *this));
+  const Object& result = Object::Handle(zone, EnsureHasCodeNoThrow());
   if (result.IsError()) {
     if (result.ptr() == Object::out_of_memory_error().ptr()) {
       Exceptions::ThrowOOM();
@@ -11348,6 +11356,22 @@ CodePtr Function::EnsureHasCode() const {
     }
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
+  } else {
+    return Code::Cast(result).ptr();
+  }
+}
+
+ObjectPtr Function::EnsureHasCodeNoThrow() const {
+  if (HasCode()) {
+    return CurrentCode();
+  }
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsDartMutatorThread());
+  Zone* zone = thread->zone();
+  const Object& result =
+      Object::Handle(zone, Compiler::CompileFunction(thread, *this));
+  if (result.IsError()) {
+    return result.ptr();
   }
   // Compiling in unoptimized mode should never fail if there are no errors.
   RELEASE_ASSERT(HasCode());
@@ -11380,6 +11404,13 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   // AOT mode uses table dispatch.
   // In JIT mode all instance calls use switchable calls.
   if (!FLAG_precompiled_mode) {
+    return true;
+  }
+
+  // Any method from the class with a dynamically loaded subtype
+  // can be called via switchable call (when cid range check fails
+  // during conditional table dispatch).
+  if (Class::Handle(zone, Owner()).has_dynamically_extendable_subtypes()) {
     return true;
   }
 
@@ -12151,11 +12182,12 @@ const char* Field::ToCString() const {
   const char* kF1 = is_late() ? " late" : "";
   const char* kF2 = is_final() ? " final" : "";
   const char* kF3 = is_const() ? " const" : "";
+  const char* kF4 = is_shared() ? " shared" : "";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(Owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s",
-                     cls_name, field_name, kF0, kF1, kF2, kF3);
+  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s%s",
+                     cls_name, field_name, kF0, kF1, kF2, kF3, kF4);
 }
 
 // Build a closure object that gets (or sets) the contents of a static
@@ -12276,7 +12308,6 @@ bool Field::IsUninitialized() const {
   Thread* thread = Thread::Current();
   const FieldTable* field_table = thread->isolate()->field_table();
   const ObjectPtr raw_value = field_table->At(field_id());
-  ASSERT(raw_value != Object::transition_sentinel().ptr());
   return raw_value == Object::sentinel().ptr();
 }
 
@@ -12364,40 +12395,25 @@ ErrorPtr Field::InitializeStatic() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().ptr()) {
+    ASSERT(is_late());
     auto& value = Object::Handle();
-    if (is_late()) {
-      if (!has_initializer()) {
-        Exceptions::ThrowLateFieldNotInitialized(String::Handle(name()));
-        UNREACHABLE();
-      }
-      value = EvaluateInitializer();
-      if (value.IsError()) {
-        return Error::Cast(value).ptr();
-      }
-      if (is_final() && (StaticValue() != Object::sentinel().ptr())) {
-        Exceptions::ThrowLateFieldAssignedDuringInitialization(
-            String::Handle(name()));
-        UNREACHABLE();
-      }
-    } else {
-      SetStaticValue(Object::transition_sentinel());
-      value = EvaluateInitializer();
-      if (value.IsError()) {
-        SetStaticValue(Object::null_instance());
-        return Error::Cast(value).ptr();
-      }
+    if (!has_initializer()) {
+      Exceptions::ThrowLateFieldNotInitialized(String::Handle(name()));
+      UNREACHABLE();
+    }
+    value = EvaluateInitializer();
+    if (value.IsError()) {
+      return Error::Cast(value).ptr();
+    }
+    if (is_final() && (StaticValue() != Object::sentinel().ptr())) {
+      Exceptions::ThrowLateFieldAssignedDuringInitialization(
+          String::Handle(name()));
+      UNREACHABLE();
     }
     ASSERT(value.IsNull() || value.IsInstance());
     SetStaticValue(value.IsNull() ? Instance::null_instance()
                                   : Instance::Cast(value));
     return Error::null();
-  } else if (StaticValue() == Object::transition_sentinel().ptr()) {
-    ASSERT(!is_late());
-    const Array& ctor_args = Array::Handle(Array::New(1));
-    const String& field_name = String::Handle(name());
-    ctor_args.SetAt(0, field_name);
-    Exceptions::ThrowByType(Exceptions::kCyclicInitializationError, ctor_args);
-    UNREACHABLE();
   }
   return Error::null();
 }
@@ -12412,6 +12428,7 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
   // We can safely cache the value of the static const field in the initial
   // field table.
+  ASSERT(!is_shared());
   auto& value = Object::Handle(
       zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
@@ -12433,6 +12450,7 @@ ObjectPtr Field::StaticConstFieldValue() const {
 void Field::SetStaticConstFieldValue(const Instance& value,
                                      bool assert_initializing_store) const {
   ASSERT(is_static());
+  ASSERT(!is_shared());
   auto thread = Thread::Current();
   auto initial_field_table = thread->isolate_group()->initial_field_table();
 
@@ -12752,6 +12770,7 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 }
 
 void Field::SetStaticValue(const Object& value) const {
+  ASSERT(!is_shared());
   auto thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
   ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
@@ -12786,7 +12805,6 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
     bool print_trace /* = false */) {
   ASSERT(!value.IsNull());  // Should be handled by the caller.
   ASSERT(value.ptr() != Object::sentinel().ptr());
-  ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
   Thread* thread = Thread::Current();
   Zone* const zone = thread->zone();
@@ -17855,7 +17873,7 @@ class MallocCodeComments final : public CodeComments {
     for (intptr_t i = 0; i < length_; i++) {
       comments_[i].pc_offset = comments.PCOffsetAt(i);
       comments_[i].comment =
-          Utils::CreateCStringUniquePtr(Utils::StrDup(comments.CommentAt(i)));
+          CStringUniquePtr(Utils::StrDup(comments.CommentAt(i)));
     }
   }
 
@@ -17872,7 +17890,7 @@ class MallocCodeComments final : public CodeComments {
  private:
   struct Comment {
     intptr_t pc_offset;
-    Utils::CStringUniquePtr comment{nullptr, std::free};
+    CStringUniquePtr comment;
   };
 
   intptr_t length_;
@@ -18716,8 +18734,6 @@ SentinelPtr Sentinel::New() {
 const char* Sentinel::ToCString() const {
   if (ptr() == Object::sentinel().ptr()) {
     return "sentinel";
-  } else if (ptr() == Object::transition_sentinel().ptr()) {
-    return "transition_sentinel";
   } else if (ptr() == Object::unknown_constant().ptr()) {
     return "unknown_constant";
   } else if (ptr() == Object::non_constant().ptr()) {
@@ -20027,7 +20043,9 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
   const String& internal_getter_name =
       String::Handle(zone, Field::GetterName(getter_name));
   Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
+      zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name,
+                                      /*allow_add=*/!FLAG_precompiled_mode));
 
   if (!function.IsNull() && check_is_entrypoint) {
     // The getter must correspond to either an entry-point field or a getter
@@ -20043,9 +20061,10 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
     }
   }
 
-  // Check for method extraction when method extractors are not created.
-  if (function.IsNull() && !FLAG_lazy_dispatchers) {
-    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
+  // Check for method extraction when method extractors are not lazily created.
+  if (function.IsNull() && FLAG_precompiled_mode) {
+    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name,
+                                               /*allow_add=*/false);
 
     if (!function.IsNull() && check_is_entrypoint) {
       CHECK_ERROR(function.VerifyClosurizedEntryPoint());
@@ -20088,7 +20107,9 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
   const Function& setter = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
+      zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name,
+                                      /*allow_add=*/!FLAG_precompiled_mode));
 
   if (check_is_entrypoint) {
     // The setter must correspond to either an entry-point field or a setter
@@ -20129,7 +20150,9 @@ ObjectPtr Instance::Invoke(const String& function_name,
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
 
   Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
+      zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, function_name,
+                                      /*allow_add=*/!FLAG_precompiled_mode));
 
   if (!function.IsNull() && check_is_entrypoint) {
     CHECK_ERROR(function.VerifyCallEntryPoint());
@@ -20151,7 +20174,9 @@ ObjectPtr Instance::Invoke(const String& function_name,
     // Didn't find a method: try to find a getter and invoke call on its result.
     const String& getter_name =
         String::Handle(zone, Field::GetterName(function_name));
-    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
+    function =
+        Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name,
+                                        /*allow_add=*/!FLAG_precompiled_mode);
     if (!function.IsNull()) {
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
@@ -24774,7 +24799,7 @@ ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
   result.SetTypeArguments(Object::null_type_arguments());
   for (intptr_t i = 0; i < len; i++) {
     result.SetAt(i, Object::null_object(), thread);
-    if (((i + 1) % KB) == 0) {
+    if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
       thread->CheckForSafepoint();
     }
   }
@@ -24800,7 +24825,7 @@ ArrayPtr Array::Slice(intptr_t start,
   } else {
     for (int i = 0; i < count; i++) {
       dest.untag()->set_element(i, untag()->element(i + start), thread);
-      if (((i + 1) % KB) == 0) {
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
         thread->CheckForSafepoint();
       }
     }
@@ -24851,13 +24876,13 @@ ArrayPtr Array::Grow(const Array& source,
   } else {
     for (intptr_t i = 0; i < old_length; i++) {
       result.untag()->set_element(i, source.untag()->element(i), thread);
-      if (((i + 1) % KB) == 0) {
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
         thread->CheckForSafepoint();
       }
     }
     for (intptr_t i = old_length; i < new_length; i++) {
       result.untag()->set_element(i, Object::null(), thread);
-      if (((i + 1) % KB) == 0) {
+      if (((i + 1) % kSlotsPerInterruptCheck) == 0) {
         thread->CheckForSafepoint();
       }
     }
@@ -27095,8 +27120,11 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
       continue;
     }
     *reusable_field_handle = IG->object_store()->pragma_name();
-    if (Instance::Cast(*pragma).GetField(*reusable_field_handle) !=
-        Symbols::vm_entry_point().ptr()) {
+    const auto pragma_name =
+        Instance::Cast(*pragma).GetField(*reusable_field_handle);
+    if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
+        (pragma_name != Symbols::dyn_module_callable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_extendable().ptr())) {
       continue;
     }
     *reusable_field_handle = IG->object_store()->pragma_options();

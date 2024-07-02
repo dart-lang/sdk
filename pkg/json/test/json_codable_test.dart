@@ -198,6 +198,16 @@ void main() {
 
       expect(e.toJson(), equals(json));
     });
+
+    test(r'field with dollar sign $', () {
+      var json = {
+        r'fieldWithDollarSign$': 1,
+      };
+      var f = F.fromJson(json);
+      expect(f.fieldWithDollarSign$, 1);
+
+      expect(f.toJson(), equals(json));
+    });
   });
 }
 
@@ -268,4 +278,9 @@ class E {
   final Map<String, C?> mapOfNullableSerializables;
 
   final Map<String, Set<int?>?> mapOfNullableSetsOfNullableInts;
+}
+
+@JsonCodable()
+class F {
+  final int fieldWithDollarSign$;
 }

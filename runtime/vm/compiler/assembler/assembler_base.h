@@ -1093,6 +1093,17 @@ class AssemblerBase : public StackResource {
                                           /*Nullability*/ int8_t value,
                                           Register scratch);
 
+  // [dst] = [base] + ([index] << [scale]) + [disp].
+  //
+  // Base can be kNoRegister (or ZR if available), in which case
+  //   [dst] = [index] << [scale] + [disp]
+  // with a set of emitted instructions optimized for that case.
+  virtual void AddScaled(Register dst,
+                         Register base,
+                         Register index,
+                         ScaleFactor scale,
+                         int32_t disp) = 0;
+
   virtual void LoadImmediate(Register dst, target::word imm) = 0;
 
   virtual void CompareImmediate(Register reg,

@@ -47,13 +47,6 @@ final List<Option> options = [
   Flag("omit-implicit-checks",
       (o, value) => o.translatorOptions.omitImplicitTypeChecks = value,
       defaultsTo: _d.translatorOptions.omitImplicitTypeChecks),
-  // TODO(http://dartbug.com/54675): Deprecate & Remove this one.
-  Flag("omit-type-checks", (o, value) {
-    o.translatorOptions.omitImplicitTypeChecks = value;
-    o.translatorOptions.omitExplicitTypeChecks = value;
-  },
-      defaultsTo: _d.translatorOptions.omitImplicitTypeChecks &&
-          _d.translatorOptions.omitExplicitTypeChecks),
   Flag("omit-bounds-checks", (o, value) {
     o.translatorOptions.omitBoundsChecks = value;
   }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
@@ -62,14 +55,14 @@ final List<Option> options = [
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
+  Flag("enable-experimental-wasm-interop",
+      (o, value) => o.translatorOptions.enableExperimentalWasmInterop = value,
+      defaultsTo: _d.translatorOptions.enableExperimentalWasmInterop),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),
   IntOption("shared-memory-max-pages",
       (o, value) => o.translatorOptions.sharedMemoryMaxPages = value),
-  StringOption("dart-sdk", (o, value) {
-    /* ignored: Remove when flutter no longer passes this. */
-  }, defaultsTo: null, hide: true),
   UriOption("packages", (o, value) => o.packagesPath = value),
   UriOption("libraries-spec", (o, value) => o.librariesSpecPath = value),
   UriOption("platform", (o, value) => o.platformPath = value),
@@ -98,6 +91,9 @@ final List<Option> options = [
   StringOption(
       "dump-kernel-after-tfa", (o, value) => o.dumpKernelAfterTfa = value,
       hide: true),
+  Flag("enable-experimental-ffi",
+      (o, value) => o.translatorOptions.enableExperimentalFfi = value,
+      defaultsTo: _d.translatorOptions.enableExperimentalFfi),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
@@ -124,9 +120,6 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
   Never usage() {
     print("Usage: dart2wasm [<options>] <infile.dart> <outfile.wasm>");
     print("");
-    print("*NOTE*: Wasm compilation is experimental.");
-    print("The support may change, or be removed, with no advance notice.");
-    print("");
     print("Options:");
     for (String line in parser.usage.split('\n')) {
       print('\t$line');
@@ -149,6 +142,11 @@ WasmCompilerOptions parseArguments(List<String> arguments) {
       if (results.wasParsed(arg.name)) {
         arg.applyToOptions(compilerOptions, results[arg.name]);
       }
+    }
+    if ((compilerOptions.librariesSpecPath == null) ==
+        (compilerOptions.platformPath == null)) {
+      print('Either --libraries-spec or --platform has to be supplied.');
+      usage();
     }
     return compilerOptions;
   } catch (e, s) {

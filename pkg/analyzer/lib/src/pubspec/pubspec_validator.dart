@@ -18,6 +18,7 @@ import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
 import 'package:analyzer/src/pubspec/validators/name_validator.dart';
 import 'package:analyzer/src/pubspec/validators/platforms_validator.dart';
 import 'package:analyzer/src/pubspec/validators/screenshot_validator.dart';
+import 'package:analyzer/src/pubspec/validators/workspace_validator.dart';
 import 'package:yaml/yaml.dart';
 
 /// List of [PubspecValidator] implementations.
@@ -28,6 +29,7 @@ const _pubspecValidators = <PubspecValidator>[
   nameValidator,
   screenshotsValidator,
   platformsValidator,
+  workspaceValidator,
 ];
 
 /// Validate pubspec with given [contents].
@@ -118,6 +120,9 @@ final class PubspecField {
 
   /// The name of the field whose value is the version of the package.
   static const String VERSION_FIELD = 'version';
+
+  /// The name of the field whose value defines a workspace for the repository.
+  static const String WORKSPACE_FIELD = 'workspace';
 }
 
 /// Context given to function that implement [PubspecValidator].

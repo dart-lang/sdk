@@ -48,14 +48,15 @@ return myvar;
 class UnnecessaryStatements extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_statements', 'Unnecessary statement.',
-      correctionMessage: 'Try completing the statement or breaking it up.');
+      correctionMessage: 'Try completing the statement or breaking it up.',
+      hasPublishedDocs: true);
 
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

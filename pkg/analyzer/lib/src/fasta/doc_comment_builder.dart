@@ -137,7 +137,6 @@ final class DocCommentBuilder {
     }
     return CommentImpl(
       tokens: tokens,
-      type: CommentType.DOCUMENTATION,
       references: _references,
       codeBlocks: _codeBlocks,
       docImports: _docImports,

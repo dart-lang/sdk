@@ -622,7 +622,8 @@ class Assembler : public AssemblerBase {
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false);
+                                   bool ignore_unwind_in_progress = false,
+                                   bool set_tag = true);
   void EnterFullSafepoint(Register scratch0, Register scratch1);
   void ExitFullSafepoint(Register scratch0,
                          Register scratch1,
@@ -831,16 +832,21 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    if (scale == 0) {
-      AddImmediate(dest, src, value);
+                 int32_t disp) override {
+    if (base == kNoRegister) {
+      if (scale == TIMES_1) {
+        AddImmediate(dest, index, disp);
+      } else {
+        Lsl(dest, index, Operand(scale));
+        AddImmediate(dest, disp);
+      }
     } else {
-      Lsl(dest, src, Operand(scale));
-      AddImmediate(dest, dest, value);
+      add(dest, base, compiler::Operand(index, LSL, scale));
+      AddImmediate(dest, disp);
     }
   }
   void SubImmediate(Register rd,
@@ -1498,7 +1504,8 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch);
+                              Register scratch,
+                              bool is_shared);
 
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,

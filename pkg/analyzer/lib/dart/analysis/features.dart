@@ -49,6 +49,9 @@ abstract class Feature {
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
+  /// Feature information for null-aware elements.
+  static final null_aware_elements = ExperimentalFeatures.null_aware_elements;
+
   /// Feature information for patterns.
   static final patterns = ExperimentalFeatures.patterns;
 

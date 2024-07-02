@@ -44,6 +44,7 @@ class MemoryFileSystem implements FileSystem {
 
   static Uri _addTrailingSlash(Uri uri) {
     if (!uri.path.endsWith('/')) {
+      // Coverage-ignore-block(suite): Not run.
       uri = uri.replace(path: uri.path + '/');
     }
     return uri;
@@ -69,6 +70,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
       other.uri == uri &&
       identical(other._fileSystem, _fileSystem);
 
+  // Coverage-ignore(suite): Not run.
   /// Create a directory for this file system entry.
   ///
   /// If the entry is an existing file, this is an error.
@@ -86,9 +88,11 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<List<int>> readAsBytes() {
     Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
@@ -100,9 +104,11 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
+  // Coverage-ignore(suite): Not run.
   Future<String> readAsString() async {
     List<int> bytes = await readAsBytes();
     try {
@@ -112,6 +118,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Writes the given raw bytes to this file system entity.
   ///
   /// If no file exists, one is created.  If a file exists already, it is
@@ -124,6 +131,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Writes the given string to this file system entity.
   ///
   /// The string is encoded as UTF-8.
@@ -134,6 +142,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     _update(uri, utf8.encode(s));
   }
 
+  // Coverage-ignore(suite): Not run.
   void _update(Uri uri, Uint8List data) {
     if (_fileSystem._directories.contains(uri)) {
       throw new FileSystemException(uri, 'Entry $uri is a directory.');

@@ -410,8 +410,8 @@ class ResolveTypeRequest extends IntrospectionRequest {
 
 /// A request to check if a type is exactly another type.
 class IsExactlyTypeRequest extends Request {
-  final RemoteInstanceImpl leftType;
-  final RemoteInstanceImpl rightType;
+  final RemoteInstance leftType;
+  final RemoteInstance rightType;
 
   IsExactlyTypeRequest(this.leftType, this.rightType,
       {required super.serializationZoneId});
@@ -435,8 +435,8 @@ class IsExactlyTypeRequest extends Request {
 
 /// A request to check if a type is exactly another type.
 class IsSubtypeOfRequest extends Request {
-  final RemoteInstanceImpl leftType;
-  final RemoteInstanceImpl rightType;
+  final RemoteInstance leftType;
+  final RemoteInstance rightType;
 
   IsSubtypeOfRequest(this.leftType, this.rightType,
       {required super.serializationZoneId});
@@ -453,6 +453,29 @@ class IsSubtypeOfRequest extends Request {
     serializer.addInt(MessageType.isSubtypeOfRequest.index);
     leftType.serialize(serializer);
     rightType.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
+/// A request to check if a type is a subtype of the type defined by an
+/// identifier, and, if so, also obtain the matching instantiation.
+class AsInstanceOfRequest extends Request {
+  final RemoteInstance left;
+  final TypeDeclarationImpl right;
+  AsInstanceOfRequest(this.left, this.right,
+      {required super.serializationZoneId});
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  AsInstanceOfRequest.deserialize(super.deserializer, super.serializationZoneId)
+      : left = RemoteInstance.deserialize(deserializer),
+        right = RemoteInstance.deserialize(deserializer),
+        super.deserialize();
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(MessageType.asInstanceOfRequest.index);
+    left.serialize(serializer);
+    right.serialize(serializer);
     super.serialize(serializer);
   }
 }
@@ -557,6 +580,10 @@ class DeclarationsOfRequest extends IntrospectionRequest {
   }
 }
 
+/// Signature of a function able to send requests and return a response using
+/// an arbitrary communication channel.
+typedef SendRequest = Future<Response> Function(Request request);
+
 /// The base class for the client side introspectors from any phase, as well as
 /// client side [StaticType]s.
 ///
@@ -570,7 +597,7 @@ base class ClientIntrospector {
 
   /// A function that can send a request and return a response using an
   /// arbitrary communication channel.
-  final Future<Response> Function(Request request) _sendRequest;
+  final SendRequest _sendRequest;
 
   ClientIntrospector(this._sendRequest,
       {required this.remoteInstance, required this.serializationZoneId});
@@ -611,19 +638,12 @@ final class ClientDeclarationPhaseIntrospector
     ResolveTypeRequest request = ResolveTypeRequest(
         typeAnnotation, remoteInstance,
         serializationZoneId: serializationZoneId);
-    RemoteInstanceImpl remoteType =
-        _handleResponse(await _sendRequest(request));
-    return switch (remoteType.kind) {
-      RemoteInstanceKind.namedStaticType => ClientNamedStaticTypeImpl(
-          _sendRequest,
-          remoteInstance: remoteType,
-          serializationZoneId: serializationZoneId),
-      RemoteInstanceKind.staticType => ClientStaticTypeImpl(_sendRequest,
-          remoteInstance: remoteType, serializationZoneId: serializationZoneId),
-      _ => throw StateError(
-          'Expected either a StaticType or NamedStaticType but got '
-          '${remoteType.kind}'),
-    };
+    StaticTypeImpl remoteType = _handleResponse(await _sendRequest(request));
+    return ClientStaticTypeImpl.ofRemote(
+      instance: remoteType,
+      serializationZoneId: serializationZoneId,
+      sendRequest: _sendRequest,
+    );
   }
 
   @override
@@ -706,6 +726,28 @@ base class ClientStaticTypeImpl extends ClientIntrospector
   ClientStaticTypeImpl(super._sendRequest,
       {required super.remoteInstance, required super.serializationZoneId});
 
+  factory ClientStaticTypeImpl.ofRemote({
+    required StaticTypeImpl instance,
+    required SendRequest sendRequest,
+    required int serializationZoneId,
+  }) {
+    RemoteInstanceImpl remoteInstance =
+        RemoteInstanceImpl(id: instance.id, kind: instance.kind);
+    return switch (instance.kind) {
+      RemoteInstanceKind.namedStaticType => ClientNamedStaticTypeImpl(
+          sendRequest,
+          staticType: instance as NamedStaticTypeImpl,
+          remoteInstance: remoteInstance,
+          serializationZoneId: serializationZoneId),
+      RemoteInstanceKind.staticType => ClientStaticTypeImpl(sendRequest,
+          remoteInstance: remoteInstance,
+          serializationZoneId: serializationZoneId),
+      _ => throw StateError(
+          'Expected either a StaticType or NamedStaticType but got '
+          '${instance.kind}'),
+    };
+  }
+
   @override
   Future<bool> isExactly(ClientStaticTypeImpl other) async {
     IsExactlyTypeRequest request = IsExactlyTypeRequest(
@@ -721,13 +763,37 @@ base class ClientStaticTypeImpl extends ClientIntrospector
         serializationZoneId: serializationZoneId);
     return _handleResponse<BooleanValue>(await _sendRequest(request)).value;
   }
+
+  @override
+  Future<NamedStaticType?> asInstanceOf(TypeDeclaration declaration) async {
+    AsInstanceOfRequest request = AsInstanceOfRequest(
+        remoteInstance, declaration as TypeDeclarationImpl,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<NamedStaticType?>(await _sendRequest(request));
+  }
 }
 
 /// Named variant of the [ClientStaticTypeImpl].
 final class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
     implements NamedStaticType {
-  ClientNamedStaticTypeImpl(super.sendRequest,
-      {required super.remoteInstance, required super.serializationZoneId});
+  @override
+  final ParameterizedTypeDeclaration declaration;
+
+  @override
+  final List<StaticType> typeArguments;
+
+  ClientNamedStaticTypeImpl(
+    super.sendRequest, {
+    required NamedStaticTypeImpl staticType,
+    required super.serializationZoneId,
+    required super.remoteInstance,
+  })  : declaration = staticType.declaration,
+        typeArguments = staticType.typeArguments
+            .map((raw) => ClientStaticTypeImpl.ofRemote(
+                instance: raw,
+                sendRequest: sendRequest,
+                serializationZoneId: serializationZoneId))
+            .toList();
 }
 
 /// Client side implementation of a [DeclarationBuilder].
@@ -793,6 +859,7 @@ enum MessageType {
   inferTypeRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,
+  asInstanceOfRequest,
   loadMacroRequest,
   remoteInstance,
   macroInstanceIdentifier,

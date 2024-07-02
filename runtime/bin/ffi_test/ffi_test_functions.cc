@@ -850,9 +850,10 @@ DART_EXPORT Struct20BytesHomogeneousInt32Copy PassStructRecursive(
     Struct20BytesHomogeneousInt32Copy a0,
     Struct20BytesHomogeneousInt32Copy (*f)(int64_t,
                                            Struct20BytesHomogeneousInt32Copy)) {
-  std::cout << "PassStruct20BytesHomogeneousInt32x10" << "(" << recursionCounter
-            << ", (" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
-            << ", " << a0.a4 << "), " << reinterpret_cast<void*>(f) << ")\n";
+  std::cout << "PassStruct20BytesHomogeneousInt32x10"
+            << "(" << recursionCounter << ", (" << a0.a0 << ", " << a0.a1
+            << ", " << a0.a2 << ", " << a0.a3 << ", " << a0.a4 << "), "
+            << reinterpret_cast<void*>(f) << ")\n";
   a0.a0++;
   const int32_t a0_a0_saved = a0.a0;
 
@@ -882,8 +883,8 @@ struct Struct8BytesNestedIntCopy {
 };
 
 DART_EXPORT void CallbackWithStruct(void (*f)(Struct8BytesNestedIntCopy)) {
-  std::cout << "CallbackWithStruct" << "(" << reinterpret_cast<void*>(f)
-            << ")\n";
+  std::cout << "CallbackWithStruct"
+            << "(" << reinterpret_cast<void*>(f) << ")\n";
 
   Struct8BytesNestedIntCopy arg;
   arg.a0.a0 = 10;
@@ -1272,7 +1273,8 @@ DART_EXPORT int64_t VariadicStructVarArgs(VarArgs a0, ...) {
   VarArgs a1 = va_arg(var_args, VarArgs);
   va_end(var_args);
 
-  std::cout << "VariadicStructVarArgs" << "(" << a0.a << ", " << a1.a << ")"
+  std::cout << "VariadicStructVarArgs"
+            << "(" << a0.a << ", " << a1.a << ")"
             << "\n";
 
   int64_t result = 0;

@@ -6,7 +6,7 @@ import "dart:test";
 static method main() → dynamic
   ;
 
-@const dart.core::pragma::_("patch-library")
+@/* from org-dartlang-testcase:///patch_lib.dart */ const dart.core::pragma::_("patch-library")
 @dart.core::pragma::_("origin-library")
 library;
 import self as self2;
@@ -15,17 +15,17 @@ import "dart:_internal" as _in;
 
 import "dart:_internal";
 
-@_in::patch
-@const core::pragma::_("patch-class")
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ const core::pragma::_("patch-class")
 @core::pragma::_("origin-class")
 class Class<@core::pragma::_("patch-class-type-variable") @core::pragma::_("origin-class-type-variable") T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   @core::pragma::_("patch-constructor")
-  @const core::pragma::_("origin-constructor")
+  @/* from org-dartlang-testcase:///origin_lib.dart */ const core::pragma::_("origin-constructor")
   external constructor •() → self2::Class<self2::Class::T%>;
   @_in::patch
   @core::pragma::_("patch-procedure")
-  @const core::pragma::_("origin-procedure")
+  @/* from org-dartlang-testcase:///origin_lib.dart */ const core::pragma::_("origin-procedure")
   external method method<@core::pragma::_("origin-method-type-variable") S extends core::Object? = dynamic>() → void;
 }
 

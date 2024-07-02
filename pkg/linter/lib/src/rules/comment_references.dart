@@ -70,7 +70,7 @@ class CommentReferences extends LintRule {
             name: 'comment_references',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

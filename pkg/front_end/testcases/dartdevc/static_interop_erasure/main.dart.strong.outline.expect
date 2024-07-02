@@ -6,42 +6,34 @@ import "org-dartlang-testcase:///main_lib.dart";
 static method main() → void
   ;
 
-@#C2
+@_js_annotations::JS::•()
 library static_interop;
 import self as self2;
 import "dart:_js_annotations" as _js;
 import "dart:core" as core;
-import "dart:js_util" as js_;
-import "dart:_js_helper" as _js2;
 
 import "package:js/js.dart";
 
-@#C4
-@#C5
+@_js::JS::•("JSClass")
+@_js::staticInterop
 class StaticJSClass extends core::Object {
   external static factory •() → self2::StaticJSClass;
   static method _#new#tearOff() → self2::StaticJSClass
-    return js_::_callConstructorUnchecked0<self2::StaticJSClass>(js_::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "JSClass"));
+    return self2::StaticJSClass::•();
   static factory factory() → self2::StaticJSClass
     ;
   static method _#factory#tearOff() → self2::StaticJSClass
     return self2::StaticJSClass::factory();
 }
-@#C2
+@_js::JS::•()
 external static method eval(core::String code) → void;
 static method setUp() → void
   ;
 
-constants  {
-  #C1 = null
-  #C2 = _js::JS {name:#C1}
-  #C3 = "JSClass"
-  #C4 = _js::JS {name:#C3}
-  #C5 = _js::_StaticInterop {}
-}
 
-
-Constructor coverage from constants:
-org-dartlang-testcase:///main_lib.dart:
-- JS. (from org-dartlang-sdk:///lib/js/_js_annotations.dart)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:5:2 -> InstanceConstant(const JS{JS.name: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:13:2 -> InstanceConstant(const JS{JS.name: "JSClass"})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib.dart:14:2 -> InstanceConstant(const _StaticInterop{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib.dart:10:2 -> InstanceConstant(const JS{JS.name: null})
+Extra constant evaluation: evaluated: 6, effectively constant: 4

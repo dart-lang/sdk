@@ -70,14 +70,15 @@ class Good {
 class TestTypesInEquals extends LintRule {
   static const LintCode code = LintCode(
       'test_types_in_equals', "Missing type test for '{0}' in '=='.",
-      correctionMessage: "Try testing the type of '{0}'.");
+      correctionMessage: "Try testing the type of '{0}'.",
+      hasPublishedDocs: true);
 
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

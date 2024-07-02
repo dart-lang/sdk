@@ -50,7 +50,7 @@ class AvoidCatchingErrors extends LintRule {
             name: 'avoid_catching_errors',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<LintCode> get lintCodes => [classCode, subclassCode];

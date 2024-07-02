@@ -447,9 +447,6 @@ class Object {
   //
   // - sentinel is a value that cannot be produced by Dart code. It can be used
   // to mark special values, for example to distinguish "uninitialized" fields.
-  // - transition_sentinel is a value marking that we are transitioning from
-  // sentinel, e.g., computing a field value. Used to detect circular
-  // initialization.
   // - unknown_constant and non_constant are optimizing compiler's constant
   // propagation constants.
   // - optimized_out results from deopt environment pruning or failure to
@@ -480,7 +477,6 @@ class Object {
   V(Array, synthetic_getter_parameter_types)                                   \
   V(Array, synthetic_getter_parameter_names)                                   \
   V(Sentinel, sentinel)                                                        \
-  V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
   V(Sentinel, non_constant)                                                    \
   V(Sentinel, optimized_out)                                                   \
@@ -494,6 +490,7 @@ class Object {
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, speculative_inlining_error)                                 \
   V(LanguageError, background_compilation_error)                               \
+  V(LanguageError, no_debuggable_code_error)                                   \
   V(LanguageError, out_of_memory_error)                                        \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
@@ -2068,6 +2065,11 @@ class Class : public Object {
     // It means that variable of static type based on this class may hold
     // a Future instance.
     kCanBeFutureBit,
+    // This class can be extended, implemented or mixed-in by
+    // a dynamically loaded class.
+    kIsDynamicallyExtendableBit,
+    // This class has a dynamically extendable subtype.
+    kHasDynamicallyExtendableSubtypesBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -2106,6 +2108,13 @@ class Class : public Object {
   class IsFutureSubtypeBit
       : public BitField<uint32_t, bool, kIsFutureSubtypeBit, 1> {};
   class CanBeFutureBit : public BitField<uint32_t, bool, kCanBeFutureBit, 1> {};
+  class IsDynamicallyExtendableBit
+      : public BitField<uint32_t, bool, kIsDynamicallyExtendableBit, 1> {};
+  class HasDynamicallyExtendableSubtypesBit
+      : public BitField<uint32_t,
+                        bool,
+                        kHasDynamicallyExtendableSubtypesBit,
+                        1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -2174,6 +2183,16 @@ class Class : public Object {
 
   void set_can_be_future(bool value) const;
   bool can_be_future() const { return CanBeFutureBit::decode(state_bits()); }
+
+  void set_is_dynamically_extendable(bool value) const;
+  bool is_dynamically_extendable() const {
+    return IsDynamicallyExtendableBit::decode(state_bits());
+  }
+
+  void set_has_dynamically_extendable_subtypes(bool value) const;
+  bool has_dynamically_extendable_subtypes() const {
+    return HasDynamicallyExtendableSubtypesBit::decode(state_bits());
+  }
 
  private:
   void set_functions(const Array& value) const;
@@ -3143,6 +3162,12 @@ class Function : public Object {
   // current code, whether it is optimized or unoptimized.
   CodePtr EnsureHasCode() const;
 
+  // Ensures that the function has code. If there is no code, this method
+  // compiles the unoptimized version of the code. If an error occurs during
+  // compilation, the error is returned. Normally returns the function's code,
+  // whether optimized or unoptimized.
+  ObjectPtr EnsureHasCodeNoThrow() const;
+
   // Disables optimized code and switches to unoptimized code (or the lazy
   // compilation stub).
   void SwitchToLazyCompiledUnoptimizedCode() const;
@@ -4009,8 +4034,7 @@ class Function : public Object {
   FunctionPtr CreateDynamicInvocationForwarder(
       const String& mangled_name) const;
 
-  FunctionPtr GetDynamicInvocationForwarder(const String& mangled_name,
-                                            bool allow_add = true) const;
+  FunctionPtr GetDynamicInvocationForwarder(const String& mangled_name) const;
 #endif
 
   // Slow function, use in asserts to track changes in important library
@@ -4064,11 +4088,14 @@ class Function : public Object {
 // a hoisted instruction.
 // 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
 // before on a generalized bounds check.
+// IsDynamicallyOverridden: This function can be overridden in a dynamically
+//                          loaded class.
 #define STATE_BITS_LIST(V)                                                     \
   V(WasCompiled)                                                               \
   V(WasExecutedBit)                                                            \
   V(ProhibitsInstructionHoisting)                                              \
-  V(ProhibitsBoundsCheckGeneralization)
+  V(ProhibitsBoundsCheckGeneralization)                                        \
+  V(IsDynamicallyOverridden)
 
   enum StateBits {
 #define DECLARE_FLAG_POS(Name) k##Name##Pos,
@@ -4463,6 +4490,11 @@ class Field : public Object {
     set_kind_bits(GenericCovariantImplBit::update(value, untag()->kind_bits_));
   }
 
+  void set_is_shared(bool value) const {
+    set_kind_bits(SharedBit::update(value, untag()->kind_bits_));
+  }
+  bool is_shared() const { return SharedBit::decode(kind_bits()); }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -4832,6 +4864,7 @@ class Field : public Object {
     kIsExtensionTypeMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
+    kSharedBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -4858,6 +4891,7 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
+  class SharedBit : public BitField<uint16_t, bool, kSharedBit, 1> {};
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -6070,8 +6104,6 @@ class PcDescriptors : public Object {
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
 
-  static void PrintHeaderString();
-
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
   // We would have a VisitPointers function here to traverse the
@@ -7005,9 +7037,11 @@ class Code : public Object {
     explicit Comments(const Array& comments);
 
     // Layout of entries describing comments.
-    enum {kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
-          kCommentEntry,       // Comment text as a String.
-          kNumberOfEntries};
+    enum {
+      kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
+      kCommentEntry,       // Comment text as a String.
+      kNumberOfEntries
+    };
 
     const Array& comments_;
     String& string_;
@@ -7542,9 +7576,6 @@ class ContextScope : public Object {
 // - Object::sentinel() is a value that cannot be produced by Dart code.
 // It can be used to mark special values, for example to distinguish
 // "uninitialized" fields.
-// - Object::transition_sentinel() is a value marking that we are transitioning
-// from sentinel, e.g., computing a field value. Used to detect circular
-// initialization of static fields.
 // - Object::unknown_constant() and Object::non_constant() are optimizing
 // compiler's constant propagation constants.
 // - Object::optimized_out() result from deopt environment pruning or failure
@@ -10842,22 +10873,27 @@ class Array : public Instance {
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
+    ASSERT((0 <= index) && (index < Length()));
     return untag()->element<order>(index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr());
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr(), thread);
   }
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
+    ASSERT((0 <= index) && (index < Length()));
     return untag()->element<std::memory_order_acquire>(index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<std::memory_order_release>(index, value.ptr());
   }
 

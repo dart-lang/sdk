@@ -9,7 +9,7 @@
 ///
 /// Clients may not extend, implement or mix-in this class.
 ///
-/// [guidelines]: ../doc/diagnostics.md
+/// [guidelines]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/diagnostics.md
 abstract class Diagnostic {
   /// A list of messages that provide context for understanding the problem
   /// being reported. The list will be empty if there are no such messages.

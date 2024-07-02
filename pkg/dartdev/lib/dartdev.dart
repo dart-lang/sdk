@@ -71,7 +71,7 @@ class DartdevRunner extends CommandRunner<int> {
       'A command-line utility for Dart development';
 
   @override
-  late final ArgParser argParser;
+  final ArgParser argParser;
 
   final bool verbose;
 

@@ -1740,8 +1740,7 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
   auto* const kFunctionName = "unalignedUint16";
   auto* const kInvokeNoDeoptName = "no_deopt";
   auto* const kInvokeDeoptName = "deopt";
-  auto kScript = Utils::CStringUniquePtr(
-      OS::SCreate(nullptr, R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
         import 'dart:_internal';
         import 'dart:typed_data';
 
@@ -1779,9 +1778,9 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
           return %s(1.0);
         }
             )",
-                  kFunctionName, kInvokeNoDeoptName, kFunctionName,
-                  kInvokeDeoptName, kFunctionName),
-      std::free);
+                                       kFunctionName, kInvokeNoDeoptName,
+                                       kFunctionName, kInvokeDeoptName,
+                                       kFunctionName));
 
   const auto& lib =
       Library::Handle(LoadTestScript(kScript.get(), NoopNativeLookup));
@@ -1962,9 +1961,8 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
 // Verifies that deoptimization at the hoisted BinarySmiOp
 // doesn't result in the infinite re-optimization loop.
 ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
-  auto kScript =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr,
-                                          R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr,
+                                       R"(
         int n = int.parse('3');
         main() {
           int x = 0;
@@ -1976,8 +1974,7 @@ ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
           return x;
         }
       )",
-                                          static_cast<int>(kSmiBits + 1 - 10)),
-                              std::free);
+                                       static_cast<int>(kSmiBits + 1 - 10)));
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
   const auto& function = Function::Handle(GetFunction(root_library, "main"));

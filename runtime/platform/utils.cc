@@ -254,10 +254,6 @@ char* Utils::VSCreate(const char* format, va_list args) {
   return buffer;
 }
 
-Utils::CStringUniquePtr Utils::CreateCStringUniquePtr(char* str) {
-  return std::unique_ptr<char, decltype(std::free)*>{str, std::free};
-}
-
 static void GetLastErrorAsString(char** error) {
   if (error == nullptr) return;  // Nothing to do.
 

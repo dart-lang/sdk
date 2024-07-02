@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
@@ -354,6 +354,7 @@ class _MemoryFile extends _MemoryResource implements File {
     return destination;
   }
 
+  @Deprecated('Get Source instances from analysis results')
   @override
   Source createSource([Uri? uri]) {
     uri ??= provider.pathContext.toUri(path);

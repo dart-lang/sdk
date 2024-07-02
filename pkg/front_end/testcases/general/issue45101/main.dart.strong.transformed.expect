@@ -18,8 +18,8 @@ class _ArraySize<T extends core::Object? = dynamic> extends core::Object impleme
     : self2::_ArraySize::foo = foo, super core::Object::•()
     ;
 }
-@#C1
-@#C4
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C4
 class Array<T extends core::Object? = dynamic> extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%> /* redirection-target: self2::_ArraySize::•<self2::Array::•::T%>*/

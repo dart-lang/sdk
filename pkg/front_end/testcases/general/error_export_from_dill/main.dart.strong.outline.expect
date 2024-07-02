@@ -114,7 +114,7 @@ export "dart:core";
 export "org-dartlang-testcase:///main_lib2.dart";
 export "org-dartlang-testcase:///main_lib3.dart";
 
-static const field dynamic _exports# = #C1;
+static const field dynamic _exports# = "{\"Duplicate\":\"'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.\",\"dynamic\":\"<dynamic>\",\"Never\":\"<Never>\"}";
 
 library;
 import self as self3;
@@ -132,8 +132,4 @@ import "dart:core" as core;
 class Duplicate extends core::Object {
   synthetic constructor •() → self4::Duplicate
     ;
-}
-
-constants  {
-  #C1 = "{\"Duplicate\":\"'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.\",\"dynamic\":\"<dynamic>\",\"Never\":\"<Never>\"}"
 }

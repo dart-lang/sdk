@@ -44,6 +44,8 @@ class TranslatorOptions {
   bool minify = false;
   bool verifyTypeChecks = false;
   bool verbose = false;
+  bool enableExperimentalFfi = false;
+  bool enableExperimentalWasmInterop = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];
@@ -131,7 +133,6 @@ class Translator with KernelNodes {
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
   final List<_FunctionGenerator> _pendingFunctions = [];
-  late final Procedure mainFunction;
   late final w.ModuleBuilder m;
   late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker;
@@ -294,13 +295,12 @@ class Translator with KernelNodes {
   w.Module translate() {
     m = w.ModuleBuilder(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
-    mainFunction = component.mainMethod!;
 
     // Collect imports and exports as the very first thing so the function types
     // for the imports can be places in singleton recursion groups.
     functions.collectImportsAndExports();
 
-    closureLayouter.collect([mainFunction.function]);
+    closureLayouter.collect();
     classInfoCollector.collect();
 
     initFunction =
@@ -311,8 +311,6 @@ class Translator with KernelNodes {
     constants = Constants(this);
 
     dispatchTable.build();
-
-    m.exports.export("\$getMain", generateGetMain(mainFunction));
 
     functions.initialize();
     while (!functions.isWorkListEmpty()) {
@@ -432,16 +430,6 @@ class Translator with KernelNodes {
         print(f.body.trace);
       }
     }
-  }
-
-  w.BaseFunction generateGetMain(Procedure mainFunction) {
-    final getMain = m.functions.define(m.types
-        .defineFunction(const [], const [w.RefType.any(nullable: true)]));
-    constants.instantiateConstant(getMain, getMain.body,
-        StaticTearOffConstant(mainFunction), getMain.type.outputs.single);
-    getMain.body.end();
-
-    return getMain;
   }
 
   Class classForType(DartType type) {
@@ -1143,7 +1131,7 @@ class Translator with KernelNodes {
     return arrayTypeRef;
   }
 
-  /// Indexes a Dart `_ListBase` on the stack.
+  /// Indexes a Dart `WasmListBase` on the stack.
   void indexList(w.InstructionsBuilder b,
       void Function(w.InstructionsBuilder b) pushIndex) {
     getListBaseArray(b);
@@ -1158,7 +1146,7 @@ class Translator with KernelNodes {
     b.i32_wrap_i64();
   }
 
-  /// Get the _ListBase._array field of type WasmArray<Object?>.
+  /// Get the WasmListBase._data field of type WasmArray<Object?>.
   void getListBaseArray(w.InstructionsBuilder b) {
     ClassInfo info = classInfo[listBaseClass]!;
     b.struct_get(info.struct, FieldIndex.listArray);

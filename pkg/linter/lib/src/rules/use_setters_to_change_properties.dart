@@ -41,7 +41,7 @@ class UseSettersToChangeProperties extends LintRule {
             name: 'use_setters_to_change_properties',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

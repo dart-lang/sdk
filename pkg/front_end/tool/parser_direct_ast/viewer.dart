@@ -5,8 +5,8 @@
 import "dart:io" show File, Platform;
 import "dart:typed_data" show Uint8List;
 
-import "package:front_end/src/fasta/util/parser_ast.dart" show getAST;
-import "package:front_end/src/fasta/util/parser_ast_helper.dart"
+import "package:front_end/src/util/parser_ast.dart" show getAST;
+import "package:front_end/src/util/parser_ast_helper.dart"
     show ParserAstNode, ParserAstType;
 
 import "console_helper.dart";
@@ -17,7 +17,13 @@ void main(List<String> args) {
     uri = Uri.base.resolve(args.first);
   }
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
-  ParserAstNode ast = getAST(bytes, enableExtensionMethods: true);
+  ParserAstNode ast = getAST(
+    bytes,
+    enableExtensionMethods: true,
+    enableNonNullable: true,
+    enableTripleShift: true,
+    allowPatterns: true,
+  );
 
   Widget widget = new QuitOnQWidget(
     new WithSingleLineBottomWidget(

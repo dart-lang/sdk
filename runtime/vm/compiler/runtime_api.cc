@@ -361,7 +361,7 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::UntaggedObject::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::UntaggedObject::ClassIdTag::encode(cid) |
-         dart::UntaggedObject::NewBit::encode(true) |
+         dart::UntaggedObject::NewOrEvacuationCandidateBit::encode(true) |
          dart::UntaggedObject::AlwaysSetBit::encode(true) |
          dart::UntaggedObject::NotMarkedBit::encode(true) |
          dart::UntaggedObject::ImmutableBit::encode(
@@ -377,7 +377,8 @@ const word UntaggedObject::kCardRememberedBit =
 
 const word UntaggedObject::kCanonicalBit = dart::UntaggedObject::kCanonicalBit;
 
-const word UntaggedObject::kNewBit = dart::UntaggedObject::kNewBit;
+const word UntaggedObject::kNewOrEvacuationCandidateBit =
+    dart::UntaggedObject::kNewOrEvacuationCandidateBit;
 
 const word UntaggedObject::kOldAndNotRememberedBit =
     dart::UntaggedObject::kOldAndNotRememberedBit;
@@ -1088,9 +1089,7 @@ void UnboxFieldIfSupported(const dart::Field& field,
 
   classid_t cid = kIllegalCid;
   if (type.IsDoubleType()) {
-    if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-      cid = kDoubleCid;
-    }
+    cid = kDoubleCid;
   } else if (type.IsFloat32x4Type()) {
     if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
       cid = kFloat32x4Cid;

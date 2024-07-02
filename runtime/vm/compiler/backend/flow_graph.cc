@@ -531,7 +531,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   // Useful receiver class information?
-  if (receiver_class.IsNull()) {
+  if (receiver_class.IsNull() ||
+      receiver_class.has_dynamically_extendable_subtypes()) {
     return ToCheck::kCheckCid;
   } else if (call->HasICData()) {
     // If the static class type does not match information found in ICData
@@ -571,7 +572,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
         Class::Handle(zone(), isolate_group()->object_store()->null_class());
     Function& target = Function::Handle(zone());
     if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
-      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
+      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name,
+                                               /*allow_add=*/true);
     }
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
@@ -1592,10 +1594,11 @@ void FlowGraph::RenameRecursive(
         break;
       }
 
-      case Instruction::kConstant: {
+      case Instruction::kConstant:
+      case Instruction::kUnboxedConstant: {
         ConstantInstr* constant = current->Cast<ConstantInstr>();
         if (constant->HasTemp()) {
-          result = GetConstant(constant->value());
+          result = GetConstant(constant->value(), constant->representation());
         }
         break;
       }
@@ -1928,10 +1931,6 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-static bool CanUnboxDouble() {
-  return FlowGraphCompiler::SupportsUnboxedDoubles();
-}
-
 static bool CanConvertInt64ToDouble() {
   return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
@@ -1973,7 +1972,6 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != nullptr)
                                   ? deopt_target->DeoptimizationTarget()
                                   : DeoptId::kNone;
-    ASSERT(CanUnboxDouble());
     converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != nullptr)
@@ -2127,18 +2125,16 @@ class PhiUnboxingHeuristic : public ValueObject {
     auto new_representation = phi->representation();
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
-        if (CanUnboxDouble()) {
-          new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
-                                   ? kUnboxedFloat
-                                   : kUnboxedDouble;
+        new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
+                                 ? kUnboxedFloat
+                                 : kUnboxedDouble;
 #if defined(DEBUG)
-          if (new_representation == kUnboxedFloat) {
-            for (auto input : phi->inputs()) {
-              ASSERT(input->representation() != kUnboxedDouble);
-            }
+        if (new_representation == kUnboxedFloat) {
+          for (auto input : phi->inputs()) {
+            ASSERT(input->representation() != kUnboxedDouble);
           }
-#endif
         }
+#endif
         break;
       case kFloat32x4Cid:
         if (ShouldInlineSimd()) {
@@ -2371,7 +2367,7 @@ void FlowGraph::EliminateEnvironments() {
       // See FlowGraphChecker::VisitInstruction.
       if (!current->ComputeCanDeoptimize() &&
           !current->ComputeCanDeoptimizeAfterCall() &&
-          (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
+          (!current->MayThrow() || !block->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.
         // TODO(srdjan): --source-lines needs deopt environments to get at

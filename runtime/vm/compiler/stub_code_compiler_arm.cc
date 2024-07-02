@@ -1604,7 +1604,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (ldrex/strex do not support offsets).
@@ -1617,21 +1617,34 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmp(R4, Operand(1));
     __ b(&retry, EQ);
 
-    __ ldr(R4, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ ldr(R2, Address(R4, target::MarkingStackBlock::top_offset()));
-    __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
-    __ str(R0, Address(R3, target::MarkingStackBlock::pointers_offset()));
-    __ add(R2, R2, Operand(1));
-    __ str(R2, Address(R4, target::MarkingStackBlock::top_offset()));
-    __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
-    __ b(&done, NE);
+    __ tst(R0, Operand(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ b(&is_new, NOT_ZERO);
 
-    {
-      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mov(R0, Operand(THR));
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ ldr(R4, Address(THR, offset));
+      __ ldr(R2, Address(R4, target::MarkingStackBlock::top_offset()));
+      __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
+      __ str(R0, Address(R3, target::MarkingStackBlock::pointers_offset()));
+      __ add(R2, R2, Operand(1));
+      __ str(R2, Address(R4, target::MarkingStackBlock::top_offset()));
+      __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
+      __ b(&done, NE);
+
+      {
+        LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ mov(R0, Operand(THR));
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ b(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ clrex();
@@ -1709,7 +1722,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ Ret();
   }
   if (cards) {
-    Label remember_card_slow;
+    Label remember_card_slow, retry;
 
     // Get card table.
     __ Bind(&remember_card);
@@ -1719,9 +1732,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmp(TMP, Operand(0));
     __ b(&remember_card_slow, EQ);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads
-    __ PushList((1 << R0) | (1 << R1));
+    // Atomically dirty the card.
+    __ PushList((1 << R0) | (1 << R1) | (1 << R2));
     __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
     __ sub(R9, R9, Operand(TMP));                 // Offset in page.
     __ Lsr(R9, R9, Operand(target::Page::kBytesPerCardLog2));  // Card index.
@@ -1732,10 +1744,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
            Address(TMP, target::Page::card_table_offset()));    // Card table.
     __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));          // Word index.
     __ add(TMP, TMP, Operand(R9, LSL, target::kWordSizeLog2));  // Word address.
-    __ ldr(R1, Address(TMP, 0));
+
+    __ Bind(&retry);
+    __ ldrex(R1, TMP);
     __ orr(R1, R1, Operand(R0));
-    __ str(R1, Address(TMP, 0));
-    __ PopList((1 << R0) | (1 << R1));
+    __ strex(R2, R1, TMP);
+    __ cmp(R2, Operand(1));
+    __ b(&retry, EQ);
+    __ PopList((1 << R0) | (1 << R1) | (1 << R2));
     __ Ret();
 
     // Card table not yet allocated.
@@ -2340,7 +2356,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
+  if (FLAG_precompiled_mode) {
     GenerateDispatcherCode(assembler, &call_target_function);
   } else {
     __ b(&call_target_function);

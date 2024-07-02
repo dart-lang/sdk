@@ -9,6 +9,8 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#include <utility>
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 
@@ -156,8 +158,10 @@ class DelayAllocations : public AllStatic {
   static void Optimize(FlowGraph* graph);
 
  private:
-  static Instruction* DominantUse(Definition* def);
-  static bool IsOneTimeUse(Instruction* use, Definition* def);
+  static std::pair<BlockEntryInstr*, Instruction*> DominantUse(
+      std::pair<BlockEntryInstr*, Definition*> def);
+  static bool IsOneTimeUse(BlockEntryInstr* use_block,
+                           BlockEntryInstr* def_block);
 };
 
 class CheckStackOverflowElimination : public AllStatic {

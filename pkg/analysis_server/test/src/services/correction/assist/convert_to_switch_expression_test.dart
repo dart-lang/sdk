@@ -35,6 +35,37 @@ void g(String s) {}
     await assertNoAssistAt('switch');
   }
 
+  Future<void> test_argument_sharedBody() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, white
+}
+
+void f(Color color) {
+  switch (color) {
+    case Color.red:
+    case Color.blue:
+      print(0);
+    case Color.white:
+      print(1);
+  }
+}
+''');
+
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, blue, white
+}
+
+void f(Color color) {
+  print(switch (color) {
+    Color.red || Color.blue => 0,
+    Color.white => 1
+  });
+}
+''');
+  }
+
   Future<void> test_argument_switchExpression() async {
     await resolveTestCode('''
 enum Color {
@@ -265,6 +296,39 @@ String f(Color color) {
     await assertNoAssistAt('switch');
   }
 
+  Future<void> test_assignment_sharedBody() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, white
+}
+
+void f(Color color) {
+  int value;
+  switch (color) {
+    case Color.red:
+    case Color.blue:
+      value = 0;
+    case Color.white:
+      value = 1;
+  }
+}
+''');
+
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, blue, white
+}
+
+void f(Color color) {
+  int value;
+  value = switch (color) {
+    Color.red || Color.blue => 0,
+    Color.white => 1
+  };
+}
+''');
+  }
+
   Future<void> test_assignment_switchExpression() async {
     await resolveTestCode('''
 enum Color {
@@ -491,6 +555,59 @@ String f(int i) {
       return 'two';
   }
   return '';
+}
+''');
+
+    await assertNoAssistAt('switch');
+  }
+
+  Future<void> test_return_sharedBody() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, white
+}
+
+int f(Color color) {
+  switch (color) {
+    case Color.red:
+    case Color.blue:
+      return 0;
+    case Color.white:
+      return 1;
+  }
+}
+''');
+
+    await assertHasAssistAt('(color)', '''
+enum Color {
+  red, blue, white
+}
+
+int f(Color color) {
+  return switch (color) {
+    Color.red || Color.blue => 0,
+    Color.white => 1
+  };
+}
+''');
+  }
+
+  Future<void> test_return_sharedBody_hasWhen() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, white
+}
+
+int f(Color color) {
+  switch (color) {
+    case Color.red when true:
+    case Color.blue:
+      return 0;
+    case Color.white:
+      return 1;
+    default:
+      return 2;
+  }
 }
 ''');
 

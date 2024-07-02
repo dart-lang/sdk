@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/fasta/hybrid_file_system.dart';
+import 'package:front_end/src/base/hybrid_file_system.dart';
 
 import "../tool/dart_doctest_impl.dart" as impl;
 

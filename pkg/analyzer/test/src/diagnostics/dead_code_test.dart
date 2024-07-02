@@ -137,6 +137,30 @@ void f(int a) {
     ]);
   }
 
+  test_localFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+void f() {
+  _(){}
+}
+''', [
+      error(WarningCode.DEAD_CODE, 13, 5),
+    ]);
+  }
+
+  test_localFunction_wildcard_preWildcards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+void f() {
+  _(){}
+}
+''', [
+      // No dead code.
+      error(WarningCode.UNUSED_ELEMENT, 57, 1),
+    ]);
+  }
+
   test_objectPattern_neverTypedGetter() async {
     await assertErrorsInCode(r'''
 class A {

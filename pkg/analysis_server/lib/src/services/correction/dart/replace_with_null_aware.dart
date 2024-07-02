@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -16,9 +16,11 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   /// The operator to replace.
   String _operator = '.';
 
-  ReplaceWithNullAware.inChain() : _correctionKind = _CorrectionKind.inChain;
+  ReplaceWithNullAware.inChain({required super.context})
+      : _correctionKind = _CorrectionKind.inChain;
 
-  ReplaceWithNullAware.single() : _correctionKind = _CorrectionKind.single;
+  ReplaceWithNullAware.single({required super.context})
+      : _correctionKind = _CorrectionKind.single;
 
   @override
   CorrectionApplicability get applicability =>
@@ -43,7 +45,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeInChain(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveringNode;
     if (node is Expression) {
       var node_final = node;
       await builder.addDartFileEdit(file, (builder) {
@@ -67,13 +69,13 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeSingle(ChangeBuilder builder) async {
-    var node = coveredNode?.parent;
+    var node = coveringNode?.parent;
     if (node is CascadeExpression) {
       node = node.cascadeSections.first;
     } else {
-      var coveredNode = this.coveredNode;
-      if (coveredNode is IndexExpression) {
-        await _insert(builder, coveredNode.leftBracket);
+      var coveringNode = this.coveringNode;
+      if (coveringNode is IndexExpression) {
+        await _insert(builder, coveringNode.leftBracket);
         return;
       }
       var parent = node?.parent;

@@ -344,7 +344,7 @@ class AstBinaryReader {
       target: target,
       cascadeSections: sections,
     );
-    node.staticType = target.staticType;
+    node.setPseudoExpressionStaticType(target.staticType);
     return node;
   }
 
@@ -482,7 +482,7 @@ class AstBinaryReader {
   }
 
   void _readExpressionResolution(ExpressionImpl node) {
-    node.staticType = _reader.readType();
+    node.setPseudoExpressionStaticType(_reader.readType());
   }
 
   ExtensionOverride _readExtensionOverride() {
@@ -925,7 +925,7 @@ class AstBinaryReader {
       name: nameNode,
       expression: expression,
     );
-    node.staticType = expression.staticType;
+    node.setPseudoExpressionStaticType(expression.staticType);
     return node;
   }
 

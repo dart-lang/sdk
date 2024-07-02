@@ -53,7 +53,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
-#include "vm/uri.h"
 #include "vm/version.h"
 #include "vm/zone_text_buffer.h"
 
@@ -5387,29 +5386,6 @@ Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler) {
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
-                                                    Dart_Handle url) {
-  DARTSCOPE(Thread::Current());
-  API_TIMELINE_DURATION(T);
-  CHECK_CALLBACK_STATE(T);
-
-  const String& base_uri = Api::UnwrapStringHandle(Z, base_url);
-  if (base_uri.IsNull()) {
-    RETURN_TYPE_ERROR(Z, base_url, String);
-  }
-  const String& uri = Api::UnwrapStringHandle(Z, url);
-  if (uri.IsNull()) {
-    RETURN_TYPE_ERROR(Z, url, String);
-  }
-
-  const char* resolved_uri;
-  if (!ResolveUri(uri.ToCString(), base_uri.ToCString(), &resolved_uri)) {
-    return Api::NewError("%s: Unable to canonicalize uri '%s'.", CURRENT_FUNC,
-                         uri.ToCString());
-  }
-  return Api::NewHandle(T, String::New(resolved_uri));
-}
-
 DART_EXPORT Dart_Handle
 Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler) {
   Isolate* isolate = Isolate::Current();
@@ -5464,8 +5440,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (tmp.IsNull()) {
     return Api::NewError(
         "Invoked Dart programs must have a 'main' function defined:\n"
-        "https://dart.dev/guides/language/"
-        "language-tour#a-basic-dart-program");
+        "https://dart.dev/to/main-function");
   }
   library ^= tmp.ptr();
   IG->object_store()->set_root_library(library);
@@ -5964,6 +5939,14 @@ Dart_SetFfiNativeResolver(Dart_Handle library,
   }
   lib.set_ffi_native_resolver(resolver);
   return Api::Success();
+}
+
+DART_EXPORT
+void Dart_InitializeNativeAssetsResolver(NativeAssetsApi* native_assets_api) {
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  isolate_group->SetNativeAssetsCallbacks(native_assets_api);
 }
 
 // --- Peer support ---

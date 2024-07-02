@@ -14,9 +14,6 @@ enum SentinelKind {
   /// Indicates that a variable or field has not been initialized.
   notInitialized,
 
-  /// Indicates that a variable or field is in the process of being initialized.
-  initializing,
-
   /// Indicates that a variable has been eliminated by the optimizing compiler.
   optimizedOut,
 

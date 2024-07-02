@@ -1917,7 +1917,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ PushRegisters(spill_set);
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (atomics do not support offsets).
@@ -1934,24 +1934,36 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
       __ cbnz(&retry, R4);
     }
 
-    __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
-    __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                      kUnsignedFourBytes);
-    __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
-    __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
-    __ add(R2, R2, Operand(1));
-    __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                     kUnsignedFourBytes);
-    __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
-    __ b(&done, NE);
+    __ tbnz(&is_new, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mov(R0, THR);
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ LoadFromOffset(R4, THR, offset);
+      __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
+                        kUnsignedFourBytes);
+      __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
+      __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
+      __ add(R2, R2, Operand(1));
+      __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
+                       kUnsignedFourBytes);
+      __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
+      __ b(&done, NE);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ mov(R0, THR);
+        rt.Call(entry, /*argument_count=*/1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ b(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ clrex();
@@ -2032,7 +2044,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ ret();
   }
   if (cards) {
-    Label remember_card_slow;
+    Label remember_card_slow, retry;
 
     // Get card table.
     __ Bind(&remember_card);
@@ -2041,17 +2053,25 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
            Address(TMP, target::Page::card_table_offset()));  // Card table.
     __ cbz(&remember_card_slow, TMP2);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ sub(R25, R25, Operand(TMP));  // Offset in page.
     __ LsrImmediate(R25, R25, target::Page::kBytesPerCardLog2);  // Index.
     __ LoadImmediate(TMP, 1);
     __ lslv(TMP, TMP, R25);  // Bit mask. (Shift amount is mod 64.)
     __ LsrImmediate(R25, R25, target::kBitsPerWordLog2);  // Word index.
     __ add(TMP2, TMP2, Operand(R25, LSL, target::kWordSizeLog2));  // Word addr.
-    __ ldr(R25, Address(TMP2, 0));
-    __ orr(R25, R25, Operand(TMP));
-    __ str(R25, Address(TMP2, 0));
+
+    if (TargetCPUFeatures::atomic_memory_supported()) {
+      __ ldset(TMP, ZR, TMP2);
+    } else {
+      __ PushRegister(R0);
+      __ Bind(&retry);
+      __ ldxr(R25, TMP2);
+      __ orr(R25, R25, Operand(TMP));
+      __ stxr(R0, R25, TMP2);
+      __ cbnz(&retry, R0);
+      __ PopRegister(R0);
+    }
     __ ret();
 
     // Card table not yet allocated.
@@ -2672,7 +2692,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
+  if (FLAG_precompiled_mode) {
     GenerateDispatcherCode(assembler, &call_target_function);
   } else {
     __ b(&call_target_function);

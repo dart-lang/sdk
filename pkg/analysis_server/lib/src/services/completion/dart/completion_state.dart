@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/utilities/selection.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';

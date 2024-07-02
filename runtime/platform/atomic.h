@@ -80,8 +80,8 @@ class RelaxedAtomic {
   }
   T operator+=(T arg) { return fetch_add(arg) + arg; }
   T operator-=(T arg) { return fetch_sub(arg) - arg; }
-  T& operator++() { return fetch_add(1) + 1; }
-  T& operator--() { return fetch_sub(1) - 1; }
+  T operator++() { return fetch_add(1) + 1; }
+  T operator--() { return fetch_sub(1) - 1; }
   T operator++(int) { return fetch_add(1); }
   T operator--(int) { return fetch_sub(1); }
 

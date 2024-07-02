@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'add_type_parameter_test.dart' as add_type_parameter;
 import 'code_fragment_parser_test.dart' as code_fragment_parser;
 import 'code_template_test.dart' as code_template;
+import 'collection_use_case_test.dart' as collection_use_case;
 import 'data_driven_test.dart' as data_driven;
 import 'diagnostics/test_all.dart' as diagnostics;
 import 'element_matcher_test.dart' as element_matcher;
@@ -27,6 +28,7 @@ void main() {
     add_type_parameter.main();
     code_fragment_parser.main();
     code_template.main();
+    collection_use_case.main();
     data_driven.main();
     diagnostics.main();
     element_matcher.main();

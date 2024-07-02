@@ -48,7 +48,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
             name: 'avoid_positional_boolean_parameters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

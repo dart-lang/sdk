@@ -43,7 +43,7 @@ class UnnecessaryLambdas extends LintRule {
             name: 'unnecessary_lambdas',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -116,8 +116,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, LinterContext context)
-      : constructorTearOffsEnabled =
-            context.isEnabled(Feature.constructor_tearoffs),
+      : constructorTearOffsEnabled = context.libraryElement!.featureSet
+            .isEnabled(Feature.constructor_tearoffs),
         typeSystem = context.typeSystem;
 
   @override

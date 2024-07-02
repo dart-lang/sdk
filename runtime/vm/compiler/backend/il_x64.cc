@@ -348,79 +348,6 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ leaq(payload_reg, compiler::Address(array_reg, start_reg, scale, offset));
 }
 
-LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
-  auto* const summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-
-  summary->set_in(kBasePos, Location::RequiresRegister());
-  // Only use a Smi constant for the index if multiplying it by the index
-  // scale would be an int32 constant.
-  const intptr_t scale_shift = Utils::ShiftForPowerOfTwo(index_scale());
-  summary->set_in(kIndexPos, LocationRegisterOrSmiConstant(
-                                 index(), kMinInt32 >> scale_shift,
-                                 kMaxInt32 >> scale_shift));
-  // Only use a Smi constant for the offset if it is an int32 constant.
-  summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset(), kMinInt32,
-                                                            kMaxInt32));
-  summary->set_out(0, Location::RequiresRegister());
-
-  return summary;
-}
-
-void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register base_reg = locs()->in(kBasePos).reg();
-  const Location& index_loc = locs()->in(kIndexPos);
-  const Location& offset_loc = locs()->in(kOffsetPos);
-  const Register result_reg = locs()->out(0).reg();
-
-  if (index_loc.IsConstant()) {
-    if (offset_loc.IsConstant()) {
-      ASSERT_EQUAL(Smi::Cast(index_loc.constant()).Value(), 0);
-      ASSERT(Smi::Cast(offset_loc.constant()).Value() != 0);
-      // No index involved at all.
-      const int32_t offset_value = Smi::Cast(offset_loc.constant()).Value();
-      __ leaq(result_reg, compiler::Address(base_reg, offset_value));
-    } else {
-      // Don't need wrap-around as the index is constant only if multiplying
-      // it by the scale is an int32.
-      const int32_t scaled_index =
-          Smi::Cast(index_loc.constant()).Value() * index_scale();
-      __ leaq(result_reg, compiler::Address(base_reg, offset_loc.reg(), TIMES_1,
-                                            scaled_index));
-    }
-  } else {
-    Register index_reg = index_loc.reg();
-    bool index_unboxed = RepresentationUtils::IsUnboxedInteger(
-        RequiredInputRepresentation(kIndexPos));
-    ASSERT(index_unboxed);
-    if (index_scale() == 16) {
-      COMPILE_ASSERT(kSmiTagShift == 1);
-      // A ScaleFactor of TIMES_16 is invalid for x86, so box the index as a Smi
-      // (using the result register to store it to avoid allocating a writable
-      // register for the index) to reduce the ScaleFactor to TIMES_8.
-      __ MoveAndSmiTagRegister(result_reg, index_reg);
-      index_reg = result_reg;
-      index_unboxed = false;
-    }
-    auto const scale = ToScaleFactor(index_scale(), index_unboxed);
-    if (offset_loc.IsConstant()) {
-      const int32_t offset_value = Smi::Cast(offset_loc.constant()).Value();
-      __ leaq(result_reg,
-              compiler::Address(base_reg, index_reg, scale, offset_value));
-    } else {
-      // compiler::Address(reg, reg, scale, reg) is invalid, so have to do
-      // as a two-part operation.
-      __ leaq(result_reg, compiler::Address(base_reg, index_reg, scale,
-                                            /*disp=*/0));
-      __ AddRegisters(result_reg, offset_loc.reg());
-    }
-  }
-}
-
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -545,6 +472,11 @@ static const RegisterSet kCalleeSaveRegistersSet(
 // Keep in sync with NativeEntryInstr::EmitNativeCode.
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
+
+  // Restore tag before the profiler's stack walker will no longer see the
+  // InvokeDartCode return address.
+  __ movq(TMP, compiler::Address(RBP, NativeEntryInstr::kVMTagOffsetFromFp));
+  __ movq(compiler::Assembler::VMTagAddress(), TMP);
 
   __ LeaveDartFrame();
 
@@ -1627,6 +1559,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the current VMTag on the stack.
   __ movq(RAX, compiler::Assembler::VMTagAddress());
   __ pushq(RAX);
+  ASSERT(kVMTagOffsetFromFp == 5 * compiler::target::kWordSize);
 
   // Save top resource.
   __ pushq(
@@ -1647,7 +1580,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EmitEntryFrameVerification();
 
   // The callback trampoline (caller) has already left the safepoint for us.
-  __ TransitionNativeToGenerated(/*exit_safepoint=*/false);
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/false,
+                                 /*ignore_unwind_in_progress=*/false,
+                                 /*set_tag=*/false);
 
   // Load the code object.
   const Function& target_function = marshaller_.dart_signature();
@@ -1694,6 +1629,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Continue with Dart frame setup.
   FunctionEntryInstr::EmitNativeCode(compiler);
+
+  // Delay setting the tag until the profiler's stack walker will see the
+  // InvokeDartCode return address.
+  __ movq(compiler::Assembler::VMTagAddress(),
+          compiler::Immediate(compiler::target::Thread::vm_tag_dart_id()));
 }
 
 #define R(r) (1 << r)
@@ -2626,7 +2566,10 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ movq(temp,
           compiler::Address(
-              THR, compiler::target::Thread::field_table_values_offset()));
+              THR,
+              field().is_shared()
+                  ? compiler::target::Thread::shared_field_table_values_offset()
+                  : compiler::target::Thread::field_table_values_offset()));
   // Note: static fields ids won't be changed by hot-reload.
   __ movq(
       compiler::Address(temp, compiler::target::FieldTable::OffsetOf(field())),

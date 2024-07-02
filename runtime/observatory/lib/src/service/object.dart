@@ -3319,8 +3319,6 @@ M.SentinelKind stringToSentinelKind(String s) {
       return M.SentinelKind.expired;
     case 'NotInitialized':
       return M.SentinelKind.notInitialized;
-    case 'BeingInitialized':
-      return M.SentinelKind.initializing;
     case 'OptimizedOut':
       return M.SentinelKind.optimizedOut;
     case 'Free':

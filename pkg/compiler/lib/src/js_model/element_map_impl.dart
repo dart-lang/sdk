@@ -602,8 +602,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.instantiationToBounds = data.thisType;
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
-            coreTypes.legacyRawType(node), coreTypes.objectClass,
-            isNonNullableByDefault: true) as ir.InterfaceType);
+                coreTypes.legacyRawType(node), coreTypes.objectClass)
+            as ir.InterfaceType);
       }
     }
   }
@@ -1306,7 +1306,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue? getConstantValue(ir.Member? memberContext, ir.Expression? node,
+  ConstantValue? getConstantValue(ir.Expression? node,
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {
@@ -2074,6 +2074,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
 class JsElementEnvironment extends ElementEnvironment
     implements JElementEnvironment {
+  @override
   final JsKernelToElementMap elementMap;
 
   JsElementEnvironment(this.elementMap);

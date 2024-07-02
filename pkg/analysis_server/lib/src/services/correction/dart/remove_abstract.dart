@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -18,10 +18,11 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   /// Initialize a newly created instance that can't apply bulk and in-file
   /// fixes.
-  RemoveAbstract() : applicability = CorrectionApplicability.singleLocation;
+  RemoveAbstract({required super.context})
+      : applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that can apply bulk and in-file fixes.
-  RemoveAbstract.bulkFixable()
+  RemoveAbstract.bulkFixable({required super.context})
       : applicability = CorrectionApplicability.automatically;
 
   @override

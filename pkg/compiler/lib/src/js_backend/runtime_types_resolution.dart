@@ -1271,21 +1271,21 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
               SubclassResult result = closedWorld.classHierarchy
                   .commonSubclasses(receiverClass, ClassQuery.SUBTYPE,
                       argumentClass, ClassQuery.SUBTYPE);
-              switch (result.kind) {
-                case SubclassResultKind.EMPTY:
+              switch (result) {
+                case SimpleSubclassResult.empty:
                   break;
-                case SubclassResultKind.EXACT1:
-                case SubclassResultKind.SUBCLASS1:
-                case SubclassResultKind.SUBTYPE1:
+                case SimpleSubclassResult.exact1:
+                case SimpleSubclassResult.subclass1:
+                case SimpleSubclassResult.subtype1:
                   addClass(receiverClass);
                   break;
-                case SubclassResultKind.EXACT2:
-                case SubclassResultKind.SUBCLASS2:
-                case SubclassResultKind.SUBTYPE2:
+                case SimpleSubclassResult.exact2:
+                case SimpleSubclassResult.subclass2:
+                case SimpleSubclassResult.subtype2:
                   addClass(argumentClass);
                   break;
-                case SubclassResultKind.SET:
-                  for (ClassEntity cls in result.classes) {
+                case SetSubclassResult(:final classes):
+                  for (ClassEntity cls in classes) {
                     addClass(cls);
                     if (neededOnAll) break;
                   }

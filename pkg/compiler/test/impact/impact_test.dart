@@ -24,7 +24,9 @@ main(List<String> args) {
     print('Testing computation of WorldImpact through ImpactData');
     print('==================================================================');
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testedConfigs: allSpecConfigs);
+        options: const ['--enable-asserts'],
+        args: args,
+        testedConfigs: allSpecConfigs);
   });
 }
 

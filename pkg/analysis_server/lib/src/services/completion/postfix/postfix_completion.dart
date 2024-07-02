@@ -22,7 +22,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 /// An enumeration of possible postfix completion kinds.
-class DartPostfixCompletion {
+abstract final class DartPostfixCompletion {
   static const NO_TEMPLATE =
       PostfixCompletionKind('', 'no change', _false, _null);
 

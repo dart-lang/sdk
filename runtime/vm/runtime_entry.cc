@@ -561,39 +561,35 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
                           Thread* thread) {
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
 
-  // If we eliminate a generational write barriers on allocations of an object
+  // If we eliminate the generational write barrier when writing into an object,
   // we need to ensure it's either a new-space object or it has been added to
-  // the remembered set.
+  // the remembered set. If we eliminate the incremental write barrier, we need
+  // to add the object to the deferred marking stack so it will be [re]scanned.
   //
   // NOTE: We use static_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
   // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
-  bool add_to_remembered_set = true;
-  if (object->IsNewObject()) {
-    add_to_remembered_set = false;
-  } else if (object->IsArray()) {
+  bool skips_barrier = true;
+  if (object->IsArray()) {
     const intptr_t length = Array::LengthOf(static_cast<ArrayPtr>(object));
-    add_to_remembered_set =
-        compiler::target::WillAllocateNewOrRememberedArray(length);
+    skips_barrier = compiler::target::WillAllocateNewOrRememberedArray(length);
   } else if (object->IsContext()) {
     const intptr_t num_context_variables =
         Context::NumVariables(static_cast<ContextPtr>(object));
-    add_to_remembered_set =
-        compiler::target::WillAllocateNewOrRememberedContext(
-            num_context_variables);
+    skips_barrier = compiler::target::WillAllocateNewOrRememberedContext(
+        num_context_variables);
   }
 
-  if (add_to_remembered_set) {
-    object->untag()->EnsureInRememberedSet(thread);
-  }
+  if (skips_barrier) {
+    if (object->IsOldObject()) {
+      object->untag()->EnsureInRememberedSet(thread);
+    }
 
-  // For incremental write barrier elimination, we need to ensure that the
-  // allocation ends up in the new space or else the object needs to added
-  // to deferred marking stack so it will be [re]scanned.
-  if (thread->is_marking()) {
-    thread->DeferredMarkingStackAddObject(object);
+    if (thread->is_marking()) {
+      thread->DeferredMarkingStackAddObject(object);
+    }
   }
 
   return static_cast<uword>(object);
@@ -1565,6 +1561,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
                                      const String& demangled,
                                      const Array& arguments_descriptor,
                                      Function* result) {
+  const bool create_if_absent = !FLAG_precompiled_mode;
   const String& getter_name = String::Handle(Field::GetterName(demangled));
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
@@ -1572,7 +1569,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& getter =
       Function::Handle(Resolver::ResolveDynamicForReceiverClass(
-          receiver_class, getter_name, args_desc));
+          receiver_class, getter_name, args_desc, create_if_absent));
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
@@ -1582,8 +1579,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           target_name, arguments_descriptor,
-          UntaggedFunction::kInvokeFieldDispatcher, FLAG_lazy_dispatchers));
-  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
+          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent));
+  ASSERT(!create_if_absent || !target_function.IsNull());
   if (FLAG_trace_ic) {
     OS::PrintErr(
         "InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -1608,6 +1605,11 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
   }
   const bool is_getter = Field::IsGetterName(*demangled);
   Function& result = Function::Handle();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool create_if_absent = false;
+#else
+  const bool create_if_absent = true;
+#endif
   if (is_getter ||
       !ResolveCallThroughGetter(receiver_class, target_name, *demangled,
                                 args_descriptor, &result)) {
@@ -1615,7 +1617,7 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
             *demangled, args_descriptor,
-            UntaggedFunction::kNoSuchMethodDispatcher, FLAG_lazy_dispatchers));
+            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent));
     if (FLAG_trace_ic) {
       OS::PrintErr(
           "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -1624,9 +1626,9 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
     }
     result = target_function.ptr();
   }
-  // May be null if --no-lazy-dispatchers, in which case dispatch will be
+  // May be null if in the precompiled runtime, in which case dispatch will be
   // handled by NoSuchMethodFromCallStub.
-  ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
+  ASSERT(!create_if_absent || !result.IsNull());
   return result.ptr();
 }
 
@@ -1637,6 +1639,7 @@ static void TrySwitchInstanceCall(Thread* thread,
                                   const Function& caller_function,
                                   const ICData& ic_data,
                                   const Function& target_function) {
+  ASSERT(!target_function.IsNull());
   auto zone = thread->zone();
 
   // Monomorphic/megamorphic calls only check the receiver CID.
@@ -1674,10 +1677,8 @@ static void TrySwitchInstanceCall(Thread* thread,
 
   const intptr_t num_checks = ic_data.NumberOfChecks();
 
-  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
-  // Monomorphic call with a valid target function.
-  if (FLAG_unopt_monomorphic_calls && (num_checks == 1) &&
-      !target_function.IsNull()) {
+  // Monomorphic call.
+  if (FLAG_unopt_monomorphic_calls && (num_checks == 1)) {
     // A call site in the monomorphic state does not load the arguments
     // descriptor, so do not allow transition to this state if the callee
     // needs it.
@@ -1743,9 +1744,10 @@ static FunctionPtr Resolve(
   auto& target_function = Function::Handle(zone);
   ArgumentsDescriptor args_desc(descriptor);
 
+  const bool allow_add = !FLAG_precompiled_mode;
   if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
-    target_function = Resolver::ResolveDynamicForReceiverClass(receiver_class,
-                                                               name, args_desc);
+    target_function = Resolver::ResolveDynamicForReceiverClass(
+        receiver_class, name, args_desc, allow_add);
   }
   if (caller_arguments.length() == 2 &&
       target_function.ptr() == thread->isolate_group()
@@ -1760,10 +1762,7 @@ static FunctionPtr Resolve(
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver_class, descriptor, name);
   }
-  if (target_function.IsNull()) {
-    ASSERT(!FLAG_lazy_dispatchers);
-  }
-
+  ASSERT(!allow_add || !target_function.IsNull());
   return target_function.ptr();
 }
 
@@ -2740,6 +2739,7 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
   handler.ResolveSwitchAndReturn(old_data);
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
 // Used to find the correct receiver and function to invoke or to fall back to
 // invoking noSuchMethod when lazy dispatchers are disabled. Returns the
 // result of the invocation or an Error.
@@ -2750,7 +2750,6 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     const String& target_name,
     const Array& orig_arguments,
     const Array& orig_arguments_desc) {
-  ASSERT(!FLAG_lazy_dispatchers);
   const bool is_dynamic_call =
       Function::IsDynamicInvocationForwarderName(target_name);
   String& demangled_target_name = String::Handle(zone, target_name.ptr());
@@ -2758,7 +2757,6 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     demangled_target_name =
         Function::DemangleDynamicInvocationForwarderName(target_name);
   }
-
   Class& cls = Class::Handle(zone, receiver.clazz());
   Function& function = Function::Handle(zone);
 
@@ -2775,17 +2773,13 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
         String::Handle(zone, Field::NameFromGetter(demangled_target_name));
     while (!cls.IsNull()) {
       // We don't generate dyn:* forwarders for method extractors so there is no
-      // need to try to find a dyn:get:foo first (see assertion below)
+      // need to try to find a dyn:get:foo first.
       if (function.IsNull()) {
         if (cls.EnsureIsFinalized(thread) == Error::null()) {
           function = Resolver::ResolveDynamicFunction(zone, cls, function_name);
         }
       }
       if (!function.IsNull()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        ASSERT(!kernel::NeedsDynamicInvocationForwarder(Function::Handle(
-            function.GetMethodExtractor(demangled_target_name))));
-#endif
         const Function& closure_function =
             Function::Handle(zone, function.ImplicitClosureFunction());
         const Object& result = Object::Handle(
@@ -2891,6 +2885,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
                                     orig_arguments, orig_arguments_desc));
   return result.ptr();
 }
+#endif
 
 // Invoke appropriate noSuchMethod or closure from getter.
 // Arg0: receiver
@@ -2898,12 +2893,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
 // Arg2: arguments descriptor array
 // Arg3: arguments array
 DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
-  ASSERT(!FLAG_lazy_dispatchers);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
   String& target_name = String::Handle(zone);
   if (ic_data_or_cache.IsICData()) {
     target_name = ICData::Cast(ic_data_or_cache).target_name();
@@ -2911,13 +2901,21 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     ASSERT(ic_data_or_cache.IsMegamorphicCache());
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
-
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
   const auto& result =
       Object::Handle(zone, InvokeCallThroughGetterOrNoSuchMethod(
                                thread, zone, receiver, target_name,
                                orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
   arguments.SetReturn(result);
+#else
+  FATAL("Dispatcher for %s should have been lazily created",
+        target_name.ToCString());
+#endif
 }
 
 // Invoke appropriate noSuchMethod function.
@@ -3828,8 +3826,7 @@ DEFINE_RUNTIME_ENTRY(InitInstanceField, 2) {
   Object& result = Object::Handle(zone, field.InitializeInstance(instance));
   ThrowIfError(result);
   result = instance.GetField(field);
-  ASSERT((result.ptr() != Object::sentinel().ptr()) &&
-         (result.ptr() != Object::transition_sentinel().ptr()));
+  ASSERT(result.ptr() != Object::sentinel().ptr());
   arguments.SetReturn(result);
 }
 
@@ -3838,8 +3835,7 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   Object& result = Object::Handle(zone, field.InitializeStatic());
   ThrowIfError(result);
   result = field.StaticValue();
-  ASSERT((result.ptr() != Object::sentinel().ptr()) &&
-         (result.ptr() != Object::transition_sentinel().ptr()));
+  ASSERT(result.ptr() != Object::sentinel().ptr());
   arguments.SetReturn(result);
 }
 

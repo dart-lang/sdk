@@ -49,7 +49,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
             name: 'avoid_field_initializers_in_const_classes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

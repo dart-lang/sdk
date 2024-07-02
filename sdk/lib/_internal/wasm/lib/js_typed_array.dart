@@ -215,9 +215,17 @@ final class JSDataViewImpl implements ByteData {
 
   final int lengthInBytes;
 
-  JSDataViewImpl(this.lengthInBytes) : _ref = _newDataView(lengthInBytes);
+  final bool _immutable;
 
-  JSDataViewImpl.fromRef(this._ref) : lengthInBytes = _dataViewByteLength(_ref);
+  JSDataViewImpl(this.lengthInBytes)
+      : _ref = _newDataView(lengthInBytes),
+        _immutable = false;
+
+  JSDataViewImpl.fromRef(this._ref)
+      : lengthInBytes = _dataViewByteLength(_ref),
+        _immutable = false;
+
+  JSDataViewImpl.immutable(this._ref, this.lengthInBytes) : _immutable = true;
 
   factory JSDataViewImpl.view(
           JSArrayBufferImpl buffer, int offsetInBytes, int? length) =>
@@ -228,8 +236,9 @@ final class JSDataViewImpl implements ByteData {
   WasmExternRef? get toExternRef => _ref;
 
   @override
-  JSArrayBufferImpl get buffer =>
-      JSArrayBufferImpl.fromRef(_dataViewBuffer(toExternRef));
+  JSArrayBufferImpl get buffer => _immutable
+      ? JSArrayBufferImpl.fromRefImmutable(_dataViewBuffer(toExternRef))
+      : JSArrayBufferImpl.fromRef(_dataViewBuffer(toExternRef));
 
   @override
   @pragma("wasm:prefer-inline")
@@ -240,8 +249,8 @@ final class JSDataViewImpl implements ByteData {
   int get elementSizeInBytes => 1;
 
   @override
-  UnmodifiableByteDataView asUnmodifiableView() =>
-      UnmodifiableByteDataView(this);
+  ByteData asUnmodifiableView() =>
+      JSDataViewImpl.immutable(_ref, lengthInBytes);
 
   @override
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
@@ -282,44 +291,84 @@ final class JSDataViewImpl implements ByteData {
   int getUint8(int byteOffset) => _getUint8(toExternRef, byteOffset);
 
   @override
-  void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) =>
-      _setFloat32(toExternRef, byteOffset, value, Endian.little == endian);
+  void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setFloat32(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) =>
-      _setFloat64(toExternRef, byteOffset, value, Endian.little == endian);
+  void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setFloat64(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setInt16(toExternRef, byteOffset, value, Endian.little == endian);
+  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setInt16(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setInt32(toExternRef, byteOffset, value, Endian.little == endian);
+  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setInt32(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setBigInt64(toExternRef, byteOffset, value, Endian.little == endian);
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setBigInt64(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setInt8(int byteOffset, int value) =>
-      _setInt8(toExternRef, byteOffset, value);
+  void setInt8(int byteOffset, int value) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setInt8(toExternRef, byteOffset, value);
+  }
 
   @override
-  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setUint16(toExternRef, byteOffset, value, Endian.little == endian);
+  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setUint16(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setUint32(toExternRef, byteOffset, value, Endian.little == endian);
+  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setUint32(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setBigUint64(toExternRef, byteOffset, value, Endian.little == endian);
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setBigUint64(toExternRef, byteOffset, value, Endian.little == endian);
+  }
 
   @override
-  void setUint8(int byteOffset, int value) =>
-      _setUint8(toExternRef, byteOffset, value);
+  void setUint8(int byteOffset, int value) {
+    if (_immutable) {
+      throw UnsupportedError("Cannot modify an unmodifiable byte data");
+    }
+    _setUint8(toExternRef, byteOffset, value);
+  }
 }
 
 abstract class _IntArrayIteratorBase implements Iterator<int> {
@@ -752,8 +801,7 @@ final class _JSUint8ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSUint8Array extends JSUint8ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint8ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint8Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -836,8 +884,7 @@ final class _JSInt8ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSInt8Array extends JSInt8ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt8ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSInt8Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -907,8 +954,7 @@ final class JSUint8ClampedArrayImpl extends JSArrayBase
 }
 
 final class UnmodifiableJSUint8ClampedArray extends JSUint8ClampedArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint8ClampedListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint8ClampedArray._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -998,8 +1044,7 @@ final class _JSUint16ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSUint16Array extends JSUint16ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint16ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint16Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1089,8 +1134,7 @@ final class _JSInt16ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSInt16Array extends JSInt16ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt16ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSInt16Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1180,8 +1224,7 @@ final class _JSUint32ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSUint32Array extends JSUint32ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint32ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSUint32Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1271,8 +1314,7 @@ final class _JSInt32ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSInt32Array extends JSInt32ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt32ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSInt32Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1323,8 +1365,8 @@ final class JSInt32x4ArrayImpl
   }
 
   @override
-  UnmodifiableInt32x4ListView asUnmodifiableView() =>
-      UnmodifiableInt32x4ListView(this);
+  Int32x4List asUnmodifiableView() =>
+      NaiveUnmodifiableInt32x4List.externalStorage(_storage);
 
   @override
   JSInt32x4ArrayImpl sublist(int start, [int? end]) {
@@ -1448,8 +1490,7 @@ final class _JSUint64ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSBigUint64Array extends JSBigUint64ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableUint64ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSBigUint64Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1539,8 +1580,7 @@ final class _JSInt64ArrayIterator extends _IntArrayIteratorBase {
 }
 
 final class UnmodifiableJSBigInt64Array extends JSBigInt64ArrayImpl
-    with _UnmodifiableIntListMixin
-    implements UnmodifiableInt64ListView {
+    with _UnmodifiableIntListMixin {
   UnmodifiableJSBigInt64Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -1972,8 +2012,7 @@ final class _JSFloat32ArrayIterator extends _DoubleArrayIteratorBase {
 }
 
 final class UnmodifiableJSFloat32Array extends JSFloat32ArrayImpl
-    with _UnmodifiableDoubleListMixin
-    implements UnmodifiableFloat32ListView {
+    with _UnmodifiableDoubleListMixin {
   UnmodifiableJSFloat32Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -2063,8 +2102,7 @@ final class _JSFloat64ArrayIterator extends _DoubleArrayIteratorBase {
 }
 
 final class UnmodifiableJSFloat64Array extends JSFloat64ArrayImpl
-    with _UnmodifiableDoubleListMixin
-    implements UnmodifiableFloat64ListView {
+    with _UnmodifiableDoubleListMixin {
   UnmodifiableJSFloat64Array._(WasmExternRef? ref) : super._(ref);
 }
 
@@ -2115,8 +2153,8 @@ final class JSFloat32x4ArrayImpl
   }
 
   @override
-  UnmodifiableFloat32x4ListView asUnmodifiableView() =>
-      UnmodifiableFloat32x4ListView(this);
+  Float32x4List asUnmodifiableView() =>
+      NaiveUnmodifiableFloat32x4List.externalStorage(_storage);
 
   @override
   JSFloat32x4ArrayImpl sublist(int start, [int? end]) {
@@ -2198,8 +2236,8 @@ final class JSFloat64x2ArrayImpl
   }
 
   @override
-  UnmodifiableFloat64x2ListView asUnmodifiableView() =>
-      UnmodifiableFloat64x2ListView(this);
+  Float64x2List asUnmodifiableView() =>
+      NaiveUnmodifiableFloat64x2List.externalStorage(_storage);
 
   @override
   JSFloat64x2ArrayImpl sublist(int start, [int? end]) {

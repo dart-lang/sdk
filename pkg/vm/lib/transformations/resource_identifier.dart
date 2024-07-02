@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri;
 import 'package:collection/collection.dart';
-import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
+import 'package:front_end/src/kernel/resource_identifier.dart'
     as ResourceIdentifiers;
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';

@@ -36,6 +36,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
   EnableString.nonfunction_type_aliases:
       ExperimentalFeatures.nonfunction_type_aliases,
+  EnableString.null_aware_elements: ExperimentalFeatures.null_aware_elements,
   EnableString.patterns: ExperimentalFeatures.patterns,
   EnableString.records: ExperimentalFeatures.records,
   EnableString.resource_identifiers: ExperimentalFeatures.resource_identifiers,
@@ -103,6 +104,9 @@ class EnableString {
 
   /// String to enable the experiment "nonfunction-type-aliases"
   static const String nonfunction_type_aliases = 'nonfunction-type-aliases';
+
+  /// String to enable the experiment "null-aware-elements"
+  static const String null_aware_elements = 'null-aware-elements';
 
   /// String to enable the experiment "patterns"
   static const String patterns = 'patterns';
@@ -317,8 +321,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.13.0'),
   );
 
-  static final patterns = ExperimentalFeature(
+  static final null_aware_elements = ExperimentalFeature(
     index: 17,
+    enableString: EnableString.null_aware_elements,
+    isEnabledByDefault: IsEnabledByDefault.null_aware_elements,
+    isExpired: IsExpired.null_aware_elements,
+    documentation: 'Null-aware elements and map entries in collections.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final patterns = ExperimentalFeature(
+    index: 18,
     enableString: EnableString.patterns,
     isEnabledByDefault: IsEnabledByDefault.patterns,
     isExpired: IsExpired.patterns,
@@ -328,7 +342,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -338,7 +352,7 @@ class ExperimentalFeatures {
   );
 
   static final resource_identifiers = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.resource_identifiers,
     isEnabledByDefault: IsEnabledByDefault.resource_identifiers,
     isExpired: IsExpired.resource_identifiers,
@@ -348,7 +362,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -358,7 +372,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 21,
+    index: 22,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -368,7 +382,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -378,7 +392,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 23,
+    index: 24,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -388,7 +402,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 24,
+    index: 25,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -399,7 +413,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 25,
+    index: 26,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -409,7 +423,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 26,
+    index: 27,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -419,7 +433,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 27,
+    index: 28,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -429,7 +443,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 28,
+    index: 29,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -493,6 +507,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
+
+  /// Default state of the experiment "null-aware-elements"
+  static const bool null_aware_elements = false;
 
   /// Default state of the experiment "patterns"
   static const bool patterns = true;
@@ -585,6 +602,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = true;
+
+  /// Expiration status of the experiment "null-aware-elements"
+  static const bool null_aware_elements = false;
 
   /// Expiration status of the experiment "patterns"
   static const bool patterns = true;
@@ -683,6 +703,10 @@ mixin _CurrentState {
   /// Current state for the flag "nonfunction-type-aliases"
   bool get nonfunction_type_aliases =>
       isEnabled(ExperimentalFeatures.nonfunction_type_aliases);
+
+  /// Current state for the flag "null-aware-elements"
+  bool get null_aware_elements =>
+      isEnabled(ExperimentalFeatures.null_aware_elements);
 
   /// Current state for the flag "patterns"
   bool get patterns => isEnabled(ExperimentalFeatures.patterns);

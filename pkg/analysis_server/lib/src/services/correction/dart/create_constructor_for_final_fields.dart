@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,10 +19,10 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
-  CreateConstructorForFinalFields.requiredNamed()
+  CreateConstructorForFinalFields.requiredNamed({required super.context})
       : _style = _Style.requiredNamed;
 
-  CreateConstructorForFinalFields.requiredPositional()
+  CreateConstructorForFinalFields.requiredPositional({required super.context})
       : _style = _Style.requiredPositional;
 
   @override

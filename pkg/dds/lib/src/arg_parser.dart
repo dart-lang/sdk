@@ -16,7 +16,6 @@ abstract class DartDevelopmentServiceOptions {
   static const enableServicePortFallbackFlag = 'enable-service-port-fallback';
   static const cachedUserTagsOption = 'cached-user-tags';
   static const devToolsServerAddressOption = 'devtools-server-address';
-  static const google3WorkspaceRootOption = 'google3-workspace-root';
 
   static ArgParser createArgParser({
     int? usageLineLength,
@@ -78,12 +77,6 @@ abstract class DartDevelopmentServiceOptions {
         help: 'A set of UserTag names used to determine which CPU samples are '
             'cached by DDS.',
         defaultsTo: <String>[],
-      )
-      ..addOption(
-        google3WorkspaceRootOption,
-        help: 'Sets the Google3 workspace root used for google3:// URI '
-            'resolution.',
-        hide: !verbose,
       );
     if (includeHelp) {
       argParser.addFlag('help', negatable: false);

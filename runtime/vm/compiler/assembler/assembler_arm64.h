@@ -1066,6 +1066,8 @@ class Assembler : public AssemblerBase {
     // rs = status (1 = failure, 0 = success)
     // rt = value
     // rn = address
+    ASSERT(rs != rt);
+    ASSERT((rs != rn) || (rs == ZR));
     EmitLoadStoreExclusive(STXR, rs, rn, rt, size);
   }
   void clrex() {
@@ -1782,16 +1784,21 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    if (scale == 0) {
-      AddImmediate(dest, src, value);
+                 int32_t disp) override {
+    if (base == kNoRegister || base == ZR) {
+      if (scale == TIMES_1) {
+        AddImmediate(dest, index, disp);
+      } else {
+        orr(dest, ZR, Operand(index, LSL, scale));
+        AddImmediate(dest, disp);
+      }
     } else {
-      orr(dest, ZR, Operand(src, LSL, scale));
-      AddImmediate(dest, dest, value);
+      add(dest, base, compiler::Operand(index, LSL, scale));
+      AddImmediate(dest, disp);
     }
   }
   void SubImmediateSetFlags(Register dest,
@@ -2077,7 +2084,8 @@ class Assembler : public AssemblerBase {
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false);
+                                   bool ignore_unwind_in_progress = false,
+                                   bool set_tag = true);
   void EnterFullSafepoint(Register scratch);
   void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
@@ -2239,7 +2247,8 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch);
+                              Register scratch,
+                              bool is_shared);
 
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadCompressedFieldAddressForRegOffset(

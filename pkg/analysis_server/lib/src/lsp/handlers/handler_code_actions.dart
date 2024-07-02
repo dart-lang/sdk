@@ -16,7 +16,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 

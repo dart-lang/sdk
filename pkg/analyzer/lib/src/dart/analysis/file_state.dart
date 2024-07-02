@@ -10,8 +10,10 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -20,7 +22,6 @@ import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
@@ -32,15 +33,16 @@ import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -73,11 +75,6 @@ final class AugmentationImportState<U extends DirectiveUri>
     required this.unlinked,
     required this.uri,
   });
-
-  /// Returns a [Source] that is referenced by this directive.
-  ///
-  /// Returns `null` if the URI cannot be resolved into a [Source].
-  Source? get importedSource => null;
 }
 
 /// [AugmentationImportWithUri] that has a valid URI that references a file.
@@ -104,9 +101,6 @@ final class AugmentationImportWithFile
   }
 
   FileState get importedFile => uri.file;
-
-  @override
-  Source get importedSource => importedFile.source;
 
   @override
   void dispose() {
@@ -238,7 +232,7 @@ final class DirectiveUriWithFile extends DirectiveUriWithSource {
   });
 
   @override
-  Source get source => file.source;
+  FileSource get source => file.source;
 
   @override
   String toString() => '$file';
@@ -386,8 +380,8 @@ class FileState {
   /// Properties of the [uri].
   final FileUriProperties uriProperties;
 
-  /// The [Source] of the file with the [uri].
-  final Source source;
+  /// The [FileSource] of the file with the [uri].
+  final FileSource source;
 
   /// The [WorkspacePackage] that contains this file.
   ///
@@ -501,11 +495,44 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
+  /// Returns either new, or cached parsed result for this file.
+  ParsedFileState getParsed({
+    required OperationPerformanceImpl performance,
+  }) {
+    var result = _fsState.parsedFileStateCache.get(this);
+    if (result != null) {
+      return result;
+    }
+
+    var errorListener = RecordingErrorListener();
+    var unit = parseCode(
+      code: content,
+      errorListener: errorListener,
+      performance: performance,
+    );
+
+    result = ParsedFileState(
+      code: content,
+      unit: unit,
+      errors: errorListener.errors,
+    );
+    _fsState.parsedFileStateCache.put(this, result);
+
+    return result;
+  }
+
   /// Return a new parsed unresolved [CompilationUnit].
-  CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
+  CompilationUnitImpl parse({
+    AnalysisErrorListener? errorListener,
+    required OperationPerformanceImpl performance,
+  }) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return _parse(errorListener);
+      return parseCode(
+        code: content,
+        errorListener: errorListener,
+        performance: performance,
+      );
     } catch (exception, stackTrace) {
       throw CaughtExceptionWithFiles(
         exception,
@@ -519,42 +546,50 @@ class FileState {
   CompilationUnitImpl parseCode({
     required String code,
     required AnalysisErrorListener errorListener,
+    required OperationPerformanceImpl performance,
   }) {
-    CharSequenceReader reader = CharSequenceReader(code);
-    Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet.restrictToVersion(
-          packageLanguageVersion,
-        ),
+    return performance.run('parseCode', (performance) {
+      performance.getDataInt('length').add(code.length);
+
+      CharSequenceReader reader = CharSequenceReader(code);
+      Scanner scanner = Scanner(source, reader, errorListener)
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet.restrictToVersion(
+            packageLanguageVersion,
+          ),
+        );
+      Token token = scanner.tokenize(reportScannerErrors: false);
+      LineInfo lineInfo = LineInfo(scanner.lineStarts);
+
+      Parser parser = Parser(
+        source,
+        errorListener,
+        featureSet: scanner.featureSet,
+        lineInfo: lineInfo,
       );
-    Token token = scanner.tokenize(reportScannerErrors: false);
-    LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    Parser parser = Parser(
-      source,
-      errorListener,
-      featureSet: scanner.featureSet,
-      lineInfo: lineInfo,
-    );
+      var unit = parser.parseCompilationUnit(token);
+      unit.languageVersion = LibraryLanguageVersion(
+        package: packageLanguageVersion,
+        override: scanner.overrideVersion,
+      );
 
-    var unit = parser.parseCompilationUnit(token);
-    unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: scanner.overrideVersion,
-    );
+      // Ensure the string canonicalization cache size is reasonable.
+      pruneStringCanonicalizationCache();
 
-    // Ensure the string canonicalization cache size is reasonable.
-    pruneStringCanonicalizationCache();
-
-    return unit;
+      return unit;
+    });
   }
 
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including API signature.
   ///
   /// Return how the file changed since the last refresh.
-  FileStateRefreshResult refresh() {
+  FileStateRefreshResult refresh({
+    OperationPerformanceImpl? performance,
+  }) {
+    performance ??= OperationPerformanceImpl('<root>');
     _invalidateCurrentUnresolvedData();
 
     FileContent rawFileState;
@@ -568,6 +603,7 @@ class FileState {
 
     var contentChanged = _fileContent?.contentHash != rawFileState.contentHash;
     _fileContent = rawFileState;
+    _fsState.parsedFileStateCache.remove(this);
 
     // Prepare the unlinked bundle key.
     var previousUnlinkedKey = _unlinkedKey;
@@ -585,7 +621,12 @@ class FileState {
     }
 
     // Prepare the unlinked unit.
-    _driverUnlinkedUnit = _getUnlinkedUnit(previousUnlinkedKey);
+    performance.run('getUnlinkedUnit', (performance) {
+      _driverUnlinkedUnit = _getUnlinkedUnit(
+        previousUnlinkedKey,
+        performance: performance,
+      );
+    });
     _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
@@ -706,7 +747,10 @@ class FileState {
 
   /// Return the unlinked unit, freshly deserialized from bytes,
   /// previously deserialized from bytes, or new.
-  AnalysisDriverUnlinkedUnit _getUnlinkedUnit(String? previousUnlinkedKey) {
+  AnalysisDriverUnlinkedUnit _getUnlinkedUnit(
+    String? previousUnlinkedKey, {
+    required OperationPerformanceImpl performance,
+  }) {
     if (previousUnlinkedKey != null) {
       if (previousUnlinkedKey != _unlinkedKey) {
         _fsState.unlinkedUnitStore.release(previousUnlinkedKey);
@@ -730,12 +774,21 @@ class FileState {
       return result;
     }
 
-    var unit = parse();
-    return _fsState._logger.run('Create unlinked for $path', () {
-      var unlinkedUnit = serializeAstUnlinked2(
-        unit,
-        exists: exists,
-        isDartCore: uriStr == 'dart:core',
+    var unit = getParsed(
+      performance: performance,
+    ).unit;
+
+    return performance.run('compute', (performance) {
+      var unlinkedUnit = performance.run(
+        'serializeAstUnlinked2',
+        (performance) {
+          return serializeAstUnlinked2(
+            unit,
+            exists: exists,
+            isDartCore: uriStr == 'dart:core',
+            performance: performance,
+          );
+        },
       );
       var definedNames = computeDefinedNames(unit);
       var referencedNames = computeReferencedNames(unit);
@@ -764,13 +817,6 @@ class FileState {
         files?.remove(this);
       }
     }
-  }
-
-  CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
-    return parseCode(
-      code: content,
-      errorListener: errorListener,
-    );
   }
 
   // TODO(scheglov): write tests
@@ -873,6 +919,7 @@ class FileState {
     CompilationUnit unit, {
     required bool exists,
     required bool isDartCore,
+    required OperationPerformanceImpl performance,
   }) {
     UnlinkedLibraryDirective? libraryDirective;
     UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
@@ -1013,12 +1060,15 @@ class FileState {
       }
     }
 
-    var apiSignature = ApiSignature();
-    apiSignature.addBytes(computeUnlinkedApiSignature(unit));
-    apiSignature.addBool(exists);
+    var apiSignature = performance.run('apiSignature', (performance) {
+      var signatureBuilder = ApiSignature();
+      signatureBuilder.addBytes(computeUnlinkedApiSignature(unit));
+      signatureBuilder.addBool(exists);
+      return signatureBuilder.toByteList();
+    });
 
     return UnlinkedUnit(
-      apiSignature: apiSignature.toByteList(),
+      apiSignature: apiSignature,
       augmentations: augmentations.toFixedList(),
       exports: exports.toFixedList(),
       imports: imports.toFixedList(),
@@ -1142,7 +1192,6 @@ class FileStateTestView {
 
 /// Information about known file system state.
 class FileSystemState {
-  final PerformanceLog _logger;
   final ResourceProvider resourceProvider;
   final String contextName;
   final ByteStore _byteStore;
@@ -1203,8 +1252,21 @@ class FileSystemState {
   /// Used for looking up options to associate with created file states.
   final AnalysisOptionsMap _analysisOptionsMap;
 
+  /// The default performance for [_newFile].
+  ///
+  /// [_newFile] does expensive work, so it is important to see which
+  /// operations it does, and how long they take. But it can be reached
+  /// through getters, which we would like to keep getters. So, instead we
+  /// store here the instance to attach [_newFile] operations.
+  OperationPerformanceImpl? newFileOperationPerformance;
+
+  /// We cache results of parsing [FileState]s because they might be useful
+  /// in the process of a single analysis operation. But after that, even
+  /// if these results are still valid, they are often never used again. So,
+  /// currently we clear the cache after each operation.
+  ParsedFileStateCache parsedFileStateCache = ParsedFileStateCache();
+
   FileSystemState(
-    this._logger,
     this._byteStore,
     this.resourceProvider,
     this.contextName,
@@ -1323,7 +1385,10 @@ class FileSystemState {
   /// to a file, for example because it is invalid (e.g. a `package:` URI
   /// without a package name), or we don't know this package. The returned
   /// file has the last known state since if was last refreshed.
-  UriResolution? getFileForUri(Uri uri) {
+  UriResolution? getFileForUri(
+    Uri uri, {
+    OperationPerformanceImpl? performance,
+  }) {
     var uriSource = _sourceFactory.forUri2(uri);
 
     // If the external store has this URI, create a stub file for it.
@@ -1356,7 +1421,12 @@ class FileSystemState {
         return null;
       }
 
-      file = _newFile(resource, path, rewrittenUri);
+      file = _newFile(
+        resource,
+        path,
+        rewrittenUri,
+        performance: performance,
+      );
     }
     return UriResolutionFile(file);
   }
@@ -1501,7 +1571,12 @@ class FileSystemState {
         nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion);
   }
 
-  FileState _newFile(File resource, String path, Uri uri) {
+  FileState _newFile(
+    File resource,
+    String path,
+    Uri uri, {
+    OperationPerformanceImpl? performance,
+  }) {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
     AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
@@ -1516,7 +1591,15 @@ class FileSystemState {
     knownFilePaths.add(path);
     knownFiles.add(file);
     fileStamp++;
-    file.refresh();
+
+    performance ??= newFileOperationPerformance;
+    performance ??= OperationPerformanceImpl('<root>');
+    performance.run('fileState.refresh', (performance) {
+      file.refresh(
+        performance: performance,
+      );
+    });
+
     onNewFile(file);
     return file;
   }
@@ -1658,7 +1741,7 @@ final class LibraryExportWithFile
   }
 
   @override
-  Source? get exportedLibrarySource {
+  FileSource? get exportedLibrarySource {
     if (exportedFile.kind is LibraryFileKind) {
       return exportedSource;
     }
@@ -1666,7 +1749,7 @@ final class LibraryExportWithFile
   }
 
   @override
-  Source get exportedSource => exportedFile.source;
+  FileSource get exportedSource => exportedFile.source;
 
   @override
   void dispose() {
@@ -1684,7 +1767,7 @@ final class LibraryExportWithInSummarySource
   });
 
   @override
-  Source? get exportedLibrarySource {
+  InSummarySource? get exportedLibrarySource {
     if (exportedSource.kind == InSummarySourceKind.library) {
       return exportedSource;
     } else {
@@ -1731,6 +1814,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// library uses any macros.
   List<AugmentationImportWithFile> _macroImports = const [];
 
+  /// The cache for [apiSignature].
+  Uint8List? _apiSignature;
+
   LibraryCycle? _libraryCycle;
 
   LibraryFileKind({
@@ -1739,6 +1825,22 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     this.recoveredFrom,
   }) {
     file._fsState._libraryNameToFiles.add(this);
+  }
+
+  /// The unlinked API signature of all library files.
+  Uint8List get apiSignature {
+    if (_apiSignature case var apiSignature?) {
+      return apiSignature;
+    }
+
+    var builder = ApiSignature();
+
+    var sortedFiles = files.sortedBy((file) => file.path);
+    for (var file in sortedFiles) {
+      builder.addBytes(file.apiSignature);
+    }
+
+    return _apiSignature = builder.toByteList();
   }
 
   /// All augmentations of this library, in the depth-first pre-order order.
@@ -1831,6 +1933,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   AugmentationImportWithFile addMacroAugmentation(
     String code, {
     required int? partialIndex,
+    required OperationPerformanceImpl performance,
   }) {
     var pathContext = file._fsState.pathContext;
     var libraryFileName = pathContext.basename(file.path);
@@ -1857,7 +1960,15 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     // Or this happens during the explicit `refresh()`, more below.
     file._fsState._macroFileContent = fileContent;
 
-    var macroFileResolution = file._fsState.getFileForUri(macroUri);
+    var macroFileResolution = performance.run(
+      'getFileForUri',
+      (performance) {
+        return file._fsState.getFileForUri(
+          macroUri,
+          performance: performance,
+        );
+      },
+    );
     macroFileResolution as UriResolutionFile;
     var macroFile = macroFileResolution.file;
 
@@ -1977,11 +2088,13 @@ final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryImportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
+  final bool isDocImport;
 
   LibraryImportState({
     required this.unlinked,
     required this.selectedUri,
     required this.uris,
+    required this.isDocImport,
   });
 
   /// If [importedSource] corresponds to a library, returns it.
@@ -2007,6 +2120,7 @@ final class LibraryImportWithFile
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   }) {
     importedFile.referencingFiles.add(container.file);
   }
@@ -2023,7 +2137,7 @@ final class LibraryImportWithFile
   }
 
   @override
-  Source? get importedLibrarySource {
+  FileSource? get importedLibrarySource {
     if (importedFile.kind is LibraryFileKind) {
       return importedSource;
     }
@@ -2031,7 +2145,7 @@ final class LibraryImportWithFile
   }
 
   @override
-  Source get importedSource => importedFile.source;
+  FileSource get importedSource => importedFile.source;
 
   @override
   void dispose() {
@@ -2046,10 +2160,11 @@ final class LibraryImportWithInSummarySource
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   });
 
   @override
-  Source? get importedLibrarySource {
+  InSummarySource? get importedLibrarySource {
     if (importedSource.kind == InSummarySourceKind.library) {
       return importedSource;
     } else {
@@ -2068,6 +2183,7 @@ final class LibraryImportWithUri<U extends DirectiveUriWithUri>
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   });
 }
 
@@ -2078,6 +2194,7 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
     required super.unlinked,
     required super.selectedUri,
     required super.uris,
+    required super.isDocImport,
   });
 }
 
@@ -2128,7 +2245,7 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
     }
 
     var docImports = file.unlinked2.libraryDirective?.docImports
-        .map(_buildLibraryImportState)
+        .map((i) => _buildLibraryImportState(i, isDocImport: true))
         .toFixedList();
     return _docImports = docImports ?? [];
   }
@@ -2175,8 +2292,9 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
   }
 
   List<LibraryImportState> get libraryImports {
-    return _libraryImports ??=
-        file.unlinked2.imports.map(_buildLibraryImportState).toFixedList();
+    return _libraryImports ??= file.unlinked2.imports
+        .map((i) => _buildLibraryImportState(i, isDocImport: false))
+        .toFixedList();
   }
 
   /// Collect files that are transitively referenced by this library.
@@ -2252,7 +2370,9 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   /// Creates a [LibraryImportState] with the given unlinked [directive].
   LibraryImportState _buildLibraryImportState(
-      UnlinkedLibraryImportDirective directive) {
+    UnlinkedLibraryImportDirective directive, {
+    required bool isDocImport,
+  }) {
     var uris = file._buildNamespaceDirectiveUris(directive);
     var selectedUri = uris.selected;
     switch (selectedUri) {
@@ -2262,30 +2382,35 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithInSummarySource():
         return LibraryImportWithInSummarySource(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithUri():
         return LibraryImportWithUri(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithString():
         return LibraryImportWithUriStr(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
       case DirectiveUriWithoutString():
         return LibraryImportState(
           unlinked: directive,
           selectedUri: selectedUri,
           uris: uris,
+          isDocImport: isDocImport,
         );
     }
   }
@@ -2301,6 +2426,38 @@ class NamespaceDirectiveUris {
     required this.configurations,
     required this.selected,
   });
+}
+
+class ParsedFileState {
+  final String code;
+  final CompilationUnitImpl unit;
+  final List<AnalysisError> errors;
+
+  ParsedFileState({
+    required this.code,
+    required this.unit,
+    required this.errors,
+  });
+}
+
+class ParsedFileStateCache {
+  final Map<FileState, ParsedFileState> _map = Map.identity();
+
+  void clear() {
+    _map.clear();
+  }
+
+  ParsedFileState? get(FileState file) {
+    return _map[file];
+  }
+
+  void put(FileState file, ParsedFileState result) {
+    _map[file] = result;
+  }
+
+  void remove(FileState file) {
+    _map.remove(file);
+  }
 }
 
 /// The file has `part of` directive.
@@ -2453,11 +2610,6 @@ final class PartState<U extends DirectiveUri> extends DirectiveState {
     required this.unlinked,
     required this.uri,
   });
-
-  /// Returns a [Source] that is referenced by this directive.
-  ///
-  /// Returns `null` if the URI cannot be resolved into a [Source].
-  Source? get includedSource => null;
 }
 
 /// [PartWithUri] that has a valid URI that references a file.
@@ -2481,9 +2633,6 @@ final class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
     }
     return null;
   }
-
-  @override
-  Source? get includedSource => includedFile.source;
 
   @override
   void dispose() {

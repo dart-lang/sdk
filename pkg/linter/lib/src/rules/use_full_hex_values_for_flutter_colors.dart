@@ -35,14 +35,15 @@ class UseFullHexValuesForFlutterColors extends LintRule {
       "Instances of 'Color' should be created using an 8-digit hexadecimal "
           "integer (such as '0xFFFFFFFF').",
       correctionMessage:
-          "Try using an 8-digit hexadecimal integer to create the 'Color'.");
+          "Try using an 8-digit hexadecimal integer to create the 'Color'.",
+      hasPublishedDocs: true);
 
   UseFullHexValuesForFlutterColors()
       : super(
             name: 'use_full_hex_values_for_flutter_colors',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

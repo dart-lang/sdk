@@ -676,6 +676,11 @@ using serializable_type_t =
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BaseTextBuffer* f) const;
+// Used for blocks with initial definitions, where we want to separately
+// print the block header information and the initial definitions separately in
+// cases where we have a limited size buffer.
+#define PRINT_BLOCK_HEADER_TO_SUPPORT                                          \
+  virtual void PrintBlockHeaderTo(BaseTextBuffer* f) const;
 // Used for an instruction with a single attribute where the name of the
 // attribute should be derived from the expression. See
 // IlTestPrinter::AttributesSerializer::WriteAttributeName for more info.
@@ -698,6 +703,7 @@ using serializable_type_t =
 #else
 #define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
+#define PRINT_BLOCK_HEADER_TO_SUPPORT
 #define DECLARE_ATTRIBUTE(Attribute)
 #define DECLARE_ATTRIBUTES_NAMED(names, values)
 #endif  // defined(INCLUDE_IL_PRINTER)
@@ -1922,11 +1928,20 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
     return this;
   }
 
+  PRINT_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(BlockEntryWithInitialDefs)
   DECLARE_EXTRA_SERIALIZATION
 
  protected:
-  void PrintInitialDefinitionsTo(BaseTextBuffer* f) const;
+  virtual void PrintBlockHeaderTo(BaseTextBuffer* f) const { UNIMPLEMENTED(); }
+
+  // Prints the internal definitions of the block to the base text buffer,
+  // calling the callback with the buffer after each internal definition.
+  void PrintInitialDefinitionsTo(
+      BaseTextBuffer* f,
+      std::function<void(BaseTextBuffer* f)> callback) const;
+
+  friend class FlowGraphPrinter;
 
  private:
   GrowableArray<Definition*> initial_definitions_;
@@ -2006,7 +2021,7 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
     return catch_entries().is_empty() && unchecked_entry() == nullptr;
   }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(GraphEntryInstr)
   DECLARE_EXTRA_SERIALIZATION
 
@@ -2196,7 +2211,7 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(FunctionEntryInstr)
 
  private:
@@ -2217,6 +2232,9 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 // NativeParameter instead (which doesn't count as an initial definition).
 class NativeEntryInstr : public FunctionEntryInstr {
  public:
+  static constexpr intptr_t kVMTagOffsetFromFp =
+      5 * compiler::target::kWordSize;
+
   NativeEntryInstr(const compiler::ffi::CallbackMarshaller& marshaller,
                    GraphEntryInstr* graph_entry,
                    intptr_t block_id,
@@ -2227,7 +2245,7 @@ class NativeEntryInstr : public FunctionEntryInstr {
 
   DECLARE_INSTRUCTION(NativeEntry)
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
 
 #define FIELD_LIST(F) F(const compiler::ffi::CallbackMarshaller&, marshaller_)
 
@@ -2267,7 +2285,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(OsrEntryInstr)
 
  private:
@@ -2364,7 +2382,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
 
   const Array& catch_handler_types() const { return catch_handler_types_; }
 
-  PRINT_TO_SUPPORT
+  PRINT_BLOCK_HEADER_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(CatchBlockEntryInstr)
 
  private:
@@ -6417,11 +6435,6 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
       // The target field is native and unboxed, so not traversed by the GC.
       return false;
     }
-    if (instance()->definition() == value()->definition()) {
-      // `x.slot = x` cannot create an old->new or old&marked->old&unmarked
-      // reference.
-      return false;
-    }
 
     if (value()->definition()->Type()->IsBool()) {
       return false;
@@ -7074,12 +7087,6 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
   bool ShouldEmitStoreBarrier() const {
-    if (array()->definition() == value()->definition()) {
-      // `x[slot] = x` cannot create an old->new or old&marked->old&unmarked
-      // reference.
-      return false;
-    }
-
     if (value()->definition()->Type()->IsBool()) {
       return false;
     }
@@ -7159,6 +7166,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool MayHaveVisibleEffect() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
 #define FIELD_LIST(F)                                                          \
@@ -8031,6 +8039,11 @@ class CalculateElementAddressInstr : public TemplateDefinition<3, NoThrow> {
 #undef FIELD_LIST
 
  private:
+  bool IsNoop() const {
+    return index()->BindsToSmiConstant() && index()->BoundSmiConstant() == 0 &&
+           offset()->BindsToSmiConstant() && offset()->BoundSmiConstant() == 0;
+  }
+
   DISALLOW_COPY_AND_ASSIGN(CalculateElementAddressInstr);
 };
 
@@ -10071,7 +10084,9 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
     return other.AsDoubleToInteger()->recognized_kind() == recognized_kind();
   }
 
-#define FIELD_LIST(F) F(const MethodRecognizer::Kind, recognized_kind_)
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+#define FIELD_LIST(F) F(MethodRecognizer::Kind, recognized_kind_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleToIntegerInstr,
                                           TemplateDefinition,
@@ -10079,6 +10094,8 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
 #undef FIELD_LIST
 
  private:
+  static bool SupportsFloorAndCeil();
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
 
@@ -10270,6 +10287,8 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
     auto const other_invoke = other.AsInvokeMathCFunction();
     return other_invoke->recognized_kind() == recognized_kind();
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool MayThrow() const { return false; }
 

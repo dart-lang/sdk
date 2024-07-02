@@ -717,14 +717,17 @@ class Assembler : public AssemblerBase {
   }
   void AddImmediate(Register dest, Register src, int32_t value);
   void AddRegisters(Register dest, Register src) { addl(dest, src); }
-  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
-                 Register src,
+                 Register base,
+                 Register index,
                  ScaleFactor scale,
-                 int32_t value) {
-    leal(dest, Address(src, scale, value));
+                 int32_t disp) override {
+    if (base == kNoRegister) {
+      leal(dest, Address(index, scale, disp));
+    } else {
+      leal(dest, Address(base, index, scale, disp));
+    }
   }
-
   void SubImmediate(Register reg, const Immediate& imm);
   void SubRegisters(Register dest, Register src) { subl(dest, src); }
   void MulImmediate(Register reg,
@@ -875,7 +878,8 @@ class Assembler : public AssemblerBase {
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch,
                                    bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false);
+                                   bool ignore_unwind_in_progress = false,
+                                   bool set_tag = true);
   void EnterFullSafepoint(Register scratch);
   void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
 
@@ -948,11 +952,13 @@ class Assembler : public AssemblerBase {
 
   void LoadStaticFieldAddress(Register address,
                               Register field,
-                              Register scratch) {
+                              Register scratch,
+                              bool is_shared) {
     LoadFieldFromOffset(scratch, field,
                         target::Field::host_offset_or_field_id_offset());
     const intptr_t field_table_offset =
-        compiler::target::Thread::field_table_values_offset();
+        is_shared ? compiler::target::Thread::shared_field_table_values_offset()
+                  : compiler::target::Thread::field_table_values_offset();
     LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leal(address, Address(address, scratch, TIMES_HALF_WORD_SIZE, 0));

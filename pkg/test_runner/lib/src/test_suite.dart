@@ -280,6 +280,13 @@ class VMTestSuite extends TestSuite {
       hostRunnerPath = targetRunnerPath;
     }
 
+    if (!File(hostRunnerPath).existsSync()) {
+      throw Exception(
+          "Failed to find VM test runner binary at '$hostRunnerPath'.\n"
+          "Did you include the 'runtime' or 'most' targets in "
+          'the corresponding build?');
+    }
+
     if (configuration.useQemu) {
       final config = QemuConfig.all[configuration.architecture]!;
       initialHostArguments.insert(0, hostRunnerPath);

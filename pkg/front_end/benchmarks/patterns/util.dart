@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as math;
+
 import '../../test/simple_stats.dart';
 
 /// Key used for a strategy in a test setup.

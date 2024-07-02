@@ -136,8 +136,8 @@ class InjectedClass extends core::Object { // from org-dartlang-testcase:///libr
     : super core::Object::•()
     ;
 }
-class OrphanedClass extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
-  synthetic constructor •() → lib::OrphanedClass
+class _#OrphanedClass#augmentationWithoutOrigin0 extends core::Object { // from org-dartlang-testcase:///library_members_lib.dart
+  synthetic constructor •() → lib::_#OrphanedClass#augmentationWithoutOrigin0
     : super core::Object::•()
     ;
 }
@@ -219,7 +219,7 @@ static method /* from org-dartlang-testcase:///library_members_lib.dart */ augme
   lib::orphanedMethod();
   lib::orphanedMethod();
   lib::orphanedSetter = 0;
-  new lib::OrphanedClass::•();
+  new lib::_#OrphanedClass#augmentationWithoutOrigin0::•();
 }
 static method /* from org-dartlang-testcase:///library_members_lib.dart */ augmentMain() → void {
   lib::augmentedMethod();

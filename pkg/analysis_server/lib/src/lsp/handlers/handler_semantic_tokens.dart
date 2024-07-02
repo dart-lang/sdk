@@ -13,9 +13,10 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:collection/collection.dart';
 
 typedef StaticOptions
     = Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>;
@@ -31,14 +32,9 @@ abstract class AbstractSemanticTokensHandler<T>
   }
 
   Future<List<SemanticTokenInfo>> getServerResult(
-      String path, SourceRange? range) async {
-    var result = await server.getResolvedUnit(path);
-    var unit = result?.unit;
-    if (unit != null) {
-      var computer = DartUnitHighlightsComputer(unit, range: range);
-      return computer.computeSemanticTokens();
-    }
-    return [];
+      CompilationUnit unit, SourceRange? range) async {
+    var computer = DartUnitHighlightsComputer(unit, range: range);
+    return computer.computeSemanticTokens();
   }
 
   Iterable<SemanticTokenInfo> _filter(
@@ -58,7 +54,10 @@ abstract class AbstractSemanticTokensHandler<T>
     var path = pathOfDoc(textDocument);
 
     return path.mapResult((path) async {
-      var lineInfo = server.getLineInfo(path);
+      // Always prefer a LineInfo from a resolved unit than server.getLineInfo.
+      var resolvedUnit = (await requireResolvedUnit(path)).resultOrNull;
+      var lineInfo = resolvedUnit?.lineInfo ?? server.getLineInfo(path);
+
       // If there is no lineInfo, the request cannot be translated from LSP
       // line/col to server offset/length.
       if (lineInfo == null) {
@@ -66,8 +65,10 @@ abstract class AbstractSemanticTokensHandler<T>
       }
 
       return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
-        var serverTokens = await getServerResult(path, range);
-        var pluginHighlightRegions = getPluginResults(path).flattenedToList2;
+        var serverTokens = resolvedUnit != null
+            ? await getServerResult(resolvedUnit.unit, range)
+            : <SemanticTokenInfo>[];
+        var pluginHighlightRegions = getPluginResults(path).flattenedToList;
 
         if (token.isCancellationRequested) {
           return cancelled();

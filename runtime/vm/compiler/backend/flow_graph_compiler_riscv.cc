@@ -43,10 +43,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   }
 }
 
-bool FlowGraphCompiler::SupportsUnboxedDoubles() {
-  return true;
-}
-
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   // TODO(riscv): Dynamically test for the vector extension and otherwise
   // allocate SIMD values to register-pairs or quads?

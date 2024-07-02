@@ -31,14 +31,15 @@ print(RegExp(r'\(').hasMatch('foo()'));
 class ValidRegexps extends LintRule {
   static const LintCode code = LintCode(
       'valid_regexps', 'Invalid regular expression syntax.',
-      correctionMessage: 'Try correcting the regular expression.');
+      correctionMessage: 'Try correcting the regular expression.',
+      hasPublishedDocs: true);
 
   ValidRegexps()
       : super(
             name: 'valid_regexps',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

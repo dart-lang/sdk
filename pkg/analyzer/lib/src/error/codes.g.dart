@@ -214,6 +214,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT = CompileTimeErrorCode(
+    'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
+    "The augmentation has an 'extends' clause, but an augmentation target "
+        "already includes an 'extends' clause and it isn't allowed to be "
+        "repeated or changed.",
+    correctionMessage:
+        "Try removing the 'extends' clause, either here or in the augmentation "
+        "target.",
+  );
+
   ///  Parameters:
   ///  0: the lexeme of the modifier.
   static const CompileTimeErrorCode AUGMENTATION_MODIFIER_EXTRA =
@@ -244,6 +255,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Can't augment a {0} with a {1}.",
     correctionMessage:
         "Try changing the augmentation to match the declaration kind.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_BOUND =
+      CompileTimeErrorCode(
+    'AUGMENTATION_TYPE_PARAMETER_BOUND',
+    "The augmentation type parameter must have the same bound as the "
+        "corresponding type parameter of the declaration.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration type "
+        "parameters.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_COUNT =
+      CompileTimeErrorCode(
+    'AUGMENTATION_TYPE_PARAMETER_COUNT',
+    "The augmentation must have the same number of type parameters as the "
+        "declaration.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration type "
+        "parameters.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_NAME =
+      CompileTimeErrorCode(
+    'AUGMENTATION_TYPE_PARAMETER_NAME',
+    "The augmentation type parameter must have the same name as the "
+        "corresponding type parameter of the declaration.",
+    correctionMessage:
+        "Try changing the augmentation to match the declaration type "
+        "parameters.",
   );
 
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
@@ -2423,7 +2464,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'IMPORT_OF_NOT_AUGMENTATION',
     "The imported file '{0}' isn't an augmentation of this library.",
     correctionMessage:
-        "Try adding a 'library augment' directive referencing this library to "
+        "Try adding an 'augment library' directive referencing this library to "
         "the imported file.",
   );
 
@@ -4876,8 +4917,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CLOSURE =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
-    "The return type '{0}' isn't a '{1}', as required by the closure's "
-        "context.",
+    "The returned type '{0}' isn't returnable from a '{1}' function, as "
+        "required by the closure's context.",
     hasPublishedDocs: true,
   );
 
@@ -4908,7 +4949,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the return type as declared in the return statement
+  ///  0: the type of the expression in the return statement
   ///  1: the expected return type as defined by the method
   ///  2: the name of the method
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
@@ -6599,13 +6640,6 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  This warning is generated anywhere a @factory annotation is associated
-  ///  with anything other than a method.
-  static const WarningCode INVALID_FACTORY_ANNOTATION = WarningCode(
-    'INVALID_FACTORY_ANNOTATION',
-    "Only methods can be annotated as factories.",
-  );
-
   ///  Parameters:
   ///  0: The name of the method
   static const WarningCode INVALID_FACTORY_METHOD_DECL = WarningCode(
@@ -6620,13 +6654,6 @@ class WarningCode extends AnalyzerErrorCode {
     'INVALID_FACTORY_METHOD_IMPL',
     "Factory method '{0}' doesn't return a newly allocated object.",
     hasPublishedDocs: true,
-  );
-
-  ///  This warning is generated anywhere an @immutable annotation is associated
-  ///  with anything other than a class.
-  static const WarningCode INVALID_IMMUTABLE_ANNOTATION = WarningCode(
-    'INVALID_IMMUTABLE_ANNOTATION',
-    "Only classes can be annotated as being immutable.",
   );
 
   ///  No parameters.
@@ -6829,17 +6856,6 @@ class WarningCode extends AnalyzerErrorCode {
     "Redundant use of the annotation @required on the required positional "
         "parameter '{0}'.",
     correctionMessage: "Remove @required.",
-  );
-
-  ///  This warning is generated anywhere where `@sealed` annotates something
-  ///  other than a class.
-  ///
-  ///  No parameters.
-  static const WarningCode INVALID_SEALED_ANNOTATION = WarningCode(
-    'INVALID_SEALED_ANNOTATION',
-    "The annotation '@sealed' can only be applied to classes.",
-    correctionMessage: "Try removing the '@sealed' annotation.",
-    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7619,6 +7635,18 @@ class WarningCode extends AnalyzerErrorCode {
     "The name {0} is shown, but isn't used.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the URI pointing to a nonexistent file
+  static const WarningCode URI_DOES_NOT_EXIST_IN_DOC_IMPORT = WarningCode(
+    'URI_DOES_NOT_EXIST',
+    "Target of URI doesn't exist: '{0}'.",
+    correctionMessage:
+        "Try creating the file referenced by the URI, or try using a URI for a "
+        "file that does exist.",
+    hasPublishedDocs: true,
+    uniqueName: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
   );
 
   ///  Parameters:

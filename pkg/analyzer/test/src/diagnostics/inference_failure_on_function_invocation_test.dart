@@ -48,16 +48,6 @@ void f(void Function() m) {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48476')
-  test_functionType_optionalTypeArgs() async {
-    await assertNoErrorsInCode('''
-import 'package:meta/meta.dart';
-void f(@optionalTypeArgs void Function<T>() m) {
-  m();
-}
-''');
-  }
-
   test_genericFunctionExpression_explicitTypeArg() async {
     await assertNoErrorsInCode('''
 void f(void Function<T>()? m, void Function<T>() n) {

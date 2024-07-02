@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -16,6 +18,7 @@ import 'package:analyzer/src/error/codes.dart';
 class DuplicateDefinitionVerifier {
   final InheritanceManager3 _inheritanceManager;
   final LibraryElement _currentLibrary;
+  final CompilationUnitElementImpl _currentUnit;
   final ErrorReporter _errorReporter;
   final DuplicationDefinitionContext context;
 
@@ -24,6 +27,7 @@ class DuplicateDefinitionVerifier {
   DuplicateDefinitionVerifier(
     this._inheritanceManager,
     this._currentLibrary,
+    this._currentUnit,
     this._errorReporter,
     this.context,
   );
@@ -33,6 +37,8 @@ class DuplicateDefinitionVerifier {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null && stackTraceParameter != null) {
+      var element = exceptionParameter.declaredElement;
+      if (element != null && element.isWildcardVariable) return;
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
         _errorReporter.reportError(_diagnosticFactory
@@ -52,8 +58,8 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    var element = node.declaredElement!;
-    var augmented = element.augmented;
+    var fragment = node.declaredElement!;
+    var augmented = fragment.augmented;
     var declarationElement = augmented.declaration;
     var declarationName = declarationElement.name;
 
@@ -134,7 +140,7 @@ class DuplicateDefinitionVerifier {
       staticSetters: staticSetters,
     );
 
-    for (var accessor in declarationElement.accessors) {
+    for (var accessor in fragment.accessors) {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(declarationElement, baseName);
@@ -161,7 +167,10 @@ class DuplicateDefinitionVerifier {
       }
     }
 
-    for (var method in declarationElement.methods) {
+    for (var method in fragment.methods) {
+      if (method.source != _currentUnit.source) {
+        continue;
+      }
       var baseName = method.displayName;
       if (method.isStatic) {
         var instance = _getInterfaceMember(declarationElement, baseName);
@@ -533,7 +542,7 @@ class DuplicateDefinitionVerifier {
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, Token identifier,
       {required Element element, Map<String, Element>? setterScope}) {
-    if (identifier.isSynthetic) {
+    if (identifier.isSynthetic || element.isWildcardVariable) {
       return;
     }
 

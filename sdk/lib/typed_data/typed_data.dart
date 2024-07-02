@@ -18,17 +18,15 @@ import "dart:_internal" show Since, UnmodifiableListBase;
 @Since("2.10")
 export "dart:_internal" show BytesBuilder;
 
-part "unmodifiable_typed_data.dart";
-
 /// A sequence of bytes underlying a typed data object.
 ///
 /// Used to process large quantities of binary or numerical data
 /// more efficiently using a typed view.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// ByteBuffer.
+/// `ByteBuffer`.
 abstract final class ByteBuffer {
-  /// Returns the length of this byte buffer, in bytes.
+  /// The length of this byte buffer, in bytes.
   int get lengthInBytes;
 
   /// Creates a [Uint8List] _view_ of a region of this byte buffer.
@@ -345,24 +343,27 @@ abstract final class ByteBuffer {
 /// A typed view of a sequence of bytes.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// TypedData.
+/// `TypedData`.
 abstract final class TypedData {
-  /// Returns the number of bytes in the representation of each element in this
-  /// list.
+  /// The number of bytes in the representation of each element in this list.
   int get elementSizeInBytes;
 
-  /// Returns the offset in bytes into the underlying byte buffer of this view.
+  /// The offset of this view into the underlying byte buffer, in bytes.
   int get offsetInBytes;
 
-  /// Returns the length of this view, in bytes.
+  /// The length of this view, in bytes.
   int get lengthInBytes;
 
-  /// Returns the byte buffer associated with this object.
+  /// The byte buffer associated with this object.
   ByteBuffer get buffer;
 }
 
-abstract final class _TypedIntList extends TypedData {
-  /// Returns the concatenation of this list and [other].
+/// A [TypedData] fixed-length [List]-view on the bytes of [buffer].
+@Since("3.5")
+abstract final class TypedDataList<E> implements TypedData, List<E> {}
+
+abstract final class _TypedIntList implements TypedDataList<int> {
+  /// The concatenation of this list and [other].
   ///
   /// If other is also a typed-data integer list, the returned list will
   /// be a type-data integer list capable of containing all the elements of
@@ -371,8 +372,8 @@ abstract final class _TypedIntList extends TypedData {
   List<int> operator +(List<int> other);
 }
 
-abstract final class _TypedFloatList extends TypedData {
-  /// Returns the concatenation of this list and [other].
+abstract final class _TypedFloatList implements TypedDataList<double> {
+  /// The concatenation of this list and [other].
   ///
   /// If other is also a typed-data floating point number list,
   /// the returned list will be a type-data float list capable of containing
@@ -381,11 +382,23 @@ abstract final class _TypedFloatList extends TypedData {
   List<double> operator +(List<double> other);
 }
 
-/// Describes endianness to be used when accessing or updating a
-/// sequence of bytes.
+/// Endianness of number representation.
+///
+/// The order of bytes in memory of a number representation, with
+/// [little] endian having the least significant byte first, and [big] endian
+/// (aka. network byte order) having the most significant byte first.
+///
+/// The [host] endian is the native endianness of the underlying platform,
+/// and the default endianness used by typed-data lists, like [Uint16List],
+/// on this platform. Always one of [little] or [big] endian.
+///
+/// Can be specified when accessing or updating a sequence of bytes using a
+/// [ByteData] view. The host endianness can be used if accessing larger
+/// numbers by their bytes, for example through a [Uint8List] view on
+/// a buffer written using an [Int64List] view of the same buffer..
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Endian.
+/// `Endian`.
 final class Endian {
   final bool _littleEndian;
   const Endian._(this._littleEndian);
@@ -417,7 +430,6 @@ final class Endian {
 /// if (blob.getUint32(0, Endian.little) == 0x04034b50) { // Zip file marker
 ///   ...
 /// }
-///
 /// ```
 ///
 /// Finally, `ByteData` may be used to intentionally reinterpret the bytes
@@ -432,7 +444,7 @@ final class Endian {
 /// ```
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// ByteData.
+/// `ByteData`.
 abstract final class ByteData implements TypedData {
   /// Creates a [ByteData] of the specified length (in elements), all of
   /// whose bytes are initially zero.
@@ -502,7 +514,7 @@ abstract final class ByteData implements TypedData {
   @Since("3.3")
   ByteData asUnmodifiableView();
 
-  /// Returns the (possibly negative) integer represented by the byte at the
+  /// The (possibly negative) integer represented by the byte at the
   /// specified [byteOffset] in this object, in two's complement binary
   /// representation.
   ///
@@ -522,7 +534,7 @@ abstract final class ByteData implements TypedData {
   /// less than the length of this object.
   void setInt8(int byteOffset, int value);
 
-  /// Returns the positive integer represented by the byte at the specified
+  /// The positive integer represented by the byte at the specified
   /// [byteOffset] in this object, in unsigned binary form.
   ///
   /// The return value will be between 0 and 255, inclusive.
@@ -541,7 +553,7 @@ abstract final class ByteData implements TypedData {
   /// less than the length of this object.
   void setUint8(int byteOffset, int value);
 
-  /// Returns the (possibly negative) integer represented by the two bytes at
+  /// The (possibly negative) integer represented by the two bytes at
   /// the specified [byteOffset] in this object, in two's complement binary
   /// form.
   ///
@@ -563,7 +575,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 2` must be less than or equal to the length of this object.
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]);
 
-  /// Returns the positive integer represented by the two bytes starting
+  /// The positive integer represented by the two bytes starting
   /// at the specified [byteOffset] in this object, in unsigned binary
   /// form.
   ///
@@ -584,7 +596,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 2` must be less than or equal to the length of this object.
   void setUint16(int byteOffset, int value, [Endian endian = Endian.big]);
 
-  /// Returns the (possibly negative) integer represented by the four bytes at
+  /// The (possibly negative) integer represented by the four bytes at
   /// the specified [byteOffset] in this object, in two's complement binary
   /// form.
   ///
@@ -606,7 +618,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 4` must be less than or equal to the length of this object.
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]);
 
-  /// Returns the positive integer represented by the four bytes starting
+  /// The positive integer represented by the four bytes starting
   /// at the specified [byteOffset] in this object, in unsigned binary
   /// form.
   ///
@@ -627,7 +639,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 4` must be less than or equal to the length of this object.
   void setUint32(int byteOffset, int value, [Endian endian = Endian.big]);
 
-  /// Returns the (possibly negative) integer represented by the eight bytes at
+  /// The (possibly negative) integer represented by the eight bytes at
   /// the specified [byteOffset] in this object, in two's complement binary
   /// form.
   ///
@@ -649,7 +661,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 8` must be less than or equal to the length of this object.
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]);
 
-  /// Returns the positive integer represented by the eight bytes starting
+  /// The positive integer represented by the eight bytes starting
   /// at the specified [byteOffset] in this object, in unsigned binary
   /// form.
   ///
@@ -670,7 +682,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 8` must be less than or equal to the length of this object.
   void setUint64(int byteOffset, int value, [Endian endian = Endian.big]);
 
-  /// Returns the floating point number represented by the four bytes at
+  /// The floating point number represented by the four bytes at
   /// the specified [byteOffset] in this object, in IEEE 754
   /// single-precision binary floating-point format (binary32).
   ///
@@ -695,7 +707,7 @@ abstract final class ByteData implements TypedData {
   /// `byteOffset + 4` must be less than or equal to the length of this object.
   void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]);
 
-  /// Returns the floating point number represented by the eight bytes at
+  /// The floating point number represented by the eight bytes at
   /// the specified [byteOffset] in this object, in IEEE 754
   /// double-precision binary floating-point format (binary64).
   ///
@@ -722,8 +734,8 @@ abstract final class ByteData implements TypedData {
 /// range -128 to +127.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Int8List.
-abstract final class Int8List implements List<int>, _TypedIntList {
+/// `Int8List`.
+abstract final class Int8List implements _TypedIntList {
   /// Creates an [Int8List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -803,7 +815,7 @@ abstract final class Int8List implements List<int>, _TypedIntList {
   @Since("3.3")
   Int8List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is an `Int8List` containing the elements of this list at
   /// positions greater than or equal to [start] and less than [end] in the same
@@ -822,7 +834,7 @@ abstract final class Int8List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Int8List sublist(int start, [int? end]);
 
@@ -839,8 +851,8 @@ abstract final class Int8List implements List<int>, _TypedIntList {
 /// range 0 to 255.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Uint8List.
-abstract final class Uint8List implements List<int>, _TypedIntList {
+/// `Uint8List`.
+abstract final class Uint8List implements _TypedIntList {
   /// Creates a [Uint8List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -927,7 +939,7 @@ abstract final class Uint8List implements List<int>, _TypedIntList {
   /// the elements of [other], otherwise it'll be a normal list of integers.
   List<int> operator +(List<int> other);
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint8List` containing the elements of this list at
   /// positions greater than or equal to [start] and less than [end] in the same
@@ -946,7 +958,7 @@ abstract final class Uint8List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Uint8List sublist(int start, [int? end]);
 
@@ -963,8 +975,8 @@ abstract final class Uint8List implements List<int>, _TypedIntList {
 /// and all values above 255 are stored as 255.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Uint8ClampedList.
-abstract final class Uint8ClampedList implements List<int>, _TypedIntList {
+/// `Uint8ClampedList`.
+abstract final class Uint8ClampedList implements _TypedIntList {
   /// Creates a [Uint8ClampedList] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -1046,7 +1058,7 @@ abstract final class Uint8ClampedList implements List<int>, _TypedIntList {
   @Since("3.3")
   Uint8ClampedList asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint8ClampedList` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1065,7 +1077,7 @@ abstract final class Uint8ClampedList implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Uint8ClampedList sublist(int start, [int? end]);
 
@@ -1083,8 +1095,8 @@ abstract final class Uint8ClampedList implements List<int>, _TypedIntList {
 /// range -32768 to +32767.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Int16List.
-abstract final class Int16List implements List<int>, _TypedIntList {
+/// `Int16List`.
+abstract final class Int16List implements _TypedIntList {
   /// Creates an [Int16List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -1175,7 +1187,7 @@ abstract final class Int16List implements List<int>, _TypedIntList {
   @Since("3.3")
   Int16List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is an `Int16List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1194,7 +1206,7 @@ abstract final class Int16List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Int16List sublist(int start, [int? end]);
 
@@ -1212,8 +1224,8 @@ abstract final class Int16List implements List<int>, _TypedIntList {
 /// range 0 to 65535.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Uint16List.
-abstract final class Uint16List implements List<int>, _TypedIntList {
+/// `Uint16List`.
+abstract final class Uint16List implements _TypedIntList {
   /// Creates a [Uint16List] of the specified length (in elements), all
   /// of whose elements are initially zero.
   ///
@@ -1305,7 +1317,7 @@ abstract final class Uint16List implements List<int>, _TypedIntList {
   @Since("3.3")
   Uint16List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint16List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1324,7 +1336,7 @@ abstract final class Uint16List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Uint16List sublist(int start, [int? end]);
 
@@ -1342,8 +1354,8 @@ abstract final class Uint16List implements List<int>, _TypedIntList {
 /// range -2147483648 to 2147483647.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Int32List.
-abstract final class Int32List implements List<int>, _TypedIntList {
+/// `Int32List`.
+abstract final class Int32List implements _TypedIntList {
   /// Creates an [Int32List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -1434,7 +1446,7 @@ abstract final class Int32List implements List<int>, _TypedIntList {
   @Since("3.3")
   Int32List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is an `Int32List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1453,7 +1465,7 @@ abstract final class Int32List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Int32List sublist(int start, [int? end]);
 
@@ -1471,8 +1483,8 @@ abstract final class Int32List implements List<int>, _TypedIntList {
 /// range 0 to 4294967295.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Uint32List.
-abstract final class Uint32List implements List<int>, _TypedIntList {
+/// `Uint32List`.
+abstract final class Uint32List implements _TypedIntList {
   /// Creates a [Uint32List] of the specified length (in elements), all
   /// of whose elements are initially zero.
   ///
@@ -1564,7 +1576,7 @@ abstract final class Uint32List implements List<int>, _TypedIntList {
   @Since("3.3")
   Uint32List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint32List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1583,7 +1595,7 @@ abstract final class Uint32List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Uint32List sublist(int start, [int? end]);
 
@@ -1601,8 +1613,8 @@ abstract final class Uint32List implements List<int>, _TypedIntList {
 /// range -9223372036854775808 to +9223372036854775807.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Int64List.
-abstract final class Int64List implements List<int>, _TypedIntList {
+/// `Int64List`.
+abstract final class Int64List implements _TypedIntList {
   /// Creates an [Int64List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -1693,7 +1705,7 @@ abstract final class Int64List implements List<int>, _TypedIntList {
   @Since("3.3")
   Int64List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is an `Int64List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1712,7 +1724,7 @@ abstract final class Int64List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Int64List sublist(int start, [int? end]);
 
@@ -1730,8 +1742,8 @@ abstract final class Int64List implements List<int>, _TypedIntList {
 /// range 0 to 18446744073709551615.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Uint64List.
-abstract final class Uint64List implements List<int>, _TypedIntList {
+/// `Uint64List`.
+abstract final class Uint64List implements _TypedIntList {
   /// Creates a [Uint64List] of the specified length (in elements), all
   /// of whose elements are initially zero.
   ///
@@ -1823,7 +1835,7 @@ abstract final class Uint64List implements List<int>, _TypedIntList {
   @Since("3.3")
   Uint64List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint64List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1842,7 +1854,7 @@ abstract final class Uint64List implements List<int>, _TypedIntList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Uint64List sublist(int start, [int? end]);
 
@@ -1861,8 +1873,8 @@ abstract final class Uint64List implements List<int>, _TypedIntList {
 /// value with the same value.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Float32List.
-abstract final class Float32List implements List<double>, _TypedFloatList {
+/// `Float32List`.
+abstract final class Float32List implements _TypedFloatList {
   /// Creates a [Float32List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -1953,7 +1965,7 @@ abstract final class Float32List implements List<double>, _TypedFloatList {
   @Since("3.3")
   Float32List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Float32List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -1972,7 +1984,7 @@ abstract final class Float32List implements List<double>, _TypedFloatList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Float32List sublist(int start, [int? end]);
 
@@ -1987,8 +1999,8 @@ abstract final class Float32List implements List<double>, _TypedFloatList {
 /// the default [List] implementation.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Float64List.
-abstract final class Float64List implements List<double>, _TypedFloatList {
+/// `Float64List`.
+abstract final class Float64List implements _TypedFloatList {
   /// Creates a [Float64List] of the specified length (in elements), all of
   /// whose elements are initially zero.
   ///
@@ -2076,7 +2088,7 @@ abstract final class Float64List implements List<double>, _TypedFloatList {
   @Since("3.3")
   Float64List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Float64List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -2095,22 +2107,23 @@ abstract final class Float64List implements List<double>, _TypedFloatList {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Float64List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 8;
 }
 
-/// A fixed-length list of Float32x4 numbers that is viewable as a
+/// A fixed-length list of [Float32x4] numbers that is viewable as a
 /// [TypedData].
 ///
 /// For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Float32x4List.
-abstract final class Float32x4List implements List<Float32x4>, TypedData {
+/// `Float32x4List`.
+abstract final class Float32x4List
+    implements TypedDataList<Float32x4>, TypedData {
   /// Creates a [Float32x4List] of the specified length (in elements),
   /// all of whose elements are initially zero.
   ///
@@ -2198,13 +2211,13 @@ abstract final class Float32x4List implements List<Float32x4>, TypedData {
   @Since("3.3")
   Float32x4List asUnmodifiableView();
 
-  /// Returns the concatenation of this list and [other].
+  /// The concatenation of this list and [other].
   ///
   /// If [other] is also a [Float32x4List], the result is a new [Float32x4List],
   /// otherwise the result is a normal growable `List<Float32x4>`.
   List<Float32x4> operator +(List<Float32x4> other);
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Float32x4List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -2229,19 +2242,19 @@ abstract final class Float32x4List implements List<Float32x4>, TypedData {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Float32x4List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 16;
 }
 
-/// A fixed-length list of Int32x4 numbers that is viewable as a
+/// A fixed-length list of [Int32x4] numbers that is viewable as a
 /// [TypedData].
 ///
 /// For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
-abstract final class Int32x4List implements List<Int32x4>, TypedData {
+abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   /// Creates a [Int32x4List] of the specified length (in elements),
   /// all of whose elements are initially zero.
   ///
@@ -2329,13 +2342,13 @@ abstract final class Int32x4List implements List<Int32x4>, TypedData {
   @Since("3.3")
   Int32x4List asUnmodifiableView();
 
-  /// Returns the concatenation of this list and [other].
+  /// The concatenation of this list and [other].
   ///
   /// If [other] is also a [Int32x4List], the result is a new [Int32x4List],
   /// otherwise the result is a normal growable `List<Int32x4>`.
   List<Int32x4> operator +(List<Int32x4> other);
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is an `Int32x4List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -2360,22 +2373,23 @@ abstract final class Int32x4List implements List<Int32x4>, TypedData {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Int32x4List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 16;
 }
 
-/// A fixed-length list of Float64x2 numbers that is viewable as a
+/// A fixed-length list of [Float64x2] numbers that is viewable as a
 /// [TypedData].
 ///
 /// For long lists, this implementation will be considerably more
 /// space- and time-efficient than the default [List] implementation.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Float64x2List.
-abstract final class Float64x2List implements List<Float64x2>, TypedData {
+/// `Float64x2List`.
+abstract final class Float64x2List
+    implements TypedDataList<Float64x2>, TypedData {
   /// Creates a [Float64x2List] of the specified length (in elements),
   /// all of whose elements have all lanes set to zero.
   ///
@@ -2390,7 +2404,7 @@ abstract final class Float64x2List implements List<Float64x2>, TypedData {
   /// `elements.length` times 16 bytes.
   external factory Float64x2List.fromList(List<Float64x2> elements);
 
-  /// Returns the concatenation of this list and [other].
+  /// The concatenation of this list and [other].
   ///
   /// If [other] is also a [Float64x2List], the result is a new [Float64x2List],
   /// otherwise the result is a normal growable `List<Float64x2>`.
@@ -2469,7 +2483,7 @@ abstract final class Float64x2List implements List<Float64x2>, TypedData {
   @Since("3.3")
   Float64x2List asUnmodifiableView();
 
-  /// Returns a new list containing the elements between [start] and [end].
+  /// Creates a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Float64x2List` containing the elements of this
   /// list at positions greater than or equal to [start] and less than [end] in
@@ -2494,7 +2508,7 @@ abstract final class Float64x2List implements List<Float64x2>, TypedData {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ `this.length`
+  /// 0 ≤ `start` ≤ `end` ≤ `this.length`.
   /// If `end` is equal to `start`, then the returned list is empty.
   Float64x2List sublist(int start, [int? end]);
 
@@ -2507,7 +2521,7 @@ abstract final class Float64x2List implements List<Float64x2>, TypedData {
 /// The lanes are "x", "y", "z", and "w" respectively.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Float32x4.
+/// `Float32x4`.
 abstract final class Float32x4 {
   external factory Float32x4(double x, double y, double z, double w);
   external factory Float32x4.splat(double v);
@@ -2555,7 +2569,7 @@ abstract final class Float32x4 {
   /// Equivalent to this * new Float32x4.splat(s)
   Float32x4 scale(double s);
 
-  /// Returns the lane-wise absolute value of this [Float32x4].
+  /// The lane-wise absolute value of this [Float32x4].
   Float32x4 abs();
 
   /// Lane-wise clamp this [Float32x4] to be in the range
@@ -2582,7 +2596,7 @@ abstract final class Float32x4 {
   int get signMask;
 
   /// Mask passed to [shuffle] or [shuffleMix].
-  static const int xxxx = 0x0;
+  static const int xxxx = 0x00;
   static const int xxxy = 0x40;
   static const int xxxz = 0x80;
   static const int xxxw = 0xC0;
@@ -2598,7 +2612,7 @@ abstract final class Float32x4 {
   static const int xxwy = 0x70;
   static const int xxwz = 0xB0;
   static const int xxww = 0xF0;
-  static const int xyxx = 0x4;
+  static const int xyxx = 0x04;
   static const int xyxy = 0x44;
   static const int xyxz = 0x84;
   static const int xyxw = 0xC4;
@@ -2614,7 +2628,7 @@ abstract final class Float32x4 {
   static const int xywy = 0x74;
   static const int xywz = 0xB4;
   static const int xyww = 0xF4;
-  static const int xzxx = 0x8;
+  static const int xzxx = 0x08;
   static const int xzxy = 0x48;
   static const int xzxz = 0x88;
   static const int xzxw = 0xC8;
@@ -2630,7 +2644,7 @@ abstract final class Float32x4 {
   static const int xzwy = 0x78;
   static const int xzwz = 0xB8;
   static const int xzww = 0xF8;
-  static const int xwxx = 0xC;
+  static const int xwxx = 0x0C;
   static const int xwxy = 0x4C;
   static const int xwxz = 0x8C;
   static const int xwxw = 0xCC;
@@ -2646,7 +2660,7 @@ abstract final class Float32x4 {
   static const int xwwy = 0x7C;
   static const int xwwz = 0xBC;
   static const int xwww = 0xFC;
-  static const int yxxx = 0x1;
+  static const int yxxx = 0x01;
   static const int yxxy = 0x41;
   static const int yxxz = 0x81;
   static const int yxxw = 0xC1;
@@ -2662,7 +2676,7 @@ abstract final class Float32x4 {
   static const int yxwy = 0x71;
   static const int yxwz = 0xB1;
   static const int yxww = 0xF1;
-  static const int yyxx = 0x5;
+  static const int yyxx = 0x05;
   static const int yyxy = 0x45;
   static const int yyxz = 0x85;
   static const int yyxw = 0xC5;
@@ -2678,7 +2692,7 @@ abstract final class Float32x4 {
   static const int yywy = 0x75;
   static const int yywz = 0xB5;
   static const int yyww = 0xF5;
-  static const int yzxx = 0x9;
+  static const int yzxx = 0x09;
   static const int yzxy = 0x49;
   static const int yzxz = 0x89;
   static const int yzxw = 0xC9;
@@ -2694,7 +2708,7 @@ abstract final class Float32x4 {
   static const int yzwy = 0x79;
   static const int yzwz = 0xB9;
   static const int yzww = 0xF9;
-  static const int ywxx = 0xD;
+  static const int ywxx = 0x0D;
   static const int ywxy = 0x4D;
   static const int ywxz = 0x8D;
   static const int ywxw = 0xCD;
@@ -2710,7 +2724,7 @@ abstract final class Float32x4 {
   static const int ywwy = 0x7D;
   static const int ywwz = 0xBD;
   static const int ywww = 0xFD;
-  static const int zxxx = 0x2;
+  static const int zxxx = 0x02;
   static const int zxxy = 0x42;
   static const int zxxz = 0x82;
   static const int zxxw = 0xC2;
@@ -2726,7 +2740,7 @@ abstract final class Float32x4 {
   static const int zxwy = 0x72;
   static const int zxwz = 0xB2;
   static const int zxww = 0xF2;
-  static const int zyxx = 0x6;
+  static const int zyxx = 0x06;
   static const int zyxy = 0x46;
   static const int zyxz = 0x86;
   static const int zyxw = 0xC6;
@@ -2742,7 +2756,7 @@ abstract final class Float32x4 {
   static const int zywy = 0x76;
   static const int zywz = 0xB6;
   static const int zyww = 0xF6;
-  static const int zzxx = 0xA;
+  static const int zzxx = 0x0A;
   static const int zzxy = 0x4A;
   static const int zzxz = 0x8A;
   static const int zzxw = 0xCA;
@@ -2758,7 +2772,7 @@ abstract final class Float32x4 {
   static const int zzwy = 0x7A;
   static const int zzwz = 0xBA;
   static const int zzww = 0xFA;
-  static const int zwxx = 0xE;
+  static const int zwxx = 0x0E;
   static const int zwxy = 0x4E;
   static const int zwxz = 0x8E;
   static const int zwxw = 0xCE;
@@ -2774,7 +2788,7 @@ abstract final class Float32x4 {
   static const int zwwy = 0x7E;
   static const int zwwz = 0xBE;
   static const int zwww = 0xFE;
-  static const int wxxx = 0x3;
+  static const int wxxx = 0x03;
   static const int wxxy = 0x43;
   static const int wxxz = 0x83;
   static const int wxxw = 0xC3;
@@ -2790,7 +2804,7 @@ abstract final class Float32x4 {
   static const int wxwy = 0x73;
   static const int wxwz = 0xB3;
   static const int wxww = 0xF3;
-  static const int wyxx = 0x7;
+  static const int wyxx = 0x07;
   static const int wyxy = 0x47;
   static const int wyxz = 0x87;
   static const int wyxw = 0xC7;
@@ -2806,7 +2820,7 @@ abstract final class Float32x4 {
   static const int wywy = 0x77;
   static const int wywz = 0xB7;
   static const int wyww = 0xF7;
-  static const int wzxx = 0xB;
+  static const int wzxx = 0x0B;
   static const int wzxy = 0x4B;
   static const int wzxz = 0x8B;
   static const int wzxw = 0xCB;
@@ -2822,7 +2836,7 @@ abstract final class Float32x4 {
   static const int wzwy = 0x7B;
   static const int wzwz = 0xBB;
   static const int wzww = 0xFB;
-  static const int wwxx = 0xF;
+  static const int wwxx = 0x0F;
   static const int wwxy = 0x4F;
   static const int wwxz = 0x8F;
   static const int wwxw = 0xCF;
@@ -2863,19 +2877,19 @@ abstract final class Float32x4 {
   /// value.
   Float32x4 withW(double w);
 
-  /// Returns the lane-wise minimum value in this [Float32x4] or [other].
+  /// The lane-wise minimum value in this [Float32x4] or [other].
   Float32x4 min(Float32x4 other);
 
-  /// Returns the lane-wise maximum value in this [Float32x4] or [other].
+  /// The lane-wise maximum value in this [Float32x4] or [other].
   Float32x4 max(Float32x4 other);
 
-  /// Returns the square root of this [Float32x4].
+  /// The square root of this [Float32x4].
   Float32x4 sqrt();
 
-  /// Returns the reciprocal of this [Float32x4].
+  /// The reciprocal of this [Float32x4].
   Float32x4 reciprocal();
 
-  /// Returns the square root of the reciprocal of this [Float32x4].
+  /// The square root of the reciprocal of this [Float32x4].
   Float32x4 reciprocalSqrt();
 }
 
@@ -2923,7 +2937,7 @@ abstract final class Int32x4 {
   int get signMask;
 
   /// Mask passed to [shuffle] or [shuffleMix].
-  static const int xxxx = 0x0;
+  static const int xxxx = 0x00;
   static const int xxxy = 0x40;
   static const int xxxz = 0x80;
   static const int xxxw = 0xC0;
@@ -2939,7 +2953,7 @@ abstract final class Int32x4 {
   static const int xxwy = 0x70;
   static const int xxwz = 0xB0;
   static const int xxww = 0xF0;
-  static const int xyxx = 0x4;
+  static const int xyxx = 0x04;
   static const int xyxy = 0x44;
   static const int xyxz = 0x84;
   static const int xyxw = 0xC4;
@@ -2955,7 +2969,7 @@ abstract final class Int32x4 {
   static const int xywy = 0x74;
   static const int xywz = 0xB4;
   static const int xyww = 0xF4;
-  static const int xzxx = 0x8;
+  static const int xzxx = 0x08;
   static const int xzxy = 0x48;
   static const int xzxz = 0x88;
   static const int xzxw = 0xC8;
@@ -2971,7 +2985,7 @@ abstract final class Int32x4 {
   static const int xzwy = 0x78;
   static const int xzwz = 0xB8;
   static const int xzww = 0xF8;
-  static const int xwxx = 0xC;
+  static const int xwxx = 0x0C;
   static const int xwxy = 0x4C;
   static const int xwxz = 0x8C;
   static const int xwxw = 0xCC;
@@ -2987,7 +3001,7 @@ abstract final class Int32x4 {
   static const int xwwy = 0x7C;
   static const int xwwz = 0xBC;
   static const int xwww = 0xFC;
-  static const int yxxx = 0x1;
+  static const int yxxx = 0x01;
   static const int yxxy = 0x41;
   static const int yxxz = 0x81;
   static const int yxxw = 0xC1;
@@ -3003,7 +3017,7 @@ abstract final class Int32x4 {
   static const int yxwy = 0x71;
   static const int yxwz = 0xB1;
   static const int yxww = 0xF1;
-  static const int yyxx = 0x5;
+  static const int yyxx = 0x05;
   static const int yyxy = 0x45;
   static const int yyxz = 0x85;
   static const int yyxw = 0xC5;
@@ -3019,7 +3033,7 @@ abstract final class Int32x4 {
   static const int yywy = 0x75;
   static const int yywz = 0xB5;
   static const int yyww = 0xF5;
-  static const int yzxx = 0x9;
+  static const int yzxx = 0x09;
   static const int yzxy = 0x49;
   static const int yzxz = 0x89;
   static const int yzxw = 0xC9;
@@ -3035,7 +3049,7 @@ abstract final class Int32x4 {
   static const int yzwy = 0x79;
   static const int yzwz = 0xB9;
   static const int yzww = 0xF9;
-  static const int ywxx = 0xD;
+  static const int ywxx = 0x0D;
   static const int ywxy = 0x4D;
   static const int ywxz = 0x8D;
   static const int ywxw = 0xCD;
@@ -3051,7 +3065,7 @@ abstract final class Int32x4 {
   static const int ywwy = 0x7D;
   static const int ywwz = 0xBD;
   static const int ywww = 0xFD;
-  static const int zxxx = 0x2;
+  static const int zxxx = 0x02;
   static const int zxxy = 0x42;
   static const int zxxz = 0x82;
   static const int zxxw = 0xC2;
@@ -3067,7 +3081,7 @@ abstract final class Int32x4 {
   static const int zxwy = 0x72;
   static const int zxwz = 0xB2;
   static const int zxww = 0xF2;
-  static const int zyxx = 0x6;
+  static const int zyxx = 0x06;
   static const int zyxy = 0x46;
   static const int zyxz = 0x86;
   static const int zyxw = 0xC6;
@@ -3083,7 +3097,7 @@ abstract final class Int32x4 {
   static const int zywy = 0x76;
   static const int zywz = 0xB6;
   static const int zyww = 0xF6;
-  static const int zzxx = 0xA;
+  static const int zzxx = 0x0A;
   static const int zzxy = 0x4A;
   static const int zzxz = 0x8A;
   static const int zzxw = 0xCA;
@@ -3099,7 +3113,7 @@ abstract final class Int32x4 {
   static const int zzwy = 0x7A;
   static const int zzwz = 0xBA;
   static const int zzww = 0xFA;
-  static const int zwxx = 0xE;
+  static const int zwxx = 0x0E;
   static const int zwxy = 0x4E;
   static const int zwxz = 0x8E;
   static const int zwxw = 0xCE;
@@ -3115,7 +3129,7 @@ abstract final class Int32x4 {
   static const int zwwy = 0x7E;
   static const int zwwz = 0xBE;
   static const int zwww = 0xFE;
-  static const int wxxx = 0x3;
+  static const int wxxx = 0x03;
   static const int wxxy = 0x43;
   static const int wxxz = 0x83;
   static const int wxxw = 0xC3;
@@ -3131,7 +3145,7 @@ abstract final class Int32x4 {
   static const int wxwy = 0x73;
   static const int wxwz = 0xB3;
   static const int wxww = 0xF3;
-  static const int wyxx = 0x7;
+  static const int wyxx = 0x07;
   static const int wyxy = 0x47;
   static const int wyxz = 0x87;
   static const int wyxw = 0xC7;
@@ -3147,7 +3161,7 @@ abstract final class Int32x4 {
   static const int wywy = 0x77;
   static const int wywz = 0xB7;
   static const int wyww = 0xF7;
-  static const int wzxx = 0xB;
+  static const int wzxx = 0x0B;
   static const int wzxy = 0x4B;
   static const int wzxz = 0x8B;
   static const int wzxw = 0xCB;
@@ -3163,7 +3177,7 @@ abstract final class Int32x4 {
   static const int wzwy = 0x7B;
   static const int wzwz = 0xBB;
   static const int wzww = 0xFB;
-  static const int wwxx = 0xF;
+  static const int wwxx = 0x0F;
   static const int wwxy = 0x4F;
   static const int wwxz = 0x8F;
   static const int wwxw = 0xCF;
@@ -3236,7 +3250,7 @@ abstract final class Int32x4 {
 /// The lanes are "x" and "y" respectively.
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
-/// Float64x2.
+/// `Float64x2`.
 abstract final class Float64x2 {
   external factory Float64x2(double x, double y);
   external factory Float64x2.splat(double v);
@@ -3264,7 +3278,7 @@ abstract final class Float64x2 {
   /// Equivalent to this * new Float64x2.splat(s)
   Float64x2 scale(double s);
 
-  /// Returns the lane-wise absolute value of this [Float64x2].
+  /// The lane-wise absolute value of this [Float64x2].
   Float64x2 abs();
 
   /// Lane-wise clamp this [Float64x2] to be in the range
@@ -3290,12 +3304,12 @@ abstract final class Float64x2 {
   /// value.
   Float64x2 withY(double y);
 
-  /// Returns the lane-wise minimum value in this [Float64x2] or [other].
+  /// The lane-wise minimum value in this [Float64x2] or [other].
   Float64x2 min(Float64x2 other);
 
-  /// Returns the lane-wise maximum value in this [Float64x2] or [other].
+  /// The lane-wise maximum value in this [Float64x2] or [other].
   Float64x2 max(Float64x2 other);
 
-  /// Returns the lane-wise square root of this [Float64x2].
+  /// The lane-wise square root of this [Float64x2].
   Float64x2 sqrt();
 }

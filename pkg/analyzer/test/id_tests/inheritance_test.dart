@@ -75,9 +75,6 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeElementValue(Id id, Element element) {
-    if (element is LibraryElement) {
-      return 'nnbd=true';
-    }
     return null;
   }
 

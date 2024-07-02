@@ -412,10 +412,6 @@ suggestions
     kind: import
   dart:typed_data
     kind: import
-  package:
-    kind: import
-  package:test/
-    kind: import
   package:test/test.dart
     kind: import
   dart:core

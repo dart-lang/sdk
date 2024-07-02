@@ -893,7 +893,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::AlwaysSetBit::update(true, tags);
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
-  tags = UntaggedObject::NewBit::update(false, tags);
+  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
   tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
   raw->untag()->tags_ = tags;
 }
@@ -6815,8 +6815,6 @@ class VMSerializationRoots : public SerializationRoots {
 
     s->AddBaseObject(Object::null(), "Null", "null");
     s->AddBaseObject(Object::sentinel().ptr(), "Null", "sentinel");
-    s->AddBaseObject(Object::transition_sentinel().ptr(), "Null",
-                     "transition_sentinel");
     s->AddBaseObject(Object::optimized_out().ptr(), "Null", "<optimized out>");
     s->AddBaseObject(Object::empty_array().ptr(), "Array", "<empty_array>");
     s->AddBaseObject(Object::empty_instantiations_cache_array().ptr(), "Array",
@@ -6940,7 +6938,6 @@ class VMDeserializationRoots : public DeserializationRoots {
 
     d->AddBaseObject(Object::null());
     d->AddBaseObject(Object::sentinel().ptr());
-    d->AddBaseObject(Object::transition_sentinel().ptr());
     d->AddBaseObject(Object::optimized_out().ptr());
     d->AddBaseObject(Object::empty_array().ptr());
     d->AddBaseObject(Object::empty_instantiations_cache_array().ptr());
@@ -7112,6 +7109,13 @@ class ProgramSerializationRoots : public SerializationRoots {
       s->Push(initial_field_table->At(i));
     }
 
+    FieldTable* shared_initial_field_table =
+        s->thread()->isolate_group()->shared_initial_field_table();
+    for (intptr_t i = 0, n = shared_initial_field_table->NumFieldIds(); i < n;
+         i++) {
+      s->Push(shared_initial_field_table->At(i));
+    }
+
     dispatch_table_entries_ = object_store_->dispatch_table_code_entries();
     // We should only have a dispatch table in precompiled mode.
     ASSERT(dispatch_table_entries_.IsNull() || s->kind() == Snapshot::kFullAOT);
@@ -7142,6 +7146,15 @@ class ProgramSerializationRoots : public SerializationRoots {
     s->WriteUnsigned(n);
     for (intptr_t i = 0; i < n; i++) {
       s->WriteRootRef(initial_field_table->At(i), "some-static-field");
+    }
+
+    FieldTable* shared_initial_field_table =
+        s->thread()->isolate_group()->shared_initial_field_table();
+    intptr_t n_shared = shared_initial_field_table->NumFieldIds();
+    s->WriteUnsigned(n_shared);
+    for (intptr_t i = 0; i < n_shared; i++) {
+      s->WriteRootRef(shared_initial_field_table->At(i),
+                      "some-shared-static-field");
     }
 
     // The dispatch table is serialized only for precompiled snapshots.
@@ -7187,12 +7200,26 @@ class ProgramDeserializationRoots : public DeserializationRoots {
       *p = d->ReadRef();
     }
 
-    FieldTable* initial_field_table =
-        d->thread()->isolate_group()->initial_field_table();
-    intptr_t n = d->ReadUnsigned();
-    initial_field_table->AllocateIndex(n - 1);
-    for (intptr_t i = 0; i < n; i++) {
-      initial_field_table->SetAt(i, d->ReadRef());
+    {
+      FieldTable* initial_field_table =
+          d->thread()->isolate_group()->initial_field_table();
+      intptr_t n = d->ReadUnsigned();
+      initial_field_table->AllocateIndex(n - 1);
+      for (intptr_t i = 0; i < n; i++) {
+        initial_field_table->SetAt(i, d->ReadRef());
+      }
+    }
+
+    {
+      FieldTable* shared_initial_field_table =
+          d->thread()->isolate_group()->shared_initial_field_table();
+      intptr_t n_shared = d->ReadUnsigned();
+      if (n_shared > 0) {
+        shared_initial_field_table->AllocateIndex(n_shared - 1);
+        for (intptr_t i = 0; i < n_shared; i++) {
+          shared_initial_field_table->SetAt(i, d->ReadRef());
+        }
+      }
     }
 
     // Deserialize dispatch table (when applicable)
@@ -7201,7 +7228,9 @@ class ProgramDeserializationRoots : public DeserializationRoots {
 
   void PostLoad(Deserializer* d, const Array& refs) override {
     auto isolate_group = d->isolate_group();
-    { isolate_group->class_table()->CopySizesFromClassObjects(); }
+    {
+      isolate_group->class_table()->CopySizesFromClassObjects();
+    }
     d->heap()->old_space()->EvaluateAfterLoading();
 
     auto object_store = isolate_group->object_store();
@@ -9248,6 +9277,26 @@ ApiErrorPtr Deserializer::VerifyImageAlignment() {
   return ApiError::null();
 }
 
+void SnapshotHeaderReader::SetCoverageFromSnapshotFeatures(
+    IsolateGroup* isolate_group) {
+  auto prev_position = stream_.Position();
+  char* error = VerifyVersion();
+  if (error == nullptr) {
+    const char* features = nullptr;
+    intptr_t features_length = 0;
+    char* error = ReadFeatures(&features, &features_length);
+    if (error == nullptr) {
+      if (strstr(features, " no-coverage") != nullptr) {
+        isolate_group->set_coverage(false);
+      } else if (strstr(features, " coverage") != nullptr) {
+        isolate_group->set_coverage(true);
+      }
+    }
+  }
+
+  stream_.SetPosition(prev_position);
+}
+
 char* SnapshotHeaderReader::VerifyVersionAndFeatures(
     IsolateGroup* isolate_group,
     intptr_t* offset) {
@@ -9932,6 +9981,7 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
 
 ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   SnapshotHeaderReader header_reader(kind_, buffer_, size_);
+  header_reader.SetCoverageFromSnapshotFeatures(thread_->isolate_group());
   intptr_t offset = 0;
   char* error =
       header_reader.VerifyVersionAndFeatures(thread_->isolate_group(), &offset);

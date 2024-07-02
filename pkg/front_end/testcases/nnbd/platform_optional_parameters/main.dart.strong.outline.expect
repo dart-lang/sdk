@@ -46,7 +46,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;

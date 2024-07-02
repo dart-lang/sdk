@@ -5,13 +5,10 @@
 library fasta.tool.entry_points;
 
 import "dart:convert" show JsonEncoder;
-
 import "dart:io" show File;
 
+import "package:front_end/src/type_inference/type_schema.dart" show UnknownType;
 import "package:kernel/ast.dart";
-
-import "package:front_end/src/fasta/type_inference/type_schema.dart"
-    show UnknownType;
 
 String jsonEncode(Object object) {
   return const JsonEncoder.withIndent("  ").convert(object);
@@ -258,7 +255,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
         sb.write("%");
         break;
       case Nullability.nonNullable:
-      default:
         break;
     }
   }

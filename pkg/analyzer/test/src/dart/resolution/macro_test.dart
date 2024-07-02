@@ -1204,6 +1204,73 @@ class X {}
     ]);
   }
 
+  test_macroDiagnostics_report_atDeclaration_class_method_typeParameter() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtDeclaration([
+    'typeParameter 0',
+  ])
+  void foo<T>() {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 101, 1),
+    ]);
+  }
+
+  test_macroDiagnostics_report_atDeclaration_class_typeParameter() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 1',
+])
+class A<T, U, V> {}
+''', [
+      error(WarningCode.MACRO_WARNING, 85, 1),
+    ]);
+  }
+
+  test_macroDiagnostics_report_atDeclaration_function_typeParameter() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 0',
+])
+void foo<T>() {}
+''', [
+      error(WarningCode.MACRO_WARNING, 83, 1),
+    ]);
+  }
+
+  test_macroDiagnostics_report_atDeclaration_mixin_typeParameter() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 0',
+])
+mixin A<T> {}
+''', [
+      error(WarningCode.MACRO_WARNING, 82, 1),
+    ]);
+  }
+
+  test_macroDiagnostics_report_atDeclaration_typeAlias_typeParameter() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtDeclaration([
+  'typeParameter 0',
+])
+typedef A<T> = List<T>;
+''', [
+      error(WarningCode.MACRO_WARNING, 84, 1),
+    ]);
+  }
+
   /// Test that macros are compiled using the packages file of the package
   /// that uses the macro.
   test_macroInPackage() async {

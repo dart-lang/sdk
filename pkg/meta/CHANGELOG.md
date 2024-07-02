@@ -1,3 +1,13 @@
+## 1.16.0-dev
+
+- Add `TargetKind`s to a few annotations to match custom-wired behavior that the
+  Dart analyzer has been providing:
+  - Require that `@factory` is only used on methods.
+  - Require that `@Immutable` is only used on classes, extensions, and mixins.
+  - Require that `@mustBeOverridden` and `@mustCallSuper` are only used on
+    overridable members.
+  - Require that `@sealed` is only used on classes.
+
 ## 1.15.0
 
 - Updated `@mustBeOverridden` to only flag missing overrides in concrete

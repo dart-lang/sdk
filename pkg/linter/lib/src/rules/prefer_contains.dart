@@ -37,21 +37,23 @@ class PreferContains extends LintRule {
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   static const LintCode alwaysFalse = LintCode('prefer_contains',
-      'Always false because indexOf is always greater or equal -1.');
+      'Always false because indexOf is always greater or equal -1.',
+      hasPublishedDocs: true);
 
   static const LintCode alwaysTrue = LintCode('prefer_contains',
-      'Always true because indexOf is always greater or equal -1.');
+      'Always true because indexOf is always greater or equal -1.',
+      hasPublishedDocs: true);
 
   static const LintCode useContains = LintCode('prefer_contains',
       "Unnecessary use of 'indexOf' to test for containment.",
-      correctionMessage: "Try using 'contains'.");
+      correctionMessage: "Try using 'contains'.", hasPublishedDocs: true);
 
   PreferContains()
       : super(
             name: 'prefer_contains',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<LintCode> get lintCodes => [alwaysFalse, alwaysTrue, useContains];

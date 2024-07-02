@@ -38,6 +38,7 @@ JSMethods _performJSInteropTransformations(
         '_js_helper',
         '_js_string_convert',
         '_js_types',
+        '_string',
         'convert',
         'js_interop',
         'js_interop_unsafe',
@@ -76,7 +77,6 @@ s: [
     }
     return '''
 $jsRuntimeBlobPart1
-${mode == wasm_target.Mode.jsCompatibility ? jsRuntimeBlobPart2JSCM : jsRuntimeBlobPart2Regular}
 $jsRuntimeBlobPart3
 ${usedJSMethods.join(',\n')}
 $jsRuntimeBlobPart4
@@ -89,13 +89,13 @@ $jsRuntimeBlobPart5
 RuntimeFinalizer createRuntimeFinalizer(
     Component component, CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("package:js/js.dart")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_annotations")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:_js_helper")),
-    ...?calculateTransitiveImportsOfJsInteropIfUsed(
+    ...calculateTransitiveImportsOfJsInteropIfUsed(
         component, Uri.parse("dart:js_interop")),
   };
   Map<Procedure, String> jsInteropMethods = {};

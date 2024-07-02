@@ -75,6 +75,12 @@ def GenerateCompileCommands(options):
         # Remove warnings
         command = command.replace("-Werror", "")
 
+        match = re.search(r"(\.\.\/\.\.\/[^ ]+\/clang\/bin\/clang)", command)
+        if match:
+            command = match.group(1) + command[match.end():]
+        else:
+            print("Path ending in clang/bin/clang not found in the command.")
+
         # Remove ninja prepend on Windows.
         # This is not fully correct, as now it fails to find a sysroot for
         # Windows. However, clangd completely fails with the `-t` flag.

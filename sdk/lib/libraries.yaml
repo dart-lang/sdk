@@ -43,8 +43,8 @@ vm_common:
     core:
       uri: "core/core.dart"
       patches:
+        - "_internal/vm/lib/array_patch.dart"
         - "_internal/vm/lib/core_patch.dart"
-        - "_internal/vm_shared/lib/array_patch.dart"
         - "_internal/vm_shared/lib/bigint_patch.dart"
         - "_internal/vm_shared/lib/bool_patch.dart"
         - "_internal/vm_shared/lib/date_patch.dart"
@@ -117,12 +117,12 @@ wasm:
     core:
       uri: core/core.dart
       patches:
-        - _internal/vm_shared/lib/array_patch.dart
         - _internal/vm_shared/lib/bigint_patch.dart
         - _internal/vm_shared/lib/bool_patch.dart
         - _internal/vm_shared/lib/date_patch.dart
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
+        - _internal/wasm/lib/array_patch.dart
         - _internal/wasm/lib/boxed_double.dart
         - _internal/wasm/lib/boxed_int.dart
         - _internal/wasm/lib/boxed_int_to_string.dart
@@ -144,9 +144,15 @@ wasm:
         - _internal/wasm/lib/simd_patch.dart
         - _internal/wasm/lib/typed_data_patch.dart
     _string:
-      uri: _internal/wasm/lib/string.dart
+      uri: _internal/wasm/lib/js_string.dart
+      patches:
+        _internal/wasm/lib/string.dart
     _typed_data:
       uri: _internal/wasm/lib/typed_data.dart
+    _js_helper:
+      uri: _internal/wasm/lib/js_helper.dart
+      patches:
+        - _internal/wasm/lib/js_helper_patch.dart
 
 wasm_js_compatibility:
   include:
@@ -159,12 +165,12 @@ wasm_js_compatibility:
     core:
       uri: core/core.dart
       patches:
-        - _internal/vm_shared/lib/array_patch.dart
         - _internal/vm_shared/lib/bigint_patch.dart
         - _internal/vm_shared/lib/bool_patch.dart
         - _internal/vm_shared/lib/date_patch.dart
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
+        - _internal/wasm/lib/array_patch.dart
         - _internal/wasm/lib/boxed_double.dart
         - _internal/wasm/lib/boxed_int.dart
         - _internal/wasm/lib/core_patch.dart
@@ -180,8 +186,13 @@ wasm_js_compatibility:
       uri: typed_data/typed_data.dart
       patches:
         - _internal/wasm/lib/simd_patch.dart
-        - _internal/wasm_js_compatibility/lib/typed_data.dart
         - _internal/wasm_js_compatibility/lib/typed_data_patch.dart
+    _string:
+      uri: _internal/wasm/lib/js_string.dart
+    _js_helper:
+      uri: _internal/wasm/lib/js_helper.dart
+      patches:
+        - _internal/wasm_js_compatibility/lib/js_helper_patch.dart
 
 wasm_common:
   libraries:
@@ -201,12 +212,12 @@ wasm_common:
       - _internal/wasm/lib/internal_patch.dart
     _js_annotations:
       uri: js/_js_annotations.dart
-    _js_helper:
-      uri: _internal/wasm/lib/js_helper.dart
     _js_string_convert:
       uri: _internal/wasm/lib/js_string_convert.dart
     _js_types:
       uri: _internal/wasm/lib/js_types.dart
+    _list:
+      uri: _internal/wasm/lib/list.dart
     _object_helper:
       uri: _internal/wasm/lib/object_helper.dart
     _simd:
@@ -319,7 +330,9 @@ _dart2js_common:
 
     core:
       uri: "core/core.dart"
-      patches: "_internal/js_runtime/lib/core_patch.dart"
+      patches:
+        - "_internal/js_shared/lib/date_time_patch.dart"
+        - "_internal/js_runtime/lib/core_patch.dart"
 
     developer:
       uri: "developer/developer.dart"
@@ -495,7 +508,9 @@ dartdevc:
 
     core:
       uri: "core/core.dart"
-      patches: "_internal/js_dev_runtime/patch/core_patch.dart"
+      patches:
+        - "_internal/js_shared/lib/date_time_patch.dart"
+        - "_internal/js_dev_runtime/patch/core_patch.dart"
 
     developer:
       uri: "developer/developer.dart"

@@ -17,7 +17,5 @@
 import 'js_interop_non_null_asserts_utils.dart';
 
 void main() {
-  topLevelMemberTests(checksEnabled: true);
-  anonymousClassTests(checksEnabled: true);
-  namedClassTests(checksEnabled: true);
+  runTests(checksEnabled: true);
 }

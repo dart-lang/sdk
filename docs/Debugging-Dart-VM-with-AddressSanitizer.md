@@ -50,7 +50,7 @@ export UBSAN_SYMBOLIZER_PATH="$PWD/buildtools/linux-x64/clang/bin/llvm-symbolize
 ./tools/sdks/dart-sdk/bin/dart ./tools/test.dart -n dartk-linux-release-x64 -N dartk-ubsan-linux-release-x64
 ```
 
-The handle_segv=0 is only crucial when running through the test suite, wherein several tests are expected to segfault, and will fail if ASan installs its own segfault handler.
+The `handle_segv=0` is only crucial when running through the test suite, wherein several tests are expected to segfault, and will fail if ASan installs its own segfault handler.
 
 # Development #
 

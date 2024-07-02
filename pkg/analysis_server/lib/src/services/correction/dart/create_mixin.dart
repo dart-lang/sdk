@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMixin extends ResolvedCorrectionProducer {
   String _mixinName = '';
+
+  CreateMixin({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -40,14 +42,17 @@ class CreateMixin extends ResolvedCorrectionProducer {
       _mixinName = node.name2.lexeme;
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
-      var grandParent = parent?.parent;
-      if (parent is NamedType &&
-          grandParent is ConstructorName &&
-          grandParent.parent is InstanceCreationExpression) {
-        return;
-      } else {
-        _mixinName = node.name;
+      switch (parent) {
+        case PrefixedIdentifier():
+          if (parent.identifier == node) {
+            return;
+          }
+        case PropertyAccess():
+          if (parent.propertyName == node) {
+            return;
+          }
       }
+      _mixinName = node.name;
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
         return;

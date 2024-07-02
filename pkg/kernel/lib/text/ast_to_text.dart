@@ -774,8 +774,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         return 'async';
       case AsyncMarker.AsyncStar:
         return 'async*';
-      default:
-        return '<Invalid async marker: $marker>';
     }
   }
 
@@ -1181,6 +1179,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isSynthetic, 'synthetic');
     writeWord('constructor');
     List<String> features = <String>[];
+    if (node.enclosingClass.fileUri != node.fileUri) {
+      features.add(" from ${node.fileUri} ");
+    }
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
@@ -1404,6 +1405,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('typedef');
+    if (node.enclosingLibrary.fileUri != node.fileUri) {
+      writeWord("/* from ${node.fileUri} */");
+    }
     writeWord(node.name);
     writeTypeParameterList(node.typeParameters);
     writeSpaced('=');
@@ -1717,9 +1721,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitFileUriExpression(FileUriExpression node) {
-    if (node is FileUriConstantExpression) {
-      writeWord('/* from ${node.fileUri} */');
-    }
+    writeWord('/* from ${node.fileUri} */');
     writeExpression(node.expression);
   }
 
@@ -2433,6 +2435,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
+    writeModifier(node.variable.isWildcard, 'wildcard');
     writeFunction(node.function, name: getVariableName(node.variable));
   }
 
@@ -2450,6 +2453,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isConst, 'const');
     writeModifier(node.isSynthesized && node.name != null, 'synthesized');
     writeModifier(node.isHoisted, 'hoisted');
+    writeModifier(node.isWildcard, 'wildcard');
     bool hasImplicitInitializer = node.initializer is NullLiteral ||
         (node.initializer is ConstantExpression &&
             (node.initializer as ConstantExpression).constant is NullConstant);

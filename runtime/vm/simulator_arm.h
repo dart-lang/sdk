@@ -17,6 +17,7 @@
 #endif
 
 #include "vm/constants.h"
+#include "vm/random.h"
 
 namespace dart {
 
@@ -25,11 +26,16 @@ class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
 
-typedef struct {
-  union {
-    uint32_t u;
-    float f;
-  } data_[4];
+typedef union {
+  int8_t i8[16];
+  uint8_t u8[16];
+  int16_t i16[8];
+  uint16_t u16[8];
+  int32_t i32[4];
+  uint32_t u32[4];
+  float f32[4];
+  int64_t i64[2];
+  uint64_t u64[2];
 } simd_value_t;
 
 class Simulator {
@@ -153,6 +159,7 @@ class Simulator {
   bool pc_modified_;
   uint64_t icount_;
   static int32_t flag_stop_sim_at_;
+  Random random_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
 
   // Registered breakpoints.

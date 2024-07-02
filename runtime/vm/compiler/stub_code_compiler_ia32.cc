@@ -873,17 +873,6 @@ static void GenerateNoSuchMethodDispatcherCode(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateDispatcherCode(Assembler* assembler,
-                                   Label* call_target_function) {
-  __ Comment("NoSuchMethodDispatch");
-  // When lazily generated invocation dispatchers are disabled, the
-  // miss-handler may return null.
-  const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
-  __ cmpl(EAX, raw_null);
-  __ j(NOT_EQUAL, call_target_function);
-  GenerateNoSuchMethodDispatcherCode(assembler);
-}
-
 void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
   GenerateNoSuchMethodDispatcherCode(assembler);
 }
@@ -1432,7 +1421,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
     __ Bind(&retry);
     __ movl(ECX, EAX);
@@ -1444,23 +1433,37 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
     __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
-    __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
-    __ movl(Address(EAX, ECX, TIMES_4,
-                    target::MarkingStackBlock::pointers_offset()),
-            EBX);
-    __ incl(ECX);
-    __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
-    __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
-    __ j(NOT_EQUAL, &done);
+    __ testl(EBX,
+             Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ j(NOT_ZERO, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/1 * target::kWordSize,
-                          /*preserve_registers=*/true);
-      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ movl(EAX, Address(THR, offset));
+      __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+      __ movl(Address(EAX, ECX, TIMES_4,
+                      target::MarkingStackBlock::pointers_offset()),
+              EBX);
+      __ incl(ECX);
+      __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+      __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+      __ j(NOT_EQUAL, &done);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/1 * target::kWordSize,
+                            /*preserve_registers=*/true);
+        __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ jmp(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
   }
@@ -1550,8 +1553,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ pushl(EBX);
     __ subl(EDI, EAX);  // Offset in page.
     __ movl(EAX,
@@ -1563,6 +1565,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ shrl(ECX, Immediate(target::Page::kBytesPerCardLog2));
     __ movl(EBX, Immediate(1));
     __ shll(EBX, ECX);  // Bit mask. (Shift amount is mod 32.)
+    __ lock();
     __ orl(Address(EAX, EDI, TIMES_4, 0), EBX);
     __ popl(EBX);
     __ popl(ECX);
@@ -2083,11 +2086,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   __ popl(ARGS_DESC_REG);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
-    GenerateDispatcherCode(assembler, &call_target_function);
-  } else {
-    __ jmp(&call_target_function);
-  }
+  ASSERT(!FLAG_precompiled_mode);
+  __ jmp(&call_target_function);
 
   __ Bind(&found);
   // EBX: Pointer to an IC data check group.

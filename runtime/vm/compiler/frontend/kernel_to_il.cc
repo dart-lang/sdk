@@ -365,6 +365,7 @@ Fragment FlowGraphBuilder::InstanceCall(
     const CallSiteAttributesMetadata* call_site_attrs,
     bool receiver_is_not_smi,
     bool is_call_on_this) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
@@ -391,13 +392,12 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   call->set_receiver_is_not_smi(receiver_is_not_smi);
   Push(call);
+  instructions <<= call;
   if (result_type != nullptr && result_type->IsConstant()) {
-    Fragment instructions(call);
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
-    return instructions;
   }
-  return Fragment(call);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::FfiCall(
@@ -629,6 +629,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const InferredTypeMetadata* result_type,
                                       intptr_t type_args_count,
                                       bool use_unchecked_entry) {
+  Fragment instructions = RecordCoverage(position);
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   InputsArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z) StaticCallInstr(
@@ -639,13 +640,12 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
   Push(call);
+  instructions <<= call;
   if (result_type != nullptr && result_type->IsConstant()) {
-    Fragment instructions(call);
     instructions += Drop();
     instructions += Constant(result_type->constant_value);
-    return instructions;
   }
-  return Fragment(call);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::CachableIdempotentCall(TokenPosition position,
@@ -869,9 +869,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
 
 static bool CanUnboxElements(classid_t cid) {
   switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
     case kUnboxedInt32x4:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
@@ -1142,18 +1139,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathExp:
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
-      return FlowGraphCompiler::SupportsUnboxedDoubles();
-    case MethodRecognizer::kDoubleCeilToInt:
-    case MethodRecognizer::kDoubleFloorToInt:
-      if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-#if defined(TARGET_ARCH_X64)
-      return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
-#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
-    defined(TARGET_ARCH_RISCV64)
       return true;
-#else
-      return false;
-#endif
     default:
       return false;
   }
@@ -1818,9 +1804,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
     } break;
-    case MethodRecognizer::kDoubleToInteger:
-    case MethodRecognizer::kDoubleCeilToInt:
-    case MethodRecognizer::kDoubleFloorToInt: {
+    case MethodRecognizer::kDoubleToInteger: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += DoubleToInteger(kind);
     } break;
@@ -1843,27 +1827,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       for (intptr_t i = 0, n = function.NumParameters(); i < n; ++i) {
         body += LoadLocal(parsed_function_->RawParameterVariable(i));
       }
-      if (!CompilerState::Current().is_aot() &&
-          TargetCPUFeatures::double_truncate_round_supported() &&
-          ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
-           (kind == MethodRecognizer::kDoubleFloorToDouble) ||
-           (kind == MethodRecognizer::kDoubleCeilToDouble))) {
-        switch (kind) {
-          case MethodRecognizer::kDoubleTruncateToDouble:
-            body += UnaryDoubleOp(Token::kTRUNCATE);
-            break;
-          case MethodRecognizer::kDoubleFloorToDouble:
-            body += UnaryDoubleOp(Token::kFLOOR);
-            break;
-          case MethodRecognizer::kDoubleCeilToDouble:
-            body += UnaryDoubleOp(Token::kCEILING);
-            break;
-          default:
-            UNREACHABLE();
-        }
-      } else {
-        body += InvokeMathCFunction(kind, function.NumParameters());
-      }
+      body += InvokeMathCFunction(kind, function.NumParameters());
     } break;
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -2702,16 +2666,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   const int kTypeArgsLen = 0;
   ArgumentsDescriptor two_arguments(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, 2)));
-  Function& no_such_method =
-      Function::ZoneHandle(Z, Resolver::ResolveDynamicForReceiverClass(
-                                  Class::Handle(Z, function.Owner()),
-                                  Symbols::NoSuchMethod(), two_arguments));
+  Function& no_such_method = Function::ZoneHandle(
+      Z, Resolver::ResolveDynamicForReceiverClass(
+             Class::Handle(Z, function.Owner()), Symbols::NoSuchMethod(),
+             two_arguments, /*allow_add=*/true));
   if (no_such_method.IsNull()) {
     // If noSuchMethod is not found on the receiver class, call
     // Object.noSuchMethod.
     no_such_method = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(Z, IG->object_store()->object_class()),
-        Symbols::NoSuchMethod(), two_arguments);
+        Symbols::NoSuchMethod(), two_arguments, /*allow_add=*/true);
   }
   body += StaticCall(TokenPosition::kMinSource, no_such_method,
                      /* argument_count = */ 2, ICData::kNSMDispatch);
@@ -5683,7 +5647,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
                        ICData::kNoRebind);
   }
 
-  if (!marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
+  if (!marshaller.IsVoid(compiler::ffi::kResultIndex) &&
+      !marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
     body += CheckNullOptimized(
         String::ZoneHandle(Z, Symbols::New(H.thread(), "return_value")),
         CheckNullInstr::kArgumentError);

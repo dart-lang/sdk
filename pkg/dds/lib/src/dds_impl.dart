@@ -81,6 +81,12 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
     _vmServiceSocket = webSocketBuilder(remoteVmServiceWsUri);
+    try {
+      await _vmServiceSocket.ready;
+    } on WebSocketChannelException catch (e) {
+      throw DartDevelopmentServiceException.connectionIssue(e.toString());
+    }
+
     vmServiceClient = await peerBuilder(_vmServiceSocket, _streamManager);
     // Setup the JSON RPC client with the VM service.
     unawaited(

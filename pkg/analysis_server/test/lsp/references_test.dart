@@ -96,15 +96,19 @@ void f() {
   }
 
   Future<void> test_field_decalaration_initializingFormal() async {
-    // References on the field should find both the initializing formal and the
-    // reference to the getter.
+    // References on the field should find the initializing formal, the
+    // reference to the getter and the constructor argument.
     var content = '''
 class AAA {
   final String? aa^a;
   const AAA({this./*[0*/aaa/*0]*/});
 }
 
-final a = AAA(aaa: '')./*[1*/aaa/*1]*/;
+class BBB extends AAA {
+  BBB({super./*[1*/aaa/*1]*/});
+}
+
+final a = AAA(/*[2*/aaa/*2]*/: '')./*[3*/aaa/*3]*/;
 ''';
 
     await _checkRanges(content);
@@ -209,15 +213,83 @@ imp^ort 'dart:async' as async;
     await _checkRanges(content);
   }
 
-  Future<void> test_initializingFormals() async {
-    // References on "this.aaa" should only find the matching named argument.
+  Future<void> test_initializingFormal_argument_withDeclaration() async {
+    // Find references on an initializing formal argument should include
+    // all references to the field too.
     var content = '''
 class AAA {
-  final String? aaa;
-  const AAA({this.aa^a});
+  String? /*[0*/aaa/*0]*/;
+  AAA({this./*[1*/aaa/*1]*/});
 }
 
-final a = AAA([!aaa!]: '').aaa;
+void f() {
+  final a = AAA(/*[2*/a^aa/*2]*/: '');
+  var x = a./*[3*/aaa/*3]*/;
+  a./*[4*/aaa/*4]*/ = '';
+}
+''';
+
+    await _checkRanges(content, includeDeclarations: true);
+  }
+
+  Future<void> test_initializingFormal_argument_withoutDeclaration() async {
+    // Find references on an initializing formal argument should include
+    // all references to the field too. The field is not included
+    // because we didn't request the declaration.
+    var content = '''
+class AAA {
+  String? aaa;
+  AAA({this./*[0*/aaa/*0]*/});
+}
+
+void f() {
+  final a = AAA(/*[1*/a^aa/*1]*/: '');
+  var x = a./*[2*/aaa/*2]*/;
+  a./*[3*/aaa/*3]*/ = '';
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_initializingFormal_parameter_withDeclaration() async {
+    // Find references on an initializing formal parameter should include
+    // all references to the field too.
+    var content = '''
+class AAA {
+  String? /*[0*/aaa/*0]*/;
+  AAA({this./*[1*/aa^a/*1]*/});
+}
+
+void f() {
+  final a = AAA(/*[2*/aaa/*2]*/: '');
+  var x = a./*[3*/aaa/*3]*/;
+  a./*[4*/aaa/*4]*/ = '';
+}
+''';
+
+    await _checkRanges(content, includeDeclarations: true);
+  }
+
+  Future<void> test_initializingFormal_parameter_withoutDeclaration() async {
+    // Find references on an initializing formal parameter should include
+    // all references to the field too. The field is not included
+    // because we didn't request the declaration.
+    var content = '''
+class AAA {
+  String? aaa;
+  AAA({this./*[0*/aa^a/*0]*/});
+}
+
+class BBB extends AAA {
+  BBB({super./*[1*/aaa/*1]*/});
+}
+
+void f() {
+  final a = AAA(/*[2*/aaa/*2]*/: '');
+  var x = a./*[3*/aaa/*3]*/;
+  a./*[4*/aaa/*4]*/ = '';
+}
 ''';
 
     await _checkRanges(content);
@@ -410,6 +482,11 @@ class Aaa^<T> {}
           Location(uri: otherFileUri, range: range.range),
     ];
 
+    // Checking sets produces a better failure message than lists
+    // (it'll show which item is missing instead of just saying
+    // the lengths are different), so check that first.
+    expect(res.toSet(), expected.toSet());
+    // But also check the list in case there were unexpected duplicates.
     expect(res, unorderedEquals(expected));
   }
 }

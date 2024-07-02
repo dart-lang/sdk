@@ -84,6 +84,48 @@ I x = E.v;
     ]);
   }
 
+  test_invalid_message_preferTypeAlias_functionType() async {
+    await assertErrorsInCode('''
+typedef A<T> = T Function();
+
+void f(A<int> a) {
+  A<String> b = a;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 65, 1,
+          messageContains: ['A<int>', 'A<String>']),
+    ]);
+  }
+
+  test_invalid_message_preferTypeAlias_interfaceType() async {
+    await assertErrorsInCode('''
+typedef A<T> = List<T>;
+
+void f(A<int> a) {
+  A<String> b = a;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 60, 1,
+          messageContains: ['A<int>', 'A<String>']),
+    ]);
+  }
+
+  test_invalid_message_preferTypeAlias_recordType() async {
+    await assertErrorsInCode('''
+typedef A<T> = (T, T);
+
+void f(A<int> a) {
+  A<String> b = a;
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 1,
+          messageContains: ['A<int>', 'A<String>']),
+    ]);
+  }
+
   test_invalid_noCall_functionContext() async {
     await assertErrorsInCode('''
 class C {}

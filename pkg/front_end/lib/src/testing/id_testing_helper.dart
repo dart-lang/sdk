@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, DataRegistry, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -17,14 +16,15 @@ import '../api_prototype/experimental_flags.dart'
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
-import '../fasta/messages.dart' show FormattedMessage;
+import '../base/messages.dart' show FormattedMessage;
+import '../base/nnbd_mode.dart';
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
 import 'id_extractor.dart' show DataExtractor;
 import 'kernel_id_testing.dart';
 
-export '../fasta/compiler_context.dart' show CompilerContext;
-export '../fasta/messages.dart' show FormattedMessage;
+export '../base/compiler_context.dart' show CompilerContext;
+export '../base/messages.dart' show FormattedMessage;
 export '../kernel_generator_impl.dart' show InternalCompilerResult;
 
 /// Test configuration used for testing CFE in its default state.
@@ -61,8 +61,8 @@ class CfeTestConfig extends TestConfig {
 
   /// Called after running test on [testData] with the resulting
   /// [testResultData].
-  void onCompilationResult(
-      TestData testData, CfeTestResultData testResultData) {}
+  void onCompilationResult(MarkerOptions markerOptions, TestData testData,
+      CfeTestResultData testResultData) {}
 }
 
 abstract class CfeDataComputer<T> extends DataComputer<T, CfeTestConfig,
@@ -229,7 +229,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
 
   CfeTestResultData testResultData =
       new CfeTestResultData(config, customData, compilerResult);
-  config.onCompilationResult(testData, testResultData);
+  config.onCompilationResult(markerOptions, testData, testResultData);
   return processCompiledResult(
       markerOptions, testData, dataComputer, testResultData, errors,
       fatalErrors: fatalErrors,

@@ -10,6 +10,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 /// notifications to the user.
 class ErrorNotifier extends NoopInstrumentationService {
   AnalysisServer? server;
+  bool sendSilentExceptionsToClient = false;
 
   @override
   void logException(
@@ -18,8 +19,13 @@ class ErrorNotifier extends NoopInstrumentationService {
     List<InstrumentationServiceAttachment>? attachments,
   ]) {
     var server = this.server;
-    if (server == null || exception is SilentException) {
-      // Silent exceptions should not be reported to the user.
+    if (server == null) {
+      return;
+    }
+
+    // Silent exceptions should not be reported to the user unless this
+    // flag is set (this is used by 'dart analyze').
+    if (exception is SilentException && !sendSilentExceptionsToClient) {
       return;
     }
 

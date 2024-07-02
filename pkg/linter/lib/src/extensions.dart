@@ -29,6 +29,16 @@ class EnumLikeClassDescription {
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
 
+  /// Whether this is the child of a private compilation unit member.
+  bool get inPrivateMember {
+    var parent = this.parent;
+    return switch (parent) {
+      NamedCompilationUnitMember() => parent.name.isPrivate,
+      ExtensionDeclaration() => parent.name == null || parent.name.isPrivate,
+      _ => false,
+    };
+  }
+
   bool get isAugmentation {
     var self = this;
     return switch (self) {
@@ -644,6 +654,12 @@ extension StringExtension on String {
 
 extension TokenExtension on Token? {
   bool get isFinal => this?.keyword == Keyword.FINAL;
+
+  /// Whether the given identifier has a private name.
+  bool get isPrivate {
+    var self = this;
+    return self != null ? Identifier.isPrivateName(self.lexeme) : false;
+  }
 }
 
 extension TokenTypeExtension on TokenType {

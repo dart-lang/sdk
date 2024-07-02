@@ -396,6 +396,22 @@ class LspAnalysisServer extends AnalysisServer {
 
     _checkAnalytics();
     enableSurveys();
+
+    // Notify the client of any issues parsing experimental capabilities.
+    var errors = _clientCapabilities?.experimentalCapabilitiesErrors;
+    if (errors != null && errors.isNotEmpty) {
+      var message = 'There were errors parsing your experimental '
+          'client capabilities:\n${errors.join(', ')}';
+
+      var params =
+          ShowMessageParams(type: MessageType.warning.forLsp, message: message);
+
+      channel.sendNotification(NotificationMessage(
+        method: Method.window_showMessage,
+        params: params,
+        jsonrpc: jsonRpcVersion,
+      ));
+    }
   }
 
   /// Handles a response from the client by invoking the completer that the
@@ -767,8 +783,6 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Show message (without stack) to the user.
     showErrorMessageToUser(message);
-
-    logException(message, exception, stackTrace);
   }
 
   /// Send status notification to the client. The state of analysis is given by

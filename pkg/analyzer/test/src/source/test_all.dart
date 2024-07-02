@@ -4,11 +4,13 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'source_resource_test.dart' as source_resource_test;
+import 'package_map_resolver_test.dart' as package_map_resolver;
+import 'path_filter_test.dart' as path_filter;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
-    source_resource_test.main();
+    package_map_resolver.main();
+    path_filter.main();
   }, name: 'source');
 }

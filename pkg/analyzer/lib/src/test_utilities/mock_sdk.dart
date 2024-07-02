@@ -29,6 +29,10 @@ abstract class Future<T> {
     throw 0;
   }
 
+  factory Future.error(Object error, [StackTrace? stackTrace]) {
+    throw 0;
+  }
+
   factory Future.microtask(FutureOr<T> computation()) {
     throw 0;
   }
@@ -1311,6 +1315,7 @@ abstract class FileSystemEntity {
 
 class IOSink implements Sink<List<int>> {
   Future<dynamic> close() {}
+  void write(Object? object) {}
 }
 
 class Platform {

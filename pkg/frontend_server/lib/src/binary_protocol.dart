@@ -15,7 +15,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart' as fe;
 import 'package:front_end/src/api_prototype/file_system.dart' as fe;
 import 'package:front_end/src/api_prototype/kernel_generator.dart' as fe;
 import 'package:front_end/src/base/nnbd_mode.dart' as fe;
-import 'package:front_end/src/fasta/kernel/utils.dart' as fe;
+import 'package:front_end/src/kernel/utils.dart' as fe;
 import 'package:kernel/ast.dart' as fe;
 import 'package:kernel/target/targets.dart' as fe;
 import 'package:vm/kernel_front_end.dart' as vm;
@@ -129,11 +129,10 @@ class _Client {
     final String uriStr = arguments.required<String>('uri');
 
     final vm.KernelCompilationResults compilationResults =
-        await vm.compileToKernel(
-      Uri.parse(uriStr),
-      compilerOptions,
-      environmentDefines: {},
-    );
+        await vm.compileToKernel(new vm.KernelCompilationArguments(
+      source: Uri.parse(uriStr),
+      options: compilerOptions,
+    ));
 
     return _serializeComponentWithoutPlatform(
       compilationResults.component!,

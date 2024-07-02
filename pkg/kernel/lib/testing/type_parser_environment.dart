@@ -78,9 +78,7 @@ class Env {
 
   late TypeParserEnvironment _libraryEnvironment;
 
-  final bool isNonNullableByDefault;
-
-  Env(String source, {required this.isNonNullableByDefault}) {
+  Env(String source) {
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
     TypeParserEnvironment coreEnvironment =
@@ -625,8 +623,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           ..defaultType = type;
       }
     }
-    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass,
-        isNonNullableByDefault: true);
+    List<DartType> defaultTypes = calculateBounds(typeParameters, objectClass);
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType = defaultTypes[i];
     }
@@ -694,8 +691,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
                     typeParameters[i])));
     List<DartType> defaultTypes = calculateBounds(
         freshTypeParametersFromStructuralParameters.freshTypeParameters,
-        objectClass,
-        isNonNullableByDefault: true);
+        objectClass);
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType =
           substitution.substituteType(defaultTypes[i]);

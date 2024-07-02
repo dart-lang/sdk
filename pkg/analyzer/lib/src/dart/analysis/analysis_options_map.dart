@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 /// Instances of the class [AnalysisOptionsMap] map [File]s under analysis to
 /// their corresponding [AnalysisOptions].

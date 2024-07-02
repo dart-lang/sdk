@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An enumeration of lint names.
-class LintNames {
+abstract final class LintNames {
   static const String always_declare_return_types =
       'always_declare_return_types';
   static const String always_put_control_body_on_new_line =

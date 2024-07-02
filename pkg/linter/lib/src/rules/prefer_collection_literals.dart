@@ -59,14 +59,15 @@ void printHashMap(LinkedHashMap map) => printMap(map);
 class PreferCollectionLiterals extends LintRule {
   static const LintCode code = LintCode(
       'prefer_collection_literals', 'Unnecessary constructor invocation.',
-      correctionMessage: 'Try using a collection literal.');
+      correctionMessage: 'Try using a collection literal.',
+      hasPublishedDocs: true);
 
   PreferCollectionLiterals()
       : super(
             name: 'prefer_collection_literals',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

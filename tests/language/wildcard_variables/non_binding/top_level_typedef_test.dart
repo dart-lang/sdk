@@ -20,7 +20,7 @@ void main<_ extends _>() {
   _ foo<_ extends _>([_ _ = int]) => _;
   _ bar<_ extends _>([_ _ = _]) => int;
   Expect.type<Type>(foo());
-  Expect.type<int>(bar());
+  Expect.type<Type>(bar());
 }
 
 class CConst {
@@ -30,7 +30,11 @@ class CConst {
     final _ = _;
     const _ = _;
     int _() => 1;
+    var (_, _) = (3, '4');
+    Expect.equals(42, _);
+
     int foo<_>([String _ = "$_"]) => _;
-    _ = foo();
+    foo();
+    Expect.equals(42, _);
   }
 }

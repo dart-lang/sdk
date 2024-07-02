@@ -25,10 +25,14 @@ class ReplaceWithIdentifierTest extends FixProcessorLintTest {
 
   Future<void> test_functionTypedFormalParameter() async {
     await resolveTestCode('''
-var functionWithFunction = (int f(int x)) => f(0);
+void f(List<int Function(int)> list) {
+  list.forEach((int p(int x)) {p(0);});
+}
 ''');
     await assertHasFix('''
-var functionWithFunction = (f) => f(0);
+void f(List<int Function(int)> list) {
+  list.forEach((p) {p(0);});
+}
 ''');
   }
 }

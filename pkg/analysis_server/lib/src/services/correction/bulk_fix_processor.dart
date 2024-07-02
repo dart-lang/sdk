@@ -7,8 +7,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
@@ -16,9 +14,12 @@ import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generato
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
@@ -27,8 +28,9 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -37,7 +39,6 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -75,7 +76,8 @@ class BulkFixProcessor {
 
   /// A map from an error code to a list of generators used to create multiple
   /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintMultiProducerMap].
+  /// generators used for lint rules are in the
+  /// [FixProcessor.lintMultiProducerMap].
   ///
   /// The expectation is that only one of the correction producers will produce
   /// a change for a given fix. If more than one change is produced the result
@@ -203,7 +205,9 @@ class BulkFixProcessor {
   /// will be produced.
   final DartChangeWorkspace workspace;
 
-  /// An optional list of diagnostic codes to fix.
+  /// A list of diagnostic codes to fix.
+  ///
+  /// If `null`, fixes are computed for all codes.
   final List<String>? codes;
 
   /// The change builder used to build the changes required to fix the
@@ -306,9 +310,7 @@ class BulkFixProcessor {
           List<AnalysisContext> contexts) =>
       _organizeDirectives(contexts);
 
-  Future<void> _applyProducer(
-      CorrectionProducerContext context, CorrectionProducer producer) async {
-    producer.configure(context);
+  Future<void> _applyProducer(CorrectionProducer producer) async {
     try {
       var localBuilder = builder.copy() as ChangeBuilderImpl;
 
@@ -331,10 +333,16 @@ class BulkFixProcessor {
     }
   }
 
-  Future<void> _bulkApply(List<ProducerGenerator> generators, String codeName,
-      CorrectionProducerContext context) async {
+  Future<void> _bulkApply(
+    List<ProducerGenerator> generators,
+    String codeName,
+    CorrectionProducerContext context, {
+    bool parsedOnly = false,
+  }) async {
     for (var generator in generators) {
-      var producer = generator();
+      var producer = generator(context: context);
+      assert(!parsedOnly || producer is ParsedCorrectionProducer,
+          '$producer must be a ParsedCorrectionProducer');
       var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
           ? producer.canBeAppliedAutomatically
           : producer.canBeAppliedAcrossFiles;
@@ -422,8 +430,10 @@ class BulkFixProcessor {
           for (var fix in result) {
             fixes.addAll(fix.change.edits);
           }
-          details.add(BulkFix(pubspecFile.path,
-              [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
+          details.add(BulkFix(pubspecFile.path, [
+            BulkFixDetail(
+                PubspecWarningCode.MISSING_DEPENDENCY.name.toLowerCase(), 1)
+          ]));
         }
       }
     }
@@ -524,7 +534,7 @@ class BulkFixProcessor {
                 parsedUnit.content, parsedUnit.unit, errorReporter));
           }
           for (var linterUnit in allUnits) {
-            _computeLints(linterUnit, allUnits);
+            _computeParsedResultLint(linterUnit, allUnits);
           }
           await _fixErrorsInParsedLibrary(result, errorListener.errors,
               stopAfterFirst: stopAfterFirst);
@@ -537,7 +547,9 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  void _computeLints(
+  /// Computes lint for lint rules with names [syntacticLintCodes] (rules that
+  /// do not require [ResolvedUnitResult]s).
+  void _computeParsedResultLint(
       LinterContextUnit currentUnit, List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
     var nodeRegistry = NodeLintRegistry(false);
@@ -545,9 +557,9 @@ class BulkFixProcessor {
     var lintRules = syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
         .nonNulls;
-    for (var linter in lintRules) {
-      linter.reporter = currentUnit.errorReporter;
-      linter.registerNodeProcessors(nodeRegistry, context);
+    for (var lintRule in lintRules) {
+      lintRule.reporter = currentUnit.errorReporter;
+      lintRule.registerNodeProcessors(nodeRegistry, context);
     }
 
     // Run lints that handle specific node types.
@@ -611,8 +623,7 @@ class BulkFixProcessor {
       );
     }
 
-    CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
-        AnalysisError diagnostic) {
+    CorrectionProducerContext correctionContext(AnalysisError diagnostic) {
       var context = fixContext(diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
@@ -663,22 +674,18 @@ class BulkFixProcessor {
       // `OrganizeImports` will also remove some of the unused imports, so we
       // apply it first.
       var context = correctionContext(directivesOrderingError);
-      if (context != null) {
-        await _generateFix(
-            context, OrganizeImports(), directivesOrderingError.errorCode.name);
-        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-          return;
-        }
+      await _generateFix(context, OrganizeImports(context: context),
+          directivesOrderingError.errorCode.name);
+      if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+        return;
       }
     } else {
       for (var error in unusedImportErrors) {
         var context = correctionContext(error);
-        if (context != null) {
-          await _generateFix(
-              context, RemoveUnusedImport(), error.errorCode.name);
-          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-            return;
-          }
+        await _generateFix(context, RemoveUnusedImport(context: context),
+            error.errorCode.name);
+        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+          return;
         }
       }
     }
@@ -715,9 +722,6 @@ class BulkFixProcessor {
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
     );
-    if (context == null) {
-      return;
-    }
 
     var errorCode = diagnostic.errorCode;
     var codeName = errorCode.name;
@@ -731,8 +735,7 @@ class BulkFixProcessor {
         var multiGenerators = FixProcessor.lintMultiProducerMap[codeName];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
-            var multiProducer = multiGenerator();
-            multiProducer.configure(context);
+            var multiProducer = multiGenerator(context: context);
             for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
             }
@@ -747,8 +750,7 @@ class BulkFixProcessor {
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
-            var multiProducer = multiGenerator();
-            multiProducer.configure(context);
+            var multiProducer = multiGenerator(context: context);
             for (var producer in await multiProducer.producers) {
               await _generateFix(context, producer, codeName);
               if (isCancelled) {
@@ -783,7 +785,7 @@ class BulkFixProcessor {
     try {
       if (errorCode is LintCode) {
         var generators = FixProcessor.parseLintProducerMap[codeName] ?? [];
-        await _bulkApply(generators, codeName, context);
+        await _bulkApply(generators, codeName, context, parsedOnly: true);
         if (isCancelled) {
           return;
         }
@@ -842,7 +844,7 @@ class BulkFixProcessor {
     int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     var oldHash = computeChangeHash();
-    await _applyProducer(context, producer);
+    await _applyProducer(producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
       changeMap.add(context.path, code.toLowerCase());

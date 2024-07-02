@@ -9,6 +9,9 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -28,7 +31,7 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -142,8 +145,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
@@ -513,8 +516,8 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
     element.augmentation = reader.readElement() as FunctionElementImpl?;
@@ -1872,8 +1875,8 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
     element.augmentation = reader.readElement() as MethodElementImpl?;
@@ -1902,8 +1905,8 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
     element.augmentationTargetAny = reader.readElement() as ElementImpl?;
@@ -2021,12 +2024,20 @@ class ResolutionReader {
       var augmentationSubstitution = Substitution.empty;
       if (enclosing != declaration) {
         var elementTypeParameters = enclosing.typeParameters;
-        // We don't add augmentation members if numbers of type parameters
-        // don't match, so we can assume that they are the same here.
-        augmentationSubstitution = Substitution.fromPairs(
-          elementTypeParameters,
-          declarationTypeParameters.instantiateNone(),
-        );
+        if (elementTypeParameters.length == declarationTypeParameters.length) {
+          augmentationSubstitution = Substitution.fromPairs(
+            elementTypeParameters,
+            declarationTypeParameters.instantiateNone(),
+          );
+        } else {
+          augmentationSubstitution = Substitution.fromPairs(
+            elementTypeParameters,
+            List.filled(
+              elementTypeParameters.length,
+              InvalidTypeImpl.instance,
+            ),
+          );
+        }
       }
 
       var substitution = Substitution.empty;
@@ -2062,8 +2073,7 @@ class ResolutionReader {
   }
 
   T readEnum<T extends Enum>(List<T> values) {
-    var index = readByte();
-    return values[index];
+    return _reader.readEnum(values);
   }
 
   List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
@@ -2074,14 +2084,10 @@ class ResolutionReader {
     required K Function() readKey,
     required V Function() readValue,
   }) {
-    var length = readUInt30();
-    if (length == 0) {
-      return const {};
-    }
-
-    return {
-      for (var i = 0; i < length; i++) readKey(): readValue(),
-    };
+    return _reader.readMap(
+      readKey: readKey,
+      readValue: readValue,
+    );
   }
 
   FunctionType? readOptionalFunctionType() {
@@ -2428,49 +2434,6 @@ class ResolutionReader {
   MacroDiagnosticMessage _readMacroDiagnosticMessage() {
     var message = _reader.readStringUtf8();
 
-    TypeAnnotationLocation readTypeAnnotationLocation() {
-      var kind = readEnum(TypeAnnotationLocationKind.values);
-      switch (kind) {
-        case TypeAnnotationLocationKind.aliasedType:
-          var parent = readTypeAnnotationLocation();
-          return AliasedTypeLocation(parent);
-        case TypeAnnotationLocationKind.element:
-          var element = readElement()!;
-          return ElementTypeLocation(element);
-        case TypeAnnotationLocationKind.extendsClause:
-          var parent = readTypeAnnotationLocation();
-          return ExtendsClauseTypeLocation(parent);
-        case TypeAnnotationLocationKind.formalParameter:
-          return FormalParameterTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.listIndex:
-          return ListIndexTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.recordNamedField:
-          return RecordNamedFieldTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.recordPositionalField:
-          return RecordPositionalFieldTypeLocation(
-            readTypeAnnotationLocation(),
-            readUInt30(),
-          );
-        case TypeAnnotationLocationKind.returnType:
-          var parent = readTypeAnnotationLocation();
-          return ReturnTypeLocation(parent);
-        case TypeAnnotationLocationKind.variableType:
-          var parent = readTypeAnnotationLocation();
-          return VariableTypeLocation(parent);
-        default:
-          throw UnimplementedError('kind: $kind');
-      }
-    }
-
     MacroDiagnosticTarget target;
     var targetKind = readEnum(MacroDiagnosticTargetKind.values);
     switch (targetKind) {
@@ -2490,7 +2453,10 @@ class ResolutionReader {
           annotationIndex: readUInt30(),
         );
       case MacroDiagnosticTargetKind.type:
-        var location = readTypeAnnotationLocation();
+        var location = TypeAnnotationLocationReader(
+          reader: _reader,
+          readElement: readElement,
+        ).read();
         target = TypeAnnotationMacroDiagnosticTarget(location: location);
     }
 
@@ -2669,8 +2635,8 @@ class TypeAliasElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
-    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();
     applyConstantOffsets?.perform();

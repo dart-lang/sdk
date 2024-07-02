@@ -23,7 +23,7 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
-import 'package:analyzer/src/summary2/macro_type_location.dart';
+import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 
@@ -179,9 +179,9 @@ class BundleWriter {
     ClassElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
@@ -223,9 +223,9 @@ class BundleWriter {
     _writeReference(element);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _writeList(element.parameters, _writeParameterElement);
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
@@ -465,9 +465,9 @@ class BundleWriter {
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink.writeType(element.returnType);
       _writeList(element.parameters, _writeParameterElement);
     });
@@ -535,9 +535,9 @@ class BundleWriter {
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _writeList(element.parameters, _writeParameterElement);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
@@ -552,9 +552,9 @@ class BundleWriter {
     _writeReference(element);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentationTargetAny);
@@ -702,9 +702,9 @@ class BundleWriter {
     _resolutionSink.writeElement(element.augmentation);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
       _resolutionSink._writeAliasedElement(element.aliasedElement);
       _resolutionSink.writeType(element.aliasedType);
     });
@@ -815,24 +815,8 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void writeEnum(Enum e) {
-    writeByte(e.index);
-  }
-
   void writeMacroDiagnostics(List<AnalyzerMacroDiagnostic> elements) {
     writeList(elements, _writeMacroDiagnostic);
-  }
-
-  void writeMap<K, V>(
-    Map<K, V> map, {
-    required void Function(K key) writeKey,
-    required void Function(V value) writeValue,
-  }) {
-    writeUInt30(map.length);
-    for (var entry in map.entries) {
-      writeKey(entry.key);
-      writeValue(entry.value);
-    }
   }
 
   void writeOptionalTypeList(List<DartType>? types) {
@@ -1040,45 +1024,6 @@ class ResolutionSink extends _SummaryDataWriter {
   void _writeMacroDiagnosticMessage(MacroDiagnosticMessage object) {
     writeStringUtf8(object.message);
 
-    void writeTypeAnnotationLocation(TypeAnnotationLocation location) {
-      switch (location) {
-        case AliasedTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.aliasedType);
-          writeTypeAnnotationLocation(location.parent);
-        case ElementTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.element);
-          writeElement(location.element);
-        case ExtendsClauseTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.extendsClause);
-          writeTypeAnnotationLocation(location.parent);
-        case FormalParameterTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.formalParameter);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case ListIndexTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.listIndex);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case RecordNamedFieldTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.recordNamedField);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case RecordPositionalFieldTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.recordPositionalField);
-          writeTypeAnnotationLocation(location.parent);
-          writeUInt30(location.index);
-        case ReturnTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.returnType);
-          writeTypeAnnotationLocation(location.parent);
-        case VariableTypeLocation():
-          writeEnum(TypeAnnotationLocationKind.variableType);
-          writeTypeAnnotationLocation(location.parent);
-        default:
-          // TODO(scheglov): Handle this case.
-          throw UnimplementedError('${location.runtimeType}');
-      }
-    }
-
     var target = object.target;
     switch (target) {
       case ApplicationMacroDiagnosticTarget():
@@ -1093,7 +1038,10 @@ class ResolutionSink extends _SummaryDataWriter {
         writeUInt30(target.annotationIndex);
       case TypeAnnotationMacroDiagnosticTarget():
         writeEnum(MacroDiagnosticTargetKind.type);
-        writeTypeAnnotationLocation(target.location);
+        TypeAnnotationLocationWriter(
+          sink: this,
+          writeElement: writeElement,
+        ).write(target.location);
     }
   }
 

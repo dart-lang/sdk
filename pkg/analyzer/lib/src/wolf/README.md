@@ -43,7 +43,7 @@ The design consists of multiple analysis stages:
 
 - AST-to-IR. The analyzer's AST is converted to a stack-based IR (intermediate
   representation). The proposed IR and the approach for converting to it are
-  described in http://flutter.dev/go/dart-static-analysis-ir.
+  described in https://flutter.dev/go/dart-static-analysis-ir.
 
 - Scope analysis. A pass is made through the IR, identifying all the state
   variables of interest. This includes local variables as well as any other

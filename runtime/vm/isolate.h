@@ -144,7 +144,8 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(NONPRODUCT, snapshot_is_dontneed_safe, SnapshotIsDontNeedSafe,             \
     snapshot_is_dontneed_safe, false)                                          \
   V(NONPRODUCT, branch_coverage, BranchCoverage, branch_coverage,              \
-    FLAG_branch_coverage)
+    FLAG_branch_coverage)                                                      \
+  V(NONPRODUCT, coverage, Coverage, coverage, FLAG_coverage)
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
@@ -459,6 +460,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         BranchCoverageBit::update(value, isolate_group_flags_);
   }
 
+  void set_coverage(bool value) {
+    isolate_group_flags_ = CoverageBit::update(value, isolate_group_flags_);
+  }
+
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {
@@ -563,11 +568,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Prepares all threads in an isolate for Garbage Collection.
   void ReleaseStoreBuffers();
   void FlushMarkingStacks();
-  void EnableIncrementalBarrier(MarkingStack* marking_stack,
+  void EnableIncrementalBarrier(MarkingStack* old_marking_stack,
+                                MarkingStack* new_marking_stack,
                                 MarkingStack* deferred_marking_stack);
   void DisableIncrementalBarrier();
 
-  MarkingStack* marking_stack() const { return marking_stack_; }
+  MarkingStack* old_marking_stack() const { return old_marking_stack_; }
+  MarkingStack* new_marking_stack() const { return new_marking_stack_; }
   MarkingStack* deferred_marking_stack() const {
     return deferred_marking_stack_;
   }
@@ -710,6 +717,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     isolate_group_flags_ =
         AllClassesFinalizedBit::update(value, isolate_group_flags_);
   }
+  bool has_dynamically_extendable_classes() const {
+    return HasDynamicallyExtendableClassesBit::decode(isolate_group_flags_);
+  }
+  void set_has_dynamically_extendable_classes(bool value) {
+    isolate_group_flags_ =
+        HasDynamicallyExtendableClassesBit::update(value, isolate_group_flags_);
+  }
 
   bool remapping_cids() const {
     return RemappingCidsBit::decode(isolate_group_flags_);
@@ -733,14 +747,40 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     initial_field_table_ = field_table;
   }
 
+  FieldTable* shared_initial_field_table() const {
+    return shared_initial_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> shared_initial_field_table_shareable() {
+    return shared_initial_field_table_;
+  }
+  void set_shared_initial_field_table(std::shared_ptr<FieldTable> field_table) {
+    shared_initial_field_table_ = field_table;
+  }
+
+  FieldTable* shared_field_table() const { return shared_field_table_.get(); }
+  std::shared_ptr<FieldTable> shared_field_table_shareable() {
+    return shared_field_table_;
+  }
+  void set_shared_field_table(Thread* T, FieldTable* shared_field_table) {
+    shared_field_table_.reset(shared_field_table);
+    T->shared_field_table_values_ = shared_field_table->table();
+  }
+
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
   void RegisterClass(const Class& cls);
+  void RegisterSharedStaticField(const Field& field,
+                                 const Object& initial_value);
   void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
   Isolate* EnterTemporaryIsolate();
   static void ExitTemporaryIsolate();
+
+  void SetNativeAssetsCallbacks(NativeAssetsApi* native_assets_api) {
+    native_assets_api_ = *native_assets_api;
+  }
+  NativeAssetsApi* native_assets_api() { return &native_assets_api_; }
 
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
@@ -759,7 +799,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(SnapshotIsDontNeedSafe)                                                    \
-  V(BranchCoverage)
+  V(BranchCoverage)                                                            \
+  V(Coverage)                                                                  \
+  V(HasDynamicallyExtendableClasses)
 
   // Isolate group specific flags.
   enum FlagBits {
@@ -822,7 +864,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
 #endif  // !defined(PRODUCT)
 
-  MarkingStack* marking_stack_ = nullptr;
+  MarkingStack* old_marking_stack_ = nullptr;
+  MarkingStack* new_marking_stack_ = nullptr;
   MarkingStack* deferred_marking_stack_ = nullptr;
   std::shared_ptr<IsolateGroupSource> source_;
   std::unique_ptr<ApiState> api_state_;
@@ -842,6 +885,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
+  std::shared_ptr<FieldTable> shared_initial_field_table_;
+  std::shared_ptr<FieldTable> shared_field_table_;
   uint32_t isolate_group_flags_ = 0;
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
@@ -883,6 +928,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t max_active_mutators_ = 0;
 
   NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
+
+  NativeAssetsApi native_assets_api_;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1574,14 +1621,23 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters vm_tag_counters_;
 
   // We use 6 list entries for each pending service extension calls.
-  enum {kPendingHandlerIndex = 0, kPendingMethodNameIndex, kPendingKeysIndex,
-        kPendingValuesIndex,      kPendingReplyPortIndex,  kPendingIdIndex,
-        kPendingEntrySize};
+  enum {
+    kPendingHandlerIndex = 0,
+    kPendingMethodNameIndex,
+    kPendingKeysIndex,
+    kPendingValuesIndex,
+    kPendingReplyPortIndex,
+    kPendingIdIndex,
+    kPendingEntrySize
+  };
   GrowableObjectArrayPtr pending_service_extension_calls_;
 
   // We use 2 list entries for each registered extension handler.
-  enum {kRegisteredNameIndex = 0, kRegisteredHandlerIndex,
-        kRegisteredEntrySize};
+  enum {
+    kRegisteredNameIndex = 0,
+    kRegisteredHandlerIndex,
+    kRegisteredEntrySize
+  };
   GrowableObjectArrayPtr registered_service_extension_handlers_;
 
   // Used to wake the isolate when it is in the pause event loop.

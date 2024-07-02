@@ -3886,7 +3886,6 @@
   "../../../tests/standalone/map_insert_remove_oom_test.dart",
   "../../../tests/standalone/medium_integer_test.dart",
   "../../../tests/standalone/no_allow_absolute_addresses_test.dart",
-  "../../../tests/standalone/no_lazy_dispatchers_test.dart",
   "../../../tests/standalone/no_profiler_test.dart",
   "../../../tests/standalone/no_such_method_error_with_invocation_test.dart",
   "../../../tests/standalone/no_support_ast_printer_test.dart",

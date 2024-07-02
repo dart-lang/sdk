@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/fasta/util/outline_extractor.dart';
+import 'package:front_end/src/util/outline_extractor.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/equivalence.dart';
 import 'package:testing/testing.dart'

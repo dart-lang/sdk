@@ -59,7 +59,6 @@ class AbstractLink<T> implements Link<T> {
 // Does not implement all of Iterable
 class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
 //    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
 // [cfe] The non-abstract class 'LinkTail' is missing implementations for these members:
   const LinkTail();
 }
@@ -67,7 +66,6 @@ class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
 // Does not implement all of Iterable
 class LinkEntry<T> extends AbstractLink<T> {
 //    ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
 // [cfe] The non-abstract class 'LinkEntry' is missing implementations for these members:
   LinkEntry(T head, Link<T>? realTail);
 }

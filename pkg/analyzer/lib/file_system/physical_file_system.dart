@@ -7,8 +7,8 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -136,6 +136,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     return destination;
   }
 
+  @Deprecated('Get Source instances from analysis results')
   @override
   Source createSource([Uri? uri]) {
     return FileSource(this, uri ?? pathContext.toUri(path));

@@ -76,7 +76,6 @@ final class _Double implements double {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:external-name", "Double_modulo")
   external double _modulo(double other);
 
   double remainder(num other) {
@@ -86,7 +85,6 @@ final class _Double implements double {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:external-name", "Double_remainder")
   external double _remainder(double other);
 
   @pragma("vm:recognized", "graph-intrinsic")
@@ -208,22 +206,18 @@ final class _Double implements double {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:external-name", "Double_round")
   external double roundToDouble();
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:external-name", "Double_floor")
   external double floorToDouble();
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:external-name", "Double_ceil")
   external double ceilToDouble();
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:external-name", "Double_truncate")
   external double truncateToDouble();
 
   num clamp(num lowerLimit, num upperLimit) {
@@ -245,8 +239,6 @@ final class _Double implements double {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  @pragma("vm:non-nullable-result-type")
-  @pragma("vm:external-name", "Double_toInt")
   external int toInt();
 
   double toDouble() {

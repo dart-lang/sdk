@@ -40,6 +40,7 @@ extension type E(A a) implements A {
     ]);
   }
 
+  @FailingTest(reason: 'No check that `m` is an augmentation?')
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import augment 'test.dart';

@@ -5772,9 +5772,10 @@ class Parser {
     // TODO(brianwilkerson): If the next token is not the start of a valid
     // expression, then this method shouldn't report that we have an expression
     // statement.
+    Token beginToken = token.next!;
     token = parseExpression(token);
     token = ensureSemicolon(token);
-    listener.handleExpressionStatement(token);
+    listener.handleExpressionStatement(beginToken, token);
     return token;
   }
 
@@ -5863,7 +5864,7 @@ class Parser {
     Token colon = ensureColon(token);
     listener.handleConditionalExpressionColon();
     token = parseExpressionWithoutCascade(colon);
-    listener.endConditionalExpression(question, colon);
+    listener.endConditionalExpression(question, colon, token);
     return token;
   }
 
@@ -5984,7 +5985,7 @@ class Parser {
               ? parseThrowExpression(next, /* allowCascades = */ false)
               : parsePrecedenceExpression(
                   next, level, allowCascades, ConstantPatternContext.none);
-          listener.handleAssignmentExpression(operator);
+          listener.handleAssignmentExpression(operator, token);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
           if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
@@ -6006,7 +6007,7 @@ class Parser {
                 token.next!,
                 IdentifierContext.expressionContinuation,
                 constantPatternContext);
-            listener.handleEndingBinaryExpression(operator);
+            listener.handleEndingBinaryExpression(operator, token);
 
             Token bangToken = token;
             if (optional('!', token.next!)) {
@@ -6085,7 +6086,7 @@ class Parser {
           // precedence level.
           token = parsePrecedenceExpression(token.next!, level + 1,
               allowCascades, ConstantPatternContext.none);
-          listener.endBinaryExpression(operator);
+          listener.endBinaryExpression(operator, token);
         }
         next = token.next!;
         type = next.type;
@@ -6290,7 +6291,7 @@ class Parser {
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation,
           ConstantPatternContext.none);
-      listener.handleEndingBinaryExpression(cascadeOperator);
+      listener.handleEndingBinaryExpression(cascadeOperator, token);
     }
     Token next = token.next!;
     Token mark;
@@ -6301,7 +6302,7 @@ class Parser {
         token = parseSend(next, IdentifierContext.expressionContinuation,
             ConstantPatternContext.none);
         next = token.next!;
-        listener.handleEndingBinaryExpression(period);
+        listener.handleEndingBinaryExpression(period, token);
       } else if (optional('!', next)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -6333,7 +6334,7 @@ class Parser {
     if (identical(next.type.precedence, ASSIGNMENT_PRECEDENCE)) {
       Token assignment = next;
       token = parseExpressionWithoutCascade(next);
-      listener.handleAssignmentExpression(assignment);
+      listener.handleAssignmentExpression(assignment, token);
     }
     listener.endCascade();
     return token;
@@ -6990,8 +6991,19 @@ class Parser {
         hasSetEntry ??= !isMapEntry;
         if (isMapEntry) {
           Token colon = token.next!;
-          token = parseExpression(colon);
-          listener.handleLiteralMapEntry(colon, token.next!);
+          Token next = colon.next!;
+          if (optional('?', next)) {
+            // Null-aware value. For example:
+            //   <int, String>{ x: ?y }
+            token = parseExpression(next);
+            listener.handleLiteralMapEntry(colon, token,
+                nullAwareKeyToken: null, nullAwareValueToken: next);
+          } else {
+            // Non null-aware entry. For example:
+            //   <bool, num>{ x: y }
+            token = parseExpression(colon);
+            listener.handleLiteralMapEntry(colon, token.next!);
+          }
         }
       } else {
         while (info != null) {
@@ -6999,8 +7011,19 @@ class Parser {
             token = parseExpression(token);
             if (optional(':', token.next!)) {
               Token colon = token.next!;
-              token = parseExpression(colon);
-              listener.handleLiteralMapEntry(colon, token.next!);
+              Token next = colon.next!;
+              if (optional('?', next)) {
+                token = parseExpression(next);
+                // Null-aware value. For example:
+                //   <double, Symbol>{ if (b) x: ?y }
+                listener.handleLiteralMapEntry(colon, token,
+                    nullAwareKeyToken: null, nullAwareValueToken: next);
+              } else {
+                // Non null-aware entry. For example:
+                //   <String, int>{ if (b) x : y }
+                token = parseExpression(colon);
+                listener.handleLiteralMapEntry(colon, token.next!);
+              }
             }
           } else {
             token = info.parse(token, this);
@@ -8235,17 +8258,18 @@ class Parser {
     assert(optional('if', ifToken));
     listener.beginIfStatement(ifToken);
     token = ensureParenthesizedCondition(ifToken, allowCase: allowPatterns);
-    listener.beginThenStatement(token.next!);
+    Token thenBeginToken = token.next!;
+    listener.beginThenStatement(thenBeginToken);
     token = parseStatement(token);
-    listener.endThenStatement(token);
+    listener.endThenStatement(thenBeginToken, token);
     Token? elseToken = null;
     if (optional('else', token.next!)) {
       elseToken = token.next!;
       listener.beginElseStatement(elseToken);
       token = parseStatement(elseToken);
-      listener.endElseStatement(elseToken);
+      listener.endElseStatement(elseToken, token);
     }
-    listener.endIfStatement(ifToken, elseToken);
+    listener.endIfStatement(ifToken, elseToken, token);
     return token;
   }
 
@@ -8418,6 +8442,7 @@ class Parser {
     } else {
       token = parseExpressionStatement(leftSeparator);
     }
+    Token rightSeparator = token;
     int expressionCount = 0;
     while (true) {
       Token next = token.next!;
@@ -8435,8 +8460,8 @@ class Parser {
       reportRecoverableErrorWithToken(token, codes.templateUnexpectedToken);
       token = leftParenthesis.endGroup!;
     }
-    listener.handleForLoopParts(
-        forToken, leftParenthesis, leftSeparator, expressionCount);
+    listener.handleForLoopParts(forToken, leftParenthesis, leftSeparator,
+        rightSeparator, expressionCount);
     return token;
   }
 
@@ -8871,14 +8896,14 @@ class Parser {
     if (optional('finally', token)) {
       finallyKeyword = token;
       lastConsumed = parseBlock(token, BlockKind.finallyClause);
-      token = lastConsumed.next!;
       listener.handleFinallyBlock(finallyKeyword);
     } else {
       if (catchCount == 0) {
         reportRecoverableError(tryKeyword, codes.messageOnlyTry);
       }
     }
-    listener.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+    listener.endTryStatement(
+        catchCount, tryKeyword, finallyKeyword, lastConsumed);
     return lastConsumed;
   }
 
@@ -10299,7 +10324,7 @@ class Parser {
       mayParseFunctionExpressions = false;
       while (true) {
         listener.beginSwitchExpressionCase();
-        next = token.next!;
+        Token beginToken = next = token.next!;
         if (optional('default', next)) {
           reportRecoverableError(next, codes.messageDefaultInSwitchExpression);
           listener.handleNoType(next);
@@ -10333,7 +10358,7 @@ class Parser {
         mayParseFunctionExpressions = true;
         token = parseExpression(token);
         mayParseFunctionExpressions = false;
-        listener.endSwitchExpressionCase(when, arrow, token);
+        listener.endSwitchExpressionCase(beginToken, when, arrow, token);
         ++caseCount;
         next = token.next!;
 

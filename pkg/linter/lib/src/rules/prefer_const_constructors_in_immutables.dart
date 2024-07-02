@@ -43,14 +43,15 @@ class PreferConstConstructorsInImmutables extends LintRule {
   static const LintCode code = LintCode(
       'prefer_const_constructors_in_immutables',
       "Constructors in '@immutable' classes should be declared as 'const'.",
-      correctionMessage: "Try adding 'const' to the constructor declaration.");
+      correctionMessage: "Try adding 'const' to the constructor declaration.",
+      hasPublishedDocs: true);
 
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

@@ -85,8 +85,7 @@ void ThreadRegistry::AcquireMarkingStacks() {
   Thread* thread = active_list_;
   while (thread != nullptr) {
     if (!thread->BypassSafepoints()) {
-      thread->MarkingStackAcquire();
-      thread->DeferredMarkingStackAcquire();
+      thread->AcquireMarkingStacks();
     }
     thread = thread->next_;
   }
@@ -97,8 +96,7 @@ void ThreadRegistry::ReleaseMarkingStacks() {
   Thread* thread = active_list_;
   while (thread != nullptr) {
     if (!thread->BypassSafepoints()) {
-      thread->MarkingStackRelease();
-      thread->DeferredMarkingStackRelease();
+      thread->ReleaseMarkingStacks();
       ASSERT(!thread->is_marking());
     }
     thread = thread->next_;
@@ -110,8 +108,7 @@ void ThreadRegistry::FlushMarkingStacks() {
   Thread* thread = active_list_;
   while (thread != nullptr) {
     if (!thread->BypassSafepoints() && thread->is_marking()) {
-      thread->MarkingStackFlush();
-      thread->DeferredMarkingStackFlush();
+      thread->FlushMarkingStacks();
       ASSERT(thread->is_marking());
     }
     thread = thread->next_;
@@ -165,6 +162,7 @@ void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread->isolate_ == nullptr);
   ASSERT(thread->isolate_group_ == nullptr);
   ASSERT(thread->field_table_values_ == nullptr);
+  ASSERT(thread->shared_field_table_values_ == nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Add thread to the free list.
   thread->next_ = free_list_;

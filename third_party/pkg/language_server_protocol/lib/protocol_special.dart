@@ -9,7 +9,7 @@ import 'package:language_server_protocol/protocol_generated.dart';
 
 const jsonRpcVersion = '2.0';
 
-const NullJsonHandler = LspJsonHandler<void>(_alwaysTrue, _alwaysNull);
+const nullJsonHandler = LspJsonHandler<void>(_alwaysTrue, _alwaysNull);
 
 /// Returns if two objects are equal, recursively checking items in
 /// Maps/Lists.

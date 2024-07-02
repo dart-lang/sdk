@@ -32,6 +32,7 @@ understands potential repercussions.
 | --- | --- |
 | `vm:unsafe:no-interrupts` | Removes all `CheckStackOverflow` instructions from the optimized version of the marked function, which disables stack overflow checking and interruption within that function. This pragma exists mainly for performance evaluation and should not be used in a general-purpose code, because VM relies on these checks for OOB message delivery and GC scheduling. |
 | `vm:unsafe:no-bounds-checks` | Removes all array bounds checks from the optimized version of the marked function in AOT mode. This pragma exists for optimizing throughput of extremely tight loops. |
+| `vm:shared` | Makes content of the static field visible to all isolates in one isolate group. Unsafe and experimental at this point as it requires developer to take care of access synchronization to ensure race-free read/write access. |
 
 ## Pragmas for internal use
 

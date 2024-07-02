@@ -23,12 +23,16 @@ TEST_CASE(JSON_TextBuffer) {
 TEST_CASE(JSON_JSONStream_Primitives) {
   {
     JSONStream js;
-    { JSONObject jsobj(&js); }
+    {
+      JSONObject jsobj(&js);
+    }
     EXPECT_STREQ("{}", js.ToCString());
   }
   {
     JSONStream js;
-    { JSONArray jsarr(&js); }
+    {
+      JSONArray jsarr(&js);
+    }
     EXPECT_STREQ("[]", js.ToCString());
   }
   {

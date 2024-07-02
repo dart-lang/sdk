@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -14,6 +14,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithVar extends ResolvedCorrectionProducer {
+  ReplaceWithVar({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;

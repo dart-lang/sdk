@@ -326,12 +326,14 @@ class Listener implements UnescapeErrorListener {
 
   void beginConstLiteral(Token token) {}
 
+  // TODO(jensj): Should this have a beginToken?
   void endConstLiteral(Token endToken) {
     logEvent("ConstLiteral");
   }
 
   void beginConstructorReference(Token start) {}
 
+  // TODO(jensj): Renamed `start` to `beginToken`?
   void endConstructorReference(Token start, Token? periodBeforeName,
       Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     logEvent("ConstructorReference");
@@ -339,6 +341,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginDoWhileStatement(Token token) {}
 
+  // TODO(jensj): Renamed `doKeyword` to `beginToken`?
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
     logEvent("DoWhileStatement");
@@ -352,6 +355,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginWhileStatementBody(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endWhileStatementBody(Token endToken) {
     logEvent("WhileStatementBody");
   }
@@ -430,7 +434,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExtraneousExpression");
   }
 
-  void handleExpressionStatement(Token token) {
+  void handleExpressionStatement(Token beginToken, Token endToken) {
     logEvent("ExpressionStatement");
   }
 
@@ -686,14 +690,16 @@ class Listener implements UnescapeErrorListener {
   /// or for control flow entry up to and including the closing parenthesis.
   /// `for` `(` initialization `;` condition `;` updaters `)`
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {}
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endForStatement(Token endToken) {
     logEvent("ForStatement");
   }
 
   void beginForStatementBody(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endForStatementBody(Token endToken) {
     logEvent("ForStatementBody");
   }
@@ -709,6 +715,7 @@ class Listener implements UnescapeErrorListener {
       Token leftParenthesis, Token? patternKeyword, Token inKeyword) {}
 
   // One of the two possible corresponding end events for [beginForStatement].
+  // TODO(jensj): Should this have a `beginToken`?
   void endForIn(Token endToken) {
     logEvent("ForIn");
   }
@@ -721,6 +728,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginForInBody(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endForInBody(Token endToken) {
     logEvent("ForInBody");
   }
@@ -748,6 +756,7 @@ class Listener implements UnescapeErrorListener {
   /// - Initializers
   /// - Async modifier
   /// - Function body (block or arrow expression).
+  // TODO(jensj): Should this have a `beginToken`?
   void endNamedFunctionExpression(Token endToken) {
     logEvent("NamedFunctionExpression");
   }
@@ -769,6 +778,7 @@ class Listener implements UnescapeErrorListener {
   /// - Initializers
   /// - Async modifier
   /// - Function body (block or arrow expression).
+  // TODO(jensj): Should this have a `beginToken`?
   void endLocalFunctionDeclaration(Token endToken) {
     logEvent("FunctionDeclaration");
   }
@@ -821,6 +831,7 @@ class Listener implements UnescapeErrorListener {
   /// - Name (identifier)
   /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
+  // TODO(jensj): Should this have a `beginToken`?
   void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
       Token endToken) {
     logEvent("FunctionTypeAlias");
@@ -928,19 +939,20 @@ class Listener implements UnescapeErrorListener {
 
   void beginIfStatement(Token token) {}
 
-  void endIfStatement(Token ifToken, Token? elseToken) {
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     logEvent("IfStatement");
   }
 
   void beginThenStatement(Token token) {}
 
-  void endThenStatement(Token token) {
+  void endThenStatement(Token beginToken, Token endToken) {
     logEvent("ThenStatement");
   }
 
   void beginElseStatement(Token token) {}
 
-  void endElseStatement(Token token) {
+  /// The [beginToken] is the `else` token.
+  void endElseStatement(Token beginToken, Token endToken) {
     logEvent("ElseStatement");
   }
 
@@ -1011,6 +1023,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the end of a field initializer.  Substructures:
   /// - Initializer expression
+  // TODO(jensj): Should this have a `beginToken`?
   void endFieldInitializer(Token assignment, Token endToken) {
     logEvent("FieldInitializer");
   }
@@ -1035,6 +1048,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginInitializer(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endInitializer(Token endToken) {
     logEvent("ConstructorInitializer");
   }
@@ -1099,12 +1113,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("LibraryName");
   }
 
-  void handleLiteralMapEntry(Token colon, Token endToken) {
+  /// Called after parsing a map entry. Either the key or the value or both can
+  /// start with the null-aware token `?`. In that case, [nullAwareKeyToken] and
+  /// [nullAwareValueToken] are set appropriately. Substructures:
+  /// - expression
+  /// - expression
+  // TODO(jensj): Should this have a `beginToken`?
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
     logEvent("LiteralMapEntry");
   }
 
   /// Called after the parser has consumed a mapPatternEntry, consisting of an
   /// expression, a colon, and a pattern.
+  // TODO(jensj): Should this have a `beginToken`?
   void handleMapPatternEntry(Token colon, Token endToken) {
     logEvent("MapPatternEntry");
   }
@@ -1113,6 +1135,7 @@ class Listener implements UnescapeErrorListener {
 
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endLiteralString(int interpolationCount, Token endToken) {
     logEvent("LiteralString");
   }
@@ -1129,6 +1152,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle an invalid member declaration. Substructures:
   /// - metadata
+  // TODO(jensj): Should this have a `beginToken`?
   void handleInvalidMember(Token endToken) {
     logEvent("InvalidMember");
   }
@@ -1368,6 +1392,8 @@ class Listener implements UnescapeErrorListener {
 
   /// This method is invoked when parser finishes parsing the corresponding
   /// expression of the expression function body.
+  // TODO(jensj): The declaration does end --- on the name of `endToken` it
+  // doesn't make sense it's nullable. Also should there be a `beginToken`?
   void handleExpressionFunctionBody(Token arrowToken, Token? endToken) {
     logEvent("ExpressionFunctionBody");
   }
@@ -1391,12 +1417,14 @@ class Listener implements UnescapeErrorListener {
 
   void beginSwitchStatement(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     logEvent("SwitchStatement");
   }
 
   void beginSwitchExpression(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endSwitchExpression(Token switchKeyword, Token endToken) {
     logEvent("SwitchExpression");
   }
@@ -1409,6 +1437,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginSwitchExpressionBlock(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endSwitchExpressionBlock(
       int caseCount, Token beginToken, Token endToken) {
     logEvent("SwitchExpressionBlock");
@@ -1420,12 +1449,14 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralSymbol");
   }
 
+  // TODO(jensj): Should this have a `beginToken`?
   void handleThrowExpression(Token throwToken, Token endToken) {
     logEvent("ThrowExpression");
   }
 
   void beginRethrowStatement(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     logEvent("RethrowStatement");
   }
@@ -1444,6 +1475,7 @@ class Listener implements UnescapeErrorListener {
   /// Started by one of [beginExtensionDeclarationPrelude],
   /// [beginClassOrMixinOrNamedMixinApplicationPrelude], [beginTopLevelMember]
   /// or [beginUncategorizedTopLevelDeclaration].
+  // TODO(jensj): Should this have a `beginToken`?
   void endTopLevelDeclaration(Token endToken) {
     logEvent("TopLevelDeclaration");
   }
@@ -1455,6 +1487,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Substructures:
   /// - metadata
+  // TODO(jensj): Should this have a `beginToken`?
   void handleInvalidTopLevelDeclaration(Token endToken) {
     logEvent("InvalidTopLevelDeclaration");
   }
@@ -1533,7 +1566,7 @@ class Listener implements UnescapeErrorListener {
   }
 
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
     logEvent("TryStatement");
   }
 
@@ -1714,12 +1747,15 @@ class Listener implements UnescapeErrorListener {
   void beginVariablesDeclaration(
       Token token, Token? lateToken, Token? varFinalOrConst) {}
 
+  // TODO(jensj): The declaration does end --- on the name of `endToken` it
+  // doesn't make sense it's nullable. Also should there be a `beginToken`?
   void endVariablesDeclaration(int count, Token? endToken) {
     logEvent("VariablesDeclaration");
   }
 
   void beginWhileStatement(Token token) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endWhileStatement(Token whileKeyword, Token endToken) {
     logEvent("WhileStatement");
   }
@@ -1740,7 +1776,7 @@ class Listener implements UnescapeErrorListener {
     logEvent('CastPattern');
   }
 
-  void handleAssignmentExpression(Token token) {
+  void handleAssignmentExpression(Token token, Token endToken) {
     logEvent("AssignmentExpression");
   }
 
@@ -1750,7 +1786,7 @@ class Listener implements UnescapeErrorListener {
   /// Not called when the binary operator is `.`, `?.`, or `..`.
   void beginBinaryExpression(Token token) {}
 
-  void endBinaryExpression(Token token) {
+  void endBinaryExpression(Token token, Token endToken) {
     logEvent("BinaryExpression");
   }
 
@@ -1764,9 +1800,9 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called for `.`, `?.` and `..`.
-  void handleEndingBinaryExpression(Token token) {
+  void handleEndingBinaryExpression(Token token, Token endToken) {
     // TODO(jensj): push implementation into subclasses
-    endBinaryExpression(token);
+    endBinaryExpression(token, endToken);
   }
 
   /// Called when the parser encounters a `?` operator and begins parsing a
@@ -1778,7 +1814,7 @@ class Listener implements UnescapeErrorListener {
   void handleConditionalExpressionColon() {}
 
   /// Called when the parser finishes processing a conditional expression.
-  void endConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
     logEvent("ConditionalExpression");
   }
 
@@ -1852,6 +1888,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("SpreadExpression");
   }
 
+  /// Called after parsing a list or set element that starts with the null-aware
+  /// token `?`. Substructures:
+  /// - expression
+  void handleNullAwareElement(Token nullAwareToken) {
+    logEvent("NullAwareElement");
+  }
+
   /// Called after parsing an element of a list or map pattern that starts with
   /// `...`.  Substructures:
   /// - pattern (if hasSubPattern is `true`)
@@ -1897,11 +1940,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralBool");
   }
 
+  // TODO(jensj): Should this have a `beginToken`?
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     logEvent("BreakStatement");
   }
 
+  // TODO(jensj): Should this have a `beginToken`?
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     logEvent("ContinueStatement");
@@ -1913,6 +1958,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginAssert(Token assertKeyword, Assert kind) {}
 
+  // TODO(jensj): Should this have a `beginToken`?
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token? commaToken, Token endToken) {
     logEvent("Assert");
@@ -2164,7 +2210,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("AugmentSuperExpression");
   }
 
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {}
 
   void endSwitchCase(
       int labelCount,
@@ -2172,14 +2218,15 @@ class Listener implements UnescapeErrorListener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     logEvent("SwitchCase");
   }
 
   void beginSwitchExpressionCase() {}
 
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
     logEvent("SwitchExpressionCase");
   }
 
@@ -2235,6 +2282,7 @@ class Listener implements UnescapeErrorListener {
 
   /// One of the two possible corresponding end events for
   /// [beginYieldStatement].
+  // TODO(jensj): Should this have a `beginToken`?
   void endYieldStatement(Token yieldToken, Token? starToken, Token endToken) {
     logEvent("YieldStatement");
   }
@@ -2250,6 +2298,7 @@ class Listener implements UnescapeErrorListener {
   /// error should be reported using the [message], and the code between the
   /// beginning of the [startToken] and the end of the [endToken] should be
   /// highlighted. The [startToken] and [endToken] can be the same token.
+  // TODO(jensj): Should `startToken` be renamed to `beginToken`?
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {}
 
@@ -2258,6 +2307,7 @@ class Listener implements UnescapeErrorListener {
   /// The error should be reported and the code between the beginning of the
   /// [startToken] and the end of the [endToken] should be highlighted. The
   /// [startToken] and [endToken] can be the same token.
+  // TODO(jensj): Should `startToken` be renamed to `beginToken`?
   void handleExperimentNotEnabled(
       ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     handleRecoverableError(

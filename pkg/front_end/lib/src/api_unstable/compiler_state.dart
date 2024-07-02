@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
-import '../base/processed_options.dart' show ProcessedOptions;
-
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
-
 import 'package:kernel/kernel.dart' show Component;
 
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../base/incremental_compiler.dart' show IncrementalCompiler;
+import '../base/processed_options.dart' show ProcessedOptions;
+
+// Coverage-ignore(suite): Not run.
 class InitializedCompilerState {
   final CompilerOptions options;
   final ProcessedOptions processedOpts;
@@ -31,6 +29,7 @@ class InitializedCompilerState {
       this.libraryToInputDill});
 }
 
+// Coverage-ignore(suite): Not run.
 /// A cached [Component] for a summary input file.
 ///
 /// Tracks the originally marked "external" libs so that they can be restored,
@@ -41,6 +40,7 @@ class WorkerInputComponent {
   WorkerInputComponent(this.digest, this.component);
 }
 
+// Coverage-ignore(suite): Not run.
 bool digestsEqual(List<int>? a, List<int>? b) {
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;

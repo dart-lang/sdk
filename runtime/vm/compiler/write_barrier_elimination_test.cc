@@ -140,8 +140,7 @@ static void TestWBEForArrays(int length) {
   // may-trigger-GC instruction (in this case CheckStackOverflow) iff they
   // are small.
   // clang-format off
-  auto kScript =
-      Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+  CStringUniquePtr kScript(OS::SCreate(nullptr, R"(
       class C {
         late C next;
       }
@@ -164,7 +163,7 @@ static void TestWBEForArrays(int length) {
       }
 
       main() { foo(10); }
-      )", length), std::free);
+      )", length));
   // clang-format on
 
   // Generate a length dependent test library uri.

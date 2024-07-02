@@ -392,6 +392,7 @@ class Primitives {
       @nullCheck int minutes,
       @nullCheck int seconds,
       @nullCheck int milliseconds,
+      @nullCheck int microseconds,
       @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
@@ -403,6 +404,11 @@ class Primitives {
       years += 400;
       jsMonth -= 400 * 12;
     }
+    // JavaScript `Date` does not handle microseconds, so ensure the provided
+    // microseconds is in range [0..999].
+    final remainder = microseconds % 1000;
+    milliseconds += (microseconds - remainder) ~/ 1000;
+    microseconds = remainder;
     int value;
     if (isUtc) {
       value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,
@@ -413,21 +419,11 @@ class Primitives {
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
-        value > MAX_MILLISECONDS_SINCE_EPOCH) {
+        value > MAX_MILLISECONDS_SINCE_EPOCH ||
+        value == MAX_MILLISECONDS_SINCE_EPOCH && microseconds != 0) {
       return null;
     }
-    if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
-  }
-
-  static int patchUpY2K(value, years, isUtc) {
-    var date = JS<int>('!', r'new Date(#)', value);
-    if (isUtc) {
-      JS<int>('!', r'#.setUTCFullYear(#)', date, years);
-    } else {
-      JS<int>('!', r'#.setFullYear(#)', date, years);
-    }
-    return JS<int>('!', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
@@ -491,13 +487,6 @@ class Primitives {
         : JS<int>('!', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
-  }
-
-  static num valueFromDateString(str) {
-    if (str is! String) throw argumentErrorValue(str);
-    num value = JS('!', r'Date.parse(#)', str);
-    if (value.isNaN) throw argumentErrorValue(str);
-    return value;
   }
 
   static Object? getProperty(Object? object, Object key) {

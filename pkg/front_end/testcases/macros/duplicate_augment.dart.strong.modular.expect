@@ -2,13 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/macros/duplicate_augment_lib.dart:9:14: Error: 'augmentedTopLevelMethod' is already declared in this scope.
-// augment void augmentedTopLevelMethod() {
-//              ^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/macros/duplicate_augment_lib.dart:5:14: Context: Previous declaration of 'augmentedTopLevelMethod'.
-// augment void augmentedTopLevelMethod() {
-//              ^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/macros/duplicate_augment_lib.dart:22:15: Error: 'AugmentedClass' is already declared in this scope.
 // augment class AugmentedClass {
 //               ^^^^^^^^^^^^^^
@@ -21,8 +14,8 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///duplicate_augment.dart";
 
-class AugmentedClass#1#1 extends core::Object { // from org-dartlang-testcase:///duplicate_augment_lib.dart
-  synthetic constructor •() → self::AugmentedClass#1#1
+class _#AugmentedClass#augmentationWithoutOrigin0 extends core::Object { // from org-dartlang-testcase:///duplicate_augment_lib.dart
+  synthetic constructor •() → self::_#AugmentedClass#augmentationWithoutOrigin0
     : super core::Object::•()
     ;
   method augmentedInstanceMethod() → void {
@@ -44,5 +37,5 @@ class AugmentedClass extends core::Object {
   }
 }
 static method /* from org-dartlang-testcase:///duplicate_augment_lib.dart */ augmentedTopLevelMethod() → void {
-  core::print("augmentedTopLevelMethod#1");
+  core::print("augmentedTopLevelMethod#2");
 }

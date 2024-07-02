@@ -137,6 +137,25 @@ class C extends B {}
 ''');
   }
 
+  test_class_notAbstract_hasConcreteSubtype_method() async {
+    await assertErrorsInCode('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {}
+
+class C extends B {}
+
+class D extends C {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          42,
+          1),
+    ]);
+  }
+
   test_classTypeAlias_interface() async {
     // issue 15979
     await assertNoErrorsInCode(r'''

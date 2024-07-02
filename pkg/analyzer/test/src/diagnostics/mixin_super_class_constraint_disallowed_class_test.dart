@@ -43,6 +43,24 @@ MixinOnClause
 ''');
   }
 
+  test_in_inAugmentation() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+mixin A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+augment mixin A on int {}
+''');
+
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          45, 3),
+    ]);
+  }
+
   test_int() async {
     await assertErrorsInCode(r'''
 mixin M on int {}

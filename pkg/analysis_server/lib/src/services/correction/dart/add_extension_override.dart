@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddExtensionOverride extends MultiCorrectionProducer {
+  AddExtensionOverride({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var node = this.node;
@@ -18,14 +21,18 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     if (parent is! PropertyAccess) return const [];
     var target = parent.target;
     if (target == null) return const [];
+    var dartFixContext = context.dartFixContext;
+    if (dartFixContext == null) return const [];
 
+    var nodeName = Name(
+        dartFixContext.resolvedResult.libraryElement.source.uri, node.name);
     var extensions =
-        libraryElement.accessibleExtensions.hasMemberWithBaseName(node.name);
+        libraryElement.accessibleExtensions.havingMemberWithBaseName(nodeName);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;
       if (name != null) {
-        producers.add(_AddOverride(target, name));
+        producers.add(_AddOverride(target, name, context: context));
       }
     }
     return producers;
@@ -41,7 +48,7 @@ class _AddOverride extends ResolvedCorrectionProducer {
   /// The extension name to be inserted.
   final String _name;
 
-  _AddOverride(this._expression, this._name);
+  _AddOverride(this._expression, this._name, {required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -33,7 +33,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   synthetic constructor •() → test::Class
     : super core::Object::•()
@@ -47,7 +47,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///extra_patch_lib.dart */ #C1
 class Extra extends core::Object {
   synthetic constructor •() → ext::Extra
     : super core::Object::•()

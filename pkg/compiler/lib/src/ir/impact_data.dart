@@ -318,8 +318,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
         if (member != null) {
           iteratorType = ir.Substitution.fromTypeDeclarationType(
                   typeEnvironment.getTypeAsInstanceOf(iterableInterfaceType,
-                      member.enclosingClass!, typeEnvironment.coreTypes,
-                      isNonNullableByDefault: true)!)
+                      member.enclosingClass!, typeEnvironment.coreTypes)!)
               .substituteType(member.getterType);
         }
       }

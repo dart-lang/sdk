@@ -56,7 +56,7 @@ class PreferConstructorsOverStaticMethods extends LintRule {
             name: 'prefer_constructors_over_static_methods',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

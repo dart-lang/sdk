@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
@@ -87,7 +88,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitAdjacentStrings(this);
+    resolver.visitAdjacentStrings(this, contextType: contextType);
   }
 
   @override
@@ -1714,7 +1715,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitAugmentedExpression(this);
+    resolver.visitAugmentedExpression(this, contextType: contextType);
   }
 
   @override
@@ -2134,7 +2135,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitBooleanLiteral(this);
+    resolver.visitBooleanLiteral(this, contextType: contextType);
   }
 
   @override
@@ -2432,6 +2433,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     type.accept(resolverVisitor);
     var requiredType = type.typeOrThrow;
 
@@ -2448,6 +2450,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
       requiredType: requiredType,
       matchedValueType: analysisResult.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(this);
 
     return analysisResult;
   }
@@ -3241,12 +3244,15 @@ abstract final class Comment implements AstNode {
   bool get hasNodoc;
 
   /// Whether this is a block comment.
+  @Deprecated("Do not use; this value is always 'false'")
   bool get isBlock;
 
   /// Whether this is a documentation comment.
+  @Deprecated("Do not use; this value is always 'true'")
   bool get isDocumentation;
 
   /// Whether this is an end-of-line comment.
+  @Deprecated("Do not use; this value is always 'false'")
   bool get isEndOfLine;
 
   /// The references embedded within the documentation comment.
@@ -3263,9 +3269,6 @@ final class CommentImpl extends AstNodeImpl
     implements Comment {
   @override
   final List<Token> tokens;
-
-  /// The type of the comment.
-  final CommentType _type;
 
   final NodeListImpl<CommentReferenceImpl> _references = NodeListImpl._();
 
@@ -3291,13 +3294,12 @@ final class CommentImpl extends AstNodeImpl
   /// embedded references.
   CommentImpl({
     required this.tokens,
-    required CommentType type,
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
     required this.docImports,
     required this.docDirectives,
     required this.hasNodoc,
-  }) : _type = type {
+  }) {
     _references._initialize(this, references);
   }
 
@@ -3308,13 +3310,13 @@ final class CommentImpl extends AstNodeImpl
   Token get endToken => tokens[tokens.length - 1];
 
   @override
-  bool get isBlock => _type == CommentType.BLOCK;
+  bool get isBlock => false;
 
   @override
-  bool get isDocumentation => _type == CommentType.DOCUMENTATION;
+  bool get isDocumentation => true;
 
   @override
-  bool get isEndOfLine => _type == CommentType.END_OF_LINE;
+  bool get isEndOfLine => false;
 
   @override
   NodeListImpl<CommentReferenceImpl> get references => _references;
@@ -3406,27 +3408,6 @@ final class CommentReferenceImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
-}
-
-/// The possible types of comments that are recognized by the parser.
-class CommentType {
-  /// A block comment.
-  static const CommentType BLOCK = CommentType('BLOCK');
-
-  /// A documentation comment.
-  static const CommentType DOCUMENTATION = CommentType('DOCUMENTATION');
-
-  /// An end-of-line comment.
-  static const CommentType END_OF_LINE = CommentType('END_OF_LINE');
-
-  /// The name of the comment type.
-  final String name;
-
-  /// Initializes a newly created comment type to have the given [name].
-  const CommentType(this.name);
-
-  @override
-  String toString() => name;
 }
 
 /// A compilation unit.
@@ -4054,9 +4035,11 @@ final class ConstantPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var analysisResult =
         resolverVisitor.analyzeConstantPattern(context, this, expression);
     expression = resolverVisitor.popRewrite()!;
+    inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 
@@ -4985,6 +4968,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeDeclaredVariablePattern(context, this,
         declaredElement!, declaredElement!.name, type?.typeOrThrow);
     declaredElement!.type = result.staticType;
@@ -4995,6 +4979,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       requiredType: result.staticType,
       matchedValueType: result.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(this);
 
     return result;
   }
@@ -5345,7 +5330,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitDoubleLiteral(this);
+    resolver.visitDoubleLiteral(this, contextType: contextType);
   }
 
   @override
@@ -5991,51 +5976,11 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
 sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
-  @override
-  DartType? staticType;
+  DartType? _staticType;
 
   @override
   bool get inConstantContext {
-    AstNode child = this;
-    while (child is Expression ||
-        child is ArgumentList ||
-        child is MapLiteralEntry ||
-        child is SpreadElement ||
-        child is IfElement ||
-        child is ForElement) {
-      var parent = child.parent;
-      if (parent is ConstantContextForExpressionImpl) {
-        return true;
-      } else if (parent is ConstantPatternImpl) {
-        return parent.constKeyword != null;
-      } else if (parent is EnumConstantArguments) {
-        return true;
-      } else if (parent is TypedLiteralImpl && parent.constKeyword != null) {
-        // Inside an explicitly `const` list or map literal.
-        return true;
-      } else if (parent is InstanceCreationExpression &&
-          parent.keyword?.keyword == Keyword.CONST) {
-        // Inside an explicitly `const` instance creation expression.
-        return true;
-      } else if (parent is Annotation) {
-        // Inside an annotation.
-        return true;
-      } else if (parent is RecordLiteral && parent.constKeyword != null) {
-        return true;
-      } else if (parent is VariableDeclaration) {
-        var grandParent = parent.parent;
-        // Inside the initializer for a `const` variable declaration.
-        return grandParent is VariableDeclarationList &&
-            grandParent.keyword?.keyword == Keyword.CONST;
-      } else if (parent is SwitchCase) {
-        // Inside a switch case.
-        return true;
-      } else if (parent == null) {
-        break;
-      }
-      child = parent;
-    }
-    return false;
+    return constantContext(includeSelf: false) != null;
   }
 
   @override
@@ -6076,7 +6021,84 @@ sealed class ExpressionImpl extends AstNodeImpl
   }
 
   @override
+  DartType? get staticType => _staticType;
+
+  @override
   ExpressionImpl get unParenthesized => this;
+
+  /// Returns the [AstNode] that puts node into the constant context, and
+  /// the explicit `const` keyword of that node. The keyword might be absent
+  /// if the constness is implicit.
+  ///
+  /// Returns `null` if node is not in the constant context.
+  (AstNode, Token?)? constantContext({
+    required bool includeSelf,
+  }) {
+    AstNode? current = this;
+    if (!includeSelf) {
+      current = current.parent;
+    }
+
+    while (true) {
+      switch (current) {
+        case Annotation():
+          return (current, null);
+        case ConstantContextForExpressionImpl():
+          return (current, null);
+        case ConstantPatternImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
+        case EnumConstantArguments():
+          return (current, null);
+        case InstanceCreationExpression():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+        case RecordLiteral():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case SwitchCase():
+          return (current, null);
+        case TypedLiteralImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case VariableDeclarationList():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+          return null;
+        case ArgumentList():
+        case Expression():
+        case IfElement():
+        case ForElement():
+        case MapLiteralEntry():
+        case SpreadElement():
+        case VariableDeclaration():
+          break;
+        default:
+          return null;
+      }
+      current = current?.parent;
+    }
+  }
+
+  /// Record that the static type of the given node is the given type.
+  ///
+  /// @param expression the node whose type is to be recorded
+  /// @param type the static type of the node
+  void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
+    _staticType = type;
+    if (type.isBottom) {
+      resolver.flowAnalysis.flow?.handleExit();
+    }
+    inferenceLogWriter?.recordStaticType(this, type);
+  }
 
   @override
   void resolveElement(
@@ -6092,6 +6114,17 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// call [ResolverVisitor.dispatchExpression], which has some special logic
   /// for handling dynamic contexts.
   void resolveExpression(ResolverVisitor resolver, DartType contextType);
+
+  /// Records that the static type of `this` is [type], without triggering any
+  /// [ResolverVisitor] behaviors.
+  ///
+  /// This is used when the expression AST node occurs in a place where it is
+  /// not technically a true expression, but the analyzer chooses to assign it a
+  /// static type anyway (e.g. the [SimpleIdentifier] representing the method
+  /// name in a method invocation).
+  void setPseudoExpressionStaticType(DartType? type) {
+    _staticType = type;
+  }
 }
 
 /// An expression used as a statement.
@@ -6526,7 +6559,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitExtensionOverride(this);
+    resolver.visitExtensionOverride(this, contextType: contextType);
   }
 
   @override
@@ -8442,7 +8475,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitFunctionReference(this);
+    resolver.visitFunctionReference(this, contextType: contextType);
   }
 
   @override
@@ -10526,7 +10559,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitIsExpression(this);
+    resolver.visitIsExpression(this, contextType: contextType);
   }
 
   @override
@@ -11032,8 +11065,11 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.listPatternResolver
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.listPatternResolver
         .resolve(node: this, context: context);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -11132,8 +11168,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.analyzeLogicalAndPattern(
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.analyzeLogicalAndPattern(
         context, this, leftOperand, rightOperand);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -11207,9 +11246,11 @@ final class LogicalOrPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var analysisResult = resolverVisitor.analyzeLogicalOrPattern(
         context, this, leftOperand, rightOperand);
     resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
+    inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 
@@ -12760,9 +12801,12 @@ final class NullAssertPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
         context, this, pattern,
         isAssert: true);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -12831,9 +12875,12 @@ final class NullCheckPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.analyzeNullCheckOrAssertPattern(
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
         context, this, pattern,
         isAssert: false);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -12875,7 +12922,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitNullLiteral(this);
+    resolver.visitNullLiteral(this, contextType: contextType);
   }
 
   @override
@@ -13003,6 +13050,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeObjectPattern(
       context,
       this,
@@ -13018,6 +13066,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
       requiredType: result.requiredType,
       matchedValueType: result.matchedValueType,
     );
+    inferenceLogWriter?.exitPattern(this);
 
     return result;
   }
@@ -13186,7 +13235,10 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.dispatchPattern(context, pattern);
+    inferenceLogWriter?.enterPattern(this);
+    var analysisResult = resolverVisitor.dispatchPattern(context, pattern);
+    inferenceLogWriter?.exitPattern(this);
+    return analysisResult;
   }
 
   @override
@@ -13414,7 +13466,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitPatternAssignment(this);
+    resolver.visitPatternAssignment(this, contextType: contextType);
   }
 
   @override
@@ -14286,6 +14338,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeRecordPattern(
       context,
       this,
@@ -14303,6 +14356,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
         matchedValueType: result.matchedValueType,
       );
     }
+    inferenceLogWriter?.exitPattern(this);
 
     return result;
   }
@@ -14714,9 +14768,11 @@ final class RelationalPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
+    inferenceLogWriter?.enterPattern(this);
     var analysisResult =
         resolverVisitor.analyzeRelationalPattern(context, this, operand);
     resolverVisitor.popRewrite();
+    inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
 
@@ -14959,7 +15015,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitRethrowExpression(this);
+    resolver.visitRethrowExpression(this, contextType: contextType);
   }
 
   @override
@@ -15706,7 +15762,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSimpleStringLiteral(this);
+    resolver.visitSimpleStringLiteral(this, contextType: contextType);
   }
 
   @override
@@ -15950,7 +16006,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitStringInterpolation(this);
+    resolver.visitStringInterpolation(this, contextType: contextType);
   }
 
   @override
@@ -16214,7 +16270,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSuperExpression(this);
+    resolver.visitSuperExpression(this, contextType: contextType);
   }
 
   @override
@@ -16649,12 +16705,15 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
+    inferenceLogWriter?.enterExpression(this, contextType);
     var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
-    staticType = resolver
+    var staticType = resolver
         .analyzeSwitchExpression(this, expression, cases.length, contextType)
         .type;
+    recordStaticType(staticType, resolver: resolver);
     resolver.popRewrite();
     resolver.legacySwitchExhaustiveness = previousExhaustiveness;
+    inferenceLogWriter?.exitExpression(this);
   }
 
   @override
@@ -16968,7 +17027,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitSymbolLiteral(this);
+    resolver.visitSymbolLiteral(this, contextType: contextType);
   }
 
   @override
@@ -17094,7 +17153,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitThrowExpression(this);
+    resolver.visitThrowExpression(this, contextType: contextType);
   }
 
   @override
@@ -17111,8 +17170,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
 ///      | 'late'? <varOrType> <initializedIdentifierList> ';'
 ///      | 'external' <finalVarOrType> <identifierList> ';'
 ///
-/// (Note: there's no <topLevelVariableDeclaration> production in the grammar;
-/// this is a subset of the grammar production <topLevelDeclaration>, which
+/// (Note: there's no `<topLevelVariableDeclaration>` production in the grammar;
+/// this is a subset of the grammar production `<topLevelDeclaration>`, which
 /// encompasses everything that can appear inside a Dart file after part
 /// directives).
 abstract final class TopLevelVariableDeclaration
@@ -17549,7 +17608,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    resolver.visitTypeLiteral(this);
+    resolver.visitTypeLiteral(this, contextType: contextType);
   }
 
   @override

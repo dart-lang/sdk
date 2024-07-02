@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:vm/modular/transformations/type_casts_optimizer.dart'
@@ -13,22 +12,20 @@ import 'package:vm/modular/transformations/type_casts_optimizer.dart'
 
 import 'list_factory_specializer.dart';
 
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
-  final transformer =
-      _WasmTransformer(coreTypes, hierarchy, diagnosticReporter);
+void transformLibraries(
+    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  final transformer = _WasmTransformer(coreTypes, hierarchy);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
     Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _WasmTransformer(coreTypes, hierarchy, null);
+  final transformer = _WasmTransformer(coreTypes, hierarchy);
   procedure.accept(transformer);
 }
 
 class _WasmTransformer extends Transformer {
   final TypeEnvironment env;
-  final DiagnosticReporter? diagnosticReporter;
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
@@ -67,8 +64,7 @@ class _WasmTransformer extends Transformer {
 
   CoreTypes get coreTypes => env.coreTypes;
 
-  _WasmTransformer(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, this.diagnosticReporter)
+  _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : env = TypeEnvironment(coreTypes, hierarchy),
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')

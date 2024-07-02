@@ -70,7 +70,7 @@ class AlwaysSpecifyTypes extends LintRule {
             name: 'always_specify_types',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<String> get incompatibleRules =>

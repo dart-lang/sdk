@@ -21,7 +21,7 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
-import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/base/uri_translator.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/kernel_front_end.dart';

@@ -4436,14 +4436,5 @@ NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
     return b;
   }
 
-  if (a == NonNullableByDefaultCompiledMode.Agnostic) {
-    return b;
-  }
-  if (b == NonNullableByDefaultCompiledMode.Agnostic) {
-    // Keep as-is.
-    return a;
-  }
-
-  // Mixed mode where agnostic isn't involved.
   throw new CompilationModeError("Mixed compilation mode found: $a and $b");
 }

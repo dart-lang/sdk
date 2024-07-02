@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

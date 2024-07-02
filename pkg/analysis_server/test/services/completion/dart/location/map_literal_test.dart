@@ -52,11 +52,11 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  const
+  if
     kind: keyword
   for
     kind: keyword
-  if
+  const
     kind: keyword
   switch
     kind: keyword
@@ -98,11 +98,11 @@ suggestions
     kind: keyword
   true
     kind: keyword
-  const
+  if
     kind: keyword
   for
     kind: keyword
-  if
+  const
     kind: keyword
   switch
     kind: keyword

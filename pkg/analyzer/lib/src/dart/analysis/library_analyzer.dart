@@ -51,6 +51,8 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 
 class AnalysisForCompletionResult {
   final FileState fileState;
@@ -318,19 +320,7 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      var analysesToContextUnits = {
-        for (var unitAnalysis in _libraryUnits.values)
-          unitAnalysis: LinterContextUnit(
-            unitAnalysis.file.content,
-            unitAnalysis.unit,
-            unitAnalysis.errorReporter,
-          ),
-      };
-      var allUnits = analysesToContextUnits.values.toList();
-      for (var MapEntry(key: unitAnalysis, value: currentUnit)
-          in analysesToContextUnits.entries) {
-        _computeLints(unitAnalysis, allUnits, currentUnit);
-      }
+      _computeLints();
     }
 
     _checkForInconsistentLanguageVersionOverride();
@@ -342,52 +332,77 @@ class LibraryAnalyzer {
         unitAnalysis.errorReporter,
         unitAnalysis.errorListener.errors,
         unitAnalysis.ignoreInfo,
-        unitAnalysis.lineInfo,
+        unitAnalysis.unit.lineInfo,
         _analysisOptions.unignorableNames,
       ).reportErrors();
     }
   }
 
-  void _computeLints(
-    UnitAnalysis unitAnalysis,
-    List<LinterContextUnit> allUnits,
-    LinterContextUnit currentUnit,
-  ) {
-    // Skip computing lints on macro generated augmentations.
-    // See: https://github.com/dart-lang/sdk/issues/54875
-    if (unitAnalysis.file.isMacroAugmentation) return;
+  void _computeLints() {
+    var definingUnit = _libraryElement.definingCompilationUnit;
+    var analysesToContextUnits = <UnitAnalysis, LinterContextUnit>{};
+    LinterContextUnit? definingContextUnit;
+    WorkspacePackage? workspacePackage;
+    for (var unitAnalysis in _libraryUnits.values) {
+      var linterContextUnit = LinterContextUnit(
+        unitAnalysis.file.content,
+        unitAnalysis.unit,
+        unitAnalysis.errorReporter,
+      );
+      analysesToContextUnits[unitAnalysis] = linterContextUnit;
+      if (unitAnalysis.unit.declaredElement == definingUnit) {
+        definingContextUnit = linterContextUnit;
+        workspacePackage = unitAnalysis.file.workspacePackage;
+      }
+    }
 
-    var unit = currentUnit.unit;
-    var errorReporter = currentUnit.errorReporter;
+    var allUnits = analysesToContextUnits.values.toList();
+    definingContextUnit ??= allUnits.first;
 
     var enableTiming = _analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);
-
     var context = LinterContextImpl(
       allUnits,
-      currentUnit,
+      definingContextUnit,
       _typeProvider,
       _typeSystem,
       _inheritance,
-      unitAnalysis.file.workspacePackage,
+      workspacePackage,
     );
+
     for (var linter in _analysisOptions.lintRules) {
-      linter.reporter = errorReporter;
       var timer = enableTiming ? lintRuleTimers.getTimer(linter) : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
       timer?.stop();
     }
 
-    // Run lints that handle specific node types.
-    unit.accept(
-      LinterVisitor(
-        nodeRegistry,
-        LinterExceptionHandler(
-          propagateExceptions: _analysisOptions.propagateLinterExceptions,
-        ).logException,
-      ),
-    );
+    var logException = LinterExceptionHandler(
+      propagateExceptions: _analysisOptions.propagateLinterExceptions,
+    ).logException;
+
+    for (var MapEntry(key: unitAnalysis, value: currentUnit)
+        in analysesToContextUnits.entries) {
+      // Skip computing lints on macro generated augmentations.
+      // See: https://github.com/dart-lang/sdk/issues/54875
+      if (unitAnalysis.file.isMacroAugmentation) return;
+
+      var unit = currentUnit.unit;
+      var errorReporter = currentUnit.errorReporter;
+
+      for (var linter in _analysisOptions.lintRules) {
+        linter.reporter = errorReporter;
+      }
+
+      // Run lint rules that handle specific node types.
+      unit.accept(
+        LinterVisitor(nodeRegistry, logException),
+      );
+    }
+
+    // Now that all lint rules have visited the code in each of the compilation
+    // units, we can accept each lint rule's `afterLibrary` hook.
+    LinterVisitor(nodeRegistry, logException).afterLibrary();
   }
 
   void _computeVerifyErrors(UnitAnalysis unitAnalysis) {
@@ -402,10 +417,11 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceOverrideVerifier = InheritanceOverrideVerifier(
-        _typeSystem, _inheritance, errorReporter,
-        strictCasts: _analysisOptions.strictCasts);
-    inheritanceOverrideVerifier.verifyUnit(unit);
+    InheritanceOverrideVerifier(
+      _typeSystem,
+      _inheritance,
+      errorReporter,
+    ).verifyUnit(unit);
 
     //
     // Use the ErrorVerifier to compute errors.
@@ -413,6 +429,7 @@ class LibraryAnalyzer {
     ErrorVerifier errorVerifier = ErrorVerifier(
       errorReporter,
       _libraryElement,
+      unit.declaredElement!,
       _typeProvider,
       _inheritance,
       _libraryVerificationContext,
@@ -437,7 +454,7 @@ class LibraryAnalyzer {
 
     UnicodeTextVerifier(errorReporter).verify(unit, unitAnalysis.file.content);
 
-    unit.accept(DeadCodeVerifier(errorReporter));
+    unit.accept(DeadCodeVerifier(errorReporter, _libraryElement));
 
     unit.accept(
       BestPracticesVerifier(
@@ -560,17 +577,17 @@ class LibraryAnalyzer {
   /// Return a new parsed unresolved [CompilationUnit].
   UnitAnalysis _parse(FileState file) {
     var errorListener = RecordingErrorListener();
-    var unit = file.parse(errorListener);
+    var unit = file.parse(
+      errorListener: errorListener,
+      performance: OperationPerformanceImpl('<root>'),
+    );
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
     var result = UnitAnalysis(
       file: file,
       errorListener: errorListener,
-      errorReporter: ErrorReporter(errorListener, file.source),
       unit: unit,
-      lineInfo: unit.lineInfo,
-      ignoreInfo: IgnoreInfo.forDart(unit, file.content),
     );
     _libraryUnits[file] = result;
     return result;
@@ -604,15 +621,20 @@ class LibraryAnalyzer {
           CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
         );
       } else if (state.importedSource == null) {
+        var errorCode = state.isDocImport
+            ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
+            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+          errorCode,
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
-        var errorCode = isGeneratedSource(state.importedSource)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        var errorCode = state.isDocImport
+            ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
+            : isGeneratedSource(state.importedSource)
+                ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+                : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
         errorReporter.atNode(
           directive.uri,
           errorCode,
@@ -663,7 +685,7 @@ class LibraryAnalyzer {
       importedAugmentationKind = state.importedAugmentation;
       if (!state.importedFile.exists) {
         reportOnDirective(
-          isGeneratedSource(state.importedSource)
+          isGeneratedSource(state.importedFile.source)
               ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
               : CompileTimeErrorCode.URI_DOES_NOT_EXIST,
           [state.importedFile.uriStr],

@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart' as fastaCodes;
+import 'package:front_end/src/codes/cfe_codes.dart' as fastaCodes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:vm/modular/target/flutter.dart' show FlutterTarget;
 import 'package:vm/modular/target/vm.dart' show VmTarget;

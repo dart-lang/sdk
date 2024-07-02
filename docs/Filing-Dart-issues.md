@@ -5,7 +5,7 @@
 
 ---
 
-Please file issues found in Dart using github issue tracking. However, please note that Dart is being developed in several github repos, so please make sure to file the issue in the correct repo. Consult the table below for details.
+Please file issues found in Dart using GitHub issue tracking. However, please note that Dart is being developed in several GitHub repos, so please make sure to file the issue in the correct repo. Consult the table below for details.
 
 Component | Issue tracker
 --------- | -------------

@@ -15,7 +15,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;

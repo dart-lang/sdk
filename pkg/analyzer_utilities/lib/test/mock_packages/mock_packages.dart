@@ -94,8 +94,33 @@ mixin MockPackagesMixin {
 
   ResourceProvider get resourceProvider;
 
+  Folder addAngularMeta() {
+    var packageFolder = _addFiles('angular_meta');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  Folder addFfi() {
+    var packageFolder = _addFiles('ffi');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  Folder addFixnum() {
+    var packageFolder = _addFiles('fixnum');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
   Folder addFlutter() {
     var packageFolder = _addFiles('flutter');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  Folder addJs() {
+    var packageFolder = _addFiles('js');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
+  Folder addKernel() {
+    var packageFolder = _addFiles('kernel');
     return packageFolder.getChildAssumingFolder('lib');
   }
 

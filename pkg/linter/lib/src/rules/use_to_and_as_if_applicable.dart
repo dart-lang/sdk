@@ -68,7 +68,7 @@ class UseToAndAsIfApplicable extends LintRule {
             name: 'use_to_and_as_if_applicable',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

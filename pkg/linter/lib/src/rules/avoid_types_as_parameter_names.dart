@@ -32,14 +32,15 @@ class AvoidTypesAsParameterNames extends LintRule {
       "The parameter name '{0}' matches a visible type name.",
       correctionMessage:
           'Try adding a name for the parameter or changing the parameter name '
-          'to not match an existing type.');
+          'to not match an existing type.',
+      hasPublishedDocs: true);
 
   AvoidTypesAsParameterNames()
       : super(
             name: 'avoid_types_as_parameter_names',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

@@ -33,18 +33,20 @@ import 'package:javascript_utils/javascript_utils.dart' as js_utils;
 ''';
 
 class LibraryPrefixes extends LintRule {
-  static const LintCode code = LintCode('library_prefixes',
-      "The prefix '{0}' isn't a lower_case_with_underscores identifier.",
-      correctionMessage:
-          'Try changing the prefix to follow the lower_case_with_underscores '
-          'style.');
+  static const LintCode code =
+      LintCode('library_prefixes',
+          "The prefix '{0}' isn't a lower_case_with_underscores identifier.",
+          correctionMessage:
+              'Try changing the prefix to follow the lower_case_with_underscores '
+              'style.',
+          hasPublishedDocs: true);
 
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

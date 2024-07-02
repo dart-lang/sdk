@@ -1645,8 +1645,9 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
       Definition* def = instr_it.Current()->AsDefinition();
       if (def != nullptr && def->IsAllocation() && def->env() == nullptr &&
           !moved.HasKey(def)) {
-        Instruction* use = DominantUse(def);
-        if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
+        auto [block_of_use, use] = DominantUse({block, def});
+        if (use != nullptr && !use->IsPhi() &&
+            IsOneTimeUse(block_of_use, block)) {
           instr_it.RemoveCurrentFromGraph();
           def->InsertBefore(use);
           moved.Insert(def);
@@ -1656,7 +1657,11 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
   }
 }
 
-Instruction* DelayAllocations::DominantUse(Definition* def) {
+std::pair<BlockEntryInstr*, Instruction*> DelayAllocations::DominantUse(
+    std::pair<BlockEntryInstr*, Definition*> def_in_block) {
+  const auto block_of_def = def_in_block.first;
+  const auto def = def_in_block.second;
+
   // Find the use that dominates all other uses.
 
   // Collect all uses.
@@ -1672,26 +1677,45 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
 
   // Returns |true| iff |instr| or any instruction dominating it are either a
   // a |def| or a use of a |def|.
-  auto is_dominated_by_another_use = [&](Instruction* instr) {
+  //
+  // Additionally this function computes the block of the |instr| and sets
+  // |*block_of_instr| to that block.
+  auto is_dominated_by_another_use = [&](Instruction* instr,
+                                         BlockEntryInstr** block_of_instr) {
+    BlockEntryInstr* first_block = nullptr;
     while (instr != def) {
       if (uses.HasKey(instr)) {
         // We hit another use, meaning that this use dominates the given |use|.
         return true;
       }
       if (auto block = instr->AsBlockEntry()) {
+        if (first_block == nullptr) {
+          first_block = block;
+        }
         instr = block->dominator()->last_instruction();
       } else {
         instr = instr->previous();
+      }
+    }
+    if (block_of_instr != nullptr) {
+      if (first_block == nullptr) {
+        // We hit |def| while iterating instructions without actually hitting
+        // the start of the block. This means |def| and |use| reside in the
+        // same block.
+        *block_of_instr = block_of_def;
+      } else {
+        *block_of_instr = first_block;
       }
     }
     return false;
   };
 
   // Find the dominant use.
-  Instruction* dominant_use = nullptr;
+  std::pair<BlockEntryInstr*, Instruction*> dominant_use = {nullptr, nullptr};
   auto use_it = uses.GetIterator();
   while (auto use = use_it.Next()) {
     bool dominated_by_another_use = false;
+    BlockEntryInstr* block_of_use = nullptr;
 
     if (auto phi = (*use)->AsPhi()) {
       // For phi uses check that the dominant use dominates all
@@ -1701,8 +1725,10 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
       for (intptr_t i = 0; i < phi->InputCount(); i++) {
         if (phi->InputAt(i)->definition() == def) {
           if (!is_dominated_by_another_use(
-                  phi->block()->PredecessorAt(i)->last_instruction())) {
+                  phi->block()->PredecessorAt(i)->last_instruction(),
+                  /*block_of_instr=*/nullptr)) {
             dominated_by_another_use = false;
+            block_of_use = phi->block();
             break;
           }
         }
@@ -1712,28 +1738,27 @@ Instruction* DelayAllocations::DominantUse(Definition* def) {
       // blocks in the dominator chain until we hit the definition or
       // another use.
       dominated_by_another_use =
-          is_dominated_by_another_use((*use)->previous());
+          is_dominated_by_another_use((*use)->previous(), &block_of_use);
     }
 
     if (!dominated_by_another_use) {
-      if (dominant_use != nullptr) {
+      if (dominant_use.second != nullptr) {
         // More than one use reached the definition, which means no use
         // dominates all other uses.
-        return nullptr;
+        return {nullptr, nullptr};
       }
-      dominant_use = *use;
+      dominant_use = {block_of_use, *use};
     }
   }
 
   return dominant_use;
 }
 
-bool DelayAllocations::IsOneTimeUse(Instruction* use, Definition* def) {
+bool DelayAllocations::IsOneTimeUse(BlockEntryInstr* use_block,
+                                    BlockEntryInstr* def_block) {
   // Check that this use is always executed at most once for each execution of
   // the definition, i.e. that there is no path from the use to itself that
   // doesn't pass through the definition.
-  BlockEntryInstr* use_block = use->GetBlock();
-  BlockEntryInstr* def_block = def->GetBlock();
   if (use_block == def_block) return true;
 
   DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> seen;

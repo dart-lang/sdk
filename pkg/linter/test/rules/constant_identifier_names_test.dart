@@ -151,6 +151,17 @@ f(A a) {
 ''');
   }
 
+  test_enumValue_upperFirstLetter() async {
+    await assertDiagnostics(r'''
+enum Foo {
+  bar,
+  Baz,
+}
+''', [
+      lint(20, 3),
+    ]);
+  }
+
   test_recordFieldDestructured() async {
     await assertDiagnostics(r'''
 f(Object o) {
@@ -181,5 +192,31 @@ const RR = (x: 1);
     await assertNoDiagnostics(r'''
 const r = (x: 1);
 ''');
+  }
+
+  test_staticField_allCaps() async {
+    await assertDiagnostics(r'''
+class C {
+  static const DEBUG = false;
+}
+''', [
+      lint(25, 5),
+    ]);
+  }
+
+  test_topLevel_allCaps() async {
+    await assertDiagnostics(r'''
+const PI = 3.14;
+''', [
+      lint(6, 2),
+    ]);
+  }
+
+  test_topLevel_screamingSnake() async {
+    await assertDiagnostics(r'''
+const CCC_CCC = 1000;
+''', [
+      lint(6, 7),
+    ]);
   }
 }

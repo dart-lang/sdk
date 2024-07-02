@@ -134,14 +134,19 @@ class TestExpressionCompiler {
     // clear previous errors
     setup.errors.clear();
 
-    var libraryMetadata = metadataForLibraryUri(libraryUri);
+    // At this time, no metadata is stored for the Dart SDK. This is one of the
+    // reasons debugging and expression evaluation support is so limited within
+    // the SDK.  When requesting evaluation of library level expressions, we can
+    // ignore the lack of metadata and simply use the URI directly.
+    String importUri;
+    if (libraryUri.isScheme('dart')) {
+      importUri = libraryUri.toString();
+    } else {
+      var libraryMetadata = metadataForLibraryUri(libraryUri);
+      importUri = libraryMetadata.importUri;
+    }
     var jsExpression = await compiler.compileExpressionToJs(
-        libraryMetadata.importUri,
-        scriptUri?.toString(),
-        line,
-        column,
-        scope,
-        expression);
+        importUri, scriptUri?.toString(), line, column, scope, expression);
     if (setup.errors.isNotEmpty) {
       jsExpression = setup.errors.toString().replaceAll(
           RegExp(

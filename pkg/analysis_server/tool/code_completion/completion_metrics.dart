@@ -1410,6 +1410,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     ).computeSuggestions(
       dartRequest,
       performance,
+      maxSuggestions: -1,
       useFilter: true,
     );
 
@@ -1479,6 +1480,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
           'hasDeprecated',
           'isConstant',
           'isNoSuchMethod',
+          'isNotImported',
           'keyword',
           'startsWithDollar',
           'superMatches',

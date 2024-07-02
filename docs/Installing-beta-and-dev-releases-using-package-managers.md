@@ -5,7 +5,7 @@
 
 ---
 
-These instructions supplement https://dart.dev/get-dart with additional details for how to install beta and dev releases with brew (on MacOS), choco (on Windows), and apt-get (on Linux). Note that on all platforms you can also download SDK archives from all channels at https://dart.dev/tools/sdk/archive.
+These instructions supplement https://dart.dev/get-dart with additional details for how to install beta and dev releases with brew (on macOS), choco (on Windows), and apt-get (on Linux). Note that on all platforms you can also download SDK archives from all channels at https://dart.dev/tools/sdk/archive.
 
 # Installing and upgrading on macOS with Homebrew
 

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,9 +10,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart' as file_system;
-import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -28,10 +22,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl;
 import 'package:analyzer/src/lint/analysis.dart';
-import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -44,128 +35,16 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-typedef Printer = void Function(String msg);
+abstract final class Category {
+  /// A category representing possible coding errors.
+  static const String errors = 'errors';
 
-/// Dart source linter, only for package:linter's tools and tests.
-class DartLinter implements AnalysisErrorListener {
-  final errors = <AnalysisError>[];
+  /// A category representing Pub-related rules.
+  static const String pub = 'pub';
 
-  final LinterOptions options;
-  final file_system.ResourceProvider _resourceProvider;
-  final Reporter reporter;
-
-  /// The total number of sources that were analyzed.  Only valid after
-  /// [lintFiles] has been called.
-  late int numSourcesAnalyzed;
-
-  DartLinter(
-    this.options, {
-    file_system.ResourceProvider? resourceProvider,
-    this.reporter = const PrintingReporter(),
-  }) : _resourceProvider =
-            resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
-
-  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    List<AnalysisErrorInfo> errors = [];
-    var lintDriver = LintDriver(options, _resourceProvider);
-    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where((f) => isPubspecFile(f)).forEach((path) {
-      numSourcesAnalyzed++;
-      var errorsForFile = lintPubspecSource(
-        contents: path.readAsStringSync(),
-        sourcePath: _resourceProvider.pathContext.normalize(path.absolute.path),
-      );
-      errors.addAll(errorsForFile);
-    });
-    return errors;
-  }
-
-  @visibleForTesting
-  Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {required String contents, String? sourcePath}) {
-    var results = <AnalysisErrorInfo>[];
-
-    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
-
-    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
-
-    for (var lint in options.enabledRules) {
-      var rule = lint;
-      var visitor = rule.getPubspecVisitor();
-      if (visitor != null) {
-        // Analyzer sets reporters; if this file is not being analyzed,
-        // we need to set one ourselves.  (Needless to say, when pubspec
-        // processing gets pushed down, this hack can go away.)
-        if (sourceUrl != null) {
-          var source = createSource(sourceUrl);
-          rule.reporter = ErrorReporter(this, source);
-        }
-        try {
-          spec.accept(visitor);
-        } on Exception catch (e) {
-          reporter.exception(LinterException(e.toString()));
-        }
-        if (rule._locationInfo.isNotEmpty) {
-          results.addAll(rule._locationInfo);
-          rule._locationInfo.clear();
-        }
-      }
-    }
-
-    return results;
-  }
-
-  @override
-  void onError(AnalysisError error) => errors.add(error);
-}
-
-class Group implements Comparable<Group> {
-  /// Defined rule groups.
-  static const Group errors =
-      Group._('errors', description: 'Possible coding errors.');
-  static const Group pub = Group._('pub',
-      description: 'Pub-related rules.',
-      link: Hyperlink('See the <strong>Pubspec Format</strong>',
-          'https://dart.dev/tools/pub/pubspec'));
-  static const Group style = Group._('style',
-      description:
-          'Matters of style, largely derived from the official Dart Style Guide.',
-      link: Hyperlink('See the <strong>Style Guide</strong>',
-          'https://dart.dev/guides/language/effective-dart/style'));
-
-  /// List of builtin groups in presentation order.
-  static const Iterable<Group> builtin = [errors, style, pub];
-
-  final String name;
-  final bool custom;
-  final String description;
-  final Hyperlink? link;
-
-  factory Group(String name, {String description = '', Hyperlink? link}) {
-    var n = name.toLowerCase();
-    return builtin.firstWhere((g) => g.name == n,
-        orElse: () =>
-            Group._(name, custom: true, description: description, link: link));
-  }
-
-  const Group._(this.name,
-      {this.custom = false, required this.description, this.link});
-
-  @override
-  int compareTo(Group other) => name.compareTo(other.name);
-}
-
-class Hyperlink {
-  final String label;
-  final String href;
-  final bool bold;
-
-  const Hyperlink(this.label, this.href, {this.bold = false});
-
-  String get html => '<a href="$href">${_emph(label)}</a>';
-
-  String _emph(String msg) => bold ? '<strong>$msg</strong>' : msg;
+  /// A category representing matters of style, largely derived from Effective
+  /// Dart.
+  static const String style = 'style';
 }
 
 /// The result of attempting to evaluate an expression.
@@ -176,7 +55,7 @@ class LinterConstantEvaluationResult {
   /// The errors reported during the evaluation.
   final List<AnalysisError> errors;
 
-  LinterConstantEvaluationResult(this.value, this.errors);
+  LinterConstantEvaluationResult._(this.value, this.errors);
 }
 
 /// Provides access to information needed by lint rules that is not available
@@ -184,9 +63,14 @@ class LinterConstantEvaluationResult {
 abstract class LinterContext {
   List<LinterContextUnit> get allUnits;
 
-  LinterContextUnit get currentUnit;
+  LinterContextUnit get definingUnit;
 
   InheritanceManager3 get inheritanceManager;
+
+  /// Whether the [definingUnit] is in a package's top-level `lib` directory.
+  bool get isInLibDir;
+
+  LibraryElement? get libraryElement;
 
   WorkspacePackage? get package;
 
@@ -194,8 +78,12 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Returns whether the [feature] is enabled in the library being linted.
-  bool isEnabled(Feature feature);
+  static bool _isInLibDir(String? path, WorkspacePackage? package) {
+    if (package == null) return false;
+    if (path == null) return false;
+    var libDir = p.join(package.root, 'lib');
+    return p.isWithin(libDir, path);
+  }
 }
 
 class LinterContextImpl implements LinterContext {
@@ -203,7 +91,7 @@ class LinterContextImpl implements LinterContext {
   final List<LinterContextUnit> allUnits;
 
   @override
-  final LinterContextUnit currentUnit;
+  final LinterContextUnit definingUnit;
 
   @override
   final WorkspacePackage? package;
@@ -218,7 +106,7 @@ class LinterContextImpl implements LinterContext {
 
   LinterContextImpl(
     this.allUnits,
-    this.currentUnit,
+    this.definingUnit,
     this.typeProvider,
     this.typeSystem,
     this.inheritanceManager,
@@ -226,10 +114,12 @@ class LinterContextImpl implements LinterContext {
   );
 
   @override
-  bool isEnabled(Feature feature) {
-    var unitElement = currentUnit.unit.declaredElement!;
-    return unitElement.library.featureSet.isEnabled(feature);
-  }
+  bool get isInLibDir => LinterContext._isInLibDir(
+      definingUnit.unit.declaredElement?.source.fullName, package);
+
+  @override
+  LibraryElement get libraryElement =>
+      definingUnit.unit.declaredElement!.library;
 }
 
 class LinterContextParsedImpl implements LinterContext {
@@ -237,18 +127,28 @@ class LinterContextParsedImpl implements LinterContext {
   final List<LinterContextUnit> allUnits;
 
   @override
-  final LinterContextUnit currentUnit;
-
-  @override
-  final WorkspacePackage? package = null;
+  final LinterContextUnit definingUnit;
 
   @override
   final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   LinterContextParsedImpl(
     this.allUnits,
-    this.currentUnit,
+    this.definingUnit,
   );
+
+  @override
+  bool get isInLibDir {
+    return LinterContext._isInLibDir(
+        definingUnit.unit.declaredElement?.source.fullName, package);
+  }
+
+  @override
+  LibraryElement get libraryElement =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  WorkspacePackage? get package => null;
 
   @override
   TypeProvider get typeProvider =>
@@ -256,10 +156,6 @@ class LinterContextParsedImpl implements LinterContext {
 
   @override
   TypeSystem get typeSystem =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  bool isEnabled(Feature feature) =>
       throw UnsupportedError('LinterContext with parsed results');
 }
 
@@ -273,25 +169,11 @@ class LinterContextUnit {
   LinterContextUnit(this.content, this.unit, this.errorReporter);
 }
 
-/// Thrown when an error occurs in linting.
-class LinterException implements Exception {
-  /// A message describing the error.
-  final String? message;
-
-  /// Creates a new LinterException with an optional error [message].
-  const LinterException([this.message]);
-
-  @override
-  String toString() =>
-      message == null ? "LinterException" : "LinterException: $message";
-}
-
 class LinterOptions extends DriverOptions {
   final Iterable<LintRule> enabledRules;
   final String? analysisOptions;
   LintFilter? filter;
 
-  // TODO(pq): consider migrating to named params (but note Linter dep).
   LinterOptions({
     Iterable<LintRule>? enabledRules,
     this.analysisOptions,
@@ -305,7 +187,7 @@ abstract class LintFilter {
 }
 
 /// Describes a lint rule.
-abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
+abstract class LintRule {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before any node processors start
   /// visiting nodes.
@@ -318,8 +200,8 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
   /// Short description suitable for display in console output.
   final String description;
 
-  /// Lint group (for example, 'style').
-  final Group group;
+  /// Lint groups (for example, 'style', 'errors', 'pub').
+  final Set<String> categories;
 
   /// Lint name.
   final String name;
@@ -329,26 +211,16 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
   /// `bin`.
   final String? documentation;
 
-  /// A flag indicating whether this lint has documentation on the Diagnostic
-  /// messages page.
-  final bool hasDocumentation;
-
-  /// Until pubspec analysis is pushed into the analyzer proper, we need to
-  /// do some extra book-keeping to keep track of details that will help us
-  /// constitute AnalysisErrorInfos.
-  final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
-
   /// The state of a lint, and optionally since when the state began.
   final State state;
 
   LintRule({
     required this.name,
-    required this.group,
+    required this.categories,
     required this.description,
     required this.details,
     State? state,
     this.documentation,
-    this.hasDocumentation = false,
   }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information
@@ -375,21 +247,15 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
 
   set reporter(ErrorReporter value) => _reporter = value;
 
-  @override
-  int compareTo(LintRule other) {
-    var g = group.compareTo(other.group);
-    if (g != 0) {
-      return g;
-    }
-    return name.compareTo(other.name);
-  }
-
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
   PubspecVisitor? getPubspecVisitor() => null;
 
-  @override
+  /// Registers node processors in the given [registry].
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {}
 
@@ -440,56 +306,17 @@ abstract class LintRule implements Comparable<LintRule>, NodeLintRule {
       {List<Object> arguments = const [],
       List<DiagnosticMessage> contextMessages = const [],
       ErrorCode? errorCode}) {
-    var source = node.source;
-    // Cache error and location info for creating AnalysisErrorInfos
-    AnalysisError error = AnalysisError.tmp(
-      source: source,
+    // Cache error and location info for creating `AnalysisErrorInfo`s.
+    var error = AnalysisError.tmp(
+      source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
       errorCode: errorCode ?? lintCode,
       arguments: arguments,
       contextMessages: contextMessages,
     );
-    LineInfo lineInfo = LineInfo.fromContent(source.contents.data);
-
-    _locationInfo.add(AnalysisErrorInfoImpl([error], lineInfo));
-
-    // Then do the reporting
     reporter.reportError(error);
   }
-}
-
-/// [LintRule]s that implement this interface want to process only some types
-/// of AST nodes, and will register their processors in the registry.
-abstract class NodeLintRule {
-  /// This method is invoked to let the [LintRule] register node processors
-  /// in the given [registry].
-  ///
-  /// The node processors may use the provided [context] to access information
-  /// that is not available from the AST nodes or their associated elements.
-  void registerNodeProcessors(NodeLintRegistry registry, LinterContext context);
-}
-
-class PrintingReporter implements Reporter {
-  final Printer _print;
-
-  const PrintingReporter([this._print = print]);
-
-  @override
-  void exception(LinterException exception) {
-    _print('EXCEPTION: $exception');
-  }
-
-  @override
-  void warn(String message) {
-    _print('WARN: $message');
-  }
-}
-
-abstract class Reporter {
-  void exception(LinterException exception);
-
-  void warn(String message);
 }
 
 /// An error listener that only records whether any constant related errors have
@@ -509,6 +336,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+        case CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
         case CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
@@ -629,7 +457,7 @@ extension ExpressionExtension on Expression {
   /// constant value, and a list of errors that occurred during the computation.
   LinterConstantEvaluationResult computeConstantValue() {
     var unitElement = thisOrAncestorOfType<CompilationUnit>()?.declaredElement;
-    if (unitElement == null) return LinterConstantEvaluationResult(null, []);
+    if (unitElement == null) return LinterConstantEvaluationResult._(null, []);
     var libraryElement = unitElement.library as LibraryElementImpl;
 
     var errorListener = RecordingErrorListener();
@@ -657,7 +485,7 @@ extension ExpressionExtension on Expression {
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
     var dartObject = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
+    return LinterConstantEvaluationResult._(dartObject, errorListener.errors);
   }
 
   bool _canBeConstInstanceCreation(InstanceCreationExpressionImpl node) {

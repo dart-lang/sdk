@@ -73,7 +73,7 @@ class DeprecatedConsistency extends LintRule {
           name: 'deprecated_consistency',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

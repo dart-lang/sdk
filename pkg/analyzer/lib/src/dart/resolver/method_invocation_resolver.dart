@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -70,6 +71,10 @@ class MethodInvocationResolver with ScopeHelpers {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
+  /// Resolves the method invocation, [node].
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? resolve(
       MethodInvocationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType contextType}) {
@@ -141,9 +146,9 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (receiverType is NeverTypeImpl) {
-      _resolveReceiverNever(node, receiver, receiverType, whyNotPromotedList,
-          contextType: contextType);
-      return null;
+      return _resolveReceiverNever(
+          node, receiver, receiverType, whyNotPromotedList,
+          contextType: contextType, nameNode: nameNode, name: name);
     }
 
     if (receiverType is VoidType) {
@@ -182,6 +187,12 @@ class MethodInvocationResolver with ScopeHelpers {
       whyNotPromotedList: whyNotPromotedList,
       contextType: contextType,
     );
+  }
+
+  bool _hasMatchingObjectMethod(
+      MethodElement target, NodeListImpl<ExpressionImpl> arguments) {
+    return arguments.length == target.parameters.length &&
+        !arguments.any((e) => e is NamedExpression);
   }
 
   bool _isCoreFunction(DartType type) {
@@ -315,7 +326,7 @@ class MethodInvocationResolver with ScopeHelpers {
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
         .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
-    _inferenceHelper.recordStaticType(node, staticStaticType);
+    node.recordStaticType(staticStaticType, resolver: _resolver);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -337,6 +348,10 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves the method invocation, [node], as an extension member.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveExtensionMember(
       MethodInvocationImpl node,
       Identifier receiver,
@@ -373,6 +388,11 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves the method invocation, [node], as called on an extension
+  /// override.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveExtensionOverride(
       MethodInvocationImpl node,
       ExtensionOverride override,
@@ -431,16 +451,24 @@ class MethodInvocationResolver with ScopeHelpers {
     var target = objectElement.getMethod(nameNode.name);
 
     FunctionType? rawType;
-    if (target is MethodElement && !target.isStatic) {
-      var arguments = node.argumentList.arguments;
-      var hasMatchingObjectMethod =
-          arguments.length == target.parameters.length &&
-              !arguments.any((e) => e is NamedExpression);
-      if (hasMatchingObjectMethod) {
-        nameNode.staticElement = target;
-        rawType = target.type;
-        node.staticType = target.returnType;
-      }
+    if (receiverType is InvalidType) {
+      nameNode.staticElement = null;
+      nameNode.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+      node.staticInvokeType = InvalidTypeImpl.instance;
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+    } else if (target != null &&
+        !target.isStatic &&
+        _hasMatchingObjectMethod(target, node.argumentList.arguments)) {
+      nameNode.staticElement = target;
+      rawType = target.type;
+      nameNode.setPseudoExpressionStaticType(target.type);
+      node.staticInvokeType = target.type;
+      node.recordStaticType(target.returnType, resolver: _resolver);
+    } else {
+      nameNode.staticElement = null;
+      nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      node.staticInvokeType = DynamicTypeImpl.instance;
+      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
     }
 
     _setExplicitTypeArgumentTypes();
@@ -451,21 +479,22 @@ class MethodInvocationResolver with ScopeHelpers {
             whyNotPromotedList: whyNotPromotedList,
             contextType: contextType)
         .resolveInvocation(rawType: rawType);
-
-    if (receiverType is InvalidType) {
-      nameNode.staticType = InvalidTypeImpl.instance;
-      node.staticInvokeType = InvalidTypeImpl.instance;
-      node.staticType = InvalidTypeImpl.instance;
-    } else if (rawType == null) {
-      nameNode.staticType = DynamicTypeImpl.instance;
-      node.staticInvokeType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
-    }
   }
 
-  void _resolveReceiverNever(MethodInvocationImpl node, Expression receiver,
-      DartType receiverType, List<WhyNotPromotedGetter> whyNotPromotedList,
-      {required DartType contextType}) {
+  /// Resolves the method invocation, [node], as an instance invocation on an
+  /// expression of type `Never` or `Never?`.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
+  FunctionExpressionInvocation? _resolveReceiverNever(
+    MethodInvocationImpl node,
+    Expression receiver,
+    DartType receiverType,
+    List<WhyNotPromotedGetter> whyNotPromotedList, {
+    required DartType contextType,
+    required SimpleIdentifierImpl nameNode,
+    required String name,
+  }) {
     _setExplicitTypeArgumentTypes();
 
     if (receiverType == NeverTypeImpl.instanceNullable) {
@@ -480,16 +509,19 @@ class MethodInvocationResolver with ScopeHelpers {
           whyNotPromotedList,
           contextType: contextType,
         );
+        return null;
       } else {
-        _setInvalidTypeResolution(node,
-            whyNotPromotedList: whyNotPromotedList, contextType: contextType);
-        _resolver.nullableDereferenceVerifier.report(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          methodName,
-          receiverType,
+        return _resolveReceiverType(
+          node: node,
+          receiver: receiver,
+          receiverType: receiverType,
+          nameNode: nameNode,
+          name: name,
+          receiverErrorNode: receiver,
+          whyNotPromotedList: whyNotPromotedList,
+          contextType: contextType,
         );
       }
-      return;
     }
 
     if (receiverType == NeverTypeImpl.instance) {
@@ -506,13 +538,19 @@ class MethodInvocationResolver with ScopeHelpers {
         WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
 
-      node.methodName.staticType = _dynamicType;
+      node.methodName.setPseudoExpressionStaticType(_dynamicType);
       node.staticInvokeType = _dynamicType;
-      node.staticType = NeverTypeImpl.instance;
-      return;
+      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+      return null;
     }
+    return null;
   }
 
+  /// Resolves the method invocation, [node], as an instance invocation on an
+  /// expression of type `Null`.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveReceiverNull(
       MethodInvocationImpl node,
       SimpleIdentifierImpl nameNode,
@@ -570,6 +608,39 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
+    element = scopeLookupResult.setter;
+    if (element != null) {
+      // If the scope lookup reveals a setter, but no getter, then we may still
+      // find the getter by looking up the inheritence chain (via
+      // TypePropertyResolver, via `_resolveReceiverType`). However, if the
+      // setter that was found is either top-level, or declared in an extension,
+      // or is static, then we do not keep searching for the getter; this
+      // setter represents the property being accessed (erroneously).
+      var noGetterIsPossible =
+          element.enclosingElement is CompilationUnitElement ||
+              element.enclosingElement is ExtensionElement ||
+              (element is ExecutableElement && element.isStatic);
+      if (noGetterIsPossible) {
+        nameNode.staticElement = element;
+
+        _setInvalidTypeResolution(node,
+            setNameTypeToDynamic: false,
+            whyNotPromotedList: whyNotPromotedList,
+            contextType: contextType);
+        var receiverTypeName = switch (receiverType) {
+          InterfaceType() => receiverType.element.name,
+          FunctionType() => 'Function',
+          _ => '<unknown>',
+        };
+        _resolver.errorReporter.atNode(
+          nameNode,
+          CompileTimeErrorCode.UNDEFINED_METHOD,
+          arguments: [name, receiverTypeName],
+        );
+        return null;
+      }
+    }
+
     return _resolveReceiverType(
       node: node,
       receiver: null,
@@ -582,6 +653,11 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
+  /// Resolves the method invocation, [node], as a top-level function
+  /// invocation, referenced with a prefix.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveReceiverPrefix(
       MethodInvocationImpl node,
       PrefixElement prefix,
@@ -641,6 +717,11 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves the method invocation, [node], as an instance invocation a
+  /// `super` expression.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveReceiverSuper(
       MethodInvocationImpl node,
       SuperExpression receiver,
@@ -702,6 +783,10 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves the type of the receiver of the method invocation, [node].
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveReceiverType({
     required MethodInvocationImpl node,
     required Expression? receiver,
@@ -728,7 +813,7 @@ class MethodInvocationResolver with ScopeHelpers {
       // TODO(scheglov): Replace this with using FunctionType directly.
       // Here was erase resolution that _setResolution() sets.
       nameNode.staticElement = null;
-      nameNode.staticType = _dynamicType;
+      nameNode.setPseudoExpressionStaticType(_dynamicType);
       return null;
     }
 
@@ -737,9 +822,9 @@ class MethodInvocationResolver with ScopeHelpers {
       _setResolution(node, DynamicTypeImpl.instance, whyNotPromotedList,
           contextType: contextType);
       nameNode.staticElement = null;
-      nameNode.staticType = DynamicTypeImpl.instance;
+      nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       node.staticInvokeType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+      node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       return null;
     }
 
@@ -792,6 +877,11 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves the method invocation, [node], as an method invocation with a
+  /// type literal target.
+  ///
+  /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
+  /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocation? _resolveReceiverTypeLiteral(
       MethodInvocationImpl node,
       InterfaceElement receiver,
@@ -844,12 +934,14 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Rewrites [node] as a [FunctionExpressionInvocation].
+  ///
   /// We have identified that [node] is not a real [MethodInvocation],
   /// because it does not invoke a method, but instead invokes the result
   /// of a getter execution, or implicitly invokes the `call` method of
   /// an [InterfaceType]. So, it should be represented as instead as a
   /// [FunctionExpressionInvocation].
-  FunctionExpressionInvocation? _rewriteAsFunctionExpressionInvocation(
+  FunctionExpressionInvocation _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
       {bool isSuperAccess = false}) {
     var targetType = _typeSystem.resolveToBound(getterReturnType);
@@ -904,9 +996,12 @@ class MethodInvocationResolver with ScopeHelpers {
                 getterReturnType) ??
             targetType;
       }
-      functionExpression.staticType = targetType;
+      functionExpression.setPseudoExpressionStaticType(targetType);
     }
-    _inferenceHelper.recordStaticType(node.methodName, targetType);
+    inferenceLogWriter
+        ?.enterFunctionExpressionInvocationTarget(node.methodName);
+    node.methodName.recordStaticType(targetType, resolver: _resolver);
+    inferenceLogWriter?.exitExpression(node.methodName);
 
     var invocation = FunctionExpressionInvocationImpl(
       function: functionExpression,
@@ -923,10 +1018,10 @@ class MethodInvocationResolver with ScopeHelpers {
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       required DartType contextType}) {
     if (setNameTypeToDynamic) {
-      node.methodName.staticType = _dynamicType;
+      node.methodName.setPseudoExpressionStaticType(_dynamicType);
     }
     node.staticInvokeType = _dynamicType;
-    node.staticType = _dynamicType;
+    node.setPseudoExpressionStaticType(_dynamicType);
     _setExplicitTypeArgumentTypes();
     _resolveArguments_finishInference(node, whyNotPromotedList,
         contextType: contextType);
@@ -953,21 +1048,26 @@ class MethodInvocationResolver with ScopeHelpers {
       required List<WhyNotPromotedGetter> whyNotPromotedList,
       required DartType contextType}) {
     if (setNameTypeToDynamic) {
-      node.methodName.staticType = InvalidTypeImpl.instance;
+      node.methodName.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
     }
     _setExplicitTypeArgumentTypes();
     _resolveArguments_finishInference(node, whyNotPromotedList,
         contextType: contextType);
     node.staticInvokeType = InvalidTypeImpl.instance;
-    node.staticType = InvalidTypeImpl.instance;
+    node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
   }
 
   void _setResolution(MethodInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType contextType}) {
+    inferenceLogWriter?.recordLookupResult(
+        expression: node,
+        type: type,
+        target: node.target,
+        methodName: node.methodName.name);
     // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
-    node.methodName.staticType = type;
+    node.methodName.setPseudoExpressionStaticType(type);
 
     if (type == _dynamicType || _isCoreFunction(type)) {
       _setDynamicTypeResolution(node,

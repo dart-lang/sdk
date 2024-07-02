@@ -958,6 +958,7 @@ class UseBuildContextSynchronously extends LintRule {
         "Try rewriting the code to not use the 'BuildContext', or guard the "
         "use with a 'mounted' check.",
     uniqueName: 'LintCode.use_build_context_synchronously_async_use',
+    hasPublishedDocs: true,
   );
 
   static const LintCode wrongMountedCode = LintCode(
@@ -968,6 +969,7 @@ class UseBuildContextSynchronously extends LintRule {
         "Guard a 'State.context' use with a 'mounted' check on the State, and "
         "other BuildContext use with a 'mounted' check on the BuildContext.",
     uniqueName: 'LintCode.use_build_context_synchronously_wrong_mounted',
+    hasPublishedDocs: true,
   );
 
   UseBuildContextSynchronously()
@@ -975,7 +977,7 @@ class UseBuildContextSynchronously extends LintRule {
           name: 'use_build_context_synchronously',
           description: _desc,
           details: _details,
-          group: Group.errors,
+          categories: {Category.errors},
           state: State.stable(since: Version(3, 2, 0)),
         );
 
@@ -985,7 +987,7 @@ class UseBuildContextSynchronously extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var unit = context.currentUnit.unit;
+    var unit = context.definingUnit.unit;
     if (!unit.inTestDir) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
@@ -1061,9 +1063,12 @@ class _Visitor extends SimpleAstVisitor {
     ProtectedFunction('dart.async', 'Stream', 'where', positional: [0]),
 
     // StreamSubscription instance methods.
-    ProtectedFunction('dart.async', 'Stream', 'onData', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'onDone', positional: [0]),
-    ProtectedFunction('dart.async', 'Stream', 'onError', positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onData',
+        positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onDone',
+        positional: [0]),
+    ProtectedFunction('dart.async', 'StreamSubscription', 'onError',
+        positional: [0]),
   ];
 
   static const protectedStaticMethods = [

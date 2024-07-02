@@ -67,6 +67,7 @@ library kernel.ast;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
+import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
@@ -267,7 +268,7 @@ abstract class Annotatable extends TreeNode {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-enum NonNullableByDefaultCompiledMode { Strong, Weak, Agnostic, Invalid }
+enum NonNullableByDefaultCompiledMode { Strong, Weak, Invalid }
 
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
@@ -309,7 +310,6 @@ class Library extends NamedNode
     bool bit2 = (flags & NonNullableByDefaultModeBit2) != 0;
     if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
     if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
-    if (bit1 && bit2) return NonNullableByDefaultCompiledMode.Agnostic;
     if (!bit1 && bit2) return NonNullableByDefaultCompiledMode.Invalid;
     throw new StateError("Unused bit-pattern for compilation mode");
   }
@@ -324,10 +324,6 @@ class Library extends NamedNode
       case NonNullableByDefaultCompiledMode.Weak:
         flags = (flags | NonNullableByDefaultModeBit1) &
             ~NonNullableByDefaultModeBit2;
-        break;
-      case NonNullableByDefaultCompiledMode.Agnostic:
-        flags = (flags | NonNullableByDefaultModeBit1) |
-            NonNullableByDefaultModeBit2;
         break;
       case NonNullableByDefaultCompiledMode.Invalid:
         flags = (flags & ~NonNullableByDefaultModeBit1) |
@@ -649,7 +645,8 @@ class Library extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Library");
   }
 
   @override
@@ -939,7 +936,8 @@ class Typedef extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Typedef '$name'");
   }
 
   @override
@@ -1556,7 +1554,8 @@ class Class extends NamedNode implements TypeDeclaration {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Class '$name'");
   }
 }
 
@@ -1691,7 +1690,8 @@ class Extension extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Extension '$name'");
   }
 
   @override
@@ -1951,7 +1951,8 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Extension type '$name'");
   }
 
   @override
@@ -2559,7 +2560,8 @@ class Field extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Field '$name'");
   }
 
   @override
@@ -2709,7 +2711,8 @@ class Constructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Constructor '$name'");
   }
 }
 
@@ -3296,7 +3299,8 @@ class Procedure extends Member implements GenericFunction {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "Procedure '$name'");
   }
 }
 
@@ -7441,7 +7445,8 @@ class FileUriExpression extends Expression implements FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "File uri expression");
   }
 
   @override
@@ -8674,7 +8679,8 @@ class FileUriConstantExpression extends ConstantExpression
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset,
+        viaForErrorMessage: "File uri constant expression");
   }
 }
 
@@ -10507,7 +10513,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isLowered = false,
       bool isSynthesized = false,
       bool isHoisted = false,
-      bool hasDeclaredInitializer = false}) {
+      bool hasDeclaredInitializer = false,
+      bool isWildcard = false}) {
     initializer?.parent = this;
     if (flags != -1) {
       this.flags = flags;
@@ -10522,6 +10529,7 @@ class VariableDeclaration extends Statement implements Annotatable {
       this.hasDeclaredInitializer = hasDeclaredInitializer;
       this.isSynthesized = isSynthesized;
       this.isHoisted = isHoisted;
+      this.isWildcard = isWildcard;
     }
     assert(_name != null || this.isSynthesized,
         "Only synthesized variables can have no name.");
@@ -10570,6 +10578,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   static const int FlagLowered = 1 << 8;
   static const int FlagSynthesized = 1 << 9;
   static const int FlagHoisted = 1 << 10;
+  static const int FlagWildcard = 1 << 11;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -10634,6 +10643,11 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// For instance, for duplicate variable names, an invalid expression is set
   /// as the initializer of the second variable.
   bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
+
+  /// Whether this variable is a wildcard variable.
+  ///
+  /// Wildcard variables have the name `_`.
+  bool get isWildcard => flags & FlagWildcard != 0;
 
   /// Whether the variable is assignable.
   ///
@@ -10701,6 +10715,12 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value
         ? (flags | FlagHasDeclaredInitializer)
         : (flags & ~FlagHasDeclaredInitializer);
+  }
+
+  void set isWildcard(bool value) {
+    // TODO(kallentu): Change the name to be unique with other wildcard
+    // variables.
+    flags = value ? (flags | FlagWildcard) : (flags & ~FlagWildcard);
   }
 
   void clearAnnotations() {
@@ -11030,6 +11050,18 @@ sealed class DartType extends Node implements SharedType {
   /// is [Nullability.nonNullable].
   Nullability get nullability;
 
+  @override
+  NullabilitySuffix get nullabilitySuffix {
+    if (isTypeWithoutNullabilityMarker(this)) {
+      return NullabilitySuffix.none;
+    } else if (isNullableTypeConstructorApplication(this)) {
+      return NullabilitySuffix.question;
+    } else {
+      assert(isLegacyTypeConstructorApplication(this));
+      return NullabilitySuffix.star;
+    }
+  }
+
   /// If this is a typedef type, repeatedly unfolds its type definition until
   /// the root term is not a typedef type, otherwise returns the type itself.
   ///
@@ -11182,14 +11214,14 @@ class InvalidType extends DartType implements SharedInvalidType {
   Nullability get declaredNullability {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
-    return Nullability.legacy;
+    return Nullability.nullable;
   }
 
   @override
   Nullability get nullability {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
-    return Nullability.legacy;
+    return Nullability.nullable;
   }
 
   @override
@@ -12871,7 +12903,7 @@ class RecordType extends DartType implements SharedRecordType<DartType> {
             "in a RecordType: ${named}");
 
   @override
-  Iterable<SharedNamedType<DartType>> get namedTypes => named;
+  List<SharedNamedType<DartType>> get namedTypes => named;
 
   @override
   Nullability get nullability => declaredNullability;
@@ -12888,7 +12920,7 @@ class RecordType extends DartType implements SharedRecordType<DartType> {
       };
 
   @override
-  Iterable<DartType> get positionalTypes => positional;
+  List<DartType> get positionalTypes => positional;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
@@ -14621,8 +14653,9 @@ class Component extends TreeNode {
   Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location? getLocation(Uri file, int offset) {
-    return uriToSource[file]?.getLocation(file, offset);
+  Location? getLocation(Uri file, int offset, {String? viaForErrorMessage}) {
+    return uriToSource[file]
+        ?.getLocation(file, offset, viaForErrorMessage: viaForErrorMessage);
   }
 
   /// Translates line and column numbers to an offset in the given file.
@@ -14822,12 +14855,23 @@ class Source {
   String get text => cachedText ??= utf8.decode(source, allowMalformed: true);
 
   /// Translates an offset to 1-based line and column numbers in the given file.
-  Location getLocation(Uri file, int offset) {
+  Location getLocation(Uri file, int offset, {String? viaForErrorMessage}) {
     List<int>? lineStarts = this.lineStarts;
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
     }
-    RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
+    if (viaForErrorMessage != null) {
+      RangeError.checkValueInInterval(
+          offset,
+          0,
+          lineStarts.last,
+          'offset',
+          'Asked for out-of-bounds offset for uri "$file" '
+              'via $viaForErrorMessage');
+    } else {
+      RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset',
+          'Asked for out-of-bounds offset for uri "$file"');
+    }
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
       int mid = high - ((high - low) >> 1); // Get middle, rounding up.
@@ -15013,10 +15057,11 @@ bool mapEquals(Map a, Map b) {
 /// static analysis and runtime behavior of the library are unaffected.
 const Null informative = null;
 
-Location? _getLocationInComponent(
-    Component? component, Uri fileUri, int offset) {
+Location? _getLocationInComponent(Component? component, Uri fileUri, int offset,
+    {required String viaForErrorMessage}) {
   if (component != null) {
-    return component.getLocation(fileUri, offset);
+    return component.getLocation(fileUri, offset,
+        viaForErrorMessage: viaForErrorMessage);
   } else {
     return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
   }

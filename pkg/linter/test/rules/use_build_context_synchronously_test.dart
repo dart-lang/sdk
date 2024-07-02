@@ -2678,6 +2678,22 @@ Future<void> f() async {}
       lint(113, 7),
     ]);
   }
+
+  test_streamSubscription_onData_referenceToContextInCallback() async {
+    // `StreamSubscription.onData` call, with use of BuildContext inside, is
+    // REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+import 'dart:async';
+void foo(BuildContext context, StreamSubscription<void> s) async {
+  s.onData((_) {
+    Navigator.of(context);
+  });
+}
+''', [
+      lint(161, 7),
+    ]);
+  }
 }
 
 extension on AstNode {

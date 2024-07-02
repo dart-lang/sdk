@@ -114,7 +114,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
           }
           return action;
         })
-        .whereNotNull()
+        .nonNulls
         .toList();
   }
 

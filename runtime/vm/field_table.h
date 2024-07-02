@@ -22,13 +22,14 @@ class FieldInvalidator;
 
 class FieldTable {
  public:
-  explicit FieldTable(Isolate* isolate)
+  explicit FieldTable(Isolate* isolate, IsolateGroup* isolate_group = nullptr)
       : top_(0),
         capacity_(0),
         free_head_(-1),
         table_(nullptr),
         old_tables_(new MallocGrowableArray<ObjectPtr*>()),
         isolate_(isolate),
+        isolate_group_(isolate_group),
         is_ready_to_use_(isolate == nullptr) {}
 
   ~FieldTable();
@@ -87,7 +88,8 @@ class FieldTable {
     }
   }
 
-  FieldTable* Clone(Isolate* for_isolate);
+  FieldTable* Clone(Isolate* for_isolate,
+                    IsolateGroup* for_isolate_group = nullptr);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -113,6 +115,7 @@ class FieldTable {
   // Growing the field table will keep the cached field table on the isolate's
   // mutator thread up-to-date.
   Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   // Whether this field table is ready to use by e.g. registering new static
   // fields.

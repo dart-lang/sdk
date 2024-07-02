@@ -48,8 +48,8 @@ import "dart:core" as core;
 import "dart:_internal";
 import "dart:_internal";
 
-@#C1
-@#C1
+@/* from org-dartlang-testcase:///patch_lib1.dart */ #C1
+@/* from org-dartlang-testcase:///patch_lib2.dart */ #C1
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     : super core::Object::•()

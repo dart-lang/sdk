@@ -1,3 +1,29 @@
+## 0.3.2
+
+- Fix bug where augmenting classes with type parameters didn't work.
+
+## 0.3.1
+
+- Make it an error for macros to complete with pending async work scheduled.
+
+## 0.3.0
+
+- Remove type parameter on internal `StaticType` implementation.
+
+## 0.2.0
+
+- Add identifiers to `NamedStaticType`.
+- Add `StaticType.asInstanceOf`.
+
+## 0.1.7
+
+- Fix for generating code after extendsType
+
+## 0.1.6
+
+- Add extendsType API for adding an extends clause.
+- Refactor builder implementations, fixes some bugs around nested builders.
+
 ## 0.1.5
 
 - Handle ParallelWaitError with DiagnosticException errors nicely.

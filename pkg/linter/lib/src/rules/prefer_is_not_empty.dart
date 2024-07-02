@@ -37,14 +37,15 @@ if (todo.isNotEmpty) {
 class PreferIsNotEmpty extends LintRule {
   static const LintCode code = LintCode('prefer_is_not_empty',
       "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
-      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.");
+      correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
+      hasPublishedDocs: true);
 
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

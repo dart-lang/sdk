@@ -13,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveMethodDeclarationBulkTest);
     defineReflectiveTests(RemoveMethodDeclarationTest);
+    defineReflectiveTests(UnnecessaryOverridesTest);
   });
 }
 
@@ -48,7 +49,37 @@ class B extends A {
 }
 
 @reflectiveTest
-class RemoveMethodDeclarationTest extends FixProcessorLintTest {
+class RemoveMethodDeclarationTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_METHOD_DECLARATION;
+
+  Future<void> test_extensionDeclaresMemberOfObject() async {
+    await resolveTestCode('''
+extension E on String {
+  bool operator==(Object _) => false;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+}
+''');
+  }
+
+  Future<void> test_extensionTypeDeclaresMemberOfObject() async {
+    await resolveTestCode('''
+extension type E(int i) {
+  int get hashCode => 0;
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryOverridesTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_METHOD_DECLARATION;
 

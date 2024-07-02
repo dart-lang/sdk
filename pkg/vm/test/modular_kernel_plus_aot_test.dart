@@ -55,16 +55,14 @@ main() async {
     verifyComponent(
         vmTarget, VerificationStage.afterModularTransformations, component);
 
-    const useGlobalTypeFlowAnalysis = true;
-    const enableAsserts = false;
-    const useProtobufTreeShakerV2 = false;
     await runGlobalTransformations(
         vmTarget,
         component,
-        useGlobalTypeFlowAnalysis,
-        enableAsserts,
-        useProtobufTreeShakerV2,
-        ErrorDetector());
+        ErrorDetector(),
+        KernelCompilationArguments(
+            useGlobalTypeFlowAnalysis: true,
+            enableAsserts: false,
+            useProtobufTreeShakerV2: false));
 
     // Verify after running global transformations.
     verifyComponent(

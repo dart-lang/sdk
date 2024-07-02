@@ -108,7 +108,79 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
       await driver.tearDown();
     });
 
-    test('can compile expressions in sdk', () {
+    test('can compile library level expressions in sdk 0-based', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      // Library level expressions can use line and column 0.
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'postEvent',
+        'line': 0,
+        'column': 0,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': 'dart:developer',
+        'moduleName': 'dart_sdk',
+      });
+
+      expect(
+          driver.responseController.stream,
+          emitsInOrder([
+            equals({
+              'succeeded': true,
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('developer.postEvent'),
+            })
+          ]));
+    });
+
+    test('can compile library level expressions in sdk 1-based', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      // Library level expressions can use line and column 1.
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'postEvent',
+        'line': 1,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': 'dart:developer',
+        'moduleName': 'dart_sdk',
+      });
+
+      expect(
+          driver.responseController.stream,
+          emitsInOrder([
+            equals({
+              'succeeded': true,
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('developer.postEvent'),
+            })
+          ]));
+    });
+
+    test('cannot compile scoped expressions in sdk', () {
+      // Support for general expression evaluation in the SDK is not supported.
+      // In great part, this is because we don't have the right plumbing of
+      // metadata to support looking up scope information for general purpose
+      // expressions in any scope.
       driver.requestController.add({
         'command': 'UpdateDeps',
         'inputs': driver.inputs,
@@ -131,15 +203,20 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
             equals({
               'succeeded': true,
             }),
+            // When support is added, we should expect to see:
+            //   'succeeded': true,
+            //   'errors': isEmpty,
+            //   'warnings': isEmpty,
+            //   'infos': isEmpty,
+            //   'compiledProcedure': contains('return other;'),
             equals({
-              'succeeded': true,
-              'errors': isEmpty,
-              'warnings': isEmpty,
-              'infos': isEmpty,
-              'compiledProcedure': contains('return other;'),
+              'succeeded': false,
+              'exception': contains(
+                  'Expression compilation inside SDK is not supported yet'),
+              'stackTrace': isNotNull,
             })
           ]));
-    }, skip: 'Evaluating expressions in SDK is not supported yet');
+    });
 
     test('can compile expressions in a library', () {
       driver.requestController.add({

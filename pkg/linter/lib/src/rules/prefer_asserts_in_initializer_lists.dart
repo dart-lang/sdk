@@ -42,7 +42,7 @@ class PreferAssertsInInitializerLists extends LintRule {
             name: 'prefer_asserts_in_initializer_lists',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

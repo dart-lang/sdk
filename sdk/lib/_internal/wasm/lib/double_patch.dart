@@ -29,12 +29,11 @@ class double {
     // - a Dart double literal
     // We do allow leading or trailing whitespace.
     double result = JS<double>(r"""s => {
-      const jsSource = stringFromDartString(s);
-      if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(jsSource)) {
+      if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(s)) {
         return NaN;
       }
-      return parseFloat(jsSource);
-    }""", source);
+      return parseFloat(s);
+    }""", jsStringFromDartString(source).toExternRef);
     if (result.isNaN) {
       String trimmed = source.trim();
       if (!(trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN')) {

@@ -23,6 +23,7 @@ import '../js_model/elements.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../universe/record_shape.dart' show RecordShape;
+import '../universe/selector.dart';
 
 import '../options.dart';
 import 'deferrable.dart';

@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
-    show isLegalIdentifier;
-
-import 'package:front_end/src/api_prototype/lowering_predicates.dart'
-    show isExtensionThisName;
-
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -17,8 +11,10 @@ import 'package:kernel/ast.dart'
         Library,
         Nullability,
         TypeParameter;
-
 import 'package:kernel/library_index.dart' show LibraryIndex;
+
+import 'incremental_kernel_generator.dart' show isLegalIdentifier;
+import 'lowering_predicates.dart' show isExtensionThisName;
 
 Map<String, DartType>? createDefinitionsWithTypes(
     Iterable<Library>? knownLibraries,

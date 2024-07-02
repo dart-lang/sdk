@@ -71,14 +71,14 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 @Deprecated('Use the `covariant` modifier instead')
 const _Checked checked = _Checked();
 
-/// Used to annotate a method, getter or top-level getter or function to
-/// indicate that the value obtained by invoking it should not be stored in a
+/// Used to annotate a method, getter, top-level function, or top-level getter
+/// to indicate that the value obtained by invoking it should not be stored in a
 /// field or top-level variable. The annotation can also be applied to a class
 /// to implicitly annotate all of the valid members of the class, or applied to
 /// a library to annotate all of the valid members of the library, including
-/// classes. If a value returned by an element marked as `doNotStore` is returned
-/// from a function or getter, that function or getter should be similarly
-/// annotated.
+/// classes. If a value returned by an element marked as `doNotStore` is
+/// returned from a function or getter, that function or getter should be
+/// similarly annotated.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
@@ -90,9 +90,9 @@ const _Checked checked = _Checked();
 ///   or top-level variable.
 const _DoNotStore doNotStore = _DoNotStore();
 
-/// Used to annotate a method, getter or top-level getter or function that is
-/// not intended to be accessed in checked-in code, but might be ephemerally
-/// used during development or local testing.
+/// Used to annotate a method, getter, top-level function, or top-level getter
+/// that is not intended to be accessed in checked-in code, but might be
+/// ephemerally used during development or local testing.
 ///
 /// The intention of this annotation is to signify an API is available for
 /// temporary or ephemeral use (such as debugging or local testing), but should
@@ -526,7 +526,11 @@ const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 /// Used to annotate a class.
 ///
 /// See [immutable] for more details.
-// TODO(srawlins): Enforce with `TargetKind.classtype`.
+@Target({
+  TargetKind.classType,
+  TargetKind.extensionType,
+  TargetKind.mixinType,
+})
 class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;
@@ -641,12 +645,12 @@ class _Checked {
 
 @Target({
   TargetKind.classType,
-  // TODO(srawlins): Add `TargetKind.constructor` when this annotation has
-  // functional tests. See https://github.com/dart-lang/sdk/issues/48476.
+  TargetKind.constructor,
   TargetKind.function,
   TargetKind.getter,
   TargetKind.library,
   TargetKind.method,
+  TargetKind.mixinType,
 })
 class _DoNotStore {
   const _DoNotStore();
@@ -669,7 +673,9 @@ class _Experimental {
   const _Experimental();
 }
 
-// TODO(srawlins): Enforce with `TargetKind.method`.
+@Target({
+  TargetKind.method,
+})
 class _Factory {
   const _Factory();
 }
@@ -704,20 +710,14 @@ class _MustBeConst {
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustBeOverridden {
   const _MustBeOverridden();
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustCallSuper {
   const _MustCallSuper();
@@ -766,6 +766,9 @@ class _Reopen {
   const _Reopen();
 }
 
+@Target({
+  TargetKind.classType,
+})
 class _Sealed {
   const _Sealed();
 }

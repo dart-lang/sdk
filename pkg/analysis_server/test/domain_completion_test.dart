@@ -2106,11 +2106,15 @@ suggestions
     kind: identifier
   |repository: |
     kind: identifier
+  |resolution: |
+    kind: identifier
   screenshots:
     kind: identifier
   |topics: |
     kind: identifier
   |version: |
+    kind: identifier
+  workspace:
     kind: identifier
 ''');
   }

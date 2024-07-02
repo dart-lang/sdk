@@ -589,9 +589,9 @@ class ClassTable : public MallocAllocated {
 
 #ifndef PRODUCT
   enum {
-      kTracingDisabled = 0,
-      kTraceAllocationBit = (1 << 0),
-      kCollectInstancesBit = (1 << 1),
+    kTracingDisabled = 0,
+    kTraceAllocationBit = (1 << 0),
+    kCollectInstancesBit = (1 << 1),
   };
 #endif  // !PRODUCT
 

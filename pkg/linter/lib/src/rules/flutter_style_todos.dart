@@ -47,7 +47,7 @@ class FlutterStyleTodos extends LintRule {
             name: 'flutter_style_todos',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

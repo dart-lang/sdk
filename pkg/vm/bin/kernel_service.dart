@@ -519,7 +519,7 @@ Future _processExpressionCompilationRequest(request) async {
   final int blobLoadCount = request[17];
   final bool enableAsserts = request[18];
   final List<String>? experimentalFlags =
-      request[17] != null ? request[19].cast<String>() : null;
+      request[19] != null ? request[19].cast<String>() : null;
   final bool enableMirrors = request[20];
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];

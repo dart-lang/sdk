@@ -7,6 +7,7 @@ library dart._js_string_convert;
 
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
+import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:js_interop';
 

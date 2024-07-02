@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<Y extends core::Object? = dynamic> = self::A<Y%>;
+class P<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •(self::P::T% t) → self::P<self::P::T%>
+    : super core::Object::•()
+    ;
+}
+class A<X extends core::Object? = dynamic> extends self::P<self::A::X%> /*hasConstConstructor*/  {
+  const constructor foo(self::A::X% x) → self::A<self::A::X%>
+    : super self::P::•(x)
+    ;
+  constructor •(self::A::X% x) → self::A<self::A::X%>
+    ;
+}

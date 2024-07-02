@@ -75,7 +75,7 @@ abstract mixin class B extends core::Object {
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
-mixin class C extends core::Object implements mai::M /*isEliminatedMixin,hasConstConstructor*/  {
+mixin class C = core::Object with mai::M /*hasConstConstructor*/  {
   const synthetic constructor •() → mai::C
     : super core::Object::•()
     ;

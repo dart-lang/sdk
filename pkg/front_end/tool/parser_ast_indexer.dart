@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/util/parser_ast.dart';
-import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
+import 'package:front_end/src/util/parser_ast.dart';
+import 'package:front_end/src/util/parser_ast_helper.dart';
 
 /// Visitor indexing methods/fields, both toplevel and in classes etc.
 /// It does not recurse in to children of these, and doing so will potentially
@@ -198,7 +198,7 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   void containerMethod(
       BeginAndEndTokenParserAstNode node, String nameIdentifier) {
     positionStartEndIndex.add(node.beginToken.charOffset);
-    positionStartEndIndex.add(node.beginToken.charEnd);
+    positionStartEndIndex.add(node.endToken.charEnd);
     // TODO(jensj): Setters.
     String name = "$currentContainerName.$nameIdentifier";
     nameIndex[name] = positionNodeIndex.length;

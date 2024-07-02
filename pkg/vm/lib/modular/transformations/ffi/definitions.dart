@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiAbiSpecificIntegerInvalid,
         messageFfiAbiSpecificIntegerMappingInvalid,
@@ -455,9 +455,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
       final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
       final type = _compoundMemberType(f);
-      if (type is NullType ||
-          type.declaredNullability == Nullability.nullable ||
-          type.declaredNullability == Nullability.undetermined) {
+      if (type is! InvalidType &&
+          (type is NullType ||
+              type.declaredNullability == Nullability.nullable ||
+              type.declaredNullability == Nullability.undetermined)) {
         diagnosticReporter.report(
           templateFfiFieldNull.withArguments(f.name.text),
           f.fileOffset,

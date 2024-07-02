@@ -6,9 +6,8 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart';
-import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart';
+import 'package:front_end/src/kernel/hierarchy/hierarchy_builder.dart';
+import 'package:front_end/src/kernel/hierarchy/hierarchy_node.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -28,15 +27,9 @@ Future<void> main(List<String> args) async {
       onFailure: onFailure,
       runTest: runTestFor(const InheritanceDataComputer(), [
         new CfeTestConfig(cfeMarker, 'cfe with nnbd',
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.nonNullable: true
-            },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true),
         new CfeTestConfig(cfeFromBuilderMarker, 'cfe from builder',
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.nonNullable: true
-            },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true)
       ]));
@@ -96,12 +89,6 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       _compilerResult.kernelTargetForTesting!.loader.hierarchyBuilder;
 
   @override
-  String computeLibraryValue(Id id, Library node) {
-    // TODO(johnniwinther): Remove this.
-    return 'nnbd=true';
-  }
-
-  @override
   void computeForClass(Class node) {
     super.computeForClass(node);
     if (node.isAnonymousMixin) return;
@@ -126,8 +113,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       }
       InterfaceType supertype = _hierarchy.getInterfaceTypeAsInstanceOfClass(
           _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
-          member.enclosingClass!,
-          isNonNullableByDefault: true)!;
+          member.enclosingClass!)!;
       Substitution substitution = Substitution.fromInterfaceType(supertype);
       DartType? type;
       if (member is Procedure) {

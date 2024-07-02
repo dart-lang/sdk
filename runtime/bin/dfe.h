@@ -178,13 +178,13 @@ class KernelBlob {
  public:
   // Takes ownership over [uri] and [buffer].
   KernelBlob(char* uri, uint8_t* buffer, intptr_t size)
-      : uri_(uri, std::free), buffer_(buffer, std::free), size_(size) {}
+      : uri_(uri), buffer_(buffer, std::free), size_(size) {}
 
   std::shared_ptr<uint8_t> buffer() { return buffer_; }
   intptr_t size() const { return size_; }
 
  private:
-  Utils::CStringUniquePtr uri_;
+  CStringUniquePtr uri_;
   std::shared_ptr<uint8_t> buffer_;
   const intptr_t size_;
 

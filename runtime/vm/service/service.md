@@ -1891,9 +1891,6 @@ _Instance_.
 If the field is uninitialized, the _value_ will be the
 _NotInitialized_ [Sentinel](#sentinel).
 
-If the field is being initialized, the _value_ will be the
-_BeingInitialized_ [Sentinel](#sentinel).
-
 ### BoundVariable
 
 ```
@@ -1917,9 +1914,6 @@ in a _Frame_.
 
 If the variable is uninitialized, the _value_ will be the
 _NotInitialized_ [Sentinel](#sentinel).
-
-If the variable is being initialized, the _value_ will be the
-_BeingInitialized_ [Sentinel](#sentinel).
 
 If the variable has been optimized out by the compiler, the _value_
 will be the _OptimizedOut_ [Sentinel](#sentinel).
@@ -4188,7 +4182,7 @@ enum SentinelKind {
   // Indicates that a variable or field has not been initialized.
   NotInitialized,
 
-  // Indicates that a variable or field is in the process of being initialized.
+  // Deprecated, no longer used.
   BeingInitialized,
 
   // Indicates that a variable has been eliminated by the optimizing compiler.

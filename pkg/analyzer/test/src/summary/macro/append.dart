@@ -14,7 +14,9 @@ Future<List<Object>> resolveIdentifiers(
 
   void addStringPart(int end) {
     var str = withIdentifiers.substring(lastMatchEnd, end);
-    result.add(str);
+    if (str.isNotEmpty) {
+      result.add(str);
+    }
   }
 
   var pattern = RegExp(r'\{\{(.+?)@(\w+?)\}\}');
@@ -180,10 +182,11 @@ Future<List<Object>> resolveIdentifiers(
   const DeclareType.named(this.name, this.code);
 
   @override
-  buildTypesForClass(clazz, builder) {
+  buildTypesForClass(clazz, builder) async {
+    var parts = await resolveIdentifiers(builder, code);
     builder.declareType(
       name,
-      DeclarationCode.fromString(code),
+      DeclarationCode.fromParts(parts),
     );
   }
 }
@@ -210,6 +213,36 @@ Future<List<Object>> resolveIdentifiers(
     builder.declareType(
       typeName,
       DeclarationCode.fromParts(parts),
+    );
+  }
+}
+
+/*macro*/ class SetExtendsType implements ClassTypesMacro {
+  final String typeNameStr;
+  final List<String> typeArgumentStrList;
+
+  SetExtendsType(
+    this.typeNameStr,
+    this.typeArgumentStrList,
+  );
+
+  @override
+  buildTypesForClass(clazz, builder) async {
+    var typeNameParts = await resolveIdentifiers(builder, typeNameStr);
+    var typeName = typeNameParts.single as Identifier;
+
+    var typeArguments = <TypeAnnotationCode>[];
+    for (var typeArgumentStr in typeArgumentStrList) {
+      var parts = await resolveIdentifiers(builder, typeArgumentStr);
+      var typeArgument = RawTypeAnnotationCode.fromParts(parts);
+      typeArguments.add(typeArgument);
+    }
+
+    builder.extendsType(
+      NamedTypeAnnotationCode(
+        name: typeName,
+        typeArguments: typeArguments,
+      ),
     );
   }
 }

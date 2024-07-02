@@ -485,8 +485,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-    listener?.beginSwitchCase(labelCount, expressionCount, firstToken);
+  void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
+    listener?.beginSwitchCase(labelCount, expressionCount, beginToken);
   }
 
   @override
@@ -599,8 +599,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endBinaryExpression(Token token) {
-    listener?.endBinaryExpression(token);
+  void endBinaryExpression(Token token, Token endToken) {
+    listener?.endBinaryExpression(token, endToken);
   }
 
   @override
@@ -609,8 +609,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token) {
-    listener?.handleEndingBinaryExpression(token);
+  void handleEndingBinaryExpression(Token token, Token endToken) {
+    listener?.handleEndingBinaryExpression(token, endToken);
   }
 
   @override
@@ -707,8 +707,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endConditionalExpression(Token question, Token colon) {
-    listener?.endConditionalExpression(question, colon);
+  void endConditionalExpression(Token question, Token colon, Token endToken) {
+    listener?.endConditionalExpression(question, colon, endToken);
   }
 
   @override
@@ -750,8 +750,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endElseStatement(Token token) {
-    listener?.endElseStatement(token);
+  void endElseStatement(Token beginToken, Token endToken) {
+    listener?.endElseStatement(beginToken, endToken);
   }
 
   @override
@@ -998,8 +998,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endIfStatement(Token ifToken, Token? elseToken) {
-    listener?.endIfStatement(ifToken, elseToken);
+  void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
+    listener?.endIfStatement(ifToken, elseToken, endToken);
   }
 
   @override
@@ -1203,15 +1203,16 @@ class ForwardingListener implements Listener {
       Token? defaultKeyword,
       Token? colonAfterDefault,
       int statementCount,
-      Token firstToken,
+      Token beginToken,
       Token endToken) {
     listener?.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        colonAfterDefault, statementCount, firstToken, endToken);
+        colonAfterDefault, statementCount, beginToken, endToken);
   }
 
   @override
-  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
-    listener?.endSwitchExpressionCase(when, arrow, endToken);
+  void endSwitchExpressionCase(
+      Token beginToken, Token? when, Token arrow, Token endToken) {
+    listener?.endSwitchExpressionCase(beginToken, when, arrow, endToken);
   }
 
   @override
@@ -1225,8 +1226,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endThenStatement(Token token) {
-    listener?.endThenStatement(token);
+  void endThenStatement(Token beginToken, Token endToken) {
+    listener?.endThenStatement(beginToken, endToken);
   }
 
   @override
@@ -1287,8 +1288,8 @@ class ForwardingListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword) {
-    listener?.endTryStatement(catchCount, tryKeyword, finallyKeyword);
+      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
+    listener?.endTryStatement(catchCount, tryKeyword, finallyKeyword, endToken);
   }
 
   @override
@@ -1358,8 +1359,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleAssignmentExpression(Token token) {
-    listener?.handleAssignmentExpression(token);
+  void handleAssignmentExpression(Token token, Token endToken) {
+    listener?.handleAssignmentExpression(token, endToken);
   }
 
   @override
@@ -1470,8 +1471,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExpressionStatement(Token token) {
-    listener?.handleExpressionStatement(token);
+  void handleExpressionStatement(Token beginToken, Token endToken) {
+    listener?.handleExpressionStatement(beginToken, endToken);
   }
 
   @override
@@ -1514,9 +1515,9 @@ class ForwardingListener implements Listener {
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, int updateExpressionCount) {
-    listener?.handleForLoopParts(
-        forKeyword, leftParen, leftSeparator, updateExpressionCount);
+      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
+    listener?.handleForLoopParts(forKeyword, leftParen, leftSeparator,
+        rightSeparator, updateExpressionCount);
   }
 
   @override
@@ -1648,8 +1649,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken) {
-    listener?.handleLiteralMapEntry(colon, endToken);
+  void handleLiteralMapEntry(Token colon, Token endToken,
+      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
+    listener?.handleLiteralMapEntry(colon, endToken,
+        nullAwareKeyToken: nullAwareKeyToken,
+        nullAwareValueToken: nullAwareValueToken);
   }
 
   @override
@@ -1906,6 +1910,11 @@ class ForwardingListener implements Listener {
   @override
   void endConstantPattern(Token? constKeyword) {
     listener?.endConstantPattern(constKeyword);
+  }
+
+  @override
+  void handleNullAwareElement(Token nullAwareToken) {
+    listener?.handleNullAwareElement(nullAwareToken);
   }
 
   @override

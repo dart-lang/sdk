@@ -5,9 +5,9 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///inject_constructor.dart";
 
 class Class extends core::Object {
-  constructor •() → self::Class
+  constructor /* from org-dartlang-testcase:///inject_constructor_lib.dart */ •() → self::Class
     ;
-  constructor named() → self::Class
+  constructor /* from org-dartlang-testcase:///inject_constructor_lib.dart */ named() → self::Class
     ;
 }
 static method main() → dynamic

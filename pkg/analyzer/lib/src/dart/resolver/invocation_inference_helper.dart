@@ -144,17 +144,6 @@ class InvocationInferenceHelper {
     return tearOffType;
   }
 
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  void recordStaticType(ExpressionImpl expression, DartType type) {
-    expression.staticType = type;
-    if (type.isBottom) {
-      _resolver.flowAnalysis.flow?.handleExit();
-    }
-  }
-
   /// Finish resolution of the [MethodInvocation].
   ///
   /// We have already found the invoked [ExecutableElement], and the [rawType]
@@ -174,6 +163,6 @@ class InvocationInferenceHelper {
       whyNotPromotedList: whyNotPromotedList,
     ).resolveInvocation(rawType: rawType);
 
-    recordStaticType(node, returnType);
+    node.recordStaticType(returnType, resolver: _resolver);
   }
 }

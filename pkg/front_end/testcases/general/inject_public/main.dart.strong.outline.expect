@@ -32,7 +32,7 @@ class InjectedClass extends core::Object { // from org-dartlang-testcase:///patc
   synthetic constructor •() → self2::InjectedClass
     ;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;

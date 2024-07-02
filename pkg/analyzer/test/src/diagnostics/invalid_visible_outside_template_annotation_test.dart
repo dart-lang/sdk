@@ -33,7 +33,7 @@ class C {
   C();
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 63, 22),
     ]);
   }
 
@@ -44,7 +44,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 class C {}
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 51, 22),
     ]);
   }
 
@@ -57,7 +57,7 @@ class C {
   int a = 0;
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 63, 22),
     ]);
   }
 
@@ -70,7 +70,7 @@ class C {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 63, 22),
     ]);
   }
 
@@ -84,7 +84,7 @@ enum E {
   void test() {}
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 66, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 67, 22),
     ]);
   }
 
@@ -98,7 +98,7 @@ enum E {
   b,
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 61, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 22),
     ]);
   }
 
@@ -109,7 +109,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 mixin class M2 {}
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 51, 22),
     ]);
   }
 
@@ -122,7 +122,7 @@ mixin class M2 {
   int m() => 1;
 }
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 69, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 70, 22),
     ]);
   }
 
@@ -134,7 +134,7 @@ import 'package:angular_meta/angular_meta.dart';
 mixin M {}
 class C2 with M {}
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 51, 22),
     ]);
   }
 
@@ -148,7 +148,7 @@ mixin M {
 }
 class C2 with M {}
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 63, 22),
     ]);
   }
 
@@ -159,7 +159,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 void foo() {}
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 51, 22),
     ]);
   }
 
@@ -170,7 +170,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 final a = 1;
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 51, 22),
     ]);
   }
 
@@ -181,7 +181,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 var a = 1, b;
 ''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 51, 22),
     ]);
   }
 

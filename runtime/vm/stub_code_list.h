@@ -148,6 +148,8 @@ namespace dart {
   V(InitInstanceField)                                                         \
   V(InitLateInstanceField)                                                     \
   V(InitLateFinalInstanceField)                                                \
+  V(InitSharedLateStaticField)                                                 \
+  V(InitSharedLateFinalStaticField)                                            \
   V(Throw)                                                                     \
   V(ReThrow)                                                                   \
   V(AssertBoolean)                                                             \

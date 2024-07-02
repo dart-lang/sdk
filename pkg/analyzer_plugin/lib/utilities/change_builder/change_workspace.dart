@@ -7,13 +7,13 @@ import 'package:analyzer/file_system/file_system.dart';
 
 /// Information about the workspace in which change builders operate.
 abstract class ChangeWorkspace {
-  /// Return the resource provider used to access the file system.
+  /// The resource provider used to access the file system.
   ResourceProvider get resourceProvider;
 
-  /// Return `true` if the file with the given [path] is in a context root.
+  /// Whether the file with the given [path] is in a context root.
   bool containsFile(String path);
 
-  /// Return the session that should analyze the given [path], or throw
+  /// Returns the session that should analyze the given [path], or throws
   /// [StateError] if the [path] does not belong to a context root.
   AnalysisSession? getSession(String path);
 }

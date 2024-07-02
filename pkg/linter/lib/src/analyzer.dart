@@ -22,14 +22,12 @@ export 'package:analyzer/src/lint/linter.dart'
         dart2_12,
         dart3,
         dart3_3,
-        DartLinter,
-        Group,
+        Category,
         LintFilter,
         LintRule,
         LinterContext,
         LinterOptions,
         NodeLintRegistry,
-        NodeLintRule,
         State;
 export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/lint/util.dart' show FileSpelunker;

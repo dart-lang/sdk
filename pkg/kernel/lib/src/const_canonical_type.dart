@@ -9,10 +9,8 @@ import 'replacement_visitor.dart';
 
 class _ConstCanonicalTypeVisitor extends ReplacementVisitor {
   final CoreTypes coreTypes;
-  final bool isNonNullableByDefault;
 
-  _ConstCanonicalTypeVisitor(this.coreTypes,
-      {required this.isNonNullableByDefault});
+  _ConstCanonicalTypeVisitor(this.coreTypes);
 
   @override
   DartType? visitDynamicType(DynamicType node, Variance variance) {
@@ -51,10 +49,7 @@ class _ConstCanonicalTypeVisitor extends ReplacementVisitor {
 ///
 /// The algorithm is specified at
 /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#constant-instances
-DartType? computeConstCanonicalType(DartType type, CoreTypes coreTypes,
-    {required bool isNonNullableByDefault}) {
+DartType? computeConstCanonicalType(DartType type, CoreTypes coreTypes) {
   return type.accept1(
-      new _ConstCanonicalTypeVisitor(coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault),
-      Variance.covariant);
+      new _ConstCanonicalTypeVisitor(coreTypes), Variance.covariant);
 }

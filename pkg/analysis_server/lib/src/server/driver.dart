@@ -72,6 +72,11 @@ class Driver implements ServerStarter {
   static const String DISABLE_STATUS_NOTIFICATION_DEBOUNCING =
       'disable-status-notification-debouncing';
 
+  /// The name of the option to prevent exceptions during analysis from being
+  /// silent.
+  static const String DISABLE_SILENT_ANALYSIS_EXCEPTIONS =
+      'disable-silent-analysis-exceptions';
+
   /// The name of the multi-option to enable one or more experiments.
   static const String ENABLE_EXPERIMENT = 'enable-experiment';
 
@@ -276,6 +281,7 @@ class Driver implements ServerStarter {
     }
 
     var errorNotifier = ErrorNotifier();
+    allInstrumentationServices.add(errorNotifier);
     allInstrumentationServices
         .add(CrashReportingInstrumentation(crashReportSender));
     var instrumentationService =
@@ -388,8 +394,6 @@ class Driver implements ServerStarter {
         detachableFileSystemManager);
     httpServer = HttpAnalysisServer(socketServer);
 
-    errorNotifier.server = socketServer.analysisServer;
-
     diagnosticServer.httpServer = httpServer!;
     if (diagnosticServerPort != null) {
       diagnosticServer.startOnPort(diagnosticServerPort);
@@ -445,6 +449,10 @@ class Driver implements ServerStarter {
         } else {
           var isolateAnalysisServer = IsolateAnalysisServer(socketServer);
           serveResult = isolateAnalysisServer.serveIsolate(sendPort);
+        }
+        errorNotifier.server = socketServer.analysisServer;
+        if (results[DISABLE_SILENT_ANALYSIS_EXCEPTIONS] as bool) {
+          errorNotifier.sendSilentExceptionsToClient = true;
         }
         serveResult.then((_) async {
           var httpServer = this.httpServer;
@@ -592,6 +600,7 @@ class Driver implements ServerStarter {
       DISABLE_SERVER_EXCEPTION_HANDLING,
       DISABLE_SERVER_FEATURE_COMPLETION,
       DISABLE_SERVER_FEATURE_SEARCH,
+      DISABLE_SILENT_ANALYSIS_EXCEPTIONS,
       DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
       'enable-completion-model',
       'enable-experiment',
@@ -785,6 +794,10 @@ class Driver implements ServerStarter {
         help: 'disable all completion features', hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
         help: 'disable all search features', hide: true);
+    parser.addFlag(DISABLE_SILENT_ANALYSIS_EXCEPTIONS,
+        negatable: false,
+        help: 'Prevent exceptions during analysis from being silent',
+        hide: true);
     parser.addFlag(DISABLE_STATUS_NOTIFICATION_DEBOUNCING,
         negatable: false,
         help: 'Suppress debouncing of status notifications.',

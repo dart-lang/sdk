@@ -22,6 +22,7 @@ Types Order:
  Enum.a:VariableTypesMacro.new()
  Enum:ClassTypesMacro.new()
  Mixin:MixinTypesMacro.new()
+ ExtensionType:ExtensionTypeTypesMacro.new()
 Declarations Order:
  Class.field:FieldDeclarationsMacro.new()
  Class.field:VariableDeclarationsMacro.new()
@@ -34,6 +35,7 @@ Declarations Order:
  Enum.a:VariableDeclarationsMacro.new()
  Enum:ClassDeclarationsMacro.new()
  Mixin:MixinDeclarationsMacro.new()
+ ExtensionType:ExtensionTypeDeclarationsMacro.new()
  org-dartlang-test:///a/b/c/main.dart:LibraryDeclarationsMacro.new()
  function:FunctionDeclarationsMacro.new()
  variable:VariableDeclarationsMacro.new()
@@ -50,7 +52,8 @@ Definition Order:
  Enum.a:FieldDefinitionMacro.new()
  Enum.a:VariableDefinitionMacro.new()
  Enum:ClassDefinitionMacro.new()
- Mixin:MixinDefinitionMacro.new()*/
+ Mixin:MixinDefinitionMacro.new()
+ ExtensionType:ExtensionTypeDefinitionMacro.new()*/
 
 @LibraryTypesMacro() // Ok
 @LibraryDeclarationsMacro() // Ok

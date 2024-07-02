@@ -51,7 +51,7 @@ class IdentifierHelper {
 
   /// Adds any suggestions for the name of a top-level declaration (class, enum,
   /// mixin, function, etc.).
-  void addTopLevelName() {
+  void addTopLevelName({required bool includeBody}) {
     var context = state.request.analysisSession.resourceProvider.pathContext;
     var path = state.request.path;
     var candidateName = context.basenameWithoutExtension(path).toUpperCamelCase;
@@ -69,7 +69,10 @@ class IdentifierHelper {
     var matcherScore = state.matcher.score(candidateName);
     if (matcherScore != -1) {
       collector.addSuggestion(IdentifierSuggestion(
-          identifier: candidateName, matcherScore: matcherScore));
+        identifier: candidateName,
+        includeBody: includeBody,
+        matcherScore: matcherScore,
+      ));
     }
   }
 
@@ -85,8 +88,11 @@ class IdentifierHelper {
     if (name.isNotEmpty) {
       var matcherScore = state.matcher.score(name);
       if (matcherScore != -1) {
-        collector.addSuggestion(
-            IdentifierSuggestion(identifier: name, matcherScore: matcherScore));
+        collector.addSuggestion(IdentifierSuggestion(
+          identifier: name,
+          includeBody: false,
+          matcherScore: matcherScore,
+        ));
       }
     }
   }

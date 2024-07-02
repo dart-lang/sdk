@@ -6,7 +6,6 @@
 // case the supertype of the match is a FutureOr<X> or one of its alternatives
 // (either Future<X> or X).
 
-/*library: nnbd=true*/
 import 'dart:async';
 
 // -----------------------------------------------------------------------------

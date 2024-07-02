@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
+  AddSuperConstructorInvocation({required super.context});
+
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var targetConstructor = node.parent;
@@ -45,7 +47,8 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
-        producers.add(_AddInvocation(constructor, insertOffset, prefix));
+        producers.add(_AddInvocation(constructor, insertOffset, prefix,
+            context: context));
       }
     }
     return producers;
@@ -64,7 +67,12 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   /// The prefix to be added before the actual invocation.
   final String _prefix;
 
-  _AddInvocation(this._constructor, this._insertOffset, this._prefix);
+  _AddInvocation(
+    this._constructor,
+    this._insertOffset,
+    this._prefix, {
+    required super.context,
+  });
 
   @override
   CorrectionApplicability get applicability =>

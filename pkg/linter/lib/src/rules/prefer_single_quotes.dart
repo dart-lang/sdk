@@ -53,7 +53,7 @@ class PreferSingleQuotes extends LintRule {
             name: 'prefer_single_quotes',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   List<String> get incompatibleRules => const ['prefer_double_quotes'];

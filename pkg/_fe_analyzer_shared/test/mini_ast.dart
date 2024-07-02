@@ -2822,9 +2822,6 @@ class MiniAstOperations
   }
 
   @override
-  NullabilitySuffix getNullabilitySuffix(Type type) => type.nullabilitySuffix;
-
-  @override
   TypeDeclarationKind? getTypeDeclarationKind(Type type) {
     if (isInterfaceType(type)) {
       return TypeDeclarationKind.interfaceDeclaration;

@@ -77,6 +77,8 @@ class PubspecGenerator extends YamlCompletionGenerator {
       'flutter': EmptyProducer(),
       'sdk': EmptyProducer(),
     }),
+    'workspace': ListProducer(FilePathProducer()),
+    'resolution': EnumProducer(['external', 'local', 'workspace']),
     'dependencies': PubPackageNameProducer(),
     'dev_dependencies': PubPackageNameProducer(),
     // TODO(brianwilkerson): Suggest names already listed under 'dependencies'

@@ -39,8 +39,6 @@ abstract class AbstractAugmentationCodeLensTest
   /// The title of the [Command] in the [CodeLens]es being tested.
   String get codeLensTitle;
 
-  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
-
   /// The range in [sourceUri] that the CodeLens should appear for.
   Range get sourceRange;
 

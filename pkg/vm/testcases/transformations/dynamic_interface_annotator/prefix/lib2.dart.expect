@@ -1,0 +1,81 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+@#C3
+abstract class A extends core::Object {
+  @#C3
+  field core::Object? ifield1 = null;
+  field core::Object? _ifield2 = null;
+  @#C3
+  static field core::Object? sfield3 = null;
+  static field core::Object? _sfield4 = null;
+  @#C3
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  constructor _() → self::A
+    : super core::Object::•()
+    ;
+  @#C3
+  static factory factory1() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+  @#C3
+  static factory factory2() → self::A
+    return new self::B::•();
+  static factory _factory3() → self::A
+    return new self::B::•();
+  @#C3
+  method imethod1() → void {}
+  @#C3
+  abstract method imethod2() → void;
+  method _imethod3() → void {}
+  @#C3
+  static method smethod4() → void {}
+}
+@#C3
+class B extends self::A {
+  @#C3
+  field core::Object? ifield5 = null;
+  field core::Object? _ifield6 = null;
+  @#C3
+  constructor •() → self::B
+    : super self::A::•()
+    ;
+  @#C3
+  method imethod2() → void {}
+  @#C3
+  method imethod5() → void {}
+  method _imethod6() → void {}
+  @#C3
+  static method smethod7() → void {}
+}
+class _C extends core::Object {
+  field core::Object? ifield7 = null;
+  static field core::Object? _sfield8 = null;
+  synthetic constructor •() → self::_C
+    : super core::Object::•()
+    ;
+  method imethod8() → void {}
+  static method smethod9() → void {}
+}
+@#C3
+class D extends core::Object {
+  @#C3
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  @#C3
+  method build() → void {}
+}
+@#C3
+static field core::Object? sfield9;
+static field core::Object? _sfield10;
+@#C3
+static method smethod10() → void {}
+static method _smethod11() → void {}
+constants  {
+  #C1 = "dyn-module:callable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "vm/closure_functions_cache.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/call_specializer.h"
@@ -164,6 +165,11 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
   check_il("Uint64List");
   check_il("Float32List");
   check_il("Float64List");
+  if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+    check_il("Int32x4List");
+    check_il("Float32x4List");
+    check_il("Float64x2List");
+  }
 }
 
 // This test asserts that we get errors if receiver, index or value are null.

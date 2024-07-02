@@ -31,14 +31,15 @@ raiseAlarm(
 class PreferAdjacentStringConcatenation extends LintRule {
   static const LintCode code = LintCode('prefer_adjacent_string_concatenation',
       "String literals shouldn't be concatenated by the '+' operator.",
-      correctionMessage: 'Try removing the operator to use adjacent strings.');
+      correctionMessage: 'Try removing the operator to use adjacent strings.',
+      hasPublishedDocs: true);
 
   PreferAdjacentStringConcatenation()
       : super(
             name: 'prefer_adjacent_string_concatenation',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

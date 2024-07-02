@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -571,6 +570,22 @@ class A {
 ''');
   }
 
+  test_function_underscore() async {
+    await assertErrorsInCode(r'''
+_(){}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 1),
+    ]);
+  }
+
+  test_function_underscores() async {
+    await assertErrorsInCode(r'''
+__(){}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 2),
+    ]);
+  }
+
   test_functionLocal_isUsed_closure() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -821,6 +836,80 @@ class A {
 }
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 16, 2),
+    ]);
+  }
+
+  test_localFunction_inFunction_wildcard() async {
+    await assertErrorsInCode(r'''
+m() {
+  _(){}
+}
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 8, 5),
+    ]);
+  }
+
+  test_localFunction_inFunction_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+main() {
+  _(){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 55, 1),
+    ]);
+  }
+
+  test_localFunction_inMethod_underscores() async {
+    await assertErrorsInCode(r'''
+class C {
+  m() {
+    __(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 22, 2),
+    ]);
+  }
+
+  test_localFunction_inMethod_wildcard() async {
+    await assertErrorsInCode(r'''
+class C {
+  m() {
+    _(){}
+  }
+}
+''', [
+      // Code is dead but not unused.
+      error(WarningCode.DEAD_CODE, 22, 5),
+    ]);
+  }
+
+  test_localFunction_inMethod_wildcard_preWildCards() async {
+    await assertErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class C {
+  m() {
+    _(){}
+  }
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 66, 1),
+    ]);
+  }
+
+  test_localFunction_underscores() async {
+    await assertErrorsInCode(r'''
+main() {
+  __(){}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 11, 2),
     ]);
   }
 

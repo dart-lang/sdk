@@ -51,14 +51,15 @@ class AnnotateOverrides extends LintRule {
       'annotate_overrides',
       "The member '{0}' overrides an inherited member but isn't annotated "
           "with '@override'.",
-      correctionMessage: "Try adding the '@override' annotation.");
+      correctionMessage: "Try adding the '@override' annotation.",
+      hasPublishedDocs: true);
 
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

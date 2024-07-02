@@ -42,7 +42,7 @@ String _intToRadixString(int value, int radix) {
 
   final string = OneByteString.withLength(temp.length);
   for (int i = 0, j = temp.length; j > 0; i++) {
-    writeIntoOneByteString(string, i, temp[--j]);
+    string.setUnchecked(i, temp[--j]);
   }
   return string;
 }
@@ -66,11 +66,11 @@ String _toPow2String(int value, int radix) {
   // Integer division, rounding up, to find number of _digits.
   length += (value.bitLength + bitsPerDigit - 1) ~/ bitsPerDigit;
   final string = OneByteString.withLength(length);
-  writeIntoOneByteString(
-      string, 0, 0x2d); // '-'. Is overwritten if not negative.
+
+  string.setUnchecked(0, 0x2d); // '-'. Is overwritten if not negative.
   var mask = radix - 1;
   do {
-    writeIntoOneByteString(string, --length, _digits.codeUnitAt(value & mask));
+    string.setUnchecked(--length, _digits.codeUnitAt(value & mask));
     value >>= bitsPerDigit;
   } while (value > 0);
   return string;
@@ -91,7 +91,7 @@ String _minInt64ToRadixString(int value, int radix) {
 
   final string = OneByteString.withLength(temp.length);
   for (int i = 0, j = temp.length; j > 0; i++) {
-    writeIntoOneByteString(string, i, temp[--j]);
+    string.setUnchecked(i, temp[--j]);
   }
   return string;
 }
@@ -202,22 +202,22 @@ String _intToString(int value) {
     final int twoDigits = smi.remainder(100);
     smi = smi ~/ 100;
     int digitIndex = twoDigits * 2;
-    writeIntoOneByteString(result, index, _digitTable[digitIndex + 1]);
-    writeIntoOneByteString(result, index - 1, _digitTable[digitIndex]);
+    result.setUnchecked(index, _digitTable[digitIndex + 1]);
+    result.setUnchecked(index - 1, _digitTable[digitIndex]);
     index -= 2;
   } while (smi >= 100);
   if (smi < 10) {
     // Character code for '0'.
     // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
     // result type as `num`.
-    writeIntoOneByteString(result, index, DIGIT_ZERO + smi);
+    result.setUnchecked(index, DIGIT_ZERO + smi);
   } else {
     // No remainder for this case.
     // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
     // result type as `num`.
     int digitIndex = smi * 2;
-    writeIntoOneByteString(result, index, _digitTable[digitIndex + 1]);
-    writeIntoOneByteString(result, index - 1, _digitTable[digitIndex]);
+    result.setUnchecked(index, _digitTable[digitIndex + 1]);
+    result.setUnchecked(index - 1, _digitTable[digitIndex]);
   }
   return result;
 }
@@ -254,23 +254,23 @@ String _negativeToString(int negSmi) {
   // Number of digits, not including minus.
   int digitCount = _negativeBase10Length(negSmi);
   final result = OneByteString.withLength(digitCount + 1);
-  writeIntoOneByteString(result, 0, MINUS_SIGN); // '-'.
+  result.setUnchecked(0, MINUS_SIGN); // '-'.
   int index = digitCount;
   do {
     int twoDigits = unsafeCast<int>(negSmi.remainder(100));
     negSmi = negSmi ~/ 100;
     int digitIndex = -twoDigits * 2;
-    writeIntoOneByteString(result, index, _digitTable[digitIndex + 1]);
-    writeIntoOneByteString(result, index - 1, _digitTable[digitIndex]);
+    result.setUnchecked(index, _digitTable[digitIndex + 1]);
+    result.setUnchecked(index - 1, _digitTable[digitIndex]);
     index -= 2;
   } while (negSmi <= -100);
   if (negSmi > -10) {
-    writeIntoOneByteString(result, index, DIGIT_ZERO - negSmi);
+    result.setUnchecked(index, DIGIT_ZERO - negSmi);
   } else {
     // No remainder necessary for this case.
     int digitIndex = -negSmi * 2;
-    writeIntoOneByteString(result, index, _digitTable[digitIndex + 1]);
-    writeIntoOneByteString(result, index - 1, _digitTable[digitIndex]);
+    result.setUnchecked(index, _digitTable[digitIndex + 1]);
+    result.setUnchecked(index - 1, _digitTable[digitIndex]);
   }
   return result;
 }

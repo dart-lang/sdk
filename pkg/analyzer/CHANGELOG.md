@@ -1,3 +1,22 @@
+## 6.7.0
+* Deprecated `File.createSource()`, it violates levels of abstraction.
+  You can get `Source` instances from `AnalysisResult`s.
+* Deprecated unused static members of `AnalysisError`.
+
+## 6.6.0
+* Stop exporting `src/file_system/file_system.dart`
+  from `file_system/file_system.dart`.
+* Deprecated `package:analyzer/src/source/source_resource.dart`,
+  import `package:analyzer/source/file_source.dart` instead.
+* Deprecated exports from `package:analyzer/src/source/source.dart`,
+  import `package:analyzer/source/source.dart` instead.
+
+## 6.5.2
+* Updated constraints `macros: '>=0.1.2-0 <0.1.3'`.
+
+## 6.5.1
+* Updated constraints `macros: '>=0.1.1-0 <0.1.2'`.
+
 ## 6.5.0
 * Deprecated `LibraryElement.toLegacyTypeIfOptOut`.
 * Deprecated `LibraryElement.toLegacyElementIfOptOut`.

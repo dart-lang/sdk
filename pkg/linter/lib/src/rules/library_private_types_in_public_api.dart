@@ -46,14 +46,15 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
       'Invalid use of a private type in a public API.',
       correctionMessage:
           'Try making the private type public, or making the API that uses the '
-          'private type also be private.');
+          'private type also be private.',
+      hasPublishedDocs: true);
 
   LibraryPrivateTypesInPublicApi()
       : super(
             name: 'library_private_types_in_public_api',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

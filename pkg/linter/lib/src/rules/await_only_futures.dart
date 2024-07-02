@@ -39,15 +39,15 @@ main() async {
 class AwaitOnlyFutures extends LintRule {
   static const LintCode code = LintCode('await_only_futures',
       "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
-      correctionMessage:
-          "Try removing the 'await' or changing the expression.");
+      correctionMessage: "Try removing the 'await' or changing the expression.",
+      hasPublishedDocs: true);
 
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

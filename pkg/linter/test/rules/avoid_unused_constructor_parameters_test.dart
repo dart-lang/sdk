@@ -65,4 +65,23 @@ class B extends A {
 }
 ''');
   }
+
+  test_wildcardParam() async {
+    await assertNoDiagnostics(r'''
+class C {
+ C(int _);
+}
+''');
+  }
+
+  test_wildcardParam_preWildcards() async {
+    await assertNoDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class C {
+ C(int _);
+}
+''');
+  }
 }

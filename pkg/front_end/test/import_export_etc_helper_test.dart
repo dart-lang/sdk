@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/util/import_export_etc_helper.dart';
+import 'package:front_end/src/util/import_export_etc_helper.dart';
 
 void main() {
   // Simple imports.

@@ -30,10 +30,6 @@ static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
-static bool CanUnboxDouble() {
-  return FlowGraphCompiler::SupportsUnboxedDoubles();
-}
-
 static bool CanConvertInt64ToDouble() {
   return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
@@ -43,11 +39,6 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 static bool ShouldSpecializeForDouble(const BinaryFeedback& binary_feedback) {
-  // Don't specialize for double if we can't unbox them.
-  if (!CanUnboxDouble()) {
-    return false;
-  }
-
   // Unboxed double operation can't handle case of two smis.
   if (binary_feedback.IncludesOperands(kSmiCid)) {
     return false;
@@ -394,7 +385,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     cid = kSmiCid;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
-  } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
+  } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
@@ -469,7 +460,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
     cid = kSmiCid;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
-  } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
+  } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
@@ -605,9 +596,6 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   if (operands_type == kDoubleCid) {
-    if (!CanUnboxDouble()) {
-      return false;
-    }
     // Check that either left or right are not a smi.  Result of a
     // binary operation with two smis is a smi not a double, except '/' which
     // returns a double for two smis.
@@ -704,7 +692,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (call->Targets().ReceiverIs(kDoubleCid) &&
-             (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
+             (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
     unary_op = new (Z) UnaryDoubleOpInstr(Token::kNEGATE, new (Z) Value(input),
                                           call->deopt_id());
@@ -976,8 +964,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   intptr_t receiver_cid = targets.MonomorphicReceiverCid();
   MethodRecognizer::Kind recognized_kind = target.recognized_kind();
 
-  if (CanUnboxDouble() &&
-      (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
+  if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
     if (receiver_cid == kSmiCid) {
       AddReceiverCheck(call);
       ReplaceCall(call,
@@ -994,9 +981,6 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (receiver_cid == kDoubleCid) {
-    if (!CanUnboxDouble()) {
-      return false;
-    }
     switch (recognized_kind) {
       case MethodRecognizer::kDoubleToInteger: {
         AddReceiverCheck(call);
@@ -1292,8 +1276,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
       case MethodRecognizer::kMathMax: {
         // We can handle only monomorphic min/max call sites with both arguments
         // being either doubles or smis.
-        if (CanUnboxDouble() && targets.IsMonomorphic() &&
-            (call->FirstArgIndex() == 0)) {
+        if (targets.IsMonomorphic() && (call->FirstArgIndex() == 0)) {
           intptr_t result_cid = kIllegalCid;
           if (binary_feedback.IncludesOperands(kDoubleCid)) {
             result_cid = kDoubleCid;
@@ -1319,20 +1302,18 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
       case MethodRecognizer::kDoubleFromInteger: {
         if (call->HasICData() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
-          if (CanUnboxDouble()) {
-            if (binary_feedback.ArgumentIs(kSmiCid)) {
-              Definition* arg = call->ArgumentAt(1);
-              AddCheckSmi(arg, call->deopt_id(), call->env(), call);
-              ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
-                                                         call->source()));
-              return;
-            } else if (binary_feedback.ArgumentIs(kMintCid) &&
-                       CanConvertInt64ToDouble()) {
-              Definition* arg = call->ArgumentAt(1);
-              ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
-                                                           call->deopt_id()));
-              return;
-            }
+          if (binary_feedback.ArgumentIs(kSmiCid)) {
+            Definition* arg = call->ArgumentAt(1);
+            AddCheckSmi(arg, call->deopt_id(), call->env(), call);
+            ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
+                                                       call->source()));
+            return;
+          } else if (binary_feedback.ArgumentIs(kMintCid) &&
+                     CanConvertInt64ToDouble()) {
+            Definition* arg = call->ArgumentAt(1);
+            ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
+                                                         call->deopt_id()));
+            return;
           }
         }
         break;
@@ -1445,6 +1426,9 @@ void TypedDataSpecializer::EnsureIsInitialized() {
 
   int_type_ = Type::IntType();
   double_type_ = Type::Double();
+  float32x4_type_ = Type::Float32x4();
+  int32x4_type_ = Type::Int32x4();
+  float64x2_type_ = Type::Float64x2();
 
   const auto& typed_data = Library::Handle(
       Z, Library::LookupLibrary(thread_, Symbols::DartTypedData()));
@@ -1453,11 +1437,13 @@ void TypedDataSpecializer::EnsureIsInitialized() {
   auto& direct_implementors = GrowableObjectArray::Handle(Z);
   SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
-#define INIT_HANDLE(iface, member_name, type, cid)                             \
+#define INIT_HANDLE(iface, type, cid)                                          \
   td_class = typed_data.LookupClass(Symbols::iface());                         \
   ASSERT(!td_class.IsNull());                                                  \
   direct_implementors = td_class.direct_implementors();                        \
-  member_name = td_class.RareType();
+  typed_data_variants_[k##iface##Index].array_type = td_class.RareType();      \
+  typed_data_variants_[k##iface##Index].array_cid = cid;                       \
+  typed_data_variants_[k##iface##Index].element_type = type.ptr();
 
   PUBLIC_TYPED_DATA_CLASS_LIST(INIT_HANDLE)
 #undef INIT_HANDLE
@@ -1481,55 +1467,65 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
   const bool is_index_set =
       call->Selector() == Symbols::AssignIndexToken().ptr();
 
-  if (is_length_getter || is_index_get || is_index_set) {
-    EnsureIsInitialized();
-
-    const intptr_t receiver_index = call->FirstArgIndex();
-
-    CompileType* receiver_type =
-        call->ArgumentValueAt(receiver_index + 0)->Type();
-
-    CompileType* index_type = nullptr;
-    if (is_index_get || is_index_set) {
-      index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
-    }
-
-    CompileType* value_type = nullptr;
-    if (is_index_set) {
-      value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
-    }
-
-    auto& type_class = Class::Handle(zone_);
-#define TRY_INLINE(iface, member_name, type, cid)                              \
-  if (!member_name.IsNull()) {                                                 \
-    auto const rep = RepresentationUtils::RepresentationOfArrayElement(cid);   \
-    const bool is_float_access =                                               \
-        rep == kUnboxedFloat || rep == kUnboxedDouble;                         \
-    if (receiver_type->IsAssignableTo(member_name)) {                          \
-      if (is_length_getter) {                                                  \
-        type_class = member_name.type_class();                                 \
-        ReplaceWithLengthGetter(call);                                         \
-      } else if (is_index_get) {                                               \
-        if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) { \
-          return;                                                              \
-        }                                                                      \
-        if (!index_type->IsNullableInt()) return;                              \
-        type_class = member_name.type_class();                                 \
-        ReplaceWithIndexGet(call, cid);                                        \
-      } else {                                                                 \
-        if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) { \
-          return;                                                              \
-        }                                                                      \
-        if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(type)) return;                         \
-        type_class = member_name.type_class();                                 \
-        ReplaceWithIndexSet(call, cid);                                        \
-      }                                                                        \
-      return;                                                                  \
-    }                                                                          \
+  if (!(is_length_getter || is_index_get || is_index_set)) {
+    return;
   }
-    PUBLIC_TYPED_DATA_CLASS_LIST(TRY_INLINE)
-#undef INIT_HANDLE
+
+  EnsureIsInitialized();
+
+  const intptr_t receiver_index = call->FirstArgIndex();
+
+  CompileType* receiver_type =
+      call->ArgumentValueAt(receiver_index + 0)->Type();
+
+  CompileType* index_type = nullptr;
+  if (is_index_get || is_index_set) {
+    index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
+  }
+
+  CompileType* value_type = nullptr;
+  if (is_index_set) {
+    value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
+  }
+
+  auto& type_class = Class::Handle(zone_);
+  for (auto& variant : typed_data_variants_) {
+    if (!receiver_type->IsAssignableTo(variant.array_type)) {
+      continue;
+    }
+
+    if (is_length_getter) {
+      type_class = variant.array_type.type_class();
+      ReplaceWithLengthGetter(call);
+      return;
+    }
+
+    auto const rep =
+        RepresentationUtils::RepresentationOfArrayElement(variant.array_cid);
+    const bool is_simd_access = rep == kUnboxedInt32x4 ||
+                                rep == kUnboxedFloat32x4 ||
+                                rep == kUnboxedFloat64x2;
+
+    if (is_simd_access && !FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      return;
+    }
+
+    if (!index_type->IsNullableInt()) {
+      return;
+    }
+
+    if (is_index_get) {
+      type_class = variant.array_type.type_class();
+      ReplaceWithIndexGet(call, variant.array_cid);
+    } else {
+      if (!value_type->IsAssignableTo(variant.element_type)) {
+        return;
+      }
+      type_class = variant.array_type.type_class();
+      ReplaceWithIndexSet(call, variant.array_cid);
+    }
+
+    return;
   }
 }
 
@@ -1964,9 +1960,6 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
                            FunctionEntryInstr** entry,
                            Instruction** last,
                            Definition** result) {
-  if (!CanUnboxDouble()) {
-    return false;
-  }
   Definition* left = receiver;
   Definition* right = call->ArgumentAt(1);
 
@@ -1993,10 +1986,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
                                FunctionEntryInstr** entry,
                                Instruction** last,
                                Definition** result) {
-  if (!CanUnboxDouble()) {
-    return false;
-  }
-
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -3163,9 +3152,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
@@ -3221,9 +3207,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
 
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed: {
-      if (!CanUnboxDouble()) {
-        return false;
-      }
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               exactness, graph_entry, entry, last, result);
     }

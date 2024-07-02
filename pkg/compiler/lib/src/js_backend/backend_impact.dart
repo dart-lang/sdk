@@ -546,6 +546,7 @@ class BackendImpacts {
   // TODO(sra): Split into refined impacts.
   late final BackendImpact newRtiImpact = BackendImpact(
     staticUses: [
+      if (_options.interopNullAssertions) _commonElements.interopNullAssertion,
       _commonElements.findType,
       _commonElements.instanceType,
       _commonElements.arrayInstanceType,

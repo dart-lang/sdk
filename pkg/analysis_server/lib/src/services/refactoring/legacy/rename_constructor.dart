@@ -11,8 +11,8 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring_inte
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
-import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';

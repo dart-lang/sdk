@@ -169,6 +169,10 @@ abstract class MacroExecutionResult implements Serializable {
   /// result of executing a macro, indexed by the identifier of the enum.
   Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;
 
+  /// Any extends clauses that should be added to types as a result of executing
+  /// a macro, indexed by the identifier of the augmented type declaration.
+  Map<Identifier, NamedTypeAnnotationCode> get extendsTypeAugmentations;
+
   /// Any interfaces that should be added to types as a result of executing a
   /// macro, indexed by the identifier of the augmented type declaration.
   Map<Identifier, Iterable<TypeAnnotationCode>> get interfaceAugmentations;

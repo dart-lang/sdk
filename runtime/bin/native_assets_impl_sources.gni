@@ -1,0 +1,8 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+native_assets_impl_sources = [
+  "../include/bin/dart_io_api.h",
+  "native_assets_api_impl.cc",
+]

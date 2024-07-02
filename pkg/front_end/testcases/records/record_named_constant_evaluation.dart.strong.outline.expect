@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Chk extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::Object? v, {required core::Object? eq}) → self::Chk
+    : assert(v =={core::Object::==}{(core::Object) → core::bool} eq, "Not equal ${(v, {eq: eq})}"), super core::Object::•()
+    ;
+}
+extension type Ex(core::Object? value) {
+  abstract extension-type-member representation-field get value() → core::Object?;
+  constructor • = self::Ex|constructor#;
+  constructor tearoff • = self::Ex|constructor#_#new#tearOff;
+}
+static method main() → void
+  ;
+static extension-type-member method Ex|constructor#(core::Object? value) → self::Ex% /* erasure=core::Object?, declared=! */ {
+  lowered final self::Ex% /* erasure=core::Object?, declared=! */ #this = value;
+  return #this;
+}
+static extension-type-member method Ex|constructor#_#new#tearOff(core::Object? value) → self::Ex% /* erasure=core::Object?, declared=! */
+  return self::Ex|constructor#(value);

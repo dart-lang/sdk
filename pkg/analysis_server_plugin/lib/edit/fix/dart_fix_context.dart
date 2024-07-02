@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
+import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -10,7 +11,6 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// An object used to provide context information for Dart fix contributors.
 ///
@@ -58,6 +58,7 @@ class DartFixContext implements FixContext {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
+  // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
   Stream<LibraryElement> librariesWithExtensions(String memberName) async* {
     var analysisContext = resolvedResult.session.analysisContext;
     var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;

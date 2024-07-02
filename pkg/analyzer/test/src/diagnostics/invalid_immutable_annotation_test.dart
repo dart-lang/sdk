@@ -47,7 +47,7 @@ class A {
   void m() {}
 }
 ''', [
-      error(WarningCode.INVALID_IMMUTABLE_ANNOTATION, 45, 10),
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 9),
     ]);
   }
 }

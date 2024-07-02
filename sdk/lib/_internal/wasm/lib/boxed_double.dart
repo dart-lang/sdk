@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal' show doubleToIntBits, intBitsToDouble;
-import 'dart:_js_helper' show JS;
+import 'dart:_js_helper' show JS, jsStringToDartString;
+import 'dart:_string';
+import 'dart:_wasm';
 
 @pragma("wasm:entry-point")
 final class _BoxedDouble extends double {
@@ -330,7 +332,8 @@ final class _BoxedDouble extends double {
         return "0.0";
       }
     }
-    String result = JS<String>("v => stringToDartString(v.toString())", value);
+    String result = jsStringToDartString(
+        JSStringImpl(JS<WasmExternRef>("v => v.toString()", value)));
     if (this % 1.0 == 0.0 && result.indexOf('e') == -1) {
       result = '$result.0';
     }
@@ -345,7 +348,8 @@ final class _BoxedDouble extends double {
     // See ECMAScript-262, 15.7.4.5 for details.
 
     // Step 2.
-    if (fractionDigits < 0 || fractionDigits > 20) {
+    // fractionDigits < 0 || fractionDigits > 20
+    if (fractionDigits.gtU(20)) {
       throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
 
@@ -369,10 +373,11 @@ final class _BoxedDouble extends double {
     return result;
   }
 
-  String _toStringAsFixed(int fractionDigits) => JS<String>(
-      "(d, digits) => stringToDartString(d.toFixed(digits))",
-      value,
-      fractionDigits.toDouble());
+  String _toStringAsFixed(int fractionDigits) =>
+      jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+          "(d, digits) => d.toFixed(digits)",
+          value,
+          fractionDigits.toDouble())));
 
   String toStringAsExponential([int? fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
@@ -383,7 +388,8 @@ final class _BoxedDouble extends double {
 
     // Step 7.
     if (fractionDigits != null) {
-      if (fractionDigits < 0 || fractionDigits > 20) {
+      // fractionDigits < 0 || fractionDigits > 20
+      if (fractionDigits.gtU(20)) {
         throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
     }
@@ -398,12 +404,11 @@ final class _BoxedDouble extends double {
   }
 
   String _toStringAsExponential(int? fractionDigits) {
-    if (fractionDigits == null) {
-      return JS<String>("d => stringToDartString(d.toExponential())", value);
-    } else {
-      return JS<String>("(d, f) => stringToDartString(d.toExponential(f))",
-          value, fractionDigits.toDouble());
-    }
+    final jsString = JSStringImpl(fractionDigits == null
+        ? JS<WasmExternRef>("d => d.toExponential()", value)
+        : JS<WasmExternRef>(
+            "(d, f) => d.toExponential(f)", value, fractionDigits.toDouble()));
+    return jsStringToDartString(jsString);
   }
 
   String toStringAsPrecision(int precision) {
@@ -427,10 +432,11 @@ final class _BoxedDouble extends double {
     return result;
   }
 
-  String _toStringAsPrecision(int fractionDigits) => JS<String>(
-      "(d, precision) => stringToDartString(d.toPrecision(precision))",
-      value,
-      fractionDigits.toDouble());
+  String _toStringAsPrecision(int fractionDigits) =>
+      jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
+          "(d, precision) => d.toPrecision(precision)",
+          value,
+          fractionDigits.toDouble())));
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {

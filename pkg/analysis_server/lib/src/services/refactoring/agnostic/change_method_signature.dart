@@ -10,8 +10,8 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';

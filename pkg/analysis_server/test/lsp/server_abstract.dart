@@ -12,9 +12,9 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -55,6 +55,7 @@ abstract class AbstractLspAnalysisServerTest
         ConfigurationFilesMixin,
         TestMacros {
   late MockLspServerChannel channel;
+  late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
   late LspAnalysisServer server;
   late MockProcessRunner processRunner;
@@ -65,6 +66,8 @@ abstract class AbstractLspAnalysisServerTest
   int _previousContextBuilds = 0;
 
   DartFixPromptManager? get dartFixPromptManager => null;
+
+  String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
 
   /// The path that is not in [projectFolderPath], contains external packages.
   @override
@@ -187,7 +190,7 @@ abstract class AbstractLspAnalysisServerTest
               (textDocEdit) => textDocEdit,
             ),
           )
-          .whereNotNull()
+          .nonNulls
           .toList();
 
   @override
@@ -273,6 +276,7 @@ abstract class AbstractLspAnalysisServerTest
       root: sdkRoot,
     );
 
+    errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager();
     server = LspAnalysisServer(
         channel,
@@ -281,10 +285,11 @@ abstract class AbstractLspAnalysisServerTest
         DartSdkManager(sdkRoot.path),
         AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE,
+        errorNotifier,
         httpClient: httpClient,
         processRunner: processRunner,
         dartFixPromptManager: dartFixPromptManager);
+    errorNotifier.server = server;
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
@@ -897,6 +902,14 @@ mixin LspAnalysisServerTestMixin
   ServerCapabilities get serverCapabilities => _serverCapabilities!;
 
   Stream<Message> get serverToClient;
+
+  /// A stream of [ShowMessageParams] for any `window/logMessage` notifications.
+  Stream<ShowMessageParams> get showMessageNotifications =>
+      notificationsFromServer
+          .where((notification) =>
+              notification.method == Method.window_showMessage)
+          .map((message) => ShowMessageParams.fromJson(
+              message.params as Map<String, Object?>));
 
   String get testPackageRootPath => projectFolderPath;
 
@@ -1593,7 +1606,14 @@ mixin LspAnalysisServerTestMixin
   /// ensure no errors come from the server in response to notifications (which
   /// don't have their own responses).
   bool _isErrorNotification(NotificationMessage notification) {
-    return notification.method == Method.window_logMessage ||
-        notification.method == Method.window_showMessage;
+    var method = notification.method;
+    var params = notification.params as Map<String, Object?>?;
+    if (method == Method.window_logMessage && params != null) {
+      return LogMessageParams.fromJson(params).type == MessageType.Error;
+    } else if (method == Method.window_showMessage && params != null) {
+      return ShowMessageParams.fromJson(params).type == MessageType.Error;
+    } else {
+      return false;
+    }
   }
 }

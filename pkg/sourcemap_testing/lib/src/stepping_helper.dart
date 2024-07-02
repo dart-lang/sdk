@@ -3,7 +3,6 @@ import 'dart:ffi' show Abi;
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
-import 'package:collection/collection.dart' show IterableNullableExtension;
 import 'package:dart2js_tools/src/util.dart';
 import 'package:expect/minitest.dart'; // ignore: deprecated_member_use
 import 'package:path/path.dart' as path;
@@ -430,7 +429,7 @@ ProcessResult _runD8(String outInspectorPath, List<String> scriptD8Command,
     ...scriptD8Command,
     '--',
     debugAction,
-    ...breakpoints.whereNotNull()
+    ...breakpoints.nonNulls
   ]);
   if (runResult.exitCode != 0) {
     print(runResult.stderr);

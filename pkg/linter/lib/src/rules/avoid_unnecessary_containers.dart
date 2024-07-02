@@ -52,14 +52,15 @@ class AvoidUnnecessaryContainers extends LintRule {
       'avoid_unnecessary_containers', "Unnecessary instance of 'Container'.",
       correctionMessage:
           "Try removing the 'Container' (but not its children) from the "
-          'widget tree.');
+          'widget tree.',
+      hasPublishedDocs: true);
 
   AvoidUnnecessaryContainers()
       : super(
             name: 'avoid_unnecessary_containers',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

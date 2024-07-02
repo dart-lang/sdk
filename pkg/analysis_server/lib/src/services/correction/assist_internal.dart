@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
@@ -73,6 +72,7 @@ import 'package:analysis_server/src/services/correction/dart/split_variable_decl
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
@@ -191,12 +191,8 @@ class AssistProcessor {
       selectionLength: _assistContext.selectionLength,
       resolvedResult: _assistContext.resolveResult,
     );
-    if (context == null) {
-      return;
-    }
 
     Future<void> compute(CorrectionProducer producer) async {
-      producer.configure(context);
       var builder =
           ChangeBuilder(workspace: _assistContext.workspace, eol: producer.eol);
       try {
@@ -219,13 +215,12 @@ class AssistProcessor {
         generator,
         _assistContext.producerGeneratorsForLintRules[generator] ?? {},
       )) {
-        var producer = generator();
+        var producer = generator(context: context);
         await compute(producer);
       }
     }
     for (var multiGenerator in _multiGenerators) {
-      var multiProducer = multiGenerator();
-      multiProducer.configure(context);
+      var multiProducer = multiGenerator(context: context);
       for (var producer in await multiProducer.producers) {
         await compute(producer);
       }

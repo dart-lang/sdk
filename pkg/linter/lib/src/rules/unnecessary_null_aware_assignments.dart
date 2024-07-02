@@ -35,14 +35,15 @@ x ??= 1;
 class UnnecessaryNullAwareAssignments extends LintRule {
   static const LintCode code = LintCode(
       'unnecessary_null_aware_assignments', "Unnecessary assignment of 'null'.",
-      correctionMessage: 'Try removing the assignment.');
+      correctionMessage: 'Try removing the assignment.',
+      hasPublishedDocs: true);
 
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

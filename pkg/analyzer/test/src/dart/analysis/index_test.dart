@@ -2203,8 +2203,8 @@ extension E on int {
 }
 
 void f() {
-  0.foo;
-  0.foo = 0;
+  E.foo;
+  E.foo = 0;
 }
 ''');
     var getter = findElement.getter('foo');

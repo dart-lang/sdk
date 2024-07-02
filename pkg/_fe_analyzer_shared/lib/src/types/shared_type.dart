@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../type_inference/nullability_suffix.dart';
+
 /// Common interface for data structures used by the implementations to
 /// represent the type `dynamic`.
 abstract interface class SharedDynamicType implements SharedType {}
@@ -24,14 +26,18 @@ abstract interface class SharedNamedType<Type extends SharedType> {
 /// represent a record type.
 abstract interface class SharedRecordType<Type extends SharedType>
     implements SharedType {
-  Iterable<SharedNamedType<Type>> get namedTypes;
+  List<SharedNamedType<Type>> get namedTypes;
 
-  Iterable<Type> get positionalTypes;
+  List<Type> get positionalTypes;
 }
 
 /// Common interface for data structures used by the implementations to
 /// represent a type.
 abstract interface class SharedType {
+  /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
+  /// otherwise [NullabilitySuffix.none].
+  NullabilitySuffix get nullabilitySuffix;
+
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
   ///

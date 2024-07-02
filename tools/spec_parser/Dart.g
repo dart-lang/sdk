@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.44 Support null-aware elements.
+//
 // v0.43 Change rule structure such that the association of metadata
 // with non-terminals can be explained in a simple and consistent way.
 // The derivable terms do not change. Remove `metadata` from the kind
@@ -732,11 +734,22 @@ elements
     ;
 
 element
-    :    expressionElement
+    :    nullAwareExpressionElement
+    |    nullAwareMapElement
+    |    expressionElement
     |    mapElement
     |    spreadElement
     |    ifElement
     |    forElement
+    ;
+
+nullAwareExpressionElement
+    :    '?' expression
+    ;
+
+nullAwareMapElement
+    :    '?' expression ':' '?'? expression
+    |    expression ':' '?' expression
     ;
 
 expressionElement

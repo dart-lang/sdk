@@ -52,6 +52,8 @@ import 'target_os.dart';
 import 'transformations/deferred_loading.dart' as deferred_loading;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
+import 'transformations/dynamic_interface_annotator.dart'
+    as dynamic_interface_annotator show annotateComponent;
 import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
@@ -84,6 +86,11 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: null);
   args.addFlag('compact-async', help: 'Obsolete, ignored.', hide: true);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
+  args.addOption(
+    'depfile-target',
+    help: 'Override the target in the generated depfile',
+    hide: true,
+  );
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
       defaultsTo: null);
@@ -143,6 +150,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Name of the Fuchsia component', defaultsTo: null);
   args.addOption('data-dir',
       help: 'Name of the subdirectory of //data for output files');
+  args.addOption('dynamic-interface',
+      help: 'Path to dynamic module interface yaml file.');
   args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
@@ -209,6 +218,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String targetName = options['target'];
   final String? fileSystemScheme = options['filesystem-scheme'];
   final String? depfile = options['depfile'];
+  final String? depfileTarget = options['depfile-target'];
   final String? fromDillFile = options['from-dill'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
   final String? targetOS = options['target-os'];
@@ -285,6 +295,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final Uri? resourcesFileUri =
       resourcesFilePath == null ? null : resolveInputUri(resourcesFilePath);
 
+  final String? dynamicInterfaceFilePath = options['dynamic-interface'];
+  final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
+      ? null
+      : resolveInputUri(dynamicInterfaceFilePath);
+
   Uri? mainUri;
   if (input != null) {
     mainUri = resolveInputUri(input);
@@ -319,13 +334,16 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return badUsageExitCode;
   }
 
-  final results = await compileToKernel(mainUri, compilerOptions,
+  final results = await compileToKernel(KernelCompilationArguments(
+      source: mainUri,
+      options: compilerOptions,
       additionalSources: additionalSources,
       nativeAssets: nativeAssetsUri,
       resourcesFile: resourcesFileUri,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       keepClassNamesImplementing: options['keep-class-names-implementing'],
+      dynamicInterface: dynamicInterfaceUri,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       useRapidTypeAnalysis: rta,
@@ -335,7 +353,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
       targetOS: targetOS,
-      fromDillFile: fromDillFile);
+      fromDillFile: fromDillFile));
 
   errorPrinter.printCompilationMessages();
 
@@ -373,7 +391,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   if (depfile != null) {
     await writeDepfile(
-        fileSystem, results.compiledSources!, outputFileName, depfile);
+      fileSystem,
+      results.compiledSources!,
+      depfileTarget ?? outputFileName,
+      depfile,
+    );
   }
 
   if (splitOutputByPackages) {
@@ -420,32 +442,61 @@ class KernelCompilationResults {
   });
 }
 
+// Arguments for [compileToKernel].
+class KernelCompilationArguments {
+  final Uri? source;
+  final CompilerOptions? options;
+  final List<Uri> additionalSources;
+  final Uri? nativeAssets;
+  final Uri? resourcesFile;
+  final bool includePlatform;
+  final List<String> deleteToStringPackageUris;
+  final List<String> keepClassNamesImplementing;
+  final bool aot;
+  final Uri? dynamicInterface;
+  final Map<String, String> environmentDefines; // Should be mutable.
+  final bool enableAsserts;
+  final bool useGlobalTypeFlowAnalysis;
+  final bool useRapidTypeAnalysis;
+  final bool treeShakeWriteOnlyFields;
+  final bool useProtobufTreeShakerV2;
+  final bool minimalKernel;
+  final String? targetOS;
+  final String? fromDillFile;
+
+  KernelCompilationArguments({
+    this.source,
+    this.options,
+    this.additionalSources = const <Uri>[],
+    this.nativeAssets,
+    this.resourcesFile,
+    this.includePlatform = false,
+    this.deleteToStringPackageUris = const <String>[],
+    this.keepClassNamesImplementing = const <String>[],
+    this.aot = false,
+    this.dynamicInterface,
+    Map<String, String>? environmentDefines,
+    this.enableAsserts = true,
+    this.useGlobalTypeFlowAnalysis = false,
+    this.useRapidTypeAnalysis = true,
+    this.treeShakeWriteOnlyFields = false,
+    this.useProtobufTreeShakerV2 = false,
+    this.minimalKernel = false,
+    this.targetOS,
+    this.fromDillFile,
+  }) : environmentDefines = environmentDefines ?? {};
+}
+
 /// Generates a kernel representation of the program whose main library is in
-/// the given [source]. Intended for whole program (non-modular) compilation.
+/// the given [args.source]. Intended for whole program (non-modular) compilation.
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
-/// Either [source], or [nativeAssets], or both must be non-null.
+/// Either [arg.source], or [args.nativeAssets], or both must be non-null.
 Future<KernelCompilationResults> compileToKernel(
-  Uri? source,
-  CompilerOptions options, {
-  List<Uri> additionalSources = const <Uri>[],
-  Uri? nativeAssets,
-  Uri? resourcesFile,
-  bool includePlatform = false,
-  List<String> deleteToStringPackageUris = const <String>[],
-  List<String> keepClassNamesImplementing = const <String>[],
-  bool aot = false,
-  bool useGlobalTypeFlowAnalysis = false,
-  bool useRapidTypeAnalysis = true,
-  required Map<String, String> environmentDefines,
-  bool enableAsserts = true,
-  bool useProtobufTreeShakerV2 = false,
-  bool minimalKernel = false,
-  bool treeShakeWriteOnlyFields = false,
-  String? targetOS = null,
-  String? fromDillFile = null,
-}) async {
+    KernelCompilationArguments args) async {
+  final options = args.options!;
+
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -453,8 +504,8 @@ Future<KernelCompilationResults> compileToKernel(
 
   final nativeAssetsLibrary =
       await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
-          nativeAssets, errorDetector);
-  if (source == null) {
+          args.nativeAssets, errorDetector);
+  if (args.source == null) {
     return KernelCompilationResults.named(
       nativeAssetsLibrary: nativeAssetsLibrary,
     );
@@ -462,15 +513,16 @@ Future<KernelCompilationResults> compileToKernel(
 
   final target = options.target!;
   options.environmentDefines =
-      target.updateEnvironmentDefines(environmentDefines);
+      target.updateEnvironmentDefines(args.environmentDefines);
 
   CompilerResult? compilerResult;
+  final fromDillFile = args.fromDillFile;
   if (fromDillFile != null) {
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    compilerResult = await kernelForProgram(source, options,
-        additionalSources: additionalSources);
+    compilerResult = await kernelForProgram(args.source!, options,
+        additionalSources: args.additionalSources);
   }
   final Component? component = compilerResult?.component;
 
@@ -480,26 +532,18 @@ Future<KernelCompilationResults> compileToKernel(
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
       compilerResult?.loadedComponents, compilerResult?.sdkComponent,
-      includePlatform: includePlatform);
+      includePlatform: args.includePlatform);
 
-  if (deleteToStringPackageUris.isNotEmpty && component != null) {
+  if (args.deleteToStringPackageUris.isNotEmpty && component != null) {
     to_string_transformer.transformComponent(
-        component, deleteToStringPackageUris);
+        component, args.deleteToStringPackageUris);
   }
 
   // Run global transformations only if component is correct.
-  if ((aot || minimalKernel) && component != null) {
-    await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
-        enableAsserts, useProtobufTreeShakerV2, errorDetector,
-        environmentDefines: options.environmentDefines,
-        targetOS: targetOS,
-        minimalKernel: minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
-        useRapidTypeAnalysis: useRapidTypeAnalysis,
-        keepClassNamesImplementing: keepClassNamesImplementing,
-        resourcesFile: resourcesFile);
+  if ((args.aot || args.minimalKernel) && component != null) {
+    await runGlobalTransformations(target, component, errorDetector, args);
 
-    if (minimalKernel) {
+    if (args.minimalKernel) {
       // compiledSources is component.uriToSource.keys.
       // Make a copy of compiledSources to detach it from
       // component.uriToSource which is cleared below.
@@ -548,24 +592,21 @@ Set<Library> createLoadedLibrariesSet(
   return loadedLibraries;
 }
 
-Future runGlobalTransformations(
-    Target target,
-    Component component,
-    bool useGlobalTypeFlowAnalysis,
-    bool enableAsserts,
-    bool useProtobufTreeShakerV2,
-    ErrorDetector errorDetector,
-    {bool minimalKernel = false,
-    bool treeShakeWriteOnlyFields = false,
-    bool useRapidTypeAnalysis = true,
-    Map<String, String>? environmentDefines,
-    List<String>? keepClassNamesImplementing,
-    String? targetOS,
-    Uri? resourcesFile}) async {
+Future runGlobalTransformations(Target target, Component component,
+    ErrorDetector errorDetector, KernelCompilationArguments args) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
+
+  final dynamicInterface = args.dynamicInterface;
+  if (dynamicInterface != null) {
+    dynamic_interface_annotator.annotateComponent(
+        File(dynamicInterface.toFilePath()).readAsStringSync(),
+        dynamicInterface,
+        component,
+        coreTypes);
+  }
 
   // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of
   // identical mixin applications when creating mixin applications in frontend,
@@ -577,21 +618,22 @@ Future runGlobalTransformations(
 
   // Perform unreachable code elimination, which should be performed before
   // type flow analysis so TFA won't take unreachable code into account.
+  final targetOS = args.targetOS;
   final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
   final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
       target, component, os,
-      enableAsserts: enableAsserts,
-      environmentDefines: environmentDefines,
+      enableAsserts: args.enableAsserts,
+      environmentDefines: args.environmentDefines,
       coreTypes: coreTypes);
   unreachable_code_elimination.transformComponent(
-      target, component, evaluator, enableAsserts);
+      target, component, evaluator, args.enableAsserts);
 
-  if (useGlobalTypeFlowAnalysis) {
+  if (args.useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
-        treeShakeSignatures: !minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
-        treeShakeProtobufs: useProtobufTreeShakerV2,
-        useRapidTypeAnalysis: useRapidTypeAnalysis);
+        treeShakeSignatures: !args.minimalKernel,
+        treeShakeWriteOnlyFields: args.treeShakeWriteOnlyFields,
+        treeShakeProtobufs: args.useProtobufTreeShakerV2,
+        useRapidTypeAnalysis: args.useRapidTypeAnalysis);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -607,10 +649,11 @@ Future runGlobalTransformations(
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(
-      component, coreTypes, target, hierarchy, keepClassNamesImplementing);
+      component, coreTypes, target, hierarchy, args.keepClassNamesImplementing);
 
   deferred_loading.transformComponent(component, coreTypes, target);
 
+  final resourcesFile = args.resourcesFile;
   if (resourcesFile != null) {
     resource_identifier.transformComponent(component, resourcesFile);
   }

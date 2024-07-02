@@ -46,14 +46,15 @@ class NoDuplicateCaseValues extends LintRule {
       'no_duplicate_case_values',
       "The value of the case clause ('{0}') is equal to the value of an "
           "earlier case clause ('{1}').",
-      correctionMessage: 'Try removing or changing the value.');
+      correctionMessage: 'Try removing or changing the value.',
+      hasPublishedDocs: true);
 
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

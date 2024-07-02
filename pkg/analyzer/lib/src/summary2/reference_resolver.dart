@@ -80,7 +80,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -147,7 +147,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -203,7 +203,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.representation.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
     LinkingNodeContext(node.representation, scope);
 
@@ -311,6 +311,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     var builder = FunctionTypeBuilder.of(nodeImpl, nullabilitySuffix);
     nodeImpl.type = builder;
+    nodesToBuildType.addDeclaration(node);
     nodesToBuildType.addTypeBuilder(builder);
 
     scope = outerScope;
@@ -375,7 +376,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InterfaceScope(scope, element);
+    scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -514,6 +515,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       bound.accept(this);
       var element = node.declaredElement as TypeParameterElementImpl;
       element.bound = bound.type;
+      nodesToBuildType.addDeclaration(node);
     }
   }
 

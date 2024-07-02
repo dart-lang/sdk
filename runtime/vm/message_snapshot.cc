@@ -27,8 +27,6 @@
 namespace dart {
 
 static Dart_CObject cobj_sentinel = {Dart_CObject_kUnsupported, {false}};
-static Dart_CObject cobj_transition_sentinel = {Dart_CObject_kUnsupported,
-                                                {false}};
 static Dart_CObject cobj_dynamic_type = {Dart_CObject_kUnsupported, {false}};
 static Dart_CObject cobj_void_type = {Dart_CObject_kUnsupported, {false}};
 static Dart_CObject cobj_empty_type_arguments = {Dart_CObject_kUnsupported,
@@ -3216,7 +3214,6 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
 void MessageSerializer::AddBaseObjects() {
   AddBaseObject(Object::null());
   AddBaseObject(Object::sentinel().ptr());
-  AddBaseObject(Object::transition_sentinel().ptr());
   AddBaseObject(Object::empty_array().ptr());
   AddBaseObject(Object::dynamic_type().ptr());
   AddBaseObject(Object::void_type().ptr());
@@ -3228,7 +3225,6 @@ void MessageSerializer::AddBaseObjects() {
 void MessageDeserializer::AddBaseObjects() {
   AddBaseObject(Object::null());
   AddBaseObject(Object::sentinel().ptr());
-  AddBaseObject(Object::transition_sentinel().ptr());
   AddBaseObject(Object::empty_array().ptr());
   AddBaseObject(Object::dynamic_type().ptr());
   AddBaseObject(Object::void_type().ptr());
@@ -3240,7 +3236,6 @@ void MessageDeserializer::AddBaseObjects() {
 void ApiMessageSerializer::AddBaseObjects() {
   AddBaseObject(PredefinedCObjects::cobj_null());
   AddBaseObject(&cobj_sentinel);
-  AddBaseObject(&cobj_transition_sentinel);
   AddBaseObject(PredefinedCObjects::cobj_empty_array());
   AddBaseObject(&cobj_dynamic_type);
   AddBaseObject(&cobj_void_type);
@@ -3252,7 +3247,6 @@ void ApiMessageSerializer::AddBaseObjects() {
 void ApiMessageDeserializer::AddBaseObjects() {
   AddBaseObject(PredefinedCObjects::cobj_null());
   AddBaseObject(&cobj_sentinel);
-  AddBaseObject(&cobj_transition_sentinel);
   AddBaseObject(PredefinedCObjects::cobj_empty_array());
   AddBaseObject(&cobj_dynamic_type);
   AddBaseObject(&cobj_void_type);

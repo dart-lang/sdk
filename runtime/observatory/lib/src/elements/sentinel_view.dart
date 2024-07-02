@@ -90,8 +90,6 @@ class SentinelViewElement extends CustomElement implements Renderable {
       case M.SentinelKind.notInitialized:
         return 'This object will be initialized once it is accessed by '
             'the program.';
-      case M.SentinelKind.initializing:
-        return 'This object is currently being initialized.';
       case M.SentinelKind.optimizedOut:
         return 'This object is no longer needed and has been removed by the '
             'optimizing compiler.';

@@ -74,6 +74,9 @@ class FakeEntryPointsListener implements EntryPointsListener {
 
   @override
   Procedure getClosureCallMethod(Closure closure) => closure.createCallMethod();
+
+  @override
+  void addDynamicallyExtendableClass(Class c) {}
 }
 
 class FakeSharedVariable implements SharedVariable {

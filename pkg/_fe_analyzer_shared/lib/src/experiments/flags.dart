@@ -129,6 +129,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 13),
       experimentReleasedVersion: const Version(2, 13)),
 
+  nullAwareElements(
+      name: 'null-aware-elements',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   patterns(
       name: 'patterns',
       isEnabledByDefault: true,

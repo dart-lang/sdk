@@ -176,13 +176,13 @@ class RecordLiteralResolver {
       }
     }
 
-    _resolver.inferenceHelper.recordStaticType(
-      node,
+    node.recordStaticType(
       RecordTypeImpl(
         positionalFields: positionalFields,
         namedFields: namedFields,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
+      resolver: _resolver,
     );
   }
 

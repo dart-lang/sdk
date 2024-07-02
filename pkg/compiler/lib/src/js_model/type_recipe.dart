@@ -67,6 +67,16 @@ abstract class TypeRecipeDomain {
     TypeEnvironmentStructure environmentStructure2,
     TypeRecipe recipe2,
   );
+
+  /// Combines the binding (extension) of [recipe1] with [recipe2], where both
+  /// recipes are evaluated against the same environment with structure
+  /// [environmentStructure].
+  ///
+  /// May return `null`.
+  TypeRecipeAndEnvironmentStructure? foldEvalBindEvalWithSharedEnvironment(
+      TypeEnvironmentStructure environmentStructure,
+      TypeRecipe recipe1,
+      TypeRecipe recipe2);
 }
 
 /// A type recipe and the structure of the type environment against which it is
@@ -477,6 +487,22 @@ class TypeRecipeDomainImpl implements TypeRecipeDomain {
           newRecipe, environmentStructure1);
     }
 
+    return null;
+  }
+
+  @override
+  TypeRecipeAndEnvironmentStructure? foldEvalBindEvalWithSharedEnvironment(
+      TypeEnvironmentStructure environmentStructure,
+      TypeRecipe recipe1,
+      TypeRecipe recipe2) {
+    if (recipe1 is FullTypeEnvironmentRecipe &&
+        recipe2 is TypeExpressionRecipe) {
+      return TypeRecipeAndEnvironmentStructure(
+          FullTypeEnvironmentRecipe(
+              classType: recipe1.classType,
+              types: [...recipe1.types, recipe2.type]),
+          environmentStructure);
+    }
     return null;
   }
 }

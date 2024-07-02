@@ -60,19 +60,21 @@ class PreferTypingUninitializedVariables extends LintRule {
   static const LintCode forField = LintCode(
       'prefer_typing_uninitialized_variables',
       'An uninitialized field should have an explicit type annotation.',
-      correctionMessage: 'Try adding a type annotation.');
+      correctionMessage: 'Try adding a type annotation.',
+      hasPublishedDocs: true);
 
   static const LintCode forVariable = LintCode(
       'prefer_typing_uninitialized_variables',
       'An uninitialized variable should have an explicit type annotation.',
-      correctionMessage: 'Try adding a type annotation.');
+      correctionMessage: 'Try adding a type annotation.',
+      hasPublishedDocs: true);
 
   PreferTypingUninitializedVariables()
       : super(
             name: 'prefer_typing_uninitialized_variables',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   void registerNodeProcessors(

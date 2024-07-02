@@ -7,7 +7,6 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
-import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     show SearchMatch;
@@ -16,8 +15,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
-import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 
 typedef StaticOptions = Either2<bool, ReferenceOptions>;
 
@@ -48,19 +45,20 @@ class ReferencesHandler
             _getReferences(unit, offset, params, performance)));
   }
 
-  List<Location> _getDeclarations(ParsedUnitResult result, int offset) {
-    var collector = NavigationCollectorImpl();
-    computeDartNavigation(
-        server.resourceProvider, collector, result, offset, 0);
+  List<Location> _getDeclarations(Element element) {
+    element = element.nonSynthetic;
+    var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
+    if (unitElement == null) {
+      return [];
+    }
 
-    return convert(collector.targets, (NavigationTarget target) {
-      var targetFilePath = collector.files[target.fileIndex];
-      var targetFileUri = uriConverter.toClientUri(targetFilePath);
-      var lineInfo = server.getLineInfo(targetFilePath);
-      return lineInfo != null
-          ? navigationTargetToLocation(targetFileUri, target, lineInfo)
-          : null;
-    }).nonNulls.toList();
+    return [
+      Location(
+        uri: uriConverter.toClientUri(unitElement.source.fullName),
+        range: toRange(
+            unitElement.lineInfo, element.nameOffset, element.nameLength),
+      )
+    ];
   }
 
   Future<ErrorOr<List<Location>?>> _getReferences(
@@ -72,6 +70,7 @@ class ReferencesHandler
     node = _getReferenceTargetNode(node);
 
     var element = switch (server.getElementOfNode(node)) {
+      FieldFormalParameterElement(:var field?) => field,
       PropertyAccessorElement(:var variable2?) => variable2,
       (var element) => element,
     };
@@ -106,9 +105,9 @@ class ReferencesHandler
         'convert', (_) => convert(results, toLocation).nonNulls.toList());
 
     if (params.context.includeDeclaration == true) {
-      // Also include the definition for the symbol at this location.
+      // Also include the definition for the resolved element.
       referenceResults.addAll(performance.run(
-          '_getDeclarations', (_) => _getDeclarations(result, offset)));
+          '_getDeclarations', (_) => _getDeclarations(element)));
     }
 
     return success(referenceResults);

@@ -4,7 +4,6 @@
 
 # Flaky failures
 async_generator_breakpoint_test: Pass, Slow # Uses --stacktrace-every=...
-dds_log_history_size_gigantic_test: Pass, Slow # Involves processing lots of logs
 field_script_test: Pass, RuntimeError
 get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
 get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
@@ -44,9 +43,6 @@ uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
 [ $compiler == fasta && $runtime == none ]
 *: ExtraSlow # Attempt to not flake in batch compile mode. See also issue 53672.
-
-[ $mode == debug && $system == windows ]
-dds_log_history_size_gigantic_test: Skip # Too slow: dartbug.com/41825
 
 [ $mode == debug && $system == windows && $checked ]
 async_scope_test: Pass, Slow

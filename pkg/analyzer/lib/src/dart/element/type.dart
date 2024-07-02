@@ -681,8 +681,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<InterfaceType> get superclassConstraints {
     var element = this.element;
-    if (element is MixinElement) {
-      var constraints = element.superclassConstraints;
+    var augmented = element.augmented;
+    if (augmented is AugmentedMixinElement) {
+      var constraints = augmented.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
       return [];
@@ -1131,7 +1132,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   String? get name => null;
 
   @override
-  Iterable<SharedNamedType<DartType>> get namedTypes => namedFields;
+  List<SharedNamedType<DartType>> get namedTypes => namedFields;
 
   @override
   bool operator ==(Object other) {
@@ -1342,10 +1343,12 @@ abstract class TypeImpl implements DartType {
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
+    bool preferTypeAlias = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
+      preferTypeAlias: preferTypeAlias,
     );
     appendTo(builder);
     return builder.toString();

@@ -403,21 +403,34 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
                                            bool print_locations) {
   char str[4000];
   BufferFormatter f(str, sizeof(str));
-  instr->PrintTo(&f);
+  if (FlowGraphAllocator::HasLifetimePosition(instr)) {
+    f.Printf("%3" Pd ": ", FlowGraphAllocator::GetLifetimePosition(instr));
+  }
+  if (!instr->IsBlockEntry()) {
+    f.Printf("    ");
+  }
+  if (auto* const block = instr->AsBlockEntryWithInitialDefs()) {
+    block->PrintBlockHeaderTo(&f);
+    // Output and clear the buffer after each internal definition, as otherwise
+    // too many internal definitions could cause truncation in the output.
+    auto callback = [](BaseTextBuffer* f) {
+      THR_Print("%s", f->buffer());
+      f->Clear();
+    };
+    block->PrintInitialDefinitionsTo(&f, callback);
+  } else {
+    instr->PrintTo(&f);
+  }
   if (FLAG_print_environments && (instr->env() != nullptr)) {
     instr->env()->PrintTo(&f);
   }
   if (print_locations && (instr->HasLocs())) {
     instr->locs()->PrintTo(&f);
   }
-  if (FlowGraphAllocator::HasLifetimePosition(instr)) {
-    THR_Print("%3" Pd ": ", FlowGraphAllocator::GetLifetimePosition(instr));
-  }
-  if (!instr->IsBlockEntry()) THR_Print("    ");
-  THR_Print("%s", str);
   if (FLAG_trace_inlining_intervals) {
-    THR_Print(" iid: %" Pd "", instr->inlining_id());
+    f.Printf(" iid: %" Pd "", instr->inlining_id());
   }
+  THR_Print("%s", f.buffer());
 }
 
 void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
@@ -1208,27 +1221,8 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
-    BaseTextBuffer* f) const {
-  const GrowableArray<Definition*>& defns = initial_definitions_;
-  if (defns.length() > 0) {
-    f->AddString(" {");
-    for (intptr_t i = 0; i < defns.length(); ++i) {
-      Definition* def = defns[i];
-      // Skip constants which are not used in the graph.
-      if (!ShouldPrintInstruction(def)) {
-        continue;
-      }
-      f->AddString("\n      ");
-      def->PrintTo(f);
-    }
-    f->AddString("\n}");
-  }
-}
-
-void GraphEntryInstr::PrintTo(BaseTextBuffer* f) const {
+void GraphEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
-  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
 void JoinEntryInstr::PrintTo(BaseTextBuffer* f) const {
@@ -1352,32 +1346,54 @@ void TargetEntryInstr::PrintTo(BaseTextBuffer* f) const {
   }
 }
 
-void OsrEntryInstr::PrintTo(BaseTextBuffer* f) const {
+void BlockEntryWithInitialDefs::PrintTo(BaseTextBuffer* f) const {
+  PrintBlockHeaderTo(f);
+  PrintInitialDefinitionsTo(f, [](BaseTextBuffer* f) {});
+}
+
+void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
+    BaseTextBuffer* f,
+    std::function<void(BaseTextBuffer* f)> callback) const {
+  const GrowableArray<Definition*>& defns = initial_definitions_;
+  if (defns.length() > 0) {
+    f->AddString(" {");
+    for (intptr_t i = 0; i < defns.length(); ++i) {
+      Definition* const def = defns[i];
+      // Skip constants which are not used in the graph.
+      if (!ShouldPrintInstruction(def)) {
+        continue;
+      }
+      f->AddString("\n      ");
+      def->PrintTo(f);
+      callback(f);
+    }
+    f->AddString("\n}");
+  }
+}
+
+void OsrEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[osr entry]:%" Pd " stack_depth=%" Pd, block_id(),
             GetDeoptId(), stack_depth());
   if (HasParallelMove()) {
     f->AddString("\n");
     parallel_move()->PrintTo(f);
   }
-  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
-void FunctionEntryInstr::PrintTo(BaseTextBuffer* f) const {
+void FunctionEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[function entry]:%" Pd, block_id(), GetDeoptId());
   if (HasParallelMove()) {
     f->AddString("\n");
     parallel_move()->PrintTo(f);
   }
-  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
-void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
+void NativeEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[native function entry]:%" Pd, block_id(), GetDeoptId());
   if (HasParallelMove()) {
     f->AddString("\n");
     parallel_move()->PrintTo(f);
   }
-  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1441,15 +1457,13 @@ void NativeParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   marshaller_.NativeLocationOfNativeParameter(def_index_).PrintTo(f);
 }
 
-void CatchBlockEntryInstr::PrintTo(BaseTextBuffer* f) const {
+void CatchBlockEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[target catch try_idx %" Pd " catch_try_idx %" Pd "]",
             block_id(), try_index(), catch_try_index());
   if (HasParallelMove()) {
     f->AddString("\n");
     parallel_move()->PrintTo(f);
   }
-
-  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
 void LoadIndexedUnsafeInstr::PrintOperandsTo(BaseTextBuffer* f) const {

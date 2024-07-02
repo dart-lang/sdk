@@ -1837,7 +1837,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, done;
+    Label retry, is_new, done;
     __ pushq(RAX);      // Spill.
     __ pushq(RCX);      // Spill.
     __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
@@ -1854,23 +1854,37 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
     __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
-    __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
-    __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
-    __ movq(Address(RAX, RCX, TIMES_8,
-                    target::MarkingStackBlock::pointers_offset()),
-            TMP);
-    __ incq(RCX);
-    __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
-    __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
-    __ j(NOT_EQUAL, &done);
+    __ testq(TMP,
+             Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+    __ j(NOT_ZERO, &is_new);
 
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ movq(CallingConventions::kArg1Reg, THR);
-      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-    }
+    auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
+      __ movq(RAX, Address(THR, offset));
+      __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
+      __ movq(Address(RAX, RCX, TIMES_8,
+                      target::MarkingStackBlock::pointers_offset()),
+              TMP);
+      __ incq(RCX);
+      __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
+      __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
+      __ j(NOT_EQUAL, &done);
+
+      {
+        LeafRuntimeScope rt(assembler,
+                            /*frame_size=*/0,
+                            /*preserve_registers=*/true);
+        __ movq(CallingConventions::kArg1Reg, THR);
+        rt.Call(entry, 1);
+      }
+    };
+
+    mark_stack_push(target::Thread::old_marking_stack_block_offset(),
+                    kOldMarkingStackBlockProcessRuntimeEntry);
+    __ jmp(&done);
+
+    __ Bind(&is_new);
+    mark_stack_push(target::Thread::new_marking_stack_block_offset(),
+                    kNewMarkingStackBlockProcessRuntimeEntry);
 
     __ Bind(&done);
     __ popq(RCX);  // Unspill.
@@ -1961,8 +1975,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpq(Address(TMP, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card. Not atomic: we assume mutable arrays are not shared
-    // between threads.
+    // Atomically dirty the card.
     __ pushq(RAX);
     __ pushq(RCX);
     __ subq(R13, TMP);  // Offset in page.
@@ -1973,6 +1986,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ shrq(R13, Immediate(target::kBitsPerWordLog2));  // Word offset.
     __ movq(RAX, Immediate(1));
     __ shlq(RAX, RCX);  // Bit mask. (Shift amount is mod 63.)
+    __ lock();
     __ orq(Address(TMP, R13, TIMES_8, 0), RAX);
     __ popq(RCX);
     __ popq(RAX);
@@ -2581,7 +2595,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
-  if (!FLAG_lazy_dispatchers) {
+  if (FLAG_precompiled_mode) {
     GenerateDispatcherCode(assembler, &call_target_function);
   } else {
     __ jmp(&call_target_function);

@@ -9,17 +9,18 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/builder/builder.dart';
-import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/source/source_class_builder.dart';
-import 'package:front_end/src/fasta/source/source_constructor_builder.dart';
-import 'package:front_end/src/fasta/source/source_factory_builder.dart';
-import 'package:front_end/src/fasta/source/source_member_builder.dart';
-import 'package:front_end/src/fasta/source/source_procedure_builder.dart';
-import 'package:front_end/src/fasta/scope.dart';
+import 'package:front_end/src/base/scope.dart';
+import 'package:front_end/src/builder/builder.dart';
+import 'package:front_end/src/builder/member_builder.dart';
+import 'package:front_end/src/source/source_class_builder.dart';
+import 'package:front_end/src/source/source_constructor_builder.dart';
+import 'package:front_end/src/source/source_factory_builder.dart';
+import 'package:front_end/src/source/source_member_builder.dart';
+import 'package:front_end/src/source/source_procedure_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
+
 import '../utils/symbolic_language_versions.dart';
 
 Future<void> main(List<String> args) async {
@@ -103,7 +104,6 @@ class Tags {
   static const String kernelMembers = 'kernel-members';
   static const String initializers = 'initializers';
   static const String error = 'message';
-  static const String isNonNullableByDefault = 'nnbd';
   static const String patch = 'patch';
   static const String isAbstract = 'isAbstract';
 }
@@ -112,14 +112,6 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
   PatchingDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
-
-  @override
-  Features computeLibraryValue(Id id, Library library) {
-    Features features = new Features();
-    // TODO(johnniwinther): Remove this.
-    features[Tags.isNonNullableByDefault] = 'true';
-    return features;
-  }
 
   @override
   Features computeClassValue(Id id, Class cls) {

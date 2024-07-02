@@ -14,7 +14,7 @@ class ShutdownMessageHandler extends LspMessageHandler<void, void> {
   Method get handlesMessage => Method.shutdown;
 
   @override
-  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
   ErrorOr<void> handle(

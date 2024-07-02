@@ -12,15 +12,15 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/constant_evaluator.dart' as constants
+import 'package:front_end/src/kernel/constant_evaluator.dart' as constants
     show EvaluationMode, transformLibraries, ErrorReporter;
-import 'package:front_end/src/fasta/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:front_end/src/kernel/kernel_target.dart';
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/class_hierarchy.dart';

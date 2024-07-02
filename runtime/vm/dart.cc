@@ -920,6 +920,12 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
   Object::VerifyBuiltinVtables();
 
   auto IG = T->isolate_group();
+  {
+    SafepointReadRwLocker reader(T, IG->program_lock());
+    IG->set_shared_field_table(T, IG->shared_initial_field_table()->Clone(
+                                      /*for_isolate=*/nullptr,
+                                      /*for_isolate_group=*/IG));
+  }
   DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1044,6 +1050,7 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
       ADD_ISOLATE_GROUP_FLAG(branch_coverage, branch_coverage,
                              FLAG_branch_coverage);
+      ADD_ISOLATE_GROUP_FLAG(coverage, coverage, FLAG_coverage);
     }
 
     // Generated code must match the host architecture and ABI. We check the

@@ -265,15 +265,15 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return OpenFD(fd);
 }
 
-Utils::CStringUniquePtr File::UriToPath(const char* uri) {
+CStringUniquePtr File::UriToPath(const char* uri) {
   const char* path =
       (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0) ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
   if (uri_decoder.decoded() == nullptr) {
     errno = EINVAL;
-    return Utils::CreateCStringUniquePtr(nullptr);
+    return CStringUniquePtr(nullptr);
   }
-  return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+  return CStringUniquePtr(strdup(uri_decoder.decoded()));
 }
 
 File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {

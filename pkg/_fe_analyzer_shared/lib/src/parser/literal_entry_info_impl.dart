@@ -15,6 +15,12 @@ const LiteralEntryInfo ifCondition = const IfCondition();
 /// preceded by a '...' spread operator.
 const LiteralEntryInfo spreadOperator = const SpreadOperator();
 
+/// [nullAwareEntry] is for parsing a null-aware element in a literal list or
+/// set, preceded by the `?` null-aware marker, or a null-aware map entry in a
+/// map literal, where either the key or the value is preceded by the `?`
+/// null-aware marker.
+const NullAwareEntry nullAwareEntry = const NullAwareEntry();
+
 /// The first step when processing a `for` control flow collection entry.
 class ForCondition extends LiteralEntryInfo {
   bool _inStyle = false;
@@ -86,6 +92,9 @@ class ForCondition extends LiteralEntryInfo {
       );
     } else if (optional('...', next) || optional('...?', next)) {
       return _inStyle ? const ForInSpread() : const ForSpread();
+    } else if (optional('?', next)) {
+      return new Nested(nullAwareEntry,
+          _inStyle ? const ForInComplete() : const ForComplete());
     }
     return _inStyle ? const ForInEntry() : const ForEntry();
   }
@@ -180,6 +189,8 @@ class IfCondition extends LiteralEntryInfo {
       return new Nested(ifCondition, const IfComplete());
     } else if (optional('...', next) || optional('...?', next)) {
       return const IfSpread();
+    } else if (optional('?', next)) {
+      return new Nested(nullAwareEntry, const IfComplete());
     }
     return const IfEntry();
   }
@@ -306,5 +317,32 @@ class Nested extends LiteralEntryInfo {
   LiteralEntryInfo computeNext(Token token) {
     nestedStep = nestedStep!.computeNext(token);
     return nestedStep != null ? this : lastStep;
+  }
+}
+
+class NullAwareEntry extends LiteralEntryInfo {
+  const NullAwareEntry() : super(false, 0);
+
+  @override
+  Token parse(Token token, Parser parser) {
+    final Token entryNullAwareToken = token.next!;
+    assert(optional('?', entryNullAwareToken));
+    token = parser.parseExpression(entryNullAwareToken);
+    if (optional(':', token.next!)) {
+      Token colon = token.next!;
+      Token next = colon.next!;
+      if (optional('?', next)) {
+        token = parser.parseExpression(next);
+        parser.listener.handleLiteralMapEntry(colon, token,
+            nullAwareKeyToken: entryNullAwareToken, nullAwareValueToken: next);
+      } else {
+        token = parser.parseExpression(colon);
+        parser.listener.handleLiteralMapEntry(colon, token,
+            nullAwareKeyToken: entryNullAwareToken, nullAwareValueToken: null);
+      }
+    } else {
+      parser.listener.handleNullAwareElement(entryNullAwareToken);
+    }
+    return token;
   }
 }

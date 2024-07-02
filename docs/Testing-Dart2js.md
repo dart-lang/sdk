@@ -15,7 +15,7 @@ Testing dart2js is complicated. There are a lot of configurations that are teste
 
   * **VM Production/Developer mode:** this is the mode that Dart developers use to enable assertions and type checks while developing a Dart program. Since dart2js is a Dart program, the dart2js compiler engineers want to make sure that their assertions and type annotations are checked.
 
-  * **dart2js Production/Developer mode:** dart2js is an implementation of the Dart programming language. And just like the VM, dart2js should also support developer mode where assertions an type annotations are checked. So both production mode and developer mode of dart2js should be tested. Ideally, both in production mode and developer mode on the VM.
+  * **dart2js Production/Developer mode:** dart2js is an implementation of the Dart programming language. And just like the VM, dart2js should also support developer mode where assertions and type annotations are checked. So both production mode and developer mode of dart2js should be tested. Ideally, both in production mode and developer mode on the VM.
 
 Ideally, we would want to test all the entries in this matrix:
 

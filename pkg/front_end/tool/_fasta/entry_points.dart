@@ -15,18 +15,17 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/base/command_line_options.dart';
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/get_dependencies.dart' show getDependencies;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
+import 'package:front_end/src/codes/cfe_codes.dart'
     show codeInternalProblemVerificationError;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/benchmarker.dart'
+import 'package:front_end/src/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
-import 'package:front_end/src/fasta/kernel/utils.dart'
-    show writeComponentToFile;
+import 'package:front_end/src/kernel/utils.dart' show writeComponentToFile;
 import 'package:front_end/src/kernel_generator_impl.dart'
     show generateKernelInternal;
 import 'package:front_end/src/linux_and_intel_specific_perf.dart';
@@ -342,7 +341,10 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
         print("Building outlines for ${arguments.join(' ')}");
       }
       CompilerResult compilerResult = await generateKernelInternal(
-          buildSummary: true, benchmarker: benchmarker);
+          buildSummary: true,
+          serializeIfBuildingSummary: false,
+          buildComponent: false,
+          benchmarker: benchmarker);
       Component component = compilerResult.component!;
       await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote outline to ");
@@ -375,7 +377,10 @@ Future<Uri?> deps(List<String> arguments) async {
       if (c.options.verbose) {
         print("Computing deps: ${arguments.join(' ')}");
       }
-      await generateKernelInternal(buildSummary: true);
+      await generateKernelInternal(
+        buildSummary: true,
+        serializeIfBuildingSummary: false,
+      );
       return await _emitDeps(c, c.options.output);
     });
   });
@@ -476,6 +481,11 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
 }
 
 Future<List<Uri>> computeHostDependencies(Uri hostPlatform) {
+  // Do not try to parse compile_platform if it was precompiled into a binary.
+  if (!Platform.script.toFilePath().endsWith('.dart')) {
+    return Future.value([]);
+  }
+
   // Returns a list of source files that make up the Fasta compiler (the files
   // the Dart VM reads to run Fasta). Until Fasta is self-hosting (in strong
   // mode), this is only an approximation, albeit accurate.  Once Fasta is

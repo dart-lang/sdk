@@ -54,14 +54,15 @@ class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
       'no_leading_underscores_for_local_identifiers',
       "The local variable '{0}' starts with an underscore.",
       correctionMessage:
-          'Try renaming the variable to not start with an underscore.');
+          'Try renaming the variable to not start with an underscore.',
+      hasPublishedDocs: true);
 
   NoLeadingUnderscoresForLocalIdentifiers()
       : super(
             name: 'no_leading_underscores_for_local_identifiers',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

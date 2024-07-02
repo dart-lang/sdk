@@ -29,17 +29,18 @@ part of '../../my_library.dart';
 ''';
 
 class UseStringInPartOfDirectives extends LintRule {
-  static const LintCode code = LintCode('use_string_in_part_of_directives',
-      'The part-of directive uses a library name.',
+  static const LintCode code = LintCode(
+      'use_string_in_part_of_directives', 'The part-of directive uses a library name.',
       correctionMessage:
-          'Try converting the directive to use the URI of the library.');
+          'Try converting the directive to use the URI of the library.',
+      hasPublishedDocs: true);
 
   UseStringInPartOfDirectives()
       : super(
           name: 'use_string_in_part_of_directives',
           description: _desc,
           details: _details,
-          group: Group.style,
+          categories: {Category.style},
         );
 
   @override

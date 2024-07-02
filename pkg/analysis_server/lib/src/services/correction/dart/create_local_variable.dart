@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -13,6 +13,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateLocalVariable extends ResolvedCorrectionProducer {
   String _variableName = '';
+
+  CreateLocalVariable({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -44,6 +46,17 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
         return;
       }
     }
+
+    // In `foo.bar`, `bar` is not a local variable.
+    // It also does not seem useful to suggest `foo`.
+    // So, always skip with these parents.
+    var parent = nameNode.parent;
+    switch (parent) {
+      case PrefixedIdentifier():
+      case PropertyAccess():
+        return;
+    }
+
     // prepare target Statement
     var target = node.thisOrAncestorOfType<Statement>();
     if (target == null) {

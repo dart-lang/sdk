@@ -15,7 +15,7 @@ class DiagnosticServerHandler
   Method get handlesMessage => CustomMethods.diagnosticServer;
 
   @override
-  LspJsonHandler<void> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
   Future<ErrorOr<DartDiagnosticServer>> handle(

@@ -9,11 +9,15 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
+import '../elements/names.dart';
+import '../elements/types.dart';
 import '../ir/annotations.dart';
 import '../js_model/js_to_frontend_map.dart' show identity, JsToFrontendMap;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization.dart';
+import '../universe/call_structure.dart';
+import '../universe/selector.dart';
 import '../util/util.dart';
 
 class NativeBasicDataBuilder {
@@ -438,12 +442,93 @@ class NativeDataBuilder {
   }
 
   /// Closes this builder and creates the resulting [NativeData] object.
-  NativeData close() => NativeData(
-      _nativeBasicData,
-      _nativeMemberName,
-      _nativeMethodBehavior,
-      _nativeFieldLoadBehavior,
-      _nativeFieldStoreBehavior);
+  NativeData close(DiagnosticReporter reporter) {
+    final data = NativeData(
+        _nativeBasicData,
+        _nativeMemberName,
+        _nativeMethodBehavior,
+        _nativeFieldLoadBehavior,
+        _nativeFieldStoreBehavior, {});
+
+    if (reporter.options.interopNullAssertions) {
+      // We can enforce the return type nullability of an interop API in two
+      // ways: by putting the null check on the invocation in the caller, or by
+      // putting the null check on the return value in the callee body
+      // (generally an interceptor method). It is only safe to do the latter if
+      // all interop bindings that share the interceptor method have consistent
+      // nullabilities.
+
+      final environment = _nativeBasicData._env;
+      final dartTypes = environment.elementMap.commonElements.dartTypes;
+
+      bool returnTypeIsNonNullable(FunctionEntity member,
+          {required bool callthrough}) {
+        final memberType = environment.getFunctionType(member);
+        final functionType =
+            callthrough ? memberType.returnType as FunctionType : memberType;
+        return dartTypes.isNonNullableIfSound(functionType.returnType);
+      }
+
+      // Intercepted methods keyed by selector.
+      final jsNameMap = <Selector, List<FunctionEntity>>{};
+      for (final (member as FunctionEntity)
+          in _nativeBasicData._jsInteropMembers.keys) {
+        if (!member.isInstanceMember) continue;
+        if (!member.isFunction && !member.isGetter) continue;
+
+        // The program builder uses the unescaped name for interceptor methods.
+        // We can only perform null checks in the interceptor method body if all
+        // the intercepted methods with the same name have consistent return
+        // type nullabilities.
+        // We use a public name because the interceptor will not distinguish
+        // methods from different libraries, even if they have a leading
+        // underscore.
+        final name =
+            PublicName(data.computeUnescapedJSInteropName(member.name!));
+
+        void addAllPossibleInvocations(FunctionType type) {
+          final requiredPositionalCount = type.parameterTypes.length;
+          final optionalPositionalCount = type.optionalParameterTypes.length;
+          // We do not yet know which invocations are actually live in the
+          // program, so we conservatively allow for any number of optional
+          // arguments to be passed. Named parameters are not supported.
+          for (var i = 0; i <= optionalPositionalCount; i++) {
+            (jsNameMap[Selector.call(name,
+                    CallStructure.unnamed(requiredPositionalCount + i))] ??= [])
+                .add(member);
+          }
+        }
+
+        if (member.isGetter) {
+          (jsNameMap[Selector.getter(name)] ??= []).add(member);
+          final returnType = environment.getFunctionType(member).returnType;
+          if (returnType is FunctionType) {
+            addAllPossibleInvocations(returnType);
+          }
+        } else if (member.isFunction) {
+          final functionType = environment.getFunctionType(member);
+          addAllPossibleInvocations(functionType);
+        }
+      }
+
+      jsNameMap.forEach((selector, members) {
+        final canCheckInCallee = members.every((FunctionEntity member) =>
+            returnTypeIsNonNullable(member,
+                callthrough:
+                    member.isGetter && selector.kind == SelectorKind.CALL));
+        data.interopNullChecks[selector] = canCheckInCallee
+            ? InteropNullCheckKind.calleeCheck
+            : InteropNullCheckKind.callerCheck;
+      });
+    }
+
+    return data;
+  }
+}
+
+enum InteropNullCheckKind {
+  calleeCheck,
+  callerCheck,
 }
 
 /// Additional element information for native classes and methods and js-interop
@@ -475,12 +560,17 @@ class NativeData implements NativeBasicData {
   /// Cache for [NativeBehavior]s for writing to native fields.
   final Map<MemberEntity, NativeBehavior> _nativeFieldStoreBehavior;
 
+  /// A map from selectors for interop members to the type of null check
+  /// required when `--interop-null-assertions` is passed.
+  final Map<Selector, InteropNullCheckKind> interopNullChecks;
+
   NativeData(
       this._nativeBasicData,
       this._nativeMemberName,
       this._nativeMethodBehavior,
       this._nativeFieldLoadBehavior,
-      this._nativeFieldStoreBehavior);
+      this._nativeFieldStoreBehavior,
+      this.interopNullChecks);
 
   factory NativeData.fromIr(KernelToElementMap map, IrAnnotationData data) {
     NativeBasicData nativeBasicData = NativeBasicData.fromIr(map, data);
@@ -517,7 +607,7 @@ class NativeData implements NativeBasicData {
     });
 
     return NativeData(nativeBasicData, nativeMemberName, nativeMethodBehavior,
-        nativeFieldLoadBehavior, nativeFieldStoreBehavior);
+        nativeFieldLoadBehavior, nativeFieldStoreBehavior, const {});
   }
 
   /// Deserializes a [NativeData] object from [source].
@@ -537,9 +627,11 @@ class NativeData implements NativeBasicData {
     Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
         source.readMemberMap(
             (MemberEntity member) => NativeBehavior.readFromDataSource(source));
+    Map<Selector, InteropNullCheckKind> interopNullChecks = source
+        .readSelectorMap((_) => source.readEnum(InteropNullCheckKind.values));
     source.end(tag);
     return NativeData(nativeBasicData, nativeMemberName, nativeMethodBehavior,
-        nativeFieldLoadBehavior, nativeFieldStoreBehavior);
+        nativeFieldLoadBehavior, nativeFieldStoreBehavior, interopNullChecks);
   }
 
   /// Serializes this [NativeData] to [sink].
@@ -564,6 +656,9 @@ class NativeData implements NativeBasicData {
         (MemberEntity member, NativeBehavior behavior) {
       behavior.writeToDataSink(sink);
     });
+
+    sink.writeSelectorMap(
+        interopNullChecks, sink.writeEnum<InteropNullCheckKind>);
 
     sink.end(tag);
   }
@@ -846,7 +941,7 @@ class NativeData implements NativeBasicData {
     Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = map
         .toBackendMemberMap(_nativeFieldStoreBehavior, _convertNativeBehavior);
     return NativeData(nativeBasicData, nativeMemberName, nativeMethodBehavior,
-        nativeFieldLoadBehavior, nativeFieldStoreBehavior);
+        nativeFieldLoadBehavior, nativeFieldStoreBehavior, interopNullChecks);
   }
 }
 

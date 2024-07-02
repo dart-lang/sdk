@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: nnbd=true*/
-
 /*class: A:A<T>,Object*/
 abstract class A<T> {
   /*member: A.member:T Function()*/

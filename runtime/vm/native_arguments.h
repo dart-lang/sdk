@@ -30,7 +30,8 @@ class Thread;
 #elif defined(DART_HOST_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
+  {                                                                            \
+  }
 #else
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
@@ -49,9 +50,11 @@ class Thread;
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
+  {                                                                            \
+  }
 #define DEOPTIMIZE_ALOT                                                        \
-  {}
+  {                                                                            \
+  }
 
 #endif
 

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -16,6 +16,8 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   /// The name of the constructor being created.
   // TODO(migration): We set this node when we have the change.
   late String _constructorName;
+
+  CreateConstructor({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

@@ -84,7 +84,6 @@ Widget f(Color? myColor) {
 
   test_keyArgument() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 Widget f() {

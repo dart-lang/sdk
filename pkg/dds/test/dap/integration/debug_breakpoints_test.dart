@@ -100,7 +100,13 @@ main() {
         }
       }
 
-      await pumpEventQueue(times: 5000);
+      // Wait up to a few seconds for the resolved events to come through to
+      // allow for slow CI bots, but exit early if they all arrived.
+      final testUntil = DateTime.now().toUtc().add(const Duration(seconds: 5));
+      while (DateTime.now().toUtc().isBefore(testUntil) &&
+          resolvedBreakpoints.length < addedBreakpoints.length) {
+        await pumpEventQueue(times: 5000);
+      }
       await breakpointResolveSubscription.cancel();
 
       // Ensure every breakpoint that was added was also resolved.

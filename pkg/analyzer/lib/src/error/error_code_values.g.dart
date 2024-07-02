@@ -16,10 +16,9 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
@@ -64,9 +63,13 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
   CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
   CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA,
   CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING,
   CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+  CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
+  CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
+  CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME,
   CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
   CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT,
   CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY,
@@ -662,7 +665,6 @@ const List<ErrorCode> errorCodeValues = [
   ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
   ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
   ParserErrorCode.ABSTRACT_CLASS_MEMBER,
-  ParserErrorCode.ABSTRACT_ENUM,
   ParserErrorCode.ABSTRACT_EXTERNAL_FIELD,
   ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
   ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
@@ -670,9 +672,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ABSTRACT_SEALED_CLASS,
   ParserErrorCode.ABSTRACT_STATIC_FIELD,
   ParserErrorCode.ABSTRACT_STATIC_METHOD,
-  ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,
-  ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
-  ParserErrorCode.ABSTRACT_TYPEDEF,
   ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT,
   ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
@@ -691,16 +690,13 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.CONST_AND_FINAL,
   ParserErrorCode.CONST_CLASS,
   ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
-  ParserErrorCode.CONST_ENUM,
   ParserErrorCode.CONST_FACTORY,
   ParserErrorCode.CONST_METHOD,
-  ParserErrorCode.CONST_TYPEDEF,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
   ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
   ParserErrorCode.COVARIANT_AND_STATIC,
   ParserErrorCode.COVARIANT_CONSTRUCTOR,
   ParserErrorCode.COVARIANT_MEMBER,
-  ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION,
   ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
   ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION,
   ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
@@ -775,13 +771,11 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.FINAL_AND_COVARIANT,
   ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER,
   ParserErrorCode.FINAL_AND_VAR,
-  ParserErrorCode.FINAL_CLASS,
   ParserErrorCode.FINAL_CONSTRUCTOR,
   ParserErrorCode.FINAL_ENUM,
   ParserErrorCode.FINAL_METHOD,
   ParserErrorCode.FINAL_MIXIN,
   ParserErrorCode.FINAL_MIXIN_CLASS,
-  ParserErrorCode.FINAL_TYPEDEF,
   ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
   ParserErrorCode.GETTER_CONSTRUCTOR,
   ParserErrorCode.GETTER_IN_FUNCTION,
@@ -911,7 +905,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.STATIC_GETTER_WITHOUT_BODY,
   ParserErrorCode.STATIC_OPERATOR,
   ParserErrorCode.STATIC_SETTER_WITHOUT_BODY,
-  ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION,
   ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
   ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
   ParserErrorCode.TOP_LEVEL_OPERATOR,
@@ -955,6 +948,9 @@ const List<ErrorCode> errorCodeValues = [
   PubspecWarningCode.PLATFORM_VALUE_DISALLOWED,
   PubspecWarningCode.UNKNOWN_PLATFORM,
   PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY,
+  PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST,
+  PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING,
+  PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
@@ -1021,10 +1017,8 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.INVALID_ANNOTATION_TARGET,
   WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
   WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
-  WarningCode.INVALID_FACTORY_ANNOTATION,
   WarningCode.INVALID_FACTORY_METHOD_DECL,
   WarningCode.INVALID_FACTORY_METHOD_IMPL,
-  WarningCode.INVALID_IMMUTABLE_ANNOTATION,
   WarningCode.INVALID_INTERNAL_ANNOTATION,
   WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
   WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
@@ -1042,7 +1036,6 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.INVALID_REQUIRED_NAMED_PARAM,
   WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
   WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM,
-  WarningCode.INVALID_SEALED_ANNOTATION,
   WarningCode.INVALID_USE_OF_INTERNAL_MEMBER,
   WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
   WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER,
@@ -1114,5 +1107,6 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.UNUSED_RESULT,
   WarningCode.UNUSED_RESULT_WITH_MESSAGE,
   WarningCode.UNUSED_SHOWN_NAME,
+  WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT,
   WarningCode.invalid_use_of_do_not_submit_member,
 ];

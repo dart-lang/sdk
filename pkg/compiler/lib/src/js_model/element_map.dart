@@ -94,11 +94,7 @@ abstract class JsToElementMap {
       ir.StaticInvocation node);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  // TODO(johnniwinther,sigmund): Remove the need for [memberContext]. This is
-  //  only needed because effectively constant expressions are not replaced by
-  //  constant expressions during resolution.
-  ConstantValue? getConstantValue(
-      ir.Member? memberContext, ir.Expression? expression,
+  ConstantValue? getConstantValue(ir.Expression? expression,
       {bool requireConstant = true, bool implicitNull = false});
 
   /// Returns the [ConstantValue] for the sentinel used to indicate that a

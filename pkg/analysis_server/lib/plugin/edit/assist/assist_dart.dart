@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
+import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// An object used to provide context information for Dart assist contributors.
 ///

@@ -1131,6 +1131,9 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+    problemMessage: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+    correctionMessage: Try removing the 'extends' clause, either here or in the augmentation target.
   AUGMENTATION_MODIFIER_EXTRA:
     problemMessage: The augmentation has the '{0}' modifier that the declaration doesn't have.
     correctionMessage: Try removing the '{0}' modifier, or adding it to the declaration.
@@ -1151,6 +1154,18 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the declaration kind.
       1: the name of the augmentation kind.
+  AUGMENTATION_TYPE_PARAMETER_BOUND:
+    problemMessage: The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
+    correctionMessage: Try changing the augmentation to match the declaration type parameters.
+    hasPublishedDocs: false
+  AUGMENTATION_TYPE_PARAMETER_COUNT:
+    problemMessage: The augmentation must have the same number of type parameters as the declaration.
+    correctionMessage: Try changing the augmentation to match the declaration type parameters.
+    hasPublishedDocs: false
+  AUGMENTATION_TYPE_PARAMETER_NAME:
+    problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
+    correctionMessage: Try changing the augmentation to match the declaration type parameters.
+    hasPublishedDocs: false
   AUGMENTATION_WITHOUT_DECLARATION:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
@@ -7418,7 +7433,7 @@ CompileTimeErrorCode:
       [part file][] itself.
   IMPORT_OF_NOT_AUGMENTATION:
     problemMessage: "The imported file '{0}' isn't an augmentation of this library."
-    correctionMessage: Try adding a 'library augment' directive referencing this library to the imported file.
+    correctionMessage: Try adding an 'augment library' directive referencing this library to the imported file.
     hasPublishedDocs: false
     comment: |-
       Parameters:
@@ -15174,11 +15189,11 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the return type as declared in the return statement
+      0: the type of the expression in the return statement
       1: the expected return type as defined by the method
       2: the name of the method
   RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
-    problemMessage: "The return type '{0}' isn't a '{1}', as required by the closure's context."
+    problemMessage: The returned type '{0}' isn't returnable from a '{1}' function, as required by the closure's context.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -17900,13 +17915,21 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an import, export, or part
       directive is found where the URI refers to a file that doesn't exist.
 
-      #### Example
+      #### Examples
 
       If the file `lib.dart` doesn't exist, the following code produces this
       diagnostic:
 
       ```dart
       import [!'lib.dart'!];
+      ```
+
+      If the file `lib.dart` doesn't exist, the following code produces this
+      diagnostic:
+
+      ```dart
+      /// @docImport [!'lib.dart'!];
+      library;
       ```
 
       #### Common fixes
@@ -18961,7 +18984,7 @@ FfiCode:
   ARGUMENT_MUST_BE_NATIVE:
     problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
     correctionMessage: "Try passing a static function or field annotated with '@Native'"
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
@@ -19427,7 +19450,7 @@ FfiCode:
   FFI_NATIVE_MUST_BE_EXTERNAL:
     problemMessage: Native functions must be declared external.
     correctionMessage: Add the `external` keyword to the function.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -19443,8 +19466,8 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      [!@Native<Void Function(Pointer<Void>)>()
-      void free(Pointer<Void> ptr) {}!]
+      @Native<Void Function(Pointer<Void>)>()
+      void [!free!](Pointer<Void> ptr) {}
       ```
 
       #### Common fixes
@@ -19467,7 +19490,7 @@ FfiCode:
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the expected number of parameters
@@ -19489,8 +19512,8 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      [!@Native<Void Function(Double)>(symbol: 'f')
-      external void f(double x, double y);!]
+      @Native<Void Function(Double)>(symbol: 'f')
+      external void [!f!](double x, double y);
       ```
 
       #### Common fixes
@@ -19518,7 +19541,7 @@ FfiCode:
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
     problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}. Native instance method annotation must have receiver as first argument.
     correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the expected number of parameters
@@ -19540,8 +19563,8 @@ FfiCode:
       import 'dart:ffi';
 
       class C {
-        [!@Native<Void Function(Double)>()
-        external void f(double x);!]
+        @Native<Void Function(Double)>()
+        external void [!f!](double x);
       }
       ```
 
@@ -19561,7 +19584,7 @@ FfiCode:
   FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
     problemMessage: "There may be at most one @DefaultAsset annotation on a library."
     correctionMessage: "Try removing the extra annotation."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
@@ -19595,7 +19618,7 @@ FfiCode:
   FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
     problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
     correctionMessage: "Try removing the extra annotation."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters
     documentation: |-
       #### Description
@@ -19919,7 +19942,7 @@ FfiCode:
       import 'dart:ffi';
 
       void f(Pointer<NativeFunction<Handle Function()>> p) {
-        [!p.asFunction<Object Function()>(isLeaf: true)!];
+        p.[!asFunction!]<Object Function()>(isLeaf: true);
       }
       ```
 
@@ -19969,7 +19992,7 @@ FfiCode:
       import 'dart:ffi';
 
       void f(Pointer<NativeFunction<Void Function(Handle)>> p) {
-        [!p.asFunction<void Function(Object)>(isLeaf: true)!];
+        p.[!asFunction!]<void Function(Object)>(isLeaf: true);
       }
       ```
 
@@ -21371,20 +21394,8 @@ ManifestWarningCode:
       Parameters:
       0: the name of the feature
 ParserErrorCode:
-  ABSTRACT_ENUM:
-    problemMessage: "Enums can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
   ABSTRACT_STATIC_METHOD:
     problemMessage: "Static methods can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_TOP_LEVEL_FUNCTION:
-    problemMessage: "Top-level functions can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_TOP_LEVEL_VARIABLE:
-    problemMessage: "Top-level variables can't be declared to be 'abstract'."
-    correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_TYPEDEF:
-    problemMessage: "Typedefs can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
@@ -21395,17 +21406,8 @@ ParserErrorCode:
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
-  CONST_ENUM:
-    problemMessage: "Enums can't be declared to be 'const'."
-    correctionMessage: "Try removing the 'const' keyword."
-  CONST_TYPEDEF:
-    problemMessage: "Type aliases can't be declared to be 'const'."
-    correctionMessage: "Try removing the 'const' keyword."
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
-    correctionMessage: "Try removing the keyword 'covariant'."
-  COVARIANT_TOP_LEVEL_DECLARATION:
-    problemMessage: "Top-level declarations can't be declared to be covariant."
     correctionMessage: "Try removing the keyword 'covariant'."
   DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
     problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
@@ -21502,17 +21504,11 @@ ParserErrorCode:
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
-  FINAL_CLASS:
-    problemMessage: "Classes can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
-    correctionMessage: "Try removing the keyword 'final'."
-  FINAL_TYPEDEF:
-    problemMessage: "Typedefs can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
@@ -21677,9 +21673,6 @@ ParserErrorCode:
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
-  STATIC_TOP_LEVEL_DECLARATION:
-    problemMessage: "Top-level declarations can't be declared to be static."
-    correctionMessage: "Try removing the keyword 'static'."
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."
@@ -22512,6 +22505,115 @@ PubspecWarningCode:
       name: example
       dependencies:
         meta: ^1.0.2
+      ```
+  WORKSPACE_FIELD_NOT_LIST:
+    problemMessage: "The value of the 'workspace' field is required to be a list of relative file paths."
+    correctionMessage: Try converting the value to be a list of relative file paths.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of the `workspace` key
+      isn't a list.
+
+      #### Example
+
+      The following code produces this diagnostic because the value of the
+      `workspace` key is a string when a list is expected:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace: [!notPaths!]
+      ```
+
+      #### Common fixes
+
+      Change the value of the workspace field so that it's a list:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - pkg/package_1
+          - pkg/package_2
+      ```
+
+  WORKSPACE_VALUE_NOT_STRING:
+    problemMessage: Workspace entries are required to be directory paths (strings).
+    correctionMessage: Try converting the value to be a string.
+    hasPublishedDocs: false
+    comment: |-
+      No parameters.
+
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `workspace` list contains a
+      value that isn't a string.
+
+      #### Example
+
+      The following code produces this diagnostic because the `workspace` list
+      contains a map:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - [!image.gif: true!]
+      ```
+
+      #### Common fixes
+
+      Change the `workspace` list so that it only contains valid POSIX-style directory
+      paths:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - pkg/package_1
+          - pkg/package_2
+      ```
+
+  WORKSPACE_VALUE_NOT_SUBDIRECTORY:
+    problemMessage: Workspace values must be a relative path of a subdirectory of '{0}'.
+    correctionMessage: Try using a subdirectory of the directory containing the 'pubspec.yaml' file.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the path of the directory that contains the pubspec.yaml file.
+
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `workspace` list contains a
+      value that is not a subdirectory of the directory containing the `pubspec.yaml`` file.
+
+      #### Example
+
+      The following code produces this diagnostic because the value in the `workspace` list is not a
+      relative path of a subdirectory of the directory containing the 'pubspec.yaml' file:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - /home/my_package
+      ```
+
+      #### Common fixes
+
+      Change the `workspace` list so that it only contains only subdirectory paths.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      workspace:
+          - pkg/package_1
+          - pkg/package_2
       ```
 StaticWarningCode:
   DEAD_NULL_AWARE_EXPRESSION:
@@ -24044,12 +24146,6 @@ WarningCode:
       If the function doesn't need to be exported, then stop exporting it,
       either by removing it from the `show` clause, adding it to the `hide`
       clause, or by removing the export.
-  INVALID_FACTORY_ANNOTATION:
-    problemMessage: Only methods can be annotated as factories.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere a @factory annotation is associated
-      with anything other than a method.
   INVALID_FACTORY_METHOD_DECL:
     problemMessage: "Factory method '{0}' must have a return type."
     hasPublishedDocs: true
@@ -24138,12 +24234,6 @@ WarningCode:
 
       class C {}
       ```
-  INVALID_IMMUTABLE_ANNOTATION:
-    problemMessage: Only classes can be annotated as being immutable.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere an @immutable annotation is associated
-      with anything other than a class.
   INVALID_INTERNAL_ANNOTATION:
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     hasPublishedDocs: true
@@ -24165,7 +24255,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@internal!]
+      @[!internal!]
       class C {}
       ```
 
@@ -24176,7 +24266,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@internal!]
+      @[!internal!]
       class _C {}
 
       void f(_C c) {}
@@ -24309,7 +24399,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       class C {
-        [!@literal!]
+        @[!literal!]
         C();
       }
       ```
@@ -24320,7 +24410,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@literal!]
+      @[!literal!]
       var x;
       ```
 
@@ -24371,7 +24461,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@nonVirtual!]
+      @[!nonVirtual!]
       class C {}
       ```
 
@@ -24382,7 +24472,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       abstract class C {
-        [!@nonVirtual!]
+        @[!nonVirtual!]
         void m();
       }
       ```
@@ -24394,7 +24484,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       abstract class C {
-        [!@nonVirtual!]
+        @[!nonVirtual!]
         static void m() {}
       }
       ```
@@ -24770,7 +24860,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@visibleForTesting!]
+      @[!visibleForTesting!]
       void _someFunction() {}
 
       void f() => _someFunction();
@@ -24818,7 +24908,7 @@ WarningCode:
       ```dart
       import 'package:meta/meta.dart';
 
-      [!@visibleForOverriding!]
+      @[!visibleForOverriding!]
       class C {}
       ```
 
@@ -24851,7 +24941,7 @@ WarningCode:
       import 'package:angular_meta/angular_meta.dart';
 
       class C {
-        [!@visibleOutsideTemplate!]
+        @[!visibleOutsideTemplate!]
         int m() {
           return 1;
         }
@@ -24864,7 +24954,7 @@ WarningCode:
       ```dart
       import 'package:angular_meta/angular_meta.dart';
 
-      [!@visibleOutsideTemplate!]
+      @[!visibleOutsideTemplate!]
       class C {}
       ```
 
@@ -24968,6 +25058,7 @@ WarningCode:
 
       No parameters.
   INVALID_SEALED_ANNOTATION:
+    removedIn: "3.5"
     problemMessage: "The annotation '@sealed' can only be applied to classes."
     correctionMessage: Try removing the '@sealed' annotation.
     hasPublishedDocs: true
@@ -24991,7 +25082,7 @@ WarningCode:
       import 'package:meta/meta.dart';
 
       class A {
-        [!@sealed!]
+        @[!sealed!]
         void m() {}
       }
       ```
@@ -27476,3 +27567,12 @@ WarningCode:
 
       var x = min(0, 1);
       ```
+
+  URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
+    sharedName: URI_DOES_NOT_EXIST
+    problemMessage: "Target of URI doesn't exist: '{0}'."
+    correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the URI pointing to a nonexistent file

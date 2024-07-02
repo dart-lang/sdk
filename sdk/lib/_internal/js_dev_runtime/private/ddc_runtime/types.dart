@@ -137,8 +137,12 @@ F assertInterop<F extends Function?>(F f) {
 bool isDartClass(Object? obj) {
   // All Dart classes are instances of JavaScript functions.
   if (!JS<bool>('!', '# instanceof Function', obj)) return false;
-  // All Dart classes have an interface type recipe attached to them.
-  return JS('', '#.#', obj, rti.interfaceTypeRecipePropertyName) != null;
+  // All Dart classes have an interface type recipe attached to them. We put the
+  // `!=` check in the foreign function call, since the Dart `!=` check would
+  // lower to `!==`. In the case where [obj] is a JS function, the result of
+  // getting this property would be `undefined`, and therefore `!== null` would
+  // be true, which is not what we want.
+  return JS<bool>('!', '#.# != null', obj, rti.interfaceTypeRecipePropertyName);
 }
 
 /// Returns `true` when [obj] represents a Dart function.
@@ -146,8 +150,13 @@ bool isDartClass(Object? obj) {
 bool isDartFunction(Object? obj) {
   // All Dart functions are instances of JavaScript functions.
   if (!JS<bool>('!', '# instanceof Function', obj)) return false;
-  // All Dart functions have a signature attached to them.
-  return JS('!', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME)) != null;
+  // All Dart functions have a signature attached to them. We put the `!=` check
+  // in the foreign function call, since the Dart `!=` check would lower to
+  // `!==`. In the case where [obj] is a JS function, the result of getting this
+  // property would be `undefined`, and therefore `!== null` would be true,
+  // which is not what we want.
+  return JS<bool>(
+      '!', '#[#] != null', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
 }
 
 Expando<Function> _assertInteropExpando = Expando<Function>();

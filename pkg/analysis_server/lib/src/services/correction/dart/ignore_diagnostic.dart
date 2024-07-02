@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -16,6 +16,8 @@ import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart' show YamlEditor;
 
 class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
+  IgnoreDiagnosticInAnalysisOptionsFile({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
@@ -102,6 +104,8 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 }
 
 class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
+  IgnoreDiagnosticInFile({required super.context});
+
   @override
   String get commentPrefix => 'ignore_for_file';
 
@@ -166,6 +170,8 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
 }
 
 class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
+  IgnoreDiagnosticOnLine({required super.context});
+
   @override
   String get commentPrefix => 'ignore';
 
@@ -203,6 +209,8 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
 }
 
 abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
+  _BaseIgnoreDiagnostic({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
@@ -237,6 +245,8 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
 }
 
 abstract class _DartIgnoreDiagnostic extends _BaseIgnoreDiagnostic {
+  _DartIgnoreDiagnostic({required super.context});
+
   /// The ignore-comment prefix (either 'ignore' or 'ignore_for_file').
   String get commentPrefix;
 

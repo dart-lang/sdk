@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -24,13 +24,13 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   CorrectionApplicability applicability;
 
   /// Initialize a newly created instance that adds a function body.
-  ConvertIntoBlockBody.missingBody()
+  ConvertIntoBlockBody.missingBody({required super.context})
       : _correctionKind = _CorrectionKind.missingBody,
         applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that converts the set literal to
   /// a function body.
-  ConvertIntoBlockBody.setLiteral()
+  ConvertIntoBlockBody.setLiteral({required super.context})
       : _correctionKind = _CorrectionKind.setLiteral,
         applicability = CorrectionApplicability.automatically;
 

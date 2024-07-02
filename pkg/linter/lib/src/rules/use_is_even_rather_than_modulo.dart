@@ -38,7 +38,7 @@ class UseIsEvenRatherThanModulo extends LintRule {
             name: 'use_is_even_rather_than_modulo',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

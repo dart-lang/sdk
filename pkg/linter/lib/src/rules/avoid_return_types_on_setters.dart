@@ -29,14 +29,15 @@ set speed(int ms);
 class AvoidReturnTypesOnSetters extends LintRule {
   static const LintCode code = LintCode(
       'avoid_return_types_on_setters', 'Unnecessary return type on a setter.',
-      correctionMessage: 'Try removing the return type.');
+      correctionMessage: 'Try removing the return type.',
+      hasPublishedDocs: true);
 
   AvoidReturnTypesOnSetters()
       : super(
             name: 'avoid_return_types_on_setters',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   bool get canUseParsedResult => true;

@@ -437,67 +437,6 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
   __ AddImmediate(payload_reg, offset);
 }
 
-LocationSummary* CalculateElementAddressInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
-  auto* const summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-
-  summary->set_in(kBasePos, Location::RequiresRegister());
-  summary->set_in(kIndexPos, Location::RequiresRegister());
-  // Only use a Smi constant for the index if multiplying it by the index
-  // scale would be an intx constant.
-  const intptr_t scale_shift = Utils::ShiftForPowerOfTwo(index_scale());
-  summary->set_in(
-      kIndexPos, LocationRegisterOrSmiConstant(index(), kMinIntX >> scale_shift,
-                                               kMaxIntX >> scale_shift));
-#if XLEN == 32
-  summary->set_in(kOffsetPos, LocationRegisterOrSmiConstant(offset()));
-#else
-  summary->set_in(kOffsetPos, LocationRegisterOrConstant(offset()));
-#endif
-  summary->set_out(0, Location::RequiresRegister());
-
-  return summary;
-}
-
-void CalculateElementAddressInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register base_reg = locs()->in(kBasePos).reg();
-  const Location& index_loc = locs()->in(kIndexPos);
-  const Location& offset_loc = locs()->in(kOffsetPos);
-  const Register result_reg = locs()->out(0).reg();
-
-  if (index_loc.IsConstant()) {
-    if (offset_loc.IsConstant()) {
-      ASSERT_EQUAL(Smi::Cast(index_loc.constant()).Value(), 0);
-      ASSERT(Integer::Cast(offset_loc.constant()).AsInt64Value() != 0);
-      // No index involved at all.
-      const intx_t offset_value =
-          Integer::Cast(offset_loc.constant()).AsInt64Value();
-      __ AddImmediate(result_reg, base_reg, offset_value);
-    } else {
-      __ add(result_reg, base_reg, offset_loc.reg());
-      // Don't need wrap-around as the index is constant only if multiplying
-      // it by the scale is an intx.
-      const intx_t scaled_index =
-          Smi::Cast(index_loc.constant()).Value() * index_scale();
-      __ AddImmediate(result_reg, scaled_index);
-    }
-  } else {
-    __ AddShifted(result_reg, base_reg, index_loc.reg(),
-                  Utils::ShiftForPowerOfTwo(index_scale()));
-    if (offset_loc.IsConstant()) {
-      const intx_t offset_value =
-          Integer::Cast(offset_loc.constant()).AsInt64Value();
-      __ AddImmediate(result_reg, offset_value);
-    } else {
-      __ AddRegisters(result_reg, offset_loc.reg());
-    }
-  }
-}
-
 LocationSummary* MoveArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -1806,6 +1745,11 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
+  // Restore tag before the profiler's stack walker will no longer see the
+  // InvokeDartCode return address.
+  __ LoadFromOffset(TMP, FP, NativeEntryInstr::kVMTagOffsetFromFp);
+  __ StoreToOffset(TMP, THR, compiler::target::Thread::vm_tag_offset());
+
   __ LeaveDartFrame();
 
   // The dummy return address is in RA, no need to pop it as on Intel.
@@ -1881,6 +1825,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save the top resource.
   __ LoadFromOffset(A0, THR, compiler::target::Thread::top_resource_offset());
   __ PushRegisterPair(A0, TMP);
+  ASSERT(kVMTagOffsetFromFp == 5 * compiler::target::kWordSize);
 
   __ StoreToOffset(ZR, THR, compiler::target::Thread::top_resource_offset());
 
@@ -1899,7 +1844,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EmitEntryFrameVerification();
 
   // The callback trampoline (caller) has already left the safepoint for us.
-  __ TransitionNativeToGenerated(A0, /*exit_safepoint=*/false);
+  __ TransitionNativeToGenerated(A0, /*exit_safepoint=*/false,
+                                 /*ignore_unwind_in_progress=*/false,
+                                 /*set_tag=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
@@ -1941,6 +1888,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadFieldFromOffset(RA, RA, compiler::target::Code::entry_point_offset());
 
   FunctionEntryInstr::EmitNativeCode(compiler);
+
+  // Delay setting the tag until the profiler's stack walker will see the
+  // InvokeDartCode return address.
+  __ LoadImmediate(TMP, compiler::target::Thread::vm_tag_dart_id());
+  __ StoreToOffset(TMP, THR, compiler::target::Thread::vm_tag_offset());
 }
 
 #define R(r) (1 << r)
@@ -2834,8 +2786,11 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->used_static_fields().Add(&field());
 
-  __ LoadFromOffset(TMP, THR,
-                    compiler::target::Thread::field_table_values_offset());
+  __ LoadFromOffset(
+      TMP, THR,
+      field().is_shared()
+          ? compiler::target::Thread::shared_field_table_values_offset()
+          : compiler::target::Thread::field_table_values_offset());
   // Note: static fields ids won't be changed by hot-reload.
   __ StoreToOffset(value, TMP, compiler::target::FieldTable::OffsetOf(field()));
 }

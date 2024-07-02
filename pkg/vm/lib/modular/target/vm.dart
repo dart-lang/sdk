@@ -527,5 +527,6 @@ class VmTarget extends Target {
       : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 
   @override
-  bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("vm:");
+  bool isSupportedPragma(String pragmaName) =>
+      pragmaName.startsWith("vm:") || pragmaName.startsWith("dyn-module:");
 }

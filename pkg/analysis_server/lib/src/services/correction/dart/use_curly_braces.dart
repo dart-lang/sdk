@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -18,7 +18,8 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   @override
   final CorrectionApplicability applicability;
 
-  UseCurlyBraces() : applicability = CorrectionApplicability.acrossFiles;
+  UseCurlyBraces({required super.context})
+      : applicability = CorrectionApplicability.acrossFiles;
 
   /// Create an instance that is prevented from being applied automatically in
   /// bulk.
@@ -26,7 +27,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   /// This is used in places where "Use Curly Braces" is a valid manual fix, but
   /// not clearly the only/correct fix to apply automatically, such as the
   /// `always_put_control_body_on_new_line` lint.
-  UseCurlyBraces.nonBulk()
+  UseCurlyBraces.nonBulk({required super.context})
       : applicability = CorrectionApplicability.acrossSingleFile;
 
   @override

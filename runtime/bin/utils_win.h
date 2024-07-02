@@ -53,24 +53,24 @@ class StringUtilsWin {
 class WideToUtf8Scope {
  public:
   explicit WideToUtf8Scope(const wchar_t* wide)
-      : utf8_(Utils::CreateCStringUniquePtr(nullptr)) {
+      : utf8_(CStringUniquePtr(nullptr)) {
     intptr_t utf8_len =
         WideCharToMultiByte(CP_UTF8, 0, wide, -1, nullptr, 0, nullptr, nullptr);
     char* utf8 = reinterpret_cast<char*>(malloc(utf8_len));
     WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, utf8_len, nullptr, nullptr);
     length_ = utf8_len;
-    utf8_ = Utils::CreateCStringUniquePtr(utf8);
+    utf8_.reset(utf8);
   }
 
   char* utf8() const { return utf8_.get(); }
   intptr_t length() const { return length_; }
 
   // Release the ownership of the converted string and return it.
-  Utils::CStringUniquePtr release() { return std::move(utf8_); }
+  CStringUniquePtr release() { return std::move(utf8_); }
 
  private:
   intptr_t length_;
-  Utils::CStringUniquePtr utf8_;
+  CStringUniquePtr utf8_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(WideToUtf8Scope);

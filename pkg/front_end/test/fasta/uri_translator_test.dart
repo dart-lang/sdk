@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/base/uri_translator.dart';
 import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

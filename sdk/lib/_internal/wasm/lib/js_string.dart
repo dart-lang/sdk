@@ -2,9 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_types;
+import 'dart:_error_utils';
+import 'dart:_internal';
+import 'dart:_js_helper' as js;
+import 'dart:_js_types';
+import 'dart:_object_helper';
+import 'dart:_string_helper';
+import 'dart:_wasm';
+import 'dart:js_interop';
 
-final class JSStringImpl implements String {
+abstract class StringUncheckedOperationsBase {
+  int _codeUnitAtUnchecked(int index);
+  String _substringUnchecked(int start, int end);
+}
+
+extension StringUncheckedOperations on String {
+  @pragma('wasm:prefer-inline')
+  int codeUnitAtUnchecked(int index) =>
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._codeUnitAtUnchecked(index);
+
+  @pragma('wasm:prefer-inline')
+  String substringUnchecked(int start, int end) =>
+      unsafeCast<StringUncheckedOperationsBase>(this)
+          ._substringUnchecked(start, end);
+}
+
+final class JSStringImpl implements String, StringUncheckedOperationsBase {
   final WasmExternRef? _ref;
 
   JSStringImpl(this._ref);
@@ -12,9 +36,6 @@ final class JSStringImpl implements String {
   @pragma("wasm:prefer-inline")
   static String? box(WasmExternRef? ref) =>
       js.isDartNull(ref) ? null : JSStringImpl(ref);
-
-  @pragma("wasm:prefer-inline")
-  WasmExternRef? get toExternRef => _ref;
 
   @override
   @pragma("wasm:prefer-inline")
@@ -37,7 +58,8 @@ final class JSStringImpl implements String {
       final s = o.toString();
       final jsString =
           s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      array._setUnchecked(i, jsString);
+      // array._setUnchecked(i, jsString);
+      array[i] = jsString;
     }
     return JSStringImpl(
         js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef));
@@ -51,6 +73,7 @@ final class JSStringImpl implements String {
     return _codeUnitAtUnchecked(index);
   }
 
+  @override
   @pragma("wasm:prefer-inline")
   int _codeUnitAtUnchecked(int index) {
     return _jsCharCodeAt(toExternRef, index);
@@ -87,7 +110,7 @@ final class JSStringImpl implements String {
 
     // TODO(joshualitt): Refactor `string_patch.dart` so we can directly
     // allocate a string of the right size.
-    return js.jsStringToDartString(toExternRef) + other;
+    return js.jsStringToDartString(this) + other;
   }
 
   @override
@@ -329,8 +352,13 @@ final class JSStringImpl implements String {
     end ??= length;
     RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
     if (start == end) return "";
-    return JSStringImpl(_jsSubstring(toExternRef, start, end));
+    return _substringUnchecked(start, end);
   }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  String _substringUnchecked(int start, int end) =>
+      JSStringImpl(_jsSubstring(toExternRef, start, end));
 
   @override
   String toLowerCase() {
@@ -727,6 +755,11 @@ final class JSStringImpl implements String {
   }
 }
 
+extension JSStringImplExt on JSStringImpl {
+  @pragma("wasm:prefer-inline")
+  WasmExternRef? get toExternRef => _ref;
+}
+
 String _matchString(Match match) => match[0]!;
 
 String _stringIdentity(String string) => string;
@@ -738,14 +771,6 @@ String _escapeReplacement(String replacement) {
   return JSStringImpl(js.JS<WasmExternRef>(
       r'(s) => s.replace(/\$/g, "$$$$")', replacement.toJS.toExternRef));
 }
-
-@pragma("wasm:export", "\$jsStringToJSStringImpl")
-JSStringImpl _jsStringToJSStringImpl(WasmExternRef? string) =>
-    JSStringImpl(string);
-
-@pragma("wasm:export", "\$jsStringFromJSStringImpl")
-WasmExternRef? _jsStringFromJSStringImpl(JSStringImpl string) =>
-    string.toExternRef;
 
 bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
     js.JS<bool>('Object.is', ref1, ref2);

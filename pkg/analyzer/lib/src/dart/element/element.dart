@@ -305,6 +305,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return augmentedInternal;
   }
 
+  AugmentedClassElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedClassElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
+  }
+
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
@@ -315,6 +324,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   set fields(List<FieldElementImpl> fields) {
     assert(!isMixinApplication);
     super.fields = fields;
+  }
+
+  bool get hasExtendsClause {
+    return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
+  }
+
+  set hasExtendsClause(bool value) {
+    setModifier(Modifier.HAS_EXTENDS_CLAUSE, value);
   }
 
   bool get hasGenerativeConstConstructor {
@@ -651,7 +668,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               StringToken(TokenType.STRING, implicitParameter.name, -1),
             )
               ..staticElement = implicitParameter
-              ..staticType = implicitParameter.type,
+              ..setPseudoExpressionStaticType(implicitParameter.type),
           );
         }
         implicitConstructor.parameters = implicitParameters.toFixedList();
@@ -2486,9 +2503,11 @@ abstract class ElementImpl implements Element {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
     bool multiline = false,
+    bool preferTypeAlias = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
     );
     appendTo(builder);
     return builder.toString();
@@ -2722,6 +2741,15 @@ class EnumElementImpl extends InterfaceElementImpl
 
     linkedData?.read(this);
     return augmentedInternal;
+  }
+
+  AugmentedEnumElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedEnumElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
   }
 
   List<FieldElementImpl> get constants {
@@ -2962,6 +2990,15 @@ class ExtensionElementImpl extends InstanceElementImpl
     return augmentedInternal;
   }
 
+  AugmentedExtensionElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedExtensionElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
+  }
+
   @override
   List<Element> get children => [
         ...super.children,
@@ -3078,6 +3115,15 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
     linkedData?.read(this);
     return augmentedInternal;
+  }
+
+  AugmentedExtensionTypeElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedExtensionTypeElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
   }
 
   @override
@@ -5348,6 +5394,15 @@ class MixinElementImpl extends ClassOrMixinElementImpl
     return augmentedInternal;
   }
 
+  AugmentedMixinElementImpl? get augmentedIfReally {
+    if (augmentationTarget != null) {
+      if (augmented case AugmentedMixinElementImpl augmented) {
+        return augmented;
+      }
+    }
+    return null;
+  }
+
   @override
   bool get isBase {
     return hasModifier(Modifier.BASE);
@@ -5460,6 +5515,9 @@ enum Modifier {
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
   GETTER,
+
+  /// Indicates that this class has an explicit `extends` clause.
+  HAS_EXTENDS_CLAUSE,
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.

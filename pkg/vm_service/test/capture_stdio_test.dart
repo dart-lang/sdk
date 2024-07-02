@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -41,7 +40,7 @@ var tests = <IsolateTest>[
     late StreamSubscription stdoutSub;
     bool started = false;
     stdoutSub = service.onStdoutEvent.listen((event) async {
-      final output = utf8.decode(base64Decode(event.bytes!));
+      final output = decodeBase64(event.bytes!);
       // DDS buffers log history and sends each entry as an event upon the
       // initial stream subscription. Wait for the initial sentinel before
       // executing test logic.
@@ -65,7 +64,7 @@ var tests = <IsolateTest>[
     late StreamSubscription stdoutSub;
     stdoutSub = service.onStdoutEvent.listen((event) async {
       expect(event.kind, EventKind.kWriteEvent);
-      final decoded = utf8.decode(base64Decode(event.bytes!));
+      final decoded = decodeBase64(event.bytes!);
       expect(decoded, 'print\n');
       await service.streamCancel(EventStreams.kStdout);
       await stdoutSub.cancel();
@@ -88,7 +87,7 @@ var tests = <IsolateTest>[
       // If this test starts failing, the VM service or dartdev has started
       // writing to stderr and this test should be updated.
       expect(event.kind, EventKind.kWriteEvent);
-      expect(utf8.decode(base64Decode(event.bytes!)), 'stderr');
+      expect(decodeBase64(event.bytes!), 'stderr');
       await service.streamCancel(EventStreams.kStderr);
       await stderrSub.cancel();
       completer.complete();

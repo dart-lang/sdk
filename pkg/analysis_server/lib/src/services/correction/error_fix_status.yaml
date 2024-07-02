@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  40 "needsEvaluation"
-# - 387 "needsFix"
-# - 370 "hasFix"
-# - 509 "noFix"
+# -  42 "needsEvaluation"
+# - 306 "needsFix"
+# - 441 "hasFix"
+# - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -65,9 +65,7 @@ AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
 AnalysisOptionsHintCode.DUPLICATE_RULE:
-  status: needsFix
-  notes: |-
-    We could offer to remove the duplicate rule.
+  status: hasFix
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
@@ -114,17 +112,13 @@ AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
     we could do is to remove the include in the file that the diagnostic is
     reported on.
 AnalysisOptionsWarningCode.REMOVED_LINT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the name of the removed lint rule.
+  status: hasFix
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
 AnalysisOptionsWarningCode.UNDEFINED_LINT:
-  status: needsFix
-  notes: |-
-    The fix is to remove the name of the lint rule.
+  status: hasFix
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsFix
   notes: |-
@@ -209,12 +203,22 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+  status: needsEvaluation
 CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA:
   status: hasFix
 CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:
   status: needsFix
 CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
   status: noFix
+CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND:
+  status: noFix
+CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT:
+  status: noFix
+CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME:
+  status: needsFix
+  notes: |-
+    We could rename the type parameter, this is purely local operation.
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
 CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
@@ -297,10 +301,7 @@ CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
   status: noFix
   since: 2.15
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER:
-  status: needsFix
-  notes: |-
-    The fix is to remove the type arguments.
-  since: 2.15
+  status: hasFix
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
   status: noFix
   notes: |-
@@ -654,9 +655,7 @@ CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
-  status: needsFix
-  notes: |-
-    Offer to delete the invalid member.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
@@ -676,9 +675,7 @@ CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
-  status: needsFix
-  notes: |-
-    Offer to delete the invalid member.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:
@@ -694,9 +691,7 @@ CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
 CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
-  status: needsFix
-  notes: |-
-    Convert to block body.
+  status: hasFix
 CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
   status: needsFix
   notes: |-
@@ -916,37 +911,37 @@ CompileTimeErrorCode.INVALID_ASSIGNMENT:
 CompileTimeErrorCode.INVALID_CAST_FUNCTION:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_LITERAL_SET:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_METHOD:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CAST_NEW_EXPR:
   status: noFix
   notes: |-
-    Removed i Dart 3.0
+    Removed in Dart 3.0
 CompileTimeErrorCode.INVALID_CONSTANT:
-  status: noFix
+  status: hasFix
   notes: |-
     The diagnostic is too general. It needs to be replaced with multiple more
     specific diagnostics.
@@ -984,9 +979,7 @@ CompileTimeErrorCode.INVALID_MACRO_APPLICATION_TARGET:
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: hasFix
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
-  status: needsFix
-  notes: |-
-    Remove the modifier.
+  status: hasFix
 CompileTimeErrorCode.INVALID_OVERRIDE:
   status: hasFix
 CompileTimeErrorCode.INVALID_OVERRIDE_SETTER:
@@ -1008,9 +1001,7 @@ CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
 CompileTimeErrorCode.INVALID_URI:
   status: noFix
 CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
-  status: needsFix
-  notes: |-
-    Remove the keyword.
+  status: hasFix
 CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
   status: noFix
 CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL:
@@ -1129,13 +1120,9 @@ CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
 CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
 CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
-  status: needsFix
-  notes: |-
-    Add `base`.
+  status: hasFix
 CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
-  status: needsFix
-  notes: |-
-    Add `base`.
+  status: hasFix
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsFix
   notes: |-
@@ -1476,13 +1463,9 @@ CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
   status: noFix
 CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
-  status: needsFix
-  notes: |-
-    Add `base`, `final`, or `sealed`.
+  status: hasFix
 CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
-  status: needsFix
-  notes: |-
-    Add `base`, `final`, or `sealed`.
+  status: hasFix
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: hasFix
   since: 2.17
@@ -1767,8 +1750,8 @@ FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL:
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-? FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER
-: status: noFix
+FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER: 
+  status: noFix
   since: ~2.15
 FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
   status: noFix
@@ -2526,10 +2509,6 @@ ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE:
   status: noFix
 ParserErrorCode.ABSTRACT_CLASS_MEMBER:
   status: hasFix
-ParserErrorCode.ABSTRACT_ENUM:
-  status: needsFix
-  notes: |-
-    Remove abstract keyword
 ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsFix
   notes: |-
@@ -2551,25 +2530,9 @@ ParserErrorCode.ABSTRACT_SEALED_CLASS:
   notes: |-
     Remove either the `abstract` or the `sealed` keyword.
 ParserErrorCode.ABSTRACT_STATIC_FIELD:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
+  status: hasFix
 ParserErrorCode.ABSTRACT_STATIC_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
-ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
-ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
-ParserErrorCode.ABSTRACT_TYPEDEF:
-  status: needsFix
-  notes: |-
-    Remove the `abstract` keyword.
+  status: hasFix
 ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT:
   status: needsFix
   notes: |-
@@ -2607,9 +2570,7 @@ ParserErrorCode.CLASS_IN_CLASS:
   notes: |-
     Move the inner class to the top-level.
 ParserErrorCode.COLON_IN_PLACE_OF_IN:
-  status: needsFix
-  notes: |-
-    Replace the `:` with `in`.
+  status: hasFix
 ParserErrorCode.CONFLICTING_MODIFIERS:
   status: needsFix
   notes: |-
@@ -2622,22 +2583,10 @@ ParserErrorCode.CONST_CLASS:
   status: hasFix
 ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
   status: noFix
-ParserErrorCode.CONST_ENUM:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
 ParserErrorCode.CONST_FACTORY:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
+  status: hasFix
 ParserErrorCode.CONST_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
-ParserErrorCode.CONST_TYPEDEF:
-  status: needsFix
-  notes: |-
-    Remove the `const` keyword.
+  status: hasFix
 ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE:
   status: needsFix
   notes: |-
@@ -2658,17 +2607,12 @@ ParserErrorCode.COVARIANT_AND_STATIC:
   notes: |-
     Remove either `covariant` or `static`.
 ParserErrorCode.COVARIANT_CONSTRUCTOR:
-  status: needsFix
+  status: noFix
   notes: |-
-    Remove `covariant`.
+    This error code is currently unreported and constructors
+    are treated the same as members (see `COVARIANT_MEMBER`).
 ParserErrorCode.COVARIANT_MEMBER:
-  status: needsFix
-  notes: |-
-    Remove `covariant`.
-ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION:
-  status: needsFix
-  notes: |-
-    Remove `covariant`.
+  status: hasFix
 ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
   status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
@@ -2703,18 +2647,14 @@ ParserErrorCode.EMPTY_ENUM_BODY:
     We can't guess at the names or number of the enum constants that should be
     added.
 ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA:
-  status: needsFix
-  notes: |-
-    Remove the comma.
+  status: hasFix
 ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
   status: noFix
   notes: |-
     It's likely that the user just hasn't provided a named field yet, and
     offering to remove the braces would be counter-productive.
 ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA:
-  status: needsFix
-  notes: |-
-    Remove the comma
+  status: hasFix
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsFix
   notes: |-
@@ -2724,13 +2664,9 @@ ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
 ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
   status: noFix
 ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_CLASS_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_CLASS_MEMBER:
   status: noFix
 ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
@@ -2738,17 +2674,11 @@ ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
 ParserErrorCode.EXPECTED_EXECUTABLE:
   status: noFix
 ParserErrorCode.EXPECTED_EXTENSION_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
   status: noFix
 ParserErrorCode.EXPECTED_INSTEAD:
@@ -2758,9 +2688,7 @@ ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
   notes: |-
     Add the braces or brackets for the literal.
 ParserErrorCode.EXPECTED_MIXIN_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
@@ -2776,19 +2704,13 @@ ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: noFix
 ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_TOKEN:
   status: hasFix
 ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.EXPECTED_TYPE_NAME:
   status: noFix
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
@@ -2820,9 +2742,7 @@ ParserErrorCode.EXTENSION_TYPE_EXTENDS:
 ParserErrorCode.EXTENSION_TYPE_WITH:
   status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
+  status: hasFix
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
   status: needsFix
   notes: |-
@@ -2836,9 +2756,7 @@ ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
   notes: |-
     Remove the `external` keyword or remove the initializers.
 ParserErrorCode.EXTERNAL_ENUM:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
+  status: hasFix
 ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION:
   status: needsFix
   notes: |-
@@ -2872,21 +2790,15 @@ ParserErrorCode.EXTERNAL_SETTER_WITH_BODY:
   notes: |-
     Remove the `external` keyword, or remove the body.
 ParserErrorCode.EXTERNAL_TYPEDEF:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
+  status: hasFix
 ParserErrorCode.EXTRANEOUS_MODIFIER:
-  status: needsFix
-  notes: |-
-    Remove the extraneous keyword.
+  status: hasFix
 ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
   status: needsEvaluation
 ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
   status: needsEvaluation
 ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
-  status: needsFix
-  notes: |-
-    Remove the `factory` keyword.
+  status: hasFix
 ParserErrorCode.FACTORY_WITH_INITIALIZERS:
   status: needsFix
   notes: |-
@@ -2911,40 +2823,20 @@ ParserErrorCode.FINAL_AND_VAR:
   status: needsFix
   notes: |-
     Remove either `final` or `var`.
-ParserErrorCode.FINAL_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
 ParserErrorCode.FINAL_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_ENUM:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_METHOD:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FINAL_MIXIN_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
-ParserErrorCode.FINAL_TYPEDEF:
-  status: needsFix
-  notes: |-
-    Remove the `final` keyword.
+  status: hasFix
 ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
   status: noFix
 ParserErrorCode.GETTER_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `get` keyword.
+  status: hasFix
 ParserErrorCode.GETTER_IN_FUNCTION:
   status: needsFix
   notes: |-
@@ -2982,13 +2874,9 @@ ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
 ParserErrorCode.INTERFACE_ENUM:
   status: needsEvaluation
 ParserErrorCode.INTERFACE_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `interface` keyword.
+  status: hasFix
 ParserErrorCode.INTERFACE_MIXIN_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `interface` keyword.
+  status: hasFix
 ParserErrorCode.INVALID_AWAIT_IN_FOR:
   status: noFix
   notes: |-
@@ -3059,9 +2947,7 @@ ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
 ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
   status: noFix
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
-  status: needsFix
-  notes: |-
-    Remove the `covariant`.
+  status: hasFix
 ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
   status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
@@ -3077,9 +2963,7 @@ ParserErrorCode.LITERAL_WITH_CLASS:
   notes: |-
     Remove the `List.`.
 ParserErrorCode.LITERAL_WITH_NEW:
-  status: needsFix
-  notes: |-
-    Remove the `new`.
+  status: hasFix
 ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER:
   status: noFix
 ParserErrorCode.MEMBER_WITH_CLASS_NAME:
@@ -3099,9 +2983,7 @@ ParserErrorCode.MISSING_CLOSING_PARENTHESIS:
 ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE:
   status: hasFix
 ParserErrorCode.MISSING_ENUM_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body
+  status: hasFix
 ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER:
   status: noFix
 ParserErrorCode.MISSING_EXPRESSION_IN_THROW:
@@ -3151,9 +3033,7 @@ ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
   notes: |-
     Add the missing terminator.
 ParserErrorCode.MISSING_TYPEDEF_PARAMETERS:
-  status: needsFix
-  notes: |-
-    Add an empty parameter list.
+  status: hasFix
 ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
   status: noFix
 ParserErrorCode.MIXED_PARAMETER_GROUPS:
@@ -3288,23 +3168,15 @@ ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
 ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
-  status: needsFix
-  notes: |-
-    Remove the comma.
+  status: hasFix
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
-  status: needsFix
-  notes: |-
-    Remove the `sealed` keyword.
+  status: hasFix
 ParserErrorCode.SEALED_MIXIN_CLASS:
-  status: needsFix
-  notes: |-
-    Remove the `sealed` keyword.
+  status: hasFix
 ParserErrorCode.SETTER_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `set`.
+  status: hasFix
 ParserErrorCode.SETTER_IN_FUNCTION:
   status: needsFix
   notes: |-
@@ -3312,25 +3184,13 @@ ParserErrorCode.SETTER_IN_FUNCTION:
 ParserErrorCode.STACK_OVERFLOW:
   status: noFix
 ParserErrorCode.STATIC_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the `static` keyword.
+  status: hasFix
 ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
+  status: hasFix
 ParserErrorCode.STATIC_OPERATOR:
-  status: needsFix
-  notes: |-
-    Remove the `static` keyword.
+  status: hasFix
 ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
-  status: needsFix
-  notes: |-
-    Add an empty body.
-ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION:
-  status: needsFix
-  notes: |-
-    Remove the `static` keyword.
+  status: hasFix
 ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
   status: needsFix
   notes: |-
@@ -3398,9 +3258,7 @@ ParserErrorCode.WITH_BEFORE_EXTENDS:
   notes: |-
     Move the extends clause.
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
-  status: needsFix
-  notes: |-
-    Replace the `:` with an '='.
+  status: hasFix
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-
@@ -3465,6 +3323,12 @@ PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
   since: ~2.15
   notes: |-
     The fix is to remove the dependency
+PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST:
+  status: needsEvaluation
+PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING:
+  status: needsEvaluation
+PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
+  status: needsEvaluation
 ScannerErrorCode.EXPECTED_TOKEN:
   status: noFix
 ScannerErrorCode.ILLEGAL_CHARACTER:
@@ -3627,14 +3491,10 @@ WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
 
     The fix is to update the export directive so that the member using the name
     is no longer exported.
-WarningCode.INVALID_FACTORY_ANNOTATION:
-  status: hasFix
 WarningCode.INVALID_FACTORY_METHOD_DECL:
   status: noFix
 WarningCode.INVALID_FACTORY_METHOD_IMPL:
   status: noFix
-WarningCode.INVALID_IMMUTABLE_ANNOTATION:
-  status: hasFix
 WarningCode.INVALID_INTERNAL_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_LITERAL_ANNOTATION:
@@ -3696,8 +3556,6 @@ WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
-WarningCode.INVALID_SEALED_ANNOTATION:
-  status: hasFix
 WarningCode.invalid_use_of_do_not_submit_member:
   status: needsEvaluation
 WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
@@ -3745,9 +3603,7 @@ WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   notes: |-
     The fix is to add `const` before the constructor invocation.
 WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
-  status: needsFix
-  notes: |-
-    The fix is to replace `new` with `const`.
+  status: hasFix
 WarningCode.NON_NULLABLE_EQUALS_PARAMETER:
   status: needsFix
   notes: |-
@@ -3759,9 +3615,7 @@ WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
   status: noFix
   since: ~2.15
 WarningCode.NULL_CHECK_ALWAYS_FAILS:
-  status: needsFix
-  notes: |-
-    Remove the null check.
+  status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
   status: hasFix
 WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
@@ -3894,3 +3748,7 @@ WarningCode.UNUSED_RESULT_WITH_MESSAGE:
     There is no predictable common way in which a result _should_ be used.
 WarningCode.UNUSED_SHOWN_NAME:
   status: hasFix
+WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
+  status: needsFix
+  notes: |-
+    The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST

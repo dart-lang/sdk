@@ -3,21 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart" show Expect;
-
 import "package:kernel/ast.dart" show Component, DartType, Library;
-
 import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
-
 import "package:kernel/core_types.dart" show CoreTypes;
-
-import "package:kernel/text/ast_to_text.dart" show Printer;
-
-import "package:kernel/type_environment.dart" show IsSubtypeOf, TypeEnvironment;
-
+import 'package:kernel/testing/mock_sdk.dart' show mockSdk;
 import 'package:kernel/testing/type_parser_environment.dart'
     show TypeParserEnvironment, parseLibrary;
-
-import 'package:kernel/testing/mock_sdk.dart' show mockSdk;
+import "package:kernel/text/ast_to_text.dart" show Printer;
+import "package:kernel/type_environment.dart" show IsSubtypeOf, TypeEnvironment;
 
 import 'shared_type_tests.dart' show SubtypeTest;
 

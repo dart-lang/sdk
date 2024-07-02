@@ -37,11 +37,11 @@ export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage, enableColors;
+export '../base/compiler_context.dart' show CompilerContext;
+export '../base/hybrid_file_system.dart' show HybridFileSystem;
 export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
-export '../compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-export '../fasta/codes/fasta_codes.dart'
+export '../codes/cfe_codes.dart'
     show
         LocatedMessage,
         messageFfiAbiSpecificIntegerInvalid,
@@ -97,9 +97,9 @@ export '../fasta/codes/fasta_codes.dart'
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;
-export '../fasta/compiler_context.dart' show CompilerContext;
-export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-export '../fasta/kernel/utils.dart'
+export '../compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+export '../kernel/utils.dart'
     show
         createExpressionEvaluationComponent,
         serializeComponent,

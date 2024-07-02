@@ -240,8 +240,7 @@ class FastaParserTestCase
 
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    parserProxy.errorListener.assertErrorsWithCodes(
-        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
+    parserProxy.errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
   @override
@@ -268,7 +267,7 @@ class FastaParserTestCase
 
   @override
   ExpectedError expectedError(ErrorCode code, int offset, int length) =>
-      ExpectedError(_toFastaGeneratedAnalyzerErrorCode(code), offset, length);
+      ExpectedError(code, offset, length);
 
   @override
   void expectNotNullIfNoErrors(Object? result) {
@@ -360,8 +359,7 @@ class FastaParserTestCase
 
     // Assert and return result
     if (codes != null) {
-      listener
-          .assertErrorsWithCodes(_toFastaGeneratedAnalyzerErrorCodes(codes));
+      listener.assertErrorsWithCodes(codes);
     } else if (errors != null) {
       listener.assertErrors(errors);
     } else {
@@ -684,27 +682,6 @@ class FastaParserTestCase
     var statement = parseStatement('$code;') as ExpressionStatement;
     return statement.expression;
   }
-
-  ErrorCode _toFastaGeneratedAnalyzerErrorCode(ErrorCode code) {
-    if (code == ParserErrorCode.ABSTRACT_ENUM ||
-        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
-        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
-        code == ParserErrorCode.ABSTRACT_TYPEDEF ||
-        code == ParserErrorCode.CONST_ENUM ||
-        code == ParserErrorCode.CONST_TYPEDEF ||
-        code == ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION ||
-        code == ParserErrorCode.FINAL_CLASS ||
-        code == ParserErrorCode.FINAL_ENUM ||
-        code == ParserErrorCode.FINAL_TYPEDEF ||
-        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION) {
-      return ParserErrorCode.EXTRANEOUS_MODIFIER;
-    }
-    return code;
-  }
-
-  List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
-          List<ErrorCode> expectedErrorCodes) =>
-      expectedErrorCodes.map(_toFastaGeneratedAnalyzerErrorCode).toList();
 }
 
 /// Proxy implementation of the analyzer parser, implemented in terms of the

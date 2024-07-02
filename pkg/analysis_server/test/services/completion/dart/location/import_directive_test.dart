@@ -245,13 +245,9 @@ import "foo" d^ hide foo;
 replacement
   left: 1
 suggestions
-  as
-    kind: keyword
   deferred as
     kind: keyword
   hide
-    kind: keyword
-  show
     kind: keyword
 ''');
   }
@@ -323,13 +319,9 @@ import "foo" d^ show foo;
 replacement
   left: 1
 suggestions
-  as
-    kind: keyword
   deferred as
     kind: keyword
   hide
-    kind: keyword
-  show
     kind: keyword
 ''');
   }

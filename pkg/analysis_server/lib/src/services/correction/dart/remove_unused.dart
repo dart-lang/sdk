@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -16,6 +16,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedElement extends _RemoveUnused {
+  RemoveUnusedElement({required super.context});
+
   @override
   CorrectionApplicability get applicability =>
       // Not predictably the correct action.
@@ -98,6 +100,8 @@ class RemoveUnusedElement extends _RemoveUnused {
 }
 
 class RemoveUnusedField extends _RemoveUnused {
+  RemoveUnusedField({required super.context});
+
   @override
   // Not predictably the correct action.
   CorrectionApplicability get applicability =>
@@ -284,6 +288,8 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 }
 
 abstract class _RemoveUnused extends ResolvedCorrectionProducer {
+  _RemoveUnused({required super.context});
+
   List<AstNode> _findAllReferences(AstNode root, Element element) {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);

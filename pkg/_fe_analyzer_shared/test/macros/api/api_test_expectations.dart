@@ -41,10 +41,60 @@ const Map<String, ClassData> expectedClassData = {
   'Class5': ClassData(
       superclass: 'Class2',
       superSuperclass: 'Object',
+      isAbstract: true,
       mixins: ['Mixin1', 'Mixin2'],
       interfaces: ['Interface1', 'Interface2']),
   'Interface1': ClassData(isAbstract: true),
   'Interface2': ClassData(isAbstract: true),
+};
+
+const Map<String, MixinData> expectedMixinData = {
+  'Mixin1': MixinData(),
+  'Mixin2': MixinData(
+    // TODO(johnniwinther): Should we require a specific order?
+    fieldsOf: [
+      'instanceField',
+      'staticField',
+    ],
+    // TODO(johnniwinther): Should we require a specific order?
+    methodsOf: [
+      'instanceGetter',
+      'staticGetter',
+      'instanceMethod',
+      'abstractMethod',
+      'staticMethod',
+      'instanceSetter',
+      'staticSetter',
+    ],
+  ),
+};
+
+const Map<String, ExtensionTypeData> expectedExtensionTypeData = {
+  'ExtensionType1': ExtensionTypeData(
+    representationType: NamedTypeData(name: 'int'),
+    // TODO(johnniwinther): Should we require a specific order?
+    fieldsOf: [
+      'i',
+      'staticField',
+    ],
+    // TODO(johnniwinther): Should we require a specific order?
+    methodsOf: [
+      'instanceGetter',
+      'staticGetter',
+      'instanceMethod',
+      'staticMethod',
+      'instanceSetter',
+      'staticSetter',
+    ],
+    // TODO(johnniwinther): Should we require a specific order?
+    constructorsOf: [
+      // TODO(johnniwinther): Should we normalize no-name constructor names?
+      '',
+      'constructor',
+      'fact',
+      'redirect',
+    ],
+  ),
 };
 
 const Map<String, FunctionData> expectedFunctionData = {
@@ -187,7 +237,105 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
             '$name.constructorsOf[$i]');
       }
     }
-    // TODO(johnniwinther): Test more properties when there are supported.
+    // TODO(johnniwinther): Test more properties when they are supported.
+  } else {
+    throw 'Unexpected class declaration "${name}"';
+  }
+}
+
+Future<void> checkMixinDeclaration(MixinDeclaration declaration,
+    {DeclarationPhaseIntrospector? introspector}) async {
+  String name = declaration.identifier.name;
+  MixinData? expected = expectedMixinData[name];
+  if (expected != null) {
+    expect(expected.hasBase, declaration.hasBase, '$name.hasBase');
+    if (introspector != null) {
+      List<TypeDeclaration> superClassConstraints = [
+        for (NamedTypeAnnotation superclassConstraint
+            in declaration.superclassConstraints)
+          await introspector.typeDeclarationOf(superclassConstraint.identifier),
+      ];
+      expect(expected.superclassConstraints.length,
+          superClassConstraints.length, '$name.superClassConstraints.length');
+      for (int i = 0; i < superClassConstraints.length; i++) {
+        expect(
+            expected.superclassConstraints[i],
+            superClassConstraints[i].identifier.name,
+            '$name.superClassConstraints[$i]');
+      }
+
+      List<TypeDeclaration> interfaces = [
+        for (NamedTypeAnnotation interface in declaration.interfaces)
+          await introspector.typeDeclarationOf(interface.identifier),
+      ];
+      expect(expected.interfaces.length, interfaces.length,
+          '$name.interfaces.length');
+      for (int i = 0; i < interfaces.length; i++) {
+        expect(expected.interfaces[i], interfaces[i].identifier.name,
+            '$name.interfaces[$i]');
+      }
+    }
+    if (introspector != null) {
+      List<FieldDeclaration> fieldsOf =
+          await introspector.fieldsOf(declaration);
+      expect(
+          expected.fieldsOf.length, fieldsOf.length, '$name.fieldsOf.length');
+      for (int i = 0; i < fieldsOf.length; i++) {
+        expect(expected.fieldsOf[i], fieldsOf[i].identifier.name,
+            '$name.fieldsOf[$i]');
+      }
+
+      List<MethodDeclaration> methodsOf =
+          await introspector.methodsOf(declaration);
+      expect(expected.methodsOf.length, methodsOf.length,
+          '$name.methodsOf.length');
+      for (int i = 0; i < methodsOf.length; i++) {
+        expect(expected.methodsOf[i], methodsOf[i].identifier.name,
+            '$name.methodsOf[$i]');
+      }
+    }
+    // TODO(johnniwinther): Test more properties when they are supported.
+  } else {
+    throw 'Unexpected mixin declaration "${name}"';
+  }
+}
+
+Future<void> checkExtensionTypeDeclaration(ExtensionTypeDeclaration declaration,
+    {DeclarationPhaseIntrospector? introspector}) async {
+  String name = declaration.identifier.name;
+  ExtensionTypeData? expected = expectedExtensionTypeData[name];
+  if (expected != null) {
+    checkTypeAnnotation(expected.representationType,
+        declaration.representationType, '$name.representationType');
+    if (introspector != null) {
+      List<FieldDeclaration> fieldsOf =
+          await introspector.fieldsOf(declaration);
+      expect(
+          expected.fieldsOf.length, fieldsOf.length, '$name.fieldsOf.length');
+      for (int i = 0; i < fieldsOf.length; i++) {
+        expect(expected.fieldsOf[i], fieldsOf[i].identifier.name,
+            '$name.fieldsOf[$i]');
+      }
+
+      List<MethodDeclaration> methodsOf =
+          await introspector.methodsOf(declaration);
+      expect(expected.methodsOf.length, methodsOf.length,
+          '$name.methodsOf.length');
+      for (int i = 0; i < methodsOf.length; i++) {
+        expect(expected.methodsOf[i], methodsOf[i].identifier.name,
+            '$name.methodsOf[$i]');
+      }
+
+      List<ConstructorDeclaration> constructorsOf =
+          await introspector.constructorsOf(declaration);
+      expect(expected.constructorsOf.length, constructorsOf.length,
+          '$name.constructorsOf.length');
+      for (int i = 0; i < constructorsOf.length; i++) {
+        expect(expected.constructorsOf[i], constructorsOf[i].identifier.name,
+            '$name.constructorsOf[$i]');
+      }
+    }
+    // TODO(johnniwinther): Test more properties when they are supported.
   } else {
     throw 'Unexpected class declaration "${name}"';
   }
@@ -232,9 +380,11 @@ Future<void> checkIdentifierResolver(TypePhaseIntrospector introspector) async {
   Future<void> check(Uri uri, String name, {bool expectThrows = false}) async {
     if (expectThrows) {
       await throws(() async {
+        // ignore: deprecated_member_use
         await introspector.resolveIdentifier(uri, name);
       }, '$name from $uri');
     } else {
+      // ignore: deprecated_member_use
       Identifier result = await introspector.resolveIdentifier(uri, name);
       expect(name, result.name, '$name from $uri');
     }
@@ -265,7 +415,8 @@ Future<void> checkTypeDeclarationResolver(
         await introspector.typeDeclarationOf(identifier);
       }, '$name from $identifier',
           expectedError: (e) => e is! MacroImplementationException
-              ? 'Expected MacroImplementationException, got ${e.runtimeType}: $e'
+              ? 'Expected MacroImplementationException, got ${e.runtimeType}: '
+                  '$e'
               : null);
     } else {
       TypeDeclaration result = await introspector.typeDeclarationOf(identifier);
@@ -302,6 +453,34 @@ class ClassData {
       this.constructorsOf = const []});
 }
 
+class MixinData {
+  final bool hasBase;
+  final List<String> interfaces;
+  final List<String> superclassConstraints;
+  final List<String> fieldsOf;
+  final List<String> methodsOf;
+
+  const MixinData(
+      {this.hasBase = false,
+      this.interfaces = const [],
+      this.superclassConstraints = const [],
+      this.fieldsOf = const [],
+      this.methodsOf = const []});
+}
+
+class ExtensionTypeData {
+  final TypeData representationType;
+  final List<String> fieldsOf;
+  final List<String> methodsOf;
+  final List<String> constructorsOf;
+
+  const ExtensionTypeData(
+      {required this.representationType,
+      this.fieldsOf = const [],
+      this.methodsOf = const [],
+      this.constructorsOf = const []});
+}
+
 class FunctionData {
   final bool isAbstract;
   final bool isExternal;
@@ -333,8 +512,7 @@ class NamedTypeData extends TypeData {
   final String? name;
   final List<TypeData>? typeArguments;
 
-  const NamedTypeData({bool isNullable = false, this.name, this.typeArguments})
-      : super(isNullable: isNullable);
+  const NamedTypeData({super.isNullable, this.name, this.typeArguments});
 }
 
 class ParameterData {

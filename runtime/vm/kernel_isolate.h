@@ -112,8 +112,12 @@ class KernelIsolate : public AllStatic {
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Monitor* monitor_;
-  enum State{
-      kNotStarted, kStopped, kStarting, kStarted, kStopping,
+  enum State {
+    kNotStarted,
+    kStopped,
+    kStarting,
+    kStarted,
+    kStopping,
   };
   static State state_;
   static Isolate* isolate_;

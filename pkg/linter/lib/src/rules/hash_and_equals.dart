@@ -55,14 +55,15 @@ class Better {
 class HashAndEquals extends LintRule {
   static const LintCode code = LintCode(
       'hash_and_equals', "Missing a corresponding override of '{0}'.",
-      correctionMessage: "Try overriding '{0}' or removing '{1}'.");
+      correctionMessage: "Try overriding '{0}' or removing '{1}'.",
+      hasPublishedDocs: true);
 
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:kernel/kernel.dart';
+import 'package:front_end/src/kernel/utils.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/kernel.dart';
 
 import "simple_stats.dart";
 

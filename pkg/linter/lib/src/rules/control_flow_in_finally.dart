@@ -86,14 +86,14 @@ class Ok {
 class ControlFlowInFinally extends LintRule {
   static const LintCode code = LintCode(
       'control_flow_in_finally', "Use of '{0}' in a 'finally' clause.",
-      correctionMessage: 'Try restructuring the code.');
+      correctionMessage: 'Try restructuring the code.', hasPublishedDocs: true);
 
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;

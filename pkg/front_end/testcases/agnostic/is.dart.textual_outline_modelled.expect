@@ -1,5 +1,0 @@
-const a = <Null>[] is List<int>;
-
-const b = <int?>[] is List<int>;
-
-void main() {}

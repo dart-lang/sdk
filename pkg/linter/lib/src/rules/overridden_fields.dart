@@ -102,14 +102,15 @@ class OverriddenFields extends LintRule {
       'overridden_fields', "Field overrides a field inherited from '{0}'.",
       correctionMessage:
           'Try removing the field, overriding the getter and setter if '
-          'necessary.');
+          'necessary.',
+      hasPublishedDocs: true);
 
   OverriddenFields()
       : super(
             name: 'overridden_fields',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

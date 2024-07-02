@@ -242,28 +242,6 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAgnosticWithStrongDillLibrary =
-    messageAgnosticWithStrongDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAgnosticWithStrongDillLibrary = const MessageCode(
-  "AgnosticWithStrongDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAgnosticWithWeakDillLibrary =
-    messageAgnosticWithWeakDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAgnosticWithWeakDillLibrary = const MessageCode(
-  "AgnosticWithWeakDillLibrary",
-  problemMessage:
-      r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2741,6 +2719,16 @@ Message _withArgumentsCyclicTypedef(String name) {
     },
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDartFfiLibraryInDart2Wasm =
+    messageDartFfiLibraryInDart2Wasm;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDartFfiLibraryInDart2Wasm = const MessageCode(
+  "DartFfiLibraryInDart2Wasm",
+  problemMessage: r"""'dart:ffi' can't be imported when compiling to Wasm.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
@@ -10521,6 +10509,20 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropFunctionToJSNamedParameters =
+    messageJsInteropFunctionToJSNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropFunctionToJSNamedParameters =
+    const MessageCode(
+  "JsInteropFunctionToJSNamedParameters",
+  problemMessage:
+      r"""Functions converted via `toJS` cannot declare named parameters.""",
+  correctionMessage:
+      r"""Remove the declared named parameters from the function.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropFunctionToJSTypeParameters =
     messageJsInteropFunctionToJSTypeParameters;
 
@@ -12901,15 +12903,6 @@ const Code<Null> codeNoUnnamedConstructorInObject =
 const MessageCode messageNoUnnamedConstructorInObject = const MessageCode(
   "NoUnnamedConstructorInObject",
   problemMessage: r"""'Object' has no unnamed constructor.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonAgnosticConstant = messageNonAgnosticConstant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAgnosticConstant = const MessageCode(
-  "NonAgnosticConstant",
-  problemMessage: r"""Constant value is not strong/weak mode agnostic.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17629,6 +17622,17 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
   index: 100,
   problemMessage: r"""Type 'void' can't have type arguments.""",
   correctionMessage: r"""Try removing the type arguments.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWasmImportOrExportInUserCode =
+    messageWasmImportOrExportInUserCode;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWasmImportOrExportInUserCode = const MessageCode(
+  "WasmImportOrExportInUserCode",
+  problemMessage:
+      r"""Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

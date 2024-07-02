@@ -21,19 +21,19 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem, MemoryFileSystemEntity;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
+import 'package:front_end/src/base/incremental_serializer.dart'
+    show IncrementalSerializer;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+import 'package:front_end/src/codes/cfe_codes.dart'
+    show DiagnosticMessageFromJson, FormattedMessage;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-import 'package:front_end/src/fasta/codes/fasta_codes.dart'
-    show DiagnosticMessageFromJson, FormattedMessage;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
-import 'package:front_end/src/fasta/incremental_serializer.dart'
-    show IncrementalSerializer;
-import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:front_end/src/kernel/utils.dart' show ByteSink;
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
@@ -1925,21 +1925,6 @@ Result? checkNNBDSettings(Component component) {
   if (mode == NonNullableByDefaultCompiledMode.Invalid) return null;
   for (Library lib in component.libraries) {
     if (mode == lib.nonNullableByDefaultCompiledMode) continue;
-
-    if (mode == NonNullableByDefaultCompiledMode.Agnostic) {
-      // Component says agnostic but the library isn't => Error!
-      return new Result(
-          null,
-          NNBDModeMismatch,
-          "Component mode was agnostic but ${lib.importUri} had mode "
-          "${lib.nonNullableByDefaultCompiledMode}.");
-    }
-
-    // Agnostic can be mixed with everything.
-    if (lib.nonNullableByDefaultCompiledMode ==
-        NonNullableByDefaultCompiledMode.Agnostic) {
-      continue;
-    }
 
     if (mode == NonNullableByDefaultCompiledMode.Strong ||
         lib.nonNullableByDefaultCompiledMode ==

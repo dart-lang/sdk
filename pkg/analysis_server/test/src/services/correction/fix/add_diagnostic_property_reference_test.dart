@@ -22,6 +22,88 @@ class AddDiagnosticPropertyReferenceBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.diagnostic_describe_all_properties;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
+  Future<void> test_multiple_no_debugFillPropertiesMethod() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.diagnostic_describe_all_properties]);
+    await resolveTestCode(r'''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+class C extends Widget with Diagnosticable {
+  bool get absorbing => _absorbing;
+  bool _absorbing = false;
+  String logBuffer = '';
+}
+''');
+
+    await assertHasFix(r'''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+class C extends Widget with Diagnosticable {
+  bool get absorbing => _absorbing;
+  bool _absorbing = false;
+  String logBuffer = '';
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));
+    properties.add(StringProperty('logBuffer', logBuffer));
+  }
+}
+''');
+  }
+
+  Future<void> test_multiple_with_debugFillPropertiesMethod() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.diagnostic_describe_all_properties]);
+    await resolveTestCode(r'''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+class C extends Widget with Diagnosticable {
+  bool get absorbing => _absorbing;
+  bool _absorbing = false;
+  String logBuffer = '';
+  int field = 0;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+
+    await assertHasFix(r'''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+class C extends Widget with Diagnosticable {
+  bool get absorbing => _absorbing;
+  bool _absorbing = false;
+  String logBuffer = '';
+  int field = 0;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));
+    properties.add(StringProperty('logBuffer', logBuffer));
+    properties.add(IntProperty('field', field));
+  }
+}
+''');
+  }
+
   Future<void> test_singleFile() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
@@ -388,10 +470,6 @@ import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   Iterable<String> field = [];
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-  }
 }
 ''');
     await assertHasFix('''
@@ -400,6 +478,7 @@ import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   Iterable<String> field = [];
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);

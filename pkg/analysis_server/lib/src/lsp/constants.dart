@@ -87,12 +87,12 @@ final pubspecFile = TextDocumentFilterWithScheme(
 ///
 /// Clients can advertise support for these commands and the server can then use
 /// them in returns commands in CodeActions, CodeLenses etc.
-abstract class ClientCommands {
+abstract final class ClientCommands {
   static const goToLocation = 'dart.goToLocation';
 }
 
 /// Constants for command IDs that are exchanged between LSP client/server.
-abstract class Commands {
+abstract final class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
   /// commands should be sent to the server for execution (as opposed to being
   /// executed in the local plugin).
@@ -126,7 +126,7 @@ abstract class Commands {
   static const validateRefactor = 'refactor.validate';
 }
 
-abstract class CustomMethods {
+abstract final class CustomMethods {
   static const augmented = Method('dart/textDocument/augmented');
   static const augmentation = Method('dart/textDocument/augmentation');
   static const diagnosticServer = Method('dart/diagnosticServer');
@@ -154,7 +154,7 @@ abstract class CustomMethods {
       Method('textDocument/semanticTokens');
 }
 
-abstract class CustomSemanticTokenModifiers {
+abstract final class CustomSemanticTokenModifiers {
   /// A modifier applied to the identifier following the `@` annotation token to
   /// allow users to color it differently (for example in the same way as `@`).
   static const annotation = SemanticTokenModifiers('annotation');
@@ -223,7 +223,7 @@ abstract class CustomSemanticTokenModifiers {
   ];
 }
 
-abstract class CustomSemanticTokenTypes {
+abstract final class CustomSemanticTokenTypes {
   static const annotation = SemanticTokenTypes('annotation');
   static const boolean = SemanticTokenTypes('boolean');
 
@@ -243,7 +243,7 @@ abstract class CustomSemanticTokenTypes {
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.
-abstract class DartCodeActionKind {
+abstract final class DartCodeActionKind {
   /// A list of all supported CodeAction kinds, supplied to the client during
   /// initialization to allow enabling features based upon them.
   static const serverSupportedKinds = [
@@ -265,7 +265,7 @@ abstract class DartCodeActionKind {
   static const RefactorMove = CodeActionKind('refactor.move');
 }
 
-abstract class ServerErrorCodes {
+abstract final class ServerErrorCodes {
   // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
   static const ServerAlreadyStarted = ErrorCodes(-32000);
   static const UnhandledError = ErrorCodes(-32001);
@@ -304,7 +304,7 @@ abstract class ServerErrorCodes {
 }
 
 /// Strings used in user prompts (window/showMessageRequest).
-abstract class UserPromptActions {
+abstract final class UserPromptActions {
   static const String yes = 'Yes';
   static const String no = 'No';
   static const String cancel = 'Cancel';

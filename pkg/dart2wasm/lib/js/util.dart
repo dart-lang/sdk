@@ -16,6 +16,7 @@ class CoreTypesUtil {
   final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
   final Procedure functionToJSTarget;
+  final Procedure greaterThanOrEqualToTarget;
   final Procedure inlineJSTarget;
   final Procedure isDartFunctionWrappedTarget;
   final Procedure jsifyRawTarget;
@@ -33,6 +34,8 @@ class CoreTypesUtil {
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         functionToJSTarget = coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
+        greaterThanOrEqualToTarget =
+            coreTypes.index.getProcedure('dart:core', 'num', '>='),
         inlineJSTarget =
             coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         isDartFunctionWrappedTarget = coreTypes.index
@@ -70,7 +73,7 @@ class CoreTypesUtil {
   Procedure jsifyTarget(DartType type) =>
       isJSValueType(type) ? jsValueUnboxTarget : jsifyRawTarget;
 
-  /// Return whether [type] erases to a `JSValue`.
+  /// Whether [type] erases to a `JSValue` or `JSValue?`.
   bool isJSValueType(DartType type) =>
       _extensionIndex.isStaticInteropType(type) ||
       _extensionIndex.isExternalDartReferenceType(type);
@@ -94,6 +97,17 @@ class CoreTypesUtil {
       StaticInvocation(coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
 
+  Expression variableGreaterThanOrEqualToConstant(
+          VariableDeclaration variable, Constant constant) =>
+      InstanceInvocation(
+        InstanceAccessKind.Instance,
+        VariableGet(variable),
+        greaterThanOrEqualToTarget.name,
+        Arguments([ConstantExpression(constant)]),
+        interfaceTarget: greaterThanOrEqualToTarget,
+        functionType: greaterThanOrEqualToTarget.getterType as FunctionType,
+      );
+
   /// Cast the [invocation] if needed to conform to the expected [returnType].
   Expression castInvocationForReturn(
       Expression invocation, DartType returnType) {
@@ -112,7 +126,7 @@ class CoreTypesUtil {
         // there are static interop types that are not boxed as JSValue, we
         // might need a proper cast then.
         expression = invokeOneArg(jsValueBoxTarget, invocation);
-        if (returnType.isPotentiallyNonNullable) {
+        if (returnType.extensionTypeErasure.isPotentiallyNonNullable) {
           expression = NullCheck(expression);
         }
       } else {

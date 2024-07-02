@@ -4,9 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -16,6 +16,8 @@ import 'package:collection/collection.dart';
 class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   /// The name of the parameter that was missing.
   String _missingParameterName = '';
+
+  AddMissingRequiredArgument({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

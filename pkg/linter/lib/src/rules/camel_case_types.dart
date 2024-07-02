@@ -39,14 +39,15 @@ class CamelCaseTypes extends LintRule {
   static const LintCode code = LintCode('camel_case_types',
       "The type name '{0}' isn't an UpperCamelCase identifier.",
       correctionMessage:
-          'Try changing the name to follow the UpperCamelCase style.');
+          'Try changing the name to follow the UpperCamelCase style.',
+      hasPublishedDocs: true);
 
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

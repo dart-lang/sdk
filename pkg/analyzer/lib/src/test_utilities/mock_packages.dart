@@ -5,6 +5,9 @@
 import 'package:analyzer/file_system/file_system.dart';
 
 /// Helper for creating mock packages.
+// TODO(brianwilkerson): Deprecate or remove this class after the internal uses
+//  of the class have been removed.
+//  @Deprecated('Use MockPackagesMixin from analyzer_utilities')
 class MockPackages {
   /// Create a fake 'angular' package that can be used by tests.
   static void addAngularMetaPackageFiles(Folder rootFolder) {
@@ -140,6 +143,11 @@ const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 
 const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 
+@Target({
+  TargetKind.classType,
+  TargetKind.extensionType,
+  TargetKind.mixinType,
+})
 class Immutable {
   final String reason;
 
@@ -194,10 +202,12 @@ class _Checked {
 
 @Target({
   TargetKind.classType,
+  TargetKind.constructor,
   TargetKind.function,
   TargetKind.getter,
   TargetKind.library,
   TargetKind.method,
+  TargetKind.mixinType,
 })
 class _DoNotStore {
   const _DoNotStore();
@@ -220,6 +230,9 @@ class _Experimental {
   const _Experimental();
 }
 
+@Target({
+  TargetKind.method,
+})
 class _Factory {
   const _Factory();
 }
@@ -249,20 +262,14 @@ class _MustBeConst {
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustBeOverridden {
   const _MustBeOverridden();
 }
 
 @Target({
-  TargetKind.field,
-  TargetKind.getter,
-  TargetKind.method,
-  TargetKind.setter,
+  TargetKind.overridableMember,
 })
 class _MustCallSuper {
   const _MustCallSuper();
@@ -306,6 +313,9 @@ class _Reopen {
   const _Reopen();
 }
 
+@Target({
+  TargetKind.classType,
+})
 class _Sealed {
   const _Sealed();
 }

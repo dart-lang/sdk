@@ -311,12 +311,15 @@ class TypeDeclarationKey implements Key {
 
 enum _TypeDeclarationContentKind {
   declaration,
+  superclass,
   mixins,
   interfaces,
   bodyStart,
   enumValueEnd,
   declarationSeparator,
   bodyEnd,
+  typeParameterStart,
+  typeParameterEnd,
 }
 
 /// Content of a [TypeDeclaration].
@@ -342,6 +345,11 @@ class TypeDeclarationContentKey implements Key {
   /// in `augment class Foo implements Bar, Baz { }`.
   TypeDeclarationContentKey.interfaces(Key parent)
       : this._(parent, _TypeDeclarationContentKind.interfaces);
+
+  /// The fixed parts of an extends-clause, that is, "extends " in
+  /// `augment class Foo extends Bar { }`.
+  TypeDeclarationContentKey.superclass(Key parent)
+      : this._(parent, _TypeDeclarationContentKind.superclass);
 
   /// The start of the declaration body, that is, "{\n" in
   ///
@@ -374,6 +382,22 @@ class TypeDeclarationContentKey implements Key {
   ///
   TypeDeclarationContentKey.bodyEnd(Key parent)
       : this._(parent, _TypeDeclarationContentKind.bodyEnd);
+
+  /// The start of the type parameters, that is, "<" in
+  ///
+  ///     augment class Foo<T> {
+  ///     }
+  ///
+  TypeDeclarationContentKey.typeParametersStart(Key parent)
+      : this._(parent, _TypeDeclarationContentKind.typeParameterStart);
+
+  /// The end of the type parameters, that is, ">" in
+  ///
+  ///     augment class Foo<T> {
+  ///     }
+  ///
+  TypeDeclarationContentKey.typeParametersEnd(Key parent)
+      : this._(parent, _TypeDeclarationContentKind.typeParameterEnd);
 
   @override
   bool operator ==(Object other) =>
@@ -408,6 +432,10 @@ class IdentifierKey implements Key {
   /// Identifier for an enum value.
   IdentifierKey.enum_(Key parent, int index, Identifier identifier)
       : this._(parent, index, identifier, _IdentifierKind.enuum);
+
+  /// Identifier for an extended type.
+  IdentifierKey.superclass(Key parent, Identifier identifier)
+      : this._(parent, 0, identifier, _IdentifierKind.interface);
 
   /// Identifier for a mixed in type.
   IdentifierKey.mixin(Key parent, int index, Identifier identifier)

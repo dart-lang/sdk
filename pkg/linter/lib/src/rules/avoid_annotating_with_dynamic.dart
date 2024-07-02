@@ -47,7 +47,7 @@ class AvoidAnnotatingWithDynamic extends LintRule {
             name: 'avoid_annotating_with_dynamic',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

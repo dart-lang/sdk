@@ -315,8 +315,8 @@ class KernelToElementMap implements IrToElementMap {
         data.instantiationToBounds = data.thisType;
       } else {
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
-            coreTypes.legacyRawType(node), coreTypes.objectClass,
-            isNonNullableByDefault: true) as ir.InterfaceType);
+                coreTypes.legacyRawType(node), coreTypes.objectClass)
+            as ir.InterfaceType);
       }
     }
   }
@@ -1619,6 +1619,7 @@ class KernelToElementMap implements IrToElementMap {
 
 class KernelElementEnvironment extends ElementEnvironment
     implements KElementEnvironment {
+  @override
   final KernelToElementMap elementMap;
 
   KernelElementEnvironment(this.elementMap);

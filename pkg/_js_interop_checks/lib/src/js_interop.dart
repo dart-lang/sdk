@@ -245,22 +245,21 @@ Library? _findJsInteropLibrary(Component component, Uri interopUri) {
 /// Calculates the libraries in [component] that transitively import a given js
 /// interop library.
 ///
-/// Returns null if the given js interop library is not imported.
 /// NOTE: This function was based off of
 /// `calculateTransitiveImportsOfDartFfiIfUsed` in
 /// pkg/vm/lib/transformations/ffi/common.dart.
-List<Library>? calculateTransitiveImportsOfJsInteropIfUsed(
+Set<Library> calculateTransitiveImportsOfJsInteropIfUsed(
     Component component, Uri interopUri) {
   // Check for the presence of [jsInteropLibrary] as a dependency of any of the
   // libraries in [component]. We use this to bypass the expensive
   // [calculateTransitiveDependenciesOf] call for cases where js interop is
   // not used, otherwise we could just use the index of the library instead.
   Library? jsInteropLibrary = _findJsInteropLibrary(component, interopUri);
-  if (jsInteropLibrary == null) return null;
+  if (jsInteropLibrary == null) return const <Library>{};
 
   kernel_graph.LibraryGraph graph =
       kernel_graph.LibraryGraph(component.libraries);
   Set<Library> result =
       kernel_graph.calculateTransitiveDependenciesOf(graph, {jsInteropLibrary});
-  return result.toList();
+  return result;
 }

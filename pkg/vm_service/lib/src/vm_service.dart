@@ -12,7 +12,8 @@ library;
 // ignore_for_file: overridden_fields
 
 import 'dart:async';
-import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
+import 'dart:convert'
+    show base64, jsonDecode, JsonDecoder, jsonEncode, utf8, Utf8Decoder;
 import 'dart:typed_data';
 
 export 'snapshot_graph.dart'
@@ -1769,6 +1770,13 @@ class VmService {
   }
 
   Future<T> _call<T>(String method, [Map args = const {}]) {
+    if (_disposed) {
+      throw RPCError(
+        method,
+        RPCErrorKind.kServerError.code,
+        'Service connection disposed',
+      );
+    }
     return wrapFuture<T>(
       method,
       () {
@@ -1818,11 +1826,11 @@ class VmService {
     final int dataOffset = bytes.getUint32(0, Endian.little);
     final metaLength = dataOffset - metaOffset;
     final dataLength = bytes.lengthInBytes - dataOffset;
-    final meta = utf8.decode(Uint8List.view(
-        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength));
+    final decoder = (const Utf8Decoder()).fuse(const JsonDecoder());
+    final map = decoder.convert(Uint8List.view(
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as dynamic;
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
-    final map = jsonDecode(meta)!;
     if (map['method'] == 'streamNotify') {
       final streamId = map['params']['streamId'];
       final event = map['params']['event'];
@@ -2381,7 +2389,7 @@ abstract class SentinelKind {
   /// Indicates that a variable or field has not been initialized.
   static const String kNotInitialized = 'NotInitialized';
 
-  /// Indicates that a variable or field is in the process of being initialized.
+  /// Deprecated, no longer used.
   static const String kBeingInitialized = 'BeingInitialized';
 
   /// Indicates that a variable has been eliminated by the optimizing compiler.
@@ -2505,8 +2513,6 @@ class AllocationProfile extends Response {
 /// If the field is uninitialized, the `value` will be the `NotInitialized`
 /// [Sentinel].
 ///
-/// If the field is being initialized, the `value` will be the
-/// `BeingInitialized` [Sentinel].
 class BoundField {
   static BoundField? parse(Map<String, dynamic>? json) =>
       json == null ? null : BoundField._fromJson(json);
@@ -2558,9 +2564,6 @@ class BoundField {
 ///
 /// If the variable is uninitialized, the `value` will be the `NotInitialized`
 /// [Sentinel].
-///
-/// If the variable is being initialized, the `value` will be the
-/// `BeingInitialized` [Sentinel].
 ///
 /// If the variable has been optimized out by the compiler, the `value` will be
 /// the `OptimizedOut` [Sentinel].

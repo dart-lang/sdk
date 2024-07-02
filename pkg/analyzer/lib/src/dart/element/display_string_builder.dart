@@ -21,10 +21,14 @@ class ElementDisplayStringBuilder {
   /// Whether to allow a display string to be written in multiple lines.
   final bool _multiline;
 
+  /// Whether to write instantiated type alias when available.
+  final bool preferTypeAlias;
+
   ElementDisplayStringBuilder({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
     bool multiline = false,
+    required this.preferTypeAlias,
   })  : _withNullability = withNullability,
         _multiline = multiline;
 
@@ -179,6 +183,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeFunctionType(FunctionType type) {
+    if (_maybeWriteTypeAlias(type)) {
+      return;
+    }
+
     type = _uniqueTypeParameters(type);
 
     _writeType(type.returnType);
@@ -201,6 +209,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeInterfaceType(InterfaceType type) {
+    if (_maybeWriteTypeAlias(type)) {
+      return;
+    }
+
     _write(type.element.name);
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
@@ -245,6 +257,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeRecordType(RecordType type) {
+    if (_maybeWriteTypeAlias(type)) {
+      return;
+    }
+
     var positionalFields = type.positionalFields;
     var namedFields = type.namedFields;
     var fieldCount = positionalFields.length + namedFields.length;
@@ -353,6 +369,18 @@ class ElementDisplayStringBuilder {
 
   void writeVoidType() {
     _write('void');
+  }
+
+  bool _maybeWriteTypeAlias(DartType type) {
+    if (preferTypeAlias) {
+      if (type.alias case var alias?) {
+        _write(alias.element.name);
+        _writeTypeArguments(alias.typeArguments);
+        _writeNullability(type.nullabilitySuffix);
+        return true;
+      }
+    }
+    return false;
   }
 
   void _write(String str) {

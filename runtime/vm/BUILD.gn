@@ -258,7 +258,7 @@ template("gen_vm_platform") {
     args += [
       "-Ddart.vm.product=$is_product_flag",
       "-Ddart.isVM=true",
-      "--nnbd-agnostic",
+      "--nnbd-strong",
     ]
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]

@@ -45,7 +45,8 @@ YamlMap _parseYaml(String content) {
 class AvoidWebLibrariesInFlutter extends LintRule {
   static const LintCode code = LintCode('avoid_web_libraries_in_flutter',
       "Don't use web-only libraries outside Flutter web plugin packages.",
-      correctionMessage: 'Try finding a different library for your needs.');
+      correctionMessage: 'Try finding a different library for your needs.',
+      hasPublishedDocs: true);
 
   /// Cache of most recent analysis root to parsed "hasFlutter" state.
   static final Map<String, bool> _rootHasFlutterCache = {};
@@ -55,7 +56,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
             name: 'avoid_web_libraries_in_flutter',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            categories: {Category.errors});
 
   @override
   LintCode get lintCode => code;
@@ -98,7 +99,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
       if (hasFlutter == null) {
         // Clear the previous cache.
         clearCache();
-        var pubspecFile = locatePubspecFile(context.currentUnit.unit);
+        var pubspecFile = locatePubspecFile(context.definingUnit.unit);
         hasFlutter = hasFlutterDep(pubspecFile);
         _rootHasFlutterCache[root] = hasFlutter;
       }

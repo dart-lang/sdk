@@ -71,7 +71,7 @@ class SizedBoxShrinkExpand extends LintRule {
             name: 'sized_box_shrink_expand',
             description: 'Use SizedBox shrink and expand named constructors.',
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;
@@ -82,29 +82,6 @@ class SizedBoxShrinkExpand extends LintRule {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
-  }
-}
-
-class _ArgumentData {
-  var positionalArgumentFound = false;
-
-  double? width;
-
-  double? height;
-
-  _ArgumentData(ArgumentList node) {
-    for (var argument in node.arguments) {
-      if (argument is! NamedExpression) {
-        positionalArgumentFound = true;
-        return;
-      }
-      var label = argument.name.label;
-      if (label.name == 'width') {
-        width = argument.expression.argumentValue;
-      } else if (label.name == 'height') {
-        height = argument.expression.argumentValue;
-      }
-    }
   }
 }
 
@@ -121,16 +98,41 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    var data = _ArgumentData(node.argumentList);
-    if (data.positionalArgumentFound) {
+    var data = _analyzeArguments(node.argumentList);
+    if (data == null) {
       return;
     }
+
     if (data.width == 0 && data.height == 0) {
       rule.reportLint(node.constructorName, arguments: ['shrink']);
     } else if (data.width == double.infinity &&
         data.height == double.infinity) {
       rule.reportLint(node.constructorName, arguments: ['expand']);
     }
+  }
+
+  /// Determine the value of the arguments specified in the [argumentList],
+  /// and return `null` if there are unsupported arguments.
+  static ({double? height, double? width})? _analyzeArguments(
+      ArgumentList argumentList) {
+    double? height;
+    double? width;
+
+    for (var argument in argumentList.arguments) {
+      if (argument is! NamedExpression) {
+        // Positional arguments are not supported.
+        return null;
+      }
+
+      switch (argument.name.label.name) {
+        case 'width':
+          width = argument.expression.argumentValue;
+        case 'height':
+          height = argument.expression.argumentValue;
+      }
+    }
+
+    return (height: height, width: width);
   }
 }
 

@@ -18,7 +18,6 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
-#include "bin/eventhandler.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
@@ -28,18 +27,15 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/snapshot_utils.h"
-#include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "include/bin/dart_io_api.h"
+#include "include/bin/native_assets_api.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/globals.h"
-#include "platform/growable_array.h"
-#include "platform/hashmap.h"
 #include "platform/syslog.h"
-#include "platform/text_buffer.h"
 #include "platform/utils.h"
 
 extern "C" {
@@ -251,6 +247,13 @@ failed:
   return false;
 }
 
+static void* NativeAssetsDlopenRelative(const char* path, char** error) {
+  auto isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  const char* script_uri = isolate_group_data->script_url;
+  return NativeAssets::DlopenRelative(path, script_uri, error);
+}
+
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        bool is_main_isolate,
                                        const char* script_uri,
@@ -384,6 +387,18 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Dart_SetShouldPauseOnExit(false);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILER)
+  NativeAssetsApi native_assets;
+  memset(&native_assets, 0, sizeof(native_assets));
+  native_assets.dlopen_absolute = &NativeAssets::DlopenAbsolute;
+  native_assets.dlopen_relative = &NativeAssetsDlopenRelative;
+  native_assets.dlopen_system = &NativeAssets::DlopenSystem;
+  native_assets.dlopen_executable = &NativeAssets::DlopenExecutable;
+  native_assets.dlopen_process = &NativeAssets::DlopenProcess;
+  native_assets.dlsym = &NativeAssets::Dlsym;
+  Dart_InitializeNativeAssetsResolver(&native_assets);
+#endif  // !defined(DART_PRECOMPILER)
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
@@ -1177,10 +1192,11 @@ void main(int argc, char** argv) {
 
   auto parse_arguments = [&](int argc, char** argv,
                              CommandLineOptions* vm_options,
-                             CommandLineOptions* dart_options) {
+                             CommandLineOptions* dart_options,
+                             bool parsing_dart_vm_options) {
     bool success = Options::ParseArguments(
-        argc, argv, vm_run_app_snapshot, vm_options, &script_name, dart_options,
-        &print_flags_seen, &verbose_debug_seen);
+        argc, argv, vm_run_app_snapshot, parsing_dart_vm_options, vm_options,
+        &script_name, dart_options, &print_flags_seen, &verbose_debug_seen);
     if (!success) {
       if (Options::help_option()) {
         Options::PrintUsage();
@@ -1237,7 +1253,8 @@ void main(int argc, char** argv) {
         // Any Dart options that are generated based on parsing DART_VM_OPTIONS
         // are useless, so we'll throw them away rather than passing them along.
         CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
-        parse_arguments(env_argc, env_argv, &vm_options, &tmp_options);
+        parse_arguments(env_argc, env_argv, &vm_options, &tmp_options,
+                        /*parsing_dart_vm_options=*/true);
       }
     }
   }
@@ -1245,7 +1262,8 @@ void main(int argc, char** argv) {
 
   // Parse command line arguments.
   if (app_snapshot == nullptr) {
-    parse_arguments(argc, argv, &vm_options, &dart_options);
+    parse_arguments(argc, argv, &vm_options, &dart_options,
+                    /*parsing_dart_vm_options=*/false);
   }
 
   DartUtils::SetEnvironment(Options::environment());
@@ -1303,6 +1321,7 @@ void main(int argc, char** argv) {
     vm_options.AddArgument("--link_natives_lazily");
 #endif
   }
+
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||

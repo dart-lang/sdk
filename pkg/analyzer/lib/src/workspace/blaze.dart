@@ -6,7 +6,10 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -50,7 +53,7 @@ class BlazeFileUriResolver extends ResourceUriResolver {
     String filePath = fileUriToNormalizedPath(provider.pathContext, uri);
     var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(uri);
+      return FileSource(file, uri);
     }
     return null;
   }
@@ -95,7 +98,7 @@ class BlazePackageUriResolver extends UriResolver {
     if (fullFilePath != null) {
       var file = _workspace.findFile(fullFilePath);
       if (file != null) {
-        source = file.createSource(uri);
+        return FileSource(file, uri);
       }
     }
     _sourceCache[uri] = source;

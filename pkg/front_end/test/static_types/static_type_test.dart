@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -74,12 +75,6 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     _staticTypeContext = new StaticTypeContext(node, _environment);
     super.visitProcedure(node);
     _staticTypeContext = null;
-  }
-
-  @override
-  String computeLibraryValue(Id id, Library node) {
-    // TODO(johnniwinther): Remove this.
-    return 'nnbd=true';
   }
 
   @override

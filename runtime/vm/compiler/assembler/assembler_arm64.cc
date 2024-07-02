@@ -1231,7 +1231,7 @@ void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
   Label done;
   BranchIfSmi(value, &done, kNearJump);
   ldr(TMP, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  tbz(&done, TMP, target::UntaggedObject::kNewBit);
+  tbz(&done, TMP, target::UntaggedObject::kNewOrEvacuationCandidateBit);
   ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
   tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
   Stop("Write barrier is required");
@@ -1635,7 +1635,8 @@ void Assembler::ExitFullSafepoint(Register state,
 
 void Assembler::TransitionNativeToGenerated(Register state,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress) {
+                                            bool ignore_unwind_in_progress,
+                                            bool set_tag) {
   if (exit_safepoint) {
     ExitFullSafepoint(state, ignore_unwind_in_progress);
   } else {
@@ -1655,8 +1656,10 @@ void Assembler::TransitionNativeToGenerated(Register state,
   }
 
   // Mark that the thread is executing Dart code.
-  LoadImmediate(state, target::Thread::vm_tag_dart_id());
-  StoreToOffset(state, THR, target::Thread::vm_tag_offset());
+  if (set_tag) {
+    LoadImmediate(state, target::Thread::vm_tag_dart_id());
+    StoreToOffset(state, THR, target::Thread::vm_tag_offset());
+  }
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
@@ -2170,11 +2173,13 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
 
 void Assembler::LoadStaticFieldAddress(Register address,
                                        Register field,
-                                       Register scratch) {
+                                       Register scratch,
+                                       bool is_shared) {
   LoadCompressedSmiFieldFromOffset(
       scratch, field, target::Field::host_offset_or_field_id_offset());
   const intptr_t field_table_offset =
-      compiler::target::Thread::field_table_values_offset();
+      is_shared ? compiler::target::Thread::shared_field_table_values_offset()
+                : compiler::target::Thread::field_table_values_offset();
   LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
   add(address, address,
       Operand(scratch, LSL, target::kWordSizeLog2 - kSmiTagShift));

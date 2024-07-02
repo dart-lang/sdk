@@ -1137,9 +1137,6 @@ class Pass2Visitor : public ObjectVisitor,
       if (obj == Object::sentinel().ptr()) {
         writer_->WriteUnsigned(kNameData);
         writer_->WriteUtf8("uninitialized");
-      } else if (obj == Object::transition_sentinel().ptr()) {
-        writer_->WriteUnsigned(kNameData);
-        writer_->WriteUtf8("initializing");
       } else {
         writer_->WriteUnsigned(kNoData);
       }

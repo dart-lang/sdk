@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch;
-import "dart:_string" show StringBase, TwoByteString;
+import "dart:_string";
+import "dart:_typed_data";
 import "dart:_wasm";
-
-import "dart:typed_data" show Uint16List;
 
 @patch
 class StringBuffer {
@@ -42,7 +41,7 @@ class StringBuffer {
    * used when writing short strings or individual char codes to the
    * buffer. The buffer is allocated on demand.
    */
-  Uint16List? _buffer;
+  WasmArray<WasmI16>? _buffer;
   int _bufferPosition = 0;
 
   /**
@@ -80,7 +79,7 @@ class StringBuffer {
       }
       _ensureCapacity(1);
       final localBuffer = _buffer!;
-      localBuffer[_bufferPosition++] = charCode;
+      localBuffer.write(_bufferPosition++, charCode);
       _bufferCodeUnitMagnitude |= charCode;
     } else {
       if (charCode > 0x10FFFF) {
@@ -89,8 +88,8 @@ class StringBuffer {
       _ensureCapacity(2);
       int bits = charCode - 0x10000;
       final localBuffer = _buffer!;
-      localBuffer[_bufferPosition++] = 0xD800 | (bits >> 10);
-      localBuffer[_bufferPosition++] = 0xDC00 | (bits & 0x3FF);
+      localBuffer.write(_bufferPosition++, 0xD800 | (bits >> 10));
+      localBuffer.write(_bufferPosition++, 0xDC00 | (bits & 0x3FF));
       _bufferCodeUnitMagnitude |= 0xFFFF;
     }
   }
@@ -140,7 +139,7 @@ class StringBuffer {
   void _ensureCapacity(int n) {
     final localBuffer = _buffer;
     if (localBuffer == null) {
-      _buffer = Uint16List(_BUFFER_SIZE);
+      _buffer = WasmArray<WasmI16>(_BUFFER_SIZE);
     } else if (_bufferPosition + n > localBuffer.length) {
       _consumeBuffer();
     }
@@ -212,11 +211,11 @@ class StringBuffer {
   /**
    * Create a [String] from the UFT-16 code units in buffer.
    */
-  static String _create(Uint16List buffer, int length, bool isLatin1) {
+  static String _create(WasmArray<WasmI16> buffer, int length, bool isLatin1) {
     if (isLatin1) {
-      return StringBase.createOneByteString(buffer, 0, length);
+      return createOneByteStringFromTwoByteCharactersArray(buffer, 0, length);
     } else {
-      return TwoByteString.allocateFromTwoByteList(buffer, 0, length);
+      return createTwoByteStringFromCharactersArray(buffer, 0, length);
     }
   }
 }

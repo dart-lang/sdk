@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
@@ -93,15 +94,17 @@ class FormalParameterScope extends EnclosedScope {
     for (var parameter in elements) {
       if (parameter is! FieldFormalParameterElement &&
           parameter is! SuperFormalParameterElement) {
-        _addGetter(parameter);
+        if (!parameter.isWildcardVariable) {
+          _addGetter(parameter);
+        }
       }
     }
   }
 }
 
-/// The scope defined by an interface element.
-class InterfaceScope extends EnclosedScope {
-  InterfaceScope(super.parent, InstanceElement element) {
+/// The scope defined by an instance element.
+class InstanceScope extends EnclosedScope {
+  InstanceScope(super.parent, InstanceElement element) {
     var augmented = element.augmented;
     augmented.accessors.forEach(_addPropertyAccessor);
     augmented.methods.forEach(_addGetter);
@@ -174,7 +177,9 @@ class LocalScope extends EnclosedScope {
   LocalScope(super.parent);
 
   void add(Element element) {
-    _addGetter(element);
+    if (!element.isWildcardVariable) {
+      _addGetter(element);
+    }
   }
 }
 

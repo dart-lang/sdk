@@ -8,10 +8,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -37,6 +37,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   );
 
   late MockServerChannel channel;
+  late ErrorNotifier errorNotifier;
   late LegacyAnalysisServer server;
 
   void setUp() {
@@ -49,6 +50,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       root: sdkRoot,
     );
 
+    errorNotifier = ErrorNotifier();
     server = LegacyAnalysisServer(
         channel,
         resourceProvider,
@@ -56,7 +58,8 @@ class AnalysisServerTest with ResourceProviderMixin {
         DartSdkManager(sdkRoot.path),
         AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE);
+        errorNotifier);
+    errorNotifier.server = server;
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50496
@@ -170,6 +173,29 @@ class X extends A with M {}
       }
       await pumpEventQueue(times: 5000);
     }
+  }
+
+  Future<void> test_errorNotification_errorNotifier() async {
+    errorNotifier.logException(Exception('dummy exception'));
+
+    var errors = channel.notificationsReceived.where(
+        (notification) => notification.event == SERVER_NOTIFICATION_ERROR);
+    expect(
+      errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
+      contains('dummy exception'),
+    );
+  }
+
+  Future<void> test_errorNotification_sendNotification() async {
+    server.sendServerErrorNotification(
+        'message', Exception('dummy exception'), null);
+
+    var errors = channel.notificationsReceived.where(
+        (notification) => notification.event == SERVER_NOTIFICATION_ERROR);
+    expect(
+      errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
+      contains('dummy exception'),
+    );
   }
 
   Future<void> test_serverStatusNotifications_hasFile() async {

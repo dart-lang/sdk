@@ -34,14 +34,15 @@ class PreferInterpolationToComposeStrings extends LintRule {
       'prefer_interpolation_to_compose_strings',
       'Use interpolation to compose strings and values.',
       correctionMessage:
-          'Try using string interpolation to build the composite string.');
+          'Try using string interpolation to build the composite string.',
+      hasPublishedDocs: true);
 
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',
             description: _desc,
             details: _details,
-            group: Group.style);
+            categories: {Category.style});
 
   @override
   LintCode get lintCode => code;

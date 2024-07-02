@@ -658,7 +658,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   /// The last key in the map that is strictly smaller than [key].
   ///
-  /// Returns `null` if no key was not found.
+  /// Returns `null` if such a key was not found.
   K? lastKeyBefore(K key) {
     if (key == null) throw ArgumentError(key);
     if (_root == null) return null;
@@ -675,7 +675,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   }
 
   /// Get the first key in the map that is strictly larger than [key]. Returns
-  /// `null` if no key was not found.
+  /// `null` if such a key was not found.
   K? firstKeyAfter(K key) {
     if (key == null) throw ArgumentError(key);
     if (_root == null) return null;

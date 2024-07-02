@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart' show UriResolver;
@@ -45,7 +46,8 @@ class MockUriResolver implements UriResolver {
 
   @override
   Source? resolveAbsolute(Uri uri) {
-    return uriToFile[uri]?.createSource(uri);
+    var file = uriToFile[uri];
+    return file != null ? FileSource(file, uri) : null;
   }
 }
 

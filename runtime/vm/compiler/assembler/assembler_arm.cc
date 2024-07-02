@@ -503,6 +503,8 @@ void Assembler::stm(BlockAddressMode am,
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   ASSERT(rn != kNoRegister);
   ASSERT(rt != kNoRegister);
+  ASSERT(rn != R15);
+  ASSERT(rt != R15);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
                      B23 | L | (static_cast<int32_t>(rn) << kLdrExRnShift) |
@@ -515,7 +517,14 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   ASSERT(rn != kNoRegister);
   ASSERT(rd != kNoRegister);
   ASSERT(rt != kNoRegister);
+  ASSERT(rn != R15);
+  ASSERT(rd != R15);
+  ASSERT(rt != R15);
+  ASSERT(rd != kNoRegister);
+  ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
+  ASSERT(rd != rn);
+  ASSERT(rd != rt);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
                      B23 | (static_cast<int32_t>(rn) << kStrExRnShift) |
                      (static_cast<int32_t>(rd) << kStrExRdShift) | B11 | B10 |
@@ -671,7 +680,8 @@ void Assembler::ExitFullSafepoint(Register tmp1,
 void Assembler::TransitionNativeToGenerated(Register addr,
                                             Register state,
                                             bool exit_safepoint,
-                                            bool ignore_unwind_in_progress) {
+                                            bool ignore_unwind_in_progress,
+                                            bool set_tag) {
   if (exit_safepoint) {
     ExitFullSafepoint(addr, state, ignore_unwind_in_progress);
   } else {
@@ -691,8 +701,10 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   }
 
   // Mark that the thread is executing Dart code.
-  LoadImmediate(state, target::Thread::vm_tag_dart_id());
-  StoreToOffset(state, THR, target::Thread::vm_tag_offset());
+  if (set_tag) {
+    LoadImmediate(state, target::Thread::vm_tag_dart_id());
+    StoreToOffset(state, THR, target::Thread::vm_tag_offset());
+  }
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
@@ -1933,7 +1945,7 @@ void Assembler::VerifyStoreNeedsNoWriteBarrier(Register object,
   Label done;
   BranchIfSmi(value, &done, kNearJump);
   ldrb(TMP, FieldAddress(value, target::Object::tags_offset()));
-  tst(TMP, Operand(1 << target::UntaggedObject::kNewBit));
+  tst(TMP, Operand(1 << target::UntaggedObject::kNewOrEvacuationCandidateBit));
   b(&done, ZERO);
   ldrb(TMP, FieldAddress(object, target::Object::tags_offset()));
   tst(TMP, Operand(1 << target::UntaggedObject::kOldAndNotRememberedBit));
@@ -3527,9 +3539,8 @@ void Assembler::LoadAllocationTracingStateAddress(Register dest, Register cid) {
   ldr(dest,
       Address(dest,
               target::ClassTable::allocation_tracing_state_table_offset()));
-  AddScaled(cid, cid, TIMES_1,
+  AddScaled(dest, dest, cid, TIMES_1,
             target::ClassTable::AllocationTracingStateSlotOffsetFor(0));
-  AddRegisters(dest, cid);
 }
 
 void Assembler::LoadAllocationTracingStateAddress(Register dest, intptr_t cid) {
@@ -3694,7 +3705,7 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
       (is_external ? 0
                    : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * index_scale + offset_base;
-  ASSERT(Utils::IsInt(32, offset));
+  if (!Utils::IsInt(32, offset)) return false;
   if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
     *needs_base = false;
     return true;
@@ -3814,11 +3825,13 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
 
 void Assembler::LoadStaticFieldAddress(Register address,
                                        Register field,
-                                       Register scratch) {
+                                       Register scratch,
+                                       bool is_shared) {
   LoadFieldFromOffset(scratch, field,
                       target::Field::host_offset_or_field_id_offset());
   const intptr_t field_table_offset =
-      compiler::target::Thread::field_table_values_offset();
+      is_shared ? compiler::target::Thread::shared_field_table_values_offset()
+                : compiler::target::Thread::field_table_values_offset();
   LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
   add(address, address,
       Operand(scratch, LSL, target::kWordSizeLog2 - kSmiTagShift));

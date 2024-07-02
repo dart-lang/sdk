@@ -1447,12 +1447,6 @@ A0 S1;
 replacement
   left: 1
 suggestions
-  A0
-    kind: class
-  S2.B
-    kind: class
-  _B0
-    kind: class
   S2
     kind: library
 ''');
@@ -3308,10 +3302,14 @@ foo = {^
 suggestions
   C0
     kind: class
-  C0
-    kind: constructorInvocation
   C1
     kind: class
+  T0
+    kind: topLevelVariable
+  T1
+    kind: topLevelVariable
+  C0
+    kind: constructorInvocation
   C1
     kind: constructorInvocation
   D0
@@ -3322,10 +3320,6 @@ suggestions
     kind: functionInvocation
   F1
     kind: functionInvocation
-  T0
-    kind: topLevelVariable
-  T1
-    kind: topLevelVariable
 ''');
   }
 

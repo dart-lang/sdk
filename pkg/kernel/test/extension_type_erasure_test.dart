@@ -58,7 +58,7 @@ extension type ET3<T>(List<T> it);
 extension type ET4<T>(T it);
 extension type ET5(int? it);
 extension type ET6<T>(T? it);
-''', isNonNullableByDefault: true);
+''');
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
