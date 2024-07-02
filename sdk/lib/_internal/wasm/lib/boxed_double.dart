@@ -348,7 +348,8 @@ final class _BoxedDouble extends double {
     // See ECMAScript-262, 15.7.4.5 for details.
 
     // Step 2.
-    if (fractionDigits < 0 || fractionDigits > 20) {
+    // fractionDigits < 0 || fractionDigits > 20
+    if (fractionDigits.gtU(20)) {
       throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
 
@@ -387,7 +388,8 @@ final class _BoxedDouble extends double {
 
     // Step 7.
     if (fractionDigits != null) {
-      if (fractionDigits < 0 || fractionDigits > 20) {
+      // fractionDigits < 0 || fractionDigits > 20
+      if (fractionDigits.gtU(20)) {
         throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
     }

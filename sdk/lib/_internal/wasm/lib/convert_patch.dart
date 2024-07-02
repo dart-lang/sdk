@@ -1221,7 +1221,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
             value += digit;
           } else {
             digit = (char | 0x20) - CHAR_a;
-            if (digit < 0 || digit > 5) {
+            // digit < 0 || digit > 5
+            if (digit.gtU(5)) {
               fail(hexStart, "Invalid unicode escape");
             }
             value += digit + 10;
@@ -1806,7 +1807,8 @@ class _Utf8Decoder {
       int u8listIdx = 0;
       for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
         int byte = codeUnits[codeUnitsIdx];
-        if (byte < 0 || byte > 255) {
+        // byte < 0 || byte > 255
+        if (byte.gtU(255)) {
           if (allowMalformed) {
             byte = 0xFF;
           } else {
