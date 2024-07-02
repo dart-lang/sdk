@@ -4507,21 +4507,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         TypeParameterScope(nameScope, element.typeParameters),
         element,
       );
-      visitClassTypeAliasInScope(node);
+      _visitDocumentationComment(node.documentationComment);
+      node.typeParameters?.accept(this);
+      node.superclass.accept(this);
+      node.withClause.accept(this);
+      node.implementsClause?.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitClassTypeAliasInScope(ClassTypeAliasImpl node) {
-    // Note: we don't visit metadata because it's not inside the class type
-    // alias's type parameter scope.  It was already visited in
-    // [visitClassTypeAlias].
-    _visitDocumentationComment(node.documentationComment);
-    node.typeParameters?.accept(this);
-    node.superclass.accept(this);
-    node.withClause.accept(this);
-    node.implementsClause?.accept(this);
   }
 
   @override
@@ -4580,15 +4573,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitDoStatementInScope(node);
+      _visitStatementInScope(node.body);
+      node.condition.accept(this);
     } finally {
       _implicitLabelScope = outerImplicitScope;
     }
-  }
-
-  void visitDoStatementInScope(DoStatement node) {
-    visitStatementInScope(node.body);
-    node.condition.accept(this);
   }
 
   @override
@@ -4624,9 +4613,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    Scope outerScope = nameScope;
+    var outerScope = nameScope;
     try {
-      ExtensionElement element = node.declaredElement!;
+      var element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
@@ -4634,23 +4623,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         element.typeParameters,
       );
       node.nameScope = nameScope;
-      visitExtensionDeclarationInScope(node);
+      node.typeParameters?.accept(this);
+      node.onClause?.accept(this);
 
       nameScope = ExtensionScope(nameScope, element);
-      visitExtensionMembersInScope(node);
+      _visitDocumentationComment(node.documentationComment);
+      node.members.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
-    node.typeParameters?.accept(this);
-    node.onClause?.accept(this);
-  }
-
-  void visitExtensionMembersInScope(ExtensionDeclarationImpl node) {
-    _visitDocumentationComment(node.documentationComment);
-    node.members.accept(this);
   }
 
   @override
@@ -4688,10 +4669,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    //
     // We visit the iterator before the loop variable because the loop variable
     // cannot be in scope while visiting the iterator.
-    //
     node.iterable.accept(this);
     node.loopVariable.accept(this);
   }
@@ -4700,10 +4679,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitForEachPartsWithPattern(
     covariant ForEachPartsWithPatternImpl node,
   ) {
-    //
     // We visit the iterator before the pattern because the pattern variables
     // cannot be in scope while visiting the iterator.
-    //
     node.iterable.accept(this);
 
     for (var variable in node.variables) {
@@ -4719,20 +4696,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       nameScope = LocalScope(nameScope);
       node.nameScope = nameScope;
-      visitForElementInScope(node);
+      node.forLoopParts.accept(this);
+      node.body.accept(this);
     } finally {
       nameScope = outerNameScope;
     }
-  }
-
-  /// Visit the given [node] after it's scope has been created. This replaces
-  /// the normal call to the inherited visit method so that ResolverVisitor can
-  /// intervene when type propagation is enabled.
-  void visitForElementInScope(ForElement node) {
-    // TODO(brianwilkerson): Investigate the possibility of removing the
-    //  visit...InScope methods now that type propagation is no longer done.
-    node.forLoopParts.accept(this);
-    node.body.accept(this);
   }
 
   @override
@@ -4771,21 +4739,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       node.nameScope = nameScope;
-      visitForStatementInScope(node);
+      node.forLoopParts.accept(this);
+      _visitStatementInScope(node.body);
     } finally {
       nameScope = outerNameScope;
       _implicitLabelScope = outerImplicitScope;
     }
-  }
-
-  /// Visit the given [node] after it's scope has been created. This replaces
-  /// the normal call to the inherited visit method so that ResolverVisitor can
-  /// intervene when type propagation is enabled.
-  void visitForStatementInScope(ForStatement node) {
-    // TODO(brianwilkerson): Investigate the possibility of removing the
-    //  visit...InScope methods now that type propagation is no longer done.
-    node.forLoopParts.accept(this);
-    visitStatementInScope(node.body);
   }
 
   @override
@@ -4804,18 +4763,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         element.typeParameters,
       );
       node.nameScope = nameScope;
-      visitFunctionDeclarationInScope(node);
+      node.returnType?.accept(this);
+      node.functionExpression.accept(this);
     } finally {
       nameScope = outerScope;
       _enclosingClosure = outerClosure;
     }
-  }
-
-  void visitFunctionDeclarationInScope(FunctionDeclaration node) {
-    // Note: we don't visit metadata because it's not inside the function's type
-    // parameter scope.  It was already visited in [visitFunctionDeclaration].
-    node.returnType?.accept(this);
-    node.functionExpression.accept(this);
   }
 
   @override
@@ -4854,22 +4807,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredElement!;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      visitFunctionTypeAliasInScope(node);
+      node.returnType?.accept(this);
+      node.typeParameters?.accept(this);
+      node.parameters.accept(this);
+      // Visiting the parameters added them to the scope as a side effect. So it
+      // is safe to visit the documentation comment now.
+      _visitDocumentationComment(node.documentationComment);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitFunctionTypeAliasInScope(covariant FunctionTypeAliasImpl node) {
-    // Note: we don't visit metadata because it's not inside the function type
-    // alias's type parameter scope.  It was already visited in
-    // [visitFunctionTypeAlias].
-    node.returnType?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters.accept(this);
-    // Visiting the parameters added them to the scope as a side effect.  So it
-    // is safe to visit the documentation comment now.
-    _visitDocumentationComment(node.documentationComment);
   }
 
   @override
@@ -4883,21 +4829,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      visitFunctionTypedFormalParameterInScope(node);
+      _visitDocumentationComment(node.documentationComment);
+      node.returnType?.accept(this);
+      node.typeParameters?.accept(this);
+      node.parameters.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitFunctionTypedFormalParameterInScope(
-      FunctionTypedFormalParameterImpl node) {
-    // Note: we don't visit metadata because it's not inside the function typed
-    // formal parameter's type parameter scope.  It was already visited in
-    // [visitFunctionTypedFormalParameter].
-    _visitDocumentationComment(node.documentationComment);
-    node.returnType?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters.accept(this);
   }
 
   @override
@@ -4929,7 +4867,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      visitGenericTypeAliasInScope(node);
+      node.typeParameters?.accept(this);
+      node.type.accept(this);
 
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
@@ -4941,14 +4880,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitGenericTypeAliasInScope(GenericTypeAlias node) {
-    // Note: we don't visit metadata because it's not inside the generic type
-    // alias's type parameter scope.  It was already visited in
-    // [visitGenericTypeAlias].
-    node.typeParameters?.accept(this);
-    node.type.accept(this);
   }
 
   @override
@@ -5044,24 +4975,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      visitMixinDeclarationInScope(node);
+      node.typeParameters?.accept(this);
+      node.onClause?.accept(this);
+      node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
-      visitMixinMembersInScope(node);
+      _visitDocumentationComment(node.documentationComment);
+      node.members.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitMixinDeclarationInScope(MixinDeclaration node) {
-    node.typeParameters?.accept(this);
-    node.onClause?.accept(this);
-    node.implementsClause?.accept(this);
-  }
-
-  void visitMixinMembersInScope(MixinDeclarationImpl node) {
-    _visitDocumentationComment(node.documentationComment);
-    node.members.accept(this);
   }
 
   @override
@@ -5147,27 +5070,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     }
   }
 
-  /// Visit the given statement after it's scope has been created. This is used
-  /// by ResolverVisitor to correctly visit the 'then' and 'else' statements of
-  /// an 'if' statement.
-  ///
-  /// @param node the statement to be visited
-  void visitStatementInScope(Statement? node) {
-    if (node is BlockImpl) {
-      // Don't create a scope around a block because the block will create it's
-      // own scope.
-      visitBlock(node);
-    } else if (node != null) {
-      Scope outerNameScope = nameScope;
-      try {
-        nameScope = LocalScope(nameScope);
-        node.accept(this);
-      } finally {
-        nameScope = outerNameScope;
-      }
-    }
-  }
-
   @override
   void visitSwitchExpression(covariant SwitchExpressionImpl node) {
     node.expression.accept(this);
@@ -5250,16 +5152,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitStatementInScope(node.body);
+      _visitStatementInScope(node.body);
     } finally {
       _implicitLabelScope = outerImplicitScope;
     }
   }
 
-  /// Add scopes for each of the given labels.
+  /// Adds scopes for each of the given [labels].
   ///
-  /// @param labels the labels for which new scopes are to be added
-  /// @return the scope that was in effect before the new scopes were added
+  /// Returns the scope that was in effect before the new scopes were added.
   LabelScope? _addScopesFor(NodeList<Label> labels, AstNode node) {
     var outerScope = labelScope;
     for (Label label in labels) {
@@ -5367,6 +5268,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     } else {
       node.ifTrue.accept(this);
       node.ifFalse?.accept(this);
+    }
+  }
+
+  /// Visits the given statement.
+  ///
+  /// This is used by [ResolverVisitor] to correctly visit the 'then' and 'else'
+  /// statements of an 'if' statement.
+  void _visitStatementInScope(Statement? node) {
+    if (node is BlockImpl) {
+      // Don't create a scope around a block because the block will create it's
+      // own scope.
+      visitBlock(node);
+    } else if (node != null) {
+      var outerNameScope = nameScope;
+      try {
+        nameScope = LocalScope(nameScope);
+        node.accept(this);
+      } finally {
+        nameScope = outerNameScope;
+      }
     }
   }
 
