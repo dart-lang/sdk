@@ -1470,6 +1470,68 @@ conflicts
     self::@class::B::@method::foo
 ''');
   }
+
+  test_interface_getterMethodConflict() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int get foo;
+}
+
+abstract class B {
+  int foo();
+}
+
+abstract class C implements A, B {}
+''');
+
+    var element = library.class_('C');
+    assertInterfaceText(element, r'''
+overridden
+  foo
+    self::@class::A::@getter::foo
+    self::@class::B::@method::foo
+superImplemented
+conflicts
+  GetterMethodConflict
+    getter: self::@class::A::@getter::foo
+    method: self::@class::B::@method::foo
+''');
+  }
+
+  test_interface_getterMethodConflict_declares() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int get foo;
+}
+
+abstract class B {
+  int foo();
+}
+
+abstract class C implements A, B {
+  int foo() => 0;
+}
+''');
+
+    var element = library.class_('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@class::C::@method::foo
+declared
+  foo: self::@class::C::@method::foo
+implemented
+  foo: self::@class::C::@method::foo
+overridden
+  foo
+    self::@class::A::@getter::foo
+    self::@class::B::@method::foo
+superImplemented
+conflicts
+  GetterMethodConflict
+    getter: self::@class::A::@getter::foo
+    method: self::@class::B::@method::foo
+''');
+  }
 }
 
 @reflectiveTest
@@ -2935,6 +2997,12 @@ class _InterfacePrinter {
               'CandidatesConflict',
               conflict.candidates,
             );
+          case GetterMethodConflict _:
+            _sink.writelnWithIndent('GetterMethodConflict');
+            _sink.withIndent(() {
+              _elementPrinter.writeNamedElement('getter', conflict.getter);
+              _elementPrinter.writeNamedElement('method', conflict.method);
+            });
           case HasNonExtensionAndExtensionMemberConflict _:
             _sink.writelnWithIndent(
               'HasNonExtensionAndExtensionMemberConflict',
