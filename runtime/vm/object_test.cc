@@ -70,11 +70,11 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface.set_is_implemented_unsafe();
+  interface.set_is_implemented_unsafe(true);
   interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface.set_is_implemented_unsafe();
+  interface.set_is_implemented_unsafe(true);
   cls.set_interfaces(interfaces);
 
   // Finalization of types happens before the fields and functions have been
@@ -360,7 +360,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
             one_field_class.host_instance_size());
   EXPECT_EQ(header_size, field.HostOffset());
   EXPECT(!one_field_class.is_implemented());
-  one_field_class.set_is_implemented_unsafe();
+  one_field_class.set_is_implemented_unsafe(true);
   EXPECT(one_field_class.is_implemented());
 }
 

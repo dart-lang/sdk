@@ -521,30 +521,6 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     }
   }
 }
-
-// For a class used as an interface marks this class and all its superclasses
-// implemented.
-//
-// Does not mark its interfaces implemented because those would already be
-// marked as such.
-static void MarkImplemented(Zone* zone, const Class& iface) {
-  if (iface.is_implemented()) {
-    return;
-  }
-
-  Class& cls = Class::Handle(zone, iface.ptr());
-  AbstractType& type = AbstractType::Handle(zone);
-
-  while (!cls.is_implemented()) {
-    cls.set_is_implemented();
-
-    type = cls.super_type();
-    if (type.IsNull() || type.IsObjectType()) {
-      break;
-    }
-    cls = type.type_class();
-  }
-}
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
@@ -616,49 +592,73 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     MarkClassHasDynamicallyExtendableSubtypes(zone, cls);
   }
 
-  RegisterClassInHierarchy(zone, cls);
+  ClassHiearchyUpdater(zone).Register(cls);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
-  auto& type = AbstractType::Handle(zone, cls.super_type());
-  auto& other_cls = Class::Handle(zone);
+// For a class used as an interface marks this class and all its superclasses
+// implemented.
+//
+// Does not mark its interfaces implemented because those would already be
+// marked as such.
+void ClassHiearchyUpdater::MarkImplemented(const Class& interface) {
+  super_ = interface_.ptr();
+  while (!super_.is_implemented()) {
+    super_.set_is_implemented(true);
+    type_ = super_.super_type();
+    if (type_.IsNull() || type_.IsObjectType()) {
+      break;
+    }
+    super_ = type_.type_class();
+  }
+}
+
+void ClassHiearchyUpdater::Register(const Class& cls) {
+  type_ = cls.super_type();
   // Add this class to the direct subclasses of the superclass, unless the
   // superclass is Object.
-  if (!type.IsNull() && !type.IsObjectType()) {
-    other_cls = cls.SuperClass();
-    ASSERT(!other_cls.IsNull());
-    other_cls.AddDirectSubclass(cls);
+  if (!type_.IsNull() && !type_.IsObjectType()) {
+    super_ = cls.SuperClass();
+    ASSERT(!super_.IsNull());
+    super_.AddDirectSubclass(cls);
   }
 
   // Add this class as an implementor to the implemented interface's type
   // classes.
-  auto& interfaces = Array::Handle(zone, cls.interfaces());
-  const intptr_t mixin_index =
-      cls.is_transformed_mixin_application() ? interfaces.Length() - 1 : -1;
-  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
-    type ^= interfaces.At(i);
-    other_cls = type.type_class();
-    MarkImplemented(zone, other_cls);
-    other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
+  interfaces_ = cls.interfaces();
+  // Class::interfaces() can be null for some VM internal classes.
+  if (!interfaces_.IsNull()) {
+    const intptr_t mixin_index =
+        cls.is_transformed_mixin_application() ? interfaces_.Length() - 1 : -1;
+    for (intptr_t i = 0; i < interfaces_.Length(); ++i) {
+      type_ ^= interfaces_.At(i);
+      interface_ = type_.type_class();
+      const bool is_mixin = i == mixin_index;
+      MarkImplemented(interface_);
+      interface_.AddDirectImplementor(cls, is_mixin);
+    }
   }
 
   // Propagate known concrete implementors to interfaces.
   if (!cls.is_abstract()) {
-    GrowableArray<const Class*> worklist;
-    worklist.Add(&cls);
-    while (!worklist.is_empty()) {
-      const Class& implemented = *worklist.RemoveLast();
-      if (!implemented.NoteImplementor(cls)) continue;
-      type = implemented.super_type();
-      if (!type.IsNull()) {
-        worklist.Add(&Class::Handle(zone, implemented.SuperClass()));
+    worklist_.Add(cls);
+    while (!worklist_.IsEmpty()) {
+      implemented_ = worklist_.RemoveLast();
+      if (!implemented_.NoteImplementor(cls)) continue;
+      type_ = implemented_.super_type();
+      if (!type_.IsNull()) {
+        super_ = type_.type_class();
+        worklist_.Add(super_);
       }
-      interfaces = implemented.interfaces();
-      for (intptr_t i = 0; i < interfaces.Length(); i++) {
-        type ^= interfaces.At(i);
-        worklist.Add(&Class::Handle(zone, type.type_class()));
+      interfaces_ = implemented_.interfaces();
+      // Class::interfaces() can be null for some VM internal classes.
+      if (!interfaces_.IsNull()) {
+        for (intptr_t i = 0; i < interfaces_.Length(); i++) {
+          type_ ^= interfaces_.At(i);
+          interface_ = type_.type_class();
+          worklist_.Add(interface_);
+        }
       }
     }
   }

@@ -1451,8 +1451,10 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (obj->IsClass()) {
         // Won't be able to update read-only VM isolate classes if implementors
-        // are discovered later.
-        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kDynamicCid;
+        // are discovered later. We use kVoidCid instead of kDynamicCid here to
+        // be able to distinguish read-only VM isolate classes during reload.
+        // See ProgramReloadContext::RestoreClassHierarchyInvariants.
+        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kVoidCid;
       }
 #endif
     }
@@ -5578,6 +5580,14 @@ void Class::set_implementor_cid(intptr_t value) const {
   StoreNonPointer(&untag()->implementor_cid_, value);
 }
 
+void Class::ClearImplementor() const {
+  // Check raw implementor_cid_ without normalization done by
+  // implementor_cid() accessor.
+  if (untag()->implementor_cid_ != kVoidCid) {
+    set_implementor_cid(kIllegalCid);
+  }
+}
+
 bool Class::NoteImplementor(const Class& implementor) const {
   ASSERT(!implementor.is_abstract());
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -5611,13 +5621,13 @@ int32_t Class::SourceFingerprint() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void Class::set_is_implemented() const {
+void Class::set_is_implemented(bool value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_is_implemented_unsafe();
+  set_is_implemented_unsafe(value);
 }
 
-void Class::set_is_implemented_unsafe() const {
-  set_state_bits(ImplementedBit::update(true, state_bits()));
+void Class::set_is_implemented_unsafe(bool value) const {
+  set_state_bits(ImplementedBit::update(value, state_bits()));
 }
 
 void Class::set_is_abstract() const {

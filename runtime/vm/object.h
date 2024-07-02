@@ -1239,11 +1239,19 @@ class Class : public Object {
   // via `extends` or by `implements`, returns its CID.
   // If it has no implementation, returns kIllegalCid.
   // If it has more than one implementation, returns kDynamicCid.
-  intptr_t implementor_cid() const { return untag()->implementor_cid_; }
+  intptr_t implementor_cid() const {
+    // Classes in VM isolate use kVoidCid instead of kDynamicCid
+    // so that we could distinguish them.
+    const classid_t cid = untag()->implementor_cid_;
+    return cid == kVoidCid ? kDynamicCid : cid;
+  }
 
   // Returns true if the implementor tracking state changes and so must be
   // propagated to this class's superclass and interfaces.
   bool NoteImplementor(const Class& implementor) const;
+
+  // Used by hot reload to reset the state.
+  void ClearImplementor() const;
 #endif
 
   static intptr_t num_type_arguments_offset() {
@@ -1687,8 +1695,8 @@ class Class : public Object {
   // Returns false if all possible implementations of this interface must be
   // instances of this class or its subclasses.
   bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
-  void set_is_implemented() const;
-  void set_is_implemented_unsafe() const;
+  void set_is_implemented(bool value) const;
+  void set_is_implemented_unsafe(bool value) const;
 
   bool is_abstract() const { return AbstractBit::decode(state_bits()); }
   void set_is_abstract() const;
