@@ -1671,6 +1671,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
+    var beginToken = node.beginToken;
+    if (offset <= beginToken.end && beginToken.isKeywordOrIdentifier) {
+      // The user is completing at the beginning of the expression, so let the
+      // parent node determine the right set of suggestions.
+      node.parent?.accept(this);
+      return;
+    }
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
       collector.completionLocation = 'IndexExpression_index';
       _forExpression(node, mustBeNonVoid: true);
