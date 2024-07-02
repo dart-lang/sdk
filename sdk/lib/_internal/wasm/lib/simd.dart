@@ -10,7 +10,6 @@ import 'dart:collection' show ListMixin;
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:_internal' show WasmTypedDataBase;
-import 'dart:_wasm';
 
 final class NaiveInt32x4List extends WasmTypedDataBase
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
@@ -510,8 +509,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
   }
 
   Float32x4 shuffle(int mask) {
-    // mask < 0 || mask > 255
-    if (mask.gtU(255)) {
+    if ((mask < 0) || (mask > 255)) {
       throw RangeError.range(mask, 0, 255, 'mask');
     }
     _list[0] = x;
@@ -527,8 +525,7 @@ final class NaiveFloat32x4 extends WasmTypedDataBase implements Float32x4 {
   }
 
   Float32x4 shuffleMix(Float32x4 other, int mask) {
-    // mask < 0 || mask > 255
-    if (mask.gtU(255)) {
+    if ((mask < 0) || (mask > 255)) {
       throw RangeError.range(mask, 0, 255, 'mask');
     }
     _list[0] = x;
@@ -775,8 +772,7 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
   }
 
   Int32x4 shuffle(int mask) {
-    // mask < 0 || mask > 255
-    if (mask.gtU(255)) {
+    if ((mask < 0) || (mask > 255)) {
       throw RangeError.range(mask, 0, 255, 'mask');
     }
     _list[0] = x;
@@ -791,8 +787,7 @@ final class NaiveInt32x4 extends WasmTypedDataBase implements Int32x4 {
   }
 
   Int32x4 shuffleMix(Int32x4 other, int mask) {
-    // mask < 0 || mask > 255
-    if (mask.gtU(255)) {
+    if ((mask < 0) || (mask > 255)) {
       throw RangeError.range(mask, 0, 255, 'mask');
     }
     _list[0] = x;

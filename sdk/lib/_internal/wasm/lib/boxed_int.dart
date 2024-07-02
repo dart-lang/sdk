@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal';
-import 'dart:_wasm';
 
 @pragma("wasm:entry-point")
 final class _BoxedInt extends int {
@@ -300,8 +299,7 @@ final class _BoxedInt extends int {
     }
 
     int b = this;
-    // b < 0 || b > m, m is positive (checked above)
-    if (b.gtU(m)) {
+    if (b < 0 || b > m) {
       b %= m;
     }
     int r = 1;
@@ -392,8 +390,7 @@ final class _BoxedInt extends int {
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
-    // t < 0 || t >= m, m is positive (checked above)
-    if (t.geU(m)) t %= m;
+    if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
     if ((t == 0) || (t.isEven && m.isEven)) {
       throw new Exception("Not coprime");

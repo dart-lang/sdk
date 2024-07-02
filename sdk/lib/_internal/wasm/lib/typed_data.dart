@@ -36,8 +36,7 @@ import 'dart:typed_data';
 const int _maxWasmArrayLength = 2147483647; // max i32
 
 int _newArrayLengthCheck(int length) {
-  // length < 0 || length > _maxWasmArrayLength
-  if (length.gtU(_maxWasmArrayLength)) {
+  if (length < 0 || length > _maxWasmArrayLength) {
     throw RangeError.value(length);
   }
   return length;
