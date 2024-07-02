@@ -7,6 +7,9 @@ import '../analyzer.dart';
 const _desc = r'Avoid using `as`.';
 
 const _details = r'''
+NOTE: This rule was removed from the SDK in Dart 3; it is no longer functional.
+Its advice is compiler-specific and mostly obsolete with null safety.
+
 **AVOID** using `as`.
 
 If you know the type is correct, use an assertion or assign to a more
