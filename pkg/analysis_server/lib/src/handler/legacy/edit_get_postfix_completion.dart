@@ -18,7 +18,8 @@ class EditGetPostfixCompletionHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = EditGetPostfixCompletionParams.fromRequest(request);
+    var params = EditGetPostfixCompletionParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {

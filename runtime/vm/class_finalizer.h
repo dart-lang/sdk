@@ -52,9 +52,6 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypesInClass(const Class& cls);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // Register class in the lists of direct subclasses and direct implementors.
-  static void RegisterClassInHierarchy(Zone* zone, const Class& cls);
-
   // Mark [cls], its superclass and superinterfaces as can_be_future().
   static void MarkClassCanBeFuture(Zone* zone, const Class& cls);
 
@@ -107,6 +104,52 @@ class ClassFinalizer : public AllStatic {
   // Dart instances (e.g: _TypedListView, _ByteDataView).
   static void VerifyImplicitFieldOffsets();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+};
+
+class ClassHiearchyUpdater : public ValueObject {
+ public:
+  explicit ClassHiearchyUpdater(Zone* zone) : zone_(zone) {}
+
+  // Register class in the lists of direct subclasses and direct implementors.
+  void Register(const Class& cls);
+
+ private:
+  void MarkImplemented(const Class& interface);
+
+  Zone* const zone_;
+
+  AbstractType& type_ = AbstractType::Handle(zone_);
+  Class& super_ = Class::Handle(zone_);
+  Class& implemented_ = Class::Handle(zone_);
+  Class& interface_ = Class::Handle(zone_);
+  Array& interfaces_ = Array::Handle(zone_);
+
+  class ClassWorklist {
+   public:
+    explicit ClassWorklist(Zone* zone) : zone_(zone) {}
+
+    bool IsEmpty() const { return size_ == 0; }
+
+    void Add(const Class& cls) {
+      if (worklist_.length() == size_) {
+        worklist_.Add(&Class::Handle(zone_));
+      }
+      *worklist_[size_] = cls.ptr();
+      size_++;
+    }
+
+    ClassPtr RemoveLast() {
+      size_--;
+      return worklist_[size_]->ptr();
+    }
+
+   private:
+    Zone* const zone_;
+    GrowableArray<Class*> worklist_;
+    intptr_t size_ = 0;
+  };
+
+  ClassWorklist worklist_{zone_};
 };
 
 }  // namespace dart

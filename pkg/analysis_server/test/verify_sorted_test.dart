@@ -11,6 +11,11 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:test/test.dart';
 
+/// The purpose of this test is to validate that all elements
+/// (classes, enums, etc, methods, functions, fields, operators, etc.) are
+/// sorted alphabetically by name (either manually or via an IDE, e.g.
+/// VS Code 'Dart: Sort Members' command or IntelliJ 'Sort Members'
+/// context menu.)
 void main() {
   group('analysis_server', () {
     buildTestsForAnalysisServer();

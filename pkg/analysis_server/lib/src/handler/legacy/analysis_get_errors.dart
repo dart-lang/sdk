@@ -16,7 +16,9 @@ class AnalysisGetErrorsHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var file = AnalysisGetErrorsParams.fromRequest(request).file;
+    var file = AnalysisGetErrorsParams.fromRequest(request,
+            clientUriConverter: server.uriConverter)
+        .file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;

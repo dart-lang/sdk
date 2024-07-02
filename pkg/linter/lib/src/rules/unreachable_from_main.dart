@@ -53,7 +53,7 @@ class UnreachableFromMain extends LintRule {
           name: 'unreachable_from_main',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {Category.unused_code},
           state: State.stable(since: Version(3, 1, 0)),
         );
 

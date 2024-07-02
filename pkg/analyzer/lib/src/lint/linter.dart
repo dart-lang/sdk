@@ -36,8 +36,29 @@ export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
 abstract final class Category {
+  /// A category of rules that help to minimize binary size.
+  static const String binary_size = 'binary size';
+
+  /// A category of rules that help to maintain documentation comments.
+  static const String documentation_comment_maintenance =
+      'documentation comment maintenance';
+
   /// A category representing possible coding errors.
+  // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
+  // back to this one).
   static const String errors = 'errors';
+
+  /// A category of rules that protect against error-prone code.
+  static const String error_prone = 'error-prone';
+
+  /// A category of rules that promote language feature usage.
+  static const String language_feature_usage = 'language feature usage';
+
+  /// A category of rules that protect against possibly memory-leaking code.
+  static const String memory_leaks = 'memory leaks';
+
+  /// A category of rules that protect against non-performant code.
+  static const String non_performant = 'non-performant';
 
   /// A category representing Pub-related rules.
   static const String pub = 'pub';
@@ -45,6 +66,13 @@ abstract final class Category {
   /// A category representing matters of style, largely derived from Effective
   /// Dart.
   static const String style = 'style';
+
+  /// A category of rules that protect against code that probably doesn't do
+  /// what you think it does, or that shouldn't be used as it is.
+  static const String unintentional = 'unintentional';
+
+  /// A category of rules that protect against unused code.
+  static const String unused_code = 'unused code';
 }
 
 /// The result of attempting to evaluate an expression.

@@ -57,7 +57,8 @@ Future<String> getMachineListing(
   bool includeSetInfo = true,
   Map<String, SinceInfo>? sinceInfo,
 }) async {
-  var rules = List<LintRule>.of(ruleRegistry, growable: false)..sort();
+  var rules = List<LintRule>.of(ruleRegistry, growable: false)
+    ..sort((a, b) => a.name.compareTo(b.name));
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
   fixStatusMap ??= {};
 
@@ -72,7 +73,8 @@ Future<String> getMachineListing(
       {
         'name': rule.name,
         'description': rule.description,
-        'group': rule.categories,
+        'categories': rule.categories.toList(),
+        'group': rule.categories.firstOrNull ?? '',
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [

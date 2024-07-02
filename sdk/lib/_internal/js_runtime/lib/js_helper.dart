@@ -675,11 +675,13 @@ class Primitives {
     return '';
   }
 
-  static int getTimeZoneOffsetInMinutes(DateTime receiver) {
-    // Note that JS and Dart disagree on the sign of the offset.
-    // Subtract to avoid -0.0
-    return 0 - JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver))
-        as int;
+  static int getTimeZoneOffsetInSeconds(DateTime receiver) {
+    // Note that JavaScript's Date and and Dart's DateTime disagree on the sign
+    // of the offset. Subtract to avoid -0.0. The offset in minutes could
+    // contain 'seconds' as fractional minutes.
+    num offsetInMinutes =
+        JS('num', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return (0 - offsetInMinutes * 60).toInt();
   }
 
   static int? valueFromDecomposedDate(

@@ -112,7 +112,8 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     }
 
     var requestLatency = request.timeSinceRequest;
-    var params = CompletionGetSuggestions2Params.fromRequest(request);
+    var params = CompletionGetSuggestions2Params.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     var offset = params.offset;
 
@@ -134,7 +135,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
           suggestions.replacementLength,
           suggestions.suggestions,
           false,
-        ).toResponse(request.id),
+        ).toResponse(request.id, clientUriConverter: server.uriConverter),
       );
       return;
     }
@@ -142,7 +143,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(
         CompletionGetSuggestions2Result(offset, 0, [], false)
-            .toResponse(request.id),
+            .toResponse(request.id, clientUriConverter: server.uriConverter),
       );
       return;
     }
@@ -218,7 +219,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
               completionRequest.replacementLength,
               [],
               true,
-            ).toResponse(request.id),
+            ).toResponse(request.id, clientUriConverter: server.uriConverter),
           );
         }
 

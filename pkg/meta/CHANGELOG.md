@@ -8,6 +8,47 @@
     overridable members.
   - Require that `@sealed` is only used on classes.
 
+- Updated `@doNotSubmit` to (1) disallow same-library access (unlike other
+  visibility annotation), (2) allow parameters marked with `@doNotSubmit` to be
+  used in nested functions, and (3) disallowed `@doNotSubmit` on required
+  parameters:
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  @doNotSubmit
+  void a() {}
+
+  void b() {
+    // HINT: invalid_use_of_do_not_submit: ...
+    a();
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    @doNotSubmit bool solo = false
+  }) {
+    void nested() {
+      // OK
+      if (solo) { /*...*/ }
+    }
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    // HINT: Cannot use on required parameters.
+    @doNotSubmit required bool solo
+  }) {}
+  ```
+
+  See <https://github.com/dart-lang/sdk/issues/55558> for more information.
+
 ## 1.15.0
 
 - Updated `@mustBeOverridden` to only flag missing overrides in concrete
@@ -41,10 +82,53 @@
   ```
 
   See <https://github.com/dart-lang/sdk/issues/52965> for more information.
+
 - Introduce `TargetKind.optionalParameter`, to indicate that an annotation is
   valid on any optional parameter declaration.
 - Introduce `TargetKind.overridableMember`, to indicate that an annotation is
   valid on any instance member declaration.
+- Introduce `TargetKind.instanceMember`, to indicate that an annotation is valid
+  on any instance member declaration.
+- Updated `@doNotSubmit` to (1) disallow same-library access (unlike other
+  visibility annotation), (2) allow parameters marked with `@doNotSubmit` to be
+  used in nested functions, and (3) disallowed `@doNotSubmit` on required
+  parameters:
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  @doNotSubmit
+  void a() {}
+
+  void b() {
+    // HINT: invalid_use_of_do_not_submit: ...
+    a();
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    @doNotSubmit bool solo = false
+  }) {
+    void nested() {
+      // OK
+      if (solo) { /*...*/ }
+    }
+  }
+  ```
+
+  ```dart
+  import 'package:meta/meta.dart';
+
+  void test({
+    // HINT: Cannot use on required parameters.
+    @doNotSubmit required bool solo
+  }) {}
+  ```
+
+  See <https://github.com/dart-lang/sdk/issues/55558> for more information.
 
 ## 1.14.0
 

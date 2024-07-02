@@ -10,28 +10,22 @@ import 'codegen_dart_protocol.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-GeneratedFile clientTarget(
-        bool responseRequiresRequestTime, bool requiresProtocolJsonMethods) =>
+GeneratedFile clientTarget(bool responseRequiresRequestTime,
+        CodegenUriConverterKind uriConverterKind) =>
     GeneratedFile(
         '../analysis_server_client/lib/src/protocol/protocol_common.dart',
         (String pkgPath) async {
-      var visitor = CodegenCommonVisitor(
-          path.basename(pkgPath),
-          responseRequiresRequestTime,
-          requiresProtocolJsonMethods,
-          readApi(pkgPath),
+      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
+          responseRequiresRequestTime, uriConverterKind, readApi(pkgPath),
           forClient: true);
       return visitor.collectCode(visitor.visitApi);
     });
 
-GeneratedFile pluginTarget(
-        bool responseRequiresRequestTime, bool requiresProtocolJsonMethods) =>
+GeneratedFile pluginTarget(bool responseRequiresRequestTime,
+        CodegenUriConverterKind uriConverterKind) =>
     GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) async {
-      var visitor = CodegenCommonVisitor(
-          path.basename(pkgPath),
-          responseRequiresRequestTime,
-          requiresProtocolJsonMethods,
-          readApi(pkgPath));
+      var visitor = CodegenCommonVisitor(path.basename(pkgPath),
+          responseRequiresRequestTime, uriConverterKind, readApi(pkgPath));
       return visitor.collectCode(visitor.visitApi);
     });
 
@@ -44,7 +38,7 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   /// the given [packageName] corresponding to the types in the given [api] that
   /// are common to multiple protocols.
   CodegenCommonVisitor(super.packageName, super.responseRequiresRequestTime,
-      super.requiresProtocolJsonMethods, super.api,
+      super.uriConverterKind, super.api,
       {this.forClient = false});
 
   @override
@@ -60,6 +54,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
       writeln("import 'package:$packageName/protocol/protocol.dart';");
       writeln(
           "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+      writeln(
+          "import 'package:$packageName/src/utilities/client_uri_converter.dart';");
     }
     writeln();
     writeln('// ignore_for_file: flutter_style_todos');

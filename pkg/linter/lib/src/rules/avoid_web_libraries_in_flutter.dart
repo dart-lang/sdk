@@ -17,7 +17,7 @@ const _desc =
 const _details = r'''
 **AVOID** using web libraries, `dart:html`, `dart:js` and 
 `dart:js_util` in Flutter packages that are not web plugins. These libraries are 
-not supported outside a web context; functionality that depends on them will
+not supported outside of a web context; functionality that depends on them will
 fail at runtime in Flutter mobile, and their use is generally discouraged in
 Flutter web.
 
@@ -56,7 +56,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
             name: 'avoid_web_libraries_in_flutter',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone});
 
   @override
   LintCode get lintCode => code;

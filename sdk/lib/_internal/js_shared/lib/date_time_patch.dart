@@ -97,7 +97,7 @@ class DateTime {
   @patch
   Duration get timeZoneOffset {
     if (isUtc) return Duration.zero;
-    return Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
+    return Duration(seconds: Primitives.getTimeZoneOffsetInSeconds(this));
   }
 
   @patch

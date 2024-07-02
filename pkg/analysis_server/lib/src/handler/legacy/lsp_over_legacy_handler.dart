@@ -40,7 +40,8 @@ class LspOverLegacyHandler extends LegacyHandler {
   @override
   Future<void> handle() async {
     server.initializeLsp();
-    var params = LspHandleParams.fromRequest(request);
+    var params = LspHandleParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var lspMessageJson = params.lspMessage;
     var reporter = LspJsonReporter();
     var lspMessage = lspMessageJson is Map<String, Object?> &&

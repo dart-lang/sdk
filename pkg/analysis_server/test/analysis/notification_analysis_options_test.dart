@@ -41,7 +41,8 @@ void f() {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       filesErrors[getFile(decoded.file)] = decoded.errors;
     }
   }

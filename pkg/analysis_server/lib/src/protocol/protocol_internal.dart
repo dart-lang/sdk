@@ -10,6 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     show JsonDecoder;
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 
 export 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     show JsonDecoder;
@@ -97,49 +98,63 @@ Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
 
 /// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback? refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object? json, Map<Object?, Object?> feedbackJson) {
+    String jsonPath, Object? json, Map<Object?, Object?> feedbackJson,
+    {required ClientUriConverter? clientUriConverter}) {
   var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.EXTRACT_WIDGET) {
-    return ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-    return InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.RENAME) {
-    return RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return RenameFeedback.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   return null;
 }
 
 /// Create a [RefactoringOptions] corresponding the given [kind].
 RefactoringOptions? refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object? json, RefactoringKind kind) {
+    String jsonPath, Object? json, RefactoringKind kind,
+    {required ClientUriConverter? clientUriConverter}) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.EXTRACT_WIDGET) {
-    return ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+    return InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.MOVE_FILE) {
-    return MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
+    return MoveFileOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   if (kind == RefactoringKind.RENAME) {
-    return RenameOptions.fromJson(jsonDecoder, jsonPath, json);
+    return RenameOptions.fromJson(jsonDecoder, jsonPath, json,
+        clientUriConverter: clientUriConverter);
   }
   return null;
 }
@@ -148,7 +163,7 @@ RefactoringOptions? refactoringOptionsFromJson(JsonDecoder jsonDecoder,
 /// a JSON presentation.
 abstract class HasToJson {
   /// Returns a JSON presentation of the object.
-  Map<String, Object> toJson();
+  Map<String, Object> toJson({required ClientUriConverter? clientUriConverter});
 }
 
 /// JsonDecoder for decoding requests.  Errors are reporting by throwing a
@@ -189,7 +204,10 @@ class RequestDecoder extends JsonDecoder {
 abstract class RequestParams implements HasToJson {
   /// Return a request whose parameters are taken from this object and that has
   /// the given [id].
-  Request toRequest(String id);
+  Request toRequest(
+    String id, {
+    required ClientUriConverter? clientUriConverter,
+  });
 }
 
 /// JsonDecoder for decoding responses from the server.  This is intended to be
@@ -225,5 +243,8 @@ class ResponseDecoder extends JsonDecoder {
 abstract class ResponseResult implements HasToJson {
   /// Return a response whose result data is this object for the request with
   /// the given [id].
-  Response toResponse(String id);
+  Response toResponse(
+    String id, {
+    required ClientUriConverter? clientUriConverter,
+  });
 }

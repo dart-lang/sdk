@@ -24,7 +24,8 @@ class EditBulkFixes extends LegacyHandler {
     // Compute bulk fixes
     //
     try {
-      var params = EditBulkFixesParams.fromRequest(request);
+      var params = EditBulkFixesParams.fromRequest(request,
+          clientUriConverter: server.uriConverter);
       for (var file in params.included) {
         if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
           return;

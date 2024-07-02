@@ -878,6 +878,10 @@ abstract final class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Insert ';'",
   );
+  static const INSERT_SEMICOLON_MULTI = FixKind(
+      'dart.fix.insertSemicolon.multi',
+      DartFixKindPriority.IN_FILE,
+      "Insert ';' everywhere in file");
   static const MAKE_CLASS_ABSTRACT = FixKind(
     'dart.fix.makeClassAbstract',
     DartFixKindPriority.DEFAULT,

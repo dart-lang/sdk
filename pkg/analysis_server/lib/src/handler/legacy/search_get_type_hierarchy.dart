@@ -19,7 +19,8 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
   @override
   Future<void> handle() async {
     var searchEngine = server.searchEngine;
-    var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
+    var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
@@ -33,7 +34,7 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
       var items = computer.computeSuper();
       var response =
           protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-              .toResponse(request.id);
+              .toResponse(request.id, clientUriConverter: server.uriConverter);
       server.sendResponse(response);
       return;
     }
@@ -41,13 +42,13 @@ class SearchGetTypeHierarchyHandler extends LegacyHandler {
     var computer = TypeHierarchyComputer(searchEngine, element);
     var items = await computer.compute();
     var response = protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-        .toResponse(request.id);
+        .toResponse(request.id, clientUriConverter: server.uriConverter);
     server.sendResponse(response);
   }
 
   void _sendTypeHierarchyNull(protocol.Request request) {
-    var response =
-        protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
+    var response = protocol.SearchGetTypeHierarchyResult()
+        .toResponse(request.id, clientUriConverter: server.uriConverter);
     server.sendResponse(response);
   }
 }

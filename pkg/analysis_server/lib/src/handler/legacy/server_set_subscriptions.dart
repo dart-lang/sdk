@@ -18,7 +18,8 @@ class ServerSetSubscriptionsHandler extends LegacyHandler {
   @override
   Future<void> handle() async {
     try {
-      server.serverServices = ServerSetSubscriptionsParams.fromRequest(request)
+      server.serverServices = ServerSetSubscriptionsParams.fromRequest(request,
+              clientUriConverter: server.uriConverter)
           .subscriptions
           .toSet();
       server.requestStatistics?.isNotificationSubscribed =

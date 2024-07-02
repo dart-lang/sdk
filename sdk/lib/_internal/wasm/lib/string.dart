@@ -1188,7 +1188,7 @@ final class OneByteString extends StringBase {
 
   @override
   int codeUnitAt(int index) {
-    if (index.geU(length)) {
+    if (length.leU(index)) {
       throw IndexError.withLength(index, length);
     }
     return _codeUnitAtUnchecked(index);
@@ -1619,7 +1619,7 @@ final class TwoByteString extends StringBase {
 
   @override
   int codeUnitAt(int index) {
-    if (index.geU(length)) {
+    if (length.leU(index)) {
       throw IndexError.withLength(index, length);
     }
     return _codeUnitAtUnchecked(index);

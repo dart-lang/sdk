@@ -1124,10 +1124,11 @@ class D extends C {}
     var request = SearchGetTypeHierarchyParams(
             convertPath('/does/not/exist.dart'), 0,
             superOnly: true)
-        .toRequest(requestId);
+        .toRequest(requestId, clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var items =
-        SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
+    var items = SearchGetTypeHierarchyResult.fromResponse(response,
+            clientUriConverter: server.uriConverter)
+        .hierarchyItems;
     expect(items, isNull);
   }
 
@@ -1629,7 +1630,7 @@ extension type E(A it) implements A {
   Request _createGetTypeHierarchyRequest(String search, {bool? superOnly}) {
     return SearchGetTypeHierarchyParams(testFile.path, findOffset(search),
             superOnly: superOnly)
-        .toRequest(requestId);
+        .toRequest(requestId, clientUriConverter: server.uriConverter);
   }
 
   Future<List<TypeHierarchyItem>> _getTypeHierarchy(String search,
@@ -1642,11 +1643,15 @@ extension type E(A it) implements A {
     await waitForTasksFinished();
     var request = _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     var response = await serverChannel.simulateRequestFromClient(request);
-    return SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
+    return SearchGetTypeHierarchyResult.fromResponse(response,
+            clientUriConverter: server.uriConverter)
+        .hierarchyItems;
   }
 
   List<Map<String, Object>> _toJson(List<TypeHierarchyItem> items) {
-    return items.map((item) => item.toJson()).toList();
+    return items
+        .map((item) => item.toJson(clientUriConverter: server.uriConverter))
+        .toList();
   }
 
   static Set<String> _toClassNames(List<TypeHierarchyItem> items) {

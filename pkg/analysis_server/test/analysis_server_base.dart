@@ -143,7 +143,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     handleSuccessfulRequest(
       AnalysisSetPriorityFilesParams(
         files.map((e) => e.path).toList(),
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -158,7 +158,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
         includedConverted,
         excludedConverted,
         packageRoots: {},
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
@@ -204,7 +204,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     await handleSuccessfulRequest(
       AnalysisSetGeneralSubscriptionsParams(
         _analysisGeneralServices,
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 }
@@ -255,7 +255,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     await handleSuccessfulRequest(
       AnalysisSetSubscriptionsParams(
         _analysisFileSubscriptions,
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 

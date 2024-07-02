@@ -90,9 +90,9 @@ const _Checked checked = _Checked();
 ///   or top-level variable.
 const _DoNotStore doNotStore = _DoNotStore();
 
-/// Used to annotate a method, getter, top-level function, or top-level getter
-/// that is not intended to be accessed in checked-in code, but might be
-/// ephemerally used during development or local testing.
+/// Used to annotate an optional parameter, method, getter or top-level getter
+/// or function that is not intended to be accessed in checked-in code, but
+/// might be ephemerally used during development or local testing.
 ///
 /// The intention of this annotation is to signify an API is available for
 /// temporary or ephemeral use (such as debugging or local testing), but should
@@ -661,7 +661,7 @@ class _DoNotStore {
   TargetKind.function,
   TargetKind.getter,
   TargetKind.method,
-  TargetKind.parameter,
+  TargetKind.optionalParameter,
   TargetKind.setter,
   TargetKind.topLevelVariable,
 })

@@ -55,7 +55,10 @@ class NoWildcardVariableUses extends LintRule {
             name: 'no_wildcard_variable_uses',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {
+              Category.language_feature_usage,
+              Category.unintentional
+            });
 
   @override
   LintCode get lintCode => code;

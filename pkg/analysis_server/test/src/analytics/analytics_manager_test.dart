@@ -158,8 +158,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_server_request_analysisSetAnalysisRoots() async {
     _defaultStartup();
     var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
-    var request =
-        Request('1', ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS, params.toJson());
+    var request = Request('1', ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+        params.toJson(clientUriConverter: null));
     manager.startedRequest(request: request, startTime: _now());
     manager.startedSetAnalysisRoots(params);
     manager.sentResponse(response: Response('1'));
@@ -181,8 +181,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_server_request_analysisSetPriorityFiles() async {
     _defaultStartup();
     var params = AnalysisSetPriorityFilesParams(['a']);
-    var request =
-        Request('1', ANALYSIS_REQUEST_SET_PRIORITY_FILES, params.toJson());
+    var request = Request('1', ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+        params.toJson(clientUriConverter: null));
     manager.startedRequest(request: request, startTime: _now());
     manager.startedSetPriorityFiles(params);
     manager.sentResponse(response: Response('1'));
@@ -204,7 +204,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _defaultStartup();
     var params =
         EditGetRefactoringParams(RefactoringKind.RENAME, '', 0, 0, true);
-    var request = Request('1', EDIT_REQUEST_GET_REFACTORING, params.toJson());
+    var request = Request('1', EDIT_REQUEST_GET_REFACTORING,
+        params.toJson(clientUriConverter: null));
     manager.startedRequest(request: request, startTime: _now());
     manager.startedGetRefactoring(params);
     manager.sentResponse(response: Response('1'));

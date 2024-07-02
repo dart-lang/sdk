@@ -17,7 +17,8 @@ class FlutterSetSubscriptionsHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = FlutterSetSubscriptionsParams.fromRequest(request);
+    var params = FlutterSetSubscriptionsParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var subMap =
         mapMap<FlutterService, List<String>, FlutterService, Set<String>>(
             params.subscriptions,

@@ -39,7 +39,7 @@ class ValidRegexps extends LintRule {
             name: 'valid_regexps',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.unintentional});
 
   @override
   LintCode get lintCode => code;

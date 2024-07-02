@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
-    as analyzer_plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,19 +33,9 @@ class LspOverLegacyNotificationTest extends AbstractLspOverLegacyTest {
   Future<void> enableCustomUriSupport() async {
     // Tell the server we will be using URIs.
     await sendServerSetClientCapabilities([], supportsUris: true);
-    // Set the (global) encoder for the test process so the JSON we
-    // produce maps files to URIs so the test implementations can just work
-    // with the internal paths.
-    analyzer_plugin.clientUriConverter =
-        ClientUriConverter.withVirtualFileSupport(pathContext);
-  }
-
-  @override
-  tearDown() async {
-    // Reset the converter that some tests set up.
-    analyzer_plugin.clientUriConverter = ClientUriConverter.noop(pathContext);
-
-    await super.tearDown();
+    // Set the encoder for the test class so the JSON we produce maps files to
+    // URIs so the test implementations can just work with the internal paths.
+    uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
   }
 
   Future<void> test_macroModifiedContentEvent() async {

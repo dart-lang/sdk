@@ -19,7 +19,8 @@ class AnalysisGetHoverHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = AnalysisGetHoverParams.fromRequest(request);
+    var params = AnalysisGetHoverParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {

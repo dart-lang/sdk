@@ -171,7 +171,7 @@ external bool get _checkBounds;
 /// Assumes that [length] is positive.
 @pragma("wasm:prefer-inline")
 void indexCheck(int index, int length) {
-  if (_checkBounds && index.geU(length)) {
+  if (_checkBounds && length.leU(index)) {
     throw IndexError.withLength(index, length);
   }
 }
@@ -179,7 +179,7 @@ void indexCheck(int index, int length) {
 /// Same as [indexCheck], but passes [name] to [IndexError].
 @pragma("wasm:prefer-inline")
 void indexCheckWithName(int index, int length, String name) {
-  if (_checkBounds && index.geU(length)) {
+  if (_checkBounds && length.leU(index)) {
     throw IndexError.withLength(index, length, name: name);
   }
 }

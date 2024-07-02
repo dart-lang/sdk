@@ -32,8 +32,6 @@ final Map<String, List<String>> additionalRequiredClasses = {
     'ListBase',
     'MapBase',
     'LinkedHashSet',
-    '_HashSet',
-    '_IdentityHashSet',
   ],
   'dart:math': ['Rectangle'],
   'dart:html': [],
@@ -46,6 +44,8 @@ final Map<String, List<String>> additionalRequiredClasses = {
     'PrivateSymbol',
     'LinkedMap',
     'IdentityMap',
+    'LinkedSet',
+    'IdentitySet',
     'SyncIterable',
   ],
 };

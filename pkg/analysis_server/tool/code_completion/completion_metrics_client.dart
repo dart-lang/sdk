@@ -218,6 +218,7 @@ class _AnalysisServerClient {
       ResponseDecoder(null),
       'result',
       result,
+      clientUriConverter: null,
     );
   }
 
@@ -240,6 +241,7 @@ class _AnalysisServerClient {
       ResponseDecoder(null),
       'result',
       result,
+      clientUriConverter: null,
     );
   }
 
@@ -259,6 +261,7 @@ class _AnalysisServerClient {
       ResponseDecoder(null),
       'result',
       result,
+      clientUriConverter: null,
     );
     deserializeStopwatch.stop();
     metadata.deserializeDuration = deserializeStopwatch.elapsedMilliseconds;

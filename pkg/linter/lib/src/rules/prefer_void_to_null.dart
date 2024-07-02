@@ -56,7 +56,7 @@ class PreferVoidToNull extends LintRule {
             name: 'prefer_void_to_null',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone});
 
   @override
   LintCode get lintCode => code;

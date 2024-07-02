@@ -41,8 +41,8 @@ class FixesTest extends PubPackageAnalysisServerTest {
     // if there are no contexts.
     await waitForTasksFinished();
 
-    var request =
-        EditGetFixesParams(convertPath(outsideFile), 0).toRequest('0');
+    var request = EditGetFixesParams(convertPath(outsideFile), 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -103,19 +103,20 @@ bar() {
     {
       var errorFixes = await _getFixesAt(testFile, 'print(1)');
       expect(errorFixes, hasLength(1));
-      _isSyntacticErrorWithSingleFix(errorFixes[0]);
+      _isSyntacticErrorWithMultiFix(errorFixes[0]);
     }
     // print(10)
     {
       var errorFixes = await _getFixesAt(testFile, 'print(10)');
       expect(errorFixes, hasLength(2));
-      _isSyntacticErrorWithSingleFix(errorFixes[0]);
-      _isSyntacticErrorWithSingleFix(errorFixes[1]);
+      _isSyntacticErrorWithMultiFix(errorFixes[0]);
+      _isSyntacticErrorWithMultiFix(errorFixes[0]);
     }
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetFixesParams('test.dart', 0).toRequest('0');
+    var request = EditGetFixesParams('test.dart', 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -126,7 +127,7 @@ bar() {
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -195,14 +196,16 @@ dependencies:
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         name: AddContentOverlay(contents),
-      }).toRequest('0'),
+      }).toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(File file, int offset) async {
-    var request = EditGetFixesParams(file.path, offset).toRequest('0');
+    var request = EditGetFixesParams(file.path, offset)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditGetFixesResult.fromResponse(response);
+    var result = EditGetFixesResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     return result.fixes;
   }
 
@@ -211,10 +214,19 @@ dependencies:
     return await _getFixes(file, offset);
   }
 
-  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
+  void _isSyntacticError(AnalysisErrorFixes fixes) {
     var error = fixes.error;
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
+  }
+
+  void _isSyntacticErrorWithMultiFix(AnalysisErrorFixes fixes) {
+    _isSyntacticError(fixes);
+    expect(fixes.fixes.length, greaterThan(1));
+  }
+
+  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
+    _isSyntacticError(fixes);
     expect(fixes.fixes, hasLength(1));
   }
 }

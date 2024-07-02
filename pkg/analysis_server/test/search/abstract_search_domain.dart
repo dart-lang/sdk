@@ -66,7 +66,8 @@ class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
-      var params = SearchResultsParams.fromNotification(notification);
+      var params = SearchResultsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       var id = params.id;
       var resultSet = _resultSets[id];
       if (resultSet == null) {

@@ -17,7 +17,8 @@ class EditGetRefactoringHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = EditGetRefactoringParams.fromRequest(request);
+    var params = EditGetRefactoringParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
 
     server.analyticsManager.startedGetRefactoring(params);
 

@@ -1,613 +1,10 @@
 [
   {
-    "name": "always_use_package_imports",
-    "description": "Avoid relative imports for files in `lib/`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [
-      "prefer_relative_imports"
-    ],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**DO** avoid relative imports for files in `lib/`.\n\nWhen mixing relative and absolute imports it's possible to create confusion\nwhere the same member gets imported in two different ways. One way to avoid\nthat is to ensure you consistently use absolute imports for files within the\n`lib/` directory.\n\nThis is the opposite of 'prefer_relative_imports'.\n\nYou can also use 'avoid_relative_lib_imports' to disallow relative imports of\nfiles within `lib/` directory outside of it (for example `test/`).\n\n**BAD:**\n```dart\nimport 'baz.dart';\n\nimport 'src/bag.dart'\n\nimport '../lib/baz.dart';\n\n...\n```\n\n**GOOD:**\n```dart\nimport 'package:foo/bar.dart';\n\nimport 'package:foo/baz.dart';\n\nimport 'package:foo/src/baz.dart';\n...\n```\n\n",
-    "sinceDartSdk": "2.10.0"
-  },
-  {
-    "name": "avoid_dynamic_calls",
-    "description": "Avoid method calls or property accesses on a `dynamic` target.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DO** avoid method calls or accessing properties on an object that is either\nexplicitly or implicitly statically typed `dynamic`. Dynamic calls are treated\nslightly different in every runtime environment and compiler, but most\nproduction modes (and even some development modes) have both compile size and\nruntime performance penalties associated with dynamic calls.\n\nAdditionally, targets typed `dynamic` disables most static analysis, meaning it\nis easier to lead to a runtime `NoSuchMethodError` or `TypeError` than properly\nstatically typed Dart code.\n\nThere is an exception to methods and properties that exist on `Object?`:\n- `a.hashCode`\n- `a.runtimeType`\n- `a.noSuchMethod(someInvocation)`\n- `a.toString()`\n\n... these members are dynamically dispatched in the web-based runtimes, but not\nin the VM-based ones. Additionally, they are so common that it would be very\npunishing to disallow `any.toString()` or `any == true`, for example.\n\nNote that despite `Function` being a type, the semantics are close to identical\nto `dynamic`, and calls to an object that is typed `Function` will also trigger\nthis lint.\n\nDynamic calls are allowed on cast expressions (`as dynamic` or `as Function`).\n\n**BAD:**\n```dart\nvoid explicitDynamicType(dynamic object) {\n  print(object.foo());\n}\n\nvoid implicitDynamicType(object) {\n  print(object.foo());\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredDynamicType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething();\n  print(object.foo());\n}\n\nvoid callDynamic(dynamic function) {\n  function();\n}\n\nvoid functionType(Function function) {\n  function();\n}\n```\n\n**GOOD:**\n```dart\nvoid explicitType(Fooable object) {\n  object.foo();\n}\n\nvoid castedType(dynamic object) {\n  (object as Fooable).foo();\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething<Fooable>();\n  object.foo();\n}\n\nvoid functionTypeWithParameters(Function() function) {\n  function();\n}\n```\n\n",
-    "sinceDartSdk": "2.12.0"
-  },
-  {
-    "name": "avoid_empty_else",
-    "description": "Avoid empty statements in else clauses.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**AVOID** empty statements in the `else` clause of `if` statements.\n\n**BAD:**\n```dart\nif (x > y)\n  print('1');\nelse ;\n  print('2');\n```\n\nIf you want a statement that follows the empty clause to _conditionally_ run,\nremove the dangling semicolon to include it in the `else` clause.\nOptionally, also enclose the else's statement in a block.\n\n**GOOD:**\n```dart\nif (x > y)\n  print('1');\nelse\n  print('2');\n```\n\n**GOOD:**\n```dart\nif (x > y) {\n  print('1');\n} else {\n  print('2');\n}\n```\n\nIf you want a statement that follows the empty clause to _unconditionally_ run,\nremove the `else` clause.\n\n**GOOD:**\n```dart\nif (x > y) print('1');\n\nprint('2');\n```\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "avoid_print",
-    "description": "Avoid `print` calls in production code.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**DO** avoid `print` calls in production code.\n\nFor production code, consider using a logging framework.\nIf you are using Flutter, you can use `debugPrint`\nor surround `print` calls with a check for `kDebugMode`\n\n**BAD:**\n```dart\nvoid f(int x) {\n  print('debug: $x');\n  ...\n}\n```\n\n\n**GOOD:**\n```dart\nvoid f(int x) {\n  debugPrint('debug: $x');\n  ...\n}\n```\n\n\n**GOOD:**\n```dart\nvoid f(int x) {\n  log('log: $x');\n  ...\n}\n```\n\n\n**GOOD:**\n```dart\nvoid f(int x) {\n  if (kDebugMode) {\n      print('debug: $x');\n  }\n  ...\n}\n```\n",
-    "sinceDartSdk": "2.5.0"
-  },
-  {
-    "name": "avoid_relative_lib_imports",
-    "description": "Avoid relative imports for files in `lib/`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**DO** avoid relative imports for files in `lib/`.\n\nWhen mixing relative and absolute imports it's possible to create confusion\nwhere the same member gets imported in two different ways.  An easy way to avoid\nthat is to ensure you have no relative imports that include `lib/` in their\npaths.\n\nYou can also use 'always_use_package_imports' to disallow relative imports\nbetween files within `lib/`.\n\n**BAD:**\n```dart\nimport 'package:foo/bar.dart';\n\nimport '../lib/baz.dart';\n\n...\n```\n\n**GOOD:**\n```dart\nimport 'package:foo/bar.dart';\n\nimport 'baz.dart';\n\n...\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "avoid_returning_null_for_future",
-    "description": "Avoid returning null for Future.",
-    "group": "errors",
-    "state": "removed",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**AVOID** returning null for Future.\n\nIt is almost always wrong to return `null` for a `Future`.  Most of the time the\ndeveloper simply forgot to put an `async` keyword on the function.\n",
-    "sinceDartSdk": "2.1.1"
-  },
-  {
-    "name": "avoid_slow_async_io",
-    "description": "Avoid slow asynchronous `dart:io` methods.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsFix",
-    "details": "**AVOID** using the following asynchronous file I/O methods because they are\nmuch slower than their synchronous counterparts.\n\n* `Directory.exists`\n* `Directory.stat`\n* `File.lastModified`\n* `File.exists`\n* `File.stat`\n* `FileSystemEntity.isDirectory`\n* `FileSystemEntity.isFile`\n* `FileSystemEntity.isLink`\n* `FileSystemEntity.type`\n\n**BAD:**\n```dart\nimport 'dart:io';\n\nFuture<Null> someFunction() async {\n  var file = File('/path/to/my/file');\n  var now = DateTime.now();\n  if ((await file.lastModified()).isBefore(now)) print('before'); // LINT\n}\n```\n\n**GOOD:**\n```dart\nimport 'dart:io';\n\nFuture<Null> someFunction() async {\n  var file = File('/path/to/my/file');\n  var now = DateTime.now();\n  if (file.lastModifiedSync().isBefore(now)) print('before'); // OK\n}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "avoid_type_to_string",
-    "description": "Avoid <Type>.toString() in production code since results may be minified.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DO** avoid calls to <Type>.toString() in production code, since it does not\ncontractually return the user-defined name of the Type (or underlying class).\nDevelopment-mode compilers where code size is not a concern use the full name,\nbut release-mode compilers often choose to minify these symbols.\n\n**BAD:**\n```dart\nvoid bar(Object other) {\n  if (other.runtimeType.toString() == 'Bar') {\n    doThing();\n  }\n}\n\nObject baz(Thing myThing) {\n  return getThingFromDatabase(key: myThing.runtimeType.toString());\n}\n```\n\n**GOOD:**\n```dart\nvoid bar(Object other) {\n  if (other is Bar) {\n    doThing();\n  }\n}\n\nclass Thing {\n  String get thingTypeKey => ...\n}\n\nObject baz(Thing myThing) {\n  return getThingFromDatabase(key: myThing.thingTypeKey);\n}\n```\n\n",
-    "sinceDartSdk": "2.12.0"
-  },
-  {
-    "name": "avoid_types_as_parameter_names",
-    "description": "Avoid types as parameter names.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**AVOID** using a parameter name that is the same as an existing type.\n\n**BAD:**\n```dart\nm(f(int));\n```\n\n**GOOD:**\n```dart\nm(f(int v));\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "avoid_unstable_final_fields",
-    "description": "Avoid overriding a final field to return different values if called multiple times.",
-    "group": "errors",
-    "state": "removed",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "This rule has been removed.\n",
-    "sinceDartSdk": "3.3.0"
-  },
-  {
-    "name": "avoid_web_libraries_in_flutter",
-    "description": "Avoid using web-only libraries outside Flutter web plugin packages.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "**AVOID** using web libraries, `dart:html`, `dart:js` and \n`dart:js_util` in Flutter packages that are not web plugins. These libraries are \nnot supported outside a web context; functionality that depends on them will\nfail at runtime in Flutter mobile, and their use is generally discouraged in\nFlutter web.\n\nWeb library access *is* allowed in:\n\n* plugin packages that declare `web` as a supported context\n\notherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.\n",
-    "sinceDartSdk": "2.6.0"
-  },
-  {
-    "name": "cancel_subscriptions",
-    "description": "Cancel instances of `dart:async` `StreamSubscription`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DO** invoke `cancel` on instances of `dart:async` `StreamSubscription`.\n\nCancelling instances of StreamSubscription prevents memory leaks and unexpected\nbehavior.\n\n**BAD:**\n```dart\nclass A {\n  StreamSubscription _subscriptionA; // LINT\n  void init(Stream stream) {\n    _subscriptionA = stream.listen((_) {});\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  StreamSubscription _subscriptionF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  StreamSubscription _subscriptionB; // OK\n  void init(Stream stream) {\n    _subscriptionB = stream.listen((_) {});\n  }\n\n  void dispose(filename) {\n    _subscriptionB.cancel();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  StreamSubscription _subscriptionB; // OK\n  _subscriptionB.cancel();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of StreamSubscription instantiations and\ncancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)\nfor more information.\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "close_sinks",
-    "description": "Close instances of `dart:core` `Sink`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DO** invoke `close` on instances of `dart:core` `Sink`.\n\nClosing instances of Sink prevents memory leaks and unexpected behavior.\n\n**BAD:**\n```dart\nclass A {\n  IOSink _sinkA;\n  void init(filename) {\n    _sinkA = File(filename).openWrite(); // LINT\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  IOSink _sinkF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  IOSink _sinkB;\n  void init(filename) {\n    _sinkB = File(filename).openWrite(); // OK\n  }\n\n  void dispose(filename) {\n    _sinkB.close();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  IOSink _sinkFOK; // OK\n  _sinkFOK.close();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of Sink instantiations and\nclosures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)\nfor more information.\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "collection_methods_unrelated_type",
-    "description": "Invocation of various collection methods with arguments of unrelated types.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "**DON'T** invoke certain collection method with an argument with an unrelated\ntype.\n\nDoing this will invoke `==` on the collection's elements and most likely will\nreturn `false`.\n\nAn argument passed to a collection method should relate to the collection type\nas follows:\n\n* an argument to `Iterable<E>.contains` should be related to `E`\n* an argument to `List<E>.remove` should be related to `E`\n* an argument to `Map<K, V>.containsKey` should be related to `K`\n* an argument to `Map<K, V>.containsValue` should be related to `V`\n* an argument to `Map<K, V>.remove` should be related to `K`\n* an argument to `Map<K, V>.[]` should be related to `K`\n* an argument to `Queue<E>.remove` should be related to `E`\n* an argument to `Set<E>.lookup` should be related to `E`\n* an argument to `Set<E>.remove` should be related to `E`\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var set = <int>{};\n  set.remove('1'); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains(1)) print('someFunction'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction() {\n  var set = <int>{};\n  set.remove(1); // OK\n}\n```\n\n",
-    "sinceDartSdk": "2.19.0"
-  },
-  {
-    "name": "comment_references",
-    "description": "Only reference in scope identifiers in doc comments.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**DO** reference only in scope identifiers in doc comments.\n\nIf you surround things like variable, method, or type names in square brackets,\nthen [`dart doc`](https://dart.dev/tools/dart-doc) will look up the name and\nlink to its docs.  For this all to work, ensure that all identifiers in docs\nwrapped in brackets are in scope.\n\nFor example, assuming `outOfScopeId` is out of scope:\n\n**BAD:**\n```dart\n/// Return true if [value] is larger than [outOfScopeId].\nbool isOutOfRange(int value) { ... }\n```\n\n**GOOD:**\n```dart\n/// Return the larger of [a] or [b].\nint max_int(int a, int b) { ... }\n```\n\nNote that the square bracket comment format is designed to allow comments to\nrefer to declarations using a fairly natural format but does not allow\n*arbitrary expressions*.  In particular, code references within square brackets\ncan consist of either\n\n- a single identifier where the identifier is any identifier in scope for the\n  comment (see the spec for what is in scope in doc comments),\n- two identifiers separated by a period where the first identifier is the name\n  of a class that is in scope and the second is the name of a member declared in\n  the class,\n- a single identifier followed by a pair of parentheses where the identifier is\n  the name of a class that is in scope (used to refer to the unnamed constructor\n  for the class), or\n- two identifiers separated by a period and followed by a pair of parentheses\n  where the first identifier is the name of a class that is in scope and the\n  second is the name of a named constructor (not strictly necessary, but allowed\n  for consistency).\n\n**Known limitations**\n\nThe `comment_references` linter rule aligns with the Dart analyzer's notion of\ncomment references, which is separate from Dartdoc's notion of comment\nreferences. The linter rule may report comment references which cannot be\nresolved by the analyzer, but which Dartdoc can. See\n[dartdoc#1142](https://github.com/dart-lang/linter/issues/1142) for more\ninformation.\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "control_flow_in_finally",
-    "description": "Avoid control flow in `finally` blocks.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "**AVOID** control flow leaving `finally` blocks.\n\nUsing control flow in `finally` blocks will inevitably cause unexpected behavior\nthat is hard to debug.\n\n**BAD:**\n```dart\nclass BadReturn {\n  double nonCompliantMethod() {\n    try {\n      return 1 / 0;\n    } catch (e) {\n      print(e);\n    } finally {\n      return 1.0; // LINT\n    }\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadContinue {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        continue; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadBreak {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        break; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "deprecated_member_use_from_same_package",
-    "description": "Avoid using deprecated elements from within the package in which they are declared.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "Elements that are annotated with `@Deprecated` should not be referenced from\nwithin the package in which they are declared.\n\n**AVOID** using deprecated elements.\n\n...\n\n**BAD:**\n```dart\n// Declared in one library:\nclass Foo {\n  @Deprecated(\"Use 'm2' instead\")\n  void m1() {}\n\n  void m2({\n      @Deprecated('This is an old parameter') int? p,\n  })\n}\n\n@Deprecated('Do not use')\nint x = 0;\n\n// In the same or another library, but within the same package:\nvoid m(Foo foo) {\n  foo.m1();\n  foo.m2(p: 7);\n  x = 1;\n}\n```\n\nDeprecated elements can be used from within _other_ deprecated elements, in\norder to allow for the deprecation of a collection of APIs together as one unit.\n\n**GOOD:**\n```dart\n// Declared in one library:\nclass Foo {\n  @Deprecated(\"Use 'm2' instead\")\n  void m1() {}\n\n  void m2({\n      @Deprecated('This is an old parameter') int? p,\n  })\n}\n\n@Deprecated('Do not use')\nint x = 0;\n\n// In the same or another library, but within the same package:\n@Deprecated('Do not use')\nvoid m(Foo foo) {\n  foo.m1();\n  foo.m2(p: 7);\n  x = 1;\n}\n```\n",
-    "sinceDartSdk": "3.0.0"
-  },
-  {
-    "name": "diagnostic_describe_all_properties",
-    "description": "DO reference all public properties in debug methods.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**DO** reference all public properties in `debug` method implementations.\n\nImplementers of `Diagnosticable` should reference all public properties in\na `debugFillProperties(...)` or `debugDescribeChildren(...)` method\nimplementation to improve debuggability at runtime.\n\nPublic properties are defined as fields and getters that are\n\n* not package-private (e.g., prefixed with `_`)\n* not `static` or overriding\n* not themselves `Widget`s or collections of `Widget`s\n\nIn addition, the \"debug\" prefix is treated specially for properties in Flutter.\nFor the purposes of diagnostics, a property `foo` and a prefixed property\n`debugFoo` are treated as effectively describing the same property and it is\nsufficient to refer to one or the other.\n\n**BAD:**\n```dart\nclass Absorber extends Widget {\n  bool get absorbing => _absorbing;\n  bool _absorbing;\n  bool get ignoringSemantics => _ignoringSemantics;\n  bool _ignoringSemantics;\n  @override\n  void debugFillProperties(DiagnosticPropertiesBuilder properties) {\n    super.debugFillProperties(properties);\n    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));\n    // Missing reference to ignoringSemantics\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Absorber extends Widget {\n  bool get absorbing => _absorbing;\n  bool _absorbing;\n  bool get ignoringSemantics => _ignoringSemantics;\n  bool _ignoringSemantics;\n  @override\n  void debugFillProperties(DiagnosticPropertiesBuilder properties) {\n    super.debugFillProperties(properties);\n    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));\n    properties.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));\n  }\n}\n```\n",
-    "sinceDartSdk": "2.3.0"
-  },
-  {
-    "name": "discarded_futures",
-    "description": "Don't invoke asynchronous functions in non-`async` blocks.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "Making asynchronous calls in non-`async` functions is usually the sign of a\nprogramming error.  In general these functions should be marked `async` and such\nfutures should likely be awaited (as enforced by `unawaited_futures`).\n\n**DON'T** invoke asynchronous functions in non-`async` blocks.\n\n**BAD:**\n```dart\nvoid recreateDir(String path) {\n  deleteDir(path);\n  createDir(path);\n}\n\nFuture<void> deleteDir(String path) async {}\n\nFuture<void> createDir(String path) async {}\n```\n\n**GOOD:**\n```dart\nFuture<void> recreateDir(String path) async {\n  await deleteDir(path);\n  await createDir(path);\n}\n\nFuture<void> deleteDir(String path) async {}\n\nFuture<void> createDir(String path) async {}\n```\n",
-    "sinceDartSdk": "2.18.0"
-  },
-  {
-    "name": "empty_statements",
-    "description": "Avoid empty statements.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**AVOID** empty statements.\n\nEmpty statements almost always indicate a bug.\n\nFor example,\n\n**BAD:**\n```dart\nif (complicated.expression.foo());\n  bar();\n```\n\nFormatted with `dart format` the bug becomes obvious:\n\n```dart\nif (complicated.expression.foo()) ;\nbar();\n\n```\n\nBetter to avoid the empty statement altogether.\n\n**GOOD:**\n```dart\nif (complicated.expression.foo())\n  bar();\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "hash_and_equals",
-    "description": "Always override `hashCode` if overriding `==`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**DO** override `hashCode` if overriding `==` and prefer overriding `==` if\noverriding `hashCode`.\n\nEvery object in Dart has a `hashCode`.  Both the `==` operator and the\n`hashCode` property of objects must be consistent in order for a common hash\nmap implementation to function properly.  Thus, when overriding `==`, the\n`hashCode` should also be overridden to maintain consistency. Similarly, if\n`hashCode` is overridden, `==` should be also.\n\n**BAD:**\n```dart\nclass Bad {\n  final int value;\n  Bad(this.value);\n\n  @override\n  bool operator ==(Object other) => other is Bad && other.value == value;\n}\n```\n\n**GOOD:**\n```dart\nclass Better {\n  final int value;\n  Better(this.value);\n\n  @override\n  bool operator ==(Object other) =>\n      other is Better &&\n      other.runtimeType == runtimeType &&\n      other.value == value;\n\n  @override\n  int get hashCode => value.hashCode;\n}\n```\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "implicit_reopen",
-    "description": "Don't implicitly reopen classes.",
-    "group": "errors",
-    "state": "experimental",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "Using an `interface`, `base`, `final`, or `sealed` modifier on a class,\nor a `base` modifier on a mixin,\nauthors can control whether classes and mixins allow being implemented,\nextended, and/or mixed in from outside of the library where they're defined.\nIn some cases, it's possible for an author to inadvertently relax these controls\nand implicitly \"reopen\" a class. (A similar reopening cannot occur with a mixin.)\n\nThis lint guards against unintentionally reopening a class by requiring such\ncases to be made explicit with the\n[`@reopen`](https://pub.dev/documentation/meta/latest/meta/reopen-constant.html)\nannotation in `package:meta`.\n\n**BAD:**\n```dart\ninterface class I {}\n\nclass C extends I {} // LINT\n```\n\n**GOOD:**\n```dart\ninterface class I {}\n\nfinal class C extends I {}\n```\n\n```dart\nimport 'package:meta/meta.dart';\n\ninterface class I {}\n\n@reopen\nclass C extends I {}\n```\n",
-    "sinceDartSdk": "3.0.0"
-  },
-  {
-    "name": "invalid_case_patterns",
-    "description": "Use case expressions that are valid in Dart 3.0.",
-    "group": "errors",
-    "state": "experimental",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "Some case expressions that are valid in Dart 2.19 and below will become an error\nor have changed semantics when a library is upgraded to 3.0. This lint flags\nthose expressions in order to ease migration to Dart 3.0.\n\nSome valid switch cases in 2.19 will become compile errors in Dart 3.0:\n\n* Set literals\n* Parenthesized expressions\n* Calls to `identical()`.\n* Unary operator expressions `!`, `-`, or `~` (except for `-` before an integer\n  literal, which is a valid pattern and is fine)\n* Binary operator expressions `!=`, `==`, `&`, `|`, `^`, `~/`, `>>`, `>>>`,\n  `<<`, `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `??`.\n* Conditional operator `?:`\n* `.length` calls on strings\n* `is` and `is!` expressions\n\nExamples of all of them:\n\n```dart\nswitch (obj) {\n  case {1}: // Set literal.\n  case (1): // Parenthesized expression.\n  case identical(1, 2): // `identical()` call.\n  case -pi: // Unary operator.\n  case 1 + 2: // Binary operator.\n  case true ? 1 : 2: // Conditional operator.\n  case 'hi'.length: // .length call.\n  case i is int: // is expression.\n}\n```\n\nSome valid switch cases in 2.19 are also syntactically valid patterns, but the\npattern matching behavior may be different from the current constant equality\nbehavior. They are:\n\n**List and map literals.** A list or map literal can appear as a constant in a\ncase:\n\n```dart\nswitch (obj) {\n  case [1, 2]: ...\n  case {'k': 'v'}: ...\n}\n```\n\nCurrently, the case will only match if the incoming value has the same identity\nas the constant. So:\n\n```dart\ntest(List<int> list) {\n  switch (list) {\n    case [1, 2]: print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(const [1, 2]); // Prints \"Matched\".\n  test([1, 2]); // Prints \"Did not match\".\n}\n```\n\nWith patterns, a list or map literal becomes a list or map pattern. The pattern\ndestructures the incoming object and matches if the subpatterns all match. In\nother words, list and map pattern match using something more like deep equality.\n\nWith Dart 3.0, the above program prints \"Matched\" twice.\n\n**Constant constructor calls.** Similar to collections, you can construct a\nconstant instance of a class in a case:\n\n```dart\nclass Point {\n  final int x;\n  final int y;\n  const Point({this.x, this.y});\n}\n\ntest(Point p) {\n  switch (p) {\n    case Point(x: 1, y: 2): print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(const Point(1, 2)); // Prints \"Matched\".\n  test(Point(1, 2)); // Prints \"Did not match\".\n}\n```\n\nAgain, like collections, the case currently only matches if the incoming value\nhas the same identity. With patterns, the `Point(...)` syntax becomes an object\npattern that destructures the incoming point, calls the `x` and `y` getters on\nit and then matches the results of those against the corresponding subpatterns.\n\nIn this example, it will print \"Matched\" twice.\n\nNote that object patterns only support named fields. So any constant constructor\nin a case today that has positional arguments will become a compile-time error\nwhen parsed as a pattern. A constant constructor call with no arguments is a\nvalid object pattern and only does a type test:\n\n```dart\nclass Thing {\n  const Thing();\n}\n\ntest(Thing t) {\n  switch (t) {\n    case Thing(): print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(const Thing()); // Prints \"Matched\".\n  test(Thing()); // Prints \"Did not match\".\n}\n```\n\nWhen interpreted as a pattern, this prints \"Matched\" twice.\n\n**Wildcards.** Today, you can have a constant named `_`:\n\n```dart\ntest(int n) {\n  const _ = 3;\n  switch (n) {\n    case _: print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(3); // Prints \"Matched\".\n  test(5); // Prints \"Did not match\".\n}\n```\n\nWith patterns, the identifier `_` is treated as a pattern that matches all \nvalues, so this prints \"Matched\" twice.\n\n**Logic operators.** The logic operators `&&` and `||` are valid constant\nexpressions and also valid patterns. As a constant expression, they simply\nevaluate the expression to a boolean and match if the incoming value is equal to\nthat boolean value. So:\n\n```dart\ntest(bool b) {\n  switch (b) {\n    case true && false: print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(false); // Prints \"Matched\".\n  test(true); // Prints \"Did not match\".\n}\n```\n\nWith Dart 3.0, these become patterns. The above example prints \"Did not match\"\ntwice because no boolean value can be both true and false.\n\nMany of invalid cases can be mechanically changed to something that is valid\nboth in Dart today and valid and means the same in Dart 3.0.\n\n**Parenthesized expressions:** Provided the inner expression is one that's not\nbroken in Dart 3.0, just discard the parentheses.\n\n**List literals, map literals, set literals, and constant constructor calls:**\nPut `const` before the literal or call. This turns it into a constant pattern\nwhich preserves the current behavior:\n\n**BAD:**\n\n```dart\ncase [1, 2]:\ncase {'k': 'v'}:\ncase {1, 2}:\ncase Point(1, 2):\n```\n\n**GOOD:**\n\n```dart\ncase const [1, 2]:\ncase const {'k': 'v'}:\ncase const {1, 2}:\ncase const Point(1, 2):\n```\n\n* **Wildcards:** Rename the constant from `_` to something else. Since the name\nis private, this can be done locally in the library without affecting other\ncode.\n\n* **Everything else:** For any other invalid expression, you have to hoist the\nexpression out into a new named constant. For example, if you have code like\nthis:\n\n\n**BAD:**\n\n```dart\nswitch (n) {\n  case 1 + 2: ...\n}\n```\n\nIt can be fixed by changing it to:\n\n**GOOD:**\n\n ```dart\nconst three = 1 + 2;\n\nswitch (n) {\n  case three: ...\n}\n```\n",
-    "sinceDartSdk": "3.0.0"
-  },
-  {
-    "name": "invalid_runtime_check_with_js_interop_types",
-    "description": "Avoid runtime type tests with JS interop types where the result may not\n    be platform-consistent.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsFix",
-    "details": "**DON'T** use 'is' checks where the type is a JS interop type.\n\n**DON'T** use 'is' checks where the type is a generic Dart type that has JS\ninterop type arguments.\n\n**DON'T** use 'is' checks with a JS interop value.\n\n'dart:js_interop' types have runtime types that are different based on whether\nyou are compiling to JS or to Wasm. Therefore, runtime type checks may result in\ndifferent behavior. Runtime checks also do not necessarily check that a JS\ninterop value is a particular JavaScript type.\n\n**BAD:**\n```dart\nextension type HTMLElement(JSObject o) {}\nextension type HTMLDivElement(JSObject o) implements HTMLElement {}\n\nvoid compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o,\n    HTMLElement e) {\n  a is String; // LINT, checking that a JS value is a Dart type\n  b is JSBoolean; // LINT, checking that a Dart value is a JS type\n  a is JSString; // LINT, checking that a JS value is a different JS interop\n                 // type\n  o is JSNumber; // LINT, checking that a JS value is a different JS interop\n                 // type\n  lo is List<String>; // LINT, JS interop type argument and Dart type argument\n                      // are incompatible\n  ls is List<JSString>; // LINT, Dart type argument and JS interop type argument\n                        // are incompatible\n  lo is List<JSArray>; // LINT, comparing JS interop type argument with\n                       // different JS interop type argument\n  lo is List<JSNumber>; // LINT, comparing JS interop type argument with\n                        // different JS interop type argument\n  o is HTMLElement; // LINT, true because both are JSObjects but doesn't check\n                    // that it's a JS HTMLElement\n  e is HTMLDivElement; // LINT, true because both are JSObjects but doesn't\n                       // check that it's a JS HTMLDivElement\n}\n```\n\nPrefer using JS interop helpers like 'isA' from 'dart:js_interop' to check the\nunderlying type of JS interop values.\n\n**GOOD:**\n```dart\nextension type HTMLElement(JSObject o) implements JSObject {}\nextension type HTMLDivElement(JSObject o) implements HTMLElement {}\n\nvoid compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {\n  a.isA<JSString>; // OK, uses JS interop to check it is a JS string\n  l[0].isA<JSString>; // OK, uses JS interop to check it is a JS string\n  o.isA<HTMLElement>(); // OK, uses JS interop to check `o` is an HTMLElement\n  e.isA<HTMLDivElement>(); // OK, uses JS interop to check `e` is an\n                           // HTMLDivElement\n}\n```\n\n**DON'T** use 'as' to cast a JS interop value to an unrelated Dart type or an\nunrelated Dart value to a JS interop type.\n\n**DON'T** use 'as' to cast a JS interop value to a JS interop type represented\nby an incompatible 'dart:js_interop' type.\n\n**BAD:**\n```dart\nextension type Window(JSObject o) {}\n\nvoid compute(String s, JSBoolean b, Window w, List<String> l,\n    List<JSObject> lo) {\n  s as JSString; // LINT, casting Dart type to JS interop type\n  b as bool; // LINT, casting JS interop type to Dart type\n  b as JSNumber; // LINT, JSBoolean and JSNumber are incompatible\n  b as Window; // LINT, JSBoolean and JSObject are incompatible\n  w as JSBoolean; // LINT, JSObject and JSBoolean are incompatible\n  l as List<JSString>; // LINT, casting Dart value with Dart type argument to\n                       // Dart type with JS interop type argument\n  lo as List<String>; // LINT, casting Dart value with JS interop type argument\n                      // to Dart type with Dart type argument\n  lo as List<JSBoolean>; // LINT, casting Dart value with JS interop type\n                         // argument to Dart type with incompatible JS interop\n                         // type argument\n}\n```\n\nPrefer using 'dart:js_interop' conversion methods to convert a JS interop value\nto a Dart value and vice versa.\n\n**GOOD:**\n```dart\nextension type Window(JSObject o) {}\nextension type Document(JSObject o) {}\n\nvoid compute(String s, JSBoolean b, Window w, JSArray<JSString> a,\n    List<String> ls, JSObject o, List<JSAny> la) {\n  s.toJS; // OK, converts the Dart type to a JS type\n  b.toDart; // OK, converts the JS type to a Dart type\n  a.toDart; // OK, converts the JS type to a Dart type\n  w as Document; // OK, but no runtime check that `w` is a JS Document\n  ls.map((e) => e.toJS).toList(); // OK, converts the Dart types to JS types\n  o as JSArray<JSString>; // OK, JSObject and JSArray are compatible\n  la as List<JSString>; // OK, JSAny and JSString are compatible\n  (o as Object) as JSObject; // OK, Object is a supertype of JSAny\n}\n```\n\n",
-    "sinceDartSdk": "3.5.0-wip"
-  },
-  {
-    "name": "invariant_booleans",
-    "description": "Conditions should not unconditionally evaluate to `true` or to `false`.",
-    "group": "errors",
-    "state": "removed",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.\n\n**DON'T** test for conditions that can be inferred at compile time or test the\nsame condition twice.\n\nConditional statements using a condition which cannot be anything but `false`\nhave the effect of making blocks of code non-functional.  If the condition\ncannot evaluate to anything but `true`, the conditional statement is completely\nredundant, and makes the code less readable.\nIt is quite likely that the code does not match the programmer's intent.\nEither the condition should be removed or it should be updated so that it does\nnot always evaluate to `true` or `false` and does not perform redundant tests.\nThis rule will hint to the test conflicting with the linted one.\n\n**BAD:**\n```dart\n// foo can't be both equal and not equal to bar in the same expression\nif(foo == bar && something && foo != bar) {...}\n```\n\n**BAD:**\n```dart\nvoid compute(int foo) {\n  if (foo == 4) {\n    doSomething();\n    // we know foo is equal to 4 at this point, so the next condition is always false\n    if (foo > 4) {...}\n    ...\n  }\n  ...\n}\n```\n\n**BAD:**\n```dart\nvoid compute(bool foo) {\n  if (foo) {\n    return;\n  }\n  doSomething();\n  // foo is always false here\n  if (foo){...}\n  ...\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOK() {\n  if (foo == bar) {\n    foo = baz;\n    if (foo != bar) {...}\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk2() {\n  if (foo == bar) {\n    return;\n  }\n\n  foo = baz;\n  if (foo == bar) {...} // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk5() {\n  if (foo != null) {\n    if (bar != null) {\n      return;\n    }\n  }\n\n  if (bar != null) {...} // OK\n}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "iterable_contains_unrelated_type",
-    "description": "Invocation of `Iterable<E>.contains` with references of unrelated types.",
-    "group": "errors",
-    "state": "removed",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DON'T** invoke `contains` on `Iterable` with an instance of different type\nthan the parameter type.\n\nDoing this will invoke `==` on its elements and most likely will return `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.contains('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeIterable<E> implements Iterable<E> {}\n\nabstract class MyClass implements SomeIterable<int> {\n  bool badMethod(String thing) => this.contains(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.contains(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.contains(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.contains(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.contains(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.contains(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "list_remove_unrelated_type",
-    "description": "Invocation of `remove` with references of unrelated types.",
-    "group": "errors",
-    "state": "removed",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DON'T** invoke `remove` on `List` with an instance of different type than\nthe parameter type.\n\nDoing this will invoke `==` on its elements and most likely will\nreturn `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.remove('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.remove('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeList<E> implements List<E> {}\n\nabstract class MyClass implements SomeList<int> {\n  bool badMethod(String thing) => this.remove(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.remove(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.remove(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.remove(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.remove(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.remove(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "literal_only_boolean_expressions",
-    "description": "Boolean expression composed only with literals.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DON'T** test for conditions composed only by literals, since the value can be\ninferred at compile time.\n\nConditional statements using a condition which cannot be anything but FALSE have\nthe effect of making blocks of code non-functional.  If the condition cannot\nevaluate to anything but `true`, the conditional statement is completely\nredundant, and makes the code less readable.\nIt is quite likely that the code does not match the programmer's intent.\nEither the condition should be removed or it should be updated so that it does\nnot always evaluate to `true` or `false`.\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true && 1 != 0) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 != 0 && true) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 < 0 && true) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true && false) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 != 0) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true && 1 != 0 || 3 < 4) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 != 0 || 3 < 4 && true) {} // LINT\n}\n```\n\n**NOTE:** that an exception is made for the common `while (true) { }` idiom,\nwhich is often reasonably preferred to the equivalent `for (;;)`.\n\n**GOOD:**\n```dart\nvoid good() {\n  while (true) {\n    // Do stuff.\n  }\n}\n```\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "missing_code_block_language_in_doc_comment",
-    "description": "A code block is missing a specified language.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsEvaluation",
-    "details": "**DO** specify the language used in the code block of a doc comment.\n\nTo enable proper syntax highlighting of Markdown code blocks,\n[`dart doc`](https://dart.dev/tools/dart-doc) strongly recommends code blocks to\nspecify the language used after the initial code fence.\n\nSee [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)\nfor the list of languages supported by `dart doc`.\nTo disable syntax highlighting or if no language is suitable,\nyou can specify `none` as the language.\n\n**BAD:**\n```dart\n/// ```\n/// void main() {}\n/// ```\nclass A {}\n```\n\n**GOOD:**\n```dart\n/// ```dart\n/// void main() {}\n/// ```\nclass A {}\n```\n\n",
-    "sinceDartSdk": "3.4.0"
-  },
-  {
-    "name": "no_adjacent_strings_in_list",
-    "description": "Don't use adjacent strings in list.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsFix",
-    "details": "**DON'T** use adjacent strings in a list.\n\nThis can indicate a forgotten comma.\n\n**BAD:**\n```dart\nList<String> list = <String>[\n  'a'\n  'b',\n  'c',\n];\n```\n\n**GOOD:**\n```dart\nList<String> list = <String>[\n  'a' +\n  'b',\n  'c',\n];\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "no_duplicate_case_values",
-    "description": "Don't use more than one case with same value.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**DON'T** use more than one case with same value.\n\nThis is usually a typo or changed value of constant.\n\n**BAD:**\n```dart\nconst int A = 1;\nswitch (v) {\n  case 1:\n  case 2:\n  case A:\n  case 2:\n}\n```\n\n**GOOD:**\n```dart\nconst int A = 1;\nswitch (v) {\n  case A:\n  case 2:\n}\n```\n\nNOTE: this lint only reports duplicate cases in libraries opted in to Dart 2.19\nand below. In Dart 3.0 and after, duplicate cases are reported as dead code\nby the analyzer.\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "no_logic_in_create_state",
-    "description": "Don't put any logic in createState.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "**DON'T** put any logic in `createState()`.\n\nImplementations of  `createState()` should return a new instance\nof a State object and do nothing more.  Since state access is preferred \nvia the `widget` field,  passing data to `State` objects using custom\nconstructor parameters should also be avoided and so further, the State\nconstructor is required to be passed no arguments.\n\n**BAD:**\n```dart\nMyState global;\n\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() {\n    global = MyState();\n    return global;\n  } \n}\n```\n\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() => MyState()..field = 42;\n}\n```\n\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() => MyState(42);\n}\n```\n\n\n**GOOD:**\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() {\n    return MyState();\n  }\n}\n```\n",
-    "sinceDartSdk": "2.8.1"
-  },
-  {
-    "name": "no_self_assignments",
-    "description": "Don't assign a variable to itself.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsEvaluation",
-    "details": "**DON'T** assign a variable to itself. Usually this is a mistake.\n\n**BAD:**\n```dart\nclass C {\n  int x;\n\n  C(int x) {\n    x = x;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int x;\n\n  C(int x) : x = x;\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int x;\n\n  C(int x) {\n    this.x = x;\n  }\n}\n```\n\n**BAD:**\n```dart\nclass C {\n  int _x = 5;\n\n  int get x => _x;\n\n  set x(int x) {\n    _x = x;\n    _customUpdateLogic();\n  }\n\n  void _customUpdateLogic() {\n    print('updated');\n  }\n\n  void example() {\n    x = x;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int _x = 5;\n\n  int get x => _x;\n\n  set x(int x) {\n    _x = x;\n    _customUpdateLogic();\n  }\n\n  void _customUpdateLogic() {\n    print('updated');\n  }\n\n  void example() {\n    _customUpdateLogic();\n  }\n}\n```\n\n**BAD:**\n```dart\nclass C {\n  int x = 5;\n\n  void update(C other) {\n    this.x = this.x;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int x = 5;\n\n  void update(C other) {\n    this.x = other.x;\n  }\n}\n```\n\n",
-    "sinceDartSdk": "3.1.0"
-  },
-  {
-    "name": "no_wildcard_variable_uses",
-    "description": "Don't use wildcard parameters or variables.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "needsEvaluation",
-    "details": "**DON'T** use wildcard parameters or variables.\n\nWildcard parameters and local variables\n(e.g. underscore-only names like `_`, `__`, `___`, etc.) will\nbecome non-binding in a future version of the Dart language.\nAny existing code that uses wildcard parameters or variables will\nbreak. In anticipation of this change, and to make adoption easier,\nthis lint disallows wildcard and variable parameter uses.\n\n\n**BAD:**\n```dart\nvar _ = 1;\nprint(_); // LINT\n```\n\n```dart\nvoid f(int __) {\n  print(__); // LINT multiple underscores too\n}\n```\n\n**GOOD:**\n```dart\nfor (var _ in [1, 2, 3]) count++;\n```\n\n```dart\nvar [a, _, b, _] = [1, 2, 3, 4];\n```\n",
-    "sinceDartSdk": "3.1.0"
-  },
-  {
-    "name": "prefer_relative_imports",
-    "description": "Prefer relative imports for files in `lib/`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [
-      "always_use_package_imports"
-    ],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**PREFER** relative imports for files in `lib/`.\n\nWhen mixing relative and absolute imports it's possible to create confusion\nwhere the same member gets imported in two different ways. One way to avoid\nthat is to ensure you consistently use relative imports for files within the\n`lib/` directory.\n\n**BAD:**\n```dart\nimport 'package:my_package/bar.dart';\n```\n\n**GOOD:**\n```dart\nimport 'bar.dart';\n```\n\n",
-    "sinceDartSdk": "2.6.0"
-  },
-  {
-    "name": "prefer_void_to_null",
-    "description": "Don't use the Null type, unless you are positive that you don't want void.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**DON'T** use the type Null where void would work.\n\n**BAD:**\n```dart\nNull f() {}\nFuture<Null> f() {}\nStream<Null> f() {}\nf(Null x) {}\n```\n\n**GOOD:**\n```dart\nvoid f() {}\nFuture<void> f() {}\nStream<void> f() {}\nf(void x) {}\n```\n\nSome exceptions include formulating special function types:\n\n```dart\nNull Function(Null, Null);\n```\n\nand for making empty literals which are safe to pass into read-only locations\nfor any type of map or list:\n\n```dart\n<Null>[];\n<int, Null>{};\n```\n",
-    "sinceDartSdk": "2.1.0"
-  },
-  {
-    "name": "test_types_in_equals",
-    "description": "Test type of argument in `operator ==(Object other)`.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DO** test type of argument in `operator ==(Object other)`.\n\nNot testing the type might result in runtime type errors which will be\nunexpected for consumers of your class.\n\n**BAD:**\n```dart\nclass Field {\n}\n\nclass Bad {\n  final Field someField;\n\n  Bad(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    Bad otherBad = other as Bad; // LINT\n    bool areEqual = otherBad != null && otherBad.someField == someField;\n    return areEqual;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Field {\n}\n\nclass Good {\n  final Field someField;\n\n  Good(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    if (identical(this, other)) {\n      return true;\n    }\n    return other is Good &&\n        this.someField == other.someField;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "throw_in_finally",
-    "description": "Avoid `throw` in `finally` block.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**AVOID** throwing exceptions in `finally` blocks.\n\nThrowing exceptions in `finally` blocks will inevitably cause unexpected\nbehavior that is hard to debug.\n\n**BAD:**\n```dart\nclass BadThrow {\n  double nonCompliantMethod() {\n    try {\n      print('hello world! ${1 / 0}');\n    } catch (e) {\n      print(e);\n    } finally {\n      throw 'Find the hidden error :P'; // LINT\n    }\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "unintended_html_in_doc_comment",
-    "description": "Use of angle brackets in a doc comment is treated as HTML by Markdown.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsFix",
-    "details": "**DO** reference only in-scope identifiers in doc comments.\n\nWhen a developer writes a reference with angle brackets within a doc comment,\nthe angle brackets are interpreted as HTML. The text within pairs of opening and\nclosing angle brackets generally get swallowed by the browser, and will not be\ndisplayed.\n\nYou can use a code block or code span to wrap the text containing angle\nbrackets. You can also replace `<` with `&lt;` and `>` with `&gt;`.\n\n**BAD:**\n```dart\n/// Text List<int>.\n/// Text [List<int>].\n/// <assignment> -> <variable> = <expression>\n```\n\n**GOOD:**\n```dart\n/// Text `List<int>`.\n/// `<assignment> -> <variable> = <expression>`\n/// <http://foo.bar.baz>\n```\n\n",
-    "sinceDartSdk": "3.5.0-wip"
-  },
-  {
-    "name": "unnecessary_statements",
-    "description": "Avoid using unnecessary statements.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "noFix",
-    "details": "**AVOID** using unnecessary statements.\n\nStatements which have no clear effect are usually unnecessary, or should be\nbroken up.\n\nFor example,\n\n**BAD:**\n```dart\nmyvar;\nlist.clear;\n1 + 2;\nmethodOne() + methodTwo();\nfoo ? bar : baz;\n```\n\nThough the added methods have a clear effect, the addition itself does not\nunless there is some magical overload of the + operator.\n\nUsually code like this indicates an incomplete thought, and is a bug.\n\n**GOOD:**\n```dart\nsome.method();\nconst SomeClass();\nmethodOne();\nmethodTwo();\nfoo ? bar() : baz();\nreturn myvar;\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "unrelated_type_equality_checks",
-    "description": "Equality operator `==` invocation with references of unrelated types.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "unregistered",
-    "details": "**DON'T** Compare references of unrelated types for equality.\n\nComparing references of a type where neither is a subtype of the other most\nlikely will return `false` and might not reflect programmer's intent.\n\n`Int64` and `Int32` from `package:fixnum` allow comparing to `int` provided\nthe `int` is on the right hand side. The lint allows this as a special case. \n\n**BAD:**\n```dart\nvoid someFunction() {\n  var x = '1';\n  if (x == 1) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction1() {\n  String x = '1';\n  if (x == 1) print('someFunction1'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction13(DerivedClass2 instance) {\n  var other = DerivedClass3();\n\n  if (other == instance) print('someFunction13'); // LINT\n}\n\nclass ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction2() {\n  var x = '1';\n  var y = '2';\n  if (x == y) print(someFunction2); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction3() {\n  for (var i = 0; i < 10; i++) {\n    if (i == 0) print(someFunction3); // OK\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  var x = '1';\n  if (x == null) print(someFunction4); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List someList;\n\n  if (someList.length == 0) print('someFunction7'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction8(ClassBase instance) {\n  DerivedClass1 other;\n\n  if (other == instance) print('someFunction8'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10(unknown) {\n  var what = unknown - 1;\n  for (var index = 0; index < unknown; index++) {\n    if (what == index) print('someFunction10'); // OK\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction11(Mixin instance) {\n  var other = DerivedClass2();\n\n  if (other == instance) print('someFunction11'); // OK\n  if (other != instance) print('!someFunction11'); // OK\n}\n\nclass ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "unsafe_html",
-    "description": "Avoid unsafe HTML APIs.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "unregistered",
-    "details": "**AVOID**\n\n* assigning directly to the `href` field of an AnchorElement\n* assigning directly to the `src` field of an EmbedElement, IFrameElement, or\n  ScriptElement\n* assigning directly to the `srcdoc` field of an IFrameElement\n* calling the `createFragment` method of Element\n* calling the `open` method of Window\n* calling the `setInnerHtml` method of Element\n* calling the `Element.html` constructor\n* calling the `DocumentFragment.html` constructor\n\n\n**BAD:**\n```dart\nvar script = ScriptElement()..src = 'foo.js';\n```\n",
-    "sinceDartSdk": "2.4.0"
-  },
-  {
-    "name": "use_build_context_synchronously",
-    "description": "Do not use `BuildContext` across asynchronous gaps.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "flutter"
-    ],
-    "fixStatus": "unregistered",
-    "details": "**DON'T** use `BuildContext` across asynchronous gaps.\n\nStoring `BuildContext` for later usage can easily lead to difficult to diagnose\ncrashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of\nthe easiest to overlook when writing code.\n\nWhen a `BuildContext` is used, a `mounted` property must be checked after an\nasynchronous gap, depending on how the `BuildContext` is accessed:\n\n* When using a `State`'s `context` property, the `State`'s `mounted` property\n  must be checked.\n* For other `BuildContext` instances (like a local variable or function\n  argument), the `BuildContext`'s `mounted` property must be checked.\n\n**BAD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) {\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n\n  if (!context.mounted) return;\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nabstract class MyState extends State<MyWidget> {\n  void foo() async {\n    await Future.delayed(const Duration(seconds: 1));\n    if (!mounted) return; // Checks `this.mounted`, not `context.mounted`.\n    Navigator.of(context).pop();\n  }\n}\n```\n",
-    "sinceDartSdk": "2.13.0"
-  },
-  {
-    "name": "use_key_in_widget_constructors",
-    "description": "Use key in widget constructors.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "flutter"
-    ],
-    "fixStatus": "hasFix",
-    "details": "**DO** use key in widget constructors.\n\nIt's a good practice to expose the ability to provide a key when creating public\nwidgets.\n\n**BAD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n}\n```\n\n**GOOD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n  MyPublicWidget({super.key});\n}\n```\n",
-    "sinceDartSdk": "2.8.1"
-  },
-  {
-    "name": "valid_regexps",
-    "description": "Use valid regular expression syntax.",
-    "group": "errors",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "**DO** use valid regular expression syntax when creating regular expression\ninstances.\n\nRegular expressions created with invalid syntax will throw a `FormatException`\nat runtime so should be avoided.\n\n**BAD:**\n```dart\nprint(RegExp(r'(').hasMatch('foo()'));\n```\n\n**GOOD:**\n```dart\nprint(RegExp(r'\\(').hasMatch('foo()'));\n```\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "depend_on_referenced_packages",
-    "description": "Depend on referenced packages.",
-    "group": "pub",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "needsFix",
-    "details": "**DO** depend on referenced packages.\n\nWhen importing a package, add a dependency on it to your pubspec.\n\nDepending explicitly on packages that you reference ensures they will always\nexist and allows you to put a dependency constraint on them to guard you\nagainst breaking changes.\n\nWhether this should be a regular dependency or dev_dependency depends on if it\nis referenced from a public file (one under either `lib` or `bin`), or some\nother private file.\n\n**BAD:**\n```dart\nimport 'package:a/a.dart';\n```\n\n```yaml\ndependencies:\n```\n\n**GOOD:**\n```dart\nimport 'package:a/a.dart';\n```\n\n```yaml\ndependencies:\n  a: ^1.0.0\n```\n\n",
-    "sinceDartSdk": "2.14.0"
-  },
-  {
-    "name": "package_names",
-    "description": "Use `lowercase_with_underscores` for package names.",
-    "group": "pub",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "From the [Pubspec format description](https://dart.dev/tools/pub/pubspec):\n\n**DO** use `lowercase_with_underscores` for package names.\n\nPackage names should be all lowercase, with underscores to separate words,\n`just_like_this`.  Use only basic Latin letters and Arabic digits: \\[a-z0-9\\_\\].\nAlso, make sure the name is a valid Dart identifier -- that it doesn't start\nwith digits and isn't a reserved word.\n\n",
-    "sinceDartSdk": "2.0.0"
-  },
-  {
-    "name": "secure_pubspec_urls",
-    "description": "Use secure urls in `pubspec.yaml`.",
-    "group": "pub",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
-    "fixStatus": "noFix",
-    "details": "**DO** Use secure urls in `pubspec.yaml`.\n\nUse `https` instead of `http` or `git:`.\n\n**BAD:**\n```yaml\nrepository: http://github.com/dart-lang/example\n```\n\n```yaml\ngit:\n  url: git://github.com/dart-lang/example/example.git\n```\n\n**GOOD:**\n```yaml\nrepository: https://github.com/dart-lang/example\n```\n\n",
-    "sinceDartSdk": "2.16.0"
-  },
-  {
-    "name": "sort_pub_dependencies",
-    "description": "Sort pub dependencies alphabetically.",
-    "group": "pub",
-    "state": "stable",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "needsFix",
-    "details": "**DO** sort pub dependencies alphabetically (A to Z) in `pubspec.yaml`.\n\nSorting list of pub dependencies makes maintenance easier.\n",
-    "sinceDartSdk": "2.1.0"
-  },
-  {
     "name": "always_declare_return_types",
     "description": "Declare method return types.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -619,6 +16,9 @@
   {
     "name": "always_put_control_body_on_new_line",
     "description": "Separate the control structure expression from its statement.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -630,6 +30,9 @@
   {
     "name": "always_put_required_named_parameters_first",
     "description": "Put required named parameters first.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -641,6 +44,9 @@
   {
     "name": "always_require_non_null_named_parameters",
     "description": "Specify `@required` on named parameters without defaults.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
@@ -652,6 +58,9 @@
   {
     "name": "always_specify_types",
     "description": "Specify type annotations.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -664,8 +73,27 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "always_use_package_imports",
+    "description": "Avoid relative imports for files in `lib/`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [
+      "prefer_relative_imports"
+    ],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** avoid relative imports for files in `lib/`.\n\nWhen mixing relative and absolute imports it's possible to create confusion\nwhere the same member gets imported in two different ways. One way to avoid\nthat is to ensure you consistently use absolute imports for files within the\n`lib/` directory.\n\nThis is the opposite of 'prefer_relative_imports'.\n\nYou can also use 'avoid_relative_lib_imports' to disallow relative imports of\nfiles within `lib/` directory outside of it (for example `test/`).\n\n**BAD:**\n```dart\nimport 'baz.dart';\n\nimport 'src/bag.dart'\n\nimport '../lib/baz.dart';\n\n...\n```\n\n**GOOD:**\n```dart\nimport 'package:foo/bar.dart';\n\nimport 'package:foo/baz.dart';\n\nimport 'package:foo/src/baz.dart';\n...\n```\n\n",
+    "sinceDartSdk": "2.10.0"
+  },
+  {
     "name": "annotate_overrides",
     "description": "Annotate overridden members.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -680,6 +108,9 @@
   {
     "name": "annotate_redeclares",
     "description": "Annotate redeclared members.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "experimental",
     "incompatible": [],
@@ -691,6 +122,9 @@
   {
     "name": "avoid_annotating_with_dynamic",
     "description": "Avoid annotating with `dynamic` when not required.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -702,17 +136,23 @@
   {
     "name": "avoid_as",
     "description": "Avoid using `as`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**AVOID** using `as`.\n\nIf you know the type is correct, use an assertion or assign to a more\nnarrowly-typed variable (this avoids the type check in release mode; `as` is not\ncompiled out in release mode).  If you don't know whether the type is\ncorrect, check using `is` (this avoids the exception that `as` raises).\n\n**BAD:**\n```dart\n(pm as Person).firstName = 'Seth';\n```\n\n**GOOD:**\n```dart\nif (pm is Person)\n  pm.firstName = 'Seth';\n```\n\nbut certainly not\n\n**BAD:**\n```dart\ntry {\n   (pm as Person).firstName = 'Seth';\n} on CastError { }\n```\n\nNote that an exception is made in the case of `dynamic` since the cast has no\nperformance impact.\n\n**OK:**\n```dart\nHasScrollDirection scrollable = renderObject as dynamic;\n```\n",
+    "details": "NOTE: This rule was removed from the SDK in Dart 3; it is no longer functional.\nIts advice is compiler-specific and mostly obsolete with null safety.\n\n**AVOID** using `as`.\n\nIf you know the type is correct, use an assertion or assign to a more\nnarrowly-typed variable (this avoids the type check in release mode; `as` is not\ncompiled out in release mode).  If you don't know whether the type is\ncorrect, check using `is` (this avoids the exception that `as` raises).\n\n**BAD:**\n```dart\n(pm as Person).firstName = 'Seth';\n```\n\n**GOOD:**\n```dart\nif (pm is Person)\n  pm.firstName = 'Seth';\n```\n\nbut certainly not\n\n**BAD:**\n```dart\ntry {\n   (pm as Person).firstName = 'Seth';\n} on CastError { }\n```\n\nNote that an exception is made in the case of `dynamic` since the cast has no\nperformance impact.\n\n**OK:**\n```dart\nHasScrollDirection scrollable = renderObject as dynamic;\n```\n",
     "sinceDartSdk": "2.0.0"
   },
   {
     "name": "avoid_bool_literals_in_conditional_expressions",
     "description": "Avoid `bool` literals in conditional expressions.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -724,17 +164,23 @@
   {
     "name": "avoid_catches_without_on_clauses",
     "description": "Avoid catches without on clauses.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**AVOID** catches without on clauses.\n\nUsing catch clauses without on clauses make your code prone to encountering\nunexpected errors that won't be thrown (and thus will go unnoticed).\n\n**BAD:**\n```dart\ntry {\n somethingRisky()\n}\ncatch(e) {\n  doSomething(e);\n}\n```\n\n**GOOD:**\n```dart\ntry {\n somethingRisky()\n}\non Exception catch(e) {\n  doSomething(e);\n}\n```\n\n",
+    "details": "**AVOID** catches without on clauses.\n\nUsing catch clauses without on clauses make your code prone to encountering\nunexpected errors that won't be thrown (and thus will go unnoticed).\n\n**BAD:**\n```dart\ntry {\n somethingRisky()\n} catch(e) {\n  doSomething(e);\n}\n```\n\n**GOOD:**\n```dart\ntry {\n somethingRisky()\n} on Exception catch(e) {\n  doSomething(e);\n}\n```\n\nA few exceptional cases are allowed:\n\n* If the body of the catch rethrows the exception.\n* If the caught exception is \"directly used\" in an argument to `Future.error`,\n  `Completer.completeError`, or `FlutterError.reportError`, or any function with\n  a return type of `Never`.\n* If the caught exception is \"directly used\" in a new throw-expression.\n\nIn these cases, \"directly used\" means that the exception is referenced within\nthe relevant code (like within an argument). If the exception variable is\nreferenced _before_ the relevant code, for example to instantiate a wrapper\nexception, the variable is not \"directly used.\"\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
     "name": "avoid_catching_errors",
     "description": "Don't explicitly catch `Error` or types that implement it.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -746,6 +192,9 @@
   {
     "name": "avoid_classes_with_only_static_members",
     "description": "Avoid defining a class that contains only static members.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -757,6 +206,9 @@
   {
     "name": "avoid_double_and_int_checks",
     "description": "Avoid `double` and `int` checks.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -766,8 +218,43 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "avoid_dynamic_calls",
+    "description": "Avoid method calls or property accesses on a `dynamic` target.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**DO** avoid method calls or accessing properties on an object that is either\nexplicitly or implicitly statically typed `dynamic`. Dynamic calls are treated\nslightly different in every runtime environment and compiler, but most\nproduction modes (and even some development modes) have both compile size and\nruntime performance penalties associated with dynamic calls.\n\nAdditionally, targets typed `dynamic` disables most static analysis, meaning it\nis easier to lead to a runtime `NoSuchMethodError` or `TypeError` than properly\nstatically typed Dart code.\n\nThere is an exception to methods and properties that exist on `Object?`:\n- `a.hashCode`\n- `a.runtimeType`\n- `a.noSuchMethod(someInvocation)`\n- `a.toString()`\n\n... these members are dynamically dispatched in the web-based runtimes, but not\nin the VM-based ones. Additionally, they are so common that it would be very\npunishing to disallow `any.toString()` or `any == true`, for example.\n\nNote that despite `Function` being a type, the semantics are close to identical\nto `dynamic`, and calls to an object that is typed `Function` will also trigger\nthis lint.\n\nDynamic calls are allowed on cast expressions (`as dynamic` or `as Function`).\n\n**BAD:**\n```dart\nvoid explicitDynamicType(dynamic object) {\n  print(object.foo());\n}\n\nvoid implicitDynamicType(object) {\n  print(object.foo());\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredDynamicType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething();\n  print(object.foo());\n}\n\nvoid callDynamic(dynamic function) {\n  function();\n}\n\nvoid functionType(Function function) {\n  function();\n}\n```\n\n**GOOD:**\n```dart\nvoid explicitType(Fooable object) {\n  object.foo();\n}\n\nvoid castedType(dynamic object) {\n  (object as Fooable).foo();\n}\n\nabstract class SomeWrapper {\n  T doSomething<T>();\n}\n\nvoid inferredType(SomeWrapper wrapper) {\n  var object = wrapper.doSomething<Fooable>();\n  object.foo();\n}\n\nvoid functionTypeWithParameters(Function() function) {\n  function();\n}\n```\n\n",
+    "sinceDartSdk": "2.12.0"
+  },
+  {
+    "name": "avoid_empty_else",
+    "description": "Avoid empty statements in else clauses.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**AVOID** empty statements in the `else` clause of `if` statements.\n\n**BAD:**\n```dart\nif (x > y)\n  print('1');\nelse ;\n  print('2');\n```\n\nIf you want a statement that follows the empty clause to _conditionally_ run,\nremove the dangling semicolon to include it in the `else` clause.\nOptionally, also enclose the else's statement in a block.\n\n**GOOD:**\n```dart\nif (x > y)\n  print('1');\nelse\n  print('2');\n```\n\n**GOOD:**\n```dart\nif (x > y) {\n  print('1');\n} else {\n  print('2');\n}\n```\n\nIf you want a statement that follows the empty clause to _unconditionally_ run,\nremove the `else` clause.\n\n**GOOD:**\n```dart\nif (x > y) print('1');\n\nprint('2');\n```\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "avoid_equals_and_hash_code_on_mutable_classes",
     "description": "Avoid overloading operator == and hashCode on classes not marked `@immutable`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -779,6 +266,9 @@
   {
     "name": "avoid_escaping_inner_quotes",
     "description": "Avoid escaping inner quotes by converting surrounding quotes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -790,6 +280,9 @@
   {
     "name": "avoid_field_initializers_in_const_classes",
     "description": "Avoid field initializers in const classes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -801,6 +294,9 @@
   {
     "name": "avoid_final_parameters",
     "description": "Avoid `final` for parameter declarations.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -814,6 +310,9 @@
   {
     "name": "avoid_function_literals_in_foreach_calls",
     "description": "Avoid using `forEach` with a function literal.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -828,6 +327,9 @@
   {
     "name": "avoid_implementing_value_types",
     "description": "Don't implement classes that override `==`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -839,6 +341,9 @@
   {
     "name": "avoid_init_to_null",
     "description": "Don't explicitly initialize variables to `null`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -853,6 +358,9 @@
   {
     "name": "avoid_js_rounded_ints",
     "description": "Avoid JavaScript rounded ints.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -864,6 +372,9 @@
   {
     "name": "avoid_multiple_declarations_per_line",
     "description": "Don't declare multiple variables on a single line.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -875,6 +386,9 @@
   {
     "name": "avoid_null_checks_in_equality_operators",
     "description": "Don't check for `null` in custom `==` operators.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -889,6 +403,9 @@
   {
     "name": "avoid_positional_boolean_parameters",
     "description": "Avoid positional boolean parameters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -898,8 +415,27 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "avoid_print",
+    "description": "Avoid `print` calls in production code.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**DO** avoid `print` calls in production code.\n\nFor production code, consider using a logging framework.\nIf you are using Flutter, you can use `debugPrint`\nor surround `print` calls with a check for `kDebugMode`\n\n**BAD:**\n```dart\nvoid f(int x) {\n  print('debug: $x');\n  ...\n}\n```\n\n\n**GOOD:**\n```dart\nvoid f(int x) {\n  debugPrint('debug: $x');\n  ...\n}\n```\n\n\n**GOOD:**\n```dart\nvoid f(int x) {\n  log('log: $x');\n  ...\n}\n```\n\n\n**GOOD:**\n```dart\nvoid f(int x) {\n  if (kDebugMode) {\n      print('debug: $x');\n  }\n  ...\n}\n```\n",
+    "sinceDartSdk": "2.5.0"
+  },
+  {
     "name": "avoid_private_typedef_functions",
     "description": "Avoid private typedef functions.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -911,6 +447,9 @@
   {
     "name": "avoid_redundant_argument_values",
     "description": "Avoid redundant argument values.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -920,8 +459,29 @@
     "sinceDartSdk": "2.8.1"
   },
   {
+    "name": "avoid_relative_lib_imports",
+    "description": "Avoid relative imports for files in `lib/`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**DO** avoid relative imports for files in `lib/`.\n\nWhen mixing relative and absolute imports it's possible to create confusion\nwhere the same member gets imported in two different ways.  An easy way to avoid\nthat is to ensure you have no relative imports that include `lib/` in their\npaths.\n\nYou can also use 'always_use_package_imports' to disallow relative imports\nbetween files within `lib/`.\n\n**BAD:**\n```dart\nimport 'package:foo/bar.dart';\n\nimport '../lib/baz.dart';\n\n...\n```\n\n**GOOD:**\n```dart\nimport 'package:foo/bar.dart';\n\nimport 'baz.dart';\n\n...\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "avoid_renaming_method_parameters",
     "description": "Don't rename parameters of overridden methods.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -936,6 +496,9 @@
   {
     "name": "avoid_return_types_on_setters",
     "description": "Avoid return types on setters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -950,6 +513,9 @@
   {
     "name": "avoid_returning_null",
     "description": "Avoid returning null from members whose return type is bool, double, int, or num.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
@@ -959,8 +525,25 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "avoid_returning_null_for_future",
+    "description": "Avoid returning null for Future.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "removed",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**AVOID** returning null for Future.\n\nIt is almost always wrong to return `null` for a `Future`.  Most of the time the\ndeveloper simply forgot to put an `async` keyword on the function.\n",
+    "sinceDartSdk": "2.1.1"
+  },
+  {
     "name": "avoid_returning_null_for_void",
     "description": "Avoid returning `null` for `void`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -975,6 +558,9 @@
   {
     "name": "avoid_returning_this",
     "description": "Avoid returning this from methods just to enable a fluent interface.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -986,6 +572,9 @@
   {
     "name": "avoid_setters_without_getters",
     "description": "Avoid setters without getters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -997,6 +586,9 @@
   {
     "name": "avoid_shadowing_type_parameters",
     "description": "Avoid shadowing type parameters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1012,6 +604,9 @@
   {
     "name": "avoid_single_cascade_in_expression_statements",
     "description": "Avoid single cascade in expression statements.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1024,8 +619,57 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "avoid_slow_async_io",
+    "description": "Avoid slow asynchronous `dart:io` methods.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**AVOID** using the following asynchronous file I/O methods because they are\nmuch slower than their synchronous counterparts.\n\n* `Directory.exists`\n* `Directory.stat`\n* `File.lastModified`\n* `File.exists`\n* `File.stat`\n* `FileSystemEntity.isDirectory`\n* `FileSystemEntity.isFile`\n* `FileSystemEntity.isLink`\n* `FileSystemEntity.type`\n\n**BAD:**\n```dart\nimport 'dart:io';\n\nFuture<Null> someFunction() async {\n  var file = File('/path/to/my/file');\n  var now = DateTime.now();\n  if ((await file.lastModified()).isBefore(now)) print('before'); // LINT\n}\n```\n\n**GOOD:**\n```dart\nimport 'dart:io';\n\nFuture<Null> someFunction() async {\n  var file = File('/path/to/my/file');\n  var now = DateTime.now();\n  if (file.lastModifiedSync().isBefore(now)) print('before'); // OK\n}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "avoid_type_to_string",
+    "description": "Avoid <Type>.toString() in production code since results may be minified.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**DO** avoid calls to <Type>.toString() in production code, since it does not\ncontractually return the user-defined name of the Type (or underlying class).\nDevelopment-mode compilers where code size is not a concern use the full name,\nbut release-mode compilers often choose to minify these symbols.\n\n**BAD:**\n```dart\nvoid bar(Object other) {\n  if (other.runtimeType.toString() == 'Bar') {\n    doThing();\n  }\n}\n\nObject baz(Thing myThing) {\n  return getThingFromDatabase(key: myThing.runtimeType.toString());\n}\n```\n\n**GOOD:**\n```dart\nvoid bar(Object other) {\n  if (other is Bar) {\n    doThing();\n  }\n}\n\nclass Thing {\n  String get thingTypeKey => ...\n}\n\nObject baz(Thing myThing) {\n  return getThingFromDatabase(key: myThing.thingTypeKey);\n}\n```\n\n",
+    "sinceDartSdk": "2.12.0"
+  },
+  {
+    "name": "avoid_types_as_parameter_names",
+    "description": "Avoid types as parameter names.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**AVOID** using a parameter name that is the same as an existing type.\n\n**BAD:**\n```dart\nm(f(int));\n```\n\n**GOOD:**\n```dart\nm(f(int v));\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "avoid_types_on_closure_parameters",
     "description": "Avoid annotating types for function expression parameters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -1039,6 +683,9 @@
   {
     "name": "avoid_unnecessary_containers",
     "description": "Avoid unnecessary containers.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1050,8 +697,25 @@
     "sinceDartSdk": "2.7.0"
   },
   {
+    "name": "avoid_unstable_final_fields",
+    "description": "Avoid overriding a final field to return different values if called multiple times.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "removed",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "This rule has been removed.\n",
+    "sinceDartSdk": "3.3.0"
+  },
+  {
     "name": "avoid_unused_constructor_parameters",
     "description": "Avoid defining unused parameters in constructors.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1063,6 +727,9 @@
   {
     "name": "avoid_void_async",
     "description": "Avoid `async` functions that return `void`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1072,8 +739,27 @@
     "sinceDartSdk": "2.1.0"
   },
   {
+    "name": "avoid_web_libraries_in_flutter",
+    "description": "Avoid using web-only libraries outside Flutter web plugin packages.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "**AVOID** using web libraries, `dart:html`, `dart:js` and \n`dart:js_util` in Flutter packages that are not web plugins. These libraries are \nnot supported outside a web context; functionality that depends on them will\nfail at runtime in Flutter mobile, and their use is generally discouraged in\nFlutter web.\n\nWeb library access *is* allowed in:\n\n* plugin packages that declare `web` as a supported context\n\notherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.\n",
+    "sinceDartSdk": "2.6.0"
+  },
+  {
     "name": "await_only_futures",
     "description": "Await only futures.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1089,6 +775,9 @@
   {
     "name": "camel_case_extensions",
     "description": "Name extensions using UpperCamelCase.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1104,6 +793,9 @@
   {
     "name": "camel_case_types",
     "description": "Name types using UpperCamelCase.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1117,8 +809,25 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "cancel_subscriptions",
+    "description": "Cancel instances of `dart:async` `StreamSubscription`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**DO** invoke `cancel` on instances of `dart:async` `StreamSubscription`.\n\nCancelling instances of StreamSubscription prevents memory leaks and unexpected\nbehavior.\n\n**BAD:**\n```dart\nclass A {\n  StreamSubscription _subscriptionA; // LINT\n  void init(Stream stream) {\n    _subscriptionA = stream.listen((_) {});\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  StreamSubscription _subscriptionF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  StreamSubscription _subscriptionB; // OK\n  void init(Stream stream) {\n    _subscriptionB = stream.listen((_) {});\n  }\n\n  void dispose(filename) {\n    _subscriptionB.cancel();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  StreamSubscription _subscriptionB; // OK\n  _subscriptionB.cancel();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of StreamSubscription instantiations and\ncancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)\nfor more information.\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "cascade_invocations",
     "description": "Cascade consecutive method invocations on the same reference.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1130,6 +839,9 @@
   {
     "name": "cast_nullable_to_non_nullable",
     "description": "Don't cast a nullable value to a non nullable type.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1139,8 +851,43 @@
     "sinceDartSdk": "2.12.0"
   },
   {
+    "name": "close_sinks",
+    "description": "Close instances of `dart:core` `Sink`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**DO** invoke `close` on instances of `dart:core` `Sink`.\n\nClosing instances of Sink prevents memory leaks and unexpected behavior.\n\n**BAD:**\n```dart\nclass A {\n  IOSink _sinkA;\n  void init(filename) {\n    _sinkA = File(filename).openWrite(); // LINT\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  IOSink _sinkF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  IOSink _sinkB;\n  void init(filename) {\n    _sinkB = File(filename).openWrite(); // OK\n  }\n\n  void dispose(filename) {\n    _sinkB.close();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  IOSink _sinkFOK; // OK\n  _sinkFOK.close();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of Sink instantiations and\nclosures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)\nfor more information.\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "collection_methods_unrelated_type",
+    "description": "Invocation of various collection methods with arguments of unrelated types.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "**DON'T** invoke certain collection method with an argument with an unrelated\ntype.\n\nDoing this will invoke `==` on the collection's elements and most likely will\nreturn `false`.\n\nAn argument passed to a collection method should relate to the collection type\nas follows:\n\n* an argument to `Iterable<E>.contains` should be related to `E`\n* an argument to `List<E>.remove` should be related to `E`\n* an argument to `Map<K, V>.containsKey` should be related to `K`\n* an argument to `Map<K, V>.containsValue` should be related to `V`\n* an argument to `Map<K, V>.remove` should be related to `K`\n* an argument to `Map<K, V>.[]` should be related to `K`\n* an argument to `Queue<E>.remove` should be related to `E`\n* an argument to `Set<E>.lookup` should be related to `E`\n* an argument to `Set<E>.remove` should be related to `E`\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var set = <int>{};\n  set.remove('1'); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains(1)) print('someFunction'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction() {\n  var set = <int>{};\n  set.remove(1); // OK\n}\n```\n\n",
+    "sinceDartSdk": "2.19.0"
+  },
+  {
     "name": "combinators_ordering",
     "description": "Sort combinator names alphabetically.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1150,8 +897,25 @@
     "sinceDartSdk": "2.19.0"
   },
   {
+    "name": "comment_references",
+    "description": "Only reference in scope identifiers in doc comments.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** reference only in scope identifiers in doc comments.\n\nIf you surround things like variable, method, or type names in square brackets,\nthen [`dart doc`](https://dart.dev/tools/dart-doc) will look up the name and\nlink to its docs.  For this all to work, ensure that all identifiers in docs\nwrapped in brackets are in scope.\n\nFor example, assuming `outOfScopeId` is out of scope:\n\n**BAD:**\n```dart\n/// Return true if [value] is larger than [outOfScopeId].\nbool isOutOfRange(int value) { ... }\n```\n\n**GOOD:**\n```dart\n/// Return the larger of [a] or [b].\nint max_int(int a, int b) { ... }\n```\n\nNote that the square bracket comment format is designed to allow comments to\nrefer to declarations using a fairly natural format but does not allow\n*arbitrary expressions*.  In particular, code references within square brackets\ncan consist of either\n\n- a single identifier where the identifier is any identifier in scope for the\n  comment (see the spec for what is in scope in doc comments),\n- two identifiers separated by a period where the first identifier is the name\n  of a class that is in scope and the second is the name of a member declared in\n  the class,\n- a single identifier followed by a pair of parentheses where the identifier is\n  the name of a class that is in scope (used to refer to the unnamed constructor\n  for the class), or\n- two identifiers separated by a period and followed by a pair of parentheses\n  where the first identifier is the name of a class that is in scope and the\n  second is the name of a named constructor (not strictly necessary, but allowed\n  for consistency).\n\n**Known limitations**\n\nThe `comment_references` linter rule aligns with the Dart analyzer's notion of\ncomment references, which is separate from Dartdoc's notion of comment\nreferences. The linter rule may report comment references which cannot be\nresolved by the analyzer, but which Dartdoc can. See\n[dartdoc#1142](https://github.com/dart-lang/linter/issues/1142) for more\ninformation.\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "conditional_uri_does_not_exist",
     "description": "Missing conditional import.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1163,6 +927,9 @@
   {
     "name": "constant_identifier_names",
     "description": "Prefer using lowerCamelCase for constant names.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1175,8 +942,28 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "control_flow_in_finally",
+    "description": "Avoid control flow in `finally` blocks.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "**AVOID** control flow leaving `finally` blocks.\n\nUsing control flow in `finally` blocks will inevitably cause unexpected behavior\nthat is hard to debug.\n\n**BAD:**\n```dart\nclass BadReturn {\n  double nonCompliantMethod() {\n    try {\n      return 1 / 0;\n    } catch (e) {\n      print(e);\n    } finally {\n      return 1.0; // LINT\n    }\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadContinue {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        continue; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**BAD:**\n```dart\nclass BadBreak {\n  double nonCompliantMethod() {\n    for (var o in [1, 2]) {\n      try {\n        print(o / 0);\n      } catch (e) {\n        print(e);\n      } finally {\n        break; // LINT\n      }\n    }\n    return 1.0;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "curly_braces_in_flow_control_structures",
     "description": "DO use curly braces for all flow control structures.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1192,6 +979,9 @@
   {
     "name": "dangling_library_doc_comments",
     "description": "Attach library doc comments to library directives.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1205,8 +995,29 @@
     "sinceDartSdk": "2.19.0"
   },
   {
+    "name": "depend_on_referenced_packages",
+    "description": "Depend on referenced packages.",
+    "categories": [
+      "pub"
+    ],
+    "group": "pub",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "needsFix",
+    "details": "**DO** depend on referenced packages.\n\nWhen importing a package, add a dependency on it to your pubspec.\n\nDepending explicitly on packages that you reference ensures they will always\nexist and allows you to put a dependency constraint on them to guard you\nagainst breaking changes.\n\nWhether this should be a regular dependency or dev_dependency depends on if it\nis referenced from a public file (one under either `lib` or `bin`), or some\nother private file.\n\n**BAD:**\n```dart\nimport 'package:a/a.dart';\n```\n\n```yaml\ndependencies:\n```\n\n**GOOD:**\n```dart\nimport 'package:a/a.dart';\n```\n\n```yaml\ndependencies:\n  a: ^1.0.0\n```\n\n",
+    "sinceDartSdk": "2.14.0"
+  },
+  {
     "name": "deprecated_consistency",
     "description": "Missing deprecated annotation.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1216,8 +1027,39 @@
     "sinceDartSdk": "2.13.0"
   },
   {
+    "name": "deprecated_member_use_from_same_package",
+    "description": "Avoid using deprecated elements from within the package in which they are declared.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Elements that are annotated with `@Deprecated` should not be referenced from\nwithin the package in which they are declared.\n\n**AVOID** using deprecated elements.\n\n...\n\n**BAD:**\n```dart\n// Declared in one library:\nclass Foo {\n  @Deprecated(\"Use 'm2' instead\")\n  void m1() {}\n\n  void m2({\n      @Deprecated('This is an old parameter') int? p,\n  })\n}\n\n@Deprecated('Do not use')\nint x = 0;\n\n// In the same or another library, but within the same package:\nvoid m(Foo foo) {\n  foo.m1();\n  foo.m2(p: 7);\n  x = 1;\n}\n```\n\nDeprecated elements can be used from within _other_ deprecated elements, in\norder to allow for the deprecation of a collection of APIs together as one unit.\n\n**GOOD:**\n```dart\n// Declared in one library:\nclass Foo {\n  @Deprecated(\"Use 'm2' instead\")\n  void m1() {}\n\n  void m2({\n      @Deprecated('This is an old parameter') int? p,\n  })\n}\n\n@Deprecated('Do not use')\nint x = 0;\n\n// In the same or another library, but within the same package:\n@Deprecated('Do not use')\nvoid m(Foo foo) {\n  foo.m1();\n  foo.m2(p: 7);\n  x = 1;\n}\n```\n",
+    "sinceDartSdk": "3.0.0"
+  },
+  {
+    "name": "diagnostic_describe_all_properties",
+    "description": "DO reference all public properties in debug methods.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** reference all public properties in `debug` method implementations.\n\nImplementers of `Diagnosticable` should reference all public properties in\na `debugFillProperties(...)` or `debugDescribeChildren(...)` method\nimplementation to improve debuggability at runtime.\n\nPublic properties are defined as fields and getters that are\n\n* not package-private (e.g., prefixed with `_`)\n* not `static` or overriding\n* not themselves `Widget`s or collections of `Widget`s\n\nIn addition, the \"debug\" prefix is treated specially for properties in Flutter.\nFor the purposes of diagnostics, a property `foo` and a prefixed property\n`debugFoo` are treated as effectively describing the same property and it is\nsufficient to refer to one or the other.\n\n**BAD:**\n```dart\nclass Absorber extends Widget {\n  bool get absorbing => _absorbing;\n  bool _absorbing;\n  bool get ignoringSemantics => _ignoringSemantics;\n  bool _ignoringSemantics;\n  @override\n  void debugFillProperties(DiagnosticPropertiesBuilder properties) {\n    super.debugFillProperties(properties);\n    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));\n    // Missing reference to ignoringSemantics\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Absorber extends Widget {\n  bool get absorbing => _absorbing;\n  bool _absorbing;\n  bool get ignoringSemantics => _ignoringSemantics;\n  bool _ignoringSemantics;\n  @override\n  void debugFillProperties(DiagnosticPropertiesBuilder properties) {\n    super.debugFillProperties(properties);\n    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));\n    properties.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));\n  }\n}\n```\n",
+    "sinceDartSdk": "2.3.0"
+  },
+  {
     "name": "directives_ordering",
     "description": "Adhere to Effective Dart Guide directives sorting conventions.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1227,8 +1069,25 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "discarded_futures",
+    "description": "Don't invoke asynchronous functions in non-`async` blocks.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Making asynchronous calls in non-`async` functions is usually the sign of a\nprogramming error.  In general these functions should be marked `async` and such\nfutures should likely be awaited (as enforced by `unawaited_futures`).\n\n**DON'T** invoke asynchronous functions in non-`async` blocks.\n\n**BAD:**\n```dart\nvoid recreateDir(String path) {\n  deleteDir(path);\n  createDir(path);\n}\n\nFuture<void> deleteDir(String path) async {}\n\nFuture<void> createDir(String path) async {}\n```\n\n**GOOD:**\n```dart\nFuture<void> recreateDir(String path) async {\n  await deleteDir(path);\n  await createDir(path);\n}\n\nFuture<void> deleteDir(String path) async {}\n\nFuture<void> createDir(String path) async {}\n```\n",
+    "sinceDartSdk": "2.18.0"
+  },
+  {
     "name": "do_not_use_environment",
     "description": "Do not use environment declared variables.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1240,6 +1099,9 @@
   {
     "name": "document_ignores",
     "description": "Document ignore comments.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1251,6 +1113,9 @@
   {
     "name": "empty_catches",
     "description": "Avoid empty catch blocks.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1266,6 +1131,9 @@
   {
     "name": "empty_constructor_bodies",
     "description": "Use `;` instead of `{}` for empty constructor bodies.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1278,8 +1146,28 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "empty_statements",
+    "description": "Avoid empty statements.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**AVOID** empty statements.\n\nEmpty statements almost always indicate a bug.\n\nFor example,\n\n**BAD:**\n```dart\nif (complicated.expression.foo());\n  bar();\n```\n\nFormatted with `dart format` the bug becomes obvious:\n\n```dart\nif (complicated.expression.foo()) ;\nbar();\n\n```\n\nBetter to avoid the empty statement altogether.\n\n**GOOD:**\n```dart\nif (complicated.expression.foo())\n  bar();\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "enable_null_safety",
     "description": "Do use sound null safety.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
@@ -1291,6 +1179,9 @@
   {
     "name": "eol_at_end_of_file",
     "description": "Put a single newline at end of file.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1302,6 +1193,9 @@
   {
     "name": "exhaustive_cases",
     "description": "Define case clauses for all constants in enum-like classes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1316,6 +1210,9 @@
   {
     "name": "file_names",
     "description": "Name source files using `lowercase_with_underscores`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1331,6 +1228,9 @@
   {
     "name": "flutter_style_todos",
     "description": "Use Flutter TODO format: // TODO(username): message, https://URL-to-issue.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1340,8 +1240,29 @@
     "sinceDartSdk": "2.1.0"
   },
   {
+    "name": "hash_and_equals",
+    "description": "Always override `hashCode` if overriding `==`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**DO** override `hashCode` if overriding `==` and prefer overriding `==` if\noverriding `hashCode`.\n\nEvery object in Dart has a `hashCode`.  Both the `==` operator and the\n`hashCode` property of objects must be consistent in order for a common hash\nmap implementation to function properly.  Thus, when overriding `==`, the\n`hashCode` should also be overridden to maintain consistency. Similarly, if\n`hashCode` is overridden, `==` should be also.\n\n**BAD:**\n```dart\nclass Bad {\n  final int value;\n  Bad(this.value);\n\n  @override\n  bool operator ==(Object other) => other is Bad && other.value == value;\n}\n```\n\n**GOOD:**\n```dart\nclass Better {\n  final int value;\n  Better(this.value);\n\n  @override\n  bool operator ==(Object other) =>\n      other is Better &&\n      other.runtimeType == runtimeType &&\n      other.value == value;\n\n  @override\n  int get hashCode => value.hashCode;\n}\n```\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "implementation_imports",
     "description": "Don't import implementation files from another package.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1356,6 +1277,9 @@
   {
     "name": "implicit_call_tearoffs",
     "description": "Explicitly tear-off `call` methods when using an object as a Function.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1369,8 +1293,81 @@
     "sinceDartSdk": "2.19.0"
   },
   {
+    "name": "implicit_reopen",
+    "description": "Don't implicitly reopen classes.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Using an `interface`, `base`, `final`, or `sealed` modifier on a class,\nor a `base` modifier on a mixin,\nauthors can control whether classes and mixins allow being implemented,\nextended, and/or mixed in from outside of the library where they're defined.\nIn some cases, it's possible for an author to inadvertently relax these controls\nand implicitly \"reopen\" a class. (A similar reopening cannot occur with a mixin.)\n\nThis lint guards against unintentionally reopening a class by requiring such\ncases to be made explicit with the\n[`@reopen`](https://pub.dev/documentation/meta/latest/meta/reopen-constant.html)\nannotation in `package:meta`.\n\n**BAD:**\n```dart\ninterface class I {}\n\nclass C extends I {} // LINT\n```\n\n**GOOD:**\n```dart\ninterface class I {}\n\nfinal class C extends I {}\n```\n\n```dart\nimport 'package:meta/meta.dart';\n\ninterface class I {}\n\n@reopen\nclass C extends I {}\n```\n",
+    "sinceDartSdk": "3.0.0"
+  },
+  {
+    "name": "invalid_case_patterns",
+    "description": "Use case expressions that are valid in Dart 3.0.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "Some case expressions that are valid in Dart 2.19 and below will become an error\nor have changed semantics when a library is upgraded to 3.0. This lint flags\nthose expressions in order to ease migration to Dart 3.0.\n\nSome valid switch cases in 2.19 will become compile errors in Dart 3.0:\n\n* Set literals\n* Parenthesized expressions\n* Calls to `identical()`.\n* Unary operator expressions `!`, `-`, or `~` (except for `-` before an integer\n  literal, which is a valid pattern and is fine)\n* Binary operator expressions `!=`, `==`, `&`, `|`, `^`, `~/`, `>>`, `>>>`,\n  `<<`, `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `??`.\n* Conditional operator `?:`\n* `.length` calls on strings\n* `is` and `is!` expressions\n\nExamples of all of them:\n\n```dart\nswitch (obj) {\n  case {1}: // Set literal.\n  case (1): // Parenthesized expression.\n  case identical(1, 2): // `identical()` call.\n  case -pi: // Unary operator.\n  case 1 + 2: // Binary operator.\n  case true ? 1 : 2: // Conditional operator.\n  case 'hi'.length: // .length call.\n  case i is int: // is expression.\n}\n```\n\nSome valid switch cases in 2.19 are also syntactically valid patterns, but the\npattern matching behavior may be different from the current constant equality\nbehavior. They are:\n\n**List and map literals.** A list or map literal can appear as a constant in a\ncase:\n\n```dart\nswitch (obj) {\n  case [1, 2]: ...\n  case {'k': 'v'}: ...\n}\n```\n\nCurrently, the case will only match if the incoming value has the same identity\nas the constant. So:\n\n```dart\ntest(List<int> list) {\n  switch (list) {\n    case [1, 2]: print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(const [1, 2]); // Prints \"Matched\".\n  test([1, 2]); // Prints \"Did not match\".\n}\n```\n\nWith patterns, a list or map literal becomes a list or map pattern. The pattern\ndestructures the incoming object and matches if the subpatterns all match. In\nother words, list and map pattern match using something more like deep equality.\n\nWith Dart 3.0, the above program prints \"Matched\" twice.\n\n**Constant constructor calls.** Similar to collections, you can construct a\nconstant instance of a class in a case:\n\n```dart\nclass Point {\n  final int x;\n  final int y;\n  const Point({this.x, this.y});\n}\n\ntest(Point p) {\n  switch (p) {\n    case Point(x: 1, y: 2): print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(const Point(1, 2)); // Prints \"Matched\".\n  test(Point(1, 2)); // Prints \"Did not match\".\n}\n```\n\nAgain, like collections, the case currently only matches if the incoming value\nhas the same identity. With patterns, the `Point(...)` syntax becomes an object\npattern that destructures the incoming point, calls the `x` and `y` getters on\nit and then matches the results of those against the corresponding subpatterns.\n\nIn this example, it will print \"Matched\" twice.\n\nNote that object patterns only support named fields. So any constant constructor\nin a case today that has positional arguments will become a compile-time error\nwhen parsed as a pattern. A constant constructor call with no arguments is a\nvalid object pattern and only does a type test:\n\n```dart\nclass Thing {\n  const Thing();\n}\n\ntest(Thing t) {\n  switch (t) {\n    case Thing(): print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(const Thing()); // Prints \"Matched\".\n  test(Thing()); // Prints \"Did not match\".\n}\n```\n\nWhen interpreted as a pattern, this prints \"Matched\" twice.\n\n**Wildcards.** Today, you can have a constant named `_`:\n\n```dart\ntest(int n) {\n  const _ = 3;\n  switch (n) {\n    case _: print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(3); // Prints \"Matched\".\n  test(5); // Prints \"Did not match\".\n}\n```\n\nWith patterns, the identifier `_` is treated as a pattern that matches all \nvalues, so this prints \"Matched\" twice.\n\n**Logic operators.** The logic operators `&&` and `||` are valid constant\nexpressions and also valid patterns. As a constant expression, they simply\nevaluate the expression to a boolean and match if the incoming value is equal to\nthat boolean value. So:\n\n```dart\ntest(bool b) {\n  switch (b) {\n    case true && false: print('Matched'); break;\n    default: print('Did not match'); break;\n  }\n}\n\nmain() {\n  test(false); // Prints \"Matched\".\n  test(true); // Prints \"Did not match\".\n}\n```\n\nWith Dart 3.0, these become patterns. The above example prints \"Did not match\"\ntwice because no boolean value can be both true and false.\n\nMany of invalid cases can be mechanically changed to something that is valid\nboth in Dart today and valid and means the same in Dart 3.0.\n\n**Parenthesized expressions:** Provided the inner expression is one that's not\nbroken in Dart 3.0, just discard the parentheses.\n\n**List literals, map literals, set literals, and constant constructor calls:**\nPut `const` before the literal or call. This turns it into a constant pattern\nwhich preserves the current behavior:\n\n**BAD:**\n\n```dart\ncase [1, 2]:\ncase {'k': 'v'}:\ncase {1, 2}:\ncase Point(1, 2):\n```\n\n**GOOD:**\n\n```dart\ncase const [1, 2]:\ncase const {'k': 'v'}:\ncase const {1, 2}:\ncase const Point(1, 2):\n```\n\n* **Wildcards:** Rename the constant from `_` to something else. Since the name\nis private, this can be done locally in the library without affecting other\ncode.\n\n* **Everything else:** For any other invalid expression, you have to hoist the\nexpression out into a new named constant. For example, if you have code like\nthis:\n\n\n**BAD:**\n\n```dart\nswitch (n) {\n  case 1 + 2: ...\n}\n```\n\nIt can be fixed by changing it to:\n\n**GOOD:**\n\n ```dart\nconst three = 1 + 2;\n\nswitch (n) {\n  case three: ...\n}\n```\n",
+    "sinceDartSdk": "3.0.0"
+  },
+  {
+    "name": "invalid_runtime_check_with_js_interop_types",
+    "description": "Avoid runtime type tests with JS interop types where the result may not\n    be platform-consistent.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DON'T** use 'is' checks where the type is a JS interop type.\n\n**DON'T** use 'is' checks where the type is a generic Dart type that has JS\ninterop type arguments.\n\n**DON'T** use 'is' checks with a JS interop value.\n\n'dart:js_interop' types have runtime types that are different based on whether\nyou are compiling to JS or to Wasm. Therefore, runtime type checks may result in\ndifferent behavior. Runtime checks also do not necessarily check that a JS\ninterop value is a particular JavaScript type.\n\n**BAD:**\n```dart\nextension type HTMLElement(JSObject o) {}\nextension type HTMLDivElement(JSObject o) implements HTMLElement {}\n\nvoid compute(JSAny a, bool b, List<JSObject> lo, List<String> ls, JSObject o,\n    HTMLElement e) {\n  a is String; // LINT, checking that a JS value is a Dart type\n  b is JSBoolean; // LINT, checking that a Dart value is a JS type\n  a is JSString; // LINT, checking that a JS value is a different JS interop\n                 // type\n  o is JSNumber; // LINT, checking that a JS value is a different JS interop\n                 // type\n  lo is List<String>; // LINT, JS interop type argument and Dart type argument\n                      // are incompatible\n  ls is List<JSString>; // LINT, Dart type argument and JS interop type argument\n                        // are incompatible\n  lo is List<JSArray>; // LINT, comparing JS interop type argument with\n                       // different JS interop type argument\n  lo is List<JSNumber>; // LINT, comparing JS interop type argument with\n                        // different JS interop type argument\n  o is HTMLElement; // LINT, true because both are JSObjects but doesn't check\n                    // that it's a JS HTMLElement\n  e is HTMLDivElement; // LINT, true because both are JSObjects but doesn't\n                       // check that it's a JS HTMLDivElement\n}\n```\n\nPrefer using JS interop helpers like 'isA' from 'dart:js_interop' to check the\nunderlying type of JS interop values.\n\n**GOOD:**\n```dart\nextension type HTMLElement(JSObject o) implements JSObject {}\nextension type HTMLDivElement(JSObject o) implements HTMLElement {}\n\nvoid compute(JSAny a, List<JSAny> l, JSObject o, HTMLElement e) {\n  a.isA<JSString>; // OK, uses JS interop to check it is a JS string\n  l[0].isA<JSString>; // OK, uses JS interop to check it is a JS string\n  o.isA<HTMLElement>(); // OK, uses JS interop to check `o` is an HTMLElement\n  e.isA<HTMLDivElement>(); // OK, uses JS interop to check `e` is an\n                           // HTMLDivElement\n}\n```\n\n**DON'T** use 'as' to cast a JS interop value to an unrelated Dart type or an\nunrelated Dart value to a JS interop type.\n\n**DON'T** use 'as' to cast a JS interop value to a JS interop type represented\nby an incompatible 'dart:js_interop' type.\n\n**BAD:**\n```dart\nextension type Window(JSObject o) {}\n\nvoid compute(String s, JSBoolean b, Window w, List<String> l,\n    List<JSObject> lo) {\n  s as JSString; // LINT, casting Dart type to JS interop type\n  b as bool; // LINT, casting JS interop type to Dart type\n  b as JSNumber; // LINT, JSBoolean and JSNumber are incompatible\n  b as Window; // LINT, JSBoolean and JSObject are incompatible\n  w as JSBoolean; // LINT, JSObject and JSBoolean are incompatible\n  l as List<JSString>; // LINT, casting Dart value with Dart type argument to\n                       // Dart type with JS interop type argument\n  lo as List<String>; // LINT, casting Dart value with JS interop type argument\n                      // to Dart type with Dart type argument\n  lo as List<JSBoolean>; // LINT, casting Dart value with JS interop type\n                         // argument to Dart type with incompatible JS interop\n                         // type argument\n}\n```\n\nPrefer using 'dart:js_interop' conversion methods to convert a JS interop value\nto a Dart value and vice versa.\n\n**GOOD:**\n```dart\nextension type Window(JSObject o) {}\nextension type Document(JSObject o) {}\n\nvoid compute(String s, JSBoolean b, Window w, JSArray<JSString> a,\n    List<String> ls, JSObject o, List<JSAny> la) {\n  s.toJS; // OK, converts the Dart type to a JS type\n  b.toDart; // OK, converts the JS type to a Dart type\n  a.toDart; // OK, converts the JS type to a Dart type\n  w as Document; // OK, but no runtime check that `w` is a JS Document\n  ls.map((e) => e.toJS).toList(); // OK, converts the Dart types to JS types\n  o as JSArray<JSString>; // OK, JSObject and JSArray are compatible\n  la as List<JSString>; // OK, JSAny and JSString are compatible\n  (o as Object) as JSObject; // OK, Object is a supertype of JSAny\n}\n```\n\n",
+    "sinceDartSdk": "3.5.0-wip"
+  },
+  {
+    "name": "invariant_booleans",
+    "description": "Conditions should not unconditionally evaluate to `true` or to `false`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "removed",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.\n\n**DON'T** test for conditions that can be inferred at compile time or test the\nsame condition twice.\n\nConditional statements using a condition which cannot be anything but `false`\nhave the effect of making blocks of code non-functional.  If the condition\ncannot evaluate to anything but `true`, the conditional statement is completely\nredundant, and makes the code less readable.\nIt is quite likely that the code does not match the programmer's intent.\nEither the condition should be removed or it should be updated so that it does\nnot always evaluate to `true` or `false` and does not perform redundant tests.\nThis rule will hint to the test conflicting with the linted one.\n\n**BAD:**\n```dart\n// foo can't be both equal and not equal to bar in the same expression\nif(foo == bar && something && foo != bar) {...}\n```\n\n**BAD:**\n```dart\nvoid compute(int foo) {\n  if (foo == 4) {\n    doSomething();\n    // we know foo is equal to 4 at this point, so the next condition is always false\n    if (foo > 4) {...}\n    ...\n  }\n  ...\n}\n```\n\n**BAD:**\n```dart\nvoid compute(bool foo) {\n  if (foo) {\n    return;\n  }\n  doSomething();\n  // foo is always false here\n  if (foo){...}\n  ...\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOK() {\n  if (foo == bar) {\n    foo = baz;\n    if (foo != bar) {...}\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk2() {\n  if (foo == bar) {\n    return;\n  }\n\n  foo = baz;\n  if (foo == bar) {...} // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk5() {\n  if (foo != null) {\n    if (bar != null) {\n      return;\n    }\n  }\n\n  if (bar != null) {...} // OK\n}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "iterable_contains_unrelated_type",
+    "description": "Invocation of `Iterable<E>.contains` with references of unrelated types.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "removed",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DON'T** invoke `contains` on `Iterable` with an instance of different type\nthan the parameter type.\n\nDoing this will invoke `==` on its elements and most likely will return `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.contains('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeIterable<E> implements Iterable<E> {}\n\nabstract class MyClass implements SomeIterable<int> {\n  bool badMethod(String thing) => this.contains(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.contains(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.contains(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.contains(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.contains(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.contains(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "join_return_with_assignment",
     "description": "Join return statement with assignment when possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1382,6 +1379,9 @@
   {
     "name": "leading_newlines_in_multiline_strings",
     "description": "Start multiline strings with a newline.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1393,6 +1393,9 @@
   {
     "name": "library_annotations",
     "description": "Attach library annotations to library directives.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1408,6 +1411,9 @@
   {
     "name": "library_names",
     "description": "Name libraries using `lowercase_with_underscores`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1419,6 +1425,9 @@
   {
     "name": "library_prefixes",
     "description": "Use `lowercase_with_underscores` when specifying a library prefix.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1433,6 +1442,9 @@
   {
     "name": "library_private_types_in_public_api",
     "description": "Avoid using private types in public APIs.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1447,6 +1459,9 @@
   {
     "name": "lines_longer_than_80_chars",
     "description": "Avoid lines longer than 80 characters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1456,8 +1471,39 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "list_remove_unrelated_type",
+    "description": "Invocation of `remove` with references of unrelated types.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "removed",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DON'T** invoke `remove` on `List` with an instance of different type than\nthe parameter type.\n\nDoing this will invoke `==` on its elements and most likely will\nreturn `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.remove('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.remove('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeList<E> implements List<E> {}\n\nabstract class MyClass implements SomeList<int> {\n  bool badMethod(String thing) => this.remove(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.remove(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.remove(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.remove(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.remove(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.remove(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "literal_only_boolean_expressions",
+    "description": "Boolean expression composed only with literals.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**DON'T** test for conditions composed only by literals, since the value can be\ninferred at compile time.\n\nConditional statements using a condition which cannot be anything but FALSE have\nthe effect of making blocks of code non-functional.  If the condition cannot\nevaluate to anything but `true`, the conditional statement is completely\nredundant, and makes the code less readable.\nIt is quite likely that the code does not match the programmer's intent.\nEither the condition should be removed or it should be updated so that it does\nnot always evaluate to `true` or `false`.\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true && 1 != 0) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 != 0 && true) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 < 0 && true) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true && false) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 != 0) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (true && 1 != 0 || 3 < 4) {} // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid bad() {\n  if (1 != 0 || 3 < 4 && true) {} // LINT\n}\n```\n\n**NOTE:** that an exception is made for the common `while (true) { }` idiom,\nwhich is often reasonably preferred to the equivalent `for (;;)`.\n\n**GOOD:**\n```dart\nvoid good() {\n  while (true) {\n    // Do stuff.\n  }\n}\n```\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "matching_super_parameters",
     "description": "Use matching super parameter names.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1467,8 +1513,25 @@
     "sinceDartSdk": "3.0.0"
   },
   {
+    "name": "missing_code_block_language_in_doc_comment",
+    "description": "A code block is missing a specified language.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsEvaluation",
+    "details": "**DO** specify the language used in the code block of a doc comment.\n\nTo enable proper syntax highlighting of Markdown code blocks,\n[`dart doc`](https://dart.dev/tools/dart-doc) strongly recommends code blocks to\nspecify the language used after the initial code fence.\n\nSee [highlight.js](https://github.com/highlightjs/highlight.js/blob/main/SUPPORTED_LANGUAGES.md)\nfor the list of languages supported by `dart doc`.\nTo disable syntax highlighting or if no language is suitable,\nyou can specify `none` as the language.\n\n**BAD:**\n```dart\n/// ```\n/// void main() {}\n/// ```\nclass A {}\n```\n\n**GOOD:**\n```dart\n/// ```dart\n/// void main() {}\n/// ```\nclass A {}\n```\n\n",
+    "sinceDartSdk": "3.4.0"
+  },
+  {
     "name": "missing_whitespace_between_adjacent_strings",
     "description": "Missing whitespace between adjacent strings.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1478,8 +1541,25 @@
     "sinceDartSdk": "2.8.1"
   },
   {
+    "name": "no_adjacent_strings_in_list",
+    "description": "Don't use adjacent strings in list.",
+    "categories": [
+      "style"
+    ],
+    "group": "style",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DON'T** use adjacent strings in a list.\n\nThis can indicate a forgotten comma.\n\n**BAD:**\n```dart\nList<String> list = <String>[\n  'a'\n  'b',\n  'c',\n];\n```\n\n**GOOD:**\n```dart\nList<String> list = <String>[\n  'a' +\n  'b',\n  'c',\n];\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "no_default_cases",
     "description": "No default cases.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "experimental",
     "incompatible": [],
@@ -1489,8 +1569,29 @@
     "sinceDartSdk": "2.9.0"
   },
   {
+    "name": "no_duplicate_case_values",
+    "description": "Don't use more than one case with same value.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**DON'T** use more than one case with same value.\n\nThis is usually a typo or changed value of constant.\n\n**BAD:**\n```dart\nconst int A = 1;\nswitch (v) {\n  case 1:\n  case 2:\n  case A:\n  case 2:\n}\n```\n\n**GOOD:**\n```dart\nconst int A = 1;\nswitch (v) {\n  case A:\n  case 2:\n}\n```\n\nNOTE: this lint only reports duplicate cases in libraries opted in to Dart 2.19\nand below. In Dart 3.0 and after, duplicate cases are reported as dead code\nby the analyzer.\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "no_leading_underscores_for_library_prefixes",
     "description": "Avoid leading underscores for library prefixes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1505,6 +1606,9 @@
   {
     "name": "no_leading_underscores_for_local_identifiers",
     "description": "Avoid leading underscores for local identifiers.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1519,6 +1623,9 @@
   {
     "name": "no_literal_bool_comparisons",
     "description": "Don't compare booleans to boolean literals.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1528,8 +1635,27 @@
     "sinceDartSdk": "3.0.0"
   },
   {
+    "name": "no_logic_in_create_state",
+    "description": "Don't put any logic in createState.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "**DON'T** put any logic in `createState()`.\n\nImplementations of  `createState()` should return a new instance\nof a State object and do nothing more.  Since state access is preferred \nvia the `widget` field,  passing data to `State` objects using custom\nconstructor parameters should also be avoided and so further, the State\nconstructor is required to be passed no arguments.\n\n**BAD:**\n```dart\nMyState global;\n\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() {\n    global = MyState();\n    return global;\n  } \n}\n```\n\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() => MyState()..field = 42;\n}\n```\n\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() => MyState(42);\n}\n```\n\n\n**GOOD:**\n```dart\nclass MyStateful extends StatefulWidget {\n  @override\n  MyState createState() {\n    return MyState();\n  }\n}\n```\n",
+    "sinceDartSdk": "2.8.1"
+  },
+  {
     "name": "no_runtimeType_toString",
     "description": "Avoid calling `toString()` on `runtimeType`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1539,8 +1665,43 @@
     "sinceDartSdk": "2.8.1"
   },
   {
+    "name": "no_self_assignments",
+    "description": "Don't assign a variable to itself.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsEvaluation",
+    "details": "**DON'T** assign a variable to itself. Usually this is a mistake.\n\n**BAD:**\n```dart\nclass C {\n  int x;\n\n  C(int x) {\n    x = x;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int x;\n\n  C(int x) : x = x;\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int x;\n\n  C(int x) {\n    this.x = x;\n  }\n}\n```\n\n**BAD:**\n```dart\nclass C {\n  int _x = 5;\n\n  int get x => _x;\n\n  set x(int x) {\n    _x = x;\n    _customUpdateLogic();\n  }\n\n  void _customUpdateLogic() {\n    print('updated');\n  }\n\n  void example() {\n    x = x;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int _x = 5;\n\n  int get x => _x;\n\n  set x(int x) {\n    _x = x;\n    _customUpdateLogic();\n  }\n\n  void _customUpdateLogic() {\n    print('updated');\n  }\n\n  void example() {\n    _customUpdateLogic();\n  }\n}\n```\n\n**BAD:**\n```dart\nclass C {\n  int x = 5;\n\n  void update(C other) {\n    this.x = this.x;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  int x = 5;\n\n  void update(C other) {\n    this.x = other.x;\n  }\n}\n```\n\n",
+    "sinceDartSdk": "3.1.0"
+  },
+  {
+    "name": "no_wildcard_variable_uses",
+    "description": "Don't use wildcard parameters or variables.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "needsEvaluation",
+    "details": "**DON'T** use wildcard parameters or variables.\n\nWildcard parameters and local variables\n(e.g. underscore-only names like `_`, `__`, `___`, etc.) will\nbecome non-binding in a future version of the Dart language.\nAny existing code that uses wildcard parameters or variables will\nbreak. In anticipation of this change, and to make adoption easier,\nthis lint disallows wildcard and variable parameter uses.\n\n\n**BAD:**\n```dart\nvar _ = 1;\nprint(_); // LINT\n```\n\n```dart\nvoid f(int __) {\n  print(__); // LINT multiple underscores too\n}\n```\n\n**GOOD:**\n```dart\nfor (var _ in [1, 2, 3]) count++;\n```\n\n```dart\nvar [a, _, b, _] = [1, 2, 3, 4];\n```\n",
+    "sinceDartSdk": "3.1.0"
+  },
+  {
     "name": "non_constant_identifier_names",
     "description": "Name non-constant identifiers using lowerCamelCase.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1556,6 +1717,9 @@
   {
     "name": "noop_primitive_operations",
     "description": "Noop primitive operations.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1567,6 +1731,9 @@
   {
     "name": "null_check_on_nullable_type_parameter",
     "description": "Don't use `null` check on a potentially nullable type parameter.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1582,6 +1749,9 @@
   {
     "name": "null_closures",
     "description": "Do not pass `null` as an argument where a closure is expected.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1596,6 +1766,9 @@
   {
     "name": "omit_local_variable_types",
     "description": "Omit type annotations for local variables.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -1609,6 +1782,9 @@
   {
     "name": "one_member_abstracts",
     "description": "Avoid defining a one-member abstract class when a simple function will do.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1620,6 +1796,9 @@
   {
     "name": "only_throw_errors",
     "description": "Only throw instances of classes extending either Exception or Error.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1631,6 +1810,9 @@
   {
     "name": "overridden_fields",
     "description": "Don't override fields.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1645,6 +1827,9 @@
   {
     "name": "package_api_docs",
     "description": "Provide doc comments for all public APIs.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1654,8 +1839,28 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "package_names",
+    "description": "Use `lowercase_with_underscores` for package names.",
+    "categories": [
+      "style"
+    ],
+    "group": "style",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "From the [Pubspec format description](https://dart.dev/tools/pub/pubspec):\n\n**DO** use `lowercase_with_underscores` for package names.\n\nPackage names should be all lowercase, with underscores to separate words,\n`just_like_this`.  Use only basic Latin letters and Arabic digits: \\[a-z0-9\\_\\].\nAlso, make sure the name is a valid Dart identifier -- that it doesn't start\nwith digits and isn't a reserved word.\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "package_prefixed_library_names",
     "description": "Prefix library names with the package name and a dot-separated path.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1667,6 +1872,9 @@
   {
     "name": "parameter_assignments",
     "description": "Don't reassign references to parameters of functions or methods.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1678,6 +1886,9 @@
   {
     "name": "prefer_adjacent_string_concatenation",
     "description": "Use adjacent strings to concatenate string literals.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1692,6 +1903,9 @@
   {
     "name": "prefer_asserts_in_initializer_lists",
     "description": "Prefer putting asserts in initializer lists.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1703,6 +1917,9 @@
   {
     "name": "prefer_asserts_with_message",
     "description": "Prefer asserts with message.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1714,6 +1931,9 @@
   {
     "name": "prefer_bool_in_asserts",
     "description": "Prefer using a boolean as the assert condition.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
@@ -1725,6 +1945,9 @@
   {
     "name": "prefer_collection_literals",
     "description": "Use collection literals when possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1739,6 +1962,9 @@
   {
     "name": "prefer_conditional_assignment",
     "description": "Prefer using `??=` over testing for `null`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1753,6 +1979,9 @@
   {
     "name": "prefer_const_constructors",
     "description": "Prefer `const` with constant constructors.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1766,6 +1995,9 @@
   {
     "name": "prefer_const_constructors_in_immutables",
     "description": "Prefer declaring `const` constructors on `@immutable` classes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1779,6 +2011,9 @@
   {
     "name": "prefer_const_declarations",
     "description": "Prefer `const` over `final` for declarations.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1792,6 +2027,9 @@
   {
     "name": "prefer_const_literals_to_create_immutables",
     "description": "Prefer const literals as parameters of constructors on @immutable classes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1805,6 +2043,9 @@
   {
     "name": "prefer_constructors_over_static_methods",
     "description": "Prefer defining constructors instead of static methods to create instances.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1816,6 +2057,9 @@
   {
     "name": "prefer_contains",
     "description": "Use contains for `List` and `String` instances.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1830,6 +2074,9 @@
   {
     "name": "prefer_double_quotes",
     "description": "Prefer double quotes where they won't require escape sequences.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -1843,6 +2090,9 @@
   {
     "name": "prefer_equal_for_default_values",
     "description": "Use `=` to separate a named parameter from its default value.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
@@ -1854,6 +2104,9 @@
   {
     "name": "prefer_expression_function_bodies",
     "description": "Use => for short members whose body is a single return statement.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1865,6 +2118,9 @@
   {
     "name": "prefer_final_fields",
     "description": "Private field could be `final`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1879,6 +2135,9 @@
   {
     "name": "prefer_final_in_for_each",
     "description": "Prefer final in for-each loop variable if reference is not reassigned.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1890,6 +2149,9 @@
   {
     "name": "prefer_final_locals",
     "description": "Prefer final for variable declarations if they are not reassigned.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -1903,6 +2165,9 @@
   {
     "name": "prefer_final_parameters",
     "description": "Prefer final for parameter declarations if they are not reassigned.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -1917,6 +2182,9 @@
   {
     "name": "prefer_for_elements_to_map_fromIterable",
     "description": "Prefer `for` elements when building maps from iterables.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1931,6 +2199,9 @@
   {
     "name": "prefer_foreach",
     "description": "Use `forEach` to only apply a function to all the elements.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1942,6 +2213,9 @@
   {
     "name": "prefer_function_declarations_over_variables",
     "description": "Use a function declaration to bind a function to a name.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1956,6 +2230,9 @@
   {
     "name": "prefer_generic_function_type_aliases",
     "description": "Prefer generic function type aliases.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1971,6 +2248,9 @@
   {
     "name": "prefer_if_elements_to_conditional_expressions",
     "description": "Prefer if elements to conditional expressions where possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1982,6 +2262,9 @@
   {
     "name": "prefer_if_null_operators",
     "description": "Prefer using `??` operators.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -1996,6 +2279,9 @@
   {
     "name": "prefer_initializing_formals",
     "description": "Use initializing formals when possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2010,6 +2296,9 @@
   {
     "name": "prefer_inlined_adds",
     "description": "Inline list item declarations where possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2024,6 +2313,9 @@
   {
     "name": "prefer_int_literals",
     "description": "Prefer int literals over double literals.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2035,6 +2327,9 @@
   {
     "name": "prefer_interpolation_to_compose_strings",
     "description": "Use interpolation to compose strings and values.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2049,6 +2344,9 @@
   {
     "name": "prefer_is_empty",
     "description": "Use `isEmpty` for `Iterable`s and `Map`s.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2064,6 +2362,9 @@
   {
     "name": "prefer_is_not_empty",
     "description": "Use `isNotEmpty` for `Iterable`s and `Map`s.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2079,6 +2380,9 @@
   {
     "name": "prefer_is_not_operator",
     "description": "Prefer is! operator.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2093,6 +2397,9 @@
   {
     "name": "prefer_iterable_whereType",
     "description": "Prefer to use `whereType` on iterable.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2108,6 +2415,9 @@
   {
     "name": "prefer_mixin",
     "description": "Prefer using mixins.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2119,6 +2429,9 @@
   {
     "name": "prefer_null_aware_method_calls",
     "description": "Prefer `null`-aware method calls.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2130,6 +2443,9 @@
   {
     "name": "prefer_null_aware_operators",
     "description": "Prefer using `null`-aware operators.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2142,8 +2458,27 @@
     "sinceDartSdk": "2.2.0"
   },
   {
+    "name": "prefer_relative_imports",
+    "description": "Prefer relative imports for files in `lib/`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [
+      "always_use_package_imports"
+    ],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**PREFER** relative imports for files in `lib/`.\n\nWhen mixing relative and absolute imports it's possible to create confusion\nwhere the same member gets imported in two different ways. One way to avoid\nthat is to ensure you consistently use relative imports for files within the\n`lib/` directory.\n\n**BAD:**\n```dart\nimport 'package:my_package/bar.dart';\n```\n\n**GOOD:**\n```dart\nimport 'bar.dart';\n```\n\n",
+    "sinceDartSdk": "2.6.0"
+  },
+  {
     "name": "prefer_single_quotes",
     "description": "Only use double quotes for strings containing single quotes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -2157,6 +2492,9 @@
   {
     "name": "prefer_spread_collections",
     "description": "Use spread collections when possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2171,6 +2509,9 @@
   {
     "name": "prefer_typing_uninitialized_variables",
     "description": "Prefer typing uninitialized variables and fields.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2184,8 +2525,25 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "prefer_void_to_null",
+    "description": "Don't use the Null type, unless you are positive that you don't want void.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DON'T** use the type Null where void would work.\n\n**BAD:**\n```dart\nNull f() {}\nFuture<Null> f() {}\nStream<Null> f() {}\nf(Null x) {}\n```\n\n**GOOD:**\n```dart\nvoid f() {}\nFuture<void> f() {}\nStream<void> f() {}\nf(void x) {}\n```\n\nSome exceptions include formulating special function types:\n\n```dart\nNull Function(Null, Null);\n```\n\nand for making empty literals which are safe to pass into read-only locations\nfor any type of map or list:\n\n```dart\n<Null>[];\n<int, Null>{};\n```\n",
+    "sinceDartSdk": "2.1.0"
+  },
+  {
     "name": "provide_deprecation_message",
     "description": "Provide a deprecation message, via `@Deprecated(\"message\")`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2201,6 +2559,9 @@
   {
     "name": "public_member_api_docs",
     "description": "Document all public members.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2212,6 +2573,9 @@
   {
     "name": "recursive_getters",
     "description": "Property getter recursively returns itself.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2226,6 +2590,9 @@
   {
     "name": "require_trailing_commas",
     "description": "Use trailing commas for all parameter lists and argument lists.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2235,8 +2602,29 @@
     "sinceDartSdk": "2.14.0"
   },
   {
+    "name": "secure_pubspec_urls",
+    "description": "Use secure urls in `pubspec.yaml`.",
+    "categories": [
+      "pub"
+    ],
+    "group": "pub",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "**DO** Use secure urls in `pubspec.yaml`.\n\nUse `https` instead of `http` or `git:`.\n\n**BAD:**\n```yaml\nrepository: http://github.com/dart-lang/example\n```\n\n```yaml\ngit:\n  url: git://github.com/dart-lang/example/example.git\n```\n\n**GOOD:**\n```yaml\nrepository: https://github.com/dart-lang/example\n```\n\n",
+    "sinceDartSdk": "2.16.0"
+  },
+  {
     "name": "sized_box_for_whitespace",
     "description": "`SizedBox` for whitespace.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2250,6 +2638,9 @@
   {
     "name": "sized_box_shrink_expand",
     "description": "Use SizedBox shrink and expand named constructors.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2261,6 +2652,9 @@
   {
     "name": "slash_for_doc_comments",
     "description": "Prefer using `///` for doc comments.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2275,6 +2669,9 @@
   {
     "name": "sort_child_properties_last",
     "description": "Sort child properties last in widget instance creations.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2288,6 +2685,9 @@
   {
     "name": "sort_constructors_first",
     "description": "Sort constructor declarations before other members.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2297,8 +2697,25 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "sort_pub_dependencies",
+    "description": "Sort pub dependencies alphabetically.",
+    "categories": [
+      "pub"
+    ],
+    "group": "pub",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DO** sort pub dependencies alphabetically (A to Z) in `pubspec.yaml`.\n\nSorting list of pub dependencies makes maintenance easier.\n",
+    "sinceDartSdk": "2.1.0"
+  },
+  {
     "name": "sort_unnamed_constructors_first",
     "description": "Sort unnamed constructor declarations first.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2310,6 +2727,9 @@
   {
     "name": "super_goes_last",
     "description": "Place the `super` call last in a constructor initialization list.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "removed",
     "incompatible": [],
@@ -2319,8 +2739,39 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "test_types_in_equals",
+    "description": "Test type of argument in `operator ==(Object other)`.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**DO** test type of argument in `operator ==(Object other)`.\n\nNot testing the type might result in runtime type errors which will be\nunexpected for consumers of your class.\n\n**BAD:**\n```dart\nclass Field {\n}\n\nclass Bad {\n  final Field someField;\n\n  Bad(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    Bad otherBad = other as Bad; // LINT\n    bool areEqual = otherBad != null && otherBad.someField == someField;\n    return areEqual;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Field {\n}\n\nclass Good {\n  final Field someField;\n\n  Good(this.someField);\n\n  @override\n  bool operator ==(Object other) {\n    if (identical(this, other)) {\n      return true;\n    }\n    return other is Good &&\n        this.someField == other.someField;\n  }\n\n  @override\n  int get hashCode {\n    return someField.hashCode;\n  }\n}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "throw_in_finally",
+    "description": "Avoid `throw` in `finally` block.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**AVOID** throwing exceptions in `finally` blocks.\n\nThrowing exceptions in `finally` blocks will inevitably cause unexpected\nbehavior that is hard to debug.\n\n**BAD:**\n```dart\nclass BadThrow {\n  double nonCompliantMethod() {\n    try {\n      print('hello world! ${1 / 0}');\n    } catch (e) {\n      print(e);\n    } finally {\n      throw 'Find the hidden error :P'; // LINT\n    }\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Ok {\n  double compliantMethod() {\n    var i = 5;\n    try {\n      i = 1 / 0;\n    } catch (e) {\n      print(e); // OK\n    }\n    return i;\n  }\n}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "tighten_type_of_initializing_formals",
     "description": "Tighten type of initializing formal.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2332,6 +2783,9 @@
   {
     "name": "type_annotate_public_apis",
     "description": "Type annotate public APIs.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2343,6 +2797,9 @@
   {
     "name": "type_init_formals",
     "description": "Don't type annotate initializing formals.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2357,6 +2814,9 @@
   {
     "name": "type_literal_in_constant_pattern",
     "description": "Don't use constant patterns with type literals.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2372,6 +2832,9 @@
   {
     "name": "unawaited_futures",
     "description": "`Future` results in `async` function bodies must be `await`ed or marked `unawaited` using `dart:async`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2381,8 +2844,25 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "unintended_html_in_doc_comment",
+    "description": "Use of angle brackets in a doc comment is treated as HTML by Markdown.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DO** reference only in-scope identifiers in doc comments.\n\nWhen a developer writes a reference with angle brackets within a doc comment,\nthe angle brackets are interpreted as HTML. The text within pairs of opening and\nclosing angle brackets generally get swallowed by the browser, and will not be\ndisplayed.\n\nYou can use a code block or code span to wrap the text containing angle\nbrackets. You can also replace `<` with `&lt;` and `>` with `&gt;`.\n\n**BAD:**\n```dart\n/// Text List<int>.\n/// Text [List<int>].\n/// <assignment> -> <variable> = <expression>\n```\n\n**GOOD:**\n```dart\n/// Text `List<int>`.\n/// `<assignment> -> <variable> = <expression>`\n/// <http://foo.bar.baz>\n```\n\n",
+    "sinceDartSdk": "3.5.0-wip"
+  },
+  {
     "name": "unnecessary_await_in_return",
     "description": "Unnecessary `await` keyword in return.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2394,6 +2874,9 @@
   {
     "name": "unnecessary_brace_in_string_interps",
     "description": "Avoid using braces in interpolation when not needed.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2408,6 +2891,9 @@
   {
     "name": "unnecessary_breaks",
     "description": "Don't use explicit `break`s when a break is implied.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2419,6 +2905,9 @@
   {
     "name": "unnecessary_const",
     "description": "Avoid `const` keyword.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2433,6 +2922,9 @@
   {
     "name": "unnecessary_constructor_name",
     "description": "Unnecessary `.new` constructor name.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2447,6 +2939,9 @@
   {
     "name": "unnecessary_final",
     "description": "Don't use `final` for local variables.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [
@@ -2461,6 +2956,9 @@
   {
     "name": "unnecessary_getters_setters",
     "description": "Avoid wrapping fields in getters and setters just to be \"safe\".",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2475,6 +2973,9 @@
   {
     "name": "unnecessary_lambdas",
     "description": "Don't create a lambda when a tear-off will do.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2486,6 +2987,9 @@
   {
     "name": "unnecessary_late",
     "description": "Don't specify the `late` modifier when it is not needed.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2500,6 +3004,9 @@
   {
     "name": "unnecessary_library_directive",
     "description": "Avoid library directives unless they have documentation comments or annotations.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2511,6 +3018,9 @@
   {
     "name": "unnecessary_library_name",
     "description": "Don't have a library name in a `library` declaration.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2522,6 +3032,9 @@
   {
     "name": "unnecessary_new",
     "description": "Unnecessary new keyword.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2536,6 +3049,9 @@
   {
     "name": "unnecessary_null_aware_assignments",
     "description": "Avoid `null` in `null`-aware assignment.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2550,6 +3066,9 @@
   {
     "name": "unnecessary_null_aware_operator_on_extension_on_nullable",
     "description": "Unnecessary null aware operator on extension on a nullable type.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2561,6 +3080,9 @@
   {
     "name": "unnecessary_null_checks",
     "description": "Unnecessary `null` checks.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "experimental",
     "incompatible": [],
@@ -2572,6 +3094,9 @@
   {
     "name": "unnecessary_null_in_if_null_operators",
     "description": "Avoid using `null` in `??` operators.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2586,6 +3111,9 @@
   {
     "name": "unnecessary_nullable_for_final_variable_declarations",
     "description": "Use a non-nullable type for a final variable initialized with a non-nullable value.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2600,6 +3128,9 @@
   {
     "name": "unnecessary_overrides",
     "description": "Don't override a method to do a super method invocation with the same parameters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2615,6 +3146,9 @@
   {
     "name": "unnecessary_parenthesis",
     "description": "Unnecessary parentheses can be removed.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2626,6 +3160,9 @@
   {
     "name": "unnecessary_raw_strings",
     "description": "Unnecessary raw string.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2635,8 +3172,25 @@
     "sinceDartSdk": "2.8.1"
   },
   {
+    "name": "unnecessary_statements",
+    "description": "Avoid using unnecessary statements.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**AVOID** using unnecessary statements.\n\nStatements which have no clear effect are usually unnecessary, or should be\nbroken up.\n\nFor example,\n\n**BAD:**\n```dart\nmyvar;\nlist.clear;\n1 + 2;\nmethodOne() + methodTwo();\nfoo ? bar : baz;\n```\n\nThough the added methods have a clear effect, the addition itself does not\nunless there is some magical overload of the + operator.\n\nUsually code like this indicates an incomplete thought, and is a bug.\n\n**GOOD:**\n```dart\nsome.method();\nconst SomeClass();\nmethodOne();\nmethodTwo();\nfoo ? bar() : baz();\nreturn myvar;\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "unnecessary_string_escapes",
     "description": "Remove unnecessary backslashes in strings.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2651,6 +3205,9 @@
   {
     "name": "unnecessary_string_interpolations",
     "description": "Unnecessary string interpolation.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2665,6 +3222,9 @@
   {
     "name": "unnecessary_this",
     "description": "Don't access members with `this` unless avoiding shadowing.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2679,6 +3239,9 @@
   {
     "name": "unnecessary_to_list_in_spreads",
     "description": "Unnecessary `toList()` in spreads.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2693,6 +3256,9 @@
   {
     "name": "unreachable_from_main",
     "description": "Unreachable top-level members in executable libraries.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2702,8 +3268,59 @@
     "sinceDartSdk": "2.19.0"
   },
   {
+    "name": "unrelated_type_equality_checks",
+    "description": "Equality operator `==` invocation with references of unrelated types.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "unregistered",
+    "details": "**DON'T** Compare references of unrelated types for equality.\n\nComparing references of a type where neither is a subtype of the other most\nlikely will return `false` and might not reflect programmer's intent.\n\n`Int64` and `Int32` from `package:fixnum` allow comparing to `int` provided\nthe `int` is on the right hand side. The lint allows this as a special case. \n\n**BAD:**\n```dart\nvoid someFunction() {\n  var x = '1';\n  if (x == 1) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction1() {\n  String x = '1';\n  if (x == 1) print('someFunction1'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction13(DerivedClass2 instance) {\n  var other = DerivedClass3();\n\n  if (other == instance) print('someFunction13'); // LINT\n}\n\nclass ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction2() {\n  var x = '1';\n  var y = '2';\n  if (x == y) print(someFunction2); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction3() {\n  for (var i = 0; i < 10; i++) {\n    if (i == 0) print(someFunction3); // OK\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  var x = '1';\n  if (x == null) print(someFunction4); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List someList;\n\n  if (someList.length == 0) print('someFunction7'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction8(ClassBase instance) {\n  DerivedClass1 other;\n\n  if (other == instance) print('someFunction8'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10(unknown) {\n  var what = unknown - 1;\n  for (var index = 0; index < unknown; index++) {\n    if (what == index) print('someFunction10'); // OK\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction11(Mixin instance) {\n  var other = DerivedClass2();\n\n  if (other == instance) print('someFunction11'); // OK\n  if (other != instance) print('!someFunction11'); // OK\n}\n\nclass ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "unsafe_html",
+    "description": "Avoid unsafe HTML APIs.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "unregistered",
+    "details": "**AVOID**\n\n* assigning directly to the `href` field of an AnchorElement\n* assigning directly to the `src` field of an EmbedElement, IFrameElement, or\n  ScriptElement\n* assigning directly to the `srcdoc` field of an IFrameElement\n* calling the `createFragment` method of Element\n* calling the `open` method of Window\n* calling the `setInnerHtml` method of Element\n* calling the `Element.html` constructor\n* calling the `DocumentFragment.html` constructor\n\n\n**BAD:**\n```dart\nvar script = ScriptElement()..src = 'foo.js';\n```\n",
+    "sinceDartSdk": "2.4.0"
+  },
+  {
+    "name": "use_build_context_synchronously",
+    "description": "Do not use `BuildContext` across asynchronous gaps.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "flutter"
+    ],
+    "fixStatus": "unregistered",
+    "details": "**DON'T** use `BuildContext` across asynchronous gaps.\n\nStoring `BuildContext` for later usage can easily lead to difficult to diagnose\ncrashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of\nthe easiest to overlook when writing code.\n\nWhen a `BuildContext` is used, a `mounted` property must be checked after an\nasynchronous gap, depending on how the `BuildContext` is accessed:\n\n* When using a `State`'s `context` property, the `State`'s `mounted` property\n  must be checked.\n* For other `BuildContext` instances (like a local variable or function\n  argument), the `BuildContext`'s `mounted` property must be checked.\n\n**BAD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) {\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nvoid onButtonTapped(BuildContext context) async {\n  await Future.delayed(const Duration(seconds: 1));\n\n  if (!context.mounted) return;\n  Navigator.of(context).pop();\n}\n```\n\n**GOOD:**\n```dart\nabstract class MyState extends State<MyWidget> {\n  void foo() async {\n    await Future.delayed(const Duration(seconds: 1));\n    if (!mounted) return; // Checks `this.mounted`, not `context.mounted`.\n    Navigator.of(context).pop();\n  }\n}\n```\n",
+    "sinceDartSdk": "2.13.0"
+  },
+  {
     "name": "use_colored_box",
     "description": "Use `ColoredBox`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2715,6 +3332,9 @@
   {
     "name": "use_decorated_box",
     "description": "Use `DecoratedBox`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2726,6 +3346,9 @@
   {
     "name": "use_enums",
     "description": "Use enums rather than classes that behave like enums.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2737,6 +3360,9 @@
   {
     "name": "use_full_hex_values_for_flutter_colors",
     "description": "Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2750,6 +3376,9 @@
   {
     "name": "use_function_type_syntax_for_parameters",
     "description": "Use generic function type syntax for parameters.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2764,6 +3393,9 @@
   {
     "name": "use_if_null_to_convert_nulls_to_bools",
     "description": "Use `??` operators to convert `null`s to `bool`s.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2775,6 +3407,9 @@
   {
     "name": "use_is_even_rather_than_modulo",
     "description": "Prefer intValue.isOdd/isEven instead of checking the result of % 2.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2784,8 +3419,27 @@
     "sinceDartSdk": "2.9.0"
   },
   {
+    "name": "use_key_in_widget_constructors",
+    "description": "Use key in widget constructors.",
+    "categories": [
+      "style"
+    ],
+    "group": "style",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "flutter"
+    ],
+    "fixStatus": "hasFix",
+    "details": "**DO** use key in widget constructors.\n\nIt's a good practice to expose the ability to provide a key when creating public\nwidgets.\n\n**BAD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n}\n```\n\n**GOOD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n  MyPublicWidget({super.key});\n}\n```\n",
+    "sinceDartSdk": "2.8.1"
+  },
+  {
     "name": "use_late_for_private_fields_and_variables",
     "description": "Use late for private members with a non-nullable type.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "experimental",
     "incompatible": [],
@@ -2797,6 +3451,9 @@
   {
     "name": "use_named_constants",
     "description": "Use predefined named constants.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2808,6 +3465,9 @@
   {
     "name": "use_raw_strings",
     "description": "Use raw string to avoid escapes.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2819,6 +3479,9 @@
   {
     "name": "use_rethrow_when_possible",
     "description": "Use rethrow to rethrow a caught exception.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2833,6 +3496,9 @@
   {
     "name": "use_setters_to_change_properties",
     "description": "Use a setter for operations that conceptually change a property.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2844,6 +3510,9 @@
   {
     "name": "use_string_buffers",
     "description": "Use string buffers to compose strings.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2855,6 +3524,9 @@
   {
     "name": "use_string_in_part_of_directives",
     "description": "Use string in part of directives.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2870,6 +3542,9 @@
   {
     "name": "use_super_parameters",
     "description": "Use super-initializer parameters where possible.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "experimental",
     "incompatible": [],
@@ -2884,6 +3559,9 @@
   {
     "name": "use_test_throws_matchers",
     "description": "Use throwsA matcher instead of fail().",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2895,6 +3573,9 @@
   {
     "name": "use_to_and_as_if_applicable",
     "description": "Start the name of the method with to/_to or as/_as if applicable.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],
@@ -2904,8 +3585,29 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "valid_regexps",
+    "description": "Use valid regular expression syntax.",
+    "categories": [
+      "errors"
+    ],
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
+    "fixStatus": "noFix",
+    "details": "**DO** use valid regular expression syntax when creating regular expression\ninstances.\n\nRegular expressions created with invalid syntax will throw a `FormatException`\nat runtime so should be avoided.\n\n**BAD:**\n```dart\nprint(RegExp(r'(').hasMatch('foo()'));\n```\n\n**GOOD:**\n```dart\nprint(RegExp(r'\\(').hasMatch('foo()'));\n```\n\n",
+    "sinceDartSdk": "2.0.0"
+  },
+  {
     "name": "void_checks",
     "description": "Don't assign to `void`.",
+    "categories": [
+      "style"
+    ],
     "group": "style",
     "state": "stable",
     "incompatible": [],

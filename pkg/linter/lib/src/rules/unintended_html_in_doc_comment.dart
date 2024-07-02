@@ -155,7 +155,7 @@ class UnintendedHtmlInDocComment extends LintRule {
             name: 'unintended_html_in_doc_comment',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone});
 
   @override
   LintCode get lintCode => code;

@@ -6522,6 +6522,113 @@ TEST_CASE(IsolateReload_KeepPragma3) {
                               Symbols::vm_never_inline()));
 }
 
+TEST_CASE(IsolateReload_IsImplementedBit) {
+  const char* kScript = R"(
+import 'file:///lib.dart';
+
+class C1 implements A1 {}
+class C2 extends A2Impl {}
+class C3 implements A4 {}
+abstract class C4 extends A5 {}
+class C5 implements C4 {}
+
+main() {
+  C1();
+  C2();
+  C3();
+  C5();
+  return "ok";
+}
+)";
+
+  TestCase::AddTestLib("file:///lib.dart", R"(
+abstract class A1 { }
+abstract class A2 { }
+abstract class A2Impl implements A2 {}
+abstract class A3 { }
+abstract class A4 extends A3 {}
+abstract class A5 { }
+)");
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("ok", SimpleInvokeStr(lib, "main"));
+
+  const auto check_implemented =
+      [](const Library& lib, const char* cls_name, bool expected,
+         std::initializer_list<const char*> expected_direct_implementors,
+         intptr_t expected_implementor_cid) {
+        const auto& cls = Class::Handle(
+            lib.LookupClass(String::Handle(String::New(cls_name))));
+        EXPECT(!cls.IsNull());
+        EXPECT_EQ(expected, cls.is_implemented());
+
+        EXPECT_EQ(expected_implementor_cid, cls.implementor_cid());
+
+        const auto& implementors =
+            GrowableObjectArray::Handle(cls.direct_implementors_unsafe());
+        if (implementors.IsNull()) {
+          EXPECT_EQ(expected_direct_implementors.size(),
+                    static_cast<size_t>(0));
+        } else {
+          auto& implementor = Class::Handle();
+          auto& implementor_name = String::Handle();
+          EXPECT_EQ(expected_direct_implementors.size(),
+                    static_cast<size_t>(implementors.Length()));
+          for (intptr_t i = 0; i < implementors.Length(); i++) {
+            implementor ^= implementors.At(i);
+            implementor_name = implementor.UserVisibleName();
+            bool found = false;
+            for (auto expected_name : expected_direct_implementors) {
+              if (implementor_name.Equals(expected_name)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              FAIL("Found unexpected implementor: %s",
+                   implementor_name.ToCString());
+            }
+          }
+        }
+      };
+
+  const auto cid_of = [&](const char* cls_name) {
+    const auto& lib = Library::Handle(Library::LookupLibrary(
+        thread, String::Handle(String::New(RESOLVED_USER_TEST_URI))));
+    const auto& cls =
+        Class::Handle(lib.LookupClass(String::Handle(String::New(cls_name))));
+    EXPECT(!cls.IsNull());
+    return cls.id();
+  };
+
+  const auto check_class_hierarchy_state = [&]() {
+    TransitionNativeToVM transition(thread);
+    const auto& lib = Library::Handle(Library::LookupLibrary(
+        thread, String::Handle(String::New("file:///lib.dart"))));
+    EXPECT(!lib.IsNull());
+
+    check_implemented(lib, "A1", true, {"C1"}, cid_of("C1"));
+    check_implemented(lib, "A2", true, {"A2Impl"}, cid_of("C2"));
+    check_implemented(lib, "A2Impl", false, {}, cid_of("C2"));
+    check_implemented(lib, "A3", true, {}, cid_of("C3"));
+    check_implemented(lib, "A4", true, {"C3"}, cid_of("C3"));
+    check_implemented(lib, "A5", true, {}, cid_of("C5"));
+  };
+
+  check_class_hierarchy_state();
+
+  Dart_SetFileModifiedCallback([](const char* url, int64_t since) {
+    return strcmp(url, "file:///lib.dart") == 0;
+  });
+
+  lib = TestCase::TriggerReload(nullptr, 0);
+  EXPECT_VALID(lib);
+
+  Dart_SetFileModifiedCallback(nullptr);
+
+  check_class_hierarchy_state();
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

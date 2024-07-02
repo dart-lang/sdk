@@ -68,7 +68,7 @@ class AvoidPrint extends LintRule {
             name: 'avoid_print',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.unintentional});
 
   @override
   LintCode get lintCode => code;

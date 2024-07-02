@@ -47,7 +47,8 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = EditFormatIfEnabledParams.fromRequest(request);
+    var params = EditFormatIfEnabledParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
     var collection = AnalysisContextCollectionImpl(
       includedPaths: params.directories,
       resourceProvider: server.resourceProvider,

@@ -44,8 +44,8 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request =
-        EditGetPostfixCompletionParams('test.dart', '.for', 0).toRequest('0');
+    var request = EditGetPostfixCompletionParams('test.dart', '.for', 0)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -57,7 +57,7 @@ void f() {
   Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetPostfixCompletionParams(
             convertPath('/foo/../bar/test.dart'), '.for', 0)
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -101,9 +101,10 @@ void f() {
         testFile.path,
         key,
         offset,
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
-    var result = EditIsPostfixCompletionApplicableResult.fromResponse(response);
+    var result = EditIsPostfixCompletionApplicableResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     return result.value;
   }
 
@@ -138,10 +139,11 @@ void f() {
         testFile.path,
         key,
         offset,
-      ).toRequest('0'),
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
 
-    var result = EditGetPostfixCompletionResult.fromResponse(response);
+    var result = EditGetPostfixCompletionResult.fromResponse(response,
+        clientUriConverter: server.uriConverter);
     change = result.change;
   }
 }

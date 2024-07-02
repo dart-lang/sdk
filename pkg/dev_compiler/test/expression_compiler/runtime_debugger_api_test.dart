@@ -321,8 +321,8 @@ void runSharedTests(
           breakpointId: 'BP',
           expression: 'dart.getObjectMetadata(set)',
           expectedResult: {
-            'className': '_HashSet<String>',
-            'libraryId': 'dart:collection',
+            'className': 'LinkedSet<String>',
+            'libraryId': 'dart:_js_helper',
             'runtimeKind': 'set',
             'length': 3,
           });

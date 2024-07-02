@@ -31,7 +31,7 @@ class DoNotUseEnvironment extends LintRule {
             name: 'do_not_use_environment',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.error_prone});
 
   @override
   LintCode get lintCode => code;

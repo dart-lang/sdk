@@ -972,11 +972,10 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
 
     // ValidateReload mutates the direct subclass information and does
-    // not remove dead subclasses.  Rebuild the direct subclass
-    // information from scratch.
+    // not remove dead subclasses.
     {
       SafepointWriteRwLocker ml(thread, IG->program_lock());
-      IG->program_reload_context()->RebuildDirectSubclasses();
+      IG->program_reload_context()->RestoreClassHierarchyInvariants();
     }
     const intptr_t final_library_count =
         GrowableObjectArray::Handle(Z, IG->object_store()->libraries())
@@ -2635,7 +2634,7 @@ void ProgramReloadContext::AddBecomeMapping(const Object& old,
   become_.Add(old, neu);
 }
 
-void ProgramReloadContext::RebuildDirectSubclasses() {
+void ProgramReloadContext::RestoreClassHierarchyInvariants() {
   ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
 
@@ -2656,43 +2655,25 @@ void ProgramReloadContext::RebuildDirectSubclasses() {
       if (cls.direct_implementors() != GrowableObjectArray::null()) {
         cls.set_direct_implementors(null_list);
       }
+      if (cls.is_implemented()) {
+        cls.set_is_implemented(false);
+      }
+      if (cls.implementor_cid() != kIllegalCid) {
+        cls.ClearImplementor();
+      }
     }
   }
 
-  // Recompute the direct subclasses / implementors.
-
-  AbstractType& super_type = AbstractType::Handle();
-  Class& super_cls = Class::Handle();
-
-  Array& interface_types = Array::Handle();
-  AbstractType& interface_type = AbstractType::Handle();
-  Class& interface_class = Class::Handle();
-
+  // Recompute class hiearchy.
+  ClassHiearchyUpdater class_hieararchy_updater(zone());
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
       if (!cls.is_declaration_loaded()) {
         continue;  // Will register itself later when loaded.
       }
-      super_type = cls.super_type();
-      if (!super_type.IsNull() && !super_type.IsObjectType()) {
-        super_cls = cls.SuperClass();
-        ASSERT(!super_cls.IsNull());
-        super_cls.AddDirectSubclass(cls);
-      }
 
-      interface_types = cls.interfaces();
-      if (!interface_types.IsNull()) {
-        const intptr_t mixin_index = cls.is_transformed_mixin_application()
-                                         ? interface_types.Length() - 1
-                                         : -1;
-        for (intptr_t j = 0; j < interface_types.Length(); ++j) {
-          interface_type ^= interface_types.At(j);
-          interface_class = interface_type.type_class();
-          interface_class.AddDirectImplementor(
-              cls, /* is_mixin = */ i == mixin_index);
-        }
-      }
+      class_hieararchy_updater.Register(cls);
     }
   }
 }
