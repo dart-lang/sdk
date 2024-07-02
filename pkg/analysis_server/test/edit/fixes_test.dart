@@ -103,14 +103,14 @@ bar() {
     {
       var errorFixes = await _getFixesAt(testFile, 'print(1)');
       expect(errorFixes, hasLength(1));
-      _isSyntacticErrorWithSingleFix(errorFixes[0]);
+      _isSyntacticErrorWithMultiFix(errorFixes[0]);
     }
     // print(10)
     {
       var errorFixes = await _getFixesAt(testFile, 'print(10)');
       expect(errorFixes, hasLength(2));
-      _isSyntacticErrorWithSingleFix(errorFixes[0]);
-      _isSyntacticErrorWithSingleFix(errorFixes[1]);
+      _isSyntacticErrorWithMultiFix(errorFixes[0]);
+      _isSyntacticErrorWithMultiFix(errorFixes[0]);
     }
   }
 
@@ -214,10 +214,19 @@ dependencies:
     return await _getFixes(file, offset);
   }
 
-  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
+  void _isSyntacticError(AnalysisErrorFixes fixes) {
     var error = fixes.error;
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
+  }
+
+  void _isSyntacticErrorWithMultiFix(AnalysisErrorFixes fixes) {
+    _isSyntacticError(fixes);
+    expect(fixes.fixes.length, greaterThan(1));
+  }
+
+  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
+    _isSyntacticError(fixes);
     expect(fixes.fixes, hasLength(1));
   }
 }
