@@ -140,9 +140,18 @@ template("msvc_toolchain") {
       ]
     }
 
+    if (is_clang) {
+      prefix = rebase_path("$clang_base_path/bin", root_build_dir)
+      lib = "$prefix/lld-link.exe /lib"
+      link = "$prefix/lld-link.exe"
+    } else {
+      lib = "lib.exe"
+      link = "link.exe"
+    }
+
     tool("alink") {
       rspfile = "{{output}}.rsp"
-      command = "$python_path $tool_wrapper_path link-wrapper $env False lib.exe /nologo /ignore:4221 /OUT:{{output}} @$rspfile"
+      command = "$python_path $tool_wrapper_path link-wrapper $env False $lib /nologo /ignore:4221 /OUT:{{output}} @$rspfile"
       description = "LIB {{output}}"
       outputs = [
         # Ignore {{output_extension}} and always use .lib, there's no reason to
@@ -163,7 +172,7 @@ template("msvc_toolchain") {
                                                                                    # foo.dll.lib
       rspfile = "${dllname}.rsp"
 
-      link_command = "$python_path $tool_wrapper_path link-wrapper $env False link.exe /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:${dllname}.pdb @$rspfile"
+      link_command = "$python_path $tool_wrapper_path link-wrapper $env False $link /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:${dllname}.pdb @$rspfile"
 
       # TODO(brettw) support manifests
       #manifest_command = "$python_path $tool_wrapper_path manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:${dllname}.manifest"
@@ -216,7 +225,7 @@ template("msvc_toolchain") {
       rspfile = "$binary_output.rsp"
       pdbfile = "$binary_output.pdb"
 
-      link_command = "$python_path $tool_wrapper_path link-wrapper $env False link.exe /nologo /OUT:$binary_output /PDB:$pdbfile @$rspfile"
+      link_command = "$python_path $tool_wrapper_path link-wrapper $env False $link /nologo /OUT:$binary_output /PDB:$pdbfile @$rspfile"
 
       # TODO(brettw) support manifests
       #manifest_command = "$python_path $tool_wrapper_path manifest-wrapper $env mt.exe -nologo -manifest $manifests -out:{{output}}.manifest"
