@@ -559,7 +559,7 @@ class Types {
             [argumentType],
             [w.NumType.i32],
           ),
-          '<obj> is ${testedAgainstType.classNode}');
+          '<obj> is ${testedAgainstType.classNode.name}');
 
       final b = function.body;
       b.local_get(b.locals[0]);
@@ -623,7 +623,7 @@ class Types {
             [argumentType],
             [returnType],
           ),
-          '<obj> as ${testedAgainstType.classNode}');
+          '<obj> as ${testedAgainstType.classNode.name}');
 
       final b = function.body;
       w.Label asCheckBlock = b.block();
