@@ -366,9 +366,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _identityHashMapImplClass =
             sdk.getClass('dart:_js_helper', 'IdentityMap'),
         _linkedHashSetClass = sdk.getClass('dart:collection', 'LinkedHashSet'),
-        _linkedHashSetImplClass = sdk.getClass('dart:collection', '_HashSet'),
+        _linkedHashSetImplClass = sdk.getClass('dart:_js_helper', 'LinkedSet'),
         _identityHashSetImplClass =
-            sdk.getClass('dart:collection', '_IdentityHashSet'),
+            sdk.getClass('dart:_js_helper', 'IdentitySet'),
         _syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
         _asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl'),
         _assertInteropMethod = sdk.getTopLevelMember(

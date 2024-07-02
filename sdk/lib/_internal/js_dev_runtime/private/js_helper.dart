@@ -25,8 +25,11 @@ import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
 part 'linked_hash_map.dart';
+part 'linked_hash_set.dart';
 part 'identity_hash_map.dart';
+part 'identity_hash_set.dart';
 part 'custom_hash_map.dart';
+part 'custom_hash_set.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';

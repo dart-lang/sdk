@@ -43,6 +43,7 @@ import 'dart:_js_helper'
         DeferredNotLoadedError,
         getRtiForRecord,
         ImmutableMap,
+        ImmutableSet,
         JsLinkedHashMap,
         jsObjectGetPrototypeOf,
         jsObjectSetPrototypeOf,

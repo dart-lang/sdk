@@ -4031,7 +4031,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "_HashSet<dynamic> length 3"
+    "LinkedSet<dynamic> length 3"
 ]
 -----------------------------------
 Test: Set instance body
@@ -4148,7 +4148,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "_HashSet<dynamic>"
+    "LinkedSet<dynamic>"
 ]
 -----------------------------------
 Test: Set definition formatting body
@@ -4264,58 +4264,6 @@ Value:
                 "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "remove: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {}
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_newSet: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {}
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_newSimilarSet: "
         ],
         [
             "span",
