@@ -54,7 +54,7 @@ class NoDuplicateCaseValues extends LintRule {
             name: 'no_duplicate_case_values',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone});
 
   @override
   LintCode get lintCode => code;

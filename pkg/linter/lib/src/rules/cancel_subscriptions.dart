@@ -75,7 +75,7 @@ class CancelSubscriptions extends LintRule {
             name: 'cancel_subscriptions',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone, Category.memory_leaks});
 
   @override
   LintCode get lintCode => code;

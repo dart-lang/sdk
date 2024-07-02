@@ -78,7 +78,7 @@ class CollectionMethodsUnrelatedType extends LintRule {
             name: 'collection_methods_unrelated_type',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.unintentional});
 
   @override
   LintCode get lintCode => code;

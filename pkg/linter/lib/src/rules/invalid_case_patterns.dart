@@ -249,7 +249,7 @@ class InvalidCasePatterns extends LintRule {
             description: _desc,
             details: _details,
             state: State.experimental(),
-            categories: {Category.errors});
+            categories: {Category.language_feature_usage});
 
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172

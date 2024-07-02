@@ -335,7 +335,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
             name: lintName,
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone});
 
   @override
   void registerNodeProcessors(

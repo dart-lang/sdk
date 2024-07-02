@@ -102,7 +102,7 @@ class AvoidDynamicCalls extends LintRule {
           name: 'avoid_dynamic_calls',
           description: _desc,
           details: _details,
-          categories: {Category.errors},
+          categories: {Category.binary_size, Category.error_prone},
         );
 
   @override

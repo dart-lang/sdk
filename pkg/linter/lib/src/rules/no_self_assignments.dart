@@ -123,7 +123,7 @@ class NoSelfAssignments extends LintRule {
             name: 'no_self_assignments',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.unintentional});
 
   @override
   LintCode get lintCode => code;

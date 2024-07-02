@@ -55,7 +55,7 @@ class DiscardedFutures extends LintRule {
             name: 'discarded_futures',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {Category.error_prone});
 
   @override
   LintCode get lintCode => code;
