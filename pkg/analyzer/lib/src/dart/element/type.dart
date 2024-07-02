@@ -681,8 +681,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<InterfaceType> get superclassConstraints {
     var element = this.element;
-    if (element is MixinElement) {
-      var constraints = element.superclassConstraints;
+    var augmented = element.augmented;
+    if (augmented is AugmentedMixinElement) {
+      var constraints = augmented.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
       return [];

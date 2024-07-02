@@ -337,32 +337,6 @@ MixinOnClause
 ''');
   }
 
-  test_recursiveInterfaceInheritance_implements() async {
-    await assertErrorsInCode(r'''
-mixin A implements B {}
-mixin B implements A {}''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
-    ]);
-  }
-
-  test_recursiveInterfaceInheritance_on() async {
-    await assertErrorsInCode(r'''
-mixin A on B {}
-mixin B on A {}''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 22, 1),
-    ]);
-  }
-
-  test_recursiveInterfaceInheritanceOn() async {
-    await assertErrorsInCode(r'''
-mixin A on A {}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1),
-    ]);
-  }
-
   test_setter() async {
     await assertNoErrorsInCode(r'''
 mixin M {

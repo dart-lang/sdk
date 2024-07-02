@@ -21,6 +21,7 @@ import '../resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritanceManager3Test);
+    defineReflectiveTests(InheritanceManager3Test_elements);
     defineReflectiveTests(InheritanceManager3Test_ExtensionType);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -1405,22 +1406,74 @@ class B extends A {
 }
 
 @reflectiveTest
-class InheritanceManager3Test_ExtensionType extends ElementsBaseTest {
-  final printerConfiguration = _InstancePrinterConfiguration();
+class InheritanceManager3Test_elements extends _InheritanceManager3Base2 {
+  test_interface_candidatesConflict() async {
+    var library = await buildLibrary(r'''
+mixin A {
+  void foo(int _);
+}
 
-  @override
-  bool get keepLinkingLibraries => true;
+abstract class B {
+  void foo(String _);
+}
 
-  void assertInterfaceText(InterfaceElementImpl element, String expected) {
-    var actual = _interfaceText(element);
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
+abstract class C extends Object with A implements B {}
+''');
+
+    var element = library.class_('C');
+    assertInterfaceText(element, r'''
+overridden
+  foo
+    self::@mixin::A::@method::foo
+    self::@class::B::@method::foo
+superImplemented
+conflicts
+  CandidatesConflict
+    self::@mixin::A::@method::foo
+    self::@class::B::@method::foo
+''');
   }
 
+  test_interface_candidatesConflict_interfaceInAugmentation() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+mixin A {
+  void foo(int _);
+}
+
+abstract class B {
+  void foo(String _);
+}
+
+abstract class C extends Object with A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+augment library 'a.dart';
+
+augment abstract class C implements B {}
+''');
+
+    var library = await buildFileLibrary(a);
+
+    var element = library.class_('C');
+    assertInterfaceText(element, r'''
+overridden
+  foo
+    self::@mixin::A::@method::foo
+    self::@class::B::@method::foo
+superImplemented
+conflicts
+  CandidatesConflict
+    self::@mixin::A::@method::foo
+    self::@class::B::@method::foo
+''');
+  }
+}
+
+@reflectiveTest
+class InheritanceManager3Test_ExtensionType extends _InheritanceManager3Base2 {
   @override
   void setUp() {
     super.setUp();
@@ -2646,37 +2699,6 @@ declared
   it: self::@extensionType::A::@getter::it
 ''');
   }
-
-  String _interfaceText(InterfaceElementImpl element) {
-    var library = element.library;
-    var inheritance = library.session.inheritanceManager;
-    var interface = inheritance.getInterface(element);
-
-    // Should not throw.
-    inheritance.getInheritedConcreteMap2(element);
-
-    // Ensure that `inheritedMap` field is initialized.
-    inheritance.getInheritedMap2(element);
-
-    var buffer = StringBuffer();
-    var sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
-    var elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${library.source.uri}',
-    );
-
-    _InterfacePrinter(
-      sink: sink,
-      elementPrinter: elementPrinter,
-      configuration: printerConfiguration,
-    ).write(interface);
-
-    return buffer.toString();
-  }
 }
 
 class _InheritanceManager3Base extends PubPackageResolutionTest {
@@ -2795,6 +2817,54 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       print(actual);
     }
     expect(actual, expected);
+  }
+}
+
+class _InheritanceManager3Base2 extends ElementsBaseTest {
+  final printerConfiguration = _InstancePrinterConfiguration();
+
+  @override
+  bool get keepLinkingLibraries => true;
+
+  void assertInterfaceText(InterfaceElementImpl element, String expected) {
+    var actual = _interfaceText(element);
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
+  String _interfaceText(InterfaceElementImpl element) {
+    var library = element.library;
+    var inheritance = library.session.inheritanceManager;
+    var interface = inheritance.getInterface(element);
+
+    // Should not throw.
+    inheritance.getInheritedConcreteMap2(element);
+
+    // Ensure that `inheritedMap` field is initialized.
+    inheritance.getInheritedMap2(element);
+
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+    var elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: '${library.source.uri}',
+    );
+
+    _InterfacePrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: printerConfiguration,
+    ).write(interface);
+
+    return buffer.toString();
   }
 }
 
@@ -2943,6 +3013,13 @@ class _InterfacePrinter {
 }
 
 extension on LibraryElementImpl {
+  ClassElementImpl class_(String name) {
+    return topLevelElements
+        .whereType<ClassElementImpl>()
+        .where((element) => !element.isAugmentation)
+        .singleWhere((e) => e.name == name);
+  }
+
   ExtensionTypeElementImpl extensionType(String name) {
     return topLevelElements
         .whereType<ExtensionTypeElementImpl>()

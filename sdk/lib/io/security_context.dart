@@ -4,6 +4,32 @@
 
 part of dart.io;
 
+/// A Transport Layer Security (TLS) version.
+///
+/// Only TLS versions supported by `dart:io` are included.
+class TlsProtocolVersion {
+  /// Transport Layer Security (TLS) Protocol Version 1.2.
+  ///
+  /// See RFC-5246.
+  static const tls1_2 = TlsProtocolVersion._(0x0303);
+
+  /// Transport Layer Security (TLS) Protocol Version 1.3.
+  ///
+  /// See RFC-8446.
+  static const tls1_3 = TlsProtocolVersion._(0x0304);
+
+  final int _version;
+
+  const TlsProtocolVersion._(this._version);
+
+  static TlsProtocolVersion _fromProtocolVersionConstant(int version) =>
+      switch (version) {
+        0x0303 => tls1_2,
+        0x0304 => tls1_3,
+        _ => throw ArgumentError.value(version, 'version'),
+      };
+}
+
 /// The object containing the certificates to trust when making
 /// a secure client connection, and the certificate chain and
 /// private key to serve from a secure server.
@@ -169,6 +195,18 @@ abstract interface class SecurityContext {
   /// should only be used to communicate with legacy servers in environments
   /// where it is known to be safe.
   abstract bool allowLegacyUnsafeRenegotiation;
+
+  /// The minimum TLS version to use when establishing a secure connection.
+  ///
+  /// If the peer does not support `minimumTlsProtocolVersion` or later
+  /// then [SecureSocket.connect] will throw a [TlsException].
+  ///
+  /// If the value is changed, it will only affect new connections. Existing
+  /// connections will continue to use the protocol that was negotiated with the
+  /// peer.
+  ///
+  /// The default value is [TlsProtocolVersion.tls1_2].
+  abstract TlsProtocolVersion minimumTlsProtocolVersion;
 
   /// Encodes a set of supported protocols for ALPN/NPN usage.
   ///

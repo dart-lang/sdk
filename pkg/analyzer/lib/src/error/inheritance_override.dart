@@ -583,6 +583,8 @@ class _ClassVerifier {
       [List<InterfaceElement>? path]) {
     path ??= <InterfaceElement>[];
 
+    var augmented = element.augmented;
+
     // Detect error condition.
     int size = path.length;
     // If this is not the base case (size > 0), and the enclosing class is the
@@ -631,21 +633,21 @@ class _ClassVerifier {
       return true;
     }
 
-    for (InterfaceType type in element.mixins) {
+    for (InterfaceType type in augmented.mixins) {
       if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
     }
 
-    if (element is MixinElement) {
-      for (InterfaceType type in element.superclassConstraints) {
+    if (augmented is AugmentedMixinElement) {
+      for (InterfaceType type in augmented.superclassConstraints) {
         if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
           return true;
         }
       }
     }
 
-    for (InterfaceType type in element.interfaces) {
+    for (InterfaceType type in augmented.interfaces) {
       if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
         return true;
       }
@@ -763,19 +765,21 @@ class _ClassVerifier {
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
+    var augmented = element.augmented;
+
     if (element.supertype?.element == classElement) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
-    if (element is MixinElement) {
-      for (InterfaceType type in element.superclassConstraints) {
+    if (augmented is AugmentedMixinElement) {
+      for (InterfaceType type in augmented.superclassConstraints) {
         if (type.element == classElement) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
         }
       }
     }
 
-    for (InterfaceType type in element.mixins) {
+    for (InterfaceType type in augmented.mixins) {
       if (type.element == classElement) {
         return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
       }

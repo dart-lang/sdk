@@ -36,6 +36,13 @@
 
 [#44876]: https://github.com/dart-lang/sdk/issues/44876
 
+#### `dart:io`
+
+- A `ConnectionTask` can now be created using an existing `Future<Socket>`.
+  Fixes [#55562].
+
+[#55562]: https://github.com/dart-lang/sdk/issues/55562
+
 #### `dart:typed_data`
 
 - **BREAKING CHANGE** [#53785][]: The unmodifiable view classes for typed data

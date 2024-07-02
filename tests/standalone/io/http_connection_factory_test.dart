@@ -34,6 +34,34 @@ testDirectConnection() async {
   server.close();
 }
 
+testExistingConnection() async {
+  var server = await HttpServer.bind(InternetAddress.anyIPv6, 0);
+  server.forEach((HttpRequest request) {
+    request.response.write('Hello, world!');
+    request.response.close();
+  });
+  final serverUri = Uri.http("127.0.0.1:${server.port}", "/");
+  final clientSocketFuture = Socket.connect(serverUri.host, serverUri.port);
+  var client = HttpClient()
+    ..connectionFactory = (uri, proxyHost, proxyPort) {
+      Expect.isNull(proxyHost);
+      Expect.isNull(proxyPort);
+      Expect.equals(serverUri, uri);
+      return Future.value(ConnectionTask.fromSocket(clientSocketFuture, () {}));
+    }
+    ..findProxy = (uri) => 'DIRECT';
+  final response = await client.getUrl(serverUri).then((request) {
+    return request.close();
+  });
+  Expect.equals(200, response.statusCode);
+  final responseText = await response
+      .transform(utf8.decoder)
+      .fold('', (String x, String y) => x + y);
+  Expect.equals("Hello, world!", responseText);
+  client.close();
+  server.close();
+}
+
 testConnectionViaProxy() async {
   var proxyServer = await setupProxyServer();
   var server = await HttpServer.bind(InternetAddress.anyIPv6, 0);
@@ -138,6 +166,7 @@ testDifferentAddressFamiliesAndProxySettings(String dir) async {
 main() async {
   await testDirectConnection();
   await testConnectionViaProxy();
+  await testExistingConnection();
   if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testDifferentAddressFamiliesAndProxySettings('${dir.path}');
