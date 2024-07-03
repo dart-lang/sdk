@@ -2,6 +2,7 @@
 
 - Add `TargetKind`s to a few annotations to match custom-wired behavior that the
   Dart analyzer has been providing:
+
   - Require that `@factory` is only used on methods.
   - Require that `@Immutable` is only used on classes, extensions, and mixins.
   - Require that `@mustBeOverridden` and `@mustCallSuper` are only used on
@@ -48,6 +49,13 @@
   ```
 
   See <https://github.com/dart-lang/sdk/issues/55558> for more information.
+
+- `TargetKind.parameter` is now allowed on a _representation type_, such as:
+
+  ```dart
+  // Ok, because `int _actual` is similar to a parameter declaration.
+  extension type const FancyInt(@mustBeConst int _actual) {}
+  ```
 
 ## 1.15.0
 
