@@ -404,7 +404,10 @@ static std::unique_ptr<wchar_t[]> ToWinAPIPath(const char* utf8_path,
   const int path_short_limit = is_file ? MAX_PATH : MAX_DIRECTORY_PATH;
 
   std::unique_ptr<wchar_t[]> absolute_path;
-  if (!IsAbsolutePath(path.get())) {
+  // Need to convert to absolute path if we want to use long prefix
+  // to normalize the path - this is to get rid of .., . that can't be
+  // interpreted in the long-prefixed mode).
+  if (force_long_prefix || !IsAbsolutePath(path.get())) {
     absolute_path = ConvertToAbsolutePath(path);
     if (absolute_path == nullptr) {
       return path;
