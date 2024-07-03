@@ -4581,6 +4581,14 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantDeclaration(
+      covariant EnumConstantDeclarationImpl node) {
+    node.metadata.accept(this);
+    _visitDocumentationComment(node.documentationComment);
+    node.arguments?.accept(this);
+  }
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     Scope outerScope = nameScope;
     try {
