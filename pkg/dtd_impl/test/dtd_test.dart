@@ -20,38 +20,57 @@ void main() {
     await dtd?.close();
   });
 
-  test(
-      'forbids connections where the uri token is not the first element in the path',
-      () async {
-    dtd = await DartToolingDaemon.startService([]);
+  group('auth tokens', () {
+    test('forbids connections where the URI auth code is invalid', () async {
+      dtd = await DartToolingDaemon.startService([]);
+      expect(dtd!.uri!.path, isNotEmpty); // Has code.
 
-    expect(
-      () async => await WebSocket.connect(
-        dtd!.uri!.replace(path: 'someInvalidToken').toString(), // invalid token
-      ),
-      throwsA(
-        predicate(
-          (p0) =>
-              p0 is WebSocketException &&
-              RegExp("^Connection to '.*' was not upgraded to websocket\$")
-                  .hasMatch(p0.message),
+      expect(
+        () async => await WebSocket.connect(
+          dtd!.uri!.replace(path: 'someInvalidCode').toString(),
         ),
-      ),
-    );
+        throwsA(
+          predicate(
+            (p0) =>
+                p0 is WebSocketException &&
+                RegExp("^Connection to '.*' was not upgraded to websocket\$")
+                    .hasMatch(p0.message),
+          ),
+        ),
+      );
+    });
 
-    expect(
-      () async => await WebSocket.connect(
-        dtd!.uri!.replace(path: '').toString(), // no token
-      ),
-      throwsA(
-        predicate(
-          (p0) =>
-              p0 is WebSocketException &&
-              RegExp("^Connection to '.*' was not upgraded to websocket\$")
-                  .hasMatch(p0.message),
+    test('forbids connections where the URI auth code is missing', () async {
+      dtd = await DartToolingDaemon.startService([]);
+
+      expect(
+        () async => await WebSocket.connect(
+          dtd!.uri!.replace(path: '').toString(),
         ),
-      ),
-    );
+        throwsA(
+          predicate(
+            (p0) =>
+                p0 is WebSocketException &&
+                RegExp("^Connection to '.*' was not upgraded to websocket\$")
+                    .hasMatch(p0.message),
+          ),
+        ),
+      );
+    });
+
+    test(
+        'allows connections with no URI auth code if started with --disable-service-auth-codes',
+        () async {
+      dtd = await DartToolingDaemon.startService([
+        '--disable-service-auth-codes',
+      ]);
+
+      expect(dtd!.uri!.path, isEmpty); // No code.
+
+      // Expect no exception.
+      final ws = await WebSocket.connect(dtd!.uri!.toString());
+      await ws.close();
+    });
   });
 
   group('dtd', () {

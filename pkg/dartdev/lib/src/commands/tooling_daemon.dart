@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:args/args.dart';
 import 'package:dtd_impl/dart_tooling_daemon.dart' as dtd
     show DartToolingDaemonOptions;
 
@@ -23,12 +22,10 @@ class ToolingDaemonCommand extends DartdevCommand {
           commandDescription,
           verbose,
           hidden: !verbose,
-        );
-
-  @override
-  ArgParser createArgParser() {
-    return dtd.DartToolingDaemonOptions.createArgParser(
-      usageLineLength: dartdevUsageLineLength,
+        ) {
+    dtd.DartToolingDaemonOptions.populateArgOptions(
+      argParser,
+      verbose: verbose,
     );
   }
 
