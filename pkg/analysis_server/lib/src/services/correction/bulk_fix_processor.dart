@@ -485,8 +485,16 @@ class BulkFixProcessor {
         }
 
         var library = await context.currentSession.getResolvedLibrary(path);
+
         if (isCancelled) {
           break;
+        }
+        if (library is NotLibraryButPartResult) {
+          var unit = await context.currentSession.getResolvedUnit(path);
+          if (unit is ResolvedUnitResult) {
+            library = await context.currentSession
+                .getResolvedLibraryByElement(unit.libraryElement);
+          }
         }
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library, stopAfterFirst: stopAfterFirst);

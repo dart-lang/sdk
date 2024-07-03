@@ -1719,6 +1719,51 @@ CommentReference
 ''');
   }
 
+  test_docImport_onEnumValue() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+void foo() {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+enum E {
+  /// [foo].
+  one,
+  two;
+}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: package:test/foo.dart::@function::foo
+    staticType: null
+''');
+  }
+
+  test_docImport_onExtensionType() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+void foo() {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [foo].
+extension type ET(int it) {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: package:test/foo.dart::@function::foo
+    staticType: null
+''');
+  }
+
   test_docImport_onField() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
@@ -1761,6 +1806,27 @@ CommentReference
 ''');
   }
 
+  test_docImport_onTopLevelFunction() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+void foo() {}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [foo].
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('foo]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: foo
+    staticElement: package:test/foo.dart::@function::foo
+    staticType: null
+''');
+  }
+
   test_docImport_onTopLevelVariable() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}
@@ -1781,7 +1847,7 @@ CommentReference
 ''');
   }
 
-  test_docImport_topLevelFunction() async {
+  test_docImport_onTypedef() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 void foo() {}
 ''');
@@ -1789,8 +1855,8 @@ void foo() {}
 /// @docImport 'foo.dart';
 library;
 
-/// [foo]
-void f() {}
+/// [foo].
+typedef T = int;
 ''');
 
     assertResolvedNodeText(findNode.commentReference('foo]'), r'''
