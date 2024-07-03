@@ -1242,8 +1242,8 @@ class Class : public Object {
   intptr_t implementor_cid() const {
     // Classes in VM isolate use kVoidCid instead of kDynamicCid
     // so that we could distinguish them.
-    const classid_t cid = untag()->implementor_cid_;
-    return cid == kVoidCid ? kDynamicCid : cid;
+    intptr_t cid = untag()->implementor_cid_;
+    return cid == kVoidCid ? static_cast<intptr_t>(kDynamicCid) : cid;
   }
 
   // Returns true if the implementor tracking state changes and so must be
