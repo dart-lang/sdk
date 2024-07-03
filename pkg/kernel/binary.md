@@ -375,7 +375,7 @@ type ExtensionTypeDeclaration extends Node {
   StringReference representationName;
   List<DartType> implements;
   List<Procedure> procedures;
-  List<ExtensionTypeMemberKind> members;
+  List<ExtensionTypeMemberDescriptor> members;
 }
 
 enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, }

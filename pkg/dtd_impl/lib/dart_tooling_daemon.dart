@@ -26,69 +26,91 @@ import 'src/service/unified_analytics_service.dart';
 enum DartToolingDaemonOptions {
   // Used when executing a training run while generating an AppJIT snapshot as
   // part of an SDK build.
-  train.flag(negatable: false, hide: true),
+  train.flag('train', negatable: false, hide: true),
   machine.flag(
+    'machine',
     negatable: false,
     help: 'Sets output format to JSON for consumption in tools.',
   ),
   port.option(
+    'port',
     defaultsTo: '0',
     help: 'Sets the port to bind DTD to (0 for automatic port).',
   ),
   unrestricted.flag(
+    'unrestricted',
     negatable: false,
     help: 'Disables restrictions on services registered by DTD.',
   ),
+  disableServiceAuthCodes.flag(
+    'disable-service-auth-codes',
+    negatable: false,
+    // This text mirrors what's in dartdev/commands/run for VM Service.
+    help: 'Disables the requirement for an authentication code to '
+        'communicate with DTD. Authentication codes help '
+        'protect against CSRF attacks, so it is not recommended to '
+        'disable them unless behind a firewall on a secure device.',
+    verbose: true,
+  ),
   fakeAnalytics.flag(
+    'fakeAnalytics',
     negatable: false,
     help: 'Uses fake analytics instances for the UnifiedAnalytics service.',
     hide: true,
   );
 
-  const DartToolingDaemonOptions.flag({
+  const DartToolingDaemonOptions.flag(
+    this.name, {
     this.negatable = true,
+    this.verbose = false,
     this.hide = false,
     this.help,
   })  : _kind = _DartToolingDaemonOptionKind.flag,
         defaultsTo = null;
 
-  const DartToolingDaemonOptions.option({
+  const DartToolingDaemonOptions.option(
+    this.name, {
     this.defaultsTo,
     this.help,
   })  : _kind = _DartToolingDaemonOptionKind.option,
         negatable = false,
+        verbose = false,
         hide = false;
 
+  final String name;
   final _DartToolingDaemonOptionKind _kind;
   final String? defaultsTo;
   final bool negatable;
   final bool hide;
   final String? help;
 
-  /// Returns an argument parser that can be used to configure the daemon.
-  static ArgParser createArgParser({
-    int? usageLineLength,
+  /// Show in help only when --verbose passed.
+  final bool verbose;
+
+  /// Populates an argument parser that can be used to configure the daemon.
+  static void populateArgOptions(
+    ArgParser argParser, {
+    bool verbose = false,
   }) {
-    final argParser = ArgParser(usageLineLength: usageLineLength);
     for (final entry in DartToolingDaemonOptions.values) {
+      final hide = entry.hide || (entry.verbose && !verbose);
       switch (entry._kind) {
         case _DartToolingDaemonOptionKind.flag:
           argParser.addFlag(
             entry.name,
             negatable: entry.negatable,
-            hide: entry.hide,
+            hide: hide,
             help: entry.help,
           );
         case _DartToolingDaemonOptionKind.option:
           argParser.addOption(
             entry.name,
-            hide: entry.hide,
+            hide: hide,
             help: entry.help,
             defaultsTo: entry.defaultsTo,
           );
       }
     }
-    return argParser;
   }
 }
 
@@ -105,10 +127,12 @@ class DartToolingDaemon {
   DartToolingDaemon._({
     required this.secret,
     required bool unrestrictedMode,
+    bool disableServiceAuthCodes = false,
     bool ipv6 = false,
     bool shouldLogRequests = false,
     bool useFakeAnalytics = false,
   })  : _ipv6 = ipv6,
+        _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret(),
         _shouldLogRequests = shouldLogRequests {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
@@ -135,12 +159,12 @@ class DartToolingDaemon {
 
   final String secret;
 
-  /// Any requests to DTD must have this token as the first element of the
-  /// uri path.
+  /// If non-null, any requests to DTD must have this code as the first element
+  /// of the uri path.
   ///
   /// This provides an obfuscation step to prevent bad actors from stumbling
   /// onto the dtd address.
-  final String _uriToken = _generateSecret();
+  final String? _uriAuthCode;
 
   /// The uri of the current [DartToolingDaemon] service.
   Uri? get uri => _uri;
@@ -187,7 +211,7 @@ class DartToolingDaemon {
       scheme: 'ws',
       host: host,
       port: _server.port,
-      path: '/$_uriToken',
+      path: _uriAuthCode != null ? '/$_uriAuthCode' : '',
     );
   }
 
@@ -205,7 +229,8 @@ class DartToolingDaemon {
     bool shouldLogRequests = false,
     SendPort? sendPort,
   }) async {
-    final argParser = DartToolingDaemonOptions.createArgParser();
+    final argParser = ArgParser();
+    DartToolingDaemonOptions.populateArgOptions(argParser);
     final parsedArgs = argParser.parse(args);
     if (parsedArgs.wasParsed(DartToolingDaemonOptions.train.name)) {
       return null;
@@ -213,6 +238,8 @@ class DartToolingDaemon {
     final machineMode = parsedArgs[DartToolingDaemonOptions.machine.name];
     final unrestrictedMode =
         parsedArgs[DartToolingDaemonOptions.unrestricted.name];
+    final disableServiceAuthCodes =
+        parsedArgs[DartToolingDaemonOptions.disableServiceAuthCodes.name];
     final useFakeAnalytics =
         parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name];
     final port =
@@ -222,6 +249,7 @@ class DartToolingDaemon {
     final dtd = DartToolingDaemon._(
       secret: secret,
       unrestrictedMode: unrestrictedMode,
+      disableServiceAuthCodes: disableServiceAuthCodes,
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
       useFakeAnalytics: useFakeAnalytics,
@@ -262,15 +290,17 @@ class DartToolingDaemon {
   }
 
   Handler _uriTokenHandler(Handler innerHandler) => (Request request) {
-        final forbidden =
-            Response.forbidden('missing or invalid authentication code');
-        final pathSegments = request.url.pathSegments;
-        if (pathSegments.isEmpty) {
-          return forbidden;
-        }
-        final token = pathSegments[0];
-        if (token != _uriToken) {
-          return forbidden;
+        if (_uriAuthCode != null) {
+          final forbidden =
+              Response.forbidden('missing or invalid authentication code');
+          final pathSegments = request.url.pathSegments;
+          if (pathSegments.isEmpty) {
+            return forbidden;
+          }
+          final clientProvidedCode = pathSegments[0];
+          if (clientProvidedCode != _uriAuthCode) {
+            return forbidden;
+          }
         }
         return innerHandler(request);
       };
