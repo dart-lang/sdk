@@ -8,6 +8,9 @@ internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
 [ $compiler == dart2wasm ]
 (?!wasm)*: SkipByDesign
 
+[ $compiler == dart2wasm && $runtime != d8 ]
+wasm/source_map_simple_test: SkipByDesign
+
 [ $compiler != dart2wasm ]
 wasm/*: SkipByDesign
 

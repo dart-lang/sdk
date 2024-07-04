@@ -15,6 +15,7 @@ dependencies:
   kernel: any
   vm: any
   wasm_builder: any
+  path: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

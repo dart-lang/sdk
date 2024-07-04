@@ -33,7 +33,7 @@ import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
-import 'package:wasm_builder/wasm_builder.dart' show Module, Serializer;
+import 'package:wasm_builder/wasm_builder.dart' show Serializer;
 
 import 'compiler_options.dart' as compiler;
 import 'constant_evaluator.dart';
@@ -45,18 +45,11 @@ import 'target.dart' hide Mode;
 import 'translator.dart';
 
 class CompilerOutput {
-  final Module _wasmModule;
+  final Uint8List wasmModule;
   final String jsRuntime;
+  final String? sourceMap;
 
-  late final Uint8List wasmModule = _serializeWasmModule();
-
-  Uint8List _serializeWasmModule() {
-    final s = Serializer();
-    _wasmModule.serialize(s);
-    return s.data;
-  }
-
-  CompilerOutput(this._wasmModule, this.jsRuntime);
+  CompilerOutput(this.wasmModule, this.jsRuntime, this.sourceMap);
 }
 
 /// Compile a Dart file into a Wasm module.
@@ -64,7 +57,14 @@ class CompilerOutput {
 /// Returns `null` if an error occurred during compilation. The
 /// [handleDiagnosticMessage] callback will have received an error message
 /// describing the error.
-Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
+///
+/// When generating a source map, `sourceMapUrl` argument should be provided
+/// with the URL of the source map. This value will be added to the Wasm module
+/// in `sourceMappingURL` section. When this argument is null the code
+/// generator does not generate source mappings.
+Future<CompilerOutput?> compileToModule(
+    compiler.WasmCompilerOptions options,
+    Uri? sourceMapUrl,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
   void diagnosticMessageHandler(DiagnosticMessage message) {
@@ -205,10 +205,19 @@ Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
         depFile);
   }
 
-  final wasmModule = translator.translate();
+  final generateSourceMaps = options.translatorOptions.generateSourceMaps;
+  final wasmModule = translator.translate(sourceMapUrl);
+  final serializer = Serializer();
+  wasmModule.serialize(serializer);
+  final wasmModuleSerialized = serializer.data;
+
+  final sourceMap =
+      generateSourceMaps ? serializer.sourceMapSerializer.serialize() : null;
+
   String jsRuntime = jsRuntimeFinalizer.generate(
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
       mode);
-  return CompilerOutput(wasmModule, jsRuntime);
+
+  return CompilerOutput(wasmModuleSerialized, jsRuntime, sourceMap);
 }

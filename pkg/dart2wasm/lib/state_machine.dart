@@ -606,6 +606,9 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
 
   @override
   void generate() {
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    setSourceMapSource(source);
+    setSourceMapFileOffset(member.fileOffset);
     closures = Closures(translator, member);
     setupParametersAndContexts(member.reference);
     _generateBodies(member.function!);
@@ -614,6 +617,7 @@ abstract class StateMachineCodeGenerator extends CodeGenerator {
   @override
   w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
     this.closures = closures;
+    setSourceMapSource(lambda.functionNodeSource);
     setupLambdaParametersAndContexts(lambda);
     _generateBodies(lambda.functionNode);
     return function;

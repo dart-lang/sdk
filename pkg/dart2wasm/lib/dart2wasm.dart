@@ -94,6 +94,10 @@ final List<Option> options = [
   Flag("enable-experimental-ffi",
       (o, value) => o.translatorOptions.enableExperimentalFfi = value,
       defaultsTo: _d.translatorOptions.enableExperimentalFfi),
+  // Use same flag with dart2js for disabling source maps.
+  Flag("no-source-maps",
+      (o, value) => o.translatorOptions.generateSourceMaps = !value,
+      defaultsTo: !_d.translatorOptions.generateSourceMaps),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
