@@ -50,6 +50,15 @@ class C {}
 ''');
   }
 
+  test_markdown_inlineLink_textSpansLines() async {
+    await assertNoDiagnostics(r'''
+/// A [link spanning
+/// multiple lines](http://tools.ietf.org/html/rfc6234)
+///
+class C {}
+''');
+  }
+
   test_markdown_inlineLink_withTitle() async {
     await assertNoDiagnostics(r'''
 /// A link to [Sha256](http://tools.ietf.org/html/rfc6234 "Some") hash function.

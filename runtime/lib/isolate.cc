@@ -1166,7 +1166,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(8));
+  GET_NATIVE_ARGUMENT(Bool, enableAsserts, arguments->NativeArgAt(8));
   GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(10));
   GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(11));
@@ -1209,10 +1209,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
       on_error_port, utf8_debug_name, /*group=*/nullptr));
 
   // If we were passed a value then override the default flags state for
-  // checked mode.
-  if (!checked.IsNull()) {
+  // enableAsserts mode. The default state is the state of the current
+  // isolate.
+  if (!enableAsserts.IsNull()) {
     Dart_IsolateFlags* flags = state->isolate_flags();
-    flags->enable_asserts = checked.value();
+    flags->enable_asserts = enableAsserts.value();
   }
 
   isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,

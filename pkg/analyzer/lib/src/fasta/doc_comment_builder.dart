@@ -316,9 +316,11 @@ final class DocCommentBuilder {
         } else {
           var referenceStart = index;
           index = content.indexOf(']', index);
+          var isSynthetic = false;
           if (index == -1 || index >= end) {
             // Recovery: terminating ']' is not typed yet.
             index = _findCommentReferenceEnd(content, referenceStart, end);
+            isSynthetic = true;
           }
           if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
             if (_isLinkText(content, index)) {
@@ -328,6 +330,7 @@ final class DocCommentBuilder {
               var reference = _parseOneCommentReference(
                 content.substring(referenceStart, index),
                 offset + referenceStart,
+                isSynthetic: isSynthetic,
               );
               if (reference != null) {
                 _references.add(reference);
@@ -616,7 +619,8 @@ final class DocCommentBuilder {
   /// Parses the [source] text, found at [offset] in a single comment reference.
   ///
   /// Returns `null` if the text could not be parsed as a comment reference.
-  CommentReferenceImpl? _parseOneCommentReference(String source, int offset) {
+  CommentReferenceImpl? _parseOneCommentReference(String source, int offset,
+      {required bool isSynthetic}) {
     var result = scanString(source);
     if (result.hasErrors) {
       return null;
@@ -652,9 +656,10 @@ final class DocCommentBuilder {
       token = secondPeriod.next!;
     }
     if (token.isEof) {
-      // Recovery: Insert a synthetic identifier for code completion
+      // Recovery: Insert a synthetic identifier for code completion.
       token = _parser.rewriter.insertSyntheticIdentifier(
           secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token));
+      isSynthetic = true;
       if (begin == token.next!) {
         begin = token;
       }
@@ -675,6 +680,7 @@ final class DocCommentBuilder {
           secondToken,
           secondPeriod,
           token,
+          isSynthetic: isSynthetic,
         );
       }
     } else {
@@ -690,6 +696,7 @@ final class DocCommentBuilder {
             secondToken,
             secondPeriod,
             token,
+            isSynthetic: isSynthetic,
           );
         }
         var keyword = token.keyword;
@@ -713,10 +720,10 @@ final class DocCommentBuilder {
   /// Parses the parameters into a [CommentReferenceImpl].
   ///
   /// If the reference begins with `new `, then pass the Token associated with
-  /// that text as [newToken].
+  /// that text as [newKeyword].
   ///
   /// If the reference contains a single identifier or operator (aside from the
-  /// optional [newToken]), then pass the associated Token as
+  /// optional [newKeyword]), then pass the associated Token as
   /// [identifierOrOperator].
   ///
   /// If the reference contains two identifiers separated by a period, then pass
@@ -737,8 +744,9 @@ final class DocCommentBuilder {
     Token? firstPeriod,
     Token? secondToken,
     Token? secondPeriod,
-    Token identifierOrOperator,
-  ) {
+    Token identifierOrOperator, {
+    required bool isSynthetic,
+  }) {
     // Adjust the token offsets to match the enclosing comment token.
     var token = begin;
     do {
@@ -761,6 +769,7 @@ final class DocCommentBuilder {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
         expression: expression,
+        isSynthetic: isSynthetic,
       );
     } else if (secondToken != null) {
       var expression = PrefixedIdentifierImpl(
@@ -771,11 +780,13 @@ final class DocCommentBuilder {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
         expression: expression,
+        isSynthetic: isSynthetic,
       );
     } else {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
         expression: identifier,
+        isSynthetic: isSynthetic,
       );
     }
   }

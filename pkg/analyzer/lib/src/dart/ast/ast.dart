@@ -3373,12 +3373,16 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   CommentReferableExpressionImpl _expression;
 
+  @override
+  final bool isSynthetic;
+
   /// Initializes a newly created reference to a Dart element.
   ///
   /// The [newKeyword] can be `null` if the reference isn't to a constructor.
   CommentReferenceImpl({
     required this.newKeyword,
     required CommentReferableExpressionImpl expression,
+    required this.isSynthetic,
   }) : _expression = expression {
     _becomeParentOf(_expression);
   }

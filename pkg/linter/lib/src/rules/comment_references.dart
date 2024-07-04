@@ -123,6 +123,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
+    if (node.isSynthetic) return;
     var expression = node.expression;
     if (expression.isSynthetic) return;
     if (expression is Identifier &&
