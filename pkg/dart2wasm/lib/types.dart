@@ -182,7 +182,7 @@ class Types {
     final b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
-    b.i64_const(typeInfo.classId);
+    b.i32_const(typeInfo.classId);
     _makeTypeArray(codeGen, type.typeArguments);
   }
 
@@ -400,7 +400,7 @@ class Types {
             translator.classInfo[testedAgainstType.classNode]!;
         final typeArguments = testedAgainstType.typeArguments;
         b.i32_const(encodedNullability(testedAgainstType));
-        b.i64_const(typeClassInfo.classId);
+        b.i32_const(typeClassInfo.classId);
         if (typeArguments.isEmpty) {
           codeGen.call(translator.isInterfaceSubtype0.reference);
         } else if (typeArguments.length == 1) {
@@ -455,7 +455,7 @@ class Types {
       final typeClassInfo = translator.classInfo[testedAgainstType.classNode]!;
       final typeArguments = testedAgainstType.typeArguments;
       b.i32_const(encodedNullability(testedAgainstType));
-      b.i64_const(typeClassInfo.classId);
+      b.i32_const(typeClassInfo.classId);
       if (typeArguments.isEmpty) {
         outputsToDrop = codeGen.call(translator.asInterfaceSubtype0.reference);
       } else if (typeArguments.length == 1) {
