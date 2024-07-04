@@ -473,11 +473,11 @@ mixin _IntListMixin implements List<int> {
   }
 
   List<int> toList({bool growable = true}) {
-    return List<int>.from(this, growable: growable);
+    return List<int>.of(this, growable: growable);
   }
 
   Set<int> toSet() {
-    return Set<int>.from(this);
+    return Set<int>.of(this);
   }
 
   void forEach(void f(int element)) {
@@ -1687,11 +1687,11 @@ mixin _DoubleListMixin implements List<double> {
   }
 
   List<double> toList({bool growable = true}) {
-    return List<double>.from(this, growable: growable);
+    return List<double>.of(this, growable: growable);
   }
 
   Set<double> toSet() {
-    return Set<double>.from(this);
+    return Set<double>.of(this);
   }
 
   void forEach(void f(double element)) {

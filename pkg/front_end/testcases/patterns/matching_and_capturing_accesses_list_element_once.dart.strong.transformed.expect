@@ -309,7 +309,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     core::int listLength = this.{core::List::length}{core::int};
     end == null ?{core::int?} end = listLength : null;
     core::RangeError::checkValidRange(start, end{core::int}, listLength);
-    return core::List::from<core::int>(this.{col::ListBase::getRange}(start, end{core::int}){(core::int, core::int) → core::Iterable<core::int>});
+    return core::List::of<core::int>(this.{col::ListBase::getRange}(start, end{core::int}){(core::int, core::int) → core::Iterable<core::int>});
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ getRange(core::int start, core::int end) → core::Iterable<core::int> {
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});

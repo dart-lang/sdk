@@ -309,7 +309,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
     core::int listLength = this.{core::List::length}{core::int};
     end == null ?{core::int?} end = listLength : null;
     core::RangeError::checkValidRange(start, end{core::int}, listLength);
-    return core::List::from<self::_MyList&Object&ListMixin::E%>(this.{col::ListBase::getRange}(start, end{core::int}){(core::int, core::int) → core::Iterable<self::_MyList&Object&ListMixin::E%>});
+    return core::List::of<self::_MyList&Object&ListMixin::E%>(this.{col::ListBase::getRange}(start, end{core::int}){(core::int, core::int) → core::Iterable<self::_MyList&Object&ListMixin::E%>});
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ getRange(core::int start, core::int end) → core::Iterable<self::_MyList&Object&ListMixin::E%> {
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
