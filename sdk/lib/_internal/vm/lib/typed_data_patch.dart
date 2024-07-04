@@ -290,11 +290,11 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   Iterator<int> get iterator => new _TypedListIterator<int>(this);
 
   List<int> toList({bool growable = true}) {
-    return new List<int>.from(this, growable: growable);
+    return new List<int>.of(this, growable: growable);
   }
 
   Set<int> toSet() {
-    return new Set<int>.from(this);
+    return new Set<int>.of(this);
   }
 
   void forEach(void f(int element)) {
@@ -625,11 +625,11 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   Iterator<double> get iterator => new _TypedListIterator<double>(this);
 
   List<double> toList({bool growable = true}) {
-    return new List<double>.from(this, growable: growable);
+    return new List<double>.of(this, growable: growable);
   }
 
   Set<double> toSet() {
-    return new Set<double>.from(this);
+    return new Set<double>.of(this);
   }
 
   void forEach(void f(double element)) {
@@ -1012,11 +1012,11 @@ base mixin _Float32x4ListMixin on _TypedListBase
   Iterator<Float32x4> get iterator => new _TypedListIterator<Float32x4>(this);
 
   List<Float32x4> toList({bool growable = true}) {
-    return new List<Float32x4>.from(this, growable: growable);
+    return new List<Float32x4>.of(this, growable: growable);
   }
 
   Set<Float32x4> toSet() {
-    return new Set<Float32x4>.from(this);
+    return new Set<Float32x4>.of(this);
   }
 
   void forEach(void f(Float32x4 element)) {
@@ -1350,11 +1350,11 @@ base mixin _Int32x4ListMixin on _TypedListBase
   Iterator<Int32x4> get iterator => new _TypedListIterator<Int32x4>(this);
 
   List<Int32x4> toList({bool growable = true}) {
-    return new List<Int32x4>.from(this, growable: growable);
+    return new List<Int32x4>.of(this, growable: growable);
   }
 
   Set<Int32x4> toSet() {
-    return new Set<Int32x4>.from(this);
+    return new Set<Int32x4>.of(this);
   }
 
   void forEach(void f(Int32x4 element)) {
@@ -1689,11 +1689,11 @@ base mixin _Float64x2ListMixin on _TypedListBase
   Iterator<Float64x2> get iterator => new _TypedListIterator<Float64x2>(this);
 
   List<Float64x2> toList({bool growable = true}) {
-    return new List<Float64x2>.from(this, growable: growable);
+    return new List<Float64x2>.of(this, growable: growable);
   }
 
   Set<Float64x2> toSet() {
-    return new Set<Float64x2>.from(this);
+    return new Set<Float64x2>.of(this);
   }
 
   void forEach(void f(Float64x2 element)) {

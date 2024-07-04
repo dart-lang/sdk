@@ -131,6 +131,14 @@ class WasmI32 extends _WasmBase {
   external int toIntSigned();
   external int toIntUnsigned();
   external bool toBool();
+  external bool operator <(WasmI32 other);
+  external bool operator <=(WasmI32 other);
+  external bool operator ==(covariant WasmI32 other);
+  external bool operator >(WasmI32 other);
+  external bool operator >=(WasmI32 other);
+  external WasmI32 operator +(WasmI32 other);
+  external WasmI32 operator -(WasmI32 other);
+  external WasmI32 operator >>(WasmI32 other);
 }
 
 /// The Wasm `i64` type.

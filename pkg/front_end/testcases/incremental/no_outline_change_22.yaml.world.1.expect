@@ -305,7 +305,7 @@ library from "org-dartlang-test:///main.dart" as main {
       dart.core::int listLength = this.{dart.core::List::length}{dart.core::int};
       end == null ?{dart.core::int?} end = listLength : null;
       dart.core::RangeError::checkValidRange(start, end{dart.core::int}, listLength);
-      return dart.core::List::from<dart.core::int>(this.{dart.collection::ListBase::getRange}(start, end{dart.core::int}){(dart.core::int, dart.core::int) → dart.core::Iterable<dart.core::int>});
+      return dart.core::List::of<dart.core::int>(this.{dart.collection::ListBase::getRange}(start, end{dart.core::int}){(dart.core::int, dart.core::int) → dart.core::Iterable<dart.core::int>});
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ getRange(dart.core::int start, dart.core::int end) → dart.core::Iterable<dart.core::int> {
       dart.core::RangeError::checkValidRange(start, end, this.{dart.core::List::length}{dart.core::int});

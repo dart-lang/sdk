@@ -159,6 +159,67 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return expectedType;
   }
 
+  Source? _sourceMapSource;
+  int _sourceMapFileOffset = TreeNode.noOffset;
+
+  /// Update the [Source] for the AST nodes being compiled.
+  ///
+  /// The [Source] is used to resolve [TreeNode.fileOffset]s to file URI, line,
+  /// and column numbers, to be able to generate source mappings, in
+  /// [setSourceMapFileOffset].
+  ///
+  /// Setting this `null` disables source mapping for the instructions being
+  /// generated.
+  ///
+  /// This should be called before [setSourceMapFileOffset] as the file offset
+  /// passed to that function is resolved using the [Source].
+  ///
+  /// Returns the old [Source], which can be used to restore the source mapping
+  /// after visiting a sub-tree.
+  Source? setSourceMapSource(Source? source) {
+    final old = _sourceMapSource;
+    _sourceMapSource = source;
+    return old;
+  }
+
+  /// Update the source location of the AST nodes being compiled in the source
+  /// map.
+  ///
+  /// When the offset is [TreeNode.noOffset], this disables mapping the
+  /// generated instructions.
+  ///
+  /// Returns the old file offset, which can be used to restore the source
+  /// mapping after vising a sub-tree.
+  int setSourceMapFileOffset(int fileOffset) {
+    if (!b.recordSourceMaps) {
+      final old = _sourceMapFileOffset;
+      _sourceMapFileOffset = fileOffset;
+      return old;
+    }
+    if (fileOffset == TreeNode.noOffset) {
+      b.stopSourceMapping();
+      final old = _sourceMapFileOffset;
+      _sourceMapFileOffset = fileOffset;
+      return old;
+    }
+    final source = _sourceMapSource!;
+    final fileUri = source.fileUri!;
+    final location = source.getLocation(fileUri, fileOffset);
+    final old = _sourceMapFileOffset;
+    _sourceMapFileOffset = fileOffset;
+    b.startSourceMapping(
+        fileUri, location.line - 1, location.column - 1, member.name.text);
+    return old;
+  }
+
+  /// Calls [setSourceMapSource] and [setSourceMapFileOffset].
+  (Source?, int) setSourceMapSourceAndFileOffset(
+      Source? source, int fileOffset) {
+    final oldSource = setSourceMapSource(source);
+    final oldFileOffset = setSourceMapFileOffset(fileOffset);
+    return (oldSource, oldFileOffset);
+  }
+
   /// Generate code for the member.
   void generate() {
     Member member = this.member;
@@ -207,6 +268,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.end();
       return;
     }
+
+    final source = member.enclosingComponent!.uriToSource[member.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, member.fileOffset);
 
     if (member is Constructor) {
       translator.membersBeingGenerated.add(member);
@@ -484,12 +548,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     for (Field field in info.cls!.fields) {
       if (field.isInstanceMember && field.initializer != null) {
+        final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
+        final (oldSource, oldFileOffset) =
+            setSourceMapSourceAndFileOffset(source, field.fileOffset);
+
         int fieldIndex = translator.fieldIndex[field]!;
         w.Local local = addLocal(info.struct.fields[fieldIndex].type.unpacked);
 
         wrap(field.initializer!, info.struct.fields[fieldIndex].type.unpacked);
         b.local_set(local);
         fieldLocals[field] = local;
+
+        setSourceMapSourceAndFileOffset(oldSource, oldFileOffset);
       }
     }
   }
@@ -717,6 +787,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Initialize closure information from enclosing member.
     this.closures = closures;
 
+    setSourceMapSource(lambda.functionNodeSource);
+
     assert(lambda.functionNode.asyncMarker != AsyncMarker.Async);
 
     setupLambdaParametersAndContexts(lambda);
@@ -877,6 +949,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// result to the expected type if needed. All expression code generation goes
   /// through this method.
   w.ValueType wrap(Expression node, w.ValueType expectedType) {
+    var sourceUpdated = false;
+    Source? oldSource;
+    if (node is FileUriNode) {
+      final source =
+          node.enclosingComponent!.uriToSource[(node as FileUriNode).fileUri]!;
+      oldSource = setSourceMapSource(source);
+      sourceUpdated = true;
+    }
+    final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
     try {
       w.ValueType resultType = node.accept1(this, expectedType);
       translator.convertType(function, resultType, expectedType);
@@ -884,15 +965,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } catch (_) {
       _printLocation(node);
       rethrow;
+    } finally {
+      if (sourceUpdated) {
+        setSourceMapSource(oldSource);
+      }
+      setSourceMapFileOffset(oldFileOffset);
     }
   }
 
   void visitStatement(Statement node) {
+    final oldFileOffset = setSourceMapFileOffset(node.fileOffset);
     try {
       node.accept(this);
     } catch (_) {
       _printLocation(node);
       rethrow;
+    } finally {
+      setSourceMapFileOffset(oldFileOffset);
     }
   }
 

@@ -232,6 +232,43 @@ class Intrinsifier {
               b.i32_const(0);
               b.i32_ne();
               return w.NumType.i32;
+          }
+          codeGen.wrap(node.arguments.positional[0], w.NumType.i32);
+          switch (name) {
+            case "toIntSigned":
+              b.i64_extend_i32_s();
+              return w.NumType.i64;
+            case "toIntUnsigned":
+              b.i64_extend_i32_u();
+              return w.NumType.i64;
+            case "toBool":
+              b.i32_const(0);
+              b.i32_ne();
+              return w.NumType.i32;
+            case "+":
+              b.i32_add();
+              return w.NumType.i32;
+            case "-":
+              b.i32_sub();
+              return w.NumType.i32;
+            case ">>":
+              b.i32_shr_s();
+              return w.NumType.i32;
+            case "<":
+              b.i32_lt_s();
+              return boolType;
+            case "<=":
+              b.i32_le_s();
+              return boolType;
+            case "==":
+              b.i32_eq();
+              return boolType;
+            case ">=":
+              b.i32_ge_s();
+              return boolType;
+            case ">":
+              b.i32_gt_s();
+              return boolType;
             default:
               throw 'Unknown WasmI32 member $name';
           }
@@ -428,14 +465,14 @@ class Intrinsifier {
                     throw 'Class $className not found in library $lib '
                         '(${target.location})');
         int classId = translator.classInfo[cls]!.classId;
-        b.i64_const(classId);
-        return w.NumType.i64;
+        b.i32_const(classId);
+        return w.NumType.i32;
       }
 
       if (target.name.text == 'firstNonMasqueradedInterfaceClassCid') {
-        b.i64_const(
+        b.i32_const(
             translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid);
-        return w.NumType.i64;
+        return w.NumType.i32;
       }
     }
 
@@ -716,8 +753,7 @@ class Intrinsifier {
           final objectClassId = translator
               .classIdNumbering.classIds[translator.coreTypes.objectClass]!;
 
-          codeGen.wrap(classId, w.NumType.i64);
-          b.i32_wrap_i64();
+          codeGen.wrap(classId, w.NumType.i32);
           b.emitClassIdRangeCheck([Range(objectClassId, objectClassId)]);
           return w.NumType.i32;
         case "_isClosureClassId":
@@ -727,8 +763,7 @@ class Intrinsifier {
               .getConcreteClassIdRanges(translator.coreTypes.functionClass);
           assert(ranges.length <= 1);
 
-          codeGen.wrap(classId, w.NumType.i64);
-          b.i32_wrap_i64();
+          codeGen.wrap(classId, w.NumType.i32);
           b.emitClassIdRangeCheck(ranges);
           return w.NumType.i32;
         case "_isRecordClassId":
@@ -738,8 +773,7 @@ class Intrinsifier {
               .getConcreteClassIdRanges(translator.coreTypes.recordClass);
           assert(ranges.length <= 1);
 
-          codeGen.wrap(classId, w.NumType.i64);
-          b.i32_wrap_i64();
+          codeGen.wrap(classId, w.NumType.i32);
           b.emitClassIdRangeCheck(ranges);
           return w.NumType.i32;
       }
@@ -803,8 +837,7 @@ class Intrinsifier {
           ClassInfo info = translator.topInfo;
           codeGen.wrap(node.arguments.positional.single, info.nonNullableType);
           b.struct_get(info.struct, FieldIndex.classId);
-          b.i64_extend_i32_u();
-          return w.NumType.i64;
+          return w.NumType.i32;
         case "makeListFixedLength":
           return _changeListClassID(node, translator.fixedLengthListClass);
         case "makeFixedListUnmodifiable":

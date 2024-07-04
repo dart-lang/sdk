@@ -446,7 +446,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
       List<T>.of(this, growable: growable);
 
   @override
-  Set<T> toSet() => Set<T>.from(this);
+  Set<T> toSet() => Set<T>.of(this);
 
   @override
   Iterator<T> get iterator => JSArrayImplIterator<T>(this);

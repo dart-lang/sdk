@@ -947,8 +947,9 @@ class ClosureRepresentationCluster {
 class Lambda {
   final FunctionNode functionNode;
   final w.FunctionBuilder function;
+  final Source functionNodeSource;
 
-  Lambda(this.functionNode, this.function);
+  Lambda(this.functionNode, this.function, this.functionNodeSource);
 }
 
 /// The context for one or more closures, containing their captured variables.
@@ -1137,11 +1138,21 @@ class CaptureFinder extends RecursiveVisitor {
 
   int get depth => functionIsSyncStarOrAsync.length - 1;
 
-  CaptureFinder(this.closures, this.member);
+  CaptureFinder(this.closures, this.member)
+      : _currentSource =
+            member.enclosingComponent!.uriToSource[member.fileUri]!;
 
   Translator get translator => closures.translator;
 
   w.ModuleBuilder get m => translator.m;
+
+  Source _currentSource;
+
+  @override
+  void visitFileUriExpression(FileUriExpression node) {
+    _currentSource = node.enclosingComponent!.uriToSource[node.fileUri]!;
+    super.visitFileUriExpression(node);
+  }
 
   @override
   void visitFunctionNode(FunctionNode node) {
@@ -1275,7 +1286,7 @@ class CaptureFinder extends RecursiveVisitor {
       functionName = "$member closure $functionNodeName at ${node.location}";
     }
     final function = m.functions.define(type, functionName);
-    closures.lambdas[node] = Lambda(node, function);
+    closures.lambdas[node] = Lambda(node, function, _currentSource);
 
     functionIsSyncStarOrAsync.add(node.asyncMarker == AsyncMarker.SyncStar ||
         node.asyncMarker == AsyncMarker.Async);

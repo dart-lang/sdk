@@ -163,7 +163,7 @@ mixin _IdenticalAndIdentityHashCode implements _EqualsAndHashCode {
 
 mixin _OperatorEqualsAndCanonicalHashCode implements _EqualsAndHashCode {
   int _hashCode(Object? e) {
-    final int cid = ClassID.getID(e);
+    final cid = ClassID.getID(e);
     if (cid < ClassID.numPredefinedCids || cid == ClassID.cidSymbol) {
       return e.hashCode;
     }
