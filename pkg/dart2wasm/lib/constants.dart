@@ -658,15 +658,29 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         b.i32_const(elements.length);
         b.array_new(arrayType);
         b.local_set(arrayLocal);
-        for (int i = 0; i < elements.length; i++) {
-          final element = elements[i];
-          if (element == initialElement) {
-            continue;
+
+        for (int i = 0; i < elements.length;) {
+          // If it's the same as initial element, nothing to do.
+          final value = elements[i++];
+          if (value == initialElement) continue;
+
+          // Find out how many times the current element repeats.
+          final int startInclusive = i - 1;
+          while (i < elements.length && elements[i] == value) {
+            i++;
           }
+          final int endExclusive = i;
+          final int count = endExclusive - startInclusive;
+
           b.local_get(arrayLocal);
-          b.i32_const(i);
-          constants.instantiateConstant(function, b, element, elementType);
-          b.array_set(arrayType);
+          b.i32_const(startInclusive);
+          constants.instantiateConstant(function, b, value, elementType);
+          if (count > 1) {
+            b.i32_const(count);
+            b.array_fill(arrayType);
+          } else {
+            b.array_set(arrayType);
+          }
         }
         b.local_get(arrayLocal);
       } else {
