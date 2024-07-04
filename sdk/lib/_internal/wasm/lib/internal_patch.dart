@@ -140,9 +140,7 @@ void _invokeMain(WasmExternRef jsArrayRef) {
     } else if (main is void Function()) {
       main();
     } else {
-      // Dynamically call `main`. This fills in missing type and optional
-      // parameters with the defaults.
-      main();
+      throw "Could not call main";
     }
   } catch (e, s) {
     print(e);
