@@ -42,8 +42,8 @@ class SelectorInfo {
   /// Does this method have any tear-off uses?
   bool hasTearOffUses = false;
 
-  /// Maps class IDs to the selector's member in the class. The member can be
-  /// abstract.
+  /// Maps all concrete classes implementing this selector to the relevent
+  /// implementation member reference for the class.
   final Map<int, Reference> targets = {};
 
   /// Wasm function type for the selector.
@@ -53,7 +53,7 @@ class SelectorInfo {
 
   /// IDs of classes that implement the member. This does not include abstract
   /// classes.
-  late final List<int> classIds;
+  final List<int> classIds = [];
 
   /// Number of non-abstract references in [targets].
   late final int targetCount;
@@ -170,6 +170,13 @@ class SelectorInfo {
   }
 
   w.ValueType _upperBound(Set<w.ValueType> types, {required bool ensureBoxed}) {
+    if (types.isEmpty) {
+      // This happens if the selector doesn't have any targets. Any call site of
+      // such a selector is unreachable. Though such call sites still have to
+      // evaluate receiver and arguments. Doing so requires the signature. So we
+      // create a dummy signature with top types.
+      return translator.topInfo.nullableType;
+    }
     if (!ensureBoxed && types.length == 1 && types.single.isPrimitive) {
       // Unboxed primitive.
       return types.single;
@@ -308,25 +315,24 @@ class DispatchTable {
   void build() {
     // Collect class/selector combinations
 
-    // Maps class IDs to selector IDs of the class
-    List<Set<int>> selectorsInClass =
-        List.filled(translator.classes.length, const {});
+    // Maps class to selector IDs of the class
+    final selectorsInClass = <Class, Map<SelectorInfo, Reference>>{};
 
     // Add classes to selector targets for their members
     for (ClassInfo info in translator.classesSupersFirst) {
-      Set<int> selectorIds = {};
-      final ClassInfo? superInfo = info.superInfo;
+      final Class cls = info.cls ?? translator.coreTypes.objectClass;
+      final Map<SelectorInfo, Reference> selectors;
 
       // Add the class to its inherited members' selectors. Skip `_WasmBase`:
       // it's defined as a Dart class (in `dart._wasm` library) but it's special
       // and does not inherit from `Object`.
-      if (superInfo != null && info.cls != translator.wasmTypesBaseClass) {
-        int superId = superInfo.classId;
-        selectorIds = Set.of(selectorsInClass[superId]);
-        for (int selectorId in selectorIds) {
-          SelectorInfo selector = _selectorInfo[selectorId]!;
-          selector.targets[info.classId] = selector.targets[superId]!;
-        }
+      final ClassInfo? superInfo = info.superInfo;
+      if (superInfo == null || cls == translator.wasmTypesBaseClass) {
+        selectors = {};
+      } else {
+        final Class superCls =
+            superInfo.cls ?? translator.coreTypes.objectClass;
+        selectors = Map.of(selectorsInClass[superCls]!);
       }
 
       /// Add a method (or getter, setter) of the current class ([info]) to
@@ -341,19 +347,17 @@ class DispatchTable {
         SelectorInfo selector = _createSelectorForTarget(reference);
         if (reference.asMember.isAbstract) {
           // Reference is abstract, do not override inherited concrete member
-          selector.targets[info.classId] ??= reference;
+          selectors[selector] ??= reference;
         } else {
           // Reference is concrete, override inherited member
-          selector.targets[info.classId] = reference;
+          selectors[selector] = reference;
         }
-        selectorIds.add(selector.id);
       }
 
       // Add the class to its non-static members' selectors. If `info.cls` is
       // `null`, that means [info] represents the `#Top` type, which is not a
       // Dart class but has the members of `Object`.
-      for (Member member
-          in info.cls?.members ?? translator.coreTypes.objectClass.members) {
+      for (Member member in cls.members) {
         // Skip static members
         if (!member.isInstanceMember) {
           continue;
@@ -371,19 +375,23 @@ class DispatchTable {
           }
         }
       }
+      selectorsInClass[cls] = selectors;
+    }
 
-      selectorsInClass[info.classId] = selectorIds;
+    final maxConcreteClassId = translator.classIdNumbering.maxConcreteClassId;
+    for (int classId = 0; classId < maxConcreteClassId; ++classId) {
+      final cls = translator.classes[classId].cls;
+      if (cls != null) {
+        selectorsInClass[cls]!.forEach((selectorInfo, target) {
+          selectorInfo.targets[classId] = target;
+          selectorInfo.classIds.add(classId);
+        });
+      }
     }
 
     // Build lists of class IDs and count targets
     for (SelectorInfo selector in _selectorInfo.values) {
-      selector.classIds = selector.targets.keys
-          .where((classId) =>
-              !(translator.classes[classId].cls?.isAbstract ?? true))
-          .toList()
-        ..sort();
-      Set<Reference> targets =
-          selector.targets.values.where((t) => !t.asMember.isAbstract).toSet();
+      final Set<Reference> targets = selector.targets.values.toSet();
       selector.targetCount = targets.length;
       selector.singularTarget = targets.length == 1 ? targets.single : null;
     }

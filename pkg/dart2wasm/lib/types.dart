@@ -751,6 +751,7 @@ class RuntimeTypeInformation {
         continue;
       }
       Class superclass = superclassInfo.cls!;
+      assert(!superclass.isAnonymousMixin);
 
       // TODO(joshualitt): This includes abstract types that can't be
       // instantiated, but might be needed for subtype checks. The majority of
@@ -762,6 +763,8 @@ class RuntimeTypeInformation {
       Iterable<InterfaceType> subtypes = subclasses.map(
           (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
       for (InterfaceType subtype in subtypes) {
+        if (subtype.classNode.isAnonymousMixin) continue;
+
         types.interfaceTypeEnvironment._add(subtype);
 
         final List<DartType>? typeArguments = translator.hierarchy
