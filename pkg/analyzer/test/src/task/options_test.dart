@@ -570,6 +570,10 @@ analyzer:
 }
 
 class TestRule extends LintRule {
+  static const LintCode code = LintCode(
+      'fantastic_test_rule', 'Fantastic test rule.',
+      correctionMessage: 'Try fantastic test rule.');
+
   TestRule()
       : super(
           name: 'fantastic_test_rule',
@@ -585,4 +589,7 @@ class TestRule extends LintRule {
           details: '',
           categories: {Category.style},
         );
+
+  @override
+  LintCode get lintCode => code;
 }

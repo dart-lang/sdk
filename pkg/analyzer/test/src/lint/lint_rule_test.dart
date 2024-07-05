@@ -150,6 +150,9 @@ class CollectingReporter extends ErrorReporter {
 }
 
 class TestRule extends LintRule {
+  static const LintCode code =
+      LintCode('test_rule', 'Test rule.', correctionMessage: 'Try test rule.');
+
   TestRule()
       : super(
           name: 'test_rule',
@@ -157,6 +160,9 @@ class TestRule extends LintRule {
           details: '... tl;dr ...',
           categories: {Category.errors},
         );
+
+  @override
+  LintCode get lintCode => code;
 }
 
 class _MockSource implements Source {

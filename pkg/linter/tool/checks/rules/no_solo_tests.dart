@@ -29,12 +29,20 @@ test_myTest() async {
 ''';
 
 class NoSoloTests extends LintRule {
+  static const LintCode code = LintCode('no_solo_tests', _desc,
+      correctionMessage:
+          "Try removing the 'soloTest' annotation or 'solo_' prefix.",
+      hasPublishedDocs: true);
+
   NoSoloTests()
       : super(
             name: 'no_solo_tests',
             description: _desc,
             details: _details,
             categories: {Category.errors});
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

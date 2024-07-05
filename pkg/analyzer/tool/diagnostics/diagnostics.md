@@ -27259,7 +27259,9 @@ import 'bar.dart';
 
 ### prefer_typing_uninitialized_variables
 
-_Prefer typing uninitialized variables and fields._
+_An uninitialized field should have an explicit type annotation._
+
+_An uninitialized variable should have an explicit type annotation._
 
 #### Description
 
@@ -28593,7 +28595,9 @@ part of 'lib.dart';
 
 ### use_super_parameters
 
-_Use super-initializer parameters where possible._
+_Convert '{0}' to a super parameter._
+
+_Convert {0} to super parameters._
 
 #### Description
 
