@@ -392,6 +392,28 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     void setupParamLocal(VariableDeclaration variable, int index,
         Constant? defaultValue, bool isRequired) {
       w.Local local = paramLocals[implicitParams + index];
+      if (defaultValue == ParameterInfo.defaultValueSentinel) {
+        // The default value for this parameter differs between implementations
+        // within the same selector. This means that callers will pass the
+        // default value sentinel to indicate that the parameter is not given.
+        // The callee must check for the sentinel value and substitute the
+        // actual default value.
+        //
+        // NOTE: The default sentinel is a dummy instance of the wasm type of
+        // the parameter in the function signature. This type may be a super
+        // type of the kind of arguments we actually see in practice.
+        // (e.g. we may know that only nullable one byte strings can flow into
+        // the argument, but the wasm type may be of object type). So we first
+        // have to handle sentinel before we can downcast the value.
+        b.local_get(local);
+        translator.constants.instantiateConstant(
+            function, b, ParameterInfo.defaultValueSentinel, local.type);
+        b.ref_eq();
+        b.if_();
+        wrap(variable.initializer!, local.type);
+        b.local_set(local);
+        b.end();
+      }
       if (!isForwarder) {
         // TFA may have inferred a very precise type for the incoming arguments,
         // but the wasm function parameter type may not reflect this (e.g. due
@@ -406,21 +428,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           b.local_set(newLocal);
           local = newLocal;
         }
-      }
-      if (defaultValue == ParameterInfo.defaultValueSentinel) {
-        // The default value for this parameter differs between implementations
-        // within the same selector. This means that callers will pass the
-        // default value sentinel to indicate that the parameter is not given.
-        // The callee must check for the sentinel value and substitute the
-        // actual default value.
-        b.local_get(local);
-        translator.constants.instantiateConstant(
-            function, b, ParameterInfo.defaultValueSentinel, local.type);
-        b.ref_eq();
-        b.if_();
-        wrap(variable.initializer!, local.type);
-        b.local_set(local);
-        b.end();
       }
       if (!translator.options.omitImplicitTypeChecks) {
         if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
