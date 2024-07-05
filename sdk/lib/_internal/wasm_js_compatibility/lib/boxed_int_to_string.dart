@@ -9,7 +9,7 @@ import 'dart:_string';
 import 'dart:_wasm';
 
 @patch
-class _BoxedInt {
+class BoxedInt {
   @patch
   String toRadixString(int radix) {
     // We could also catch the `_JavaScriptError` here and convert it to
