@@ -72,6 +72,9 @@ int a = 0;
 }
 
 class _AvoidIntRule extends LintRule {
+  static const LintCode code = LintCode('avoid_int', 'Avoid int.',
+      correctionMessage: 'Try avoiding int.');
+
   _AvoidIntRule()
       : super(
           name: 'avoid_int',
@@ -79,6 +82,9 @@ class _AvoidIntRule extends LintRule {
           details: '',
           categories: {Category.errors},
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

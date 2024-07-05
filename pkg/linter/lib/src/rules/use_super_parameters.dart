@@ -68,6 +68,9 @@ class UseSuperParameters extends LintRule {
             categories: {Category.style});
 
   @override
+  List<LintCode> get lintCodes => const [singleParam, multipleParams];
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     if (!context.libraryElement!.featureSet

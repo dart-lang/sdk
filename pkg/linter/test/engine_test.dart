@@ -40,7 +40,7 @@ void defineLinterEngineTests() {
       test('pubspec', () {
         var visited = false;
         var options =
-            LinterOptions(enabledRules: [MockLinter((n) => visited = true)]);
+            LinterOptions(enabledRules: [MockLintRule((n) => visited = true)]);
         TestLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
@@ -62,9 +62,9 @@ void defineLinterEngineTests() {
 
 typedef NodeVisitor = void Function(Object node);
 
-class MockLinter extends LintRule {
+class MockLintRule extends LintRule {
   final NodeVisitor nodeVisitor;
-  MockLinter(this.nodeVisitor)
+  MockLintRule(this.nodeVisitor)
       : super(
             name: 'MockLint',
             categories: {Category.style},

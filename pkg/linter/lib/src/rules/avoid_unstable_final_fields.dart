@@ -12,6 +12,12 @@ This rule has been removed.
 ''';
 
 class AvoidUnstableFinalFields extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_unstable_final_fields',
+      'Avoid overriding a final field to return '
+          'different values if called multiple times.',
+      hasPublishedDocs: true);
+
   AvoidUnstableFinalFields()
       : super(
             name: 'avoid_unstable_final_fields',
@@ -19,6 +25,9 @@ class AvoidUnstableFinalFields extends LintRule {
             details: _details,
             categories: {Category.errors},
             state: State.removed());
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

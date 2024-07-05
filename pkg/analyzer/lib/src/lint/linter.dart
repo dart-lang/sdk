@@ -258,8 +258,15 @@ abstract class LintRule {
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
-  /// The lint code associated with this linter.
-  LintCode get lintCode => _LintCode(name, description);
+  /// The lint code associated with this linter, if it is only associated with a
+  /// single lint code.
+  ///
+  /// Note that this property is just a convenient shorthand for a rule to
+  /// associate a lint rule with a single lint code. Use [lintCodes] for the
+  /// full list of (possibly multiple) lint codes which a lint rule may be
+  /// associated with.
+  LintCode get lintCode => throw UnimplementedError(
+      "'lintCode' is not implemented for $runtimeType");
 
   /// The lint codes associated with this lint rule.
   List<LintCode> get lintCodes => [lintCode];
@@ -400,16 +407,6 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
       }
     }
   }
-}
-
-class _LintCode extends LintCode {
-  static final registry = <String, _LintCode>{};
-
-  factory _LintCode(String name, String message) {
-    return registry[name + message] ??= _LintCode._(name, message);
-  }
-
-  _LintCode._(super.name, super.message);
 }
 
 extension on AstNode {

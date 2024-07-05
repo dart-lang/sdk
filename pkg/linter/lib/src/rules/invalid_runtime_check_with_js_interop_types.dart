@@ -338,6 +338,17 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
             categories: {Category.error_prone});
 
   @override
+  List<LintCode> get lintCodes => const [
+        dartTypeIsJsInteropTypeCode,
+        jsInteropTypeIsDartTypeCode,
+        jsInteropTypeIsInconsistentJsInteropType,
+        jsInteropTypeIsUnrelatedJsInteropTypeCode,
+        dartTypeAsJsInteropTypeCode,
+        jsInteropTypeAsDartTypeCode,
+        jsInteropTypeAsIncompatibleJsInteropTypeCode,
+      ];
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context.typeSystem, context.typeProvider);

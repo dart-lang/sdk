@@ -77,6 +77,9 @@ class PreferTypingUninitializedVariables extends LintRule {
             categories: {Category.error_prone, Category.unintentional});
 
   @override
+  List<LintCode> get lintCodes => const [forField, forVariable];
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);

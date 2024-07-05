@@ -179,6 +179,14 @@ class DirectivesOrdering extends LintRule {
             categories: {Category.style});
 
   @override
+  List<LintCode> get lintCodes => const [
+        dartDirectiveGoFirst,
+        directiveSectionOrderedAlphabetically,
+        exportDirectiveAfterImportDirectives,
+        packageDirectiveBeforeRelative,
+      ];
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -24,6 +25,12 @@ void main() {
 
 /// A version of `camel_case_types` that is deprecated.
 class DeprecatedCamelCaseTypes extends LintRule {
+  static const LintCode code = LintCode('camel_case_types',
+      "The type name '{0}' isn't an UpperCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the UpperCamelCase style.',
+      hasPublishedDocs: true);
+
   DeprecatedCamelCaseTypes()
       : super(
           name: 'camel_case_types',
@@ -32,6 +39,9 @@ class DeprecatedCamelCaseTypes extends LintRule {
           description: '',
           details: '',
         );
+
+  @override
+  LintCode get lintCode => code;
 }
 
 @reflectiveTest
