@@ -142,6 +142,8 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => [
+        'dart:_boxed_double',
+        'dart:_boxed_int',
         'dart:_http',
         'dart:_internal',
         'dart:_js_helper',
@@ -163,6 +165,8 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraIndexedLibraries => [
+        'dart:_boxed_double',
+        'dart:_boxed_int',
         'dart:_js_helper',
         'dart:_js_types',
         'dart:_list',
@@ -524,11 +528,12 @@ class WasmTarget extends Target {
 
   @override
   Class concreteIntLiteralClass(CoreTypes coreTypes, int value) =>
-      _boxedInt ??= coreTypes.index.getClass("dart:core", "_BoxedInt");
+      _boxedInt ??= coreTypes.index.getClass("dart:_boxed_int", "BoxedInt");
 
   @override
   Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
-      _boxedDouble ??= coreTypes.index.getClass("dart:core", "_BoxedDouble");
+      _boxedDouble ??=
+          coreTypes.index.getClass("dart:_boxed_double", "BoxedDouble");
 
   @override
   DartLibrarySupport get dartLibrarySupport => CustomizedDartLibrarySupport(

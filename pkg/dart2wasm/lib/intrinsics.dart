@@ -46,12 +46,6 @@ class Intrinsifier {
         '<=': (c) => c.b.i64_le_s(),
         '>': (c) => c.b.i64_gt_s(),
         '>=': (c) => c.b.i64_ge_s(),
-        '_div_s': (c) => c.b.i64_div_s(),
-        '_shl': (c) => c.b.i64_shl(),
-        '_shr_s': (c) => c.b.i64_shr_s(),
-        '_shr_u': (c) => c.b.i64_shr_u(),
-        '_le_u': (c) => c.b.i64_le_u(),
-        '_lt_u': (c) => c.b.i64_lt_u(),
         '~/': (c) => c.call(c.translator.truncDiv.reference),
       }
     },
@@ -65,7 +59,6 @@ class Intrinsifier {
         '<=': (c) => c.b.f64_le(),
         '>': (c) => c.b.f64_gt(),
         '>=': (c) => c.b.f64_ge(),
-        '_copysign': (c) => c.b.f64_copysign(),
       }
     },
   };
@@ -297,6 +290,26 @@ class Intrinsifier {
               codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
               b.i64_gt_u();
               return boolType;
+            case "shl":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_shl();
+              return w.NumType.i64;
+            case "shrS":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_shr_s();
+              return w.NumType.i64;
+            case "shrU":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_shr_u();
+              return w.NumType.i64;
+            case "divS":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_div_s();
+              return w.NumType.i64;
             default:
               throw 'Unknown WasmI64 member $name';
           }
@@ -314,6 +327,11 @@ class Intrinsifier {
               codeGen.wrap(receiver, w.NumType.f64);
               b.i64_trunc_sat_f64_s();
               return w.NumType.i64;
+            case "copysign":
+              codeGen.wrap(receiver, w.NumType.f64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.f64);
+              b.f64_copysign();
+              return w.NumType.f64;
             default:
               throw 'Unknown WasmF64 member $name';
           }

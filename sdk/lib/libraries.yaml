@@ -123,9 +123,6 @@ wasm:
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
         - _internal/wasm/lib/array_patch.dart
-        - _internal/wasm/lib/boxed_double.dart
-        - _internal/wasm/lib/boxed_int.dart
-        - _internal/wasm/lib/boxed_int_to_string.dart
         - _internal/wasm/lib/core_patch.dart
         - _internal/wasm/lib/date_patch_patch.dart
         - _internal/wasm/lib/int_common_patch.dart
@@ -143,6 +140,10 @@ wasm:
       patches:
         - _internal/wasm/lib/simd_patch.dart
         - _internal/wasm/lib/typed_data_patch.dart
+    _boxed_int:
+      uri: _internal/wasm/lib/boxed_int.dart
+      patches:
+        _internal/wasm/lib/boxed_int_to_string.dart
     _string:
       uri: _internal/wasm/lib/js_string.dart
       patches:
@@ -171,14 +172,11 @@ wasm_js_compatibility:
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
         - _internal/wasm/lib/array_patch.dart
-        - _internal/wasm/lib/boxed_double.dart
-        - _internal/wasm/lib/boxed_int.dart
         - _internal/wasm/lib/core_patch.dart
         - _internal/wasm/lib/date_patch_patch.dart
         - _internal/wasm/lib/int_common_patch.dart
         - _internal/wasm/lib/sync_star_patch.dart
         - _internal/wasm/lib/weak_patch.dart
-        - _internal/wasm_js_compatibility/lib/boxed_int_to_string.dart
         - _internal/wasm_js_compatibility/lib/int_patch.dart
         - _internal/wasm_js_compatibility/lib/string_buffer_patch.dart
         - _internal/wasm_js_compatibility/lib/string_patch.dart
@@ -187,6 +185,10 @@ wasm_js_compatibility:
       patches:
         - _internal/wasm/lib/simd_patch.dart
         - _internal/wasm_js_compatibility/lib/typed_data_patch.dart
+    _boxed_int:
+      uri: _internal/wasm/lib/boxed_int.dart
+      patches:
+        _internal/wasm_js_compatibility/lib/boxed_int_to_string.dart
     _string:
       uri: _internal/wasm/lib/js_string.dart
     _js_helper:
@@ -199,9 +201,11 @@ wasm_common:
     core:
       uri: core/core.dart
       patches:
-        - _internal/wasm/lib/boxed_double.dart
-        - _internal/wasm/lib/boxed_int.dart
         - _internal/wasm/lib/int_common_patch.dart
+    _boxed_int:
+      uri: _internal/wasm/lib/boxed_int.dart
+    _boxed_double:
+      uri: _internal/wasm/lib/boxed_double.dart
     _error_utils:
       uri: _internal/wasm/lib/error_utils.dart
     _http:
