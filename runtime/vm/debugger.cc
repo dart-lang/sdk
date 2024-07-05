@@ -4223,8 +4223,10 @@ void Debugger::AsyncStepInto(const Closure& awaiter) {
         Object::Handle(zone, suspend_state.function_data());
     SetBreakpointAtResumption(function_data);
   } else {
+    // We intentionally discard the value stored into the following variable.
+    Breakpoint* _ = nullptr;
     const Error& error = Error::Handle(
-        SetBreakpointAtActivation(awaiter, /*single_shot=*/true, nullptr));
+        SetBreakpointAtActivation(awaiter, /*single_shot=*/true, &_));
     // This method cannot be called while responding to a Service RPC, so we
     // know that the top error handler is an exit frame.
     DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
