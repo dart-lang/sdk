@@ -19,7 +19,8 @@ class AnalysisSetPriorityFilesHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var params = AnalysisSetPriorityFilesParams.fromRequest(request);
+    var params = AnalysisSetPriorityFilesParams.fromRequest(request,
+        clientUriConverter: server.uriConverter);
 
     server.analyticsManager.startedSetPriorityFiles(params);
 

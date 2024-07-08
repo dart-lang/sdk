@@ -18,7 +18,8 @@ void sendFlutterNotificationOutline(
       resolvedUnit.path,
       outline,
     );
-    server.sendNotification(params.toNotification());
+    server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter));
   });
 }
 

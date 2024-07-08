@@ -209,7 +209,8 @@ class Server {
       var requestData = sendAnalysisGetErrors(filePath);
       futures.add(requestData.respondedTo.then((Response response) {
         if (response.result != null) {
-          var result = AnalysisGetErrorsResult.fromResponse(response);
+          var result = AnalysisGetErrorsResult.fromResponse(response,
+              clientUriConverter: null);
           errorMap[filePath] = result.errors;
         }
       }));
@@ -318,12 +319,13 @@ class Server {
   }
 
   RequestData sendAnalysisGetErrors(String file) {
-    var params = AnalysisGetErrorsParams(file).toJson();
+    var params = AnalysisGetErrorsParams(file).toJson(clientUriConverter: null);
     return _send('analysis.getErrors', params);
   }
 
   RequestData sendAnalysisGetHover(String file, int offset) {
-    var params = AnalysisGetHoverParams(file, offset).toJson();
+    var params =
+        AnalysisGetHoverParams(file, offset).toJson(clientUriConverter: null);
     return _send('analysis.getHover', params);
   }
 
@@ -332,17 +334,19 @@ class Server {
   }
 
   RequestData sendAnalysisGetNavigation(String file, int offset, int length) {
-    var params = AnalysisGetNavigationParams(file, offset, length).toJson();
+    var params = AnalysisGetNavigationParams(file, offset, length)
+        .toJson(clientUriConverter: null);
     return _send('analysis.getNavigation', params);
   }
 
   RequestData sendAnalysisGetReachableSources(String file) {
-    var params = AnalysisGetReachableSourcesParams(file).toJson();
+    var params = AnalysisGetReachableSourcesParams(file)
+        .toJson(clientUriConverter: null);
     return _send('analysis.getReachableSources', params);
   }
 
   void sendAnalysisReanalyze() {
-    var params = AnalysisReanalyzeParams().toJson();
+    var params = AnalysisReanalyzeParams().toJson(clientUriConverter: null);
     _send('analysis.reanalyze', params);
   }
 
@@ -352,24 +356,27 @@ class Server {
     _analysisRootIncludes = included;
     var params = AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
-        .toJson();
+        .toJson(clientUriConverter: null);
     _send('analysis.setAnalysisRoots', params);
   }
 
   void sendAnalysisSetGeneralSubscriptions(
       List<GeneralAnalysisService> subscriptions) {
-    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
+    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     _send('analysis.setGeneralSubscriptions', params);
   }
 
   void sendAnalysisSetPriorityFiles(List<String> files) {
-    var params = AnalysisSetPriorityFilesParams(files).toJson();
+    var params =
+        AnalysisSetPriorityFilesParams(files).toJson(clientUriConverter: null);
     _send('analysis.setPriorityFiles', params);
   }
 
   void sendAnalysisSetSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) {
-    var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
+    var params = AnalysisSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     _send('analysis.setSubscriptions', params);
   }
 
@@ -381,12 +388,14 @@ class Server {
         filesWithOverlays.remove(path);
       }
     });
-    var params = AnalysisUpdateContentParams(files).toJson();
+    var params =
+        AnalysisUpdateContentParams(files).toJson(clientUriConverter: null);
     _send('analysis.updateContent', params);
   }
 
   void sendAnalysisUpdateOptions(AnalysisOptions options) {
-    var params = AnalysisUpdateOptionsParams(options).toJson();
+    var params =
+        AnalysisUpdateOptionsParams(options).toJson(clientUriConverter: null);
     _send('analysis.updateOptions', params);
   }
 
@@ -399,24 +408,26 @@ class Server {
       {int? lineLength}) {
     var params = EditFormatParams(file, selectionOffset, selectionLength,
             lineLength: lineLength)
-        .toJson();
+        .toJson(clientUriConverter: null);
     return _send('edit.format', params);
   }
 
   RequestData sendEditGetAssists(String file, int offset, int length) {
-    var params = EditGetAssistsParams(file, offset, length).toJson();
+    var params = EditGetAssistsParams(file, offset, length)
+        .toJson(clientUriConverter: null);
     return _send('edit.getAssists', params);
   }
 
   RequestData sendEditGetAvailableRefactorings(
       String file, int offset, int length) {
-    var params =
-        EditGetAvailableRefactoringsParams(file, offset, length).toJson();
+    var params = EditGetAvailableRefactoringsParams(file, offset, length)
+        .toJson(clientUriConverter: null);
     return _send('edit.getAvailableRefactorings', params);
   }
 
   RequestData sendEditGetFixes(String file, int offset) {
-    var params = EditGetFixesParams(file, offset).toJson();
+    var params =
+        EditGetFixesParams(file, offset).toJson(clientUriConverter: null);
     return _send('edit.getFixes', params);
   }
 
@@ -426,38 +437,43 @@ class Server {
     var params = EditGetRefactoringParams(
             kind, file, offset, length, validateOnly,
             options: options)
-        .toJson();
+        .toJson(clientUriConverter: null);
     return _send('edit.getRefactoring', params);
   }
 
   RequestData sendEditOrganizeDirectives(String file) {
-    var params = EditOrganizeDirectivesParams(file).toJson();
+    var params =
+        EditOrganizeDirectivesParams(file).toJson(clientUriConverter: null);
     return _send('edit.organizeDirectives', params);
   }
 
   RequestData sendEditSortMembers(String file) {
-    var params = EditSortMembersParams(file).toJson();
+    var params = EditSortMembersParams(file).toJson(clientUriConverter: null);
     return _send('edit.sortMembers', params);
   }
 
   RequestData sendExecutionCreateContext(String contextRoot) {
-    var params = ExecutionCreateContextParams(contextRoot).toJson();
+    var params = ExecutionCreateContextParams(contextRoot)
+        .toJson(clientUriConverter: null);
     return _send('execution.createContext', params);
   }
 
   RequestData sendExecutionDeleteContext(String id) {
-    var params = ExecutionDeleteContextParams(id).toJson();
+    var params =
+        ExecutionDeleteContextParams(id).toJson(clientUriConverter: null);
     return _send('execution.deleteContext', params);
   }
 
   RequestData sendExecutionMapUri(String id, {String? file, String? uri}) {
-    var params = ExecutionMapUriParams(id, file: file, uri: uri).toJson();
+    var params = ExecutionMapUriParams(id, file: file, uri: uri)
+        .toJson(clientUriConverter: null);
     return _send('execution.mapUri', params);
   }
 
   RequestData sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) {
-    var params = ExecutionSetSubscriptionsParams(subscriptions).toJson();
+    var params = ExecutionSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     return _send('execution.setSubscriptions', params);
   }
 
@@ -465,29 +481,32 @@ class Server {
       String file, int offset, bool includePotential) {
     var params =
         SearchFindElementReferencesParams(file, offset, includePotential)
-            .toJson();
+            .toJson(clientUriConverter: null);
     _send('search.findElementReferences', params);
   }
 
   void sendSearchFindMemberDeclarations(String name) {
-    var params = SearchFindMemberDeclarationsParams(name).toJson();
+    var params = SearchFindMemberDeclarationsParams(name)
+        .toJson(clientUriConverter: null);
     _send('search.findMemberDeclarations', params);
   }
 
   void sendSearchFindMemberReferences(String name) {
-    var params = SearchFindMemberReferencesParams(name).toJson();
+    var params =
+        SearchFindMemberReferencesParams(name).toJson(clientUriConverter: null);
     _send('search.findMemberReferences', params);
   }
 
   void sendSearchFindTopLevelDeclarations(String pattern) {
-    var params = SearchFindTopLevelDeclarationsParams(pattern).toJson();
+    var params = SearchFindTopLevelDeclarationsParams(pattern)
+        .toJson(clientUriConverter: null);
     _send('search.findTopLevelDeclarations', params);
   }
 
   void sendSearchGetTypeHierarchy(String file, int offset, {bool? superOnly}) {
     var params =
         SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
-            .toJson();
+            .toJson(clientUriConverter: null);
     _send('search.getTypeHierarchy', params);
   }
 
@@ -496,7 +515,8 @@ class Server {
   }
 
   void sendServerSetSubscriptions(List<ServerService> subscriptions) {
-    var params = ServerSetSubscriptionsParams(subscriptions).toJson();
+    var params = ServerSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     _send('server.setSubscriptions', params);
   }
 
@@ -598,60 +618,63 @@ class Server {
   void _handleNotification(Notification notification) {
     switch (notification.event) {
       case 'server.connected':
-//        new ServerConnectedParams.fromNotification(notification);
+//        new ServerConnectedParams.fromNotification(notification, clientUriConverter: null);
         _serverConnectedCompleter!.complete(null);
       case 'server.error':
-//        new ServerErrorParams.fromNotification(notification);
+//        new ServerErrorParams.fromNotification(notification, clientUriConverter: null);
         throw StateError('Server error: ${notification.toJson()}');
       case 'server.status':
         if (_analysisFinishedCompleter != null) {
-          var params = ServerStatusParams.fromNotification(notification);
+          var params = ServerStatusParams.fromNotification(notification,
+              clientUriConverter: null);
           var analysis = params.analysis;
           if (analysis != null && !analysis.isAnalyzing) {
             _analysisFinishedCompleter!.complete(null);
           }
         }
       case 'analysis.analyzedFiles':
-        var params = AnalysisAnalyzedFilesParams.fromNotification(notification);
+        var params = AnalysisAnalyzedFilesParams.fromNotification(notification,
+            clientUriConverter: null);
         _analyzedFiles = params.directories;
       case 'analysis.errors':
-        var params = AnalysisErrorsParams.fromNotification(notification);
+        var params = AnalysisErrorsParams.fromNotification(notification,
+            clientUriConverter: null);
         _errorMap.pathMap[params.file] = params.errors;
       case 'analysis.flushResults':
-//        new AnalysisFlushResultsParams.fromNotification(notification);
+//        new AnalysisFlushResultsParams.fromNotification(notification, clientUriConverter: null);
         _errorMap.pathMap.clear();
       case 'analysis.folding':
-//        new AnalysisFoldingParams.fromNotification(notification);
+//        new AnalysisFoldingParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.highlights':
-//        new AnalysisHighlightsParams.fromNotification(notification);
+//        new AnalysisHighlightsParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.implemented':
-//        new AnalysisImplementedParams.fromNotification(notification);
+//        new AnalysisImplementedParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.invalidate':
-//        new AnalysisInvalidateParams.fromNotification(notification);
+//        new AnalysisInvalidateParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.navigation':
-//        new AnalysisNavigationParams.fromNotification(notification);
+//        new AnalysisNavigationParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.occurrences':
-//        new AnalysisOccurrencesParams.fromNotification(notification);
+//        new AnalysisOccurrencesParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.outline':
-//        new AnalysisOutlineParams.fromNotification(notification);
+//        new AnalysisOutlineParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'analysis.overrides':
-//        new AnalysisOverridesParams.fromNotification(notification);
+//        new AnalysisOverridesParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'completion.results':
-//        new CompletionResultsParams.fromNotification(notification);
+//        new CompletionResultsParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'search.results':
-//        new SearchResultsParams.fromNotification(notification);
+//        new SearchResultsParams.fromNotification(notification, clientUriConverter: null);
         break;
       case 'execution.launchData':
-//        new ExecutionLaunchDataParams.fromNotification(notification);
+//        new ExecutionLaunchDataParams.fromNotification(notification, clientUriConverter: null);
         break;
       default:
         throw StateError('Unhandled notification: ${notification.toJson()}');
@@ -731,7 +754,7 @@ class Server {
 //      case "server.shutdown":
 //        break;
 //      default:
-//        throw new StateError('Unhandled response: ${response.toJson()}');
+//        throw new StateError('Unhandled response: ${response.toJson(clientUriConverter: null)}');
 //    }
   }
 

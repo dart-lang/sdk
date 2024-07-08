@@ -140,7 +140,8 @@ class X extends A with M {}
     channel.notifications
         .where((notification) => notification.event == 'analysis.errors')
         .listen((notification) {
-      var params = AnalysisErrorsParams.fromNotification(notification);
+      var params = AnalysisErrorsParams.fromNotification(notification,
+          clientUriConverter: server.uriConverter);
       errorsByFile[params.file] = params.errors;
     });
 
@@ -215,7 +216,8 @@ class A {}
     // At least one notification indicating analysis is in progress.
     expect(notifications.any((Notification notification) {
       if (notification.event == SERVER_NOTIFICATION_STATUS) {
-        var params = ServerStatusParams.fromNotification(notification);
+        var params = ServerStatusParams.fromNotification(notification,
+            clientUriConverter: server.uriConverter);
         var analysis = params.analysis;
         if (analysis != null) {
           return analysis.isAnalyzing;
@@ -226,7 +228,8 @@ class A {}
 
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
-    var params = ServerStatusParams.fromNotification(notification);
+    var params = ServerStatusParams.fromNotification(notification,
+        clientUriConverter: server.uriConverter);
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 
@@ -245,7 +248,8 @@ class A {}
     // At least one notification indicating analysis is in progress.
     expect(notifications.any((Notification notification) {
       if (notification.event == SERVER_NOTIFICATION_STATUS) {
-        var params = ServerStatusParams.fromNotification(notification);
+        var params = ServerStatusParams.fromNotification(notification,
+            clientUriConverter: server.uriConverter);
         var analysis = params.analysis;
         if (analysis != null) {
           return analysis.isAnalyzing;
@@ -256,7 +260,8 @@ class A {}
 
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
-    var params = ServerStatusParams.fromNotification(notification);
+    var params = ServerStatusParams.fromNotification(notification,
+        clientUriConverter: server.uriConverter);
     expect(params.analysis!.isAnalyzing, isFalse);
   }
 

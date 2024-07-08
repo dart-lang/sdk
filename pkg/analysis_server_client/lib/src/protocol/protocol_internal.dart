@@ -9,8 +9,6 @@ import 'package:analysis_server_client/src/protocol/protocol_base.dart';
 import 'package:analysis_server_client/src/protocol/protocol_common.dart';
 import 'package:analysis_server_client/src/protocol/protocol_generated.dart';
 
-final clientUriConverter = _ClientUriConverter();
-
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
 
@@ -463,15 +461,4 @@ abstract class ResponseResult implements HasToJson {
   /// Return a response whose result data is this object for the request with the
   /// given [id].
   Response toResponse(String id);
-}
-
-/// A dummy converter with the required API for the copy of protocol classes
-/// in analysis_server_client.
-class _ClientUriConverter {
-  // TODO(dantup): Determine whether analysis_server_client needs to support
-  //  macro mappings.
-
-  String fromClientFilePath(String filePath) => filePath;
-
-  String toClientFilePath(String filePath) => filePath;
 }

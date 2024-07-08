@@ -395,7 +395,8 @@ class RefactoringManager {
     result.optionsProblems = optionsStatus.problems;
     result.finalProblems = finalStatus.problems;
     // send the response
-    server.sendResponse(result.toResponse(request.id));
+    server.sendResponse(
+        result.toResponse(request.id, clientUriConverter: server.uriConverter));
     // done with this request
     this.request = null;
     this.result = null;

@@ -13,6 +13,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
@@ -22,6 +23,9 @@ import 'protocol_matchers.dart';
 /// Base implementation for running integration tests.
 abstract class IntegrationTest {
   Server get server;
+
+  /// The converter used to convert between URI/Paths in server communication.
+  ClientUriConverter? uriConverter;
 
   /// Return the version number of the analysis server.
   ///
@@ -33,7 +37,8 @@ abstract class IntegrationTest {
   Future<ServerGetVersionResult> sendServerGetVersion() async {
     var result = await server.send('server.getVersion', null);
     var decoder = ResponseDecoder(null);
-    return ServerGetVersionResult.fromJson(decoder, 'result', result);
+    return ServerGetVersionResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Cleanly shutdown the analysis server. Requests that are received after
@@ -60,7 +65,8 @@ abstract class IntegrationTest {
   ///   A list of the services being subscribed to.
   Future<void> sendServerSetSubscriptions(
       List<ServerService> subscriptions) async {
-    var params = ServerSetSubscriptionsParams(subscriptions).toJson();
+    var params = ServerSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -79,7 +85,8 @@ abstract class IntegrationTest {
   ///
   ///   The id of the request that should be cancelled.
   Future<void> sendServerCancelRequest(String id) async {
-    var params = ServerCancelRequestParams(id).toJson();
+    var params =
+        ServerCancelRequestParams(id).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.cancelRequest', params);
     outOfTestExpect(result, isNull);
   }
@@ -122,7 +129,7 @@ abstract class IntegrationTest {
       {bool? supportsUris}) async {
     var params =
         ServerSetClientCapabilitiesParams(requests, supportsUris: supportsUris)
-            .toJson();
+            .toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.setClientCapabilities', params);
     outOfTestExpect(result, isNull);
   }
@@ -144,7 +151,8 @@ abstract class IntegrationTest {
   ///
   ///   The URL to be opened.
   Future<void> sendServerOpenUrlRequest(String url) async {
-    var params = ServerOpenUrlRequestParams(url).toJson();
+    var params = ServerOpenUrlRequestParams(url)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.openUrlRequest', params);
     outOfTestExpect(result, isNull);
   }
@@ -187,11 +195,12 @@ abstract class IntegrationTest {
   ///   button.
   Future<ServerShowMessageRequestResult> sendServerShowMessageRequest(
       MessageType type, String message, List<MessageAction> actions) async {
-    var params =
-        ServerShowMessageRequestParams(type, message, actions).toJson();
+    var params = ServerShowMessageRequestParams(type, message, actions)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.showMessageRequest', params);
     var decoder = ResponseDecoder(null);
-    return ServerShowMessageRequestResult.fromJson(decoder, 'result', result);
+    return ServerShowMessageRequestResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Reports that the server is running. This notification is issued once
@@ -315,10 +324,12 @@ abstract class IntegrationTest {
   ///
   ///   The errors associated with the file.
   Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) async {
-    var params = AnalysisGetErrorsParams(file).toJson();
+    var params =
+        AnalysisGetErrorsParams(file).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getErrors', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetErrorsResult.fromJson(decoder, 'result', result);
+    return AnalysisGetErrorsResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the hover information associate with the given location. If some
@@ -346,10 +357,12 @@ abstract class IntegrationTest {
   ///   multiple libraries).
   Future<AnalysisGetHoverResult> sendAnalysisGetHover(
       String file, int offset) async {
-    var params = AnalysisGetHoverParams(file, offset).toJson();
+    var params = AnalysisGetHoverParams(file, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getHover', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetHoverResult.fromJson(decoder, 'result', result);
+    return AnalysisGetHoverResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return a description of all of the elements referenced in a given region
@@ -384,12 +397,12 @@ abstract class IntegrationTest {
   ///   region of the specified file that come from imported libraries.
   Future<AnalysisGetImportedElementsResult> sendAnalysisGetImportedElements(
       String file, int offset, int length) async {
-    var params =
-        AnalysisGetImportedElementsParams(file, offset, length).toJson();
+    var params = AnalysisGetImportedElementsParams(file, offset, length)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getImportedElements', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetImportedElementsResult.fromJson(
-        decoder, 'result', result);
+    return AnalysisGetImportedElementsResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return library dependency information for use in client-side indexing and
@@ -415,7 +428,8 @@ abstract class IntegrationTest {
     var result = await server.send('analysis.getLibraryDependencies', null);
     var decoder = ResponseDecoder(null);
     return AnalysisGetLibraryDependenciesResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the navigation information associated with the given region of the
@@ -472,10 +486,12 @@ abstract class IntegrationTest {
   ///   file.
   Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(
       String file, int offset, int length) async {
-    var params = AnalysisGetNavigationParams(file, offset, length).toJson();
+    var params = AnalysisGetNavigationParams(file, offset, length)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getNavigation', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
+    return AnalysisGetNavigationResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the transitive closure of reachable sources for a given file.
@@ -507,11 +523,12 @@ abstract class IntegrationTest {
   @deprecated
   Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(
       String file) async {
-    var params = AnalysisGetReachableSourcesParams(file).toJson();
+    var params = AnalysisGetReachableSourcesParams(file)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getReachableSources', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetReachableSourcesResult.fromJson(
-        decoder, 'result', result);
+    return AnalysisGetReachableSourcesResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the signature information associated with the given location in
@@ -560,10 +577,12 @@ abstract class IntegrationTest {
   ///   dartdoc.
   Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
       String file, int offset) async {
-    var params = AnalysisGetSignatureParams(file, offset).toJson();
+    var params = AnalysisGetSignatureParams(file, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.getSignature', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisGetSignatureResult.fromJson(decoder, 'result', result);
+    return AnalysisGetSignatureResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Force re-reading of all potentially changed files, re-resolving of all
@@ -630,7 +649,7 @@ abstract class IntegrationTest {
       {Map<String, String>? packageRoots}) async {
     var params = AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setAnalysisRoots', params);
     outOfTestExpect(result, isNull);
   }
@@ -650,7 +669,8 @@ abstract class IntegrationTest {
   ///   A list of the services being subscribed to.
   Future<void> sendAnalysisSetGeneralSubscriptions(
       List<GeneralAnalysisService> subscriptions) async {
-    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
+    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setGeneralSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -679,7 +699,8 @@ abstract class IntegrationTest {
   ///
   ///   The files that are to be a priority for analysis.
   Future<void> sendAnalysisSetPriorityFiles(List<String> files) async {
-    var params = AnalysisSetPriorityFilesParams(files).toJson();
+    var params = AnalysisSetPriorityFilesParams(files)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setPriorityFiles', params);
     outOfTestExpect(result, isNull);
   }
@@ -716,7 +737,8 @@ abstract class IntegrationTest {
   ///   service.
   Future<void> sendAnalysisSetSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) async {
-    var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
+    var params = AnalysisSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -739,10 +761,12 @@ abstract class IntegrationTest {
   /// Returns
   Future<AnalysisUpdateContentResult> sendAnalysisUpdateContent(
       Map<String, Object> files) async {
-    var params = AnalysisUpdateContentParams(files).toJson();
+    var params = AnalysisUpdateContentParams(files)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.updateContent', params);
     var decoder = ResponseDecoder(null);
-    return AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+    return AnalysisUpdateContentResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Deprecated: all of the options can be set by users in an analysis options
@@ -762,7 +786,8 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendAnalysisUpdateOptions(AnalysisOptions options) async {
-    var params = AnalysisUpdateOptionsParams(options).toJson();
+    var params = AnalysisUpdateOptionsParams(options)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analysis.updateOptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -1154,10 +1179,11 @@ abstract class IntegrationTest {
             completionMode: completionMode,
             invocationCount: invocationCount,
             timeout: timeout)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('completion.getSuggestions2', params);
     var decoder = ResponseDecoder(null);
-    return CompletionGetSuggestions2Result.fromJson(decoder, 'result', result);
+    return CompletionGetSuggestions2Result.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// The client can make this request to express interest in certain libraries
@@ -1181,7 +1207,8 @@ abstract class IntegrationTest {
   @deprecated
   Future<void> sendCompletionRegisterLibraryPaths(
       List<LibraryPathSet> paths) async {
-    var params = CompletionRegisterLibraryPathsParams(paths).toJson();
+    var params = CompletionRegisterLibraryPathsParams(paths)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('completion.registerLibraryPaths', params);
     outOfTestExpect(result, isNull);
   }
@@ -1234,11 +1261,12 @@ abstract class IntegrationTest {
           String file, int offset, String completion, String libraryUri) async {
     var params = CompletionGetSuggestionDetails2Params(
             file, offset, completion, libraryUri)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('completion.getSuggestionDetails2', params);
     var decoder = ResponseDecoder(null);
     return CompletionGetSuggestionDetails2Result.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Reports existing imports in a library. This notification may be sent
@@ -1305,11 +1333,11 @@ abstract class IntegrationTest {
       String file, int offset, bool includePotential) async {
     var params =
         SearchFindElementReferencesParams(file, offset, includePotential)
-            .toJson();
+            .toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findElementReferences', params);
     var decoder = ResponseDecoder(null);
-    return SearchFindElementReferencesResult.fromJson(
-        decoder, 'result', result);
+    return SearchFindElementReferencesResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Perform a search for declarations of members whose name is equal to the
@@ -1331,11 +1359,13 @@ abstract class IntegrationTest {
   ///   The identifier used to associate results with this search request.
   Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(
       String name) async {
-    var params = SearchFindMemberDeclarationsParams(name).toJson();
+    var params = SearchFindMemberDeclarationsParams(name)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findMemberDeclarations', params);
     var decoder = ResponseDecoder(null);
     return SearchFindMemberDeclarationsResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Perform a search for references to members whose name is equal to the
@@ -1359,10 +1389,12 @@ abstract class IntegrationTest {
   ///   The identifier used to associate results with this search request.
   Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(
       String name) async {
-    var params = SearchFindMemberReferencesParams(name).toJson();
+    var params = SearchFindMemberReferencesParams(name)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findMemberReferences', params);
     var decoder = ResponseDecoder(null);
-    return SearchFindMemberReferencesResult.fromJson(decoder, 'result', result);
+    return SearchFindMemberReferencesResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Perform a search for declarations of top-level elements (classes,
@@ -1386,11 +1418,13 @@ abstract class IntegrationTest {
   ///   The identifier used to associate results with this search request.
   Future<SearchFindTopLevelDeclarationsResult>
       sendSearchFindTopLevelDeclarations(String pattern) async {
-    var params = SearchFindTopLevelDeclarationsParams(pattern).toJson();
+    var params = SearchFindTopLevelDeclarationsParams(pattern)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.findTopLevelDeclarations', params);
     var decoder = ResponseDecoder(null);
     return SearchFindTopLevelDeclarationsResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return top-level and class member declarations.
@@ -1425,11 +1459,12 @@ abstract class IntegrationTest {
       {String? file, String? pattern, int? maxResults}) async {
     var params = SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.getElementDeclarations', params);
     var decoder = ResponseDecoder(null);
     return SearchGetElementDeclarationsResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the type hierarchy of the class declared or referenced at the
@@ -1469,10 +1504,11 @@ abstract class IntegrationTest {
       {bool? superOnly}) async {
     var params =
         SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
-            .toJson();
+            .toJson(clientUriConverter: uriConverter);
     var result = await server.send('search.getTypeHierarchy', params);
     var decoder = ResponseDecoder(null);
-    return SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result);
+    return SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Reports some or all of the results of performing a requested search.
@@ -1551,10 +1587,11 @@ abstract class IntegrationTest {
       {int? lineLength}) async {
     var params = EditFormatParams(file, selectionOffset, selectionLength,
             lineLength: lineLength)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.format', params);
     var decoder = ResponseDecoder(null);
-    return EditFormatResult.fromJson(decoder, 'result', result);
+    return EditFormatResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Format the contents of the files in one or more directories, but only if
@@ -1581,10 +1618,12 @@ abstract class IntegrationTest {
   ///   not eligible to be formatted or because they were already formatted.
   Future<EditFormatIfEnabledResult> sendEditFormatIfEnabled(
       List<String> directories) async {
-    var params = EditFormatIfEnabledParams(directories).toJson();
+    var params = EditFormatIfEnabledParams(directories)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.formatIfEnabled', params);
     var decoder = ResponseDecoder(null);
-    return EditFormatIfEnabledResult.fromJson(decoder, 'result', result);
+    return EditFormatIfEnabledResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the set of assists that are available at the given location. An
@@ -1613,10 +1652,12 @@ abstract class IntegrationTest {
   ///   The assists that are available at the given location.
   Future<EditGetAssistsResult> sendEditGetAssists(
       String file, int offset, int length) async {
-    var params = EditGetAssistsParams(file, offset, length).toJson();
+    var params = EditGetAssistsParams(file, offset, length)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getAssists', params);
     var decoder = ResponseDecoder(null);
-    return EditGetAssistsResult.fromJson(decoder, 'result', result);
+    return EditGetAssistsResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Get a list of the kinds of refactorings that are valid for the given
@@ -1643,12 +1684,13 @@ abstract class IntegrationTest {
   ///   The kinds of refactorings that are valid for the given selection.
   Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(
       String file, int offset, int length) async {
-    var params =
-        EditGetAvailableRefactoringsParams(file, offset, length).toJson();
+    var params = EditGetAvailableRefactoringsParams(file, offset, length)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getAvailableRefactorings', params);
     var decoder = ResponseDecoder(null);
     return EditGetAvailableRefactoringsResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Analyze the specified sources for fixes that can be applied in bulk and
@@ -1712,10 +1754,11 @@ abstract class IntegrationTest {
       {bool? inTestMode, bool? updatePubspec, List<String>? codes}) async {
     var params = EditBulkFixesParams(included,
             inTestMode: inTestMode, updatePubspec: updatePubspec, codes: codes)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
-    return EditBulkFixesResult.fromJson(decoder, 'result', result);
+    return EditBulkFixesResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the set of fixes that are available for the errors at a given
@@ -1742,10 +1785,12 @@ abstract class IntegrationTest {
   ///
   ///   The fixes that are available for the errors at the given offset.
   Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
-    var params = EditGetFixesParams(file, offset).toJson();
+    var params = EditGetFixesParams(file, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getFixes', params);
     var decoder = ResponseDecoder(null);
-    return EditGetFixesResult.fromJson(decoder, 'result', result);
+    return EditGetFixesResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Get the changes required to convert the postfix template at the given
@@ -1773,10 +1818,12 @@ abstract class IntegrationTest {
   ///   The change to be applied in order to complete the statement.
   Future<EditGetPostfixCompletionResult> sendEditGetPostfixCompletion(
       String file, String key, int offset) async {
-    var params = EditGetPostfixCompletionParams(file, key, offset).toJson();
+    var params = EditGetPostfixCompletionParams(file, key, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getPostfixCompletion', params);
     var decoder = ResponseDecoder(null);
-    return EditGetPostfixCompletionResult.fromJson(decoder, 'result', result);
+    return EditGetPostfixCompletionResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Get the changes required to perform a refactoring.
@@ -1865,10 +1912,11 @@ abstract class IntegrationTest {
     var params = EditGetRefactoringParams(
             kind, file, offset, length, validateOnly,
             options: options)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getRefactoring', params);
     var decoder = ResponseDecoder(kind);
-    return EditGetRefactoringResult.fromJson(decoder, 'result', result);
+    return EditGetRefactoringResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Get the changes required to convert the partial statement at the given
@@ -1901,10 +1949,12 @@ abstract class IntegrationTest {
   ///   or is empty.
   Future<EditGetStatementCompletionResult> sendEditGetStatementCompletion(
       String file, int offset) async {
-    var params = EditGetStatementCompletionParams(file, offset).toJson();
+    var params = EditGetStatementCompletionParams(file, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.getStatementCompletion', params);
     var decoder = ResponseDecoder(null);
-    return EditGetStatementCompletionResult.fromJson(decoder, 'result', result);
+    return EditGetStatementCompletionResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Determine if the request postfix completion template is applicable at the
@@ -1933,13 +1983,14 @@ abstract class IntegrationTest {
   Future<EditIsPostfixCompletionApplicableResult>
       sendEditIsPostfixCompletionApplicable(
           String file, String key, int offset) async {
-    var params =
-        EditIsPostfixCompletionApplicableParams(file, key, offset).toJson();
+    var params = EditIsPostfixCompletionApplicableParams(file, key, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result =
         await server.send('edit.isPostfixCompletionApplicable', params);
     var decoder = ResponseDecoder(null);
     return EditIsPostfixCompletionApplicableResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return a list of all postfix templates currently available.
@@ -1954,7 +2005,8 @@ abstract class IntegrationTest {
     var result = await server.send('edit.listPostfixCompletionTemplates', null);
     var decoder = ResponseDecoder(null);
     return EditListPostfixCompletionTemplatesResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return a list of edits that would need to be applied in order to ensure
@@ -1996,11 +2048,12 @@ abstract class IntegrationTest {
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements,
       {int? offset}) async {
-    var params =
-        EditImportElementsParams(file, elements, offset: offset).toJson();
+    var params = EditImportElementsParams(file, elements, offset: offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.importElements', params);
     var decoder = ResponseDecoder(null);
-    return EditImportElementsResult.fromJson(decoder, 'result', result);
+    return EditImportElementsResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Sort all of the directives, unit and class members of the given Dart
@@ -2026,10 +2079,12 @@ abstract class IntegrationTest {
   ///   The file edit that is to be applied to the given file to effect the
   ///   sorting.
   Future<EditSortMembersResult> sendEditSortMembers(String file) async {
-    var params = EditSortMembersParams(file).toJson();
+    var params =
+        EditSortMembersParams(file).toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.sortMembers', params);
     var decoder = ResponseDecoder(null);
-    return EditSortMembersResult.fromJson(decoder, 'result', result);
+    return EditSortMembersResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Organizes all of the directives - removes unused imports and sorts
@@ -2058,10 +2113,12 @@ abstract class IntegrationTest {
   ///   organizing.
   Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(
       String file) async {
-    var params = EditOrganizeDirectivesParams(file).toJson();
+    var params = EditOrganizeDirectivesParams(file)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('edit.organizeDirectives', params);
     var decoder = ResponseDecoder(null);
-    return EditOrganizeDirectivesResult.fromJson(decoder, 'result', result);
+    return EditOrganizeDirectivesResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Create an execution context for the executable file with the given path.
@@ -2083,10 +2140,12 @@ abstract class IntegrationTest {
   ///   The identifier used to refer to the execution context that was created.
   Future<ExecutionCreateContextResult> sendExecutionCreateContext(
       String contextRoot) async {
-    var params = ExecutionCreateContextParams(contextRoot).toJson();
+    var params = ExecutionCreateContextParams(contextRoot)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.createContext', params);
     var decoder = ResponseDecoder(null);
-    return ExecutionCreateContextResult.fromJson(decoder, 'result', result);
+    return ExecutionCreateContextResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Delete the execution context with the given identifier. The context id is
@@ -2099,7 +2158,8 @@ abstract class IntegrationTest {
   ///
   ///   The identifier of the execution context that is to be deleted.
   Future<void> sendExecutionDeleteContext(String id) async {
-    var params = ExecutionDeleteContextParams(id).toJson();
+    var params = ExecutionDeleteContextParams(id)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.deleteContext', params);
     outOfTestExpect(result, isNull);
   }
@@ -2187,10 +2247,11 @@ abstract class IntegrationTest {
     var params = ExecutionGetSuggestionsParams(
             code, offset, contextFile, contextOffset, variables,
             expressions: expressions)
-        .toJson();
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.getSuggestions', params);
     var decoder = ResponseDecoder(null);
-    return ExecutionGetSuggestionsResult.fromJson(decoder, 'result', result);
+    return ExecutionGetSuggestionsResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Map a URI from the execution context to the file that it corresponds to,
@@ -2241,10 +2302,12 @@ abstract class IntegrationTest {
   ///   file field was not given in the request.
   Future<ExecutionMapUriResult> sendExecutionMapUri(String id,
       {String? file, String? uri}) async {
-    var params = ExecutionMapUriParams(id, file: file, uri: uri).toJson();
+    var params = ExecutionMapUriParams(id, file: file, uri: uri)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.mapUri', params);
     var decoder = ResponseDecoder(null);
-    return ExecutionMapUriResult.fromJson(decoder, 'result', result);
+    return ExecutionMapUriResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Deprecated: the analysis server no longer fires LAUNCH_DATA events.
@@ -2266,7 +2329,8 @@ abstract class IntegrationTest {
   @deprecated
   Future<void> sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) async {
-    var params = ExecutionSetSubscriptionsParams(subscriptions).toJson();
+    var params = ExecutionSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('execution.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -2310,7 +2374,8 @@ abstract class IntegrationTest {
   Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() async {
     var result = await server.send('diagnostic.getDiagnostics', null);
     var decoder = ResponseDecoder(null);
-    return DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result);
+    return DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Return the port of the diagnostic web server. If the server is not
@@ -2326,7 +2391,8 @@ abstract class IntegrationTest {
   Future<DiagnosticGetServerPortResult> sendDiagnosticGetServerPort() async {
     var result = await server.send('diagnostic.getServerPort', null);
     var decoder = ResponseDecoder(null);
-    return DiagnosticGetServerPortResult.fromJson(decoder, 'result', result);
+    return DiagnosticGetServerPortResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Deprecated: this flag is no longer supported.
@@ -2357,7 +2423,8 @@ abstract class IntegrationTest {
   Future<AnalyticsIsEnabledResult> sendAnalyticsIsEnabled() async {
     var result = await server.send('analytics.isEnabled', null);
     var decoder = ResponseDecoder(null);
-    return AnalyticsIsEnabledResult.fromJson(decoder, 'result', result);
+    return AnalyticsIsEnabledResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Deprecated: this option is no longer supported.
@@ -2377,7 +2444,8 @@ abstract class IntegrationTest {
   // ignore: provide_deprecation_message
   @deprecated
   Future<void> sendAnalyticsEnable(bool value) async {
-    var params = AnalyticsEnableParams(value).toJson();
+    var params =
+        AnalyticsEnableParams(value).toJson(clientUriConverter: uriConverter);
     var result = await server.send('analytics.enable', params);
     outOfTestExpect(result, isNull);
   }
@@ -2401,7 +2469,8 @@ abstract class IntegrationTest {
   ///
   ///   The value used to indicate which action was performed.
   Future<void> sendAnalyticsSendEvent(String action) async {
-    var params = AnalyticsSendEventParams(action).toJson();
+    var params = AnalyticsSendEventParams(action)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analytics.sendEvent', params);
     outOfTestExpect(result, isNull);
   }
@@ -2428,7 +2497,8 @@ abstract class IntegrationTest {
   ///
   ///   The duration of the event in milliseconds.
   Future<void> sendAnalyticsSendTiming(String event, int millis) async {
-    var params = AnalyticsSendTimingParams(event, millis).toJson();
+    var params = AnalyticsSendTimingParams(event, millis)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('analytics.sendTiming', params);
     outOfTestExpect(result, isNull);
   }
@@ -2462,11 +2532,12 @@ abstract class IntegrationTest {
   ///   that work as containers for sub-properties.
   Future<FlutterGetWidgetDescriptionResult> sendFlutterGetWidgetDescription(
       String file, int offset) async {
-    var params = FlutterGetWidgetDescriptionParams(file, offset).toJson();
+    var params = FlutterGetWidgetDescriptionParams(file, offset)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('flutter.getWidgetDescription', params);
     var decoder = ResponseDecoder(null);
-    return FlutterGetWidgetDescriptionResult.fromJson(
-        decoder, 'result', result);
+    return FlutterGetWidgetDescriptionResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Set the value of a property, or remove it.
@@ -2507,11 +2578,13 @@ abstract class IntegrationTest {
   Future<FlutterSetWidgetPropertyValueResult> sendFlutterSetWidgetPropertyValue(
       int id,
       {FlutterWidgetPropertyValue? value}) async {
-    var params = FlutterSetWidgetPropertyValueParams(id, value: value).toJson();
+    var params = FlutterSetWidgetPropertyValueParams(id, value: value)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('flutter.setWidgetPropertyValue', params);
     var decoder = ResponseDecoder(null);
     return FlutterSetWidgetPropertyValueResult.fromJson(
-        decoder, 'result', result);
+        decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Subscribe for services that are specific to individual files. All
@@ -2546,7 +2619,8 @@ abstract class IntegrationTest {
   ///   service.
   Future<void> sendFlutterSetSubscriptions(
       Map<FlutterService, List<String>> subscriptions) async {
-    var params = FlutterSetSubscriptionsParams(subscriptions).toJson();
+    var params = FlutterSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: uriConverter);
     var result = await server.send('flutter.setSubscriptions', params);
     outOfTestExpect(result, isNull);
   }
@@ -2586,10 +2660,12 @@ abstract class IntegrationTest {
   ///
   ///   The LSP ResponseMessage returned by the handler.
   Future<LspHandleResult> sendLspHandle(Object lspMessage) async {
-    var params = LspHandleParams(lspMessage).toJson();
+    var params =
+        LspHandleParams(lspMessage).toJson(clientUriConverter: uriConverter);
     var result = await server.send('lsp.handle', params);
     var decoder = ResponseDecoder(null);
-    return LspHandleResult.fromJson(decoder, 'result', result);
+    return LspHandleResult.fromJson(decoder, 'result', result,
+        clientUriConverter: uriConverter);
   }
 
   /// Reports an LSP notification from the server.
@@ -2613,88 +2689,107 @@ abstract class IntegrationTest {
     switch (event) {
       case 'server.connected':
         outOfTestExpect(params, isServerConnectedParams);
-        _onServerConnected
-            .add(ServerConnectedParams.fromJson(decoder, 'params', params));
+        _onServerConnected.add(ServerConnectedParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'server.error':
         outOfTestExpect(params, isServerErrorParams);
-        _onServerError
-            .add(ServerErrorParams.fromJson(decoder, 'params', params));
+        _onServerError.add(ServerErrorParams.fromJson(decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'server.log':
         outOfTestExpect(params, isServerLogParams);
-        _onServerLog.add(ServerLogParams.fromJson(decoder, 'params', params));
+        _onServerLog.add(ServerLogParams.fromJson(decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'server.status':
         outOfTestExpect(params, isServerStatusParams);
-        _onServerStatus
-            .add(ServerStatusParams.fromJson(decoder, 'params', params));
+        _onServerStatus.add(ServerStatusParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.analyzedFiles':
         outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
-        _onAnalysisAnalyzedFiles.add(
-            AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params));
+        _onAnalysisAnalyzedFiles.add(AnalysisAnalyzedFilesParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.closingLabels':
         outOfTestExpect(params, isAnalysisClosingLabelsParams);
-        _onAnalysisClosingLabels.add(
-            AnalysisClosingLabelsParams.fromJson(decoder, 'params', params));
+        _onAnalysisClosingLabels.add(AnalysisClosingLabelsParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.errors':
         outOfTestExpect(params, isAnalysisErrorsParams);
-        _onAnalysisErrors
-            .add(AnalysisErrorsParams.fromJson(decoder, 'params', params));
+        _onAnalysisErrors.add(AnalysisErrorsParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.flushResults':
         outOfTestExpect(params, isAnalysisFlushResultsParams);
-        _onAnalysisFlushResults.add(
-            AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
+        _onAnalysisFlushResults.add(AnalysisFlushResultsParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.folding':
         outOfTestExpect(params, isAnalysisFoldingParams);
-        _onAnalysisFolding
-            .add(AnalysisFoldingParams.fromJson(decoder, 'params', params));
+        _onAnalysisFolding.add(AnalysisFoldingParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.highlights':
         outOfTestExpect(params, isAnalysisHighlightsParams);
-        _onAnalysisHighlights
-            .add(AnalysisHighlightsParams.fromJson(decoder, 'params', params));
+        _onAnalysisHighlights.add(AnalysisHighlightsParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.implemented':
         outOfTestExpect(params, isAnalysisImplementedParams);
-        _onAnalysisImplemented
-            .add(AnalysisImplementedParams.fromJson(decoder, 'params', params));
+        _onAnalysisImplemented.add(AnalysisImplementedParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.invalidate':
         outOfTestExpect(params, isAnalysisInvalidateParams);
-        _onAnalysisInvalidate
-            .add(AnalysisInvalidateParams.fromJson(decoder, 'params', params));
+        _onAnalysisInvalidate.add(AnalysisInvalidateParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.navigation':
         outOfTestExpect(params, isAnalysisNavigationParams);
-        _onAnalysisNavigation
-            .add(AnalysisNavigationParams.fromJson(decoder, 'params', params));
+        _onAnalysisNavigation.add(AnalysisNavigationParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.occurrences':
         outOfTestExpect(params, isAnalysisOccurrencesParams);
-        _onAnalysisOccurrences
-            .add(AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
+        _onAnalysisOccurrences.add(AnalysisOccurrencesParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.outline':
         outOfTestExpect(params, isAnalysisOutlineParams);
-        _onAnalysisOutline
-            .add(AnalysisOutlineParams.fromJson(decoder, 'params', params));
+        _onAnalysisOutline.add(AnalysisOutlineParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'analysis.overrides':
         outOfTestExpect(params, isAnalysisOverridesParams);
-        _onAnalysisOverrides
-            .add(AnalysisOverridesParams.fromJson(decoder, 'params', params));
+        _onAnalysisOverrides.add(AnalysisOverridesParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'completion.existingImports':
         outOfTestExpect(params, isCompletionExistingImportsParams);
         _onCompletionExistingImports.add(
-            CompletionExistingImportsParams.fromJson(
-                decoder, 'params', params));
+            CompletionExistingImportsParams.fromJson(decoder, 'params', params,
+                clientUriConverter: uriConverter));
       case 'search.results':
         outOfTestExpect(params, isSearchResultsParams);
-        _onSearchResults
-            .add(SearchResultsParams.fromJson(decoder, 'params', params));
+        _onSearchResults.add(SearchResultsParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'execution.launchData':
         outOfTestExpect(params, isExecutionLaunchDataParams);
-        _onExecutionLaunchData
-            .add(ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
+        _onExecutionLaunchData.add(ExecutionLaunchDataParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'flutter.outline':
         outOfTestExpect(params, isFlutterOutlineParams);
-        _onFlutterOutline
-            .add(FlutterOutlineParams.fromJson(decoder, 'params', params));
+        _onFlutterOutline.add(FlutterOutlineParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       case 'lsp.notification':
         outOfTestExpect(params, isLspNotificationParams);
-        _onLspNotification
-            .add(LspNotificationParams.fromJson(decoder, 'params', params));
+        _onLspNotification.add(LspNotificationParams.fromJson(
+            decoder, 'params', params,
+            clientUriConverter: uriConverter));
       default:
         fail('Unexpected notification: $event');
     }

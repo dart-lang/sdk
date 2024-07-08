@@ -16,7 +16,9 @@ class ServerCancelRequestHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    var id = ServerCancelRequestParams.fromRequest(request).id;
+    var id = ServerCancelRequestParams.fromRequest(request,
+            clientUriConverter: server.uriConverter)
+        .id;
     server.cancelRequest(id);
     sendResult(ServerCancelRequestResult());
   }

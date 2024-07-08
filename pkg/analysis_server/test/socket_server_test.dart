@@ -40,7 +40,8 @@ class SocketServerTest {
     expect(channel2.responsesReceived[0].error!.code,
         equals(RequestErrorCode.SERVER_ALREADY_STARTED));
     channel2
-        .simulateRequestFromClient(ServerShutdownParams().toRequest('0'))
+        .simulateRequestFromClient(
+            ServerShutdownParams().toRequest('0', clientUriConverter: null))
         .then((Response response) {
       expect(response.id, equals('0'));
       var error = response.error!;
@@ -56,7 +57,8 @@ class SocketServerTest {
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     return channel
-        .simulateRequestFromClient(ServerShutdownParams().toRequest('0'))
+        .simulateRequestFromClient(
+            ServerShutdownParams().toRequest('0', clientUriConverter: null))
         .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);

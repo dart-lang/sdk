@@ -196,6 +196,11 @@ abstract class AnalysisServer {
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final OverlayResourceProvider resourceProvider;
 
+  /// The [ClientUriConverter] to use to convert between URIs/Paths when
+  /// communicating with the client.
+  late ClientUriConverter _uriConverter =
+      ClientUriConverter.noop(resourceProvider.pathContext);
+
   /// The next modification stamp for a changed file in the [resourceProvider].
   ///
   /// This value is increased each time it is used and used instead of real
@@ -412,20 +417,15 @@ abstract class AnalysisServer {
     return DateTime.now().difference(start);
   }
 
-  /// Gets the converter to change incoming client URIs into analyzer file
-  /// references (and back).
-  ///
-  /// Currently backed by a global for use by toJson/fromJson in the legacy
-  /// protocol classes.
-  ClientUriConverter get uriConverter => analyzer_plugin.clientUriConverter;
+  /// The [ClientUriConverter] to use to convert between URIs/Paths when
+  /// communicating with the client.
+  ClientUriConverter get uriConverter => _uriConverter;
 
-  /// Sets the converter to change incoming client URIs into analyzer file
-  /// references (and back).
-  ///
-  /// Currently backed by a global for use by toJson/fromJson in the legacy
-  /// protocol classes.
-  set uriConverter(ClientUriConverter converter) =>
-      analyzer_plugin.clientUriConverter = converter;
+  /// Sets the [ClientUriConverter] to use to convert between URIs/Paths when
+  /// communicating with the client.
+  set uriConverter(ClientUriConverter value) {
+    notificationManager.uriConverter = _uriConverter = value;
+  }
 
   /// Returns the function for sending prompts to the user and collecting button
   /// presses.

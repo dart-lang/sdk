@@ -147,7 +147,7 @@ completion: Test
 
     var request = CompletionGetSuggestionDetails2Params(
             testFile.path, 0, 'Random', '[foo]:bar')
-        .toRequest('0');
+        .toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
@@ -159,7 +159,7 @@ completion: Test
 
     var request =
         CompletionGetSuggestionDetails2Params('foo', 0, 'Random', 'dart:math')
-            .toRequest('0');
+            .toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
@@ -206,10 +206,11 @@ completion: Test
       completionOffset,
       completion,
       libraryUri,
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    return CompletionGetSuggestionDetails2Result.fromResponse(response);
+    return CompletionGetSuggestionDetails2Result.fromResponse(response,
+        clientUriConverter: server.uriConverter);
   }
 
   Future<CompletionGetSuggestionDetails2Result> _getTestCodeDetails(
@@ -335,7 +336,7 @@ suggestions
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: AddContentOverlay('void f() {}'),
-      }).toRequest('1'),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
     );
 
     // The request should be aborted.
@@ -2157,10 +2158,11 @@ suggestions
       path,
       completionOffset,
       maxResults,
-    ).toRequest('0');
+    ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    var result = CompletionGetSuggestions2Result.fromResponse(response,
+        clientUriConverter: server.uriConverter);
 
     // Extract the internal request object.
     var dartRequest = server.completionState.currentRequest;
@@ -2192,7 +2194,7 @@ suggestions
       testFile.path,
       0,
       1 << 10,
-    ).toRequest(id);
+    ).toRequest(id, clientUriConverter: server.uriConverter);
     var futureResponse = handleRequest(request);
     return RequestWithFutureResponse(offset, request, futureResponse);
   }
@@ -2208,7 +2210,8 @@ class RequestWithFutureResponse {
   Future<CompletionResponseForTesting> toResponse() async {
     var response = await futureResponse;
     expect(response, isResponseSuccess(request.id));
-    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    var result = CompletionGetSuggestions2Result.fromResponse(response,
+        clientUriConverter: null);
     return CompletionResponseForTesting(
       requestOffset: offset,
       requestLocationName: null,
