@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dap/dap.dart';
+import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -92,11 +94,49 @@ main() {
         );
       });
     });
+
+    group('handles DebugAdapterExceptions', () {
+      final request = MockRequest();
+
+      test('launch errors are shown to the user', () async {
+        final adapter = MockCustomDartCliDebugAdapter();
+        await adapter.configurationDoneRequest(request, null, () {});
+
+        final args = DartLaunchRequestArguments(
+          program: 'foo.dart',
+          vmAdditionalArgs: ['vm_arg'],
+          noDebug: true,
+        );
+
+        try {
+          await adapter.launchRequest(request, args, () {});
+          fail('Did not catch expected DebugAdapterException!');
+        } on DebugAdapterException catch (e) {
+          expect(e.showToUser, isTrue);
+        }
+      });
+
+      test('attach errors are shown to the user', () async {
+        final adapter = MockCustomDartCliDebugAdapter();
+        await adapter.configurationDoneRequest(request, null, () {});
+
+        final args = DartAttachRequestArguments(
+          vmServiceUri: 'phony-uri',
+        );
+
+        try {
+          await adapter.attachRequest(request, args, () {});
+          fail('Did not catch expected DebugAdapterException!');
+        } on DebugAdapterException catch (e) {
+          expect(e.showToUser, isTrue);
+        }
+      });
+    });
   });
 }
 
 class MockCustomDartCliDebugAdapter extends MockDartCliDebugAdapter {
-  factory MockCustomDartCliDebugAdapter(Map<String, Uri> customMappings) {
+  factory MockCustomDartCliDebugAdapter([Map<String, Uri>? customMappings]) {
     final stdinController = StreamController<List<int>>();
     final stdoutController = StreamController<List<int>>();
     final channel = ByteStreamServerChannel(
@@ -107,13 +147,25 @@ class MockCustomDartCliDebugAdapter extends MockDartCliDebugAdapter {
   }
 
   MockCustomDartCliDebugAdapter._(
-      Map<String, Uri> customMappings,
+      Map<String, Uri>? customMappings,
       StreamSink<List<int>> stdin,
       Stream<List<int>> stdout,
       ByteStreamServerChannel channel)
       : super.withStreams(stdin, stdout, channel) {
-    orgDartlangSdkMappings
-      ..clear()
-      ..addAll(customMappings);
+    if (customMappings != null) {
+      orgDartlangSdkMappings
+        ..clear()
+        ..addAll(customMappings);
+    }
+  }
+
+  @override
+  Future<void> attachImpl() {
+    throw DebugAdapterException('Unexpected attach error!', showToUser: false);
+  }
+
+  @override
+  Future<void> launchAndRespond(void Function() _) {
+    throw DebugAdapterException('Unexpected launch error!', showToUser: false);
   }
 }
