@@ -231,8 +231,9 @@ class ProcessedOptions {
       {List<Uri>? involvedFiles}) {
     int offset = message.charOffset;
     Uri? uri = message.uri;
-    Location? location =
-        offset == -1 || uri == null ? null : getLocation(uri, offset);
+    Location? location = offset == -1 || uri == null
+        ? null
+        : getLocation(compilerContext, uri, offset);
     PlainAndColorizedString formatted = command_line_reporting
         .format(compilerContext, message, severity, location: location);
     List<FormattedMessage>? formattedContext;
@@ -587,7 +588,7 @@ class ProcessedOptions {
       ticker.logMs("Read libraries file");
       PackageConfig packages = await _getPackages();
       ticker.logMs("Read packages file");
-      _uriTranslator = new UriTranslator(libraries, packages);
+      _uriTranslator = new UriTranslator(this, libraries, packages);
     }
     return _uriTranslator!;
   }

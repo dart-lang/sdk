@@ -75,9 +75,10 @@ Future<void> main() async {
         packageLanguageVersion:
             new ImplicitLanguageVersion(defaultLanguageVersion),
         loader: new KernelTarget(
+                c,
                 const MockFileSystem(),
                 false,
-                new DillTarget(c.options.ticker, uriTranslator,
+                new DillTarget(c, c.options.ticker, uriTranslator,
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
             .loader,

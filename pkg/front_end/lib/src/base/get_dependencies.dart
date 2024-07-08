@@ -39,14 +39,14 @@ Future<List<Uri>> getDependencies(Uri script,
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     c.options.ticker.logMs("Read packages file");
     DillTarget dillTarget =
-        new DillTarget(c.options.ticker, uriTranslator, c.options.target);
+        new DillTarget(c, c.options.ticker, uriTranslator, c.options.target);
     if (platform != null) {
       List<int> bytes = await fileSystem.entityForUri(platform).readAsBytes();
       Component platformComponent = loadComponentFromBytes(bytes);
       dillTarget.loader.appendLibraries(platformComponent);
     }
     KernelTarget kernelTarget =
-        new KernelTarget(fileSystem, false, dillTarget, uriTranslator);
+        new KernelTarget(c, fileSystem, false, dillTarget, uriTranslator);
 
     kernelTarget.setEntryPoints(<Uri>[script]);
     dillTarget.buildOutlines();

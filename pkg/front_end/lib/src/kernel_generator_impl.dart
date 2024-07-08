@@ -73,7 +73,7 @@ Future<InternalCompilerResult> generateKernelInternal(
     Benchmarker? benchmarker,
     Instrumentation? instrumentation,
     List<Component>? additionalDillsForTesting}) async {
-  ProcessedOptions options = CompilerContext.current.options;
+  ProcessedOptions options = compilerContext.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
   options.reportNullSafetyCompilationModeInfo();
@@ -86,7 +86,7 @@ Future<InternalCompilerResult> generateKernelInternal(
       UriTranslator uriTranslator = await options.getUriTranslator();
 
       DillTarget dillTarget = new DillTarget(
-          options.ticker, uriTranslator, options.target,
+          compilerContext, options.ticker, uriTranslator, options.target,
           benchmarker: benchmarker);
 
       List<Component> loadedComponents = <Component>[];
@@ -116,8 +116,8 @@ Future<InternalCompilerResult> generateKernelInternal(
 
       dillTarget.buildOutlines();
 
-      KernelTarget kernelTarget =
-          new KernelTarget(fs, false, dillTarget, uriTranslator);
+      KernelTarget kernelTarget = new KernelTarget(
+          compilerContext, fs, false, dillTarget, uriTranslator);
       sourceLoader = kernelTarget.loader;
       sourceLoader!.instrumentation = instrumentation;
       kernelTarget.setEntryPoints(options.inputs);
@@ -179,7 +179,7 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
       List<LocatedMessage> errors = verifyComponent(
-          options.target, VerificationStage.outline, summaryComponent);
+          compilerContext, VerificationStage.outline, summaryComponent);
       for (LocatedMessage error in errors) {
         options.report(compilerContext, error, Severity.error);
       }

@@ -813,7 +813,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (Uri uri in experimentalInvalidation.missingSources) {
         // TODO(jensj): KernelTargets "link" takes some "excludeSource"
         // setting into account.
-        uriToSource[uri] = CompilerContext.current.uriToSource[uri]!;
+        uriToSource[uri] = context.uriToSource[uri]!;
       }
     }
   }
@@ -963,7 +963,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       DillTarget dillTarget,
       UriTranslator uriTranslator) {
     return new IncrementalKernelTarget(
-        fileSystem, includeComments, dillTarget, uriTranslator);
+        context, fileSystem, includeComments, dillTarget, uriTranslator);
   }
 
   /// Create a new [IncrementalKernelTarget] object, and add the reused builders
@@ -1094,7 +1094,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Make sure the dill loader is on the same page.
       DillTarget oldDillLoadedData = _dillLoadedData!;
       DillTarget newDillLoadedData = _dillLoadedData = new DillTarget(
-          _ticker, uriTranslator, c.options.target,
+          c, _ticker, uriTranslator, c.options.target,
           benchmarker: _benchmarker);
       for (DillLibraryBuilder library
           in oldDillLoadedData.loader.libraryBuilders) {
@@ -1118,7 +1118,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
       _cleanupSourcesForBuilder(lastGoodKernelTarget, reusedResult, builder,
-          uriTranslator, CompilerContext.current.uriToSource);
+          uriTranslator, context.uriToSource);
       _incrementalSerializer
           // Coverage-ignore(suite): Not run.
           ?.invalidate(builder.fileUri);
@@ -1229,8 +1229,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       for (Uri uri in builderUris) {
-        List<int>? previousSource =
-            CompilerContext.current.uriToSource[uri]?.source;
+        List<int>? previousSource = context.uriToSource[uri]?.source;
         if (previousSource == null || previousSource.isEmpty) {
           recorderForTesting?.recordAdvancedInvalidationResult(
               AdvancedInvalidationResult.noPreviousSource);
@@ -1356,7 +1355,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Now we know we're going to do it --- remove old sources.
     for (Uri fileUri in missingSources!) {
-      CompilerContext.current.uriToSource.remove(fileUri);
+      context.uriToSource.remove(fileUri);
     }
 
     recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1407,7 +1406,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalCompilerData data = new IncrementalCompilerData();
     if (_dillLoadedData == null) {
       DillTarget dillLoadedData = _dillLoadedData = new DillTarget(
-          _ticker, uriTranslator, context.options.target,
+          context, _ticker, uriTranslator, context.options.target,
           benchmarker: _benchmarker);
       int bytesLength = await _initializationStrategy.initialize(
           dillLoadedData,
@@ -1725,14 +1724,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           cleanedUpBuilders.add(removedDillBuilder);
           removedDillBuilders = true;
         }
-        _cleanupSourcesForBuilder(
-            currentKernelTarget,
-            null,
-            builder,
-            uriTranslator,
-            CompilerContext.current.uriToSource,
-            uriToSource,
-            partsUsed);
+        _cleanupSourcesForBuilder(currentKernelTarget, null, builder,
+            uriTranslator, context.uriToSource, uriToSource, partsUsed);
         _userBuilders?.remove(uri);
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
@@ -2384,9 +2377,14 @@ class IncrementalKernelTarget extends KernelTarget
   Set<Class>? classMemberChanges;
   Set<Library> librariesUsed = {};
 
-  IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
-      DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+  IncrementalKernelTarget(
+      CompilerContext compilerContext,
+      FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator)
+      : super(compilerContext, fileSystem, includeComments, dillTarget,
+            uriTranslator);
 
   @override
   ChangedStructureNotifier get changedStructureNotifier => this;

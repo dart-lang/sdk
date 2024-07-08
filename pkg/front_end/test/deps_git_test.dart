@@ -74,9 +74,9 @@ Future<bool> main() async {
       (CompilerContext c) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     DillTarget dillTarget =
-        new DillTarget(ticker, uriTranslator, c.options.target);
+        new DillTarget(c, ticker, uriTranslator, c.options.target);
     KernelTarget kernelTarget =
-        new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
+        new KernelTarget(c, c.fileSystem, false, dillTarget, uriTranslator);
     Uri? platform = c.options.sdkSummary;
     if (platform != null) {
       var bytes = new File.fromUri(platform).readAsBytesSync();

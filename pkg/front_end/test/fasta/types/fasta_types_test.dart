@@ -35,6 +35,7 @@ void main() {
   final Component sdk = parseSdk(uri, environment);
   Future<void> doIt(_) async {
     DillTarget target = new DillTarget(
+        context,
         ticker,
         await context.options.getUriTranslator(),
         new NoneTarget(new TargetFlags()));

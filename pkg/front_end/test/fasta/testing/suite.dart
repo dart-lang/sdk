@@ -2085,7 +2085,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         excludedLibraries ??= const {};
 
         ValidatingInstrumentation instrumentation =
-            new ValidatingInstrumentation();
+            new ValidatingInstrumentation(c);
         await instrumentation.loadExpectations(description.uri);
 
         Component p;
@@ -2206,7 +2206,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
         await result.sourceTarget.context.runInContext((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
-          result.options.target, stage, component,
+          compilerContext, stage, component,
           skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {

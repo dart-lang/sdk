@@ -25,7 +25,7 @@ import '../codes/cfe_codes.dart' show LocatedMessage, PlainAndColorizedString;
 import '../compute_platform_binaries_location.dart' show translateSdk;
 import 'compiler_context.dart' show CompilerContext;
 import 'crash.dart' show Crash, safeToString;
-import 'messages.dart' show getLocation, getSourceLine;
+import 'messages.dart' show getLocation, getSourceLine, getSourceLineFromMap;
 import 'problems.dart' show unhandled;
 import 'processed_options.dart' show ProcessedOptions;
 
@@ -54,11 +54,12 @@ PlainAndColorizedString format(
       String path = relativizeUri(
           Uri.base, translateSdk(context, message.uri!), isWindows);
       int offset = message.charOffset;
-      location ??= (offset == -1 ? null : getLocation(message.uri!, offset));
+      location ??=
+          (offset == -1 ? null : getLocation(context, message.uri!, offset));
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
-      String? sourceLine = getSourceLine(location);
+      String? sourceLine = getSourceLine(context, location);
       return new PlainAndColorizedString(
         formatErrorMessage(
             sourceLine, location, length, path, messageTextPlain),
@@ -100,7 +101,7 @@ PlainAndColorizedString formatWithLocationNoSdk(
 
   if (message.uri != null) {
     String path = relativizeUri(Uri.base, message.uri!, isWindows);
-    String? sourceLine = getSourceLine(location, uriToSource);
+    String? sourceLine = getSourceLineFromMap(location, uriToSource);
     return new PlainAndColorizedString(
       formatErrorMessage(sourceLine, location, length, path, messageTextPlain),
       formatErrorMessage(

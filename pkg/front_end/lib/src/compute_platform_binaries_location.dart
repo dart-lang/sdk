@@ -147,7 +147,7 @@ Uri translateSdk(CompilerContext context, Uri uri) {
       }
       Uri candidate = sdkRoot.resolve(path.substring(5));
       if (isExistingFile(candidate)) {
-        Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+        Map<Uri, Source> uriToSource = context.uriToSource;
         Source source = uriToSource[uri]!;
         if (source.source.isEmpty) {
           // Coverage-ignore-block(suite): Not run.

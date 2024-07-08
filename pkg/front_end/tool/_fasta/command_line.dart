@@ -395,10 +395,6 @@ Message computeUsage(String programName, bool verbose) {
 
 Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     [T? failingValue]) async {
-  if (CompilerContext.isActive) {
-    throw "runProtectedFromAbort should be called from 'main',"
-        " that is, outside a compiler context.";
-  }
   try {
     return await action();
   } on DebugAbort catch (e) {

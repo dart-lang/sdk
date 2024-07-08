@@ -88,8 +88,8 @@ Future<void> test() async {
 
   List<Object> errors = await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: inputs),
-      (_) => new Future<List<Object>>.value(verifyComponent(options.target!,
-          VerificationStage.afterModularTransformations, component,
+      (CompilerContext c) => new Future<List<Object>>.value(verifyComponent(
+          c, VerificationStage.afterModularTransformations, component,
           skipPlatform: true)));
 
   serializeComponent(component);
