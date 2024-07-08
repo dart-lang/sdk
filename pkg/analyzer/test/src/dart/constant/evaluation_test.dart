@@ -2632,24 +2632,6 @@ int -42
 ''');
   }
 
-  test_visitPropertyAccess_genericFunction_instantiated() async {
-    await assertNoErrorsInCode('''
-import '' as self;
-class C {
-  static void f<T>(T a) {}
-}
-const void Function(int) g = self.C.f;
-''');
-    var result = _topLevelVar('g');
-    assertDartObjectText(result, '''
-void Function(int)
-  element: self::@class::C::@method::f
-  typeArguments
-    int
-  variable: self::@variable::g
-''');
-  }
-
   test_visitPropertyAccess_length_complex() async {
     await assertNoErrorsInCode('''
 const x = ('qwe' + 'rty').length;
@@ -2669,6 +2651,56 @@ const x = 'Dvorak'.length;
     assertDartObjectText(result, r'''
 int 6
   variable: self::@variable::x
+''');
+  }
+
+  test_visitPropertyAccess_staticMethod() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class C {
+  static void f(int a) {}
+}
+const g = self.C.f;
+''');
+    var result = _topLevelVar('g');
+    assertDartObjectText(result, '''
+void Function(int)
+  element: self::@class::C::@method::f
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitPropertyAccess_staticMethod_generic_instantiated() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class C {
+  static void f<T>(T a) {}
+}
+const void Function(int) g = self.C.f;
+''');
+    var result = _topLevelVar('g');
+    assertDartObjectText(result, '''
+void Function(int)
+  element: self::@class::C::@method::f
+  typeArguments
+    int
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitPropertyAccess_staticMethod_ofExtension() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  static int f(String s) => 7;
+}
+const g = self.E.f;
+''');
+    var result = _topLevelVar('g');
+    assertDartObjectText(result, '''
+int Function(String)
+  element: self::@extension::E::@method::f
+  variable: self::@variable::g
 ''');
   }
 
