@@ -2442,9 +2442,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     ClassFinalizer::VerifyBootstrapClasses();
 
-    // Set up the intrinsic state of all functions (core, math and typed data).
-    compiler::Intrinsifier::InitializeState();
-
     // Adds static const fields (class ids) to the class 'ClassID');
     lib = Library::LookupLibrary(thread, Symbols::DartInternal());
     ASSERT(!lib.IsNull());
@@ -15313,7 +15310,7 @@ ErrorPtr Library::FinalizeAllClasses() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Return Function::null() if function does not exist in libs.
-FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
+FunctionPtr Library::GetFunction(const Library& lib,
                                  const char* class_name,
                                  const char* function_name) {
   Thread* thread = Thread::Current();
@@ -15322,28 +15319,22 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
   String& class_str = String::Handle(zone);
   String& func_str = String::Handle(zone);
   Class& cls = Class::Handle(zone);
-  for (intptr_t l = 0; l < libs.length(); l++) {
-    const Library& lib = *libs[l];
-    if (strcmp(class_name, "::") == 0) {
-      cls = lib.toplevel_class();
-    } else {
-      class_str = String::New(class_name);
-      cls = lib.LookupClassAllowPrivate(class_str);
-    }
-    if (!cls.IsNull()) {
-      if (cls.EnsureIsFinalized(thread) == Error::null()) {
-        func_str = String::New(function_name);
-        if (function_name[0] == '.') {
-          func_str = String::Concat(class_str, func_str);
-        }
-        func = cls.LookupFunctionAllowPrivate(func_str);
+  if (strcmp(class_name, "::") == 0) {
+    cls = lib.toplevel_class();
+  } else {
+    class_str = String::New(class_name);
+    cls = lib.LookupClassAllowPrivate(class_str);
+  }
+  if (!cls.IsNull()) {
+    if (cls.EnsureIsFinalized(thread) == Error::null()) {
+      func_str = String::New(function_name);
+      if (function_name[0] == '.') {
+        func_str = String::Concat(class_str, func_str);
       }
-    }
-    if (!func.IsNull()) {
-      return func.ptr();
+      func = cls.LookupFunctionAllowPrivate(func_str);
     }
   }
-  return Function::null();
+  return func.ptr();
 }
 
 ObjectPtr Library::GetFunctionClosure(const String& name) const {
@@ -15373,12 +15364,14 @@ ObjectPtr Library::GetFunctionClosure(const String& name) const {
 
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 void Library::CheckFunctionFingerprints() {
-  GrowableArray<Library*> all_libs;
+  Library& lib = Library::Handle();
   Function& func = Function::Handle();
   bool fingerprints_match = true;
 
-#define CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, kind)    \
-  func = GetFunction(all_libs, #class_name, #function_name);                   \
+#define CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp, \
+                                 kind)                                         \
+  lib = Library::library();                                                    \
+  func = Library::GetFunction(lib, #class_name, #function_name);               \
   if (func.IsNull()) {                                                         \
     fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
@@ -15387,39 +15380,30 @@ void Library::CheckFunctionFingerprints() {
         func.CheckSourceFingerprint(fp, kind) && fingerprints_match;           \
   }
 
-#define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, nullptr)
-#define CHECK_FINGERPRINTS_ASM_INTRINSIC(class_name, function_name, dest, fp)  \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, "asm-intrinsic")
-#define CHECK_FINGERPRINTS_GRAPH_INTRINSIC(class_name, function_name, dest,    \
-                                           fp)                                 \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp,                \
+#define CHECK_FINGERPRINTS(library, class_name, function_name, dest, fp)       \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           nullptr)
+#define CHECK_FINGERPRINTS_ASM_INTRINSIC(library, class_name, function_name,   \
+                                         dest, fp)                             \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           "asm-intrinsic")
+#define CHECK_FINGERPRINTS_GRAPH_INTRINSIC(library, class_name, function_name, \
+                                           dest, fp)                           \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
                            "graph-intrinsic")
-#define CHECK_FINGERPRINTS_OTHER(class_name, function_name, dest, fp)          \
-  CHECK_FINGERPRINTS_INNER(class_name, function_name, dest, fp, "other")
+#define CHECK_FINGERPRINTS_OTHER(library, class_name, function_name, dest, fp) \
+  CHECK_FINGERPRINTS_INNER(library, class_name, function_name, dest, fp,       \
+                           "other")
 
-  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
   CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   GRAPH_CORE_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
 
-  all_libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::IsolateLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
   GRAPH_TYPED_DATA_INTRINSICS_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
 
 #undef CHECK_FINGERPRINTS_INNER
@@ -15428,19 +15412,19 @@ void Library::CheckFunctionFingerprints() {
 #undef CHECK_FINGERPRINTS_GRAPH_INTRINSIC
 #undef CHECK_FINGERPRINTS_OTHER
 
-#define CHECK_FACTORY_FINGERPRINTS(symbol, class_name, factory_name, cid, fp)  \
-  func = GetFunction(all_libs, #class_name, #factory_name);                    \
+#define CHECK_FACTORY_FINGERPRINTS(symbol, library, class_name, factory_name,  \
+                                   cid, fp)                                    \
+  lib = Library::library();                                                    \
+  func = GetFunction(lib, #class_name, #factory_name);                         \
   if (func.IsNull()) {                                                         \
     fingerprints_match = false;                                                \
-    OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
+    OS::PrintErr("Function not found %s.%s.%s\n", #library, #class_name,       \
+                 #factory_name);                                               \
   } else {                                                                     \
     fingerprints_match =                                                       \
         func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS

@@ -121,7 +121,7 @@ static const struct {
   const uint32_t fp;
 } recognized_methods[MethodRecognizer::kNumRecognizedMethods] = {
     {"", "", "Unknown", 0},
-#define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
+#define RECOGNIZE_METHOD(library, class_name, function_name, enum_name, fp)    \
   {"" #class_name, "" #function_name, #enum_name, fp},
     RECOGNIZED_LIST(RECOGNIZE_METHOD)
 #undef RECOGNIZE_METHOD
@@ -160,40 +160,46 @@ bool MethodRecognizer::IsMarkedAsRecognized(const Function& function,
   return String::Cast(options).Equals(kind);
 }
 
+static bool IsIntrinsic(MethodRecognizer::Kind kind) {
+  switch (kind) {
+#define RECOGNIZE_METHOD(library, class_name, function_name, enum_name, fp)    \
+  case MethodRecognizer::k##enum_name:                                         \
+    ALL_INTRINSICS_LIST(RECOGNIZE_METHOD)
+#undef RECOGNIZE_METHOD
+    return true;
+    default:
+      return false;
+  }
+}
+
 void MethodRecognizer::InitializeState() {
-  GrowableArray<Library*> libs(3);
-  Libraries(&libs);
+  Library& lib = Library::Handle();
   Function& func = Function::Handle();
   bool fingerprints_match = true;
 
-  for (intptr_t i = 1; i < MethodRecognizer::kNumRecognizedMethods; i++) {
-    const MethodRecognizer::Kind kind = static_cast<MethodRecognizer::Kind>(i);
-    func = Library::GetFunction(libs, recognized_methods[i].class_name,
-                                recognized_methods[i].function_name);
-    if (!func.IsNull()) {
-      fingerprints_match =
-          func.CheckSourceFingerprint(recognized_methods[i].fp) &&
-          fingerprints_match;
-      func.set_recognized_kind(kind);
-      switch (kind) {
-#define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
-  case MethodRecognizer::k##enum_name:                                         \
-    func.reset_unboxed_parameters_and_return();                                \
-    break;
-        ALL_INTRINSICS_LIST(RECOGNIZE_METHOD)
-#undef RECOGNIZE_METHOD
-        default:
-          break;
-      }
-    } else if (!FLAG_precompiled_mode) {
-      fingerprints_match = false;
-      OS::PrintErr("Missing %s::%s\n", recognized_methods[i].class_name,
-                   recognized_methods[i].function_name);
-    }
+#define RECOGNIZE_METHOD(library, class_name, function_name, enum_name, fp)    \
+  lib = Library::library();                                                    \
+  func = Library::GetFunction(lib, #class_name, #function_name);               \
+  if (!func.IsNull()) {                                                        \
+    fingerprints_match =                                                       \
+        func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
+    func.set_recognized_kind(k##enum_name);                                    \
+    if (IsIntrinsic(k##enum_name)) {                                           \
+      func.reset_unboxed_parameters_and_return();                              \
+      func.set_is_intrinsic(true);                                             \
+    }                                                                          \
+  } else if (!FLAG_precompiled_mode) {                                         \
+    fingerprints_match = false;                                                \
+    OS::PrintErr("Missing %s %s::%s\n", #library, #class_name,                 \
+                 #function_name);                                              \
   }
+  RECOGNIZED_LIST(RECOGNIZE_METHOD)
+#undef RECOGNIZE_METHOD
 
-#define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter, value)   \
-  func = Library::GetFunction(libs, #class_name, #function_name);              \
+#define SET_FUNCTION_BIT(library, class_name, function_name, dest, fp, setter, \
+                         value)                                                \
+  lib = Library::library();                                                    \
+  func = Library::GetFunction(lib, #class_name, #function_name);               \
   if (!func.IsNull()) {                                                        \
     fingerprints_match =                                                       \
         func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
@@ -203,8 +209,9 @@ void MethodRecognizer::InitializeState() {
     fingerprints_match = false;                                                \
   }
 
-#define SET_IS_POLYMORPHIC_TARGET(class_name, function_name, dest, fp)         \
-  SET_FUNCTION_BIT(class_name, function_name, dest, fp,                        \
+#define SET_IS_POLYMORPHIC_TARGET(library, class_name, function_name, dest,    \
+                                  fp)                                          \
+  SET_FUNCTION_BIT(library, class_name, function_name, dest, fp,               \
                    set_is_polymorphic_target, true)
 
   POLYMORPHIC_TARGET_LIST(SET_IS_POLYMORPHIC_TARGET);
@@ -299,7 +306,8 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
   }
 }
 
-#define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
+#define RECOGNIZE_FACTORY(symbol, library, class_name, constructor_name, cid,  \
+                          fp)                                                  \
   {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
 
 static const struct {
