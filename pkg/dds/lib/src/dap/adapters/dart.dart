@@ -563,17 +563,23 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     TA args,
     void Function() sendResponse,
   ) async {
-    this.args = args as DartCommonLaunchAttachRequestArguments;
-    isAttach = true;
-    _subscribeToOutputStreams = true;
+    try {
+      this.args = args as DartCommonLaunchAttachRequestArguments;
+      isAttach = true;
+      _subscribeToOutputStreams = true;
 
-    // Common setup.
-    await _prepareForLaunchOrAttach(null);
+      // Common setup.
+      await _prepareForLaunchOrAttach(null);
 
-    // Delegate to the sub-class to attach to the process.
-    await attachImpl();
+      // Delegate to the sub-class to attach to the process.
+      await attachImpl();
 
-    sendResponse();
+      sendResponse();
+    } on DebugAdapterException catch (e) {
+      // Any errors that are thrown as part of an AttachRequest should be shown
+      // to the user.
+      throw DebugAdapterException(e.message, showToUser: true);
+    }
   }
 
   /// Builds an evaluateName given a parent VM InstanceRef ID and a suffix.
@@ -1381,14 +1387,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     TL args,
     void Function() sendResponse,
   ) async {
-    this.args = args as DartCommonLaunchAttachRequestArguments;
-    isAttach = false;
+    try {
+      this.args = args as DartCommonLaunchAttachRequestArguments;
+      isAttach = false;
 
-    // Common setup.
-    await _prepareForLaunchOrAttach(args.noDebug);
+      // Common setup.
+      await _prepareForLaunchOrAttach(args.noDebug);
 
-    // Delegate to the sub-class to launch the process.
-    await launchAndRespond(sendResponse);
+      // Delegate to the sub-class to launch the process.
+      await launchAndRespond(sendResponse);
+    } on DebugAdapterException catch (e) {
+      // Any errors that are thrown as part of an AttachRequest should be shown
+      // to the user.
+      throw DebugAdapterException(e.message, showToUser: true);
+    }
   }
 
   /// Overridden by sub-classes that need to control when the response is sent

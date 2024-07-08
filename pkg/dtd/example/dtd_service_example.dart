@@ -20,14 +20,30 @@ void main(List<String> args) async {
   DartToolingDaemon? clientA;
   DartToolingDaemon? clientB;
 
+  final serviceRegisteredCompleted = Completer<void>();
+  final serviceUnregisteredCompleted = Completer<void>();
+
   try {
     // Set up the services that will be used to show service method
     // interactions.
     clientA = await DartToolingDaemon.connect(Uri.parse(dtdUrl));
     clientB = await DartToolingDaemon.connect(Uri.parse(dtdUrl));
 
-    // Register the ExampleServer.getServerState service method so that other
-    // clients can call it.
+    // Monitor events that come to the second client over the Service
+    // stream.
+    clientB.onEvent('Service').listen((e) {
+      switch (e.kind) {
+        case 'ServiceRegistered':
+          serviceRegisteredCompleted.complete();
+        case 'ServiceUnregistered':
+          serviceUnregisteredCompleted.complete();
+      }
+      print(jsonEncode({'stream': e.stream, 'kind': e.kind, 'data': e.data}));
+    });
+    await clientB.streamListen('Service');
+
+    // Register the ExampleServer.getServerState service method on the first
+    // client so that other other clients can call it.
     await clientA.registerService(
       'ExampleServer',
       'getServerState',
@@ -42,7 +58,12 @@ void main(List<String> args) async {
 
         return ExampleStateResponse(duration, status).toJson();
       },
+      capabilities: {
+        'supportsNewExamples': true,
+      },
     );
+
+    await serviceRegisteredCompleted.future;
 
     // Call the registered service from a different client.
     final response = await clientB.getServerState(verbose: true);
@@ -50,7 +71,10 @@ void main(List<String> args) async {
     // The ExampleServerState response is now printed.
     print(jsonEncode(response.toJson()));
   } finally {
+    // Close the first client and wait for the unregistered event before closing
+    // the second client.
     await clientA?.close();
+    await serviceUnregisteredCompleted.future;
     await clientB?.close();
   }
 }

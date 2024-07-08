@@ -63,7 +63,6 @@ void main() {
   });
 
   test('service example', () async {
-    final responseCompleter = Completer<Map<String, Object?>>();
     final serviceExampleProcess = await Process.start(
       Platform.resolvedExecutable,
       [
@@ -75,22 +74,42 @@ void main() {
       ],
     );
 
+    final stdoutMessages = <Map<String, Object?>>[];
     serviceExampleProcess.handle(
       stdoutLines: (line) {
         stdout.write('serviceExample stdout: $line');
-        responseCompleter.complete(jsonDecode(line) as Map<String, Object?>);
+        stdoutMessages.add(jsonDecode(line) as Map<String, Object?>);
       },
       stderrLines: (line) => stderr.write('serviceExample stderr: $line'),
     );
 
-    final response = await responseCompleter.future;
+    await serviceExampleProcess.exitCode;
     expect(
-      response,
-      {
-        'type': 'ExampleStateResponse',
-        'status': 'The server is running',
-        'uptime': const Duration(minutes: 45).inMilliseconds,
-      },
+      stdoutMessages,
+      containsAll([
+        {
+          'stream': 'Service',
+          'kind': 'ServiceRegistered',
+          'data': {
+            'service': 'ExampleServer',
+            'method': 'getServerState',
+            'capabilities': {'supportsNewExamples': true},
+          },
+        },
+        {
+          'type': 'ExampleStateResponse',
+          'status': 'The server is running',
+          'uptime': const Duration(minutes: 45).inMilliseconds,
+        },
+        {
+          'stream': 'Service',
+          'kind': 'ServiceUnregistered',
+          'data': {
+            'service': 'ExampleServer',
+            'method': 'getServerState',
+          },
+        },
+      ]),
     );
   });
 

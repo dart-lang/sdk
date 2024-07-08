@@ -164,7 +164,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "11fec7d6df509a4efd554051cc27e3bf82df9c96",
   "mockito_rev": "a7fdf7101fbd31132a59188a6057d21004345927",
-  "native_rev": "fcc783c1d2777555616dfc850f131878ea5d88a9", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
+  "native_rev": "cd8eddf8ad5b953127acf884f2b8a614482a8b0f", # mosum@ and dacoharkes@ are rolling breaking changes manually while the assets features are in experimental.
   "package_config_rev": "903a0e528f91aef90821c8f5eaafbc1ae27198ab",
   "path_rev": "e969f42ed112dd702a9453beb9df6c12ae2d3805",
   "pool_rev": "924fb04353cec915d927f9f1aed88e2eda92b98a",
@@ -712,7 +712,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "RgErspyYHapUO2SpcW-vo2p8yaRUMUrq0eWjRVPfQjoC",
+      "version": "sbh76PYVTMxav4ACTgA-TXWcbZTZcWWjsqATCxrGIvwC",
       }
     ],
     "condition": 'download_fuchsia_deps',

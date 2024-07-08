@@ -6,10 +6,14 @@
   with a `StreamChannel<String>`.
 - The `params` parameter in `DartToolingDaemon.call()` has been changed from
   `Map<String, Object>?` to `Map<String, Object?>?`.
+- `registerService` now allows passing a `Map<String, Object?>? capabilities`
+  that can be supplied to clients via new `ServiceRegistered` and
+  `ServiceUregistered` events on the `Service` stream (when connected to a
+  version of DTD that supports these streams).
 
 ## 2.2.0
 - Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
-- Added  contributing guide (`CONTRIBUTING.md`).
+- Added contributing guide (`CONTRIBUTING.md`).
 
 ## 2.1.0
 - Added `getProjectRoots` API.

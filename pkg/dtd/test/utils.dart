@@ -32,7 +32,7 @@ class ToolingDaemonTestProcess {
         try {
           final json = jsonDecode(line) as Map<String, Object?>;
           final toolingDaemonDetails =
-              json['tooling_daemon_details'] as Map<String, dynamic>;
+              json['tooling_daemon_details'] as Map<String, Object?>;
           trustedSecret =
               toolingDaemonDetails['trusted_client_secret'] as String?;
           uri = Uri.parse(toolingDaemonDetails['uri'] as String);
