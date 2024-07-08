@@ -7640,13 +7640,11 @@ class WarningCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the URI pointing to a nonexistent file
   static const WarningCode URI_DOES_NOT_EXIST_IN_DOC_IMPORT = WarningCode(
-    'URI_DOES_NOT_EXIST',
+    'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
     "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
         "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
-    hasPublishedDocs: true,
-    uniqueName: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
   );
 
   ///  Parameters:

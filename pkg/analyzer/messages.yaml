@@ -17924,14 +17924,6 @@ CompileTimeErrorCode:
       import [!'lib.dart'!];
       ```
 
-      If the file `lib.dart` doesn't exist, the following code produces this
-      diagnostic:
-
-      ```dart
-      /// @docImport [!'lib.dart'!];
-      library;
-      ```
-
       #### Common fixes
 
       If the URI was mistyped or invalid, then correct the URI.
@@ -27569,10 +27561,30 @@ WarningCode:
       ```
 
   URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
-    sharedName: URI_DOES_NOT_EXIST
     problemMessage: "Target of URI doesn't exist: '{0}'."
     correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     comment: |-
       Parameters:
       0: the URI pointing to a nonexistent file
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a doc-import is found where
+      the URI refers to a file that doesn't exist.
+
+      #### Examples
+
+      If the file `lib.dart` doesn't exist, the following code produces this
+      diagnostic:
+
+      ```dart
+      /// @docImport [!'lib.dart'!];
+      library;
+      ```
+
+      #### Common fixes
+
+      If the URI was mistyped or invalid, then correct the URI.
+
+      If the URI is correct, then create the file.
