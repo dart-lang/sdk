@@ -48,9 +48,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The type provider used to access the known types.
   final TypeProvider _typeProvider;
 
-  /// The set of variables declared using '-D' on the command line.
-  final DeclaredVariables declaredVariables;
-
   /// The current library that is being analyzed.
   final LibraryElementImpl _currentLibrary;
 
@@ -70,7 +67,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   Map<Expression, DartObjectImpl>? _mapPatternKeyValues;
 
-  late final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
+  final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
 
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter,
@@ -82,7 +79,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           currentLibrary.typeSystem,
           currentLibrary.typeProvider,
           declaredVariables,
-          retainDataForTesting,
+          AnalyzerExhaustivenessCache(
+              currentLibrary.typeSystem, currentLibrary),
+          retainDataForTesting: retainDataForTesting,
         );
 
   ConstantVerifier._(
@@ -90,18 +89,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary,
     this._typeSystem,
     this._typeProvider,
-    this.declaredVariables,
-    bool retainDataForTesting,
-  )   : _evaluationEngine = ConstantEvaluationEngine(
+    DeclaredVariables declaredVariables,
+    this._exhaustivenessCache, {
+    required bool retainDataForTesting,
+  })  : _evaluationEngine = ConstantEvaluationEngine(
           declaredVariables: declaredVariables,
           configuration: ConstantEvaluationConfiguration(),
         ),
-        _exhaustivenessCache =
-            AnalyzerExhaustivenessCache(_typeSystem, _currentLibrary) {
-    exhaustivenessDataForTesting = retainDataForTesting
-        ? ExhaustivenessDataForTesting(_exhaustivenessCache)
-        : null;
-  }
+        exhaustivenessDataForTesting = retainDataForTesting
+            ? ExhaustivenessDataForTesting(_exhaustivenessCache)
+            : null;
 
   @override
   void visitAnnotation(Annotation node) {
