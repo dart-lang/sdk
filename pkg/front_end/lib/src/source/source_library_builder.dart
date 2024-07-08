@@ -610,40 +610,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _languageVersion.isFinal = true;
   }
 
-  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
-  Uri resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
-    if (uri == null) {
-      // Coverage-ignore-block(suite): Not run.
-      addProblem(messageExpectedUri, uriOffset, noLength, fileUri);
-      return new Uri(scheme: MALFORMED_URI_SCHEME);
-    }
-    Uri parsedUri;
-    try {
-      parsedUri = Uri.parse(uri);
-    } on FormatException catch (e) {
-      // Point to position in string indicated by the exception,
-      // or to the initial quote if no position is given.
-      // (Assumes the directive is using a single-line string.)
-      addProblem(
-          templateCouldNotParseUri.withArguments(uri, e.message),
-          uriOffset +
-              1 +
-              (e.offset ?? // Coverage-ignore(suite): Not run.
-                  -1),
-          1,
-          fileUri);
-      return new Uri(
-          scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
-    }
-    if (isPart && baseUri.isScheme("dart")) {
-      // Coverage-ignore-block(suite): Not run.
-      // Resolve using special rules for dart: URIs
-      return resolveRelativeUri(baseUri, parsedUri);
-    } else {
-      return baseUri.resolveUri(parsedUri);
-    }
-  }
-
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Uri> get dependencies sync* {
