@@ -75,6 +75,10 @@ class DartToolingDaemon {
   /// Registers this client as the handler for the [service].[method] service
   /// method.
   ///
+  /// An optional map of [capabilities] can be supplied that will be provided
+  /// to clients listening for `ServiceRegistered` events. The use of this field
+  /// is service method specific.
+  ///
   /// If the [service] has already been registered by another client, then an
   /// [RpcException] with [RpcErrorCodes.kServiceAlreadyRegistered] is thrown.
   /// Only one client at a time may register to a [service]. Once a client
@@ -86,12 +90,14 @@ class DartToolingDaemon {
   Future<void> registerService(
     String service,
     String method,
-    DTDServiceCallback callback,
-  ) async {
+    DTDServiceCallback callback, {
+    Map<String, Object?>? capabilities,
+  }) async {
     final combinedName = '$service.$method';
     await _clientPeer.sendRequest('registerService', {
       'service': service,
       'method': method,
+      if (capabilities != null) 'capabilities': capabilities,
     });
 
     _clientPeer.registerMethod(
@@ -185,7 +191,7 @@ class DartToolingDaemon {
   }) async {
     final json = await _clientPeer.sendRequest(
       '$serviceName.$methodName',
-      params ?? <String, dynamic>{},
+      params ?? <String, Object?>{},
     ) as Map<String, Object?>;
 
     final type = json['type'] as String?;

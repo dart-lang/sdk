@@ -6,10 +6,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dtd/dtd.dart' show RpcErrorCodes;
+import 'package:dtd_impl/dart_tooling_daemon.dart';
+import 'package:dtd_impl/src/dtd_stream_manager.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:dtd_impl/dart_tooling_daemon.dart';
 
 void main() {
   late Peer client;
@@ -313,6 +314,133 @@ void main() {
           await Future.delayed(Duration(seconds: 1));
         }
         expect(client2RegisterResult, {"type": "Success"});
+      });
+
+      group('sends notifications', () {
+        late Peer client2;
+
+        setUp(() {
+          client2 = _createClient(uri);
+        });
+
+        tearDown(() async {
+          await client2.close();
+        });
+
+        test('when a service method is registered', () async {
+          // Subscribe to the services stream.
+          final serviceStream = StreamController();
+          client.registerMethod('streamNotify', (Parameters parameters) {
+            if (parameters['streamId'].asString ==
+                DTDStreamManager.servicesStreamId) {
+              serviceStream.add(parameters.asMap);
+            }
+          });
+          await client.sendRequest('streamListen', {
+            'streamId': DTDStreamManager.servicesStreamId,
+          });
+
+          // Register a method on a second client.
+          await client2.sendRequest(
+            'registerService',
+            {
+              'service': service1,
+              'method': method1,
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+
+          // Expect we had a service registered event.
+          final event = await serviceStream.stream.first;
+          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
+          expect(
+            event['eventData'],
+            {
+              'service': 'foo1',
+              'method': 'bar1',
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+        });
+
+        test('when a service method is registered before subscribing',
+            () async {
+          // Register a method on a second client _first_.
+          await client2.sendRequest(
+            'registerService',
+            {
+              'service': service1,
+              'method': method1,
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+
+          // Subscribe to the services stream.
+          var serviceStream = StreamController();
+          client.registerMethod('streamNotify', (Parameters parameters) {
+            if (parameters['streamId'].asString ==
+                DTDStreamManager.servicesStreamId) {
+              serviceStream.add(parameters.asMap);
+            }
+          });
+          await client.sendRequest('streamListen', {
+            'streamId': DTDStreamManager.servicesStreamId,
+          });
+
+          // Expect we had a service registered event.
+          final event = await serviceStream.stream.first;
+          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(event['eventKind'], DTDStreamManager.serviceRegisteredId);
+          expect(
+            event['eventData'],
+            {
+              'service': 'foo1',
+              'method': 'bar1',
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+        });
+
+        test('when a service method is unregistered', () async {
+          // Subscribe to the services stream.
+          var serviceStream = StreamController();
+          client.registerMethod('streamNotify', (Parameters parameters) {
+            if (parameters['streamId'].asString ==
+                DTDStreamManager.servicesStreamId) {
+              serviceStream.add(parameters.asMap);
+            }
+          });
+          await client.sendRequest('streamListen', {
+            'streamId': DTDStreamManager.servicesStreamId,
+          });
+
+          // Register a method on a second client and then close it so the
+          // service is removed.
+          await client2.sendRequest(
+            'registerService',
+            {
+              'service': service1,
+              'method': method1,
+              'capabilities': {'supportsFoo': true},
+            },
+          );
+          await client2.close();
+
+          // Expect we had a service unregistered event (after the registered
+          // event).
+          final event = await serviceStream.stream.skip(1).first;
+          expect(event['streamId'], DTDStreamManager.servicesStreamId);
+          expect(event['eventKind'], DTDStreamManager.serviceUnregisteredId);
+          expect(
+            event['eventData'],
+            {
+              'service': 'foo1',
+              'method': 'bar1',
+              // No capabilities on unregister.
+            },
+          );
+        });
       });
     });
   });

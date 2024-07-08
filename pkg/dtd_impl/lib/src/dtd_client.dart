@@ -13,8 +13,12 @@ import 'package:dtd/dtd.dart' show RpcErrorCodes;
 
 import 'constants.dart';
 import '../dart_tooling_daemon.dart';
+import 'dtd_stream_manager.dart';
 
 /// Represents a client that is connected to a DTD service.
+///
+/// [DTDClient] is used only by the server to handle the remote DTD client and
+/// by the client itself/on the client side.
 class DTDClient extends Client {
   final StreamChannel connection;
   late json_rpc.Peer _clientPeer;
@@ -93,7 +97,7 @@ class DTDClient extends Client {
   ///
   /// Parameters:
   /// 'streamId': the stream to be cancelled.
-  _streamListen(parameters) async {
+  _streamListen(json_rpc.Parameters parameters) async {
     final streamId = parameters['streamId'].asString;
     try {
       await dtd.streamManager.streamListen(
@@ -108,14 +112,49 @@ class DTDClient extends Client {
         },
       );
     }
+
+    // If the remote client was subscribing to the services stream, send all
+    // of the existing streams.
+    if (streamId == DTDStreamManager.servicesStreamId) {
+      for (final client in dtd.clientManager.clients) {
+        for (final service in client.services.values) {
+          for (final method in service.methods.values) {
+            _streamNotifyHelper(
+              DTDStreamManager.servicesStreamId,
+              DTDStreamManager.serviceRegisteredId,
+              _buildServiceRegisteredData(
+                service.name,
+                method.name,
+                method.capabilities,
+              ),
+            );
+          }
+        }
+      }
+    }
+
     return RPCResponses.success;
+  }
+
+  /// A helper to emit an event ([eventKind] to [stream]).
+  void _streamNotifyHelper(
+    String stream,
+    String eventKind,
+    Map<String, Object?>? eventData,
+  ) {
+    streamNotify(stream, {
+      'streamId': stream,
+      'eventKind': eventKind,
+      'eventData': eventData,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   /// jrpc endpoint for stopping listening to a stream.
   ///
   /// Parameters:
   /// 'streamId': the stream that the client would like to stop listening to.
-  _streamCancel(parameters) async {
+  _streamCancel(json_rpc.Parameters parameters) async {
     final streamId = parameters['streamId'].asString;
 
     if (!dtd.streamManager.isSubscribed(this, streamId)) {
@@ -136,9 +175,9 @@ class DTDClient extends Client {
   /// 'eventKind': the kind of event being sent.
   /// 'eventData': the data being sent over the stream.
   /// 'streamId: the stream that is being posted to.
-  _postEvent(parameters) async {
+  _postEvent(json_rpc.Parameters parameters) async {
     final eventKind = parameters['eventKind'].asString;
-    final eventData = parameters['eventData'].asMap;
+    final eventData = parameters['eventData'].asMap.cast<String, Object?>();
     final stream = parameters['streamId'].asString;
     dtd.streamManager.postEventHelper(stream, eventKind, eventData);
     return RPCResponses.success;
@@ -149,10 +188,12 @@ class DTDClient extends Client {
   /// Parameters:
   /// 'service': the name of the service that is being registered to.
   /// 'method': the name of the method that is being registered on the service.
-  _registerService(parameters) {
+  _registerService(json_rpc.Parameters parameters) {
     final serviceName = parameters['service'].asString;
-    final method = parameters['method'].asString;
-    final combinedName = '$serviceName.$method';
+    final methodName = parameters['method'].asString;
+    final capabilities = parameters['capabilities'].exists
+        ? parameters['capabilities'].asMap.cast<String, Object?>()
+        : null;
 
     final existingServiceOwnerClient =
         dtd.clientManager.findClientThatOwnsService(serviceName);
@@ -168,41 +209,94 @@ class DTDClient extends Client {
       );
     }
 
-    if (services.containsKey(combinedName)) {
+    if (services[serviceName]?.methods.containsKey(methodName) ?? false) {
       throw RpcErrorCodes.buildRpcException(
         RpcErrorCodes.kServiceMethodAlreadyRegistered,
         data: {
-          'details': "$combinedName has already been registered by the client.",
+          'details':
+              "$methodName has already been registered for the $serviceName service by this client.",
         },
       );
     }
 
-    services[combinedName] = method;
+    final methodInfo = ClientServiceMethodInfo(methodName, capabilities);
+    services
+        .putIfAbsent(serviceName, () => ClientServiceInfo(serviceName))
+        .methods[methodName] = methodInfo;
+
+    // Send an event to inform other clients that this service method is
+    // available.
+    dtd.streamManager.postEventHelper(
+      DTDStreamManager.servicesStreamId,
+      DTDStreamManager.serviceRegisteredId,
+      _buildServiceRegisteredData(serviceName, methodName, capabilities),
+    );
     return RPCResponses.success;
+  }
+
+  /// Cleans up when this client is disconnecting, before it is removed from the
+  /// client manager.
+  void onClientDisconnect() {
+    for (final service in services.values) {
+      for (final method in service.methods.values) {
+        // Notify other clients about this service going away.
+        dtd.streamManager.postEventHelper(
+          DTDStreamManager.servicesStreamId,
+          DTDStreamManager.serviceUnregisteredId,
+          _buildServiceUnregisteredData(service.name, method.name),
+        );
+      }
+    }
+  }
+
+  Map<String, Object?> _buildServiceRegisteredData(
+    String service,
+    String method,
+    Map<String, Object?>? capabilities,
+  ) {
+    return {
+      'service': service,
+      'method': method,
+      if (capabilities != null) 'capabilities': capabilities,
+    };
+  }
+
+  Map<String, Object?> _buildServiceUnregisteredData(
+    String service,
+    String method,
+  ) {
+    return {
+      'service': service,
+      'method': method,
+    };
   }
 
   /// jrpc fallback handler.
   ///
   /// Handles all service method calls that will be forwarded to the respective
   /// client which registered that service method.
-  _fallback(parameters) async {
+  _fallback(json_rpc.Parameters parameters) async {
     // Lookup the client associated with the service extension's namespace.
     // If the client exists and that client has registered the specified
     // method, forward the request to that client.
-    final serviceMethod = parameters.method;
+    final combinedName = parameters.method;
+    final dotIndex = combinedName.indexOf('.');
+    final serviceName = combinedName.substring(0, dotIndex);
+    final methodName = combinedName.substring(dotIndex + 1);
 
-    final client = dtd.clientManager.findFirstClientThatHandlesService(
-      serviceMethod,
+    final client = dtd.clientManager.findClientThatHandlesServiceMethod(
+      serviceName,
+      methodName,
     );
     if (client == null) {
       throw json_rpc.RpcException(
         RpcErrorCodes.kMethodNotFound,
-        'Unknown service method: $serviceMethod',
+        'Unknown service method: $combinedName',
       );
     }
 
     return await client.sendRequest(
-      method: serviceMethod,
+      method: combinedName,
       parameters: parameters,
     );
   }

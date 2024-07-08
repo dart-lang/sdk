@@ -81,8 +81,9 @@ sequenceDiagram
     participant c2 as Client 2
 
     Note right of c1: Client 1 registers the foo.bar method.
-    c1->>dtd: registerService(service: "foo", method: "bar)
+    c1->>dtd: registerService(service: "foo", method: "bar")
     activate dtd
+    dtd-->>c2: ServiceRegistered({"service": "foo", "method": "bar"})
     dtd-->>c1: Success
     deactivate dtd
 
@@ -101,6 +102,68 @@ sequenceDiagram
     Note right of dtd: Dart Tooling Daemon forwards the response to Client 2.
     dtd-->>c2: {"example": "response"}
     deactivate dtd
+
+    Note right of c1: Client 1 disconnects.
+    activate dtd
+    dtd-->>c2: ServiceUnregistered({"service": "foo", "method": "bar"})
+    deactivate dtd
+```
+
+`registerService` takes an optional map of capabilities that can be used for
+evolving the service method over time (such as expressing support for additional
+named values in the arguments).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "registerService",
+  "params": {
+    "service": "foo",
+    "method": "bar",
+    "capabilities": {
+      "supportsAdditionalFoo": true,
+    },
+  },
+  "id": "2"
+}
+```
+
+Notifications will be sent over a special `Service` stream when services are
+registered and unregistered.
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "streamNotify",
+    "params": {
+        "streamId": "Service",
+        "eventKind": "ServiceRegistered",
+        "eventData": {
+          "service": "foo",
+          "method": "bar",
+          // Capabilities are included only if the client provided them
+          "capabilities": {
+            "supportsAdditionalFoo": true,
+          },
+        }
+    },
+    "id": "2"
+}
+
+{
+    "jsonrpc": "2.0",
+    "method": "streamNotify",
+    "params": {
+        "streamId": "Service",
+        "eventKind": "ServiceUnregistered",
+        "eventData": {
+          "service": "foo",
+          "method": "bar",
+          // Unregistered events do not contain capabilities
+        }
+    },
+    "id": "2"
+}
 ```
 
 ## Dart Tooling Daemon Interaction
