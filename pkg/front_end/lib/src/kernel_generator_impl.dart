@@ -265,7 +265,6 @@ Future<InternalCompilerResult> _buildInternal(
           includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
       coreTypes:
           includeHierarchyAndCoreTypes ? kernelTarget.loader.coreTypes : null,
-      deps: new List<Uri>.from(CompilerContext.current.dependencies),
       kernelTargetForTesting: retainDataForTesting ? kernelTarget : null);
 }
 
@@ -285,13 +284,6 @@ class InternalCompilerResult implements CompilerResult {
   @override
   final List<Component> loadedComponents;
 
-  /// Dependencies traversed by the compiler. Used only for generating
-  /// dependency .GN files in the dart-sdk build system.
-  /// Note this might be removed when we switch to compute dependencies without
-  /// using the compiler itself.
-  @override
-  final List<Uri> deps;
-
   @override
   final ClassHierarchy? classHierarchy;
 
@@ -308,7 +300,6 @@ class InternalCompilerResult implements CompilerResult {
       this.component,
       this.sdkComponent,
       required this.loadedComponents,
-      required this.deps,
       this.classHierarchy,
       this.coreTypes,
       this.kernelTargetForTesting});

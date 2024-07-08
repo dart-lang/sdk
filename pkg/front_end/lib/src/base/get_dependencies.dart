@@ -9,10 +9,12 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
 import '../api_prototype/file_system.dart' show FileSystem;
+import '../api_prototype/standard_file_system.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import 'compiler_context.dart' show CompilerContext;
+import 'file_system_dependency_tracker.dart';
 import 'uri_translator.dart' show UriTranslator;
 
 Future<List<Uri>> getDependencies(Uri script,
@@ -21,12 +23,14 @@ Future<List<Uri>> getDependencies(Uri script,
     Uri? platform,
     bool verbose = false,
     Target? target}) async {
+  FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
   CompilerOptions options = new CompilerOptions()
     ..target = target
     ..verbose = verbose
     ..packagesFileUri = packages
     ..sdkSummary = platform
-    ..sdkRoot = sdk;
+    ..sdkRoot = sdk
+    ..fileSystem = StandardFileSystem.instanceWithTracking(tracker);
   ProcessedOptions pOptions =
       new ProcessedOptions(options: options, inputs: <Uri>[script]);
   return await CompilerContext.runWithOptions(pOptions,
@@ -47,6 +51,6 @@ Future<List<Uri>> getDependencies(Uri script,
     kernelTarget.setEntryPoints(<Uri>[script]);
     dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
-    return new List<Uri>.of(c.dependencies);
+    return new List<Uri>.of(tracker.dependencies);
   });
 }

@@ -50,7 +50,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/api_prototype/standard_file_system.dart": (
-    hitCount: 40,
+    hitCount: 43,
     missCount: 0,
   ),
   // 100.0%.
@@ -95,7 +95,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/compiler_context.dart": (
-    hitCount: 55,
+    hitCount: 46,
     missCount: 0,
   ),
   // 100.0%.
@@ -111,6 +111,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/base/export.dart": (
     hitCount: 16,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/base/file_system_dependency_tracker.dart": (
+    hitCount: 2,
     missCount: 0,
   ),
   // 100.0%.
@@ -690,7 +695,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel_generator_impl.dart": (
-    hitCount: 55,
+    hitCount: 52,
     missCount: 0,
   ),
   // 100.0%.

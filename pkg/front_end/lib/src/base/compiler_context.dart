@@ -39,8 +39,6 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
-  final List<Uri> dependencies = <Uri>[];
-
   FileSystem get fileSystem => options.fileSystem;
 
   Uri? cachedSdkRoot = null;
@@ -69,18 +67,6 @@ class CompilerContext {
   /// Format [message] as a text string that can be included in generated code.
   PlainAndColorizedString format(LocatedMessage message, Severity severity) {
     return command_line_reporting.format(message, severity);
-  }
-
-  static void recordDependency(Uri uri) {
-    if (!uri.isScheme("file") &&
-        // Coverage-ignore(suite): Not run.
-        !uri.isScheme("http")) {
-      throw new ArgumentError("Expected a file or http URI, but got: '$uri'.");
-    }
-    CompilerContext? context = Zone.current[compilerContextKey];
-    if (context != null) {
-      context.dependencies.add(uri);
-    }
   }
 
   static CompilerContext get current {
@@ -127,6 +113,5 @@ class CompilerContext {
 
   void clear() {
     clearStringCanonicalizationCache();
-    dependencies.clear();
   }
 }
