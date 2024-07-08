@@ -712,7 +712,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "RgErspyYHapUO2SpcW-vo2p8yaRUMUrq0eWjRVPfQjoC",
+      "version": "sbh76PYVTMxav4ACTgA-TXWcbZTZcWWjsqATCxrGIvwC",
       }
     ],
     "condition": 'download_fuchsia_deps',
