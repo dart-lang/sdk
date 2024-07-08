@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show isExtensionTypeThis;
-import 'package:front_end/src/kernel/resource_identifier.dart'
+import 'package:front_end/src/api_prototype/resource_identifier.dart'
     as ResourceIdentifiers;
 
 import 'analysis.dart';

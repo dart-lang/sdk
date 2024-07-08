@@ -8,8 +8,6 @@ import 'package:dev_compiler/src/kernel/command.dart'
     show addGeneratedVariables;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/base/incremental_serializer.dart' as fe;
-import 'package:front_end/src/compute_platform_binaries_location.dart' as fe;
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 

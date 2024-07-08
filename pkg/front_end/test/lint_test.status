@@ -4,14 +4,17 @@
 
 _fe_analyzer_shared/lib/src/parser/parser/Exports: Fail
 _fe_analyzer_shared/lib/src/scanner/scanner/Exports: Fail
+front_end/lib/src/api_prototype/codes/Exports: Fail
 front_end/lib/src/api_prototype/compiler_options/Exports: Fail
 front_end/lib/src/api_prototype/const_conditional_simplifier/Exports: Fail
 front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
 front_end/lib/src/api_prototype/front_end/Exports: Fail
 front_end/lib/src/api_prototype/incremental_kernel_generator/Exports: Fail
 front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail
+front_end/lib/src/api_prototype/resource_identifier/Exports: Fail
 front_end/lib/src/api_prototype/static_weak_references/Exports: Fail
 front_end/lib/src/api_prototype/terminal_color_support/Exports: Fail
+front_end/lib/src/api_prototype/testing/Exports: Fail
 front_end/lib/src/api_prototype/try_constant_evaluator/Exports: Fail
 front_end/lib/src/base/messages/Exports: Fail
 front_end/lib/src/codes/cfe_codes/Exports: Fail

@@ -89,6 +89,7 @@ export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/operator.dart' show Operator;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+export '../kernel/utils.dart' show ByteSink, serializeComponent;
 export 'compiler_state.dart' show InitializedCompilerState;
 
 // Coverage-ignore(suite): Not run.

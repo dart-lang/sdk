@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/base/messages.dart'
+import 'package:front_end/src/api_prototype/codes.dart'
     show templateCantReadFile, messageMissingMain;
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/util/memory_compiler.dart';

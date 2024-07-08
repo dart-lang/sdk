@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
+// avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiDefaultAssetDuplicate,

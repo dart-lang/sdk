@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' as sm;
 
