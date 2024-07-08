@@ -29,6 +29,7 @@ import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
@@ -291,6 +292,13 @@ class LibraryAnalyzer {
     for (var unitAnalysis in _libraryUnits.values) {
       _computeVerifyErrors(unitAnalysis);
     }
+
+    MemberDuplicateDefinitionVerifier.checkLibrary(
+      inheritance: _inheritance,
+      libraryVerificationContext: _libraryVerificationContext,
+      libraryElement: _libraryElement,
+      units: _libraryUnits,
+    );
 
     _libraryVerificationContext.constructorFieldsVerifier.report();
 

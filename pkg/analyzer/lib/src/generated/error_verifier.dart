@@ -270,9 +270,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _constArgumentsVerifier = ConstArgumentsVerifier(errorReporter),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
-          _inheritanceManager,
           _currentLibrary,
-          _currentUnit,
           errorReporter,
           libraryContext.duplicationDefinitionContext,
         ) {
@@ -484,7 +482,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
-      _duplicateDefinitionVerifier.checkClass(node);
       if (!declarationElement.isDartCoreFunctionImpl) {
         _checkForBuiltInIdentifierAsName(
             node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -691,8 +688,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
-      _duplicateDefinitionVerifier.checkEnum(node);
-
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForConflictingEnumTypeVariableErrorCodes(element);
@@ -775,7 +770,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     _enclosingExtension = element;
-    _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
     _checkForFinalNotInitializedInClass(element, node.members);
 
@@ -822,7 +816,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(element);
 
       var members = node.members;
-      _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(
         libraryContext.setOfImplements(declarationElement),
         node.implementsClause?.interfaces,
@@ -1245,7 +1238,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
-      _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForConflictingClassTypeVariableErrorCodes();
