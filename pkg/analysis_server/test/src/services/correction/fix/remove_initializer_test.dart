@@ -126,6 +126,21 @@ class Test {
 ''');
   }
 
+  Future<void> test_field_late() async {
+    await resolveTestCode('''
+class Test {
+  /// field example
+  late int? x = null;
+}
+''');
+    await assertHasFix('''
+class Test {
+  /// field example
+  int? x;
+}
+''');
+  }
+
   Future<void> test_forLoop() async {
     await resolveTestCode('''
 void f() {
