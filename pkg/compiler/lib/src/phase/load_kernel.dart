@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:front_end/src/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -417,7 +416,7 @@ Future<Output?> run(Input input) async {
   if (component == null) return null;
   if (input.forceSerialization) {
     // TODO(johnniwinther): Remove this when #34942 is fixed.
-    List<int> data = serializeComponent(component);
+    List<int> data = fe.serializeComponent(component);
     component = ir.Component();
     BinaryBuilder(data).readComponent(component);
     // Ensure we use the new deserialized entry point library.

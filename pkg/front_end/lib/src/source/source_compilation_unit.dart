@@ -632,16 +632,48 @@ class SourceCompilationUnitImpl
     }
   }
 
+  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
+    if (uri == null) {
+      // Coverage-ignore-block(suite): Not run.
+      addProblem(messageExpectedUri, uriOffset, noLength, fileUri);
+      return new Uri(scheme: MALFORMED_URI_SCHEME);
+    }
+    Uri parsedUri;
+    try {
+      parsedUri = Uri.parse(uri);
+    } on FormatException catch (e) {
+      // Point to position in string indicated by the exception,
+      // or to the initial quote if no position is given.
+      // (Assumes the directive is using a single-line string.)
+      addProblem(
+          templateCouldNotParseUri.withArguments(uri, e.message),
+          uriOffset +
+              1 +
+              (e.offset ?? // Coverage-ignore(suite): Not run.
+                  -1),
+          1,
+          fileUri);
+      return new Uri(
+          scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
+    }
+    if (isPart && baseUri.isScheme("dart")) {
+      // Coverage-ignore-block(suite): Not run.
+      // Resolve using special rules for dart: URIs
+      return resolveRelativeUri(baseUri, parsedUri);
+    } else {
+      return baseUri.resolveUri(parsedUri);
+    }
+  }
+
   @override
   void addPart(OffsetMap offsetMap, Token partKeyword,
       List<MetadataBuilder>? metadata, String uri, int charOffset) {
-    Uri resolvedUri = _sourceLibraryBuilder
-        .resolve(this.importUri, uri, charOffset, isPart: true);
+    Uri resolvedUri = _resolve(this.importUri, uri, charOffset, isPart: true);
     // To support absolute paths from within packages in the part uri, we try to
     // translate the file uri from the resolved import uri before resolving
     // through the file uri of this library. See issue #52964.
     Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
-        _sourceLibraryBuilder.resolve(fileUri, uri, charOffset);
+        _resolve(fileUri, uri, charOffset);
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
@@ -664,12 +696,12 @@ class SourceCompilationUnitImpl
     _sourceLibraryBuilder.partOfName = name;
     if (uri != null) {
       Uri resolvedUri = _sourceLibraryBuilder.partOfUri =
-          _sourceLibraryBuilder.resolve(this.importUri, uri, uriOffset);
+          _resolve(this.importUri, uri, uriOffset);
       // To support absolute paths from within packages in the part of uri, we
       // try to translate the file uri from the resolved import uri before
       // resolving through the file uri of this library. See issue #52964.
       Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
-          _sourceLibraryBuilder.resolve(fileUri, uri, uriOffset);
+          _resolve(fileUri, uri, uriOffset);
       loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
     }
     if (_scriptTokenOffset != null) {
@@ -720,7 +752,7 @@ class SourceCompilationUnitImpl
       String strippedUri = uri.substring(nativeExtensionScheme.length);
       if (strippedUri.startsWith("package")) {
         // Coverage-ignore-block(suite): Not run.
-        resolvedUri = _sourceLibraryBuilder.resolve(this.importUri, strippedUri,
+        resolvedUri = _resolve(this.importUri, strippedUri,
             uriOffset + nativeExtensionScheme.length);
         resolvedUri = loader.target.translateUri(resolvedUri);
         nativePath = resolvedUri.toString();
@@ -729,8 +761,7 @@ class SourceCompilationUnitImpl
         nativePath = uri;
       }
     } else {
-      resolvedUri =
-          _sourceLibraryBuilder.resolve(this.importUri, uri, uriOffset);
+      resolvedUri = _resolve(this.importUri, uri, uriOffset);
       compilationUnit = loader.read(resolvedUri, uriOffset,
           origin: isAugmentationImport ? _sourceLibraryBuilder : null,
           accessor: this,
@@ -841,8 +872,7 @@ class SourceCompilationUnitImpl
     }
 
     CompilationUnit exportedLibrary = loader.read(
-        _sourceLibraryBuilder.resolve(this.importUri, uri, uriOffset),
-        charOffset,
+        _resolve(this.importUri, uri, uriOffset), charOffset,
         accessor: this);
     exportedLibrary.addExporter(_sourceLibraryBuilder, combinators, charOffset);
     Export export = new Export(

@@ -6,6 +6,7 @@ import "dart:developer" as developer;
 
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
+import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
@@ -53,13 +54,21 @@ Future<void> main(List<String> args) async {
                   .resolve('pkg/front_end/test/token_leak_test_helper.dart'),
             ],
       compileSdk: compileSdk,
-      kernelTargetCreator: (api.FileSystem fileSystem,
+      kernelTargetCreator: (CompilerContext compilerContext,
+          api.FileSystem fileSystem,
           bool includeComments,
           DillTarget dillTarget,
           UriTranslator uriTranslator,
           BodyBuilderCreator bodyBuilderCreator) {
-        return new KernelTargetTester(fileSystem, includeComments, dillTarget,
-            uriTranslator, bodyBuilderCreator, serviceClient, classesInUris);
+        return new KernelTargetTester(
+            compilerContext,
+            fileSystem,
+            includeComments,
+            dillTarget,
+            uriTranslator,
+            bodyBuilderCreator,
+            serviceClient,
+            classesInUris);
       });
 
   await serviceClient.dispose();
@@ -75,6 +84,7 @@ class KernelTargetTester extends KernelTargetTest {
   final Map<String, List<Uri>> classesInUris;
 
   KernelTargetTester(
+    CompilerContext compilerContext,
     api.FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,
@@ -82,8 +92,8 @@ class KernelTargetTester extends KernelTargetTest {
     BodyBuilderCreator bodyBuilderCreator,
     this.serviceClient,
     this.classesInUris,
-  ) : super(fileSystem, includeComments, dillTarget, uriTranslator,
-            bodyBuilderCreator);
+  ) : super(compilerContext, fileSystem, includeComments, dillTarget,
+            uriTranslator, bodyBuilderCreator);
 
   @override
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {

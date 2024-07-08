@@ -16,7 +16,6 @@ import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart';
-import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
 

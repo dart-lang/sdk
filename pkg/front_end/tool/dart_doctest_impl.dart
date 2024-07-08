@@ -779,7 +779,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       DillTarget dillTarget,
       UriTranslator uriTranslator) {
     return new DocTestIncrementalKernelTarget(
-        this, fileSystem, includeComments, dillTarget, uriTranslator);
+        context, this, fileSystem, includeComments, dillTarget, uriTranslator);
   }
 
   LibraryBuilder? _dartDocTestLibraryBuilder;
@@ -872,9 +872,15 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
 class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
   final DocTestIncrementalCompiler compiler;
-  DocTestIncrementalKernelTarget(this.compiler, FileSystem fileSystem,
-      bool includeComments, DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+  DocTestIncrementalKernelTarget(
+      CompilerContext compilerContext,
+      this.compiler,
+      FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator)
+      : super(compilerContext, fileSystem, includeComments, dillTarget,
+            uriTranslator);
 
   @override
   SourceLoader createLoader() {

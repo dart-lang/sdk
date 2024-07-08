@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:front_end/src/kernel/constant_evaluator.dart'
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show SimpleErrorReporter;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';

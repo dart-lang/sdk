@@ -25,16 +25,20 @@ import '../codes/cfe_codes.dart' show LocatedMessage, PlainAndColorizedString;
 import '../compute_platform_binaries_location.dart' show translateSdk;
 import 'compiler_context.dart' show CompilerContext;
 import 'crash.dart' show Crash, safeToString;
-import 'messages.dart' show getLocation, getSourceLine;
+import 'messages.dart' show getLocation, getSourceLine, getSourceLineFromMap;
 import 'problems.dart' show unhandled;
+import 'processed_options.dart' show ProcessedOptions;
 
 const bool hideWarnings = false;
+
+// TODO(jensj): Reduce code duplication of all the format methods.
 
 /// Formats [message] as two strings that is suitable for output from a
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
-PlainAndColorizedString format(LocatedMessage message, Severity severity,
-    {Location? location, Map<Uri, Source>? uriToSource}) {
+PlainAndColorizedString format(
+    CompilerContext context, LocatedMessage message, Severity severity,
+    {Location? location}) {
   try {
     int length = message.length;
     if (length < 1) {
@@ -42,51 +46,20 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
       // empty names.
       length = 1;
     }
-    String? prefix = severityPrefixes[severity];
-    String messageTextTmp = prefix == null
-        ?
-        // Coverage-ignore(suite): Not run.
-        message.problemMessage
-        : "$prefix: ${message.problemMessage}";
-    if (message.correctionMessage != null) {
-      messageTextTmp += "\n${message.correctionMessage}";
-    }
-    final String messageTextPlain = messageTextTmp;
-    String messageTextColorized;
-    switch (severity) {
-      case Severity.error:
-      case Severity.internalProblem:
-        messageTextColorized = red(messageTextPlain);
-        break;
-
-      case Severity.warning:
-        // Coverage-ignore(suite): Not run.
-        messageTextColorized = magenta(messageTextPlain);
-        break;
-
-      case Severity.context:
-        messageTextColorized = green(messageTextPlain);
-        break;
-
-      // Coverage-ignore(suite): Not run.
-      case Severity.info:
-        messageTextColorized = yellow(messageTextPlain);
-        break;
-
-      // Coverage-ignore(suite): Not run.
-      case Severity.ignored:
-        return unhandled("$severity", "format", -1, null);
-    }
+    final String messageTextPlain = _createMessageText(severity, message);
+    String messageTextColorized =
+        _colorizeMessageText(severity, messageTextPlain);
 
     if (message.uri != null) {
-      String path =
-          relativizeUri(Uri.base, translateSdk(message.uri!), isWindows);
+      String path = relativizeUri(
+          Uri.base, translateSdk(context, message.uri!), isWindows);
       int offset = message.charOffset;
-      location ??= (offset == -1 ? null : getLocation(message.uri!, offset));
+      location ??=
+          (offset == -1 ? null : getLocation(context, message.uri!, offset));
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
-      String? sourceLine = getSourceLine(location, uriToSource);
+      String? sourceLine = getSourceLine(context, location);
       return new PlainAndColorizedString(
         formatErrorMessage(
             sourceLine, location, length, path, messageTextPlain),
@@ -106,6 +79,109 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
         "${safeToString(error)}\n"
         "$trace");
     throw new Crash(message.uri, message.charOffset, error, trace);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+/// Formats [message] as two strings that is suitable for output from a
+/// command-line tool. This includes source snippets and - in the colorized
+/// version - different colors based on [severity].
+PlainAndColorizedString formatWithLocationNoSdk(
+    LocatedMessage message, Severity severity,
+    {required Location location, required Map<Uri, Source> uriToSource}) {
+  int length = message.length;
+  if (length < 1) {
+    // TODO(ahe): Throw in this situation. It is normally an error caused by
+    // empty names.
+    length = 1;
+  }
+  final String messageTextPlain = _createMessageText(severity, message);
+  String messageTextColorized =
+      _colorizeMessageText(severity, messageTextPlain);
+
+  if (message.uri != null) {
+    String path = relativizeUri(Uri.base, message.uri!, isWindows);
+    String? sourceLine = getSourceLineFromMap(location, uriToSource);
+    return new PlainAndColorizedString(
+      formatErrorMessage(sourceLine, location, length, path, messageTextPlain),
+      formatErrorMessage(
+          sourceLine, location, length, path, messageTextColorized),
+    );
+  } else {
+    return new PlainAndColorizedString(
+      messageTextPlain,
+      messageTextColorized,
+    );
+  }
+}
+
+/// Formats [message] as two strings that is suitable for output from a
+/// command-line tool. This includes source snippets and - in the colorized
+/// version - different colors based on [severity].
+///
+/// Used without [CompilerContext] but gives the same output when file can't be
+/// looked up in uriToSource anyway, or we don't have or can get any
+/// line-position for it.
+PlainAndColorizedString formatNoSourceLine(
+    LocatedMessage message, Severity severity) {
+  int length = message.length;
+  if (length < 1) {
+    // TODO(ahe): Throw in this situation. It is normally an error caused by
+    // empty names.
+    length = 1;
+  }
+  final String messageTextPlain = _createMessageText(severity, message);
+  String messageTextColorized =
+      _colorizeMessageText(severity, messageTextPlain);
+
+  if (message.uri != null) {
+    // Coverage-ignore-block(suite): Not run.
+    String path = relativizeUri(Uri.base, message.uri!, isWindows);
+    return new PlainAndColorizedString(
+      formatErrorMessage(null, null, length, path, messageTextPlain),
+      formatErrorMessage(null, null, length, path, messageTextColorized),
+    );
+  } else {
+    return new PlainAndColorizedString(
+      messageTextPlain,
+      messageTextColorized,
+    );
+  }
+}
+
+String _createMessageText(Severity severity, LocatedMessage message) {
+  String? prefix = severityPrefixes[severity];
+  String messageText = prefix == null
+      ?
+      // Coverage-ignore(suite): Not run.
+      message.problemMessage
+      : "$prefix: ${message.problemMessage}";
+  if (message.correctionMessage != null) {
+    messageText += "\n${message.correctionMessage}";
+  }
+  return messageText;
+}
+
+String _colorizeMessageText(Severity severity, String messageTextPlain) {
+  switch (severity) {
+    case Severity.error:
+    case Severity.internalProblem:
+      return red(messageTextPlain);
+
+    case Severity.warning:
+      // Coverage-ignore(suite): Not run.
+      return magenta(messageTextPlain);
+
+    case Severity.context:
+      return green(messageTextPlain);
+
+    // Coverage-ignore(suite): Not run.
+    case Severity.info:
+      return yellow(messageTextPlain);
+
+    // Coverage-ignore(suite): Not run.
+    case Severity.ignored:
+      throw unhandled("$severity", "format", -1, null);
   }
 }
 
@@ -171,10 +247,10 @@ bool isHidden(Severity severity) {
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
 /// immediately?
-bool shouldThrowOn(Severity severity) {
+bool shouldThrowOn(ProcessedOptions options, Severity severity) {
   switch (severity) {
     case Severity.error:
-      return CompilerContext.current.options.throwOnErrorsForDebugging;
+      return options.throwOnErrorsForDebugging;
 
     // Coverage-ignore(suite): Not run.
     case Severity.internalProblem:
@@ -182,7 +258,7 @@ bool shouldThrowOn(Severity severity) {
 
     // Coverage-ignore(suite): Not run.
     case Severity.warning:
-      return CompilerContext.current.options.throwOnWarningsForDebugging;
+      return options.throwOnWarningsForDebugging;
 
     // Coverage-ignore(suite): Not run.
     case Severity.info:

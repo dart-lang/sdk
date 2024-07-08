@@ -109,9 +109,9 @@ Future<BuildResult> compile(
     } else {
       UriTranslator uriTranslator = await c.options.getUriTranslator();
       DillTarget dillTarget =
-          new DillTarget(ticker, uriTranslator, c.options.target);
-      KernelTarget kernelTarget = kernelTargetCreator(
-          c.fileSystem, false, dillTarget, uriTranslator, bodyBuilderCreator);
+          new DillTarget(c, ticker, uriTranslator, c.options.target);
+      KernelTarget kernelTarget = kernelTargetCreator(c, c.fileSystem, false,
+          dillTarget, uriTranslator, bodyBuilderCreator);
 
       Uri? platform = c.options.sdkSummary;
       if (platform != null) {
@@ -159,8 +159,8 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       bool includeComments,
       DillTarget dillTarget,
       UriTranslator uriTranslator) {
-    return new KernelTargetTest(fileSystem, includeComments, dillTarget,
-        uriTranslator, bodyBuilderCreator)
+    return new KernelTargetTest(context, fileSystem, includeComments,
+        dillTarget, uriTranslator, bodyBuilderCreator)
       ..skipTransformations = true;
   }
 }
@@ -175,6 +175,7 @@ class TestRecorderForTesting extends RecorderForTesting {
 }
 
 typedef KernelTargetCreator = KernelTargetTest Function(
+    CompilerContext compilerContext,
     api.FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,
@@ -186,12 +187,14 @@ class KernelTargetTest extends IncrementalKernelTarget {
   bool skipTransformations = false;
 
   KernelTargetTest(
+    CompilerContext compilerContext,
     api.FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,
     UriTranslator uriTranslator,
     this.bodyBuilderCreator,
-  ) : super(fileSystem, includeComments, dillTarget, uriTranslator);
+  ) : super(compilerContext, fileSystem, includeComments, dillTarget,
+            uriTranslator);
 
   @override
   SourceLoader createLoader() {

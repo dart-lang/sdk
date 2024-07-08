@@ -12,7 +12,7 @@ import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:dev_compiler/dev_compiler.dart' as ddc_names
     show libraryUriToJsIdentifier;
-import 'package:front_end/src/compute_platform_binaries_location.dart' as fe;
+import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:reload_test/ddc_helpers.dart' as ddc_helpers;
 import 'package:reload_test/frontend_server_controller.dart';
 import 'package:reload_test/hot_reload_memory_filesystem.dart';

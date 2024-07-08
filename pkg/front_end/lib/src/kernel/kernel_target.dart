@@ -126,13 +126,13 @@ class KernelTarget {
       const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final bool excludeSource = !CompilerContext.current.options.embedSourceText;
+  bool get excludeSource => !context.options.embedSourceText;
 
-  final Map<String, String>? environmentDefines =
-      CompilerContext.current.options.environmentDefines;
+  Map<String, String>? get environmentDefines =>
+      context.options.environmentDefines;
 
-  final bool errorOnUnevaluatedConstant =
-      CompilerContext.current.options.errorOnUnevaluatedConstant;
+  bool get errorOnUnevaluatedConstant =>
+      context.options.errorOnUnevaluatedConstant;
 
   final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
 
@@ -140,10 +140,10 @@ class KernelTarget {
 
   final Target backendTarget;
 
-  final CompilerContext context = CompilerContext.current;
+  final CompilerContext context;
 
   /// Shared with [CompilerContext].
-  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+  Map<Uri, Source> get uriToSource => context.uriToSource;
 
   MemberBuilder? _cachedDuplicatedFieldInitializerError;
   MemberBuilder? _cachedNativeAnnotation;
@@ -152,11 +152,11 @@ class KernelTarget {
 
   final Benchmarker? benchmarker;
 
-  KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
-      this.uriTranslator)
+  KernelTarget(this.context, this.fileSystem, this.includeComments,
+      DillTarget dillTarget, this.uriTranslator)
       : dillTarget = dillTarget,
         backendTarget = dillTarget.backendTarget,
-        _options = CompilerContext.current.options,
+        _options = context.options,
         ticker = dillTarget.ticker,
         benchmarker = dillTarget.benchmarker {
     assert(_options.haveBeenValidated, "Options have not been validated");
@@ -216,6 +216,7 @@ class KernelTarget {
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
+        context,
         fileUri != null
             ? message.withLocation(fileUri, charOffset, length)
             :
@@ -227,7 +228,7 @@ class KernelTarget {
   }
 
   String get currentSdkVersionString {
-    return CompilerContext.current.options.currentSdkVersion;
+    return context.options.currentSdkVersion;
   }
 
   Version get leastSupportedVersion => const Version(2, 12);
@@ -1781,8 +1782,8 @@ class KernelTarget {
 
   void _verify({required bool allowVerificationErrorForTesting}) {
     // TODO(ahe): How to handle errors.
-    List<LocatedMessage> errors = verifyComponent(context.options.target,
-        VerificationStage.afterModularTransformations, component!,
+    List<LocatedMessage> errors = verifyComponent(
+        context, VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
     assert(
         allowVerificationErrorForTesting || errors.isEmpty,

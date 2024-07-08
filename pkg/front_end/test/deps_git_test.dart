@@ -7,7 +7,9 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/compiler_context.dart';
+import 'package:front_end/src/base/file_system_dependency_tracker.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/ticker.dart';
 import 'package:front_end/src/base/uri_translator.dart';
@@ -54,6 +56,8 @@ Future<bool> main() async {
     throw "Couldn't find .dart_tool/package_config.json";
   }
   compilerOptions.packagesFileUri = packageConfigUri;
+  FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
+  compilerOptions.fileSystem = StandardFileSystem.instanceWithTracking(tracker);
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
@@ -70,9 +74,9 @@ Future<bool> main() async {
       (CompilerContext c) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     DillTarget dillTarget =
-        new DillTarget(ticker, uriTranslator, c.options.target);
+        new DillTarget(c, ticker, uriTranslator, c.options.target);
     KernelTarget kernelTarget =
-        new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
+        new KernelTarget(c, c.fileSystem, false, dillTarget, uriTranslator);
     Uri? platform = c.options.sdkSummary;
     if (platform != null) {
       var bytes = new File.fromUri(platform).readAsBytesSync();
@@ -84,7 +88,7 @@ Future<bool> main() async {
     kernelTarget.setEntryPoints(c.options.inputs);
     dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
-    return new List<Uri>.from(c.dependencies);
+    return new List<Uri>.from(tracker.dependencies);
   });
 
   Set<Uri> otherDartUris = new Set<Uri>();

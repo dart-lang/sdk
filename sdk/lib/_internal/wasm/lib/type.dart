@@ -617,63 +617,37 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-/// Rules that describe whether two classes are related in a hierarchy and if so
-/// how to translate a subtype's class's type arguments to the type arguments of
-/// a supertype's class.
-///
-/// The table has key for every class in the system. The value is an array of
-/// `(superClassId1, ..., superClassIdN,
-///   canonicalSubstitutionIndex1, ..., canonicalSubstitutionIndexN)`.
-///
-/// For example, let's assume we have these classes:
-///
-///   ```
-///   class Sub<T> extends Foo<List<T>> {}
-///   class Foo<T> implements Bar<int, T> {}
-///   class Bar<T, H> {}
-///   ```
-///
-/// The table will have an entry for every transitively extended/implemented
-/// class (except `Object`).
-///
-/// ```
-///   _typeRulesSupers = [
-///     ...
-///     @Sub.classId: [(Foo.classId, Bar.classId), (IDX-X, IDX-Y)]
-///     ...
-///   ]
-/// ```
-///
-/// Where the `IDX-X` and `IDX-Y` are integer indices into the canonical
-/// substitution table, which would look like this:
-/// ```
-///   _canonicalSubstitutionTable = [
-///     ...
-///     @IDX-X: [
-///               _InterfaceType(List.classId, args: [_InterfaceTypeParameterType(index=0)])
-///             ]
-///     ...
-///     @IDX-Y: [
-///               _InterfaceType(int.classId args: []),
-///               _InterfaceType(List.classId, args: [_InterfaceTypeParameterType(index=0)])
-///             ]
-///     ...
-///   ]
-/// ```
-///
-external WasmArray<WasmArray<WasmI32>> get _typeRulesSupers;
+/// Maps each class id representing a type to the offset of that type-checker
+/// row in [_typeRowDisplacementTable].
+external WasmArray<WasmI32> get _typeRowDisplacementOffsets;
 
-/// Canonical substitution table used to translate type arguments from one class
-/// to a related other class.
+/// Tells whether a class `Sub` is a subclass of another class `Base.
 ///
-/// See [_typeRulesSupers] for more information on how they are used.
-external WasmArray<WasmArray<_Type>> get _canonicalSubstitutionTable;
+/// Used via
+/// ```
+///    baseOffset = _typeRowDisplacementOffsets[Base.classId]`
+///    index = baseOffset + Sub.classId
+///    value = _typeRowDisplacementTable[index]
+///    if (value == Base.classId) {
+///      // => Sub.classId is a subclass of Base.classId
+///      // => Can use `index` into `_typeRowDisplacementSubstTable[index]`
+///    }
+///```
+external WasmArray<WasmI32> get _typeRowDisplacementTable;
+
+/// Holds the canonical type argument substitution index for matching table
+/// entries (see above).
+///
+/// If `index` matches in [_typeRowDisplacementTable] then the same index can be
+/// used in this array to find the type argument substitution array for
+/// translating type arguments from a base class to a direct/indirect class.
+external WasmArray<WasmArray<_Type>> get _typeRowDisplacementSubstTable;
 
 /// The names of all classes (indexed by class id) or null (if `--minify` was
 /// used)
 external WasmArray<String>? get _typeNames;
 
-/// The non-negative index into [_canonicalSubstitutionTable] that represents
+/// The non-negative index into [_typeRowDisplacementSubstTable] that represents
 /// that no substitution is needed.
 external WasmI32 get _noSubstitutionIndex;
 
@@ -964,7 +938,7 @@ abstract class _TypeUniverse {
 
     // Substitue each argument before performing the subtype check (slow case).
     final substitutions =
-        _canonicalSubstitutionTable[substitutionIndex.toIntSigned()];
+        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == 1);
     final sArgForClassT =
         substituteTypeArgument(substitutions[0], sTypeArguments, null);
@@ -981,7 +955,7 @@ abstract class _TypeUniverse {
 
     // Substitue each argument before performing the subtype check (slow case).
     final substitutions =
-        _canonicalSubstitutionTable[substitutionIndex.toIntSigned()];
+        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == 2);
     final sArg1ForClassT =
         substituteTypeArgument(substitutions[1], sTypeArguments, null);
@@ -1009,7 +983,7 @@ abstract class _TypeUniverse {
 
     // Substitute each argument before performing the subtype check (slow case).
     final substitutions =
-        _canonicalSubstitutionTable[substitutionIndex.toIntSigned()];
+        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == tTypeArguments.length);
     for (int i = 0; i < tTypeArguments.length; i++) {
       final sArgForClassT =
@@ -1036,18 +1010,36 @@ abstract class _TypeUniverse {
     // The [sSupers] array below doesn't encode the class itself.
     if (sId == tId) return _noSubstitutionIndex;
 
-    // Otherwise, check if [s] is a subtype of [t], and if it is then compare
-    // [s]'s type substitutions with [t]'s type arguments.
-    final WasmArray<WasmI32> sSupers = _typeRulesSupers[sId.toIntSigned()];
-    if (sSupers.isEmpty) return (-1).toWasmI32();
+    return _checkSubclassRelationshipViaTable(sId, tId);
+  }
 
-    final WasmI32 substitutionIndex = _searchSupers(sSupers, tId);
-    if (substitutionIndex == (-1).toWasmI32()) return (-1).toWasmI32();
-    return sSupers[substitutionIndex.toIntSigned()];
+  @pragma('wasm:prefer-inline')
+  static WasmI32 _checkSubclassRelationshipViaTable(WasmI32 sId, WasmI32 tId) {
+    final offset = _typeRowDisplacementOffsets;
+    final table = _typeRowDisplacementTable;
+
+    final WasmI32 index = offset[tId.toIntSigned()] + sId;
+    if (index.geU(table.length.toWasmI32())) return (-1).toWasmI32();
+    final value = table[index.toIntSigned()];
+    if (value == tId) return index;
+    if (value == -tId) return _noSubstitutionIndex;
+    return (-1).toWasmI32();
+  }
+
+  static WasmI32 _searchSubs(WasmArray<WasmI32> table, WasmI32 key) {
+    for (WasmI32 i = 0.toWasmI32();
+        i < table.length.toWasmI32();
+        i += 3.toWasmI32()) {
+      final start = table[i.toIntSigned()];
+      final end = table[(i + 1.toWasmI32()).toIntSigned()];
+      if (start <= key && key <= end)
+        return table[(i + 2.toWasmI32()).toIntSigned()];
+    }
+    return (-1).toWasmI32();
   }
 
   static WasmI32 _searchSupers(WasmArray<WasmI32> table, WasmI32 key) {
-    final WasmI32 end = (table.length >> 1).toWasmI32();
+    final WasmI32 end = table.length.toWasmI32() >> 1.toWasmI32();
     return (end < 8.toWasmI32())
         ? _linearSearch(table, end, key)
         : _binarySearch(table, end, key);

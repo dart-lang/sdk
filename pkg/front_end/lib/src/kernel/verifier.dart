@@ -6,7 +6,6 @@ library fasta.verifier;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart';
 
@@ -20,12 +19,13 @@ import '../codes/cfe_codes.dart'
 import '../base/compiler_context.dart' show CompilerContext;
 
 List<LocatedMessage> verifyComponent(
-    Target target, VerificationStage stage, Component component,
+    CompilerContext context, VerificationStage stage, Component component,
     {bool skipPlatform = false,
     bool Function(Library library)? librarySkipFilter}) {
   FastaVerificationErrorListener listener =
-      new FastaVerificationErrorListener();
-  VerifyingVisitor verifier = new VerifyingVisitor(target, stage,
+      new FastaVerificationErrorListener(context);
+  VerifyingVisitor verifier = new VerifyingVisitor(
+      context.options.target, stage,
       skipPlatform: skipPlatform,
       librarySkipFilter: librarySkipFilter,
       listener: listener);
@@ -35,7 +35,10 @@ List<LocatedMessage> verifyComponent(
 
 // Coverage-ignore(suite): Not run.
 class FastaVerificationErrorListener implements VerificationErrorListener {
+  final CompilerContext compilerContext;
   List<LocatedMessage> errors = [];
+
+  FastaVerificationErrorListener(this.compilerContext);
 
   @override
   void reportError(String details,
@@ -57,8 +60,8 @@ class FastaVerificationErrorListener implements VerificationErrorListener {
             origin.location!.file, origin.fileOffset, noLength)
       ];
     }
-    CompilerContext.current
-        .report(locatedMessage, Severity.error, context: contextMessages);
+    compilerContext.report(locatedMessage, Severity.error,
+        context: contextMessages);
     errors.add(locatedMessage);
   }
 }

@@ -7,6 +7,8 @@
 
 library vm.transformations.ffi;
 
+// This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
+// avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         messageFfiLeafCallMustNotReturnHandle,

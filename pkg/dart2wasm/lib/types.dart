@@ -11,6 +11,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
 import 'code_generator.dart';
+import 'dispatch_table.dart' show Row, buildRowDisplacementTable;
 import 'translator.dart';
 
 /// Values for the `_kind` field in `_TopType`. Must match the definitions in
@@ -801,59 +802,34 @@ class Types {
 
 /// Builds up data structures that the Runtime Type System implementation uses.
 ///
-/// There are 3 data structures:
+/// There are 2 data structures:
 ///
 ///   * The name of all classes represented as an wasm array of strings.
 ///
-///   * A canonical substitution table where each entry represents
-///     (potentially uninstantiated) type arguments to a superclass.
-///
-///     => This is used for translating type arguments between related classes
-///     in a hierarchy.
-///
-///   * A table mapping each class id to its transitive super classes (i.e.
-///     transitive implements/extends) and an index into the canonical
-///     substitution table on how to translate type arguments between the two
-///     related clases.
+///   * A type row-displacement table encoding whether a class is a subclass of
+///    another class and if so, how to translate the type arguments from a
+///    subclass to a super clss.
 ///
 /// See sdk/lib/_internal/wasm/lib/type.dart for more information.
 class RuntimeTypeInformation {
   final Translator translator;
 
-  /// Canonical substitution table of type `const WasmArray<WasmArray<_Type>>`.
-  ///
-  /// Stores a canonical table of substitution arrays. Each substitution array
-  /// describes (possibly uninstantiated) type arguments that can be
-  /// instantiated with actual object type arguments.
-  /// => This allows translating an objects type arguments to the type arguments
-  /// of a related super class.
-  ///
-  /// See sdk/lib/_internal/wasm/lib/type.dart:_canonicalSubstitutionTable for
-  /// what this contains and how it's used for substitution.
-  late final InstanceConstant substitutionTableConstant;
-
-  /// The Dart type of the [substitutionTableConstant] constant.
-  late final DartType substitutionTableConstantType;
-
   /// This index in the substitution canonicalization table indicates that we do
   /// not have to substitute anything.
   static const int noSubstitutionIndex = 0;
 
-  /// Type rules supers table of type `const WasmArray<WasmArray<_WasmI32>>`.
-  ///
-  /// Has an array for every class id in the system. For a particular class id
-  /// it has (super-classId, canonical-substitutionIndex) tuples used by the RTT
-  /// system to determine whether two classes are related and how to translate
-  /// type arguments from one class to type arguments of a related other class.
-  ///
-  /// See sdk/lib/_internal/wasm/lib/type.dart:_typeRulesSupers for
-  /// what this contains and how it's used for substitution.
-  late final InstanceConstant typeRulesSupers;
-  late final DartType typeRulesSupersType;
-
   /// Table of type names indexed by class id.
   late final InstanceConstant typeNames;
   late final DartType typeNamesType;
+
+  /// See sdk/lib/_internal/wasm/lib/type.dart:_typeRowDisplacement*
+  /// for what this contains and how it's used for substitution.
+  late final InstanceConstant typeRowDisplacementOffsets;
+  late final DartType typeRowDisplacementOffsetsType;
+  late final InstanceConstant typeRowDisplacementTable;
+  late final DartType typeRowDisplacementTableType;
+  late final InstanceConstant typeRowDisplacementSubstTable;
+  late final DartType typeRowDisplacementSubstTableType;
 
   CoreTypes get coreTypes => translator.coreTypes;
   Types get types => translator.types;
@@ -861,18 +837,16 @@ class RuntimeTypeInformation {
   late final Map<int, Map<int, int>> _substitutionSubclassToSuperclass;
   late final Map<int, Map<int, int>> _substitutionSuperclassToSubclass;
   late final Map<InstanceConstant, int> _substitutionTable;
+  late final List<InstanceConstant> _substitutionTableByIndex;
 
   final Map<int, bool> _requiresSubstitutionForSubclasses = {};
 
   RuntimeTypeInformation(this.translator) {
     _buildTypeRules();
 
-    // The canonical substitution table of type WasmArray<WasmArray<_Type>>
-    _initSubstitutionTableConstant();
-
-    // Data structures to find the substitution type arguments for a
-    // given source and target class.
-    _initTypeRulesSupers();
+    // Data structure to tell whether two types are related and if so how to
+    // translate type arguments from one class to that of a super class.
+    _initTypeRowDiplacementTable();
 
     // The class name table of type WasmArray<String>
     _initTypeNames();
@@ -897,11 +871,14 @@ class RuntimeTypeInformation {
     _substitutionSubclassToSuperclass = <int, Map<int, int>>{};
     _substitutionSuperclassToSubclass = <int, Map<int, int>>{};
     _substitutionTable = <InstanceConstant, int>{};
+    _substitutionTableByIndex = <InstanceConstant>[];
 
     assert(noSubstitutionIndex == 0);
     assert(_substitutionTable.length == noSubstitutionIndex);
-    _substitutionTable[translator.constants.makeTypeArray([])] =
-        noSubstitutionIndex;
+    assert(_substitutionTableByIndex.length == noSubstitutionIndex);
+    final noSubstitution = translator.constants.makeTypeArray([]);
+    _substitutionTable[noSubstitution] = noSubstitutionIndex;
+    _substitutionTableByIndex.add(noSubstitution);
 
     for (ClassInfo classInfo in translator.classes) {
       ClassInfo superclassInfo = classInfo;
@@ -941,8 +918,15 @@ class RuntimeTypeInformation {
         } else {
           final substitution =
               translator.constants.makeTypeArray(typeArguments!);
-          substitutionIndex = _substitutionTable.putIfAbsent(
-              substitution, () => _substitutionTable.length);
+          int? index = _substitutionTable[substitution];
+          if (index == null) {
+            assert(
+                _substitutionTableByIndex.length == _substitutionTable.length);
+            index = _substitutionTableByIndex.length;
+            _substitutionTableByIndex.add(substitution);
+            _substitutionTable[substitution] = index;
+          }
+          substitutionIndex = index;
         }
 
         final subclassId = translator.classInfo[subtype.classNode]!.classId;
@@ -983,55 +967,63 @@ class RuntimeTypeInformation {
     return true;
   }
 
-  void _initSubstitutionTableConstant() {
+  void _initTypeRowDiplacementTable() {
+    final rowForSuperclass = List<Row?>.filled(translator.classes.length, null);
+    final rows = <Row<(int, int)>>[];
+    final ranges = _buildRanges(_substitutionSuperclassToSubclass);
+    ranges.forEach((int superId, List<(Range, int)> subs) {
+      if (subs.isEmpty) return;
+
+      final rowEntries = <({int index, (int, int) value})>[];
+      for (final (Range range, int substitutionIndex) in subs) {
+        for (int classId = range.start; classId <= range.end; ++classId) {
+          rowEntries.add((index: classId, value: (superId, substitutionIndex)));
+        }
+      }
+      final row = Row<(int, int)>(rowEntries);
+      rows.add(row);
+      rowForSuperclass[superId] = row;
+    });
+
     final typeType =
         InterfaceType(translator.typeClass, Nullability.nonNullable);
     final arrayOfType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
-
-    // We rely on the keys being in insertion order.
-    substitutionTableConstant = translator.constants
-        .makeArrayOf(arrayOfType, _substitutionTable.keys.toList());
-    substitutionTableConstantType = InterfaceType(
+    final arrayOfArrayOfType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [arrayOfType]);
-  }
-
-  void _initTypeRulesSupers() {
     final wasmI32 =
         InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
     final arrayOfI32 = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [wasmI32]);
 
-    // Maps each class id to a list of super class ids followed by a list of
-    // substitution table indices.
-    final typeRulesArray = <InstanceConstant>[];
-    for (int classId = 0; classId < translator.classes.length; classId++) {
-      final rules = _substitutionSubclassToSuperclass[classId];
-      if (rules == null) {
-        typeRulesArray.add(
-            translator.constants.makeArrayOf(wasmI32, const <IntConstant>[]));
-        continue;
-      }
-
-      final List<int> superclassIds = rules.keys.toList();
-      superclassIds.sort();
-      final superClassSubstitutionTuples =
-          List<IntConstant>.filled(2 * superclassIds.length, IntConstant(0));
-      for (int i = 0; i < superclassIds.length; ++i) {
-        final superClassId = superclassIds[i];
-        final substitutionTableIndex = rules[superClassId]!;
-
-        superClassSubstitutionTuples[i] = IntConstant(superClassId);
-        superClassSubstitutionTuples[superclassIds.length + i] =
-            IntConstant(substitutionTableIndex);
-      }
-      typeRulesArray.add(translator.constants
-          .makeArrayOf(wasmI32, superClassSubstitutionTuples));
+    final maxId = translator.classIdNumbering.maxClassId;
+    int normalize(int value) => (100 * value) ~/ maxId;
+    int weight(Row row) {
+      return normalize(row.values.length) + normalize(row.holes);
     }
-    typeRulesSupers =
-        translator.constants.makeArrayOf(arrayOfI32, typeRulesArray);
-    typeRulesSupersType = InterfaceType(
-        translator.wasmArrayClass, Nullability.nonNullable, [arrayOfI32]);
+
+    rows.sort((Row a, Row b) => -weight(a).compareTo(weight(b)));
+    final table = buildRowDisplacementTable(rows, firstAvailable: 1);
+    typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
+      for (final entry in table)
+        IntConstant(entry == null
+            ? 0
+            : (entry.$2 == noSubstitutionIndex ? -entry.$1 : entry.$1)),
+    ]);
+    typeRowDisplacementTableType = arrayOfI32;
+    typeRowDisplacementSubstTable =
+        translator.constants.makeArrayOf(arrayOfType, [
+      for (final entry in table)
+        _substitutionTableByIndex[
+            entry == null ? noSubstitutionIndex : entry.$2],
+    ]);
+    typeRowDisplacementSubstTableType = arrayOfArrayOfType;
+
+    typeRowDisplacementOffsets = translator.constants.makeArrayOf(wasmI32, [
+      for (int classId = 0; classId < translator.classes.length; ++classId)
+        IntConstant(rowForSuperclass[classId]?.offset ?? -1),
+    ]);
+    typeRowDisplacementOffsetsType = arrayOfI32;
   }
 
   void _initTypeNames() {
@@ -1051,6 +1043,31 @@ class RuntimeTypeInformation {
     typeNames = translator.constants.makeArrayOf(stringType, nameConstants);
     typeNamesType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
+  }
+
+  Map<int, List<(Range, int)>> _buildRanges(Map<int, Map<int, int>> map) {
+    final rangeValues = <int, List<(Range, int)>>{};
+    map.forEach((int id, Map<int, int> subs) {
+      final entries = subs.entries
+          .map((entry) => (Range(entry.key, entry.key), entry.value))
+          .toList();
+      entries.sort((a, b) => a.$1.start.compareTo(b.$1.start));
+
+      int writeIndex = 0;
+      for (int readIndex = 1; readIndex < entries.length; ++readIndex) {
+        final current = entries[writeIndex];
+        final next = entries[readIndex];
+        if (current.$2 == next.$2 && (current.$1.end + 1) == next.$1.start) {
+          entries[writeIndex] =
+              (Range(current.$1.start, next.$1.end), current.$2);
+          continue;
+        }
+        entries[++writeIndex] = next;
+      }
+      entries.length = writeIndex + 1;
+      rangeValues[id] = entries;
+    });
+    return rangeValues;
   }
 }
 

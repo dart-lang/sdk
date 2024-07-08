@@ -40,6 +40,10 @@ class ValidatingInstrumentation implements Instrumentation {
     ],
   };
 
+  final CompilerContext compilerContext;
+
+  ValidatingInstrumentation(this.compilerContext);
+
   /// Map from file URI to the as-yet unsatisfied expectations from that file,
   /// organized by file offset.
   final _unsatisfiedExpectations = <Uri, Map<int, List<_Expectation>>>{};
@@ -220,7 +224,7 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _formatProblem(
       Uri uri, int offset, String desc, StackTrace? stackTrace) {
-    return CompilerContext.current
+    return compilerContext
         .format(
             templateUnspecified
                 .withArguments(

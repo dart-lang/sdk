@@ -997,9 +997,6 @@ class CompilerResultLoadedFromKernel implements CompilerResult {
   List<Component> get loadedComponents => const <Component>[];
 
   @override
-  List<Uri> get deps => const <Uri>[];
-
-  @override
   CoreTypes? get coreTypes => null;
 
   @override

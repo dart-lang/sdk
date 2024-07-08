@@ -9,7 +9,8 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:front_end/src/testing/id_testing_utils.dart';
+import 'package:front_end/src/api_prototype/testing.dart'
+    show getMemberName, getEnclosingMember;
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';

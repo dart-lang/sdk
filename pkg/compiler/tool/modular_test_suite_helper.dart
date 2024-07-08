@@ -11,7 +11,7 @@ import 'dart:async';
 
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
+import 'package:front_end/src/api_unstable/dart2js.dart'
     show computePlatformBinariesLocation;
 import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
