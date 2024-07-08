@@ -17,10 +17,6 @@ import 'src/norm.dart';
 
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
-abstract class MixinInferrer {
-  void infer(ClassHierarchy hierarchy, Class classNode);
-}
-
 /// Core interface for answering queries needed to compute the subtyping
 /// relation.
 abstract class ClassHierarchyBase {
@@ -308,14 +304,13 @@ abstract class ClassHierarchyMembers {
 abstract class ClassHierarchy
     implements ClassHierarchyBase, ClassHierarchyMembers {
   factory ClassHierarchy(Component component, CoreTypes coreTypes,
-      {HandleAmbiguousSupertypes? onAmbiguousSupertypes,
-      MixinInferrer? mixinInferrer}) {
+      {HandleAmbiguousSupertypes? onAmbiguousSupertypes}) {
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
       // See https://github.com/dart-lang/sdk/issues/32091
       throw "$cls can't implement both $a and $b";
     };
     return new ClosedWorldClassHierarchy._internal(
-        coreTypes, onAmbiguousSupertypes, mixinInferrer)
+        coreTypes, onAmbiguousSupertypes)
       .._initialize(component.libraries);
   }
 
@@ -650,7 +645,6 @@ class ClosedWorldClassHierarchy
   CoreTypes coreTypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
-  final MixinInferrer? mixinInferrer;
 
   /// The insert order is important.
   final Map<Class, _ClassInfo> _infoMap =
@@ -725,8 +719,8 @@ class ClosedWorldClassHierarchy
 
   _ClosedWorldClassHierarchySubtypes? _cachedClassHierarchySubtypes;
 
-  ClosedWorldClassHierarchy._internal(this.coreTypes,
-      HandleAmbiguousSupertypes onAmbiguousSupertypes, this.mixinInferrer) {
+  ClosedWorldClassHierarchy._internal(
+      this.coreTypes, HandleAmbiguousSupertypes onAmbiguousSupertypes) {
     _onAmbiguousSupertypesNotWrapped = onAmbiguousSupertypes;
     _onAmbiguousSupertypes = (Class class_, Supertype a, Supertype b) {
       onAmbiguousSupertypes(class_, a, b);
@@ -1363,7 +1357,6 @@ class ClosedWorldClassHierarchy
       }
       Supertype? mixedInType = class_.mixedInType;
       if (mixedInType != null) {
-        mixinInferrer?.infer(this, class_);
         _recordSuperTypes(info, mixedInType);
       }
       for (Supertype supertype in class_.implementedTypes) {

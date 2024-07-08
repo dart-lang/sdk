@@ -1,8 +1,195 @@
 //
 // Problems outside component:
 //
-// pkg/front_end/testcases/dart2js/native.dart: Error: Only JS interop members may be 'external'.
+// pkg/front_end/testcases/dart2js/native.dart:38:12: Error: Only JS interop members may be 'external'.
 // Try removing the 'external' keyword or adding a JS interop annotation.
+//   external Class.externalGenerative();
+//            ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:44:3: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   Class.nativeGenerative() native;
+//   ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:41:20: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external factory Class.externalFact();
+//                    ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:47:11: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   factory Class.nativeFact() native;
+//           ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:60:16: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external get externalInstanceGetter;
+//                ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:63:16: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external set externalInstanceSetter(_);
+//                ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:66:12: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external externalInstanceMethod();
+//            ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:69:23: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external static get externalStaticGetter;
+//                       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:72:23: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external static set externalStaticSetter(_);
+//                       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:75:19: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external static externalStaticMethod();
+//                   ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:77:7: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   get nativeInstanceGetter native;
+//       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:78:7: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   set nativeInstanceSetter(_) native;
+//       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:79:3: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   nativeInstanceMethod() native;
+//   ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:82:14: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   static get nativeStaticGetter native;
+//              ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:85:14: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   static set nativeStaticSetter(_) native;
+//              ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:88:10: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   static nativeStaticMethod() native;
+//          ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:98:12: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external NativeClass.externalGenerative();
+//            ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:102:3: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   NativeClass.nativeGenerative() native;
+//   ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:100:20: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external factory NativeClass.externalFact();
+//                    ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:103:11: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   factory NativeClass.nativeFact() native;
+//           ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:118:16: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external get externalInstanceGetter;
+//                ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:121:16: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external set externalInstanceSetter(_);
+//                ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:124:12: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external externalInstanceMethod();
+//            ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:127:23: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external static get externalStaticGetter;
+//                       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:130:23: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external static set externalStaticSetter(_);
+//                       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:133:19: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   external static externalStaticMethod();
+//                   ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:135:7: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   get nativeInstanceGetter native;
+//       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:136:7: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   set nativeInstanceSetter(_) native;
+//       ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:137:3: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   nativeInstanceMethod() native;
+//   ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:139:14: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   static get nativeStaticGetter native;
+//              ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:140:14: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   static set nativeStaticSetter(_) native;
+//              ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:141:10: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+//   static nativeStaticMethod() native;
+//          ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:19:14: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+// external get externalTopLevelGetter;
+//              ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:22:14: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+// external set externalTopLevelSetter(_);
+//              ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:25:10: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+// external externalTopLevelFunction();
+//          ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:27:5: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+// get nativeTopLevelGetter native;
+//     ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:29:5: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+// set nativeTopLevelSetter(_) native;
+//     ^
+//
+// pkg/front_end/testcases/dart2js/native.dart:31:1: Error: Only JS interop members may be 'external'.
+// Try removing the 'external' keyword or adding a JS interop annotation.
+// nativeTopLevelFunction() native;
+// ^
 //
 library;
 import self as self;
