@@ -7357,3 +7357,9 @@ ExperimentExpiredDisabled:
 
 DartFfiLibraryInDart2Wasm:
   problemMessage: "'dart:ffi' can't be imported when compiling to Wasm."
+
+UnexpectedSuperParametersInGenerativeConstructors:
+  problemMessage: "Super parameters can only be used in non-redirecting generative constructors."
+  analyzerCode: INVALID_SUPER_FORMAL_PARAMETER_LOCATION
+  script: |
+    class A { A(); A.named(super.x) : this(); }

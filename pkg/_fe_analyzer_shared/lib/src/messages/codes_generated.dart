@@ -16804,6 +16804,19 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedSuperParametersInGenerativeConstructors =
+    messageUnexpectedSuperParametersInGenerativeConstructors;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedSuperParametersInGenerativeConstructors =
+    const MessageCode(
+  "UnexpectedSuperParametersInGenerativeConstructors",
+  analyzerCodes: <String>["INVALID_SUPER_FORMAL_PARAMETER_LOCATION"],
+  problemMessage:
+      r"""Super parameters can only be used in non-redirecting generative constructors.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnexpectedToken =
     const Template<Message Function(Token token)>(
   "UnexpectedToken",

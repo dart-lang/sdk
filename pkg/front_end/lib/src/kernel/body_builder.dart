@@ -9398,6 +9398,16 @@ class BodyBuilder extends StackListenerImpl
         addProblem(fasta.messageConstructorCyclic, fileOffset, length);
         // TODO(askesc): Produce invalid initializer.
       }
+      if (_context.formals != null) {
+        for (FormalParameterBuilder formal in _context.formals!) {
+          if (formal.isSuperInitializingFormal) {
+            addProblem(
+                fasta.messageUnexpectedSuperParametersInGenerativeConstructors,
+                formal.charOffset,
+                noLength);
+          }
+        }
+      }
       needsImplicitSuperInitializer = false;
       return _context.buildRedirectingInitializer(constructorBuilder, arguments,
           fileOffset: fileOffset);
