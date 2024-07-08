@@ -3424,6 +3424,160 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_extension_staticGetter() async {
+    await assertNoErrorsInCode(r'''
+extension A on int {
+  static double Function(int) get foo => throw Error();
+}
+
+void f() {
+  A.foo(0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      staticElement: self::@extension::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extension::A::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: root::@parameter::
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+  }
+
+  test_hasReceiver_extension_staticGetter_inAugmentation() async {
+    await assertNoErrorsInCode(r'''
+extension A on int {}
+
+augment extension A {
+  static double Function(int) get foo => throw Error();
+}
+
+void f() {
+  A.foo(0);
+}
+''');
+
+    var node = findNode.singleFunctionExpressionInvocation;
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      staticElement: self::@extension::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: self::@extensionAugmentation::A::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: root::@parameter::
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+  }
+
+  test_hasReceiver_extension_staticMethod() async {
+    await assertNoErrorsInCode(r'''
+extension A on int {
+  static void foo(int _) {}
+}
+
+void f() {
+  A.foo(0);
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    staticElement: self::@extension::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extension::A::@method::foo::@parameter::_
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_extension_staticMethod_inAugmentation() async {
+    await assertNoErrorsInCode(r'''
+extension A on int {}
+
+augment extension A {
+  static void foo(int _) {}
+}
+
+void f() {
+  A.foo(0);
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    staticElement: self::@extension::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionAugmentation::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extensionAugmentation::A::@method::foo::@parameter::_
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
   test_hasReceiver_extensionTypeName() async {
     await assertNoErrorsInCode(r'''
 extension type A(int it) {

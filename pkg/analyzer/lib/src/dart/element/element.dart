@@ -3061,9 +3061,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   PropertyAccessorElement? getGetter(String getterName) {
-    int length = accessors.length;
-    for (int i = 0; i < length; i++) {
-      PropertyAccessorElement accessor = accessors[i];
+    for (var accessor in augmented.accessors) {
       if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
@@ -3073,9 +3071,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   MethodElement? getMethod(String methodName) {
-    int length = methods.length;
-    for (int i = 0; i < length; i++) {
-      MethodElement method = methods[i];
+    for (var method in augmented.methods) {
       if (method.name == methodName) {
         return method;
       }
@@ -3085,7 +3081,10 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   PropertyAccessorElement? getSetter(String setterName) {
-    return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
+    return InterfaceElementImpl.getSetterFromAccessors(
+      setterName,
+      augmented.accessors,
+    );
   }
 }
 

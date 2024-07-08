@@ -1907,6 +1907,92 @@ AssignmentExpression
 ''');
   }
 
+  test_prefixedIdentifier_ofExtensionName_augmentationAugments() async {
+    await assertNoErrorsInCode(r'''
+extension A on int {
+  static set foo(int _) {}
+}
+
+augment extension A {
+  augment static set foo(int _) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@extension::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extensionAugmentation::A::@setterAugmentation::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extensionAugmentation::A::@setterAugmentation::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_prefixedIdentifier_ofExtensionName_augmentationDeclares() async {
+    await assertNoErrorsInCode(r'''
+extension A on int {}
+
+augment extension A {
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@extension::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extensionAugmentation::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extensionAugmentation::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_prefixedIdentifier_static_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
