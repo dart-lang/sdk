@@ -2028,7 +2028,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         linkOptions.sdkSummaryComponent =
             context.loadPlatform(linkOptions.target, linkOptions.nnbdMode);
       }
-      await CompilerContext.runWithOptions(linkOptions, (_) async {
+      await CompilerContext.runWithOptions(linkOptions,
+          (CompilerContext c) async {
         Target backendTarget = linkOptions.target;
         if (backendTarget is TestTarget) {
           backendTarget.performModularTransformations = true;
@@ -2038,6 +2039,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             .addAll(compilationSetup.testOptions.linkDependencies.toList());
         InternalCompilerResult internalCompilerResult =
             await generateKernelInternal(
+          c,
           buildSummary: compileMode != CompileMode.full,
           serializeIfBuildingSummary: false,
           buildComponent: compileMode == CompileMode.full,
@@ -2070,7 +2072,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
     try {
       return await CompilerContext.runWithOptions(compilationSetup.options,
-          (_) async {
+          (CompilerContext c) async {
         Component? alsoAppend = compilationSetup.testOptions.component;
         if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
           alsoAppend = null;
@@ -2092,6 +2094,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         compilationSetup.options.inputs.add(description.uri);
         InternalCompilerResult internalCompilerResult =
             await generateKernelInternal(
+          c,
           buildSummary: compileMode == CompileMode.outline,
           serializeIfBuildingSummary: false,
           buildComponent: compileMode != CompileMode.outline,

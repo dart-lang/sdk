@@ -162,11 +162,12 @@ Future<Component?> compile(
 
   CompilerResult? compilerResult = await CompilerContext.runWithOptions(
       processedOpts, (CompilerContext context) async {
-    CompilerResult compilerResult = await generateKernelInternal();
+    CompilerResult compilerResult = await generateKernelInternal(context);
     Component? component = compilerResult.component;
     if (component == null) return null;
     if (component.mainMethod == null) {
       context.options.report(
+          context,
           messageMissingMain.withLocation(inputs.single, -1, 0),
           Severity.error);
       return null;

@@ -54,7 +54,7 @@ class CompilerContext {
   /// Report [message], for example, by printing it.
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
-    options.report(message, severity,
+    options.report(this, message, severity,
         context: context, involvedFiles: involvedFiles);
   }
 
@@ -66,7 +66,7 @@ class CompilerContext {
 
   /// Format [message] as a text string that can be included in generated code.
   PlainAndColorizedString format(LocatedMessage message, Severity severity) {
-    return command_line_reporting.format(message, severity);
+    return command_line_reporting.format(this, message, severity);
   }
 
   static CompilerContext get current {
@@ -84,6 +84,7 @@ class CompilerContext {
     return context;
   }
 
+  // Coverage-ignore(suite): Not run.
   static bool get isActive => Zone.current[compilerContextKey] != null;
 
   /// Perform [action] in a [Zone] where this [CompilerContext] will be

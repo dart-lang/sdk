@@ -341,7 +341,7 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
       if (c.options.verbose) {
         print("Building outlines for ${arguments.join(' ')}");
       }
-      CompilerResult compilerResult = await generateKernelInternal(
+      CompilerResult compilerResult = await generateKernelInternal(c,
           buildSummary: true,
           serializeIfBuildingSummary: false,
           buildComponent: false,
@@ -361,7 +361,7 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
       CompilerResult compilerResult =
-          await generateKernelInternal(benchmarker: benchmarker);
+          await generateKernelInternal(c, benchmarker: benchmarker);
       Component component = compilerResult.component!;
       Uri uri = await _emitComponent(c.options, component,
           benchmarker: benchmarker, message: "Wrote component to ");
@@ -380,6 +380,7 @@ Future<Uri?> deps(List<String> arguments) async {
         print("Computing deps: ${arguments.join(' ')}");
       }
       await generateKernelInternal(
+        c,
         buildSummary: true,
         serializeIfBuildingSummary: false,
       );
@@ -463,7 +464,7 @@ Future<void> compilePlatformInternal(
   }
 
   CompilerResult result =
-      await generateKernelInternal(buildSummary: true, buildComponent: true);
+      await generateKernelInternal(c, buildSummary: true, buildComponent: true);
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 

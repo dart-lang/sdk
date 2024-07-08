@@ -90,12 +90,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/command_line_reporting.dart": (
-    hitCount: 70,
+    hitCount: 79,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/base/compiler_context.dart": (
-    hitCount: 46,
+    hitCount: 42,
     missCount: 0,
   ),
   // 100.0%.
@@ -185,7 +185,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/processed_options.dart": (
-    hitCount: 236,
+    hitCount: 246,
     missCount: 0,
   ),
   // 100.0%.
@@ -395,7 +395,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/compute_platform_binaries_location.dart": (
-    hitCount: 52,
+    hitCount: 50,
     missCount: 0,
   ),
   // 100.0%.
@@ -445,7 +445,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_target.dart": (
-    hitCount: 29,
+    hitCount: 30,
     missCount: 0,
   ),
   // 100.0%.
@@ -605,7 +605,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 1060,
+    hitCount: 1061,
     missCount: 0,
   ),
   // 100.0%.

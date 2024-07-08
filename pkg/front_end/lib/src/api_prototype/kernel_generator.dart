@@ -58,6 +58,7 @@ Future<CompilerResult?> kernelForProgramInternal(
       options: options, inputs: [source, ...additionalSources]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     CompilerResult result = await generateKernelInternal(
+      context,
       includeHierarchyAndCoreTypes: true,
       retainDataForTesting: retainDataForTesting,
       buildComponent: buildComponent,
@@ -68,6 +69,7 @@ Future<CompilerResult?> kernelForProgramInternal(
 
     if (requireMain && component.mainMethod == null) {
       context.options.report(
+          context,
           messageMissingMain.withLocation(source, -1, noLength),
           Severity.error);
       return null;

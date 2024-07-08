@@ -110,58 +110,55 @@ Uri computePlatformBinariesLocation({bool forceBuildDir = false}) {
 }
 
 /// Translates an SDK URI ("org-dartlang-sdk:///...") to a file URI.
-Uri translateSdk(Uri uri) {
-  if (CompilerContext.isActive) {
-    if (uri.isScheme("org-dartlang-sdk")) {
-      String path = uri.path;
-      if (path.startsWith("/sdk/")) {
-        CompilerContext context = CompilerContext.current;
-        Uri? sdkRoot = context.cachedSdkRoot;
+Uri translateSdk(CompilerContext context, Uri uri) {
+  if (uri.isScheme("org-dartlang-sdk")) {
+    String path = uri.path;
+    if (path.startsWith("/sdk/")) {
+      Uri? sdkRoot = context.cachedSdkRoot;
+      if (sdkRoot == null) {
+        ProcessedOptions options = context.options;
+        sdkRoot = options.sdkRoot;
         if (sdkRoot == null) {
-          ProcessedOptions options = context.options;
-          sdkRoot = options.sdkRoot;
-          if (sdkRoot == null) {
-            sdkRoot = options.librariesSpecificationUri
-                // Coverage-ignore(suite): Not run.
-                ?.resolve("../");
-            if (sdkRoot != null) {
-              // Coverage-ignore-block(suite): Not run.
-              if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
-                sdkRoot = null;
-              }
-            }
-          }
-          if (sdkRoot == null) {
-            sdkRoot = (options.sdkSummary ?? // Coverage-ignore(suite): Not run.
-                    computePlatformBinariesLocation())
-                .resolve("../../");
-            if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
-              if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
-                sdkRoot = sdkRoot.resolve("sdk/");
-              } else {
-                sdkRoot = null;
-              }
-            }
-          }
-          // Coverage-ignore(suite): Not run.
-          sdkRoot ??= Uri.parse("org-dartlang-sdk:///sdk/");
-          context.cachedSdkRoot = sdkRoot;
-        }
-        Uri candidate = sdkRoot.resolve(path.substring(5));
-        if (isExistingFile(candidate)) {
-          Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
-          Source source = uriToSource[uri]!;
-          if (source.source.isEmpty) {
+          sdkRoot = options.librariesSpecificationUri
+              // Coverage-ignore(suite): Not run.
+              ?.resolve("../");
+          if (sdkRoot != null) {
             // Coverage-ignore-block(suite): Not run.
-            uriToSource[uri] = new Source(
-                source.lineStarts,
-                new File.fromUri(candidate).readAsBytesSync(),
-                source.importUri,
-                source.fileUri);
+            if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
+              sdkRoot = null;
+            }
           }
         }
-        return candidate;
+        if (sdkRoot == null) {
+          sdkRoot = (options.sdkSummary ?? // Coverage-ignore(suite): Not run.
+                  computePlatformBinariesLocation())
+              .resolve("../../");
+          if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
+            if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
+              sdkRoot = sdkRoot.resolve("sdk/");
+            } else {
+              sdkRoot = null;
+            }
+          }
+        }
+        // Coverage-ignore(suite): Not run.
+        sdkRoot ??= Uri.parse("org-dartlang-sdk:///sdk/");
+        context.cachedSdkRoot = sdkRoot;
       }
+      Uri candidate = sdkRoot.resolve(path.substring(5));
+      if (isExistingFile(candidate)) {
+        Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+        Source source = uriToSource[uri]!;
+        if (source.source.isEmpty) {
+          // Coverage-ignore-block(suite): Not run.
+          uriToSource[uri] = new Source(
+              source.lineStarts,
+              new File.fromUri(candidate).readAsBytesSync(),
+              source.importUri,
+              source.fileUri);
+        }
+      }
+      return candidate;
     }
   }
   return uri;

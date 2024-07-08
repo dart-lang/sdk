@@ -48,8 +48,9 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
     bool truncateSummary = false,
     bool includeOffsets = true,
     bool includeHierarchyAndCoreTypes = false}) async {
-  return await CompilerContext.runWithOptions(options, (_) async {
-    return await generateKernelInternal(
+  return await CompilerContext.runWithOptions(options,
+      (CompilerContext c) async {
+    return await generateKernelInternal(c,
         buildSummary: buildSummary,
         buildComponent: buildComponent,
         truncateSummary: truncateSummary,
@@ -61,6 +62,7 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
 /// Note that if [buildSummary] is true it will be default serialize the summary
 /// but this can be disabled by setting [serializeIfBuildingSummary] to false.
 Future<InternalCompilerResult> generateKernelInternal(
+    CompilerContext compilerContext,
     {bool buildSummary = false,
     bool serializeIfBuildingSummary = true,
     bool buildComponent = true,
@@ -135,7 +137,7 @@ Future<InternalCompilerResult> generateKernelInternal(
       kernelTarget.benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
-      return _buildInternal(
+      return _buildInternal(compilerContext,
           options: options,
           kernelTarget: kernelTarget,
           nameRoot: nameRoot,
@@ -156,7 +158,7 @@ Future<InternalCompilerResult> generateKernelInternal(
           new UriOffset(options.inputs.first, TreeNode.noOffset));
 }
 
-Future<InternalCompilerResult> _buildInternal(
+Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     {required ProcessedOptions options,
     required KernelTarget kernelTarget,
     required CanonicalName? nameRoot,
@@ -179,7 +181,7 @@ Future<InternalCompilerResult> _buildInternal(
       List<LocatedMessage> errors = verifyComponent(
           options.target, VerificationStage.outline, summaryComponent);
       for (LocatedMessage error in errors) {
-        options.report(error, Severity.error);
+        options.report(compilerContext, error, Severity.error);
       }
       assert(errors.isEmpty, "Verification errors found.");
     }

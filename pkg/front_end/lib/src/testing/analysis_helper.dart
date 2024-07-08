@@ -139,7 +139,7 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
         .withArguments(message)
         .withLocation(uri, node.fileOffset, noLength);
     FormattedMessage diagnosticMessage = locatedMessage.withFormatting(
-        format(locatedMessage, Severity.warning,
+        formatWithLocationNoSdk(locatedMessage, Severity.warning,
             location: location, uriToSource: component.uriToSource),
         location.line,
         location.column,

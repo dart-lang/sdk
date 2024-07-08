@@ -61,6 +61,7 @@ class DillTarget {
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
+        context,
         fileUri != null
             ? message.withLocation(fileUri, charOffset, length)
             :
