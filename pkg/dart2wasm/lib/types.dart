@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:math' show max;
 
 import 'package:kernel/ast.dart';
@@ -389,10 +388,16 @@ class Types {
           b.addLocal(translator.topInfo.nullableType, isParameter: false);
       b.local_tee(operandTemp);
     }
-    final typeToCheck = _canUseTypeCheckHelper(testedAgainstType, operandType);
+    final (typeToCheck, :checkArguments) =
+        _canUseTypeCheckHelper(testedAgainstType, operandType);
     if (typeToCheck != null) {
-      b.call(
-          _generateIsChecker(typeToCheck, operandType.isPotentiallyNullable));
+      if (checkArguments) {
+        for (final typeArgument in typeToCheck.typeArguments) {
+          makeType(codeGen, typeArgument);
+        }
+      }
+      b.call(_generateIsChecker(
+          typeToCheck, checkArguments, operandType.isPotentiallyNullable));
     } else {
       if (testedAgainstType is InterfaceType &&
           classForType(testedAgainstType) == translator.interfaceTypeClass) {
@@ -439,10 +444,16 @@ class Types {
       [Location? location]) {
     final b = codeGen.b;
 
-    final typeToCheck = _canUseTypeCheckHelper(testedAgainstType, operandType);
+    final (typeToCheck, :checkArguments) =
+        _canUseTypeCheckHelper(testedAgainstType, operandType);
     if (typeToCheck != null) {
-      b.call(
-          _generateAsChecker(typeToCheck, operandType.isPotentiallyNullable));
+      if (checkArguments) {
+        for (final typeArgument in typeToCheck.typeArguments) {
+          makeType(codeGen, typeArgument);
+        }
+      }
+      b.call(_generateAsChecker(
+          typeToCheck, checkArguments, operandType.isPotentiallyNullable));
       return translator.translateType(testedAgainstType);
     }
 
@@ -480,28 +491,32 @@ class Types {
     return operand.type;
   }
 
-  // Returns the type to check against if a helper can be used, otherwise `null`
-  InterfaceType? _canUseTypeCheckHelper(
+  // If a type check helper can be used, returns the type the caller has to
+  // check and whether arguments of the type have to be checked or not.
+  (InterfaceType?, {bool checkArguments}) _canUseTypeCheckHelper(
       DartType testedAgainstType, DartType operandType) {
     // The is/as check helpers are for cid-range checks of interface types.
-    if (testedAgainstType is! InterfaceType) return null;
+    if (testedAgainstType is! InterfaceType) {
+      return (null, checkArguments: false);
+    }
 
     if (_hasOnlyDefaultTypeArguments(testedAgainstType)) {
-      return testedAgainstType;
+      return (testedAgainstType, checkArguments: false);
     }
 
     if (operandType is InterfaceType &&
         _staticTypesEnsureTypeArgumentsMatch(testedAgainstType, operandType)) {
-      // We only need to check whether the nullability and the class itself fits
-      // (the [testedAgainstType] arguments are guaranteed to fit statically)
-      final parameters = testedAgainstType.classNode.typeParameters;
-      final args = [
-        for (int i = 0; i < parameters.length; ++i) parameters[i].defaultType,
-      ];
-      return InterfaceType(
-          testedAgainstType.classNode, testedAgainstType.nullability, args);
+      return (
+        _getTypeWithDefaultsToBounds(testedAgainstType),
+        checkArguments: false
+      );
     }
-    return null;
+
+    if (!rtt.requiresTypeArgumentSubstitution(testedAgainstType.classNode)) {
+      return (testedAgainstType, checkArguments: true);
+    }
+
+    return (null, checkArguments: false);
   }
 
   bool _staticTypesEnsureTypeArgumentsMatch(
@@ -536,64 +551,146 @@ class Types {
     return true;
   }
 
+  InterfaceType _getTypeWithDefaultsToBounds(InterfaceType type) {
+    // We only need to check whether the nullability and the class itself fits
+    // (the [testedAgainstType] arguments are guaranteed to fit statically)
+    final parameters = type.classNode.typeParameters;
+    final args = [
+      for (int i = 0; i < parameters.length; ++i) parameters[i].defaultType,
+    ];
+    return InterfaceType(type.classNode, type.nullability, args);
+  }
+
   final Map<DartType, w.BaseFunction> _nullableIsCheckers = {};
   final Map<DartType, w.BaseFunction> _isCheckers = {};
+  final Map<DartType, w.BaseFunction> _nullableIsCheckersWithArgumentsCheck =
+      {};
+  final Map<DartType, w.BaseFunction> _isCheckersWithArgumentsCheck = {};
 
   // Currently the is-checker helper functions only check nullability and the
   // concrete class (the arguments do not have to be checked).
-  w.BaseFunction _generateIsChecker(
-      InterfaceType testedAgainstType, bool operandIsNullable) {
-    assert(_hasOnlyDefaultTypeArguments(testedAgainstType));
+  w.BaseFunction _generateIsChecker(InterfaceType testedAgainstType,
+      bool checkArguments, bool operandIsNullable) {
+    assert(_hasOnlyDefaultTypeArguments(testedAgainstType) || checkArguments);
 
     final interfaceClass = testedAgainstType.classNode;
 
-    final cachedIsCheckers =
-        operandIsNullable ? _nullableIsCheckers : _isCheckers;
+    final Map<DartType, w.BaseFunction> cache;
+    final int argumentCount;
+    if (checkArguments) {
+      testedAgainstType = _getTypeWithDefaultsToBounds(testedAgainstType);
+      argumentCount = interfaceClass.typeParameters.length;
+      cache = operandIsNullable
+          ? _nullableIsCheckersWithArgumentsCheck
+          : _isCheckersWithArgumentsCheck;
+    } else {
+      argumentCount = 0;
+      cache = operandIsNullable ? _nullableIsCheckers : _isCheckers;
+    }
 
-    return cachedIsCheckers.putIfAbsent(testedAgainstType, () {
+    return cache.putIfAbsent(testedAgainstType, () {
+      final typeType = translator.translateType(translator.typeType);
       final argumentType = operandIsNullable
           ? translator.topInfo.nullableType
           : translator.topInfo.nonNullableType;
+      final typeArgumentsName = checkArguments
+          ? '<${[for (int i = 0; i < argumentCount; ++i) 'T$i'].join(', ')}>'
+          : '';
+      final name =
+          '<obj> is ${testedAgainstType.classNode.name}$typeArgumentsName';
       final function = translator.m.functions.define(
           translator.m.types.defineFunction(
-            [argumentType],
+            [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
             [w.NumType.i32],
           ),
-          '<obj> is ${testedAgainstType.classNode.name}');
+          name);
 
       final b = function.body;
-      b.local_get(b.locals[0]);
 
-      w.Label? resultLabel;
+      w.Local operand = b.locals[0];
+      w.Local boolTemp = function.addLocal(w.NumType.i32);
+
+      final w.Label resultLabel = b.block(const [], const [w.NumType.i32]);
       if (operandIsNullable) {
-        // Store operand in a temporary variable, since Binaryen does not support
-        // block inputs.
-        w.Local operand = function.addLocal(translator.topInfo.nullableType);
-        b.local_set(operand);
-        resultLabel = b.block(const [], const [w.NumType.i32]);
         w.Label nullLabel = b.block(const [], const []);
         b.local_get(operand);
         b.br_on_null(nullLabel);
+        final nonNullableOperand =
+            function.addLocal(translator.topInfo.nonNullableType);
+        b.local_get(operand);
+        b.ref_cast(nonNullableOperand.type as w.RefType);
+        b.local_set(nonNullableOperand);
+        operand = nonNullableOperand;
       }
 
-      if (interfaceClass == coreTypes.objectClass) {
-        b.drop();
+      if (checkArguments) {
+        b.local_get(operand);
+        b.call(_generateIsChecker(testedAgainstType, false, false));
+        b.local_set(boolTemp);
+
+        // If cid ranges fail, we fail
+        {
+          final w.Label okBlock = b.block(const [], const []);
+          b.local_get(boolTemp);
+          b.i32_const(1);
+          b.i32_eq();
+          b.br_if(okBlock);
+          b.i32_const(0);
+          b.br(resultLabel);
+          b.end();
+        }
+
+        // Otherwise we have to check each argument.
+
+        // Call Object._getArguments()
+        w.Local typeArguments = function.addLocal(typeArrayExpectedType);
+        b.local_get(operand);
+        b.call(translator.functions
+            .getFunction(translator.objectGetTypeArguments.reference));
+        b.local_set(typeArguments);
+        for (int i = 0; i < argumentCount; ++i) {
+          b.local_get(typeArguments);
+          b.i32_const(i);
+          b.array_get(typeArrayArrayType);
+          b.local_get(b.locals[1 + i]);
+          b.call(translator.functions
+              .getFunction(translator.isTypeSubtype.reference));
+          {
+            b.local_set(boolTemp);
+            final w.Label okBlock = b.block(const [], const []);
+            b.local_get(boolTemp);
+            b.i32_const(1);
+            b.i32_eq();
+            b.br_if(okBlock);
+            b.i32_const(0);
+            b.br(resultLabel);
+            b.end();
+          }
+        }
         b.i32_const(1);
-      } else if (interfaceClass == coreTypes.functionClass) {
-        b.ref_test(translator.closureInfo.nonNullableType);
+        b.br(resultLabel);
       } else {
-        final ranges = translator.classIdNumbering
-            .getConcreteClassIdRanges(interfaceClass);
-        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.emitClassIdRangeCheck(ranges);
+        if (interfaceClass == coreTypes.objectClass) {
+          b.drop();
+          b.i32_const(1);
+        } else if (interfaceClass == coreTypes.functionClass) {
+          b.local_get(operand);
+          b.ref_test(translator.closureInfo.nonNullableType);
+        } else {
+          final ranges = translator.classIdNumbering
+              .getConcreteClassIdRanges(interfaceClass);
+          b.local_get(operand);
+          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.emitClassIdRangeCheck(ranges);
+        }
+        b.br(resultLabel);
       }
 
       if (operandIsNullable) {
-        b.br(resultLabel!);
         b.end(); // nullLabel
         b.i32_const(encodedNullability(testedAgainstType));
-        b.end(); // resultLabel
       }
+      b.end(); // resultLabel
 
       b.return_();
       b.end();
@@ -604,38 +701,87 @@ class Types {
 
   final Map<DartType, w.BaseFunction> _nullableAsCheckers = {};
   final Map<DartType, w.BaseFunction> _asCheckers = {};
+  final Map<DartType, w.BaseFunction> _asCheckersWithArgumentsCheck = {};
+  final Map<DartType, w.BaseFunction> _nullableAsCheckersWithArgumentsCheck =
+      {};
 
   // Currently the as-checker helper functions only check nullability and the
   // concrete class (the arguments do not have to be checked).
-  w.BaseFunction _generateAsChecker(
-      InterfaceType testedAgainstType, bool operandIsNullable) {
-    assert(_hasOnlyDefaultTypeArguments(testedAgainstType));
+  w.BaseFunction _generateAsChecker(InterfaceType testedAgainstType,
+      bool checkArguments, bool operandIsNullable) {
+    assert(_hasOnlyDefaultTypeArguments(testedAgainstType) || checkArguments);
 
-    final cachedAsCheckers =
-        operandIsNullable ? _nullableAsCheckers : _asCheckers;
-    final returnType = translator.translateType(testedAgainstType);
-    return cachedAsCheckers.putIfAbsent(testedAgainstType, () {
+    final Map<DartType, w.BaseFunction> cache;
+    final int argumentCount;
+    if (checkArguments) {
+      testedAgainstType = _getTypeWithDefaultsToBounds(testedAgainstType);
+      argumentCount = testedAgainstType.classNode.typeParameters.length;
+      cache = operandIsNullable
+          ? _nullableAsCheckersWithArgumentsCheck
+          : _asCheckersWithArgumentsCheck;
+    } else {
+      argumentCount = 0;
+      cache = operandIsNullable ? _nullableAsCheckers : _asCheckers;
+    }
+
+    return cache.putIfAbsent(testedAgainstType, () {
+      final returnType = translator.translateType(testedAgainstType);
       final argumentType = operandIsNullable
           ? translator.topInfo.nullableType
           : translator.topInfo.nonNullableType;
+      final typeType = translator.translateType(translator.typeType);
+      final typeArgumentsName = checkArguments
+          ? '<${[for (int i = 0; i < argumentCount; ++i) 'T$i'].join(', ')}>'
+          : '';
+      final name =
+          '<obj> as ${testedAgainstType.classNode.name}$typeArgumentsName';
       final function = translator.m.functions.define(
           translator.m.types.defineFunction(
-            [argumentType],
+            [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
             [returnType],
           ),
-          '<obj> as ${testedAgainstType.classNode.name}');
+          name);
 
       final b = function.body;
       w.Label asCheckBlock = b.block();
       b.local_get(b.locals[0]);
-      b.call(_generateIsChecker(testedAgainstType, operandIsNullable));
+      for (int i = 0; i < argumentCount; ++i) {
+        b.local_get(b.locals[1 + i]);
+      }
+      b.call(_generateIsChecker(
+          testedAgainstType, checkArguments, operandIsNullable));
       b.br_if(asCheckBlock);
 
-      b.local_get(b.locals[0]);
-      translator.constants.instantiateConstant(function, b,
-          TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
-      b.call(translator.functions
-          .getFunction(translator.throwAsCheckError.reference));
+      if (checkArguments) {
+        final testedAgainstClassId =
+            translator.classInfo[testedAgainstType.classNode]!.classId;
+        b.local_get(b.locals[0]);
+        b.i32_const(encodedNullability(testedAgainstType));
+        b.i32_const(testedAgainstClassId);
+        if (argumentCount == 1) {
+          b.local_get(b.locals[1]);
+          b.call(translator.functions.getFunction(
+              translator.throwInterfaceTypeAsCheckError1.reference));
+        } else if (argumentCount == 2) {
+          b.local_get(b.locals[1]);
+          b.local_get(b.locals[2]);
+          b.call(translator.functions.getFunction(
+              translator.throwInterfaceTypeAsCheckError2.reference));
+        } else {
+          for (int i = 0; i < argumentCount; ++i) {
+            b.local_get(b.locals[1 + i]);
+          }
+          b.array_new_fixed(typeArrayArrayType, argumentCount);
+          b.call(translator.functions.getFunction(
+              translator.throwInterfaceTypeAsCheckError.reference));
+        }
+      } else {
+        b.local_get(b.locals[0]);
+        translator.constants.instantiateConstant(function, b,
+            TypeLiteralConstant(testedAgainstType), nonNullableTypeType);
+        b.call(translator.functions
+            .getFunction(translator.throwAsCheckError.reference));
+      }
       b.unreachable();
 
       b.end();
@@ -712,32 +858,49 @@ class RuntimeTypeInformation {
   CoreTypes get coreTypes => translator.coreTypes;
   Types get types => translator.types;
 
+  late final Map<int, Map<int, int>> _substitutionSubclassToSuperclass;
+  late final Map<int, Map<int, int>> _substitutionSuperclassToSubclass;
+  late final Map<InstanceConstant, int> _substitutionTable;
+
+  final Map<int, bool> _requiresSubstitutionForSubclasses = {};
+
   RuntimeTypeInformation(this.translator) {
-    final (
-      Map<int, Map<int, int>> typeRules,
-      LinkedHashMap<InstanceConstant, int> substitutionTable
-    ) = _buildTypeRules();
+    _buildTypeRules();
 
     // The canonical substitution table of type WasmArray<WasmArray<_Type>>
-    _initSubstitutionTableConstant(substitutionTable);
+    _initSubstitutionTableConstant();
 
-    // The super type substitution rules for each class of type
-    // WasmArray<WasmArray<WasmI32>>.
-    _initTypeRulesSupers(typeRules);
+    // Data structures to find the substitution type arguments for a
+    // given source and target class.
+    _initTypeRulesSupers();
 
     // The class name table of type WasmArray<String>
     _initTypeNames();
   }
 
-  (Map<int, Map<int, int>>, LinkedHashMap<InstanceConstant, int>)
-      _buildTypeRules() {
-    final subtypeMap = <int, Map<int, int>>{};
-    // ignore: prefer_collection_literals
-    final substitutionTable = LinkedHashMap<InstanceConstant, int>();
+  bool requiresTypeArgumentSubstitution(Class superclass) {
+    final superclassId = translator.classIdNumbering.classIds[superclass]!;
+    return _requiresSubstitutionForSubclasses.putIfAbsent(superclassId, () {
+      final subclassSubstitutions =
+          _substitutionSuperclassToSubclass[superclassId];
+
+      if (subclassSubstitutions == null) return false;
+      for (final entry in subclassSubstitutions.entries) {
+        final substitutionIndex = entry.value;
+        if (substitutionIndex != noSubstitutionIndex) return true;
+      }
+      return false;
+    });
+  }
+
+  void _buildTypeRules() {
+    _substitutionSubclassToSuperclass = <int, Map<int, int>>{};
+    _substitutionSuperclassToSubclass = <int, Map<int, int>>{};
+    _substitutionTable = <InstanceConstant, int>{};
 
     assert(noSubstitutionIndex == 0);
-    assert(substitutionTable.length == noSubstitutionIndex);
-    substitutionTable[translator.constants.makeTypeArray([])] =
+    assert(_substitutionTable.length == noSubstitutionIndex);
+    _substitutionTable[translator.constants.makeTypeArray([])] =
         noSubstitutionIndex;
 
     for (ClassInfo classInfo in translator.classes) {
@@ -778,16 +941,17 @@ class RuntimeTypeInformation {
         } else {
           final substitution =
               translator.constants.makeTypeArray(typeArguments!);
-          substitutionIndex = substitutionTable.putIfAbsent(
-              substitution, () => substitutionTable.length);
+          substitutionIndex = _substitutionTable.putIfAbsent(
+              substitution, () => _substitutionTable.length);
         }
 
         final subclassId = translator.classInfo[subtype.classNode]!.classId;
-        (subtypeMap[subclassId] ??= {})[superclassInfo.classId] =
-            substitutionIndex;
+        (_substitutionSubclassToSuperclass[subclassId] ??=
+            {})[superclassInfo.classId] = substitutionIndex;
+        (_substitutionSuperclassToSubclass[superclassInfo.classId] ??=
+            {})[subclassId] = substitutionIndex;
       }
     }
-    return (subtypeMap, substitutionTable);
   }
 
   /// Whether the substitution [typeArguments] would cause a NOP substitution.
@@ -819,8 +983,7 @@ class RuntimeTypeInformation {
     return true;
   }
 
-  void _initSubstitutionTableConstant(
-      LinkedHashMap<InstanceConstant, int> substitutionTable) {
+  void _initSubstitutionTableConstant() {
     final typeType =
         InterfaceType(translator.typeClass, Nullability.nonNullable);
     final arrayOfType = InterfaceType(
@@ -828,12 +991,12 @@ class RuntimeTypeInformation {
 
     // We rely on the keys being in insertion order.
     substitutionTableConstant = translator.constants
-        .makeArrayOf(arrayOfType, substitutionTable.keys.toList());
+        .makeArrayOf(arrayOfType, _substitutionTable.keys.toList());
     substitutionTableConstantType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [arrayOfType]);
   }
 
-  void _initTypeRulesSupers(Map<int, Map<int, int>> typeRules) {
+  void _initTypeRulesSupers() {
     final wasmI32 =
         InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
     final arrayOfI32 = InterfaceType(
@@ -843,7 +1006,7 @@ class RuntimeTypeInformation {
     // substitution table indices.
     final typeRulesArray = <InstanceConstant>[];
     for (int classId = 0; classId < translator.classes.length; classId++) {
-      final rules = typeRules[classId];
+      final rules = _substitutionSubclassToSuperclass[classId];
       if (rules == null) {
         typeRulesArray.add(
             translator.constants.makeArrayOf(wasmI32, const <IntConstant>[]));

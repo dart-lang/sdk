@@ -1409,6 +1409,7 @@ void _throwInterfaceTypeAsCheckError0(
       o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
 }
 
+@pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
 void _throwInterfaceTypeAsCheckError1(
     Object? o, bool isDeclaredNullable, WasmI32 tId, _Type typeArgument0) {
@@ -1417,6 +1418,7 @@ void _throwInterfaceTypeAsCheckError1(
       o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
 }
 
+@pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
 void _throwInterfaceTypeAsCheckError2(Object? o, bool isDeclaredNullable,
     WasmI32 tId, _Type typeArgument0, _Type typeArgument1) {
@@ -1426,6 +1428,7 @@ void _throwInterfaceTypeAsCheckError2(Object? o, bool isDeclaredNullable,
       o, _InterfaceType(tId, isDeclaredNullable, typeArguments));
 }
 
+@pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
 void _throwInterfaceTypeAsCheckError(Object? o, bool isDeclaredNullable,
     WasmI32 tId, WasmArray<_Type> typeArguments) {
