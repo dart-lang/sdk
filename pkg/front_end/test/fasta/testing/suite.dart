@@ -2139,7 +2139,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
   @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    return await CompilerContext.runWithOptions(result.options, (_) async {
+    return await result.sourceTarget.context.runInContext((_) async {
       Component component = result.component;
       KernelTarget sourceTarget = result.sourceTarget;
       Target backendTarget = sourceTarget.backendTarget;
@@ -2198,8 +2198,9 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       }
       messages.writeAll(message.plainTextFormatted, "\n");
     };
-    Result<ComponentResult> verifyResult = await CompilerContext.runWithOptions(
-        result.options, (compilerContext) async {
+
+    Result<ComponentResult> verifyResult =
+        await result.sourceTarget.context.runInContext((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
           result.options.target, stage, component,
@@ -2211,7 +2212,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
         return new Result<ComponentResult>(
             null, context.expectationSet["VerificationError"], "$messages");
       }
-    }, errorOnMissingInput: false);
+    });
     result.options.rawOptionsForTesting.onDiagnostic = previousOnDiagnostics;
     return verifyResult;
   }

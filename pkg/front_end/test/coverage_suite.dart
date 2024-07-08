@@ -194,6 +194,14 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
       " ${logsJsonUri.toFilePath()}");
   print("Entire run took ${totalRuntime.elapsed}.");
 
+  if (debug) {
+    for (ProcessResult run in runResults) {
+      if (run.exitCode != 0) {
+        print(run.stdout);
+      }
+    }
+  }
+
   bool timedOutOrCrashed = runResults.any((p) => p.exitCode != 0);
   if (timedOutOrCrashed) {
     print("Warning: At least one processes exited with a non-0 exit code.");
