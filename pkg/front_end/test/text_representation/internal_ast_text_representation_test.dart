@@ -670,7 +670,8 @@ void _testIfNullExpression() {
 void _testIntLiterals() {
   testExpression(new IntJudgment(0, null), '0');
   testExpression(new IntJudgment(0, 'foo'), 'foo');
-  testExpression(new ShadowLargeIntLiteral('bar', TreeNode.noOffset), 'bar');
+  testExpression(
+      new ShadowLargeIntLiteral('bar', 'bar', TreeNode.noOffset), 'bar');
 }
 
 void _testInternalMethodInvocation() {

@@ -1964,18 +1964,28 @@ class Listener implements UnescapeErrorListener {
     logEvent("Assert");
   }
 
-  /** Called with either the token containing a double literal, or
-    * an immediately preceding "unary plus" token.
-    */
+  /// Called with either the token containing a double literal, or an
+  /// immediately preceding "unary minus" token.
   void handleLiteralDouble(Token token) {
     logEvent("LiteralDouble");
   }
 
-  /** Called with either the token containing an integer literal,
-    * or an immediately preceding "unary plus" token.
-    */
+  /// Called with either the token containing a double literal with separators,
+  /// or an immediately preceding "unary minus" token.
+  void handleLiteralDoubleWithSeparators(Token token) {
+    logEvent("LiteralDoubleWithSeparators");
+  }
+
+  /// Called with either the token containing an integer literal, or an
+  /// immediately preceding "unary minus" token.
   void handleLiteralInt(Token token) {
     logEvent("LiteralInt");
+  }
+
+  /// Called with either the token containing an integer literal with
+  /// separators, or an immediately preceding "unary minus" token.
+  void handleLiteralIntWithSeparators(Token token) {
+    logEvent("LiteralIntWithSeparators");
   }
 
   void handleLiteralList(

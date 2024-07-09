@@ -7,6 +7,7 @@ const bool0 = /*cfe.Bool(true)*/ true;
 const bool1 = /*cfe.Bool(false)*/ false;
 const string0 = /*cfe.String(foo)*/ 'foo';
 const int0 = /*cfe.Int(0)*/ 0;
+const int1 = /*cfe.Int(1000000)*/ 1_000_000;
 const double0 = /*cfe.Double(0.5)*/ 0.5;
 const symbol0 = /*cfe.Symbol(foo)*/ #foo;
 const symbol1 = const /*cfe.Symbol(foo)*/ Symbol('foo');
@@ -17,6 +18,7 @@ main() {
   print(/*Bool(false)*/ bool1);
   print(/*String(foo)*/ string0);
   print(/*Int(0)*/ int0);
+  print(/*Int(1000000)*/ int1);
   print(/*Double(0.5)*/ double0);
   print(
       /*cfe|analyzer.Symbol(foo)*/

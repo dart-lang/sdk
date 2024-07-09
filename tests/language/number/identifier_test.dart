@@ -2,43 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 main() {
-  // Integer literals.
-  Expect.isTrue(2 is int);
-  //                 ^^^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
-  // [cfe] Local variable 'int' can't be referenced before it is declared.
-  Expect.equals(2, 2 as int);
-  //                    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
-  // [cfe] Local variable 'int' can't be referenced before it is declared.
-  Expect.isTrue(-2 is int);
-  //                  ^^^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
-  // [cfe] Local variable 'int' can't be referenced before it is declared.
-  Expect.equals(-2, -2 as int);
-  //                      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
-  // [cfe] Local variable 'int' can't be referenced before it is declared.
-  Expect.isTrue(0x10 is int);
-  //                    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
-  // [cfe] Local variable 'int' can't be referenced before it is declared.
-  Expect.isTrue(-0x10 is int);
-  //                     ^^^
-  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
-  // [cfe] Local variable 'int' can't be referenced before it is declared.
-
-  // "a" will be part of hex literal, the following "s" is an error.
-  0x10as int;
+  0x10as;
 //^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //     ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
-// [cfe] 's' isn't a type.
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [cfe] Undefined name 's'.
   0x;
 //^
 // [cfe] A hex digit (0-9 or A-F) must follow '0x'.
@@ -86,4 +57,5 @@ main() {
 // ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Undefined name 'x'.
+  bool _1 = false; // An identifier can start with an underscore and then contain only numbers.
 }

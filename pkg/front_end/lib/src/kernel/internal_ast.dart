@@ -17,6 +17,8 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
+library;
+
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:kernel/ast.dart';
@@ -785,6 +787,9 @@ abstract class InitializerJudgment implements AuxiliaryInitializer {
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
+  /// The literal text of the number, as it appears in the source, which may
+  /// include digit separators (and may not be safe for parsing with
+  /// `int.parse`).
   final String? literal;
 
   IntJudgment(int value, this.literal) : super(value);
@@ -822,16 +827,22 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 }
 
 class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
+  /// The parsable String source, stripped of any digit separators.
+  final String _strippedLiteral;
+
+  /// The original textual source, possibly with digit separators.
   final String literal;
   @override
   final int fileOffset;
   bool isParenthesized = false;
 
-  ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
+  ShadowLargeIntLiteral(this._strippedLiteral, this.literal, this.fileOffset)
+      : super(0);
 
   // Coverage-ignore(suite): Not run.
   double? asDouble({bool negated = false}) {
-    BigInt? intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
+    BigInt? intValue =
+        BigInt.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);
     if (intValue == null) {
       return null;
     }
@@ -844,7 +855,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 
   int? asInt64({bool negated = false}) {
-    return int.tryParse(negated ? '-${literal}' : literal);
+    return int.tryParse(negated ? '-${_strippedLiteral}' : _strippedLiteral);
   }
 
   @override

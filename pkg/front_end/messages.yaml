@@ -1755,6 +1755,22 @@ UnexpectedDollarInString:
     - "'''$'''"
     - '"""$"""'
 
+UnexpectedSeparatorInNumber:
+  problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
+  correctionMessage: "Try removing the '_'."
+  analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
+  experiments: digit-separators
+  expression:
+    - '123_'
+    - '1.23_'
+    - '1_.23'
+    - '0x_123'
+    - '0x123_'
+    - '1_e23'
+    - '1e_23'
+    - '1.2_e3'
+    - '1.2e_3'
+
 UnexpectedToken:
   problemMessage: "Unexpected token '#lexeme'."
   analyzerCode: UNEXPECTED_TOKEN

@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
@@ -1122,7 +1123,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitIntegerLiteral(IntegerLiteral node) {
+  void visitIntegerLiteral(covariant IntegerLiteralImpl node) {
     _checkForOutOfRange(node);
     super.visitIntegerLiteral(node);
   }
@@ -4978,25 +4979,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///   is the result of calling the unary minus operator on a double instance
   ///   representing the numerical value of n.
   ///   - Otherwise (the current behavior of -n)
-  void _checkForOutOfRange(IntegerLiteral node) {
-    String lexeme = node.literal.lexeme;
-    bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
-    List<Object> extraErrorArgs = [];
+  void _checkForOutOfRange(IntegerLiteralImpl node) {
+    var source = node.literal.lexeme;
+    if (node.beginToken.type == TokenType.INT_WITH_SEPARATORS ||
+        node.beginToken.type == TokenType.HEXADECIMAL_WITH_SEPARATORS) {
+      source = shared.stripSeparators(source);
+    }
+    bool isNegated = node.immediatelyNegated;
 
     bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
     bool valid = treatedAsDouble
-        ? IntegerLiteralImpl.isValidAsDouble(lexeme)
-        : IntegerLiteralImpl.isValidAsInteger(lexeme, isNegated);
+        ? IntegerLiteralImpl.isValidAsDouble(source)
+        : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
 
     if (!valid) {
-      extraErrorArgs.add(isNegated ? '-$lexeme' : lexeme);
-
-      if (treatedAsDouble) {
-        // Suggest the nearest valid double (as a BigInt for printing reasons).
-        extraErrorArgs.add(
-            BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme))
-                .toString());
-      }
+      var lexeme = node.literal.lexeme;
+      var extraErrorArgs = [
+        isNegated ? '-$lexeme' : lexeme,
+        if (treatedAsDouble)
+          // Suggest the nearest valid double (as a BigInt, for printing).
+          BigInt.from(IntegerLiteralImpl.nearestValidDouble(source)).toString(),
+      ];
 
       errorReporter.atNode(
         node,

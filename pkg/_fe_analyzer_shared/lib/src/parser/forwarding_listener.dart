@@ -1633,8 +1633,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    listener?.handleLiteralDoubleWithSeparators(token);
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     listener?.handleLiteralInt(token);
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    listener?.handleLiteralIntWithSeparators(token);
   }
 
   @override

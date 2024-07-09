@@ -99,6 +99,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0));
 
+  static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
+      name: 'digit-separators',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
@@ -370,6 +378,10 @@ class GlobalFeatures {
   GlobalFeature get controlFlowCollections => _controlFlowCollections ??=
       _computeGlobalFeature(ExperimentalFlag.controlFlowCollections);
 
+  GlobalFeature? _digitSeparators;
+  GlobalFeature get digitSeparators => _digitSeparators ??=
+      _computeGlobalFeature(ExperimentalFlag.digitSeparators);
+
   GlobalFeature? _enhancedEnums;
   GlobalFeature get enhancedEnums =>
       _enhancedEnums ??= _computeGlobalFeature(ExperimentalFlag.enhancedEnums);
@@ -515,6 +527,11 @@ class LibraryFeatures {
           canonicalUri,
           libraryVersion);
 
+  LibraryFeature? _digitSeparators;
+  LibraryFeature get digitSeparators =>
+      _digitSeparators ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.digitSeparators, canonicalUri, libraryVersion);
+
   LibraryFeature? _enhancedEnums;
   LibraryFeature get enhancedEnums =>
       _enhancedEnums ??= globalFeatures._computeLibraryFeature(
@@ -658,6 +675,8 @@ class LibraryFeatures {
         return constructorTearoffs;
       case shared.ExperimentalFlag.controlFlowCollections:
         return controlFlowCollections;
+      case shared.ExperimentalFlag.digitSeparators:
+        return digitSeparators;
       case shared.ExperimentalFlag.enhancedEnums:
         return enhancedEnums;
       case shared.ExperimentalFlag.extensionMethods:
@@ -726,6 +745,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.constructorTearoffs;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
+    case "digit-separators":
+      return ExperimentalFlag.digitSeparators;
     case "enhanced-enums":
       return ExperimentalFlag.enhancedEnums;
     case "extension-methods":
@@ -793,6 +814,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.constructorTearoffs.isEnabledByDefault,
   ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections.isEnabledByDefault,
+  ExperimentalFlag.digitSeparators:
+      ExperimentalFlag.digitSeparators.isEnabledByDefault,
   ExperimentalFlag.enhancedEnums:
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
@@ -853,6 +876,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.constructorTearoffs,
   shared.ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections,
+  shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,

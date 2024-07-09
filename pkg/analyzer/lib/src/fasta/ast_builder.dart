@@ -46,6 +46,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;
+import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -150,6 +151,9 @@ class AstBuilder extends StackListener {
   /// `true` if null-aware elements is enabled
   final bool enableNullAwareElements;
 
+  /// `true` if digit-separators is enabled.
+  final bool _enableDigitSeparators;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -179,6 +183,8 @@ class AstBuilder extends StackListener {
         enableClassModifiers = _featureSet.isEnabled(Feature.class_modifiers),
         enableNullAwareElements =
             _featureSet.isEnabled(Feature.null_aware_elements),
+        _enableDigitSeparators =
+            _featureSet.isEnabled(Feature.digit_separators),
         uri = uri ?? fileUri;
 
   @override
@@ -4715,6 +4721,30 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    assert(token.type == TokenType.DOUBLE);
+    debugEvent("LiteralDouble");
+
+    if (!_enableDigitSeparators) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.digit_separators,
+        startToken: token,
+      );
+    }
+
+    // Only copy `source` if we find a separator ('_'). Most int literals
+    // will not have any separator, and so a quick scan will show we do not
+    // need to produce a new String.
+    var source = stripSeparators(token.lexeme);
+    push(
+      DoubleLiteralImpl(
+        literal: token,
+        value: double.parse(source),
+      ),
+    );
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     assert(identical(token.kind, INT_TOKEN) ||
         identical(token.kind, HEXADECIMAL_TOKEN));
@@ -4724,6 +4754,28 @@ class AstBuilder extends StackListener {
       IntegerLiteralImpl(
         literal: token,
         value: int.tryParse(token.lexeme),
+      ),
+    );
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    assert(identical(token.kind, INT_TOKEN) ||
+        identical(token.kind, HEXADECIMAL_TOKEN));
+    debugEvent("LiteralInt");
+
+    if (!_enableDigitSeparators) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.digit_separators,
+        startToken: token,
+      );
+    }
+
+    var source = stripSeparators(token.lexeme);
+    push(
+      IntegerLiteralImpl(
+        literal: token,
+        value: int.tryParse(source),
       ),
     );
   }

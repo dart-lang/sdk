@@ -2588,9 +2588,24 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    LiteralDoubleWithSeparatorsHandle data =
+        new LiteralDoubleWithSeparatorsHandle(ParserAstType.HANDLE,
+            token: token);
+    seen(data);
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     LiteralIntHandle data =
         new LiteralIntHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    LiteralIntWithSeparatorsHandle data =
+        new LiteralIntWithSeparatorsHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
@@ -8790,6 +8805,22 @@ class LiteralDoubleHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralDoubleHandle(this);
 }
 
+class LiteralDoubleWithSeparatorsHandle extends ParserAstNode {
+  final Token token;
+
+  LiteralDoubleWithSeparatorsHandle(ParserAstType type, {required this.token})
+      : super("LiteralDoubleWithSeparators", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitLiteralDoubleWithSeparatorsHandle(this);
+}
+
 class LiteralIntHandle extends ParserAstNode {
   final Token token;
 
@@ -8803,6 +8834,22 @@ class LiteralIntHandle extends ParserAstNode {
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitLiteralIntHandle(this);
+}
+
+class LiteralIntWithSeparatorsHandle extends ParserAstNode {
+  final Token token;
+
+  LiteralIntWithSeparatorsHandle(ParserAstType type, {required this.token})
+      : super("LiteralIntWithSeparators", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitLiteralIntWithSeparatorsHandle(this);
 }
 
 class LiteralListHandle extends ParserAstNode {
@@ -10332,7 +10379,10 @@ abstract class ParserAstVisitor<R> {
   R visitAssertBegin(AssertBegin node);
   R visitAssertEnd(AssertEnd node);
   R visitLiteralDoubleHandle(LiteralDoubleHandle node);
+  R visitLiteralDoubleWithSeparatorsHandle(
+      LiteralDoubleWithSeparatorsHandle node);
   R visitLiteralIntHandle(LiteralIntHandle node);
+  R visitLiteralIntWithSeparatorsHandle(LiteralIntWithSeparatorsHandle node);
   R visitLiteralListHandle(LiteralListHandle node);
   R visitListPatternHandle(ListPatternHandle node);
   R visitLiteralSetOrMapHandle(LiteralSetOrMapHandle node);
@@ -11540,7 +11590,17 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
+  void visitLiteralDoubleWithSeparatorsHandle(
+          LiteralDoubleWithSeparatorsHandle node) =>
+      node.visitChildren(this);
+
+  @override
   void visitLiteralIntHandle(LiteralIntHandle node) => node.visitChildren(this);
+
+  @override
+  void visitLiteralIntWithSeparatorsHandle(
+          LiteralIntWithSeparatorsHandle node) =>
+      node.visitChildren(this);
 
   @override
   void visitLiteralListHandle(LiteralListHandle node) =>
