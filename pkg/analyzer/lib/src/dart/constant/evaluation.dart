@@ -1074,9 +1074,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
     } else if (node.isDeferred) {
-      return _getDeferredLibraryError(node, node.name2) ??
-          InvalidConstant.forEntity(
-              node, CompileTimeErrorCode.INVALID_CONSTANT);
+      return _getDeferredLibraryError(node, node.name2);
     }
 
     if (_substitution != null) {
@@ -1116,9 +1114,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // A top-level constant, imported with a prefix.
     if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
-        return _getDeferredLibraryError(node, node.identifier) ??
-            InvalidConstant.forEntity(
-                node, CompileTimeErrorCode.INVALID_CONSTANT);
+        return _getDeferredLibraryError(node, node.identifier);
       }
     } else if (prefixElement is! ExtensionElement) {
       var prefixResult = evaluateConstant(prefixNode);
@@ -1184,12 +1180,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var target = node.target;
     if (target != null) {
       if (target is PrefixedIdentifier &&
-          target.staticElement is ExtensionElement) {
+          (target.staticElement is ExtensionElement ||
+              target.staticElement is ExtensionTypeElement)) {
         var prefix = target.prefix;
         if (prefix.staticElement is PrefixElement && target.isDeferred) {
-          return _getDeferredLibraryError(node, target.identifier) ??
-              InvalidConstant.forEntity(
-                  node, CompileTimeErrorCode.INVALID_CONSTANT);
+          return _getDeferredLibraryError(node, target.identifier);
         }
 
         // For example, `async.FutureExtensions.wait`.
@@ -1842,7 +1837,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return InvalidConstant.genericError(errorNode2);
   }
 
-  InvalidConstant? _getDeferredLibraryError(
+  /// Returns the appropriate error for accessing an element in a deferred
+  /// library.
+  ///
+  /// If no specific error can be chosen, an [InvalidConstant] error using
+  /// [CompileTimeErrorCode.INVALID_CONSTANT] is returned.
+  InvalidConstant _getDeferredLibraryError(
       AstNode node, SyntacticEntity errorTarget) {
     var errorCode = () {
       AstNode? previous;
@@ -1896,7 +1896,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (errorCode != null) {
       return InvalidConstant.forEntity(errorTarget, errorCode);
     }
-    return null;
+    return InvalidConstant.forEntity(
+        node, CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /// If the type of [value] is a generic [FunctionType], and [node] has type
