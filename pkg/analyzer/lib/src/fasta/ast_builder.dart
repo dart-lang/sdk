@@ -4722,7 +4722,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleLiteralDoubleWithSeparators(Token token) {
-    assert(token.type == TokenType.DOUBLE);
+    assert(token.type == TokenType.DOUBLE_WITH_SEPARATORS);
     debugEvent("LiteralDouble");
 
     if (!_enableDigitSeparators) {
