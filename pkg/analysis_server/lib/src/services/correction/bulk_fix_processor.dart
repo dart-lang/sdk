@@ -531,14 +531,14 @@ class BulkFixProcessor {
         }
         if (result is ParsedLibraryResult) {
           var errorListener = RecordingErrorListener();
-          var allUnits = <LinterContextUnit>[];
+          var allUnits = <LintRuleUnitContext>[];
 
           for (var parsedUnit in result.units) {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(parsedUnit.content, null),
             );
-            allUnits.add(LinterContextUnit(
+            allUnits.add(LintRuleUnitContext(
                 parsedUnit.content, parsedUnit.unit, errorReporter));
           }
           for (var linterUnit in allUnits) {
@@ -558,10 +558,10 @@ class BulkFixProcessor {
   /// Computes lint for lint rules with names [syntacticLintCodes] (rules that
   /// do not require [ResolvedUnitResult]s).
   void _computeParsedResultLint(
-      LinterContextUnit currentUnit, List<LinterContextUnit> allUnits) {
+      LintRuleUnitContext currentUnit, List<LintRuleUnitContext> allUnits) {
     var unit = currentUnit.unit;
     var nodeRegistry = NodeLintRegistry(false);
-    var context = LinterContextParsedImpl(allUnits, currentUnit);
+    var context = LinterContextWithParsedResults(allUnits, currentUnit);
     var lintRules = syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
         .nonNulls;

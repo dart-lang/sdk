@@ -348,11 +348,11 @@ class LibraryAnalyzer {
 
   void _computeLints() {
     var definingUnit = _libraryElement.definingCompilationUnit;
-    var analysesToContextUnits = <UnitAnalysis, LinterContextUnit>{};
-    LinterContextUnit? definingContextUnit;
+    var analysesToContextUnits = <UnitAnalysis, LintRuleUnitContext>{};
+    LintRuleUnitContext? definingContextUnit;
     WorkspacePackage? workspacePackage;
     for (var unitAnalysis in _libraryUnits.values) {
-      var linterContextUnit = LinterContextUnit(
+      var linterContextUnit = LintRuleUnitContext(
         unitAnalysis.file.content,
         unitAnalysis.unit,
         unitAnalysis.errorReporter,
@@ -369,7 +369,7 @@ class LibraryAnalyzer {
 
     var enableTiming = _analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);
-    var context = LinterContextImpl(
+    var context = LinterContextWithResolvedResults(
       allUnits,
       definingContextUnit,
       _typeProvider,

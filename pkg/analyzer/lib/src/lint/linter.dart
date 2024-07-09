@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -75,8 +76,8 @@ abstract final class Category {
   static const String unused_code = 'unused code';
 }
 
-/// The result of attempting to evaluate an expression.
-class LinterConstantEvaluationResult {
+/// The result of attempting to evaluate an expression as a constant.
+final class LinterConstantEvaluationResult {
   /// The value of the expression, or `null` if has [errors].
   final DartObject? value;
 
@@ -89,17 +90,24 @@ class LinterConstantEvaluationResult {
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
 abstract class LinterContext {
-  List<LinterContextUnit> get allUnits;
+  /// The list of all compilation units that make up the library under analysis,
+  /// including the defining compilation unit, all parts, and all augmentations.
+  List<LintRuleUnitContext> get allUnits;
 
-  LinterContextUnit get definingUnit;
+  /// The defining compilation unit of the library under analysis.
+  LintRuleUnitContext get definingUnit;
 
   InheritanceManager3 get inheritanceManager;
 
-  /// Whether the [definingUnit] is in a package's top-level `lib` directory.
+  /// Whether the [definingUnit]'s location is in a package's top-level 'lib'
+  /// directory, including locations deeply nested, and locations in the
+  /// package-implementation directory, 'lib/src'.
   bool get isInLibDir;
 
   LibraryElement? get libraryElement;
 
+  /// The package in which the library being analyzed lives, or `null` if it
+  /// does not live in a package.
   WorkspacePackage? get package;
 
   TypeProvider get typeProvider;
@@ -114,12 +122,46 @@ abstract class LinterContext {
   }
 }
 
-class LinterContextImpl implements LinterContext {
+/// A [LinterContext] for a library, resolved into [ParsedUnitResult]s.
+final class LinterContextWithParsedResults implements LinterContext {
   @override
-  final List<LinterContextUnit> allUnits;
+  final List<LintRuleUnitContext> allUnits;
 
   @override
-  final LinterContextUnit definingUnit;
+  final LintRuleUnitContext definingUnit;
+
+  @override
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
+  LinterContextWithParsedResults(this.allUnits, this.definingUnit);
+
+  @override
+  bool get isInLibDir => LinterContext._isInLibDir(
+      definingUnit.unit.declaredElement?.source.fullName, package);
+
+  @override
+  LibraryElement get libraryElement => throw UnsupportedError(
+      'LinterContext with parsed results does not include a LibraryElement');
+
+  @override
+  WorkspacePackage? get package => null;
+
+  @override
+  TypeProvider get typeProvider => throw UnsupportedError(
+      'LinterContext with parsed results does not include a TypeProvider');
+
+  @override
+  TypeSystem get typeSystem => throw UnsupportedError(
+      'LinterContext with parsed results does not include a TypeSystem');
+}
+
+/// A [LinterContext] for a library, resolved into [ResolvedUnitResult]s.
+final class LinterContextWithResolvedResults implements LinterContext {
+  @override
+  final List<LintRuleUnitContext> allUnits;
+
+  @override
+  final LintRuleUnitContext definingUnit;
 
   @override
   final WorkspacePackage? package;
@@ -132,7 +174,7 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
-  LinterContextImpl(
+  LinterContextWithResolvedResults(
     this.allUnits,
     this.definingUnit,
     this.typeProvider,
@@ -148,53 +190,6 @@ class LinterContextImpl implements LinterContext {
   @override
   LibraryElement get libraryElement =>
       definingUnit.unit.declaredElement!.library;
-}
-
-class LinterContextParsedImpl implements LinterContext {
-  @override
-  final List<LinterContextUnit> allUnits;
-
-  @override
-  final LinterContextUnit definingUnit;
-
-  @override
-  final InheritanceManager3 inheritanceManager = InheritanceManager3();
-
-  LinterContextParsedImpl(
-    this.allUnits,
-    this.definingUnit,
-  );
-
-  @override
-  bool get isInLibDir {
-    return LinterContext._isInLibDir(
-        definingUnit.unit.declaredElement?.source.fullName, package);
-  }
-
-  @override
-  LibraryElement get libraryElement =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  WorkspacePackage? get package => null;
-
-  @override
-  TypeProvider get typeProvider =>
-      throw UnsupportedError('LinterContext with parsed results');
-
-  @override
-  TypeSystem get typeSystem =>
-      throw UnsupportedError('LinterContext with parsed results');
-}
-
-class LinterContextUnit {
-  final String content;
-
-  final CompilationUnit unit;
-
-  final ErrorReporter errorReporter;
-
-  LinterContextUnit(this.content, this.unit, this.errorReporter);
 }
 
 class LinterOptions extends DriverOptions {
@@ -352,6 +347,18 @@ abstract class LintRule {
     );
     reporter.reportError(error);
   }
+}
+
+/// Provides access to information needed by lint rules that is not available
+/// from AST nodes or the element model.
+class LintRuleUnitContext {
+  final String content;
+
+  final CompilationUnit unit;
+
+  final ErrorReporter errorReporter;
+
+  LintRuleUnitContext(this.content, this.unit, this.errorReporter);
 }
 
 /// An error listener that only records whether any constant related errors have

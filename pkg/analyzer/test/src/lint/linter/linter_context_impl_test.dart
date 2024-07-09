@@ -26,7 +26,7 @@ main() {
 
 @reflectiveTest
 abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
-  late final LinterContextImpl context;
+  late final LinterContextWithResolvedResults context;
 
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
@@ -35,7 +35,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       StringSource(result.content, null),
     );
     var contextUnit =
-        LinterContextUnit(result.content, result.unit, errorReporter);
+        LintRuleUnitContext(result.content, result.unit, errorReporter);
 
     var libraryElement = result.libraryElement;
     var analysisContext = libraryElement.session.analysisContext;
@@ -43,13 +43,13 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
     var workspace = analysisContext.contextRoot.workspace;
     var workspacePackage = workspace.findPackageFor(libraryPath);
 
-    context = LinterContextImpl(
+    context = LinterContextWithResolvedResults(
       [contextUnit],
       contextUnit,
       result.typeProvider,
       result.typeSystem as TypeSystemImpl,
       InheritanceManager3(),
-      // TODO(pq): test package or consider passing in null
+      // TODO(pq): Use a test package or consider passing in `null`.
       workspacePackage,
     );
   }
