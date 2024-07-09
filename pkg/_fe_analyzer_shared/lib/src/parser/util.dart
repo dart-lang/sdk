@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.parser.util;
 
+import 'dart:typed_data';
+
 import '../messages/codes.dart' show noLength;
 
 import '../scanner/scanner.dart' show Token;
@@ -215,6 +217,38 @@ Token splitGtFromGtGtGtEq(Token token) {
       // so that the previous token is not set.
       ..next = token.next);
 }
+
+/// Strips separator characters (underscore) from [source].
+///
+/// No validation is performed on [source]; it could be a valid int, a valid
+/// double, or invalid.
+String stripSeparators(String source) {
+  Uint8List list = _separatorStripBuffer;
+  if (list.length < source.length - 1) {
+    // Looking at a very long number. Allocate a new buffer.
+    // We only strip separators after finding that there is at least one
+    // separator, so the length can be reduced by at least one character.
+    list = new Uint8List(source.length - 1);
+    if (list.length < 128) {
+      // Store the new, larger list as the reusable buffer.
+      _separatorStripBuffer = list;
+    }
+  }
+
+  int writeIndex = 0;
+  for (int i = 0; i < source.length; i++) {
+    int char = source.codeUnitAt(i);
+    if (char != 0x5f /* _ */) list[writeIndex++] = char;
+  }
+  return new String.fromCharCodes(list, 0, writeIndex);
+}
+
+/// A reusable buffer for stripping separators from number literals.
+///
+/// The majority of number literals fit in 24 characters. A maximal double with
+/// no unnecessary leading or trailing zeros is 17 digits, one decimal point,
+/// one 'e', two '-'s, and three exponent digits: 24 characters.
+Uint8List _separatorStripBuffer = new Uint8List(24);
 
 /// Return a synthetic `>` followed by [next].
 /// Call [Token.setNext] to add the token to the stream.

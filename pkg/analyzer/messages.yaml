@@ -21535,6 +21535,10 @@ ParserErrorCode:
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
+  INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+    problemMessage: The identifier 'augmented' can only be used to reference the augmented declaration inside an augmentation.
+    correctionMessage: Try using a different identifier.
+    hasPublishedDocs: false
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.

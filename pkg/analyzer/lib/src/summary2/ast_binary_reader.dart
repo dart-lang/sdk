@@ -193,6 +193,7 @@ class AstBinaryReader {
 
   IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
     var node = IntegerLiteralImpl(
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
       literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
       value: value,
     );
@@ -796,6 +797,7 @@ class AstBinaryReader {
   IntegerLiteral _readIntegerLiteralNull() {
     var lexeme = _readStringReference();
     var node = IntegerLiteralImpl(
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
       literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
       value: null,
     );

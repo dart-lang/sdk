@@ -2781,9 +2781,21 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    seen(token);
+    doPrint('handleLiteralDoubleWithSeparators(' '$token)');
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     seen(token);
     doPrint('handleLiteralInt(' '$token)');
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    seen(token);
+    doPrint('handleLiteralIntWithSeparators(' '$token)');
   }
 
   @override

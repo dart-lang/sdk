@@ -6215,6 +6215,10 @@ class LeafRuntimeCallInstr : public VariadicDefinition {
     return kUntagged;
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
   virtual bool MayCreateUnsafeUntaggedPointer() const {
     if (representation() != kUntagged) return false;
     // Returns true iff any of the inputs to the target may be an unsafe

@@ -131,6 +131,9 @@ features:
   wildcard-variables:
     help: "Local declarations and parameters named `_` are non-binding."
 
+  digit-separators:
+    help: "Number literals with digit separators."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

@@ -12,6 +12,9 @@ abstract class Feature {
   /// Feature information for class modifiers.
   static final class_modifiers = ExperimentalFeatures.class_modifiers;
 
+  /// Feature information for number literal digit separators.
+  static final digit_separators = ExperimentalFeatures.digit_separators;
+
   /// Feature information for the 2018 constant update.
   static final constant_update_2018 = ExperimentalFeatures.constant_update_2018;
 

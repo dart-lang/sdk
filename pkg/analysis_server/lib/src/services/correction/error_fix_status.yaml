@@ -2948,6 +2948,8 @@ ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
   status: noFix
 ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
   status: hasFix
+ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+  status: noFix
 ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
   status: hasFix
 ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:

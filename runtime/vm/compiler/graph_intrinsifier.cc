@@ -88,7 +88,7 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   const Function& function = parsed_function.function();
 
   switch (function.recognized_kind()) {
-#define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
+#define EMIT_CASE(library, class_name, function_name, enum_name, fp)           \
   case MethodRecognizer::k##enum_name:                                         \
     if (!Build_##enum_name(graph)) return false;                               \
     break;

@@ -26,7 +26,7 @@ class MethodRecognizer : public AllStatic {
  public:
   enum Kind {
     kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, fp) k##enum_name,
+#define DEFINE_ENUM_LIST(library, class, function, enum_name, fp) k##enum_name,
     RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
         kNumRecognizedMethods
@@ -49,9 +49,6 @@ class MethodRecognizer : public AllStatic {
   static bool IsMarkedAsRecognized(const Function& function,
                                    const char* kind = nullptr);
   static void InitializeState();
-
- private:
-  static void Libraries(GrowableArray<Library*>* libs);
 };
 
 // Recognizes token corresponding to a method name.

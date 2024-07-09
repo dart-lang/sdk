@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
+import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:macros/src/executor.dart' as macro;
@@ -405,9 +406,22 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    String source = stripSeparators(token.lexeme);
+    push(
+        new _MacroArgumentNode(new macro.DoubleArgument(double.parse(source))));
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     push(
         new _MacroArgumentNode(new macro.IntArgument(int.parse(token.lexeme))));
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    String source = stripSeparators(token.lexeme);
+    push(new _MacroArgumentNode(new macro.IntArgument(int.parse(source))));
   }
 
   @override

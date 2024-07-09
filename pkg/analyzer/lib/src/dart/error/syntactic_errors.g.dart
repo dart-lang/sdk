@@ -1295,6 +1295,14 @@ class ParserErrorCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const ParserErrorCode INVALID_USE_OF_IDENTIFIER_AUGMENTED =
+      ParserErrorCode(
+    'INVALID_USE_OF_IDENTIFIER_AUGMENTED',
+    "The identifier 'augmented' can only be used to reference the augmented "
+        "declaration inside an augmentation.",
+    correctionMessage: "Try using a different identifier.",
+  );
+
   ///  No parameters.
   static const ParserErrorCode LATE_PATTERN_VARIABLE_DECLARATION =
       ParserErrorCode(

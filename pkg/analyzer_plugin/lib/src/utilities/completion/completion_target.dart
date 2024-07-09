@@ -532,7 +532,9 @@ class CompletionTarget {
     if (entity is Token) {
       var previousTokenType = containingNode.findPrevious(entity)?.type;
       return previousTokenType == TokenType.DOUBLE ||
-          previousTokenType == TokenType.INT;
+          previousTokenType == TokenType.DOUBLE_WITH_SEPARATORS ||
+          previousTokenType == TokenType.INT ||
+          previousTokenType == TokenType.INT_WITH_SEPARATORS;
     }
     return false;
   }

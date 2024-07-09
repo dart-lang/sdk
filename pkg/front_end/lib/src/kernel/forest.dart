@@ -109,8 +109,9 @@ class Forest {
     return new IntJudgment(value, literal)..fileOffset = fileOffset;
   }
 
-  IntLiteral createIntLiteralLarge(int fileOffset, String literal) {
-    return new ShadowLargeIntLiteral(literal, fileOffset);
+  IntLiteral createIntLiteralLarge(
+      int fileOffset, String strippedLiteral, String literal) {
+    return new ShadowLargeIntLiteral(strippedLiteral, literal, fileOffset);
   }
 
   /// Return a representation of a list literal at the given [fileOffset]. The

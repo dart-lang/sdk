@@ -45,6 +45,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0)),
 
+  digitSeparators(
+      name: 'digit-separators',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   enhancedEnums(
       name: 'enhanced-enums',
       isEnabledByDefault: true,

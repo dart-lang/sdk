@@ -10207,21 +10207,21 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     // There are no children to visit.
   }
 
-  static bool isValidAsDouble(String lexeme) {
+  static bool isValidAsDouble(String source) {
     // Less than 16 characters must be a valid double since it's less than
     // 9007199254740992, 0x10000000000000, both 16 characters and 53 bits.
-    if (lexeme.length < 16) {
+    if (source.length < 16) {
       return true;
     }
 
-    var fullPrecision = BigInt.tryParse(lexeme);
+    var fullPrecision = BigInt.tryParse(source);
     if (fullPrecision == null) {
       return false;
     }
 
     // Usually handled by the length check, however, we must check this before
     // constructing a mask later, or we'd get a negative-shift runtime error.
-    int bitLengthAsInt = fullPrecision.bitLength;
+    var bitLengthAsInt = fullPrecision.bitLength;
     if (bitLengthAsInt <= 53) {
       return true;
     }
@@ -10233,35 +10233,35 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 
     // Say [lexeme] uses 100 bits as an integer. The bottom 47 must be 0s -- so
     // construct a mask of 47 ones, via of 2^n - 1 where n is 47.
-    BigInt bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
+    var bottomMask = (BigInt.one << (bitLengthAsInt - 53)) - BigInt.one;
 
     return fullPrecision & bottomMask == BigInt.zero;
   }
 
-  /// Returns `true` if the given [lexeme] is a valid lexeme for an integer
+  /// Whether the given [source] is a valid lexeme for an integer
   /// literal.
   ///
   /// The flag [isNegative] should be `true` if the lexeme is preceded by a
   /// unary negation operator.
-  static bool isValidAsInteger(String lexeme, bool isNegative) {
+  static bool isValidAsInteger(String source, bool isNegative) {
     // TODO(jmesserly): this depends on the platform int implementation, and
-    // might not be accurate if run on dart4web.
+    // might not be accurate if run in a browser.
     //
     // (Prior to https://dart-review.googlesource.com/c/sdk/+/63023 there was
     // a partial implementation here which might be a good starting point.
     // _isValidDecimalLiteral relied on int.parse so that would need some fixes.
     // _isValidHexadecimalLiteral worked except for negative int64 max.)
-    if (isNegative) lexeme = '-$lexeme';
-    return int.tryParse(lexeme) != null;
+    if (isNegative) source = '-$source';
+    return int.tryParse(source) != null;
   }
 
-  /// Suggest the nearest valid double to a user.
+  /// Suggests the nearest valid double to a user.
   ///
   /// If the integer they wrote requires more than a 53 bit mantissa, or more
   /// than 10 exponent bits, do them the favor of suggesting the nearest integer
   /// that would work for them.
-  static double nearestValidDouble(String lexeme) =>
-      math.min(double.maxFinite, BigInt.parse(lexeme).toDouble());
+  static double nearestValidDouble(String source) =>
+      math.min(double.maxFinite, BigInt.parse(source).toDouble());
 }
 
 /// A node within a [StringInterpolation].

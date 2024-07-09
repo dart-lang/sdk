@@ -27,6 +27,7 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
+import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
@@ -3750,7 +3751,32 @@ class BodyBuilder extends StackListenerImpl
     // Postpone parsing of literals resulting in a negative value
     // (hex literals >= 2^63). These are only allowed when not negated.
     if (value == null || value < 0) {
-      push(forest.createIntLiteralLarge(offsetForToken(token), token.lexeme));
+      push(forest.createIntLiteralLarge(
+          offsetForToken(token), token.lexeme, token.lexeme));
+    } else {
+      push(forest.createIntLiteral(offsetForToken(token), value, token.lexeme));
+    }
+  }
+
+  @override
+  void handleLiteralIntWithSeparators(Token token) {
+    debugEvent("LiteralIntWithSeparators");
+
+    if (!libraryFeatures.digitSeparators.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.digitSeparators.name),
+          token.offset,
+          token.length);
+    }
+
+    String source = stripSeparators(token.lexeme);
+    int? value = int.tryParse(source);
+    // Postpone parsing of literals resulting in a negative value
+    // (hex literals >= 2^63). These are only allowed when not negated.
+    if (value == null || value < 0) {
+      push(forest.createIntLiteralLarge(
+          offsetForToken(token), source, token.lexeme));
     } else {
       push(forest.createIntLiteral(offsetForToken(token), value, token.lexeme));
     }
@@ -5058,6 +5084,23 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("LiteralDouble");
     push(forest.createDoubleLiteral(
         offsetForToken(token), double.parse(token.lexeme)));
+  }
+
+  @override
+  void handleLiteralDoubleWithSeparators(Token token) {
+    debugEvent("LiteralDoubleWithSeparators");
+
+    if (!libraryFeatures.digitSeparators.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.digitSeparators.name),
+          token.offset,
+          token.length);
+    }
+
+    String source = stripSeparators(token.lexeme);
+    double value = double.parse(source);
+    push(forest.createDoubleLiteral(offsetForToken(token), value));
   }
 
   @override

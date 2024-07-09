@@ -31,8 +31,6 @@ class Intrinsifier : public AllStatic {
   static bool Intrinsify(const ParsedFunction& parsed_function,
                          FlowGraphCompiler* compiler);
 
-  static void InitializeState();
-
  private:
   static bool CanIntrinsify(const ParsedFunction& parsed_function);
 };

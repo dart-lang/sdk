@@ -334,10 +334,13 @@ bool looksLikeExpressionStart(Token next) =>
     next.isIdentifier ||
     next.isKeyword && !looksLikeStatementStart(next) ||
     next.type == TokenType.DOUBLE ||
+    next.type == TokenType.DOUBLE_WITH_SEPARATORS ||
     next.type == TokenType.HASH ||
     next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.HEXADECIMAL_WITH_SEPARATORS ||
     next.type == TokenType.IDENTIFIER ||
     next.type == TokenType.INT ||
+    next.type == TokenType.INT_WITH_SEPARATORS ||
     next.type == TokenType.STRING ||
     optional('{', next) ||
     optional('(', next) ||
@@ -358,10 +361,13 @@ bool looksLikeExpressionStart(Token next) =>
 bool looksLikePatternStart(Token next) =>
     next.isIdentifier ||
     next.type == TokenType.DOUBLE ||
+    next.type == TokenType.DOUBLE_WITH_SEPARATORS ||
     next.type == TokenType.HASH ||
     next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.HEXADECIMAL_WITH_SEPARATORS ||
     next.type == TokenType.IDENTIFIER ||
     next.type == TokenType.INT ||
+    next.type == TokenType.INT_WITH_SEPARATORS ||
     next.type == TokenType.STRING ||
     optional('null', next) ||
     optional('false', next) ||

@@ -6544,13 +6544,22 @@ class Parser {
         reportRecoverableError(
             next, codes.messageInvalidConstantPatternConstPrefix);
       }
-      return parseLiteralInt(token);
+      if (identical(next.type, TokenType.INT_WITH_SEPARATORS) ||
+          identical(next.type, TokenType.HEXADECIMAL_WITH_SEPARATORS)) {
+        return parseLiteralIntWithSeparators(token);
+      } else {
+        return parseLiteralInt(token);
+      }
     } else if (kind == DOUBLE_TOKEN) {
       if (constantPatternContext == ConstantPatternContext.explicit) {
         reportRecoverableError(
             next, codes.messageInvalidConstantPatternConstPrefix);
       }
-      return parseLiteralDouble(token);
+      if (identical(next.type, TokenType.DOUBLE_WITH_SEPARATORS)) {
+        return parseLiteralDoubleWithSeparators(token);
+      } else {
+        return parseLiteralDouble(token);
+      }
     } else if (kind == STRING_TOKEN) {
       if (constantPatternContext == ConstantPatternContext.explicit) {
         reportRecoverableError(
@@ -7441,6 +7450,14 @@ class Parser {
     return token;
   }
 
+  Token parseLiteralIntWithSeparators(Token token) {
+    token = token.next!;
+    assert(identical(token.kind, INT_TOKEN) ||
+        identical(token.kind, HEXADECIMAL_TOKEN));
+    listener.handleLiteralIntWithSeparators(token);
+    return token;
+  }
+
   /// ```
   /// doubleLiteral:
   ///   double
@@ -7450,6 +7467,13 @@ class Parser {
     token = token.next!;
     assert(identical(token.kind, DOUBLE_TOKEN));
     listener.handleLiteralDouble(token);
+    return token;
+  }
+
+  Token parseLiteralDoubleWithSeparators(Token token) {
+    token = token.next!;
+    assert(identical(token.kind, DOUBLE_TOKEN));
+    listener.handleLiteralDoubleWithSeparators(token);
     return token;
   }
 

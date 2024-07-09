@@ -1868,6 +1868,7 @@ mainly
 maintain
 maintains
 major
+majority
 make
 makers
 makes
@@ -2219,6 +2220,7 @@ parentheses
 parenthesis
 parenthesized
 parents
+parsable
 parse
 parsed
 parser
@@ -2675,6 +2677,7 @@ returned
 returning
 returns
 retype
+reusable
 reuse
 reused
 reuses
@@ -2965,6 +2968,8 @@ strictly
 string
 strings
 stripped
+stripping
+strips
 strong
 stronger
 strongest

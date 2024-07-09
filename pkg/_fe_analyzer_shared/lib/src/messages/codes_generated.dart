@@ -16804,6 +16804,19 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnexpectedSeparatorInNumber =
+    messageUnexpectedSeparatorInNumber;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnexpectedSeparatorInNumber = const MessageCode(
+  "UnexpectedSeparatorInNumber",
+  analyzerCodes: <String>["UNEXPECTED_SEPARATOR_IN_NUMBER"],
+  problemMessage:
+      r"""Digit separators ('_') in a number literal can only be placed between two digits.""",
+  correctionMessage: r"""Try removing the '_'.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedSuperParametersInGenerativeConstructors =
     messageUnexpectedSuperParametersInGenerativeConstructors;
 
