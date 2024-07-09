@@ -44,6 +44,9 @@ class SourceCompilationUnitImpl
 
   final List<Export> exports = <Export>[];
 
+  @override
+  final List<Export> exporters = <Export>[];
+
   /// List of [PrefixBuilder]s for imports with prefixes.
   List<PrefixBuilder>? _prefixBuilders;
 
@@ -68,11 +71,16 @@ class SourceCompilationUnitImpl
   bool postponedProblemsIssued = false;
   List<PostponedProblem>? postponedProblems;
 
+  /// Index of the library we use references for.
+  @override
+  final IndexedLibrary? indexedLibrary;
+
   SourceCompilationUnitImpl(
       this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder,
       {required this.importUri,
       required this.fileUri,
-      required this.packageLanguageVersion})
+      required this.packageLanguageVersion,
+      required this.indexedLibrary})
       : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         _languageVersion = packageLanguageVersion;
 
@@ -134,8 +142,6 @@ class SourceCompilationUnitImpl
     return previous;
   }
 
-  IndexedLibrary? get indexedLibrary => _sourceLibraryBuilder.indexedLibrary;
-
   // TODO(johnniwinther): Use [_indexedContainer] for library members and make
   // it [null] when there is null corresponding [IndexedContainer].
   IndexedContainer? _indexedContainer;
@@ -143,7 +149,7 @@ class SourceCompilationUnitImpl
   @override
   void beginIndexedContainer(String name,
       {required bool isExtensionTypeDeclaration}) {
-    if (_sourceLibraryBuilder.indexedLibrary != null) {
+    if (indexedLibrary != null) {
       if (isExtensionTypeDeclaration) {
         _indexedContainer =
             indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
@@ -170,8 +176,7 @@ class SourceCompilationUnitImpl
   @override
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
-    _sourceLibraryBuilder.exporters
-        .add(new Export(exporter, this, combinators, charOffset));
+    exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
   @override
@@ -435,9 +440,6 @@ class SourceCompilationUnitImpl
   @override
   List<ConstructorReferenceBuilder> get constructorReferences =>
       _sourceLibraryBuilder.constructorReferences;
-
-  @override
-  List<Export> get exporters => _sourceLibraryBuilder.exporters;
 
   @override
   Library get library => _sourceLibraryBuilder.library;
@@ -2345,8 +2347,7 @@ class SourceCompilationUnitImpl
     }
     Reference? procedureReference;
     Reference? tearOffReference;
-    IndexedContainer? indexedContainer =
-        _indexedContainer ?? _sourceLibraryBuilder.indexedLibrary;
+    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
 
     bool isAugmentation = isAugmenting && (modifiers & augmentMask) != 0;
     if (indexedContainer != null && !isAugmentation) {
@@ -2490,11 +2491,10 @@ class SourceCompilationUnitImpl
         isInstanceMember: isInstanceMember,
         containerName: containerName,
         containerType: containerType,
-        libraryName: _sourceLibraryBuilder.indexedLibrary != null
-            ? new LibraryName(_sourceLibraryBuilder.indexedLibrary!.reference)
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.reference)
             : libraryName);
-    IndexedContainer? indexedContainer =
-        _indexedContainer ?? _sourceLibraryBuilder.indexedLibrary;
+    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
     if (indexedContainer != null) {
       if ((isExtensionMember || isExtensionTypeMember) &&
           isInstanceMember &&

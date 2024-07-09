@@ -200,8 +200,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final LibraryBuilder? _nameOrigin;
 
   /// Index of the library we use references for.
-  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
-  final IndexedLibrary? indexedLibrary;
+  IndexedLibrary? get indexedLibrary => compilationUnit.indexedLibrary;
 
   /// Exports that can't be serialized.
   ///
@@ -285,7 +284,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder? origin,
       this.library,
       this._nameOrigin,
-      this.indexedLibrary,
+      IndexedLibrary? indexedLibrary,
       {required this.isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
@@ -317,7 +316,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         this, libraryTypeParameterScopeBuilder,
         importUri: importUri,
         fileUri: fileUri,
-        packageLanguageVersion: packageLanguageVersion);
+        packageLanguageVersion: packageLanguageVersion,
+        indexedLibrary: indexedLibrary);
   }
 
   MergedLibraryScope get mergedScope {
@@ -426,6 +426,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool get isPart => compilationUnit.isPart;
+
+  @override
+  List<Export> get exporters => compilationUnit.exporters;
 
   @override
   // Coverage-ignore(suite): Not run.
