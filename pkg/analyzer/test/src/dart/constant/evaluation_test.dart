@@ -2704,6 +2704,22 @@ int Function(String)
 ''');
   }
 
+  test_visitPropertyAccess_staticMethod_ofExtensionType() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension type ET(int it) {
+  static int f(String s) => 7;
+}
+const g = self.ET.f;
+''');
+    var result = _topLevelVar('g');
+    assertDartObjectText(result, '''
+int Function(String)
+  element: self::@extensionType::ET::@method::f
+  variable: self::@variable::g
+''');
+  }
+
   test_visitRecordLiteral_inConstructorInitializer() async {
     await assertNoErrorsInCode(r'''
 class A {

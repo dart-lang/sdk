@@ -57,13 +57,15 @@ class LazyLibraryScope extends LazyScope {
 class DillCompilationUnitImpl extends DillCompilationUnit {
   final DillLibraryBuilder _dillLibraryBuilder;
 
+  @override
+  final List<Export> exporters = <Export>[];
+
   DillCompilationUnitImpl(this._dillLibraryBuilder);
 
   @override
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
-    _dillLibraryBuilder.exporters
-        .add(new Export(exporter, this, combinators, charOffset));
+    exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
   @override
@@ -153,6 +155,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     LazyLibraryScope lazyExportScope = exportScope as LazyLibraryScope;
     lazyExportScope.libraryBuilder = this;
   }
+
+  @override
+  List<Export> get exporters => mainCompilationUnit.exporters;
 
   @override
   LibraryBuilder get origin => this;

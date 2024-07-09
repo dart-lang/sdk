@@ -85,7 +85,7 @@ Future<void> main() async {
         isUnsupported: false,
         isAugmentation: false,
         isPatch: false);
-    libraryBuilder.markLanguageVersionFinal();
+    libraryBuilder.compilationUnit.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder = new LoadLibraryBuilder(
         libraryBuilder,
         /*dummyLibraryDependency,*/ -1,

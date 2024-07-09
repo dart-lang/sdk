@@ -44,6 +44,9 @@ class SourceCompilationUnitImpl
 
   final List<Export> exports = <Export>[];
 
+  @override
+  final List<Export> exporters = <Export>[];
+
   /// List of [PrefixBuilder]s for imports with prefixes.
   List<PrefixBuilder>? _prefixBuilders;
 
@@ -51,21 +54,35 @@ class SourceCompilationUnitImpl
   /// [forEachExtensionInScope].
   Set<ExtensionBuilder>? _extensionsInScope;
 
+  /// The language version of this library as defined by the language version
+  /// of the package it belongs to, if present, or the current language version
+  /// otherwise.
+  ///
+  /// This language version will be used as the language version for the library
+  /// if the library does not contain an explicit @dart= annotation.
+  @override
+  final LanguageVersion packageLanguageVersion;
+
+  /// The actual language version of this library. This is initially the
+  /// [packageLanguageVersion] but will be updated if the library contains
+  /// an explicit @dart= language version annotation.
+  LanguageVersion _languageVersion;
+
+  bool postponedProblemsIssued = false;
+  List<PostponedProblem>? postponedProblems;
+
+  /// Index of the library we use references for.
+  @override
+  final IndexedLibrary? indexedLibrary;
+
   SourceCompilationUnitImpl(
       this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder,
-      {required this.importUri, required this.fileUri})
-      : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder;
-
-  @override
-  LanguageVersion get packageLanguageVersion =>
-      _sourceLibraryBuilder.packageLanguageVersion;
-
-  @override
-  void registerExplicitLanguageVersion(Version version,
-      {int offset = 0, int length = noLength}) {
-    _sourceLibraryBuilder.registerExplicitLanguageVersion(version,
-        offset: offset, length: length);
-  }
+      {required this.importUri,
+      required this.fileUri,
+      required this.packageLanguageVersion,
+      required this.indexedLibrary})
+      : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
+        _languageVersion = packageLanguageVersion;
 
   @override
   LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
@@ -125,8 +142,6 @@ class SourceCompilationUnitImpl
     return previous;
   }
 
-  IndexedLibrary? get indexedLibrary => _sourceLibraryBuilder.indexedLibrary;
-
   // TODO(johnniwinther): Use [_indexedContainer] for library members and make
   // it [null] when there is null corresponding [IndexedContainer].
   IndexedContainer? _indexedContainer;
@@ -134,7 +149,7 @@ class SourceCompilationUnitImpl
   @override
   void beginIndexedContainer(String name,
       {required bool isExtensionTypeDeclaration}) {
-    if (_sourceLibraryBuilder.indexedLibrary != null) {
+    if (indexedLibrary != null) {
       if (isExtensionTypeDeclaration) {
         _indexedContainer =
             indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
@@ -161,8 +176,7 @@ class SourceCompilationUnitImpl
   @override
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
-    _sourceLibraryBuilder.exporters
-        .add(new Export(exporter, this, combinators, charOffset));
+    exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
   @override
@@ -205,13 +219,108 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  void issuePostponedProblems() {
-    _sourceLibraryBuilder.issuePostponedProblems();
+  LanguageVersion get languageVersion {
+    assert(
+        _languageVersion.isFinal,
+        // Coverage-ignore(suite): Not run.
+        "Attempting to read the language version of ${this} before has been "
+        "finalized.");
+    return _languageVersion;
   }
 
   @override
   void markLanguageVersionFinal() {
-    _sourceLibraryBuilder.markLanguageVersionFinal();
+    _languageVersion.isFinal = true;
+    _updateLibraryNNBDSettings();
+  }
+
+  void _updateLibraryNNBDSettings() {
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Weak;
+        break;
+      case NnbdMode.Strong:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Strong;
+        break;
+    }
+  }
+
+  /// Set the language version to an explicit major and minor version.
+  ///
+  /// The default language version specified by the `package_config.json` file
+  /// is passed to the constructor, but the library can have source code that
+  /// specifies another one which should be supported.
+  ///
+  /// Only the first registered language version is used.
+  ///
+  /// [offset] and [length] refers to the offset and length of the source code
+  /// specifying the language version.
+  @override
+  void registerExplicitLanguageVersion(Version version,
+      {int offset = 0, int length = noLength}) {
+    if (_languageVersion.isExplicit) {
+      // If more than once language version exists we use the first.
+      return;
+    }
+    assert(!_languageVersion.isFinal);
+
+    if (version > loader.target.currentSdkVersion) {
+      // Coverage-ignore-block(suite): Not run.
+      // If trying to set a language version that is higher than the current sdk
+      // version it's an error.
+      addPostponedProblem(
+          templateLanguageVersionTooHigh.withArguments(
+              loader.target.currentSdkVersion.major,
+              loader.target.currentSdkVersion.minor),
+          offset,
+          length,
+          fileUri);
+      // If the package set an OK version, but the file set an invalid version
+      // we want to use the package version.
+      _languageVersion = new InvalidLanguageVersion(
+          fileUri, offset, length, packageLanguageVersion.version, true);
+    } else if (version < loader.target.leastSupportedVersion) {
+      addPostponedProblem(
+          templateLanguageVersionTooLow.withArguments(
+              loader.target.leastSupportedVersion.major,
+              loader.target.leastSupportedVersion.minor),
+          offset,
+          length,
+          fileUri);
+      _languageVersion = new InvalidLanguageVersion(
+          fileUri, offset, length, loader.target.leastSupportedVersion, true);
+    } else {
+      _languageVersion = new LanguageVersion(version, fileUri, offset, length);
+    }
+    library.setLanguageVersion(_languageVersion.version);
+    _languageVersion.isFinal = true;
+  }
+
+  @override
+  void addPostponedProblem(
+      Message message, int charOffset, int length, Uri fileUri) {
+    if (postponedProblemsIssued) {
+      // Coverage-ignore-block(suite): Not run.
+      addProblem(message, charOffset, length, fileUri);
+    } else {
+      postponedProblems ??= <PostponedProblem>[];
+      postponedProblems!
+          .add(new PostponedProblem(message, charOffset, length, fileUri));
+    }
+  }
+
+  @override
+  void issuePostponedProblems() {
+    postponedProblemsIssued = true;
+    if (postponedProblems == null) return;
+    for (int i = 0; i < postponedProblems!.length; ++i) {
+      PostponedProblem postponedProblem = postponedProblems![i];
+      addProblem(postponedProblem.message, postponedProblem.charOffset,
+          postponedProblem.length, postponedProblem.fileUri);
+    }
+    postponedProblems = null;
   }
 
   @override
@@ -331,12 +440,6 @@ class SourceCompilationUnitImpl
   @override
   List<ConstructorReferenceBuilder> get constructorReferences =>
       _sourceLibraryBuilder.constructorReferences;
-
-  @override
-  List<Export> get exporters => _sourceLibraryBuilder.exporters;
-
-  @override
-  LanguageVersion get languageVersion => _sourceLibraryBuilder.languageVersion;
 
   @override
   Library get library => _sourceLibraryBuilder.library;
@@ -640,8 +743,6 @@ class SourceCompilationUnitImpl
       for (Part part in _parts) {
         addProblem(messagePartInPart, part.offset, noLength, fileUri,
             context: context);
-      }
-      for (Part part in _parts) {
         // Mark this part as used so we don't report it as orphaned.
         usedParts!.add(part.compilationUnit.importUri);
       }
@@ -2246,8 +2347,7 @@ class SourceCompilationUnitImpl
     }
     Reference? procedureReference;
     Reference? tearOffReference;
-    IndexedContainer? indexedContainer =
-        _indexedContainer ?? _sourceLibraryBuilder.indexedLibrary;
+    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
 
     bool isAugmentation = isAugmenting && (modifiers & augmentMask) != 0;
     if (indexedContainer != null && !isAugmentation) {
@@ -2391,11 +2491,10 @@ class SourceCompilationUnitImpl
         isInstanceMember: isInstanceMember,
         containerName: containerName,
         containerType: containerType,
-        libraryName: _sourceLibraryBuilder.indexedLibrary != null
-            ? new LibraryName(_sourceLibraryBuilder.indexedLibrary!.reference)
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.reference)
             : libraryName);
-    IndexedContainer? indexedContainer =
-        _indexedContainer ?? _sourceLibraryBuilder.indexedLibrary;
+    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
     if (indexedContainer != null) {
       if ((isExtensionMember || isExtensionTypeMember) &&
           isInstanceMember &&

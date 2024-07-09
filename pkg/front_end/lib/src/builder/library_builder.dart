@@ -6,6 +6,7 @@ library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Class, Library, Version;
+import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
@@ -78,6 +79,8 @@ sealed class CompilationUnit {
 
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
+
+  List<Export> get exporters;
 
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
@@ -159,8 +162,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<ConstructorReferenceBuilder> get constructorReferences;
 
-  List<Export> get exporters;
-
   LanguageVersion get languageVersion;
 
   // TODO(johnniwinther): Remove this.
@@ -216,9 +217,20 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// an error reading its source.
   abstract Message? accessProblem;
 
+  /// Add a problem that might not be reported immediately.
+  ///
+  /// Problems will be issued after source information has been added.
+  /// Once the problems has been issued, adding a new "postponed" problem will
+  /// be issued immediately.
+  void addPostponedProblem(
+      Message message, int charOffset, int length, Uri fileUri);
+
   void issuePostponedProblems();
 
   void markLanguageVersionFinal();
+
+  /// Index of the library we use references for.
+  IndexedLibrary? get indexedLibrary;
 
   void addSyntheticImport(
       {required String uri,
@@ -387,9 +399,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   final Scope exportScope;
-
-  @override
-  final List<Export> exporters = <Export>[];
 
   @override
   final Uri fileUri;
