@@ -17,6 +17,14 @@ class OmitLocalVariableTypesTest extends LintRuleTest {
   @override
   String get lintRule => 'omit_local_variable_types';
 
+  test_field() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int a = 3;
+}
+''');
+  }
+
   test_forEach() async {
     await assertDiagnostics(r'''
 f() {
@@ -33,6 +41,48 @@ f() {
   for (var i in [1, 2, 3]) { }
 }
 ''');
+  }
+
+  test_forIn_iterableSubclass() async {
+    await assertDiagnostics(r'''
+abstract class StringIterator<E> implements Iterable<E> {}
+
+void f(StringIterator<String> items) {
+  for (String item in items) {}
+}
+''', [
+      lint(106, 6),
+    ]);
+  }
+
+  test_forIn_rightSideIsIterableOfDynamic_typedWithString() async {
+    await assertNoDiagnostics(r'''
+void f(Iterable<dynamic> items) {
+  for (String item in items) {}
+}
+''');
+  }
+
+  test_forIn_rightSideIsIterableOfString_typedWithDynamic() async {
+    await assertNoDiagnostics(r'''
+abstract class StringIterator<E> implements Iterable<E> {}
+void f(StringIterator<String> items) {
+  for (dynamic item in items) {}
+}
+''');
+  }
+
+  test_forLoop_declarationHasRedundantType() async {
+    await assertDiagnostics(r'''
+class C {
+  late C next;
+}
+void f(C head) {
+  for (C node = head; ; node = node.next) {}
+}
+''', [
+      lint(51, 1),
+    ]);
   }
 
   /// Types are considered an important part of the pattern so we
@@ -67,6 +117,24 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   var {'a': int a} = <String, int>{'a': 1};
+}
+''');
+  }
+
+  test_multipleLocalVariables_rightSideIsIterable_typedWithRawIterable() async {
+    await assertDiagnostics(r'''
+void f() {
+  Iterable a = new Iterable.empty(), b = new Iterable.empty();
+}
+''', [
+      lint(13, 8),
+    ]);
+  }
+
+  test_multipleLocalVariables_rightSideIsList_typedWithRawIterable() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  Iterable a = [], b = new Iterable.empty();
 }
 ''');
   }
@@ -129,6 +197,22 @@ f() {
   switch ((1, 2)) {
     case (int a, final int b):
   }
+}
+''');
+  }
+
+  test_rightSideIsInt_typedWithDynamic() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  dynamic x = 0;
+}
+''');
+  }
+
+  test_rightSideIsNull_typedWithNull() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const Null a = null;
 }
 ''');
   }

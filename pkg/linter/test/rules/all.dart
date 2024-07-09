@@ -72,6 +72,7 @@ import 'await_only_futures_test.dart' as await_only_futures;
 import 'camel_case_extensions_test.dart' as camel_case_extensions;
 import 'camel_case_types_test.dart' as camel_case_types;
 import 'cancel_subscriptions_test.dart' as cancel_subscriptions;
+import 'cascade_invocations_test.dart' as cascade_invocations;
 import 'cast_nullable_to_non_nullable_test.dart'
     as cast_nullable_to_non_nullable;
 import 'close_sinks_test.dart' as close_sinks;
@@ -185,6 +186,7 @@ import 'prefer_generic_function_type_aliases_test.dart'
 import 'prefer_if_elements_to_conditional_expressions_test.dart'
     as prefer_if_elements_to_conditional_expressions;
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
+import 'prefer_int_literals_test.dart' as prefer_int_literals;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
 import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
@@ -335,6 +337,7 @@ void main() {
   camel_case_extensions.main();
   camel_case_types.main();
   cancel_subscriptions.main();
+  cascade_invocations.main();
   cast_nullable_to_non_nullable.main();
   close_sinks.main();
   collection_methods_unrelated_type.main();
@@ -418,6 +421,7 @@ void main() {
   prefer_generic_function_type_aliases.main();
   prefer_if_elements_to_conditional_expressions.main();
   prefer_inlined_adds.main();
+  prefer_int_literals.main();
   prefer_interpolation_to_compose_strings.main();
   prefer_iterable_whereType.main();
   prefer_mixin.main();
