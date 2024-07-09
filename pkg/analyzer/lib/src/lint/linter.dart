@@ -44,6 +44,9 @@ abstract final class Category {
   static const String documentation_comment_maintenance =
       'documentation comment maintenance';
 
+  /// A category of rules that align with the Effective Dart style guide.
+  static const String effective_dart = 'effective dart';
+
   /// A category representing possible coding errors.
   // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
   // back to this one).

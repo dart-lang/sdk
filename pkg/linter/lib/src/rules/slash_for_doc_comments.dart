@@ -53,7 +53,7 @@ class SlashForDocComments extends LintRule {
             name: 'slash_for_doc_comments',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.effective_dart, Category.style});
 
   @override
   bool get canUseParsedResult => true;
