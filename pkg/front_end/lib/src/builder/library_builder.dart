@@ -216,6 +216,14 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// an error reading its source.
   abstract Message? accessProblem;
 
+  /// Add a problem that might not be reported immediately.
+  ///
+  /// Problems will be issued after source information has been added.
+  /// Once the problems has been issued, adding a new "postponed" problem will
+  /// be issued immediately.
+  void addPostponedProblem(
+      Message message, int charOffset, int length, Uri fileUri);
+
   void issuePostponedProblems();
 
   void markLanguageVersionFinal();

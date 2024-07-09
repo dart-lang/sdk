@@ -522,7 +522,7 @@ class SourceLoader extends Loader {
         isPatch: isPatch);
     SourceCompilationUnit compilationUnit = libraryBuilder.compilationUnit;
     if (packageLanguageVersionProblem != null) {
-      libraryBuilder.addPostponedProblem(
+      compilationUnit.addPostponedProblem(
           packageLanguageVersionProblem, 0, noLength, compilationUnit.fileUri);
     }
 
