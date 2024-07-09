@@ -5382,8 +5382,8 @@ class Library : public Object {
   // helper methods and classes. Allow look up of private classes.
   static ClassPtr LookupCoreClass(const String& class_name);
 
-  // Return Function::null() if function does not exist in lib.
-  static FunctionPtr GetFunction(const Library& lib,
+  // Return Function::null() if function does not exist in libs.
+  static FunctionPtr GetFunction(const GrowableArray<Library*>& libs,
                                  const char* class_name,
                                  const char* function_name);
 

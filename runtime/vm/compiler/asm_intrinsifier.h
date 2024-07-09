@@ -32,7 +32,7 @@ class AsmIntrinsifier : public AllStatic {
  private:
   friend class Intrinsifier;
 
-#define DECLARE_FUNCTION(library, class, function, enum_name, fp)              \
+#define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \
   static void enum_name(Assembler* assembler, Label* normal_ir_body);
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
 

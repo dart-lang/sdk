@@ -52,6 +52,18 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
             range.endEnd(variable.name, initializer),
           );
         });
+        // Delete the `late` keyword if present.
+        if (variable.isLate) {
+          var parent = node.parent;
+          if (parent != null) {
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addDeletion(
+                range.startLength(
+                    parent.beginToken, parent.beginToken.length + 1),
+              );
+            });
+          }
+        }
       } else {
         var initializer =
             node.thisOrAncestorOfType<ConstructorFieldInitializer>();

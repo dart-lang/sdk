@@ -116,9 +116,9 @@ class ConstantEvaluationEngine {
             constantVisitor.evaluateConstant(constantInitializer);
         if (dartConstant is DartObjectImpl) {
           // Only check the type for truly const declarations (don't check final
-          // fields with initializers, since their types may be generic.  The type
-          // of the final field will be checked later, when the constructor is
-          // invoked).
+          // fields with initializers, since their types may be generic.  The
+          // type of the final field will be checked later, when the constructor
+          // is invoked).
           if (constant.isConst) {
             if (!library.typeSystem
                 .runtimeTypeMatch(dartConstant, constant.type)) {
@@ -202,8 +202,8 @@ class ConstantEvaluationEngine {
         constant.evaluationResult = null;
       }
     } else if (constant is VariableElement) {
-      // constant is a VariableElement but not a VariableElementImpl.  This can
-      // happen sometimes in the case of invalid user code (for example, a
+      // `constant` is a VariableElement but not a VariableElementImpl.  This
+      // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  The error is detected
       // elsewhere, so just silently ignore it here.
@@ -317,8 +317,8 @@ class ConstantEvaluationEngine {
         constNode.arguments!.accept(referenceFinder);
       }
     } else if (constant is VariableElement) {
-      // constant is a VariableElement but not a VariableElementImpl.  This can
-      // happen sometimes in the case of invalid user code (for example, a
+      // `constant` is a VariableElement but not a VariableElementImpl.  This
+      // can happen sometimes in the case of invalid user code (for example, a
       // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  So just don't bother
       // computing any dependencies.
@@ -525,7 +525,7 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
 class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// The evaluation engine used to access the feature set, type system, and
   /// type provider.
-  final ConstantEvaluationEngine evaluationEngine;
+  final ConstantEvaluationEngine _evaluationEngine;
 
   /// The library that contains the constant expression being evaluated.
   final LibraryElementImpl _library;
@@ -554,7 +554,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   ///
   /// The [substitution] is specified for instance creations.
   ConstantVisitor(
-    this.evaluationEngine,
+    this._evaluationEngine,
     this._library,
     this._errorReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
@@ -938,7 +938,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
-    return evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+    return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
       _library,
       node,
       constructor.returnType.typeArguments,
@@ -1113,7 +1113,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var prefixNode = node.prefix;
     var prefixElement = prefixNode.staticElement;
 
-    // importPrefix.CONST
+    // A top-level constant, imported with a prefix.
     if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
         return _getDeferredLibraryError(node, node.identifier) ??
@@ -1126,7 +1126,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         return prefixResult;
       }
 
-      // String.length
+      // For example, `String.length`.
       if (prefixElement is! InterfaceElement) {
         var propertyAccessResult =
             _evaluatePropertyAccess(prefixResult, node.identifier, node);
@@ -1183,6 +1183,23 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitPropertyAccess(PropertyAccess node) {
     var target = node.target;
     if (target != null) {
+      if (target is PrefixedIdentifier &&
+          target.staticElement is ExtensionElement) {
+        var prefix = target.prefix;
+        if (prefix.staticElement is PrefixElement && target.isDeferred) {
+          return _getDeferredLibraryError(node, target.identifier) ??
+              InvalidConstant.forEntity(
+                  node, CompileTimeErrorCode.INVALID_CONSTANT);
+        }
+
+        // For example, `async.FutureExtensions.wait`.
+        return _getConstantValue(
+          errorNode: node,
+          expression: node,
+          identifier: node.propertyName,
+          element: node.propertyName.staticElement,
+        );
+      }
       var prefixResult = evaluateConstant(target);
       if (prefixResult is! DartObjectImpl) {
         return prefixResult;
@@ -1695,7 +1712,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     required Element? element,
     DartType? givenType,
   }) {
-    var errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
+    var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.declaration;
 
     var variableElement =
@@ -1732,8 +1749,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return _instantiateFunctionTypeForSimpleIdentifier(
                 identifier, evaluationResult);
           case InvalidConstant():
-            // TODO(kallentu): Investigate and fix the test failures that occur if
-            // we remove `avoidReporting`
+            // TODO(kallentu): Investigate and fix the test failures that occur
+            // if we remove `avoidReporting`.
             return InvalidConstant.forEntity(
                 errorNode, CompileTimeErrorCode.INVALID_CONSTANT,
                 isUnresolved: true, avoidReporting: true);

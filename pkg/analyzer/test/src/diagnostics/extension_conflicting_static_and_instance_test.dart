@@ -19,7 +19,7 @@ class ExtensionConflictingStaticAndInstanceTest
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE;
 
-  test_extendedType_field() async {
+  test_extendedType_staticField() async {
     await assertNoErrorsInCode('''
 class A {
   static int foo = 0;
@@ -33,7 +33,7 @@ extension E on A {
 ''');
   }
 
-  test_extendedType_getter() async {
+  test_extendedType_staticGetter() async {
     await assertNoErrorsInCode('''
 class A {
   static int get foo => 0;
@@ -47,7 +47,7 @@ extension E on A {
 ''');
   }
 
-  test_extendedType_method() async {
+  test_extendedType_staticMethod() async {
     await assertNoErrorsInCode('''
 class A {
   static void foo() {}
@@ -61,7 +61,7 @@ extension E on A {
 ''');
   }
 
-  test_extendedType_setter() async {
+  test_extendedType_staticSetter() async {
     await assertNoErrorsInCode('''
 class A {
   static set foo(_) {}
@@ -75,7 +75,21 @@ extension E on A {
 ''');
   }
 
-  test_field_getter() async {
+  test_instanceMethod_staticMethodInAugmentation() async {
+    await assertErrorsInCode('''
+extension A on int {
+  void foo() {}
+}
+
+augment extension A {
+  static void foo() {}
+}
+''', [
+      error(_errorCode, 76, 3),
+    ]);
+  }
+
+  test_staticField_instanceGetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static int foo = 0;
@@ -86,7 +100,7 @@ extension E on String {
     ]);
   }
 
-  test_field_getter_unnamed() async {
+  test_staticField_instanceGetter_unnamed() async {
     await assertErrorsInCode('''
 extension E on String {
   static int foo = 0;
@@ -97,7 +111,7 @@ extension E on String {
     ]);
   }
 
-  test_field_method() async {
+  test_staticField_instanceMethod() async {
     await assertErrorsInCode('''
 extension E on String {
   static int foo = 0;
@@ -108,7 +122,7 @@ extension E on String {
     ]);
   }
 
-  test_field_setter() async {
+  test_staticField_instanceSetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static int foo = 0;
@@ -119,7 +133,7 @@ extension E on String {
     ]);
   }
 
-  test_getter_getter() async {
+  test_staticGetter_instanceGetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static int get foo => 0;
@@ -130,7 +144,7 @@ extension E on String {
     ]);
   }
 
-  test_getter_getter_unnamed() async {
+  test_staticGetter_instanceGetter_unnamed() async {
     await assertErrorsInCode('''
 extension E on String {
   static int get foo => 0;
@@ -141,7 +155,7 @@ extension E on String {
     ]);
   }
 
-  test_getter_method() async {
+  test_staticGetter_instanceMethod() async {
     await assertErrorsInCode('''
 extension E on String {
   static int get foo => 0;
@@ -152,7 +166,7 @@ extension E on String {
     ]);
   }
 
-  test_getter_setter() async {
+  test_staticGetter_instanceSetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static int get foo => 0;
@@ -163,7 +177,7 @@ extension E on String {
     ]);
   }
 
-  test_method_getter() async {
+  test_staticMethod_instanceGetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static void foo() {}
@@ -174,7 +188,7 @@ extension E on String {
     ]);
   }
 
-  test_method_method() async {
+  test_staticMethod_instanceMethod() async {
     await assertErrorsInCode('''
 extension E on String {
   static void foo() {}
@@ -185,7 +199,21 @@ extension E on String {
     ]);
   }
 
-  test_method_setter() async {
+  test_staticMethod_instanceMethodInAugmentation() async {
+    await assertErrorsInCode('''
+extension A on int {
+  static void foo() {}
+}
+
+augment extension A {
+  void foo() {}
+}
+''', [
+      error(_errorCode, 35, 3),
+    ]);
+  }
+
+  test_staticMethod_instanceSetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static void foo() {}
@@ -196,7 +224,7 @@ extension E on String {
     ]);
   }
 
-  test_setter_getter() async {
+  test_staticSetter_instanceGetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static set foo(_) {}
@@ -207,7 +235,7 @@ extension E on String {
     ]);
   }
 
-  test_setter_method() async {
+  test_staticSetter_instanceMethod() async {
     await assertErrorsInCode('''
 extension E on String {
   static set foo(_) {}
@@ -218,7 +246,7 @@ extension E on String {
     ]);
   }
 
-  test_setter_setter() async {
+  test_staticSetter_instanceSetter() async {
     await assertErrorsInCode('''
 extension E on String {
   static set foo(_) {}

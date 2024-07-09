@@ -106,6 +106,9 @@ abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedExtensionTypeElement
     implements AugmentedInterfaceElement {
+  @override
+  ExtensionTypeElement get declaration;
+
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
 
