@@ -1391,9 +1391,7 @@ severity: $severity
         }
       } else {
         // Coverage-ignore-block(suite): Not run.
-        part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         SourceLibraryBuilder sourceLibraryBuilder = part.createLibrary();
-        part.validatePart(null, null);
         sourceLibraries.add(sourceLibraryBuilder);
         _loadedLibraryBuilders[uri] = sourceLibraryBuilder;
       }
@@ -1407,10 +1405,10 @@ severity: $severity
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
-        _compilationUnits.values
-            .every((library) => !(library is SourceLibraryBuilder &&
+        _compilationUnits.values.every(
+            (compilationUnit) => !(compilationUnit is SourceCompilationUnit &&
                 // Coverage-ignore(suite): Not run.
-                library.isAugmenting)),
+                compilationUnit.isAugmenting)),
         // Coverage-ignore(suite): Not run.
         "Augmentation library found in libraryBuilders: " +
             _compilationUnits.values

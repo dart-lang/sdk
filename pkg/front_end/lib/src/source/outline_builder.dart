@@ -984,15 +984,16 @@ class OutlineBuilder extends StackListenerImpl {
     if (hasName) {
       name = pop();
     }
+    String? libraryName;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (name != null && name is! ParserRecovery) {
-      _compilationUnit.name =
-          flattenName(name, offsetForToken(libraryKeyword), uri);
+      libraryName = flattenName(name, offsetForToken(libraryKeyword), uri);
     } else {
       reportIfNotEnabled(
           libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
     }
-    _compilationUnit.metadata = metadata;
+    _builderFactory.addLibraryDirective(
+        libraryName: libraryName, metadata: metadata, isAugment: false);
   }
 
   @override
@@ -1009,7 +1010,8 @@ class OutlineBuilder extends StackListenerImpl {
     pop() as int;
     pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    _compilationUnit.metadata = metadata;
+    _builderFactory.addLibraryDirective(
+        libraryName: null, metadata: metadata, isAugment: true);
   }
 
   @override

@@ -58,6 +58,11 @@ abstract class BuilderFactory {
 
   void addScriptToken(int charOffset);
 
+  void addLibraryDirective(
+      {required String? libraryName,
+      required List<MetadataBuilder>? metadata,
+      required bool isAugment});
+
   void addPart(OffsetMap offsetMap, Token partKeyword,
       List<MetadataBuilder>? metadata, String uri, int charOffset);
 
