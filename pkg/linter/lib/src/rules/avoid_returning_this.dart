@@ -58,7 +58,7 @@ class AvoidReturningThis extends LintRule {
             name: 'avoid_returning_this',
             description: _desc,
             details: _details,
-            categories: {Category.effective_dart, Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

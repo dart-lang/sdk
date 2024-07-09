@@ -67,7 +67,7 @@ class PackageApiDocs extends LintRule {
             name: 'package_api_docs',
             description: _desc,
             details: _details,
-            categories: {Category.effective_dart, Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

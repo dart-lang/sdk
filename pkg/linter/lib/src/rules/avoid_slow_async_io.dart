@@ -79,7 +79,7 @@ class AvoidSlowAsyncIo extends LintRule {
             name: 'avoid_slow_async_io',
             description: _desc,
             details: _details,
-            categories: {Category.non_performant});
+            categories: {Category.nonPerformant});
 
   @override
   LintCode get lintCode => code;

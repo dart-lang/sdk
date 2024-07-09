@@ -47,7 +47,7 @@ class OneMemberAbstracts extends LintRule {
             name: 'one_member_abstracts',
             description: _desc,
             details: _details,
-            categories: {Category.effective_dart, Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

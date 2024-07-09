@@ -56,7 +56,7 @@ class NoWildcardVariableUses extends LintRule {
             description: _desc,
             details: _details,
             categories: {
-              Category.language_feature_usage,
+              Category.languageFeatureUsage,
               Category.unintentional
             });
 

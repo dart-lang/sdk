@@ -38,14 +38,14 @@ export 'package:analyzer/src/lint/state.dart'
 
 abstract final class Category {
   /// A category of rules that help to minimize binary size.
-  static const String binary_size = 'binary size';
+  static const String binarySize = 'binary size';
 
   /// A category of rules that help to maintain documentation comments.
-  static const String documentation_comment_maintenance =
+  static const String documentationCommentMaintenance =
       'documentation comment maintenance';
 
   /// A category of rules that align with the Effective Dart style guide.
-  static const String effective_dart = 'effective dart';
+  static const String effectiveDart = 'effective dart';
 
   /// A category representing possible coding errors.
   // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
@@ -53,16 +53,16 @@ abstract final class Category {
   static const String errors = 'errors';
 
   /// A category of rules that protect against error-prone code.
-  static const String error_prone = 'error-prone';
+  static const String errorProne = 'error-prone';
 
   /// A category of rules that promote language feature usage.
-  static const String language_feature_usage = 'language feature usage';
+  static const String languageFeatureUsage = 'language feature usage';
 
   /// A category of rules that protect against possibly memory-leaking code.
-  static const String memory_leaks = 'memory leaks';
+  static const String memoryLeaks = 'memory leaks';
 
   /// A category of rules that protect against non-performant code.
-  static const String non_performant = 'non-performant';
+  static const String nonPerformant = 'non-performant';
 
   /// A category representing Pub-related rules.
   static const String pub = 'pub';
@@ -76,7 +76,7 @@ abstract final class Category {
   static const String unintentional = 'unintentional';
 
   /// A category of rules that protect against unused code.
-  static const String unused_code = 'unused code';
+  static const String unusedCode = 'unused code';
 }
 
 /// The result of attempting to evaluate an expression as a constant.

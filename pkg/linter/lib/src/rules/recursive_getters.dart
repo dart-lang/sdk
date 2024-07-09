@@ -46,7 +46,7 @@ class RecursiveGetters extends LintRule {
             name: 'recursive_getters',
             description: _desc,
             details: _details,
-            categories: {Category.error_prone, Category.unintentional});
+            categories: {Category.errorProne, Category.unintentional});
 
   @override
   LintCode get lintCode => code;

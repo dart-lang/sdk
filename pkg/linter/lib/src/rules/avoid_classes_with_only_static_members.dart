@@ -56,7 +56,7 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule {
             name: 'avoid_classes_with_only_static_members',
             description: _desc,
             details: _details,
-            categories: {Category.effective_dart, Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

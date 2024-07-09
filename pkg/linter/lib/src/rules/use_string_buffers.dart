@@ -63,7 +63,7 @@ class UseStringBuffers extends LintRule {
             name: 'use_string_buffers',
             description: _desc,
             details: _details,
-            categories: {Category.non_performant});
+            categories: {Category.nonPerformant});
 
   @override
   LintCode get lintCode => code;

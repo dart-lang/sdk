@@ -43,7 +43,7 @@ class PreferRelativeImports extends LintRule {
             name: 'prefer_relative_imports',
             description: _desc,
             details: _details,
-            categories: {Category.error_prone});
+            categories: {Category.errorProne});
 
   @override
   List<String> get incompatibleRules => const ['always_use_package_imports'];

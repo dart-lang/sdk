@@ -76,7 +76,7 @@ class TypeInitFormals extends LintRule {
             name: 'type_init_formals',
             description: _desc,
             details: _details,
-            categories: {Category.effective_dart, Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;
