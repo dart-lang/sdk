@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dtd_impl/dart_tooling_daemon.dart' as dtd
-    show DartToolingDaemonOptions;
+import 'package:dtd_impl/dtd.dart' as dtd show DartToolingDaemonOptions;
 
 import '../core.dart';
 import '../sdk.dart';
