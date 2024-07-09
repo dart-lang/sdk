@@ -6,6 +6,12 @@ part of 'source_library_builder.dart';
 
 class SourceCompilationUnitImpl
     implements SourceCompilationUnit, ProblemReporting, BuilderFactory {
+  @override
+  final Uri fileUri;
+
+  @override
+  final Uri importUri;
+
   final SourceLibraryBuilder _sourceLibraryBuilder;
 
   SourceLibraryBuilder? _libraryBuilder;
@@ -20,6 +26,16 @@ class SourceCompilationUnitImpl
   ///
   /// This is meant to be written once and read once.
   OffsetMap? _offsetMap;
+
+  String? _name;
+
+  Uri? _partOfUri;
+
+  String? _partOfName;
+
+  LibraryBuilder? _partOfLibrary;
+
+  List<MetadataBuilder>? _metadata;
 
   /// The part directives in this compilation unit.
   final List<Part> _parts = [];
@@ -36,7 +52,8 @@ class SourceCompilationUnitImpl
   Set<ExtensionBuilder>? _extensionsInScope;
 
   SourceCompilationUnitImpl(
-      this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder)
+      this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder,
+      {required this.importUri, required this.fileUri})
       : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder;
 
   @override
@@ -211,16 +228,10 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  Uri get fileUri => _sourceLibraryBuilder.fileUri;
-
-  @override
-  Uri get importUri => _sourceLibraryBuilder.importUri;
-
-  @override
   bool get isAugmenting => _sourceLibraryBuilder.isAugmenting;
 
   @override
-  bool get isPart => _sourceLibraryBuilder.isPart;
+  bool get isPart => _partOfName != null || _partOfUri != null;
 
   @override
   bool get isSynthetic => accessProblem != null;
@@ -236,12 +247,7 @@ class SourceCompilationUnitImpl
       _sourceLibraryBuilder.localMembersNameIterator;
 
   @override
-  LibraryBuilder? get partOfLibrary => _sourceLibraryBuilder.partOfLibrary;
-
-  @override
-  set partOfLibrary(LibraryBuilder? value) {
-    _sourceLibraryBuilder.partOfLibrary = value;
-  }
+  LibraryBuilder? get partOfLibrary => _partOfLibrary;
 
   @override
   void recordAccess(
@@ -269,6 +275,11 @@ class SourceCompilationUnitImpl
         // Coverage-ignore(suite): Not run.
         "Source library builder as already been created for $this.");
     _libraryBuilder = _sourceLibraryBuilder;
+    if (isPart) {
+      // This is a part with no enclosing library.
+      addProblem(messagePartOrphan, 0, 1, fileUri);
+      _clearPartsAndReportExporters();
+    }
     return _sourceLibraryBuilder;
   }
 
@@ -338,18 +349,23 @@ class SourceCompilationUnitImpl
       _sourceLibraryBuilder.nativeMethods;
 
   @override
-  String? get partOfName => _sourceLibraryBuilder.partOfName;
+  String? get partOfName => _partOfName;
 
   @override
-  Uri? get partOfUri => _sourceLibraryBuilder.partOfUri;
+  Uri? get partOfUri => _partOfUri;
 
   @override
   Scope get scope => _sourceLibraryBuilder.scope;
 
+  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
+
   @override
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
-    _sourceLibraryBuilder.takeMixinApplications(mixinApplications);
+    assert(_mixinApplications != null,
+        "Mixin applications have already been processed.");
+    mixinApplications.addAll(_mixinApplications!);
+    _mixinApplications = null;
   }
 
   @override
@@ -549,7 +565,6 @@ class SourceCompilationUnitImpl
         libraryBuilder.constructorReferences.addAll(part.constructorReferences);
         part.libraryName.reference =
             parentCompilationUnit.libraryName.reference;
-        part.partOfLibrary = libraryBuilder;
         part.scope.becomePartOf(libraryBuilder.scope);
         // TODO(ahe): Include metadata from part?
 
@@ -572,7 +587,6 @@ class SourceCompilationUnitImpl
               .addAll(part.library.problemsAsJson!);
         }
         part.collectInferableTypes(libraryBuilder._inferableTypes!);
-        part.takeMixinApplications(libraryBuilder._mixinApplications!);
         if (libraryBuilder.library != part.library) {
           // Mark the part library as synthetic as it's not an actual library
           // (anymore).
@@ -599,25 +613,8 @@ class SourceCompilationUnitImpl
     }
   }
 
-  @override
-  void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts) {
-    _libraryBuilder = library ?? // Coverage-ignore(suite): Not run.
-        _sourceLibraryBuilder;
-    if (library != null && _parts.isNotEmpty) {
-      // If [library] is null, we have already reported a problem that this
-      // part is orphaned.
-      List<LocatedMessage> context = <LocatedMessage>[
-        messagePartInPartLibraryContext.withLocation(library.fileUri, -1, 1),
-      ];
-      for (Part part in _parts) {
-        addProblem(messagePartInPart, part.offset, noLength, fileUri,
-            context: context);
-      }
-      for (Part part in _parts) {
-        // Mark this part as used so we don't report it as orphaned.
-        usedParts!.add(part.compilationUnit.importUri);
-      }
-    }
+  void _clearPartsAndReportExporters() {
+    assert(_libraryBuilder != null, "Library has not be set.");
     _parts.clear();
     if (exporters.isNotEmpty) {
       // Coverage-ignore-block(suite): Not run.
@@ -630,6 +627,26 @@ class SourceCompilationUnitImpl
             context: context);
       }
     }
+  }
+
+  @override
+  void validatePart(SourceLibraryBuilder library, Set<Uri>? usedParts) {
+    _libraryBuilder = library;
+    _partOfLibrary = library;
+    if (_parts.isNotEmpty) {
+      List<LocatedMessage> context = <LocatedMessage>[
+        messagePartInPartLibraryContext.withLocation(library.fileUri, -1, 1),
+      ];
+      for (Part part in _parts) {
+        addProblem(messagePartInPart, part.offset, noLength, fileUri,
+            context: context);
+      }
+      for (Part part in _parts) {
+        // Mark this part as used so we don't report it as orphaned.
+        usedParts!.add(part.compilationUnit.importUri);
+      }
+    }
+    _clearPartsAndReportExporters();
   }
 
   Uri _resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
@@ -693,10 +710,9 @@ class SourceCompilationUnitImpl
   @override
   void addPartOf(List<MetadataBuilder>? metadata, String? name, String? uri,
       int uriOffset) {
-    _sourceLibraryBuilder.partOfName = name;
+    _partOfName = name;
     if (uri != null) {
-      Uri resolvedUri = _sourceLibraryBuilder.partOfUri =
-          _resolve(this.importUri, uri, uriOffset);
+      Uri resolvedUri = _partOfUri = _resolve(this.importUri, uri, uriOffset);
       // To support absolute paths from within packages in the part of uri, we
       // try to translate the file uri from the resolved import uri before
       // resolving through the file uri of this library. See issue #52964.
@@ -1572,9 +1588,9 @@ class SourceCompilationUnitImpl
   /// concrete target.
   void _registerMixinApplication(
       SourceClassBuilder mixinApplication, TypeBuilder mixedInType) {
-    assert(_sourceLibraryBuilder._mixinApplications != null,
-        "Late registration of mixin application.");
-    _sourceLibraryBuilder._mixinApplications![mixinApplication] = mixedInType;
+    assert(
+        _mixinApplications != null, "Late registration of mixin application.");
+    _mixinApplications![mixinApplication] = mixedInType;
   }
 
   @override
@@ -2721,20 +2737,18 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _sourceLibraryBuilder.metadata;
+  List<MetadataBuilder>? get metadata => _metadata;
 
   @override
-  void set metadata(List<MetadataBuilder>? value) {
-    _sourceLibraryBuilder.metadata = value;
-  }
+  String? get name => _name;
 
   @override
-  String? get name => _sourceLibraryBuilder.name;
-
-  @override
-  void set name(String? value) {
-    _sourceLibraryBuilder.name = value;
+  void addLibraryDirective(
+      {required String? libraryName,
+      required List<MetadataBuilder>? metadata,
+      required bool isAugment}) {
+    _name = libraryName;
+    _metadata = metadata;
   }
 
   @override

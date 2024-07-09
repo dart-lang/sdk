@@ -107,6 +107,8 @@ abstract class DillCompilationUnit implements CompilationUnit {}
 abstract class SourceCompilationUnit implements CompilationUnit {
   OutlineBuilder createOutlineBuilder();
 
+  /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as
+  /// the main compilation unit.
   SourceLibraryBuilder createLibrary();
 
   @override
@@ -164,7 +166,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   // TODO(johnniwinther): Remove this.
   Library get library;
 
-  abstract String? name;
+  String? get name;
 
   // TODO(johnniwinther): Remove this?
   LibraryName get libraryName;
@@ -173,15 +175,13 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<SourceFunctionBuilder> get nativeMethods;
 
-  void set partOfLibrary(LibraryBuilder? value);
-
   String? get partOfName;
 
   Uri? get partOfUri;
 
   Scope get scope;
 
-  abstract List<MetadataBuilder>? metadata;
+  List<MetadataBuilder>? get metadata;
 
   List<NominalVariableBuilder> get unboundNominalVariables;
 
@@ -197,7 +197,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   void includeParts(SourceLibraryBuilder libraryBuilder,
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
 
-  void validatePart(SourceLibraryBuilder? library, Set<Uri>? usedParts);
+  void validatePart(SourceLibraryBuilder library, Set<Uri>? usedParts);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.

@@ -149,16 +149,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final bool isUnsupported;
 
   @override
-  String? name;
-
-  String? partOfName;
-
-  Uri? partOfUri;
+  String? get name => compilationUnit.name;
 
   @override
-  LibraryBuilder? partOfLibrary;
+  LibraryBuilder? get partOfLibrary => compilationUnit.partOfLibrary;
 
-  List<MetadataBuilder>? metadata;
+  List<MetadataBuilder>? get metadata => compilationUnit.metadata;
 
   @override
   final Library library;
@@ -334,8 +330,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Coverage-ignore(suite): Not run.
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-    compilationUnit =
-        new SourceCompilationUnitImpl(this, libraryTypeParameterScopeBuilder);
+    compilationUnit = new SourceCompilationUnitImpl(
+        this, libraryTypeParameterScopeBuilder,
+        importUri: importUri, fileUri: fileUri);
   }
 
   MergedLibraryScope get mergedScope {
@@ -456,7 +453,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Iterable<SourceCompilationUnit> get parts => _parts;
 
   @override
-  bool get isPart => partOfName != null || partOfUri != null;
+  bool get isPart => compilationUnit.isPart;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1271,17 +1268,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  // TODO(johnniwinther): Move this to [SourceCompilationUnitImpl].
-  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
-
-  // TODO(johnniwinther): Move access to [_mixinApplications] to
-  //  [SourceCompilationUnitImpl].
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications) {
-    assert(_mixinApplications != null,
-        "Mixin applications have already been processed.");
-    mixinApplications.addAll(_mixinApplications!);
-    _mixinApplications = null;
+    compilationUnit.takeMixinApplications(mixinApplications);
+    for (SourceCompilationUnit part in parts) {
+      part.takeMixinApplications(mixinApplications);
+    }
+
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
