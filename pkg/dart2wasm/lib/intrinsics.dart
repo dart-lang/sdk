@@ -213,13 +213,6 @@ class Intrinsifier {
       w.StorageType? receiverType = translator.builtinTypes[cls];
       switch (receiverType) {
         case w.NumType.i32:
-          switch (name) {
-            case "unary-":
-              b.i32_const(0);
-              codeGen.wrap(receiver, w.NumType.i32);
-              b.i32_sub();
-              return w.NumType.i32;
-          }
           codeGen.wrap(receiver, w.NumType.i32);
           switch (name) {
             case "toIntSigned":
@@ -268,18 +261,6 @@ class Intrinsifier {
               return boolType;
             case ">":
               b.i32_gt_s();
-              return boolType;
-            case "leU":
-              b.i32_le_u();
-              return boolType;
-            case "ltU":
-              b.i32_lt_u();
-              return boolType;
-            case "geU":
-              b.i32_ge_u();
-              return boolType;
-            case "gtU":
-              b.i32_gt_u();
               return boolType;
             default:
               throw 'Unknown WasmI32 member $name';
@@ -532,26 +513,19 @@ class Intrinsifier {
         case "_noSubstitutionIndex":
           b.i32_const(RuntimeTypeInformation.noSubstitutionIndex);
           return w.NumType.i32;
-        case "_typeRowDisplacementOffsets":
+        case "_typeRulesSupers":
           final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementOffsetsType)
+              .translateStorageType(types.rtt.typeRulesSupersType)
               .unpacked;
-          translator.constants.instantiateConstant(
-              null, b, types.rtt.typeRowDisplacementOffsets, type);
+          translator.constants
+              .instantiateConstant(null, b, types.rtt.typeRulesSupers, type);
           return type;
-        case "_typeRowDisplacementTable":
+        case "_canonicalSubstitutionTable":
           final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementTableType)
+              .translateStorageType(types.rtt.substitutionTableConstantType)
               .unpacked;
           translator.constants.instantiateConstant(
-              null, b, types.rtt.typeRowDisplacementTable, type);
-          return type;
-        case "_typeRowDisplacementSubstTable":
-          final type = translator
-              .translateStorageType(types.rtt.typeRowDisplacementSubstTableType)
-              .unpacked;
-          translator.constants.instantiateConstant(
-              null, b, types.rtt.typeRowDisplacementSubstTable, type);
+              null, b, types.rtt.substitutionTableConstant, type);
           return type;
         case "_typeNames":
           final type =

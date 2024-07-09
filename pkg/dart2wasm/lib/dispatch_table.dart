@@ -410,7 +410,7 @@ class DispatchTable {
         (selector.callCount > 0 && selector.targetCount > 1) ||
         (selector.paramInfo.member! == translator.objectNoSuchMethod);
 
-    final List<SelectorInfo> selectors =
+    List<SelectorInfo> selectors =
         _selectorInfo.values.where(needsDispatch).toList();
 
     // Sort the selectors based on number of targets and number of use sites.
@@ -427,19 +427,40 @@ class DispatchTable {
 
     selectors.sort((a, b) => selectorSortWeight(b) - selectorSortWeight(a));
 
-    final rows = <Row<Reference>>[];
-    for (final selector in selectors) {
-      final rowValues = <({int index, Reference value})>[];
-      selector.targets.forEach((int classId, Reference target) {
-        rowValues.add((index: classId, value: target));
-      });
-      rowValues.sort((a, b) => a.index.compareTo(b.index));
-      rows.add(Row(rowValues));
-    }
-
-    _table = buildRowDisplacementTable<Reference>(rows);
-    for (int i = 0; i < rows.length; ++i) {
-      selectors[i].offset = rows[i].offset;
+    int firstAvailable = 0;
+    _table = [];
+    bool first = true;
+    for (SelectorInfo selector in selectors) {
+      int offset = first ? 0 : firstAvailable - selector.classIds.first;
+      first = false;
+      bool fits;
+      do {
+        fits = true;
+        for (int classId in selector.classIds) {
+          int entry = offset + classId;
+          if (entry >= _table.length) {
+            // Fits
+            break;
+          }
+          if (_table[entry] != null) {
+            fits = false;
+            break;
+          }
+        }
+        if (!fits) offset++;
+      } while (!fits);
+      selector.offset = offset;
+      for (int classId in selector.classIds) {
+        int entry = offset + classId;
+        while (_table.length <= entry) {
+          _table.add(null);
+        }
+        assert(_table[entry] == null);
+        _table[entry] = selector.targets[classId];
+      }
+      while (firstAvailable < _table.length && _table[firstAvailable] != null) {
+        firstAvailable++;
+      }
     }
 
     wasmTable = m.tables.define(w.RefType.func(nullable: true), _table.length);
@@ -456,74 +477,4 @@ class DispatchTable {
       }
     }
   }
-}
-
-/// Build a row-displacement table based on fitting the [rows].
-///
-/// The returned list is the resulting row displacement table with `null`
-/// entries representing unused space.
-///
-/// The offset of all [Row]s will be initialized.
-List<V?> buildRowDisplacementTable<V extends Object>(List<Row<V>> rows,
-    {int firstAvailable = 0}) {
-  final table = <V?>[];
-  for (final row in rows) {
-    final values = row.values;
-    int offset = firstAvailable - values.first.index;
-    bool fits;
-    do {
-      fits = true;
-      for (final value in values) {
-        final int entry = offset + value.index;
-        if (entry >= table.length) {
-          // Fits
-          break;
-        }
-        if (table[entry] != null) {
-          fits = false;
-          break;
-        }
-      }
-      if (!fits) offset++;
-    } while (!fits);
-    row.offset = offset;
-    for (final (:index, :value) in values) {
-      final int tableIndex = offset + index;
-      while (table.length <= tableIndex) {
-        table.add(null);
-      }
-      assert(table[tableIndex] == null);
-      table[tableIndex] = value;
-    }
-    while (firstAvailable < table.length && table[firstAvailable] != null) {
-      firstAvailable++;
-    }
-  }
-  return table;
-}
-
-class Row<V extends Object> {
-  /// The values of the table row, represented sparsely as (index, value) tuples.
-  final List<({int index, V value})> values;
-
-  /// The given [values] must not be empty and should be sorted by index.
-  Row(this.values) {
-    assert(values.isNotEmpty);
-    assert(() {
-      int previous = values.first.index;
-      for (final value in values.skip(1)) {
-        if (value.index <= previous) return false;
-        previous = value.index;
-      }
-      return true;
-    }());
-  }
-
-  /// The selected offset of this row.
-  late final int offset;
-
-  int get width => values.last.index - values.first.index + 1;
-  int get holes => width - values.length;
-  int get density => (100 * values.length) ~/ width;
-  int get sparsity => 100 - density;
 }
