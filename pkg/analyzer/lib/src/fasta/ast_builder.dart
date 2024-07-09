@@ -5592,7 +5592,19 @@ class AstBuilder extends StackListener {
     debugEvent("Type");
 
     var arguments = pop() as TypeArgumentListImpl?;
-    var name = pop() as IdentifierImpl;
+
+    IdentifierImpl name;
+    var nameCandidate = pop();
+    if (nameCandidate is AugmentedExpressionImpl) {
+      errorReporter.errorReporter?.atNode(
+        nameCandidate,
+        ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
+      );
+      name = SimpleIdentifierImpl(nameCandidate.augmentedKeyword);
+    } else {
+      name = nameCandidate as IdentifierImpl;
+    }
+
     push(
       name.toNamedType(
         typeArguments: arguments,
