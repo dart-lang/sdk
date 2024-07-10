@@ -59,6 +59,14 @@ class ExperimentalFlag {
           experimentEnabledVersion: const Version(2, 18),
           experimentReleasedVersion: const Version(2, 18));
 
+  static const ExperimentalFlag augmentations = const ExperimentalFlag(
+      name: 'augmentations',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
       isEnabledByDefault: true,
@@ -114,6 +122,14 @@ class ExperimentalFlag {
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
+
+  static const ExperimentalFlag enhancedParts = const ExperimentalFlag(
+      name: 'enhanced-parts',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
 
   static const ExperimentalFlag extensionMethods = const ExperimentalFlag(
       name: 'extension-methods',
@@ -358,6 +374,10 @@ class GlobalFeatures {
       _alternativeInvalidationStrategy ??= _computeGlobalFeature(
           ExperimentalFlag.alternativeInvalidationStrategy);
 
+  GlobalFeature? _augmentations;
+  GlobalFeature get augmentations =>
+      _augmentations ??= _computeGlobalFeature(ExperimentalFlag.augmentations);
+
   GlobalFeature? _classModifiers;
   GlobalFeature get classModifiers => _classModifiers ??=
       _computeGlobalFeature(ExperimentalFlag.classModifiers);
@@ -385,6 +405,10 @@ class GlobalFeatures {
   GlobalFeature? _enhancedEnums;
   GlobalFeature get enhancedEnums =>
       _enhancedEnums ??= _computeGlobalFeature(ExperimentalFlag.enhancedEnums);
+
+  GlobalFeature? _enhancedParts;
+  GlobalFeature get enhancedParts =>
+      _enhancedParts ??= _computeGlobalFeature(ExperimentalFlag.enhancedParts);
 
   GlobalFeature? _extensionMethods;
   GlobalFeature get extensionMethods => _extensionMethods ??=
@@ -500,6 +524,11 @@ class LibraryFeatures {
               canonicalUri,
               libraryVersion);
 
+  LibraryFeature? _augmentations;
+  LibraryFeature get augmentations =>
+      _augmentations ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.augmentations, canonicalUri, libraryVersion);
+
   LibraryFeature? _classModifiers;
   LibraryFeature get classModifiers =>
       _classModifiers ??= globalFeatures._computeLibraryFeature(
@@ -536,6 +565,11 @@ class LibraryFeatures {
   LibraryFeature get enhancedEnums =>
       _enhancedEnums ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.enhancedEnums, canonicalUri, libraryVersion);
+
+  LibraryFeature? _enhancedParts;
+  LibraryFeature get enhancedParts =>
+      _enhancedParts ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.enhancedParts, canonicalUri, libraryVersion);
 
   LibraryFeature? _extensionMethods;
   LibraryFeature get extensionMethods =>
@@ -665,6 +699,8 @@ class LibraryFeatures {
   LibraryFeature fromSharedExperimentalFlags(
       shared.ExperimentalFlag experimentalFlag) {
     switch (experimentalFlag) {
+      case shared.ExperimentalFlag.augmentations:
+        return augmentations;
       case shared.ExperimentalFlag.classModifiers:
         return classModifiers;
       case shared.ExperimentalFlag.constFunctions:
@@ -679,6 +715,8 @@ class LibraryFeatures {
         return digitSeparators;
       case shared.ExperimentalFlag.enhancedEnums:
         return enhancedEnums;
+      case shared.ExperimentalFlag.enhancedParts:
+        return enhancedParts;
       case shared.ExperimentalFlag.extensionMethods:
         return extensionMethods;
       case shared.ExperimentalFlag.genericMetadata:
@@ -735,6 +773,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "augmentations":
+      return ExperimentalFlag.augmentations;
     case "class-modifiers":
       return ExperimentalFlag.classModifiers;
     case "const-functions":
@@ -749,6 +789,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.digitSeparators;
     case "enhanced-enums":
       return ExperimentalFlag.enhancedEnums;
+    case "enhanced-parts":
+      return ExperimentalFlag.enhancedParts;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
     case "generic-metadata":
@@ -804,6 +846,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy:
       ExperimentalFlag.alternativeInvalidationStrategy.isEnabledByDefault,
+  ExperimentalFlag.augmentations:
+      ExperimentalFlag.augmentations.isEnabledByDefault,
   ExperimentalFlag.classModifiers:
       ExperimentalFlag.classModifiers.isEnabledByDefault,
   ExperimentalFlag.constFunctions:
@@ -818,6 +862,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.digitSeparators.isEnabledByDefault,
   ExperimentalFlag.enhancedEnums:
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
+  ExperimentalFlag.enhancedParts:
+      ExperimentalFlag.enhancedParts.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
@@ -868,6 +914,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
       },
     });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
+  shared.ExperimentalFlag.augmentations: ExperimentalFlag.augmentations,
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
   shared.ExperimentalFlag.constantUpdate2018:
@@ -878,6 +925,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.controlFlowCollections,
   shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
+  shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
