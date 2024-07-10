@@ -75,7 +75,7 @@ class CommentReferences extends LintRule {
             name: 'comment_references',
             description: _desc,
             details: _details,
-            categories: {Category.documentation_comment_maintenance});
+            categories: {Category.documentationCommentMaintenance});
 
   @override
   LintCode get lintCode => code;

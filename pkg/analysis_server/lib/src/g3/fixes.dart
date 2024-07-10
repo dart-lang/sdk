@@ -15,7 +15,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:collection/collection.dart';
 
 /// The root of a set of classes that support testing for lint fixes.

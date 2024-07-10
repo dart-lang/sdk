@@ -93,7 +93,7 @@ class ControlFlowInFinally extends LintRule {
             name: 'control_flow_in_finally',
             description: _desc,
             details: _details,
-            categories: {Category.error_prone});
+            categories: {Category.errorProne});
 
   @override
   LintCode get lintCode => code;

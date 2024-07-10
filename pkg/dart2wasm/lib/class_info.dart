@@ -123,9 +123,6 @@ class FieldIndex {
 /// by `Object._objectHashCode` wich updates the field first time it's read.
 const int initialIdentityHash = 0;
 
-/// We do not assign real class ids to anonymous mixin classes.
-const int anonymousMixinClassId = -1;
-
 /// Information about the Wasm representation for a class.
 class ClassInfo {
   /// The Dart class that this info corresponds to. The top type does not have
@@ -133,14 +130,7 @@ class ClassInfo {
   final Class? cls;
 
   /// The Class ID of this class, stored in every instance of the class.
-  int get classId {
-    if (_classId == anonymousMixinClassId) {
-      throw 'Tried to access class ID of anonymous mixin $cls';
-    }
-    return _classId;
-  }
-
-  final int _classId;
+  final int classId;
 
   /// Depth of this class in the Wasm type hierarchy.
   final int depth;
@@ -179,7 +169,7 @@ class ClassInfo {
   w.RefType typeWithNullability(bool nullable) =>
       nullable ? nullableType : nonNullableType;
 
-  ClassInfo(this.cls, this._classId, this.depth, this.struct, this.superInfo,
+  ClassInfo(this.cls, this.classId, this.depth, this.struct, this.superInfo,
       {this.typeParameterMatch = const {}})
       : nullableType = w.RefType.def(struct, nullable: true),
         nonNullableType = w.RefType.def(struct, nullable: false);
@@ -345,11 +335,9 @@ class ClassInfoCollector {
           typeParameterMatch: typeParameterMatch);
     }
     translator.classesSupersFirst.add(info);
+    translator.classes[classId] = info;
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
-    if (classId != anonymousMixinClassId) {
-      translator.classes[classId] = info;
-    }
   }
 
   void _createStructForRecordClass(Map<Class, int> classIds, Class cls) {
@@ -450,8 +438,7 @@ class ClassInfoCollector {
 
     // Class infos by class-id, will be populated by the calls to
     // [_createStructForClass] and [_createStructForRecordClass] below.
-    translator.classes =
-        List<ClassInfo>.filled(classIdNumbering.maxClassId + 1, topInfo);
+    translator.classes = List<ClassInfo>.filled(1 + dfsOrder.length, topInfo);
 
     // Class infos in different order: Infos of super class and super interfaces
     // before own info.
@@ -493,7 +480,8 @@ class ClassInfoCollector {
           representation = upperBound(representation, current);
         }
       }
-      final info = translator.classInfo[cls]!;
+      final classId = classIdNumbering.classIds[cls]!;
+      final info = translator.classes[classId];
       info._repr = representation ?? info;
     }
 
@@ -515,23 +503,19 @@ class ClassInfoCollector {
 class ClassIdNumbering {
   final Map<Class, List<Class>> _subclasses;
   final Map<Class, List<Class>> _implementors;
-  final Map<Class, Range> _concreteSubclassIdRange;
+  final List<Range> _concreteSubclassIdRanges;
   final Set<Class> _masqueraded;
 
   final List<Class> dfsOrder;
   final Map<Class, int> classIds;
-  final int maxConcreteClassId;
-  final int maxClassId;
 
   ClassIdNumbering._(
       this._subclasses,
       this._implementors,
-      this._concreteSubclassIdRange,
+      this._concreteSubclassIdRanges,
       this._masqueraded,
       this.dfsOrder,
-      this.classIds,
-      this.maxConcreteClassId,
-      this.maxClassId);
+      this.classIds);
 
   final Map<Class, Set<Class>> _transitiveImplementors = {};
   Set<Class> _getTransitiveImplementors(Class klass) {
@@ -566,10 +550,10 @@ class ClassIdNumbering {
 
     ranges = [];
     final transitiveImplementors = _getTransitiveImplementors(klass);
-    final range = _concreteSubclassIdRange[klass]!;
+    final range = _concreteSubclassIdRanges[classIds[klass]!];
     if (!range.isEmpty) ranges.add(range);
     for (final implementor in transitiveImplementors) {
-      final range = _concreteSubclassIdRange[implementor]!;
+      final range = _concreteSubclassIdRanges[classIds[implementor]!];
       if (!range.isEmpty) ranges.add(range);
     }
     ranges.normalize();
@@ -594,19 +578,11 @@ class ClassIdNumbering {
     late final Class root;
     final subclasses = <Class, List<Class>>{};
     final implementors = <Class, List<Class>>{};
-    int concreteClassCount = 0;
     int abstractClassCount = 0;
-    int anonymousMixinClassCount = 0;
+    int concreteClassCount = 0;
     for (final library in translator.component.libraries) {
       for (final cls in library.classes) {
-        if (cls.isAnonymousMixin) {
-          assert(cls.isAbstract);
-          anonymousMixinClassCount++;
-        } else if (cls.isAbstract) {
-          abstractClassCount++;
-        } else {
-          concreteClassCount++;
-        }
+        cls.isAbstract ? abstractClassCount++ : concreteClassCount++;
         final superClass = cls.superclass;
         if (superClass == null) {
           root = cls;
@@ -618,6 +594,7 @@ class ClassIdNumbering {
         }
       }
     }
+    final int classCount = abstractClassCount + concreteClassCount;
 
     // We have a preference in which order we explore the direct subclasses of
     // `Object` as that allows us to keep class ids of certain hierarchies
@@ -681,16 +658,14 @@ class ClassIdNumbering {
 
     // Maps any class to a dense range of concrete class ids that are subclasses
     // of that class.
-    final concreteSubclassRange = <Class, Range>{};
+    final concreteSubclassRanges = List<Range>.filled(
+        firstClassId + classCount, Range.empty(),
+        growable: false);
 
     int nextConcreteClassId = firstClassId;
     int nextAbstractClassId = firstClassId + concreteClassCount;
     dfs(root, (Class cls) {
       dfsOrder.add(cls);
-      if (cls.isAnonymousMixin) {
-        classIds[cls] = anonymousMixinClassId;
-        return nextConcreteClassId;
-      }
       if (cls.isAbstract) {
         var classId = classIds[cls];
         if (classId == null) classIds[cls] = nextAbstractClassId++;
@@ -702,21 +677,16 @@ class ClassIdNumbering {
       return nextConcreteClassId - 1;
     }, (Class cls, int firstClassId) {
       final range = Range(firstClassId, nextConcreteClassId - 1);
-      concreteSubclassRange[cls] = range;
+      if (!cls.isAbstract) {
+        assert(classIds[cls] == firstClassId);
+        concreteSubclassRanges[firstClassId] = range;
+      } else {
+        concreteSubclassRanges[classIds[cls]!] = range;
+      }
     });
 
-    assert(dfsOrder.length ==
-        (concreteClassCount + abstractClassCount + anonymousMixinClassCount));
-
-    return ClassIdNumbering._(
-        subclasses,
-        implementors,
-        concreteSubclassRange,
-        masqueraded,
-        dfsOrder,
-        classIds,
-        firstClassId + concreteClassCount - 1,
-        firstClassId + concreteClassCount + abstractClassCount - 1);
+    return ClassIdNumbering._(subclasses, implementors, concreteSubclassRanges,
+        masqueraded, dfsOrder, classIds);
   }
 }
 

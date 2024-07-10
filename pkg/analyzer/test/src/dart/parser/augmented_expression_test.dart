@@ -677,6 +677,66 @@ Block
 ''');
   }
 
+  test_namedArgument_name_inAugmentation() {
+    var parseResult = parseStringWithErrors(r'''
+augment void f() {
+  foo(augmented: 0);
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED, 25, 9),
+    ]);
+
+    var node = parseResult.findNode.singleExpressionStatement;
+    assertParsedNodeText(node, r'''
+ExpressionStatement
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NamedExpression
+          name: Label
+            label: SimpleIdentifier
+              token: augmented
+            colon: :
+          expression: IntegerLiteral
+            literal: 0
+      rightParenthesis: )
+  semicolon: ;
+''');
+  }
+
+  test_namedArgument_name_notInAugmentation() {
+    var parseResult = parseStringWithErrors(r'''
+void f() {
+  foo(augmented: 0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExpressionStatement;
+    assertParsedNodeText(node, r'''
+ExpressionStatement
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        NamedExpression
+          name: Label
+            label: SimpleIdentifier
+              token: augmented
+            colon: :
+          expression: IntegerLiteral
+            literal: 0
+      rightParenthesis: )
+  semicolon: ;
+''');
+  }
+
   test_namedType_class_method_returnType() {
     var parseResult = parseStringWithErrors(r'''
 class A {

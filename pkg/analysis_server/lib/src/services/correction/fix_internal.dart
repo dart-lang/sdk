@@ -166,6 +166,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_this_express
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unexpected_underscores.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_late.dart';
@@ -837,13 +838,13 @@ final _builtInNonLintMultiProducers = {
   CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
     DataDriven.new,
   ],
-  WarningCode.DEPRECATED_EXPORT_USE: [
-    DataDriven.new,
-  ],
   HintCode.DEPRECATED_MEMBER_USE: [
     DataDriven.new,
   ],
   HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+    DataDriven.new,
+  ],
+  WarningCode.DEPRECATED_EXPORT_USE: [
     DataDriven.new,
   ],
   WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
@@ -1570,6 +1571,9 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER: [
     ReplaceColonWithEquals.new,
+  ],
+  ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER: [
+    RemoveUnexpectedUnderscores.new,
   ],
   StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
     RemoveDeadIfNull.new,

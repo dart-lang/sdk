@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dtd/dtd.dart' show RpcErrorCodes;
-import 'package:dtd_impl/dart_tooling_daemon.dart';
+import 'package:dtd_impl/dtd.dart';
 import 'package:dtd_impl/src/dtd_stream_manager.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';

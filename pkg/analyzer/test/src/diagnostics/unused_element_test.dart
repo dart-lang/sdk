@@ -1551,6 +1551,33 @@ f() => A()._m(0);
 ''');
   }
 
+  test_optionalParameter_isUsed_override_inAugmentation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int? a]) {}
+}
+class B implements A {}
+augment class B {
+  void _m([int? a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_override_ofAugmentation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+}
+augment class A {
+  void _m([int? a]) {}
+}
+class B implements A {
+  void _m([int? a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
   test_optionalParameter_isUsed_override_renamed() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -4722,7 +4722,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleLiteralDoubleWithSeparators(Token token) {
-    assert(token.type == TokenType.DOUBLE);
+    assert(token.type == TokenType.DOUBLE_WITH_SEPARATORS);
     debugEvent("LiteralDouble");
 
     if (!_enableDigitSeparators) {
@@ -4960,7 +4960,19 @@ class AstBuilder extends StackListener {
     debugEvent("NamedArgument");
 
     var expression = pop() as ExpressionImpl;
-    var name = pop() as SimpleIdentifierImpl;
+
+    SimpleIdentifierImpl name;
+    var nameCandidate = pop();
+    if (nameCandidate is AugmentedExpressionImpl) {
+      errorReporter.errorReporter?.atNode(
+        nameCandidate,
+        ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED,
+      );
+      name = SimpleIdentifierImpl(nameCandidate.augmentedKeyword);
+    } else {
+      name = nameCandidate as SimpleIdentifierImpl;
+    }
+
     push(
       NamedExpressionImpl(
         name: LabelImpl(

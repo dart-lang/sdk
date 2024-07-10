@@ -4,7 +4,7 @@
 
 import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
 
-import '../dart_tooling_daemon.dart';
+import 'dart_tooling_daemon.dart';
 
 /// Manages state related to stream subscriptions made by [DTDClient]s.
 class DTDStreamManager extends StreamManager {

@@ -131,7 +131,6 @@ class WasmI32 extends _WasmBase {
   external int toIntSigned();
   external int toIntUnsigned();
   external bool toBool();
-  external WasmI32 operator -();
   external bool operator <(WasmI32 other);
   external bool operator <=(WasmI32 other);
   external bool operator ==(covariant WasmI32 other);
@@ -140,18 +139,6 @@ class WasmI32 extends _WasmBase {
   external WasmI32 operator +(WasmI32 other);
   external WasmI32 operator -(WasmI32 other);
   external WasmI32 operator >>(WasmI32 other);
-
-  /// Wasm `i32.le_u` instruction.
-  external bool leU(WasmI32 other);
-
-  /// Wasm `i32.lt_u` instruction.
-  external bool ltU(WasmI32 other);
-
-  /// Wasm `i32.ge_u` instruction.
-  external bool geU(WasmI32 other);
-
-  /// Wasm `i32.gt_u` instruction.
-  external bool gtU(WasmI32 other);
 }
 
 /// The Wasm `i64` type.

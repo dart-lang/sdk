@@ -1381,6 +1381,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove type check everywhere in file',
   );
+  static const REMOVE_UNEXPECTED_UNDERSCORES = FixKind(
+    'dart.fix.remove.unexpectedUnderscores',
+    DartFixKindPriority.DEFAULT,
+    "Remove unexpected '_' characters",
+  );
+  static const REMOVE_UNEXPECTED_UNDERSCORES_MULTI = FixKind(
+    'dart.fix.remove.unexpectedUnderscores.multi',
+    DartFixKindPriority.DEFAULT,
+    "Remove unexpected '_' characters in file",
+  );
   static const REMOVE_UNNECESSARY_CAST = FixKind(
     'dart.fix.remove.unnecessaryCast',
     DartFixKindPriority.DEFAULT,

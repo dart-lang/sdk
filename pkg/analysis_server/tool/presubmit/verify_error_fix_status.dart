@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:linter/src/rules.dart';

@@ -99,7 +99,7 @@ class DeprecatedMemberUseFromSamePackage extends LintRule {
             name: 'deprecated_member_use_from_same_package',
             description: _desc,
             details: _details,
-            categories: {Category.language_feature_usage});
+            categories: {Category.languageFeatureUsage});
 
   @override
   List<LintCode> get lintCodes => [code, codeWithMessage];

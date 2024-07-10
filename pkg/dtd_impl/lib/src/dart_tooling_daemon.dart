@@ -15,12 +15,12 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:shelf/shelf_io.dart' as io;
 
-import 'src/constants.dart';
-import 'src/dtd_client.dart';
-import 'src/dtd_client_manager.dart';
-import 'src/dtd_stream_manager.dart';
-import 'src/service/file_system_service.dart';
-import 'src/service/unified_analytics_service.dart';
+import 'constants.dart';
+import 'dtd_client.dart';
+import 'dtd_client_manager.dart';
+import 'dtd_stream_manager.dart';
+import 'service/file_system_service.dart';
+import 'service/unified_analytics_service.dart';
 
 /// Contains all the flags and options used by the DTD argument parser.
 enum DartToolingDaemonOptions {

@@ -13,6 +13,8 @@ const _desc =
     r'Avoid returning this from methods just to enable a fluent interface.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/design#avoid-returning-this-from-methods-just-to-enable-a-fluent-interface):
+
 **AVOID** returning this from methods just to enable a fluent interface.
 
 Returning `this` from a method is redundant; Dart has a cascade operator which
@@ -56,7 +58,7 @@ class AvoidReturningThis extends LintRule {
             name: 'avoid_returning_this',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

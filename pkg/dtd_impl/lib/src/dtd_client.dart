@@ -12,7 +12,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:dtd/dtd.dart' show RpcErrorCodes;
 
 import 'constants.dart';
-import '../dart_tooling_daemon.dart';
+import 'dart_tooling_daemon.dart';
 import 'dtd_stream_manager.dart';
 
 /// Represents a client that is connected to a DTD service.
