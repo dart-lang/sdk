@@ -455,6 +455,10 @@ COMPILER_PASS(UseTableDispatch, {
 COMPILER_PASS_REPEAT(CSE, { return DominatorBasedCSE::Optimize(flow_graph); });
 
 COMPILER_PASS(LICM, {
+  if (flow_graph->is_huge_method()) {
+    return false;  // Runs in quadratic time.
+  }
+
   flow_graph->RenameUsesDominatedByRedefinitions();
   DEBUG_ASSERT(flow_graph->VerifyRedefinitions());
   LICM licm(flow_graph);
@@ -465,6 +469,10 @@ COMPILER_PASS(LICM, {
 COMPILER_PASS(DSE, { DeadStoreElimination::Optimize(flow_graph); });
 
 COMPILER_PASS(RangeAnalysis, {
+  if (flow_graph->is_huge_method()) {
+    return false;  // Runs in quadratic time.
+  }
+
   // We have to perform range analysis after LICM because it
   // optimistically moves CheckSmi through phis into loop preheaders
   // making some phis smi.
