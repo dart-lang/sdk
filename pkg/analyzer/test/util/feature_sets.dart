@@ -47,6 +47,8 @@ class FeatureSets {
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [
+      Feature.augmentations.enableString,
+      Feature.enhanced_parts.enableString,
       Feature.macros.enableString,
     ],
   );

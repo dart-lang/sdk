@@ -109,6 +109,9 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
+  /// Whether the 'augmentations' feature is enabled.
+  final bool enableAugmentations;
+
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
@@ -130,7 +133,10 @@ class AstBuilder extends StackListener {
   /// `true` if enhanced enums are enabled
   final bool enableEnhancedEnums;
 
-  /// `true` if macros are enabled
+  /// Whether the 'enhanced_parts' feature is enabled.
+  final bool enableEnhancedParts;
+
+  /// Whether the 'macros' feature is enabled.
   final bool enableMacros;
 
   /// `true` if records are enabled
@@ -164,6 +170,7 @@ class AstBuilder extends StackListener {
       this._featureSet, this._lineInfo,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
+        enableAugmentations = _featureSet.isEnabled(Feature.augmentations),
         enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
         enableNonFunctionTypeAliases =
             _featureSet.isEnabled(Feature.nonfunction_type_aliases),
@@ -174,6 +181,7 @@ class AstBuilder extends StackListener {
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
         enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
         enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
+        enableEnhancedParts = _featureSet.isEnabled(Feature.enhanced_parts),
         enableMacros = _featureSet.isEnabled(Feature.macros),
         enableRecords = _featureSet.isEnabled(Feature.records),
         enableUnnamedLibraries =
