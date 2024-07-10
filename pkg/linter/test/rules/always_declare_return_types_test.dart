@@ -162,6 +162,24 @@ class C {
     ]);
   }
 
+  test_method_testUnderscore_notInPubPackageTest_hasReturnType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void test_foo() {}
+}
+''');
+  }
+
+  test_method_testUnderscore_notInPubPackageTest_noReturnType() async {
+    await assertDiagnostics(r'''
+class A {
+  test_foo() {}
+}
+''', [
+      lint(12, 8),
+    ]);
+  }
+
   test_method_withReturnType() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -177,6 +195,58 @@ class C {
   {}
 }
 ''');
+  }
+
+  test_pubPackageTest_method_notTest_hasReturnType() async {
+    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+class MyTest {
+  void foo() {}
+}
+''');
+
+    await assertNoDiagnosticsInFile(file.path);
+  }
+
+  test_pubPackageTest_method_notTest_noReturnType() async {
+    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+class MyTest {
+  foo() {}
+}
+''');
+
+    await assertDiagnosticsInFile(file.path, [
+      lint(17, 3),
+    ]);
+  }
+
+  test_pubPackageTest_method_soloTest_noReturnType() async {
+    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+class MyTest {
+  solo_test_foo() {}
+}
+''');
+
+    await assertNoDiagnosticsInFile(file.path);
+  }
+
+  test_pubPackageTest_method_test_hasReturnType() async {
+    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+class MyTest {
+  void test_foo() {}
+}
+''');
+
+    await assertNoDiagnosticsInFile(file.path);
+  }
+
+  test_pubPackageTest_method_test_noReturnType() async {
+    var file = newFile('$testPackageRootPath/test/test.dart', r'''
+class MyTest {
+  test_foo() {}
+}
+''');
+
+    await assertNoDiagnosticsInFile(file.path);
   }
 
   test_staticSetter() async {

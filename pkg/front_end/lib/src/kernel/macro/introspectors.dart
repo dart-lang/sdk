@@ -839,8 +839,28 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
-    // TODO: implement typesOf
-    throw new UnimplementedError();
+    Uri uri = library.uri;
+    LibraryBuilder? libraryBuilder =
+        sourceLoader.lookupLoadedLibraryBuilder(uri);
+    if (libraryBuilder == null) {
+      return new Future.error(
+          new macro.MacroImplementationExceptionImpl(
+              'Library at uri $uri could not be resolved.'),
+          StackTrace.current);
+    }
+
+    List<macro.TypeDeclaration> result = [];
+    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      // TODO(scheglov): This switch is not complete.
+      switch (builder) {
+        case ClassBuilder():
+          result.add(_introspection.getClassDeclaration(builder));
+      }
+    }
+
+    return new Future.value(result);
   }
 
   @override

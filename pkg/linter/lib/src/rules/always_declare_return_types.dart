@@ -69,7 +69,7 @@ class AlwaysDeclareReturnTypes extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -78,8 +78,9 @@ class AlwaysDeclareReturnTypes extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -101,13 +102,34 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!node.isSetter &&
-        node.returnType == null &&
-        node.name.type != TokenType.INDEX_EQ &&
-        !node.isAugmentation) {
-      rule.reportLintForToken(node.name,
-          arguments: [node.name.lexeme],
-          errorCode: AlwaysDeclareReturnTypes.methodCode);
+    if (node.returnType != null) return;
+    if (node.isAugmentation) return;
+    if (node.isSetter) return;
+    if (node.name.type == TokenType.INDEX_EQ) return;
+
+    if (_isInTestDirectory()) {
+      if (node.name.lexeme.startsWith('test_') ||
+          node.name.lexeme.startsWith('solo_test_')) {
+        return;
+      }
     }
+
+    rule.reportLintForToken(
+      node.name,
+      arguments: [node.name.lexeme],
+      errorCode: AlwaysDeclareReturnTypes.methodCode,
+    );
+  }
+
+  bool _isInTestDirectory() {
+    if (context.package case PubPackage pubPackage) {
+      var packageRoot = pubPackage.pubspecFile.parent;
+      var filePath = context.libraryElement?.source.fullName;
+      if (filePath != null) {
+        var file = packageRoot.provider.getFile(filePath);
+        return pubPackage.isInTestDirectory(file);
+      }
+    }
+    return false;
   }
 }
