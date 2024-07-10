@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
+
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common/elements.dart' show JCommonElements;
@@ -255,6 +257,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   void visitGraph(HGraph visitee) {
     _graph = visitee;
     visitDominatorTree(visitee);
+    finalizeArrayFlagEffects();
   }
 
   @override
@@ -1618,11 +1621,21 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     // Can we find the length as an input to an allocation?
     HInstruction potentialAllocation = receiver;
-    if (receiver is HInvokeStatic &&
-        receiver.element == commonElements.setArrayType) {
-      // Look through `setArrayType(new Array(), ...)`
-      potentialAllocation = receiver.inputs.first;
+
+    SCAN:
+    while (!_graph.allocatedFixedLists.contains(potentialAllocation)) {
+      switch (potentialAllocation) {
+        case HInvokeStatic(:final element)
+            when element == commonElements.setArrayType:
+          // Look through `setArrayType(new Array(), ...)`
+          potentialAllocation = potentialAllocation.inputs.first;
+        case HArrayFlagsCheck(:final array) || HArrayFlagsSet(:final array):
+          potentialAllocation = array;
+        default:
+          break SCAN;
+      }
     }
+
     if (_graph.allocatedFixedLists.contains(potentialAllocation)) {
       // TODO(sra): How do we keep this working if we lower/inline the receiver
       // in an optimization?
@@ -2350,7 +2363,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitInstanceEnvironment(HInstanceEnvironment node) {
-    HInstruction instance = node.inputs.single;
+    HInstruction instance = node.inputs.single.nonCheck();
 
     // Store-forward instance types of created instances and constant instances.
     //
@@ -2625,6 +2638,105 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       }
     }
     return node;
+  }
+
+  @override
+  HInstruction visitArrayFlagsCheck(HArrayFlagsCheck node) {
+    // TODO(sra): Implement removal on basis of type, an 'isRedundant' check.
+
+    final array = node.array;
+    final arrayFlags = node.arrayFlags;
+    final checkFlags = node.checkFlags;
+
+    if (arrayFlags is HConstant && arrayFlags.constant.isZero) return array;
+
+    if (array is HArrayFlagsCheck) {
+      // Dependent check. Checks become dependent during types_propagation.
+      if (arrayFlags == array.arrayFlags && checkFlags == array.checkFlags) {
+        // Check is redundant, even if the `node.operation` is different
+        // (different operations are not picked up by GVN).
+        //
+        // TODO(sra): If a stronger check dominates a weaker check (e.g. check
+        // for immutable before check for fixed length), we can match that with
+        // different flags.
+        return array;
+      }
+    }
+
+    return node;
+  }
+
+  /// All HArrayFlagsGet instructions that depend on something. Used to promote
+  /// `HArrayFlagsGet` instructions to side-effect insensitive.  See
+  /// [finalizeArrayFlagEffects] for details.
+  List<HArrayFlagsGet>? _arrayFlagsGets;
+  bool _arrayFlagsEffect = false;
+
+  @override
+  HInstruction visitArrayFlagsSet(HArrayFlagsSet node) {
+    _arrayFlagsEffect = true;
+    return node;
+  }
+
+  @override
+  HInstruction visitArrayFlagsGet(HArrayFlagsGet node) {
+    if (node.sideEffects.dependsOnSomething()) {
+      (_arrayFlagsGets ??= []).add(node);
+    } else {
+      // If the HArrayFlagsGet is pure and the source is visible, then there is
+      // no HArrayFlagsSet instruction that changes the flags, so the flags are
+      // `0`. This can remove checks on allocations in the same method. To do
+      // this for typed arrays, we need to recognize the allocation.
+
+      final array = node.inputs.single;
+
+      if (array is HForeignCode) {
+        final behavior = array.nativeBehavior;
+        if (behavior != null && behavior.isAllocation) {
+          return _graph.addConstantInt(ArrayFlags.none, _closedWorld);
+        }
+      }
+    }
+
+    // The following store-forwarding of the flags is valid only because all
+    // code in the SDK has a 'linear' pattern where the original value is never
+    // accessed after it is 'tagged' with the flags.
+    HInstruction array = node.inputs.single;
+    while (array is HArrayFlagsCheck) {
+      array = array.array;
+    }
+    if (array case HArrayFlagsSet(:final flags)) return flags;
+
+    return node;
+  }
+
+  void finalizeArrayFlagEffects() {
+    // HArrayFlagsGet operations must not be moved past HArrayFlagsSet
+    // operations on the same Array or typed data view. Initially we prevent
+    // this by making HArrayFlagsSet have a changes-property side effect, and
+    // making HArrayFlagsGet depend on that effect.
+    //
+    // This turns out to be rather restrictive and a general 'depends on
+    // property' dependency inhibits important optimizations like hoisting
+    // HArrayFlagsGet out of loops. We could try an add a new effect, but since
+    // the effect analysis is not aware of (non)aliasing, the new effect would
+    // largely have the same problem.
+    //
+    // Instead we notice that HArrayFlagsSet is rare: it is used to implement
+    // constructors that initialize the data, and then mark it as unmodifiable
+    // or fixed-length. If we invoke a callee that does a HArrayFlagsSet
+    // operation, the target of that operation is not visible to the caller.
+    //
+    // Therefore we assume that if we can't see any HArrayFlagsSet operations in
+    // the current method, they cannot change the value observed by
+    // HArrayFlagsGet, and we can pretent the HArrayFlagsGets are pure.
+
+    if (_arrayFlagsGets == null || _arrayFlagsEffect) return;
+
+    for (final instruction in _arrayFlagsGets!) {
+      // Instruction may have been removed from the CFG, but that is harmless.
+      instruction.sideEffects.clearAllDependencies();
+    }
   }
 }
 

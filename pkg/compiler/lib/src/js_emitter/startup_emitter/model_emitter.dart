@@ -6,6 +6,8 @@ library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
 
+import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
+
 import 'package:js_runtime/synced/embedded_names.dart'
     show
         DEFERRED_INITIALIZED,
@@ -35,6 +37,7 @@ import 'package:js_shared/synced/embedded_names.dart'
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
         TYPES;
+
 import 'package:js_shared/variance.dart';
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;

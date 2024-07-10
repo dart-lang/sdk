@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*spec.class: global#List:deps=[Class.m,JSArray.markFixedList],explicit=[List,List<Object>,List<Object?>,List<String>?,List<markFixedList.T>],needsArgs,test*/
-/*prod.class: global#List:deps=[Class.m],needsArgs,test*/
+/*prod.class: global#List:deps=[Class.m],explicit=[List],needsArgs,test*/
 
-/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs,test*/
 /*prod.class: global#JSArray:deps=[List],implicit=[JSArray.E],needsArgs,test*/
 
 main() {
