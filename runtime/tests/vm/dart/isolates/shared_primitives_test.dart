@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// OtherResources=shared_test_body.dart
+// OtherResources=shared_primitives_test_body.dart
 //
-// This launches shared_test test if the test runs on the appropriate channel.
+// This launches shared_primitives_test test if the test runs on the
+// appropriate channel.
 
 import 'dart:async';
 import 'dart:convert';
@@ -28,12 +29,13 @@ void main(List<String> args) async {
   asyncStart();
   final testerScriptPath = Platform.script.toFilePath();
   final testeeScriptPath =
-      Platform.script.resolve('shared_test_body.dart').toFilePath();
+      Platform.script.resolve('shared_primitives_test_body.dart').toFilePath();
 
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     if (isVmAotConfiguration) {
-      final scriptDill = path.join(tempDir.path, 'shared_test_body.dart.dill');
+      final scriptDill =
+          path.join(tempDir.path, 'shared_primitives_test_body.dart.dill');
       await run(
           path.joinAll([
             'pkg',
@@ -49,7 +51,8 @@ void main(List<String> args) async {
             testeeScriptPath
           ]);
 
-      final elfFile = path.join(tempDir.path, 'shared_test_body.dart.dill.elf');
+      final elfFile =
+          path.join(tempDir.path, 'shared_primitives_test_body.dart.dill.elf');
       final stderr = (await runError(genSnapshot, <String>[
         '--snapshot-kind=app-aot-elf',
         '--elf=$elfFile',

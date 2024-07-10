@@ -69,7 +69,23 @@ class Mutex {
  private:
   MutexData data_;
 
+  friend class ConditionVariable;
+
   DISALLOW_COPY_AND_ASSIGN(Mutex);
+};
+
+class ConditionVariable {
+ public:
+  ConditionVariable();
+  ~ConditionVariable();
+
+  void Wait(Mutex* mutex);
+  void Notify();
+
+ private:
+  ConditionVariableData data_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConditionVariable);
 };
 
 class Monitor {

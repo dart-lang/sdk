@@ -190,6 +190,37 @@ void Mutex::Unlock() {
   ASSERT(result == 0);  // Verify no other errors.
 }
 
+ConditionVariable::ConditionVariable() {
+  pthread_condattr_t cond_attr;
+  int result = pthread_condattr_init(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_cond_init(data_.cond(), &cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_destroy(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+ConditionVariable::~ConditionVariable() {
+  int result = pthread_cond_destroy(data_.cond());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+void ConditionVariable::Wait(Mutex* mutex) {
+  int result = pthread_cond_wait(data_.cond(), mutex->data_.mutex());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+void ConditionVariable::Notify() {
+  // TODO(iposva): Do we need to track lock owners?
+  int result = pthread_cond_signal(data_.cond());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
 Monitor::Monitor() {
   pthread_mutexattr_t mutex_attr;
   int result = pthread_mutexattr_init(&mutex_attr);

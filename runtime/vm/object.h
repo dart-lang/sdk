@@ -5342,6 +5342,7 @@ class Library : public Object {
                                         bool is_kernel_file);
 
   static LibraryPtr AsyncLibrary();
+  static LibraryPtr ConcurrentLibrary();
   static LibraryPtr ConvertLibrary();
   static LibraryPtr CoreLibrary();
   static LibraryPtr CollectionLibrary();

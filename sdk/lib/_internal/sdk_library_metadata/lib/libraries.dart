@@ -54,6 +54,11 @@ const Map<String, LibraryInfo> libraries = const {
     maturity: Maturity.STABLE,
     dart2jsPatchPath: '_internal/js_runtime/lib/collection_patch.dart',
   ),
+  'concurrent': const LibraryInfo(
+    'concurrent/concurrent.dart',
+    categories: 'Server',
+    maturity: Maturity.EXPERIMENTAL,
+  ),
   'convert': const LibraryInfo(
     'convert/convert.dart',
     categories: 'Client,Server',

@@ -43,6 +43,7 @@ class ObjectPointerVisitor;
   V(CodeSourceMap, "CodeSourceMap")                                            \
   V(ColonMatcher, ":matcher")                                                  \
   V(_Completer, "_Completer")                                                  \
+  V(ConditionVariable, "ConditionVariable")                                    \
   V(_AsyncCompleter, "_AsyncCompleter")                                        \
   V(_SyncCompleter, "_SyncCompleter")                                          \
   V(Compound, "_Compound")                                                     \
@@ -53,6 +54,7 @@ class ObjectPointerVisitor;
   V(CurrentContextVar, ":current_context_var")                                 \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
+  V(DartConcurrent, "dart:concurrent")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
@@ -201,6 +203,7 @@ class ObjectPointerVisitor;
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \
+  V(Mutex, "Mutex")                                                            \
   V(Namespace, "Namespace")                                                    \
   V(Never, "Never")                                                            \
   V(NoSuchMethod, "noSuchMethod")                                              \

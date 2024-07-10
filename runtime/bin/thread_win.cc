@@ -106,6 +106,20 @@ void Mutex::Unlock() {
   ReleaseSRWLockExclusive(&data_.lock_);
 }
 
+ConditionVariable::ConditionVariable() {
+  InitializeConditionVariable(&data_.cond_);
+}
+
+ConditionVariable::~ConditionVariable() {}
+
+void ConditionVariable::Wait(Mutex* mutex) {
+  SleepConditionVariableSRW(&data_.cond_, &mutex->data_.lock_, INFINITE, 0);
+}
+
+void ConditionVariable::Notify() {
+  WakeConditionVariable(&data_.cond_);
+}
+
 Monitor::Monitor() {
   InitializeCriticalSection(&data_.cs_);
   InitializeConditionVariable(&data_.cond_);

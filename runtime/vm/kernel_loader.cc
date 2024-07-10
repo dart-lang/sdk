@@ -1207,10 +1207,17 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     if (!Api::IsFfiEnabled() &&
         target_library.url() == Symbols::DartFfi().ptr() &&
         library->url() != Symbols::DartCore().ptr() &&
+        library->url() != Symbols::DartConcurrent().ptr() &&
         library->url() != Symbols::DartInternal().ptr() &&
         library->url() != Symbols::DartFfi().ptr()) {
       H.ReportError(
           "import of dart:ffi is not supported in the current Dart runtime");
+    }
+    if (target_library.url() == Symbols::DartConcurrent().ptr() &&
+        !is_experimental_shared_data_enabled) {
+      FATAL(
+          "Encountered dart:concurrent when functionality is disabled. "
+          "Pass --experimental-shared-data");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names, *library);
