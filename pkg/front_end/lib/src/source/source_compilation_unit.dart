@@ -14,6 +14,13 @@ class SourceCompilationUnitImpl
 
   final SourceLibraryBuilder _sourceLibraryBuilder;
 
+  /// Alias of the [_sourceLibraryBuilder] used for passing a parent [Builder]
+  /// to created [Builder]s. These uses are only needed because we creating
+  /// [Builder]s instead of fragments.
+  // TODO(johnniwinther): Remove this when we no longer create [Builder]s in
+  // the outline builder.
+  SourceLibraryBuilder get _parent => _sourceLibraryBuilder;
+
   SourceLibraryBuilder? _libraryBuilder;
 
   final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
@@ -81,14 +88,23 @@ class SourceCompilationUnitImpl
   final List<StructuralVariableBuilder> _unboundStructuralVariables =
       <StructuralVariableBuilder>[];
 
+  /// Map from synthesized names used for omitted types to their corresponding
+  /// synthesized type declarations.
+  ///
+  /// This is used in macro generated code to create type annotations from
+  /// inferred types in the original code.
+  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
+
   SourceCompilationUnitImpl(
       this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder,
       {required this.importUri,
       required this.fileUri,
       required this.packageLanguageVersion,
-      required this.indexedLibrary})
+      required this.indexedLibrary,
+      Map<String, Builder>? omittedTypeDeclarationBuilders})
       : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
-        _languageVersion = packageLanguageVersion;
+        _languageVersion = packageLanguageVersion,
+        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
 
   @override
   LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
@@ -802,10 +818,7 @@ class SourceCompilationUnitImpl
     List<StructuralVariableBuilder> copy = <StructuralVariableBuilder>[];
     for (StructuralVariableBuilder variable in original) {
       StructuralVariableBuilder newVariable = new StructuralVariableBuilder(
-          variable.name,
-          _sourceLibraryBuilder,
-          variable.charOffset,
-          variable.fileUri,
+          variable.name, _parent, variable.charOffset, variable.fileUri,
           bound: variable.bound?.clone(newTypes, this, declaration),
           variableVariance: variable.parameter.isLegacyCovariant
               ? null
@@ -1136,7 +1149,7 @@ class SourceCompilationUnitImpl
             isMixinClass: false),
         interfaceBuilders,
         enumConstantInfos,
-        _sourceLibraryBuilder,
+        _parent,
         new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startCharOffset,
         charOffset,
@@ -1312,7 +1325,7 @@ class SourceCompilationUnitImpl
         null,
         classScope,
         constructorScope,
-        _sourceLibraryBuilder,
+        _parent,
         new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startOffset,
         nameOffset,
@@ -1688,7 +1701,7 @@ class SourceCompilationUnitImpl
                 debugName: "mixin $fullname ",
                 isModifiable: false),
             new ConstructorScope(fullname, <String, MemberBuilder>{}),
-            _sourceLibraryBuilder,
+            _parent,
             <ConstructorReferenceBuilder>[],
             computedStartCharOffset,
             charOffset,
@@ -1779,7 +1792,7 @@ class SourceCompilationUnitImpl
         typeVariables,
         type,
         classScope,
-        _sourceLibraryBuilder,
+        _parent,
         startOffset,
         nameOffset,
         endOffset,
@@ -1880,7 +1893,7 @@ class SourceCompilationUnitImpl
             interfaces,
             memberScope,
             constructorScope,
-            _sourceLibraryBuilder,
+            _parent,
             new List<ConstructorReferenceBuilder>.of(constructorReferences),
             startOffset,
             identifier.nameOffset,
@@ -1940,7 +1953,7 @@ class SourceCompilationUnitImpl
     }
     Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
     TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
-        metadata, name, typeVariables, type, _sourceLibraryBuilder, charOffset,
+        metadata, name, typeVariables, type, _parent, charOffset,
         referenceFrom: referenceFrom);
     _checkTypeVariables(typeVariables, typedefBuilder);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
@@ -2073,7 +2086,7 @@ class SourceCompilationUnitImpl
           constructorName,
           typeVariables,
           formals,
-          _sourceLibraryBuilder,
+          _parent,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -2091,7 +2104,7 @@ class SourceCompilationUnitImpl
           constructorName,
           typeVariables,
           formals,
-          _sourceLibraryBuilder,
+          _parent,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -2224,7 +2237,7 @@ class SourceCompilationUnitImpl
               factoryDeclaration,
               kind: TypeVariableKind.function),
           formals,
-          _sourceLibraryBuilder,
+          _parent,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -2246,7 +2259,7 @@ class SourceCompilationUnitImpl
               factoryDeclaration,
               kind: TypeVariableKind.function),
           formals,
-          _sourceLibraryBuilder,
+          _parent,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
@@ -2421,7 +2434,7 @@ class SourceCompilationUnitImpl
         typeVariables,
         formals,
         kind,
-        _sourceLibraryBuilder,
+        _parent,
         startCharOffset,
         charOffset,
         charOpenParenOffset,
@@ -2595,7 +2608,7 @@ class SourceCompilationUnitImpl
         name,
         modifiers,
         isTopLevel,
-        _sourceLibraryBuilder,
+        _parent,
         charOffset,
         charEndOffset,
         nameScheme,
@@ -2637,7 +2650,7 @@ class SourceCompilationUnitImpl
       modifiers |= superInitializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        kind, modifiers, type, name, _sourceLibraryBuilder, charOffset,
+        kind, modifiers, type, name, _parent, charOffset,
         fileUri: fileUri,
         hasImmediatelyDeclaredInitializer: initializerToken != null,
         isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_')
@@ -2652,10 +2665,9 @@ class SourceCompilationUnitImpl
       List<TypeBuilder>? arguments,
       int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
-    if (_sourceLibraryBuilder._omittedTypeDeclarationBuilders != null) {
+    if (_omittedTypeDeclarationBuilders != null) {
       // Coverage-ignore-block(suite): Not run.
-      Builder? builder =
-          _sourceLibraryBuilder._omittedTypeDeclarationBuilders[typeName.name];
+      Builder? builder = _omittedTypeDeclarationBuilders[typeName.name];
       if (builder is OmittedTypeDeclarationBuilder) {
         return new DependentTypeBuilder(builder.omittedTypeBuilder);
       }
@@ -2747,8 +2759,7 @@ class SourceCompilationUnitImpl
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new VoidTypeDeclarationBuilder(
-            const VoidType(), _sourceLibraryBuilder, charOffset),
+        new VoidTypeDeclarationBuilder(const VoidType(), _parent, charOffset),
         const NullabilityBuilder.inherent(),
         charOffset: charOffset,
         fileUri: fileUri,
@@ -2760,7 +2771,7 @@ class SourceCompilationUnitImpl
       String name, TypeBuilder? bound, int charOffset, Uri fileUri,
       {required TypeVariableKind kind}) {
     NominalVariableBuilder builder = new NominalVariableBuilder(
-        name, _sourceLibraryBuilder, charOffset, fileUri,
+        name, _parent, charOffset, fileUri,
         bound: bound,
         metadata: metadata,
         kind: kind,
@@ -2778,7 +2789,7 @@ class SourceCompilationUnitImpl
       int charOffset,
       Uri fileUri) {
     StructuralVariableBuilder builder = new StructuralVariableBuilder(
-        name, _sourceLibraryBuilder, charOffset, fileUri,
+        name, _parent, charOffset, fileUri,
         bound: bound,
         metadata: metadata,
         isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
@@ -2854,10 +2865,7 @@ class SourceCompilationUnitImpl
     List<NominalVariableBuilder> copy = <NominalVariableBuilder>[];
     for (NominalVariableBuilder variable in original) {
       NominalVariableBuilder newVariable = new NominalVariableBuilder(
-          variable.name,
-          _sourceLibraryBuilder,
-          variable.charOffset,
-          variable.fileUri,
+          variable.name, _parent, variable.charOffset, variable.fileUri,
           bound: variable.bound?.clone(newTypes, this, declaration),
           kind: kind,
           variableVariance: variable.parameter.isLegacyCovariant
@@ -2912,7 +2920,7 @@ class SourceCompilationUnitImpl
         declaration.isUnnamedExtension) {
       assert(currentTypeParameterScopeBuilder ==
           _libraryTypeParameterScopeBuilder);
-      declaration.parent = _sourceLibraryBuilder;
+      declaration.parent = _parent;
       currentTypeParameterScopeBuilder.extensions!.add(declaration);
       return declaration;
     }
@@ -2924,11 +2932,11 @@ class SourceCompilationUnitImpl
     }
     if (currentTypeParameterScopeBuilder == _libraryTypeParameterScopeBuilder) {
       if (declaration is MemberBuilder) {
-        declaration.parent = _sourceLibraryBuilder;
+        declaration.parent = _parent;
       } else if (declaration is TypeDeclarationBuilder) {
-        declaration.parent = _sourceLibraryBuilder;
+        declaration.parent = _parent;
       } else if (declaration is PrefixBuilder) {
-        assert(declaration.parent == _sourceLibraryBuilder);
+        assert(declaration.parent == _parent);
       } else {
         return unhandled(
             "${declaration.runtimeType}", "addBuilder", charOffset, fileUri);
