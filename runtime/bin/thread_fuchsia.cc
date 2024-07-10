@@ -209,7 +209,7 @@ ConditionVariable::ConditionVariable() {
 }
 
 ConditionVariable::~ConditionVariable() {
-  result = pthread_cond_destroy(data_.cond());
+  int result = pthread_cond_destroy(data_.cond());
   VALIDATE_PTHREAD_RESULT(result);
 }
 
