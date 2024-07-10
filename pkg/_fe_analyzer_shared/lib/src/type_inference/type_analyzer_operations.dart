@@ -113,7 +113,7 @@ abstract interface class TypeAnalyzerOperations<
   bool isNonNullable(TypeSchema typeSchema);
 
   /// Returns `true` if [type] is `Null`.
-  bool isNull(Type Type);
+  bool isNull(Type type);
 
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
@@ -155,7 +155,7 @@ abstract interface class TypeAnalyzerOperations<
   });
 
   /// Returns the type schema `Map`, with type arguments [keyTypeSchema] and
-  /// [elementTypeSchema].
+  /// [valueTypeSchema].
   TypeSchema mapTypeSchema(
       {required TypeSchema keyTypeSchema, required TypeSchema valueTypeSchema});
 
