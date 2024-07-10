@@ -172,7 +172,10 @@ void main(List<String> args) {
         logger: logger,
         expectExitCodeZero: false,
       );
-      expect(result.exitCode, 0);
+      expect(
+        result.exitCode,
+        0, // linking is enabled so the build hook and link hook succeed.
+      );
 
       // Check that the build directory exists
       final directory =

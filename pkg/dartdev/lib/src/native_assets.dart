@@ -52,27 +52,12 @@ Future<(bool success, List<AssetImpl> assets)> compileNativeAssetsJit({
       NativeCodeAsset.type,
     ],
     targetMacOSVersion: targetMacOSVersion,
-  );
-
-  final linkResult = await nativeAssetsBuildRunner.link(
-    workingDirectory: workingDirectory,
-    // When running in JIT mode, only the host OS needs to be build.
-    target: target,
-    // When running in JIT mode, only dynamic libraries are supported.
-    linkModePreference: LinkModePreferenceImpl.dynamic,
-    // Dart has no concept of release vs debug, default to release.
-    buildMode: BuildModeImpl.release,
-    includeParentEnvironment: true,
-    buildResult: buildResult,
-    targetMacOSVersion: targetMacOSVersion,
-    supportedAssetTypes: [
-      NativeCodeAsset.type,
-    ],
+    linkingEnabled: false,
   );
 
   return (
-    buildResult.success && linkResult.success,
-    [...buildResult.assets, ...linkResult.assets],
+    buildResult.success,
+    buildResult.assets,
   );
 }
 

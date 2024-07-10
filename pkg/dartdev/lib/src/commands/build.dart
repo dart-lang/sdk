@@ -146,6 +146,7 @@ class BuildCommand extends DartdevCommand {
         NativeCodeAsset.type,
       ],
       targetMacOSVersion: targetMacOSVersion,
+      linkingEnabled: true,
     );
     if (!buildResult.success) {
       stderr.writeln('Native assets build failed.');
