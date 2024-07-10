@@ -88,14 +88,23 @@ class SourceCompilationUnitImpl
   final List<StructuralVariableBuilder> _unboundStructuralVariables =
       <StructuralVariableBuilder>[];
 
+  /// Map from synthesized names used for omitted types to their corresponding
+  /// synthesized type declarations.
+  ///
+  /// This is used in macro generated code to create type annotations from
+  /// inferred types in the original code.
+  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
+
   SourceCompilationUnitImpl(
       this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder,
       {required this.importUri,
       required this.fileUri,
       required this.packageLanguageVersion,
-      required this.indexedLibrary})
+      required this.indexedLibrary,
+      Map<String, Builder>? omittedTypeDeclarationBuilders})
       : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
-        _languageVersion = packageLanguageVersion;
+        _languageVersion = packageLanguageVersion,
+        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
 
   @override
   LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
@@ -2656,10 +2665,9 @@ class SourceCompilationUnitImpl
       List<TypeBuilder>? arguments,
       int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
-    if (_sourceLibraryBuilder._omittedTypeDeclarationBuilders != null) {
+    if (_omittedTypeDeclarationBuilders != null) {
       // Coverage-ignore-block(suite): Not run.
-      Builder? builder =
-          _sourceLibraryBuilder._omittedTypeDeclarationBuilders[typeName.name];
+      Builder? builder = _omittedTypeDeclarationBuilders[typeName.name];
       if (builder is OmittedTypeDeclarationBuilder) {
         return new DependentTypeBuilder(builder.omittedTypeBuilder);
       }

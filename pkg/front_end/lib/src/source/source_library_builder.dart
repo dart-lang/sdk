@@ -218,14 +218,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// `true` if this is a patch library.
   final bool isPatchLibrary;
 
-  /// Map from synthesized names used for omitted types to their corresponding
-  /// synthesized type declarations.
-  ///
-  /// This is used in macro generated code to create type annotations from
-  /// inferred types in the original code.
-  // TODO(johnniwinther): Move to [SourceCompilationUnitImpl].
-  final Map<String, Builder>? _omittedTypeDeclarationBuilders;
-
   MergedLibraryScope? _mergedScope;
 
   /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
@@ -284,7 +276,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : _immediateOrigin = origin,
-        _omittedTypeDeclarationBuilders = omittedTypes,
         libraryName = new LibraryName(library.reference),
         isAugmentationLibrary = isAugmentation,
         isPatchLibrary = isPatch,
@@ -311,7 +302,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         importUri: importUri,
         fileUri: fileUri,
         packageLanguageVersion: packageLanguageVersion,
-        indexedLibrary: indexedLibrary);
+        indexedLibrary: indexedLibrary,
+        omittedTypeDeclarationBuilders: omittedTypes);
   }
 
   MergedLibraryScope get mergedScope {
