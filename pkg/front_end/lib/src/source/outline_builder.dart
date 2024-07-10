@@ -2366,8 +2366,8 @@ class OutlineBuilder extends StackListenerImpl {
           for (NamedTypeBuilder unboundType in unboundTypes) {
             declaration.registerUnresolvedNamedType(unboundType);
           }
-          _compilationUnit.unboundStructuralVariables
-              .addAll(unboundTypeVariables);
+          _builderFactory
+              .registerUnboundStructuralVariables(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
             FormalParameterKind.requiredPositional,

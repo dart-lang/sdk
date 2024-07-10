@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../kernel/implicit_field_type.dart';
+import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
@@ -32,7 +33,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   @override
   TypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     return this;
   }

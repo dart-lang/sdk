@@ -323,6 +323,14 @@ abstract class BuilderFactory {
       TypeParameterScopeBuilder declaration,
       {required TypeVariableKind kind});
 
+  List<StructuralVariableBuilder> copyStructuralVariables(
+      List<StructuralVariableBuilder> original,
+      TypeParameterScopeBuilder declaration,
+      {required TypeVariableKind kind});
+
+  void registerUnboundStructuralVariables(
+      List<StructuralVariableBuilder> variableBuilders);
+
   Builder addBuilder(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference});
 }

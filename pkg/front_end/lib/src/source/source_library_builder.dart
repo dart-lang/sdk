@@ -165,12 +165,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final List<SourceFunctionBuilder> nativeMethods = <SourceFunctionBuilder>[];
 
-  final List<NominalVariableBuilder> unboundNominalVariables =
-      <NominalVariableBuilder>[];
-
-  final List<StructuralVariableBuilder> unboundStructuralVariables =
-      <StructuralVariableBuilder>[];
-
   final List<PendingBoundsCheck> _pendingBoundsChecks = [];
   final List<GenericFunctionTypeCheck> _pendingGenericFunctionTypeChecks = [];
 
@@ -1553,55 +1547,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  List<StructuralVariableBuilder> copyStructuralVariables(
-      List<StructuralVariableBuilder> original,
-      TypeParameterScopeBuilder declaration,
-      {required TypeVariableKind kind}) {
-    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-    List<StructuralVariableBuilder> copy = <StructuralVariableBuilder>[];
-    for (StructuralVariableBuilder variable in original) {
-      StructuralVariableBuilder newVariable = new StructuralVariableBuilder(
-          variable.name, this, variable.charOffset, variable.fileUri,
-          bound: variable.bound?.clone(newTypes, this, declaration),
-          variableVariance: variable.parameter.isLegacyCovariant
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              variable.variance,
-          isWildcard: variable.isWildcard);
-      copy.add(newVariable);
-      unboundStructuralVariables.add(newVariable);
-    }
-    for (NamedTypeBuilder newType in newTypes) {
-      declaration.registerUnresolvedNamedType(newType);
-    }
-    return copy;
-  }
-
-  /// Adds all [unboundNominalVariables] to [typeVariableBuilders], mapping them
-  /// to this library.
+  /// Adds all unbound nominal variables to [nominalVariables] and unbound
+  /// structural variables to [structuralVariables], mapping them to this
+  /// library.
   ///
   /// This is used to compute the bounds of type variable while taking the
   /// bound dependencies, which might span multiple libraries, into account.
   void collectUnboundTypeVariables(
-      Map<NominalVariableBuilder, SourceLibraryBuilder> typeVariableBuilders,
+      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
       Map<StructuralVariableBuilder, SourceLibraryBuilder>
-          functionTypeTypeVariableBuilders) {
+          structuralVariables) {
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         augmentationLibrary.collectUnboundTypeVariables(
-            typeVariableBuilders, functionTypeTypeVariableBuilders);
+            nominalVariables, structuralVariables);
       }
     }
-    for (NominalVariableBuilder builder in unboundNominalVariables) {
-      typeVariableBuilders[builder] = this;
+    compilationUnit.collectUnboundTypeVariables(
+        this, nominalVariables, structuralVariables);
+    for (SourceCompilationUnit part in parts) {
+      part.collectUnboundTypeVariables(
+          this, nominalVariables, structuralVariables);
     }
-    for (StructuralVariableBuilder builder in unboundStructuralVariables) {
-      functionTypeTypeVariableBuilders[builder] = this;
-    }
-    unboundNominalVariables.clear();
   }
 
   /// Assigns nullabilities to types in [_pendingNullabilities].

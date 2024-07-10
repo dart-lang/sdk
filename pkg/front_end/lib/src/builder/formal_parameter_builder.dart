@@ -51,7 +51,7 @@ abstract class ParameterBuilder {
 
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration);
 }
 
@@ -189,10 +189,10 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     return new FunctionTypeParameterBuilder(
-        kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
+        kind, type.clone(newTypes, builderFactory, contextDeclaration), name);
   }
 
   FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
@@ -323,10 +323,10 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   // Coverage-ignore(suite): Not run.
   ParameterBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     return new FunctionTypeParameterBuilder(
-        kind, type.clone(newTypes, contextLibrary, contextDeclaration), name);
+        kind, type.clone(newTypes, builderFactory, contextDeclaration), name);
   }
 
   @override
