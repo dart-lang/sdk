@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'flow_analysis.dart';
+/// @docImport '../field_promotability.dart';
+library;
+
 /// Callback API used by flow analysis to query and manipulate the client's
 /// representation of variables and types.
 abstract interface class FlowAnalysisOperations<Variable extends Object,
@@ -20,9 +24,9 @@ abstract interface class FlowAnalysisOperations<Variable extends Object,
   Type variableType(Variable variable);
 
   /// Returns additional information about why a given property couldn't be
-  /// promoted. [propertyMember] will correspond to a `propertyMember` value
-  /// passed to [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet],
-  /// or [FlowAnalysis.pushPropertySubpattern].
+  /// promoted. [property] will correspond to a `propertyMember` value passed to
+  /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
+  /// [FlowAnalysis.pushPropertySubpattern].
   ///
   /// This method is only called if a closure returned by
   /// [FlowAnalysis.whyNotPromoted] is invoked, and the expression being queried
