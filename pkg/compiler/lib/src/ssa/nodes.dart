@@ -130,6 +130,10 @@ abstract class HVisitor<R> {
   R visitInstanceEnvironment(HInstanceEnvironment node);
   R visitTypeEval(HTypeEval node);
   R visitTypeBind(HTypeBind node);
+
+  R visitArrayFlagsCheck(HArrayFlagsCheck node);
+  R visitArrayFlagsGet(HArrayFlagsGet node);
+  R visitArrayFlagsSet(HArrayFlagsSet node);
 }
 
 abstract class HGraphVisitor {
@@ -644,6 +648,13 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   R visitTypeEval(HTypeEval node) => visitInstruction(node);
   @override
   R visitTypeBind(HTypeBind node) => visitInstruction(node);
+
+  @override
+  R visitArrayFlagsCheck(HArrayFlagsCheck node) => visitCheck(node);
+  @override
+  R visitArrayFlagsGet(HArrayFlagsGet node) => visitInstruction(node);
+  @override
+  R visitArrayFlagsSet(HArrayFlagsSet node) => visitInstruction(node);
 }
 
 class SubGraph {
@@ -1108,6 +1119,8 @@ enum _GvnType {
   lateWriteOnceCheck,
   lateInitializeOnceCheck,
   charCodeAt,
+  arrayFlagsGet,
+  arrayFlagsCheck,
 }
 
 abstract class HInstruction implements SpannableWithEntity {
@@ -1607,11 +1620,21 @@ class HRef extends HInstruction {
 /// generating JavaScript.
 abstract interface class HLateInstruction {}
 
+/// Interface for instructions where the output is constrained to be one of the
+/// inputs. Used for checks, where the SSA value of the check represents the
+/// same value as the input, but restricted in some way, e.g., being of a
+/// refined type or in a checked range.
+abstract interface class HOutputConstrainedToAnInput implements HInstruction {
+  /// The input which is the 'same' as the output.
+  HInstruction get constrainedInput;
+}
+
 /// A [HCheck] instruction is an instruction that might do a dynamic check at
 /// runtime on an input instruction. To have proper instruction dependencies in
 /// the graph, instructions that depend on the check being done reference the
 /// [HCheck] instruction instead of the input instruction.
-abstract class HCheck extends HInstruction {
+abstract class HCheck extends HInstruction
+    implements HOutputConstrainedToAnInput {
   HCheck(super.inputs, super.type) {
     setUseGvn();
   }
@@ -1623,6 +1646,9 @@ abstract class HCheck extends HInstruction {
   }
 
   HInstruction get checkedInput => inputs[0];
+
+  @override
+  HInstruction get constrainedInput => checkedInput;
 
   @override
   bool isJsStatement() => true;
@@ -4672,6 +4698,122 @@ class HTypeBind extends HInstruction implements HRtiInstruction {
 
   @override
   String toString() => 'HTypeBind()';
+}
+
+/// Check Array or TypedData for permission to modify or grow.
+///
+/// Typical use to check modifiability for `a[i] = 0`. The array flags are
+/// checked to see if there is a bit that prohibits modification.
+///
+///     a = ...
+///     f = HArrayFlagsGet(a);
+///     a2 = HArrayFlagsCheck(a, f, ArrayFlags.unmodifiableCheck, "[]=")
+///     a2[i] = 0
+///
+/// HArrayFlagsGet is a separate instruction so that 'loading' the flags from
+/// the Array can by hoisted.
+class HArrayFlagsCheck extends HCheck {
+  HArrayFlagsCheck(HInstruction array, HInstruction arrayFlags,
+      HInstruction checkFlags, HInstruction operation, AbstractValue type)
+      : super([array, arrayFlags, checkFlags, operation], type);
+
+  HInstruction get array => inputs[0];
+  HInstruction get arrayFlags => inputs[1];
+  HInstruction get checkFlags => inputs[2];
+  HInstruction get operation => inputs[3];
+
+  // The checked type is the input type, refined to match the flags.
+  AbstractValue computeInstructionType(
+      AbstractValue inputType, AbstractValueDomain domain) {
+    // TODO(sra): Depening on the checked flags, the output is fixed-length or
+    // unmodifiable. Refine the type to the degree an AbstractValue can express
+    // that.
+    return inputType;
+  }
+
+  bool alwaysThrows() {
+    if ((arrayFlags, checkFlags)
+        case (
+          HConstant(constant: IntConstantValue(intValue: final arrayBits)),
+          HConstant(constant: IntConstantValue(intValue: final checkBits))
+        ) when arrayBits & checkBits != BigInt.zero) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  R accept<R>(HVisitor<R> visitor) => visitor.visitArrayFlagsCheck(this);
+
+  @override
+  bool isControlFlow() => true;
+  @override
+  bool isJsStatement() => true;
+
+  @override
+  _GvnType get _gvnType => _GvnType.arrayFlagsCheck;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HArrayFlagsCheck;
+
+  @override
+  bool dataEquals(HArrayFlagsCheck other) => true;
+}
+
+class HArrayFlagsGet extends HInstruction {
+  HArrayFlagsGet(HInstruction array, AbstractValue type)
+      : super([array], type) {
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    // Dependency on HArrayFlagsSet.
+    sideEffects.setDependsOnInstancePropertyStore();
+    setUseGvn();
+  }
+
+  @override
+  R accept<R>(HVisitor<R> visitor) => visitor.visitArrayFlagsGet(this);
+
+  @override
+  _GvnType get _gvnType => _GvnType.arrayFlagsGet;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HArrayFlagsGet;
+
+  @override
+  bool dataEquals(HArrayFlagsGet other) => true;
+}
+
+/// Tag an Array or TypedData object to mark it as unmodifiable or fixed-length.
+///
+/// The HArrayFlagsSet instruction represents the tagged Array or TypedData
+/// object. The instruction type can be different to the `array` input.
+/// HArrayFlagsSet is used in a 'linear' style - there are no accesses to the
+/// input after this operation.
+///
+/// To ensure that HArrayFlagsGet (possibly from inlined code) does not float
+/// past HArrayFlagsSet, we use the 'instance property' effect.
+class HArrayFlagsSet extends HInstruction
+    implements HOutputConstrainedToAnInput {
+  HArrayFlagsSet(HInstruction array, HInstruction flags, AbstractValue type)
+      : super([array, flags], type) {
+    // For correct ordering with respect to HArrayFlagsGet:
+    sideEffects.setChangesInstanceProperty();
+    // Be conservative and make HArrayFlagsSet be a memory fence:
+    sideEffects.setAllSideEffects();
+    sideEffects.setDependsOnSomething();
+  }
+
+  HInstruction get array => inputs[0];
+  HInstruction get flags => inputs[1];
+
+  @override
+  HInstruction get constrainedInput => array;
+
+  @override
+  R accept<R>(HVisitor<R> visitor) => visitor.visitArrayFlagsSet(this);
+
+  @override
+  bool isJsStatement() => true;
 }
 
 class HIsLateSentinel extends HInstruction {

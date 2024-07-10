@@ -36,6 +36,8 @@ import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
         getInterceptor,
+        ArrayFlags,
+        HArrayFlagsGet,
         JS,
         JS_BUILTIN,
         JS_CONST,
@@ -1247,6 +1249,47 @@ Never throwExpressionWithWrapper(ex, wrapper) {
 
 throwUnsupportedError(message) {
   throw UnsupportedError(message);
+}
+
+/// Called from code generated for the HArrayFlagsCheck instruction.
+///
+/// A missing `operation` argument defaults to '[]='.
+Never throwUnsupportedOperation(Object o, [String? operation]) {
+  // Missing argument is defaulted manually.  The calling convention for
+  // top-level methods is that the call site provides the default values. Since
+  // the generated code omits the second argument, `undefined` is passed, which
+  // presents as Dart `null`.
+  operation ??= '[]=';
+  final wrapper = JS('', 'Error()');
+  throwExpressionWithWrapper(
+      _diagnoseUnsupportedOperation(o, operation), wrapper);
+}
+
+Error _diagnoseUnsupportedOperation(Object o, String operation) {
+  String? verb;
+  String adjective = '';
+  String article = 'a';
+  String object;
+  if (o is List) {
+    object = 'list';
+    // TODO(sra): Should we do more of this?
+    if (operation == 'add' || operation == 'addAll') verb ??= 'add to';
+  } else {
+    object = 'ByteData';
+    verb ??= "'$operation' on";
+  }
+  verb ??= 'modify';
+  final flags = HArrayFlagsGet(o);
+  if (flags & ArrayFlags.unmodifiableCheck != 0) {
+    article = 'an ';
+    adjective = 'unmodifiable ';
+  } else {
+    // No need to test for fixed-length, otherwise we would not be diagnosing
+    // the error.
+    article = 'a ';
+    adjective = 'fixed-length ';
+  }
+  return UnsupportedError('Cannot $verb $article$adjective$object');
 }
 
 // This is used in open coded for-in loops on arrays.

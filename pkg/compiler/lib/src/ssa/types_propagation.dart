@@ -503,4 +503,12 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
     return abstractValueDomain.intersection(
         abstractValueDomain.boolType, instruction.checkedInput.instructionType);
   }
+
+  @override
+  AbstractValue visitArrayFlagsCheck(HArrayFlagsCheck instruction) {
+    instruction.array
+        .replaceAllUsersDominatedBy(instruction.next!, instruction);
+    AbstractValue inputType = instruction.array.instructionType;
+    return instruction.computeInstructionType(inputType, abstractValueDomain);
+  }
 }

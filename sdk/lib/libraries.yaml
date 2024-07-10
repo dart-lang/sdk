@@ -318,6 +318,9 @@ dart2js_server:
 
 _dart2js_common:
   libraries:
+    _array_flags:
+      uri: "_internal/js_runtime/lib/synced/array_flags.dart"
+
     async:
       uri: "async/async.dart"
       patches: "_internal/js_runtime/lib/async_patch.dart"

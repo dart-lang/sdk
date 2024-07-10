@@ -255,6 +255,7 @@ const implicitlyUsedLibraries = <String>[
 // compile-platform should just specify which libraries to compile instead.
 const requiredLibraries = <String, List<String>>{
   'dart2js': [
+    'dart:_array_flags',
     'dart:_async_status_codes',
     'dart:_dart2js_only',
     'dart:_dart2js_runtime_metrics',
@@ -297,6 +298,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:web_gl',
   ],
   'dart2js_server': [
+    'dart:_array_flags',
     'dart:_async_status_codes',
     'dart:_dart2js_only',
     'dart:_dart2js_runtime_metrics',

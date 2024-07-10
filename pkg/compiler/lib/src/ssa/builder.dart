@@ -4631,6 +4631,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _handleLateInitializeOnceCheck(invocation, sourceInformation);
     } else if (name == 'HCharCodeAt') {
       _handleCharCodeAt(invocation, sourceInformation);
+    } else if (name == 'HArrayFlagsGet') {
+      _handleArrayFlagsGet(invocation, sourceInformation);
+    } else if (name == 'HArrayFlagsSet') {
+      _handleArrayFlagsSet(invocation, sourceInformation);
+    } else if (name == 'HArrayFlagsCheck') {
+      _handleArrayFlagsCheck(invocation, sourceInformation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -5369,6 +5375,73 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     }
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
     push(HCharCodeAt(inputs[0], inputs[1], _abstractValueDomain.uint31Type)
+      ..sourceInformation = sourceInformation);
+  }
+
+  void _handleArrayFlagsGet(
+      ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 1, maxPositional: 1)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
+    final array = inputs.single;
+
+    push(HArrayFlagsGet(array, _abstractValueDomain.uint31Type)
+      ..sourceInformation = sourceInformation);
+  }
+
+  void _handleArrayFlagsSet(
+      ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 2, maxPositional: 2, typeArgumentCount: 1)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
+    final array = inputs[0];
+    final flags = inputs[1];
+
+    // TODO(sra): Use the flags to improve in the AbstractValue, which may
+    // contain powerset domain bits outside of the conventional type
+    // system. Perhaps do this in types_propagation.
+    DartType type = _getDartTypeIfValid(invocation.arguments.types.single);
+    AbstractValue? instructionType = _typeBuilder.trustTypeMask(type);
+    // TODO(sra): Better type
+    instructionType ??= _abstractValueDomain.dynamicType;
+
+    push(HArrayFlagsSet(array, flags, instructionType)
+      ..sourceInformation = sourceInformation);
+  }
+
+  void _handleArrayFlagsCheck(
+      ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 4, maxPositional: 4, typeArgumentCount: 1)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
+    final array = inputs[0];
+    final arrayFlags = inputs[1];
+    final checkFlags = inputs[2];
+    final operation = inputs[3];
+
+    // TODO(sra): Use the flags to improve in the AbstractValue, which may
+    // contain powerset domain bits outside of the conventional type
+    // system. Perhaps do this in types_propagation.
+    DartType type = _getDartTypeIfValid(invocation.arguments.types.single);
+    AbstractValue? instructionType = _typeBuilder.trustTypeMask(type);
+    // TODO(sra): Better type
+    instructionType ??= _abstractValueDomain.dynamicType;
+
+    push(HArrayFlagsCheck(
+        array, arrayFlags, checkFlags, operation, instructionType)
       ..sourceInformation = sourceInformation);
   }
 

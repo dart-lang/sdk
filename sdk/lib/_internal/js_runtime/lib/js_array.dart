@@ -36,7 +36,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     if (length < 0 || length > maxJSArrayLength) {
       throw RangeError.range(length, 0, maxJSArrayLength, 'length');
     }
-    return JSArray<E>.markFixed(JS('', 'new Array(#)', length));
+    return JSArray<E>.markFixed(JS('JSArray', 'new Array(#)', length));
   }
 
   /// Returns a fresh JavaScript Array, marked as fixed-length.  The Array is
@@ -61,7 +61,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     if (length < 0 || length > maxJSArrayLength) {
       throw RangeError.range(length, 0, maxJSArrayLength, 'length');
     }
-    return JSArray<E>.markFixed(JS('', 'new Array(#)', length));
+    return JSArray<E>.markFixed(JS('JSArray', 'new Array(#)', length));
   }
 
   /// Returns a fresh growable JavaScript Array of zero length length.
@@ -78,7 +78,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     if ((length is! int) || (length < 0)) {
       throw ArgumentError('Length must be a non-negative integer: $length');
     }
-    return JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
+    return JSArray<E>.markGrowable(JS('JSArray', 'new Array(#)', length));
   }
 
   /// Returns a fresh growable JavaScript Array with initial length. The Array
@@ -95,7 +95,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     if ((length is! int) || (length < 0)) {
       throw ArgumentError('Length must be a non-negative integer: $length');
     }
-    return JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
+    return JSArray<E>.markGrowable(JS('JSArray', 'new Array(#)', length));
   }
 
   /// Constructor for adding type parameters to an existing JavaScript Array.
@@ -118,29 +118,24 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   factory JSArray.markGrowable(allocation) =>
       JS('JSExtendableArray', '#', JSArray<E>.typed(allocation));
 
+  @pragma('dart2js:prefer-inline')
   static List<T> markFixedList<T>(List<T> list) {
-    // Functions are stored in the hidden class and not as properties in
-    // the object. We never actually look at the value, but only want
-    // to know if the property exists.
-    JS('void', r'#.fixed$length = Array', list);
-    return JS('JSFixedArray', '#', list);
+    return JS(
+        'JSFixedArray', '#', HArrayFlagsSet(list, ArrayFlags.fixedLength));
   }
 
+  @pragma('dart2js:prefer-inline')
   static List<T> markUnmodifiableList<T>(List list) {
-    // Functions are stored in the hidden class and not as properties in
-    // the object. We never actually look at the value, but only want
-    // to know if the property exists.
-    JS('void', r'#.fixed$length = Array', list);
-    JS('void', r'#.immutable$list = Array', list);
-    return JS('JSUnmodifiableArray', '#', list);
+    return JS('JSUnmodifiableArray', '#',
+        HArrayFlagsSet(list, ArrayFlags.unmodifiable));
   }
 
   static bool isFixedLength(JSArray a) {
-    return !JS('bool', r'!#.fixed$length', a);
+    return HArrayFlagsGet(a) & ArrayFlags.fixedLengthCheck != 0;
   }
 
   static bool isUnmodifiable(JSArray a) {
-    return !JS('bool', r'!#.immutable$list', a);
+    return HArrayFlagsGet(a) & ArrayFlags.unmodifiableCheck != 0;
   }
 
   static bool isGrowable(JSArray a) {
@@ -152,15 +147,13 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   checkMutable(String reason) {
-    if (!isMutable(this)) {
-      throw UnsupportedError(reason);
-    }
+    final int flags = HArrayFlagsGet(this);
+    HArrayFlagsCheck(this, flags, ArrayFlags.unmodifiableCheck, reason);
   }
 
   checkGrowable(String reason) {
-    if (!isGrowable(this)) {
-      throw UnsupportedError(reason);
-    }
+    final int flags = HArrayFlagsGet(this);
+    HArrayFlagsCheck(this, flags, ArrayFlags.fixedLengthCheck, reason);
   }
 
   List<R> cast<R>() => List.castFrom<E, R>(this);
@@ -790,11 +783,14 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void operator []=(int index, E value) {
-    checkMutable('indexed set');
+    final int flags = HArrayFlagsGet(this);
+    final checked =
+        HArrayFlagsCheck(this, flags, ArrayFlags.unmodifiableCheck, '[]=');
+
     if (index is! int) throw diagnoseIndexError(this, index);
     // This form of the range test correctly rejects NaN.
     if (!(index >= 0 && index < length)) throw diagnoseIndexError(this, index);
-    JS('void', r'#[#] = #', this, index, value);
+    JS('void', r'#[#] = #', checked, index, value);
   }
 
   Map<int, E> asMap() {
