@@ -36,6 +36,7 @@ import '../base/messages.dart'
 import '../base/scope.dart';
 import '../base/uris.dart';
 import '../kernel/implicit_field_type.dart';
+import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
@@ -660,14 +661,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   NamedTypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeBuilder>? clonedArguments;
     if (typeArguments != null) {
       clonedArguments =
           new List<TypeBuilder>.generate(typeArguments!.length, (int i) {
         return typeArguments![i]
-            .clone(newTypes, contextLibrary, contextDeclaration);
+            .clone(newTypes, builderFactory, contextDeclaration);
       }, growable: false);
     }
     NamedTypeBuilderImpl newType = new NamedTypeBuilderImpl(

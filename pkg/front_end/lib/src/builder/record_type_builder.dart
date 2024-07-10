@@ -17,6 +17,7 @@ import '../codes/cfe_codes.dart'
         templateDuplicatedRecordTypeFieldName,
         templateDuplicatedRecordTypeFieldNameContext;
 import '../kernel/implicit_field_type.dart';
+import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 import 'inferable_type_builder.dart';
@@ -288,14 +289,14 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   RecordTypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     List<RecordTypeFieldBuilder>? clonedPositional;
     if (positionalFields != null) {
       clonedPositional = new List<RecordTypeFieldBuilder>.generate(
           positionalFields!.length, (int i) {
         RecordTypeFieldBuilder entry = positionalFields![i];
-        return entry.clone(newTypes, contextLibrary, contextDeclaration);
+        return entry.clone(newTypes, builderFactory, contextDeclaration);
       }, growable: false);
     }
     List<RecordTypeFieldBuilder>? clonedNamed;
@@ -304,7 +305,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       clonedNamed = new List<RecordTypeFieldBuilder>.generate(
           namedFields!.length, (int i) {
         RecordTypeFieldBuilder entry = namedFields![i];
-        return entry.clone(newTypes, contextLibrary, contextDeclaration);
+        return entry.clone(newTypes, builderFactory, contextDeclaration);
       }, growable: false);
     }
     return new RecordTypeBuilderImpl(
@@ -402,13 +403,13 @@ class RecordTypeFieldBuilder {
 
   RecordTypeFieldBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     // TODO(cstefantsova):  It's not clear how [metadata] is used currently,
     // and how it should be cloned.  Consider cloning it instead of reusing it.
     return new RecordTypeFieldBuilder(
         metadata,
-        type.clone(newTypes, contextLibrary, contextDeclaration),
+        type.clone(newTypes, builderFactory, contextDeclaration),
         name,
         charOffset,
         isWildcard: isWildcard);

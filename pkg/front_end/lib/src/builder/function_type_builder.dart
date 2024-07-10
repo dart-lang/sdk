@@ -11,6 +11,7 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../codes/cfe_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
+import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
@@ -204,11 +205,11 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   FunctionTypeBuilder clone(
       List<NamedTypeBuilder> newTypes,
-      SourceLibraryBuilder contextLibrary,
+      BuilderFactory builderFactory,
       TypeParameterScopeBuilder contextDeclaration) {
     List<StructuralVariableBuilder>? clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables = contextLibrary.copyStructuralVariables(
+      clonedTypeVariables = builderFactory.copyStructuralVariables(
           typeVariables!, contextDeclaration,
           kind: TypeVariableKind.function);
     }
@@ -217,11 +218,11 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       clonedFormals =
           new List<ParameterBuilder>.generate(formals!.length, (int i) {
         ParameterBuilder formal = formals![i];
-        return formal.clone(newTypes, contextLibrary, contextDeclaration);
+        return formal.clone(newTypes, builderFactory, contextDeclaration);
       }, growable: false);
     }
     return new FunctionTypeBuilderImpl(
-        returnType.clone(newTypes, contextLibrary, contextDeclaration),
+        returnType.clone(newTypes, builderFactory, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
         nullabilityBuilder,

@@ -184,10 +184,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<MetadataBuilder>? get metadata;
 
-  List<NominalVariableBuilder> get unboundNominalVariables;
-
-  List<StructuralVariableBuilder> get unboundStructuralVariables;
-
   void collectInferableTypes(List<InferableType> inferableTypes);
 
   void takeMixinApplications(
@@ -260,6 +256,17 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   int computeVariances();
 
   void computeShowHideElements(ClassMembersBuilder membersBuilder);
+
+  /// Adds all unbound nominal variables to [nominalVariables] and unbound
+  /// structural variables to [structuralVariables], mapping them to
+  /// [libraryBuilder].
+  ///
+  /// This is used to compute the bounds of type variable while taking the
+  /// bound dependencies, which might span multiple libraries, into account.
+  void collectUnboundTypeVariables(
+      SourceLibraryBuilder libraryBuilder,
+      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
+      Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
 
   // TODO(johnniwinther): Remove this.
   Builder addBuilder(String name, Builder declaration, int charOffset);

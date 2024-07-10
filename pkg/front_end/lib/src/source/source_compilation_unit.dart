@@ -75,6 +75,12 @@ class SourceCompilationUnitImpl
   @override
   final IndexedLibrary? indexedLibrary;
 
+  final List<NominalVariableBuilder> _unboundNominalVariables =
+      <NominalVariableBuilder>[];
+
+  final List<StructuralVariableBuilder> _unboundStructuralVariables =
+      <StructuralVariableBuilder>[];
+
   SourceCompilationUnitImpl(
       this._sourceLibraryBuilder, this._libraryTypeParameterScopeBuilder,
       {required this.importUri,
@@ -472,14 +478,6 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  List<NominalVariableBuilder> get unboundNominalVariables =>
-      _sourceLibraryBuilder.unboundNominalVariables;
-
-  @override
-  List<StructuralVariableBuilder> get unboundStructuralVariables =>
-      _sourceLibraryBuilder.unboundStructuralVariables;
-
-  @override
   List<NamedTypeBuilder> get unresolvedNamedTypes =>
       _libraryTypeParameterScopeBuilder.unresolvedNamedTypes;
 
@@ -678,10 +676,6 @@ class SourceCompilationUnitImpl
         libraryBuilder.exporters.addAll(part.exporters);
 
         libraryBuilder.nativeMethods.addAll(part.nativeMethods);
-        libraryBuilder.unboundNominalVariables
-            .addAll(part.unboundNominalVariables);
-        libraryBuilder.unboundStructuralVariables
-            .addAll(part.unboundStructuralVariables);
         // Check that the targets are different. This is not normally a problem
         // but is for augmentation libraries.
         if (libraryBuilder.library != part.library &&
@@ -781,6 +775,57 @@ class SourceCompilationUnitImpl
     } else {
       return baseUri.resolveUri(parsedUri);
     }
+  }
+
+  @override
+  void collectUnboundTypeVariables(
+      SourceLibraryBuilder libraryBuilder,
+      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
+      Map<StructuralVariableBuilder, SourceLibraryBuilder>
+          structuralVariables) {
+    for (NominalVariableBuilder builder in _unboundNominalVariables) {
+      nominalVariables[builder] = libraryBuilder;
+    }
+    for (StructuralVariableBuilder builder in _unboundStructuralVariables) {
+      structuralVariables[builder] = libraryBuilder;
+    }
+    _unboundStructuralVariables.clear();
+    _unboundNominalVariables.clear();
+  }
+
+  @override
+  List<StructuralVariableBuilder> copyStructuralVariables(
+      List<StructuralVariableBuilder> original,
+      TypeParameterScopeBuilder declaration,
+      {required TypeVariableKind kind}) {
+    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
+    List<StructuralVariableBuilder> copy = <StructuralVariableBuilder>[];
+    for (StructuralVariableBuilder variable in original) {
+      StructuralVariableBuilder newVariable = new StructuralVariableBuilder(
+          variable.name,
+          _sourceLibraryBuilder,
+          variable.charOffset,
+          variable.fileUri,
+          bound: variable.bound?.clone(newTypes, this, declaration),
+          variableVariance: variable.parameter.isLegacyCovariant
+              ? null
+              :
+              // Coverage-ignore(suite): Not run.
+              variable.variance,
+          isWildcard: variable.isWildcard);
+      copy.add(newVariable);
+      _unboundStructuralVariables.add(newVariable);
+    }
+    for (NamedTypeBuilder newType in newTypes) {
+      declaration.registerUnresolvedNamedType(newType);
+    }
+    return copy;
+  }
+
+  @override
+  void registerUnboundStructuralVariables(
+      List<StructuralVariableBuilder> variableBuilders) {
+    _unboundStructuralVariables.addAll(variableBuilders);
   }
 
   @override
@@ -1571,18 +1616,14 @@ class SourceCompilationUnitImpl
             if (supertype is NamedTypeBuilder &&
                 supertype.typeArguments != null) {
               for (int i = 0; i < supertype.typeArguments!.length; ++i) {
-                supertype.typeArguments![i] = supertype.typeArguments![i].clone(
-                    newTypes,
-                    _sourceLibraryBuilder,
-                    currentTypeParameterScopeBuilder);
+                supertype.typeArguments![i] = supertype.typeArguments![i]
+                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
             if (mixin is NamedTypeBuilder && mixin.typeArguments != null) {
               for (int i = 0; i < mixin.typeArguments!.length; ++i) {
-                mixin.typeArguments![i] = mixin.typeArguments![i].clone(
-                    newTypes,
-                    _sourceLibraryBuilder,
-                    currentTypeParameterScopeBuilder);
+                mixin.typeArguments![i] = mixin.typeArguments![i]
+                    .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
             for (NamedTypeBuilder newType in newTypes) {
@@ -2725,7 +2766,7 @@ class SourceCompilationUnitImpl
         kind: kind,
         isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
 
-    unboundNominalVariables.add(builder);
+    _unboundNominalVariables.add(builder);
     return builder;
   }
 
@@ -2742,7 +2783,7 @@ class SourceCompilationUnitImpl
         metadata: metadata,
         isWildcard: libraryFeatures.wildcardVariables.isEnabled && name == '_');
 
-    unboundStructuralVariables.add(builder);
+    _unboundStructuralVariables.add(builder);
     return builder;
   }
 
@@ -2817,8 +2858,7 @@ class SourceCompilationUnitImpl
           _sourceLibraryBuilder,
           variable.charOffset,
           variable.fileUri,
-          bound: variable.bound
-              ?.clone(newTypes, _sourceLibraryBuilder, declaration),
+          bound: variable.bound?.clone(newTypes, this, declaration),
           kind: kind,
           variableVariance: variable.parameter.isLegacyCovariant
               ? null
@@ -2827,7 +2867,7 @@ class SourceCompilationUnitImpl
               variable.variance,
           isWildcard: variable.isWildcard);
       copy.add(newVariable);
-      unboundNominalVariables.add(newVariable);
+      _unboundNominalVariables.add(newVariable);
     }
     for (NamedTypeBuilder newType in newTypes) {
       declaration.registerUnresolvedNamedType(newType);
@@ -3072,7 +3112,7 @@ class SourceCompilationUnitImpl
             currentTypeParameterScopeBuilder
                 .registerUnresolvedNamedType(unboundType);
           }
-          this.unboundStructuralVariables.addAll(unboundTypeVariables);
+          this._unboundStructuralVariables.addAll(unboundTypeVariables);
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
           }

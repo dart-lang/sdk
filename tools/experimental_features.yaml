@@ -134,6 +134,15 @@ features:
   digit-separators:
     help: "Number literals with digit separators."
 
+  null-aware-elements:
+    help: "Null-aware elements and map entries in collections."
+
+  enhanced-parts:
+    help: "Generalize parts to be nested and have exports/imports."
+
+  augmentations:
+    help: "Augmentations - enhancing declarations from outside"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -360,9 +369,6 @@ features:
         print('feature enabled');
       }
     expired: true
-
-  null-aware-elements:
-    help: "Null-aware elements and map entries in collections."
 
   extension-methods:
     help: "Extension Methods"

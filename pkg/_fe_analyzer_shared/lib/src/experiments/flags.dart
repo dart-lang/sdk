@@ -10,6 +10,13 @@ const Version defaultLanguageVersion = const Version(3, 6);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
+  augmentations(
+      name: 'augmentations',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   classModifiers(
       name: 'class-modifiers',
       isEnabledByDefault: true,
@@ -58,6 +65,13 @@ enum ExperimentalFlag {
       isExpired: true,
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17)),
+
+  enhancedParts(
+      name: 'enhanced-parts',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
 
   extensionMethods(
       name: 'extension-methods',
