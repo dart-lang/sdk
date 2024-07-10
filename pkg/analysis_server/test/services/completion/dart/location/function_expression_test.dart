@@ -152,4 +152,50 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_contextType_return_explicit_record_namedField() async {
+    await computeSuggestions('''
+void f(({int i}) Function() callback) {
+  f(() { return (^); });
+}
+''');
+    assertResponse(r'''
+suggestions
+  |i: |
+    kind: namedArgument
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
+
+  Future<void> test_contextType_return_implicit_record_namedField() async {
+    await computeSuggestions('''
+void f(({int i}) Function() callback) {
+  f(() => (^));
+}
+''');
+    assertResponse(r'''
+suggestions
+  |i: |
+    kind: namedArgument
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+  true
+    kind: keyword
+''');
+  }
 }
