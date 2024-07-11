@@ -383,15 +383,6 @@ class RecordType extends Type implements SharedRecordType<Type> {
 
 /// Representation of a type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-///
-/// Note that we don't want code in `_fe_analyzer_shared` to inadvertently
-/// compare types using `==` (or to store types in sets/maps, which can trigger
-/// `==` to be used to compare them); this could cause bugs by causing
-/// alternative spellings of the same type to be treated differently (e.g.
-/// `FutureOr<int?>?` should be treated equivalently to `FutureOr<int?>`).  To
-/// help ensure this, both `==` and `hashCode` throw exceptions by default.  To
-/// defeat this behavior (e.g. so that a type can be passed to `expect`, use
-/// [Type.withComparisonsAllowed].
 abstract class Type implements SharedType {
   @override
   final NullabilitySuffix nullabilitySuffix;

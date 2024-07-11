@@ -269,7 +269,7 @@ class TypeConstraintFromExtendsClause<
   /// Name of the type parameter with the extends clause.
   final String typeParameterName;
 
-  /// The declared bound of [typeParam], not `null`, because we create
+  /// The declared bound of the type parameter, not `null`, because we create
   /// this clause only when it is not `null`.
   ///
   /// For example `Iterable<T>` for `<T, E extends Iterable<T>>`.

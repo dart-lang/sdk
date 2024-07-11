@@ -250,9 +250,8 @@ class MatchContext<Node extends Object, Expression extends Node,
         unnecessaryWildcardKind: unnecessaryWildcardKind,
       );
 
-  /// Returns a modified version of `this`, with both [initializer] and
-  /// [switchScrutinee] set to `null` (because this context is not for a
-  /// top-level pattern anymore).
+  /// Returns a modified version of `this`, with [switchScrutinee] set to `null`
+  /// (because this context is not for a top-level pattern anymore).
   MatchContext<Node, Expression, Pattern, Type, Variable>
       withUnnecessaryWildcardKind(
           UnnecessaryWildcardKind? unnecessaryWildcardKind) {

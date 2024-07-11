@@ -148,7 +148,7 @@ class RelationalOperatorResolution<Type extends SharedType> {
 /// The client is free to `implement` or `extend` this class.
 class SwitchExpressionMemberInfo<Node extends Object, Expression extends Node,
     Variable extends Object> {
-  /// The [CaseOrDefaultHead] associated with this clause.
+  /// The [CaseHeadOrDefaultInfo] associated with this clause.
   final CaseHeadOrDefaultInfo<Node, Expression, Variable> head;
 
   /// The body of the `case` or `default` clause.
@@ -1229,9 +1229,7 @@ mixin TypeAnalyzer<
   }
 
   /// Analyzes an object pattern.  [node] is the pattern itself, and [fields]
-  /// is the list of subpatterns.  The [requiredType] must be not `null` in
-  /// irrefutable contexts, but can be `null` in refutable contexts, then
-  /// [downwardInferObjectPatternRequiredType] is invoked to infer the type.
+  /// is the list of subpatterns.
   ///
   /// Returns a [ObjectPatternResult] with the required type and information
   /// about reported errors.
@@ -1437,13 +1435,8 @@ mixin TypeAnalyzer<
   /// `var pattern = initializer` or `final pattern = initializer`.
   ///
   /// [node] should be the AST node for the entire declaration, [pattern] for
-  /// the pattern, and [initializer] for the initializer.  [isFinal] and
-  /// [isLate] indicate whether this is a final declaration and/or a late
-  /// declaration, respectively.
-  ///
-  /// Note that the only kind of pattern allowed in a late declaration is a
-  /// variable pattern; [TypeAnalyzerErrors.patternDoesNotAllowLate] will be
-  /// reported if any other kind of pattern is used.
+  /// the pattern, and [initializer] for the initializer.  [isFinal] indicates
+  /// whether this is a final declaration.
   ///
   /// Returns a [PatternVariableDeclarationAnalysisResult] holding the static
   /// type of the initializer and the type schema of the [pattern].
@@ -1972,9 +1965,8 @@ mixin TypeAnalyzer<
   /// `var variable;`.
   ///
   /// [node] should be the AST node for the entire declaration, [variable] for
-  /// the variable, and [declaredType] for the type (if present).  [isFinal] and
-  /// [isLate] indicate whether this is a final declaration and/or a late
-  /// declaration, respectively.
+  /// the variable, and [declaredType] for the type (if present).  [isFinal]
+  /// indicates whether this is a final declaration.
   ///
   /// Stack effect: none.
   ///
@@ -1990,7 +1982,7 @@ mixin TypeAnalyzer<
 
   /// Analyzes a wildcard pattern.  [node] is the pattern.
   ///
-  /// Returns a [WildcardPattern] with information about reported errors.
+  /// Returns a [WildcardPatternResult] with information about reported errors.
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
@@ -2062,8 +2054,8 @@ mixin TypeAnalyzer<
   /// [node], and then adjusts the stack as needed to combine any
   /// sub-structures into a single expression.
   ///
-  /// For example, if [node] is a binary expression (`a + b`), calls
-  /// [analyzeBinaryExpression].
+  /// For example, if [node] is a switch expression, calls
+  /// [analyzeSwitchExpression].
   ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
@@ -2090,7 +2082,8 @@ mixin TypeAnalyzer<
   /// [statement], and then adjusts the stack as needed to combine any
   /// sub-structures into a single statement.
   ///
-  /// For example, if [statement] is a `while` loop, calls [analyzeWhileLoop].
+  /// For example, if [statement] is a switch statement, calls
+  /// [analyzeSwitchStatement].
   ///
   /// Stack effect: pushes (Statement).
   void dispatchStatement(Statement statement);
@@ -2123,23 +2116,23 @@ mixin TypeAnalyzer<
   /// If [node] is [isRestPatternElement], returns its optional pattern.
   Pattern? getRestPatternElementPattern(Node node);
 
-  /// Returns an [ExpressionCaseInfo] object describing the [index]th `case` or
-  /// `default` clause in the switch expression [node].
+  /// Returns an [SwitchExpressionMemberInfo] object describing the [index]th
+  /// `case` or `default` clause in the switch expression [node].
   ///
   /// Note: it is allowed for the client's AST nodes for `case` and `default`
-  /// clauses to implement [ExpressionCaseInfo], in which case this method can
-  /// simply return the [index]th `case` or `default` clause.
+  /// clauses to implement [SwitchExpressionMemberInfo], in which case this
+  /// method can simply return the [index]th `case` or `default` clause.
   ///
   /// See [analyzeSwitchExpression].
   SwitchExpressionMemberInfo<Node, Expression, Variable>
       getSwitchExpressionMemberInfo(Expression node, int index);
 
-  /// Returns a [StatementCaseInfo] object describing the [index]th `case` or
-  /// `default` clause in the switch statement [node].
+  /// Returns a [SwitchStatementMemberInfo] object describing the [caseIndex]th
+  /// `case` or `default` clause in the switch statement [node].
   ///
   /// Note: it is allowed for the client's AST nodes for `case` and `default`
-  /// clauses to implement [StatementCaseInfo], in which case this method can
-  /// simply return the [index]th `case` or `default` clause.
+  /// clauses to implement [SwitchStatementMemberInfo], in which case this
+  /// method can simply return the [caseIndex]th `case` or `default` clause.
   ///
   /// See [analyzeSwitchStatement].
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
