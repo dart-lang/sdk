@@ -139,15 +139,15 @@ class DartToolingDaemon {
     );
   }
 
-  /// Creates a [Stream] for events received on [streamId].
+  /// Returns a broadcast [Stream] for events received on [streamId].
   ///
-  /// This method should be called before calling [streamListen] to ensure
-  /// events aren't dropped.
+  /// This method should be called and a listener added before calling
+  /// [streamListen] to ensure events aren't dropped.
   Stream<DTDEvent> onEvent(String streamId) {
     return _subscribedStreamControllers
         .putIfAbsent(
           streamId,
-          StreamController<DTDEvent>.new,
+          StreamController<DTDEvent>.broadcast,
         )
         .stream;
   }

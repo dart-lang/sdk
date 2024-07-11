@@ -38,27 +38,22 @@ void main() {
       const notificationStream = 'notification_stream';
       const messageEvent = 'message';
       const message1 = {'message': 'hello'};
-      const message2 = {'message': 'greetings'};
 
-      test('listen and cancel', () async {
-        var clientBCompleter = Completer<DTDEvent>();
-
+      test('streamListen', () async {
         await clientB.streamListen(notificationStream);
-
-        clientB.onEvent(notificationStream).listen(clientBCompleter.complete);
-
+        final eventFuture = clientB.onEvent(notificationStream).first;
         await clientA.postEvent(notificationStream, messageEvent, message1);
-        final event = await clientBCompleter.future;
+        final event = await eventFuture;
         expect(event.data, message1);
+      });
 
-        clientBCompleter = Completer<DTDEvent>();
-
-        // Now test stream Cancel
+      test('streamCancel', () async {
+        await clientB.streamListen(notificationStream);
+        final eventFuture = clientB.onEvent(notificationStream).first;
         await clientB.streamCancel(notificationStream);
-        await clientA.postEvent(notificationStream, messageEvent, message2);
-
+        await clientA.postEvent(notificationStream, messageEvent, message1);
         expect(
-          clientBCompleter.future.timeout(
+          eventFuture.timeout(
             const Duration(seconds: 1),
             onTimeout: () {
               throw TimeoutException('Timed out');
@@ -66,6 +61,18 @@ void main() {
           ),
           throwsA(predicate((p0) => p0 is TimeoutException)),
         );
+      });
+
+      test('can have multiple subscribers to a stream', () async {
+        await clientB.streamListen(notificationStream);
+
+        for (var i = 1; i <= 5; i++) {
+          final event1Future = clientB.onEvent(notificationStream).first;
+          final event2Future = clientB.onEvent(notificationStream).first;
+          await clientA.postEvent(notificationStream, messageEvent, message1);
+          expect((await event1Future).data, message1);
+          expect((await event2Future).data, message1);
+        }
       });
     });
 
