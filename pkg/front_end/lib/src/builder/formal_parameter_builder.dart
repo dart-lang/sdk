@@ -22,6 +22,7 @@ import '../source/builder_factory.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/type_parameter_scope_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'constructor_builder.dart';

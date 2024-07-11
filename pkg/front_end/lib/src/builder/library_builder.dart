@@ -11,7 +11,6 @@ import 'package:kernel/reference_from_index.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
-import '../base/identifiers.dart';
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show
@@ -156,9 +155,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   /// Returns `true` if the compilation unit is part of a `dart:` library.
   bool get isDartLibrary;
-
-  String? computeAndValidateConstructorName(Identifier identifier,
-      {isFactory = false});
 
   List<ConstructorReferenceBuilder> get constructorReferences;
 

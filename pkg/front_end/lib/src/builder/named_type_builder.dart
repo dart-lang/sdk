@@ -38,6 +38,7 @@ import '../base/uris.dart';
 import '../kernel/implicit_field_type.dart';
 import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
+import '../source/type_parameter_scope_builder.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';

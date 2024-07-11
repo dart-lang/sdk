@@ -8,7 +8,9 @@ import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
+import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
+import '../base/import.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -18,10 +20,56 @@ import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import 'offset_map.dart';
+import 'source_class_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_library_builder.dart';
+import 'type_parameter_scope_builder.dart';
+
+abstract class BuilderFactoryResult {
+  String? get name;
+
+  bool get isPart;
+
+  String? get partOfName;
+
+  Uri? get partOfUri;
+
+  /// The part directives in this compilation unit.
+  List<Part> get parts;
+
+  List<Import> get imports;
+
+  List<Export> get exports;
+
+  /// List of [PrefixBuilder]s for imports with prefixes.
+  List<PrefixBuilder>? get prefixBuilders;
+
+  List<MetadataBuilder>? get metadata;
+
+  List<NamedTypeBuilder> get unresolvedNamedTypes;
+
+  void takeMixinApplications(
+      Map<SourceClassBuilder, TypeBuilder> mixinApplications);
+
+  void collectUnboundTypeVariables(
+      SourceLibraryBuilder libraryBuilder,
+      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
+      Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
+
+  void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes);
+
+  void registerUnresolvedStructuralVariables(
+      List<StructuralVariableBuilder> unboundTypeVariables);
+
+  Iterable<Builder> get members;
+
+  Iterable<Builder> get setters;
+
+  Iterable<ExtensionBuilder> get extensions;
+}
 
 abstract class BuilderFactory {
   /// The current declaration that is being built. When we start parsing a
@@ -237,6 +285,9 @@ abstract class BuilderFactory {
       String? nativeMethodName,
       AsyncMarker asyncModifier);
 
+  String? computeAndValidateConstructorName(Identifier identifier,
+      {isFactory = false});
+
   void addProcedure(
       OffsetMap offsetMap,
       List<MetadataBuilder>? metadata,
@@ -333,4 +384,14 @@ abstract class BuilderFactory {
 
   Builder addBuilder(String name, Builder declaration, int charOffset,
       {Reference? getterReference, Reference? setterReference});
+}
+
+class FieldInfo {
+  final Identifier identifier;
+  final Token? initializerToken;
+  final Token? beforeLast;
+  final int charEndOffset;
+
+  const FieldInfo(this.identifier, this.initializerToken, this.beforeLast,
+      this.charEndOffset);
 }

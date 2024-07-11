@@ -13,6 +13,7 @@ import '../codes/cfe_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
+import '../source/type_parameter_scope_builder.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'inferable_type_builder.dart';
