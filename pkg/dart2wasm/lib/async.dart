@@ -152,8 +152,8 @@ class AsyncCodeGenerator extends StateMachineCodeGenerator {
     // (3) Return the completer's future.
 
     b.local_get(asyncStateLocal);
-    final completerFutureGetterType = translator.functions
-        .getFunctionType(translator.completerFuture.getterReference);
+    final completerFutureGetterType = translator
+        .signatureForDirectCall(translator.completerFuture.getterReference);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     translator.convertType(

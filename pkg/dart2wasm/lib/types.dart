@@ -428,8 +428,8 @@ class Types {
       b.local_get(operandTemp!);
       makeType(codeGen, testedAgainstType);
       if (location != null) {
-        w.FunctionType verifyFunctionType = translator.functions
-            .getFunctionType(translator.verifyOptimizedTypeCheck.reference);
+        w.FunctionType verifyFunctionType = translator.signatureForDirectCall(
+            translator.verifyOptimizedTypeCheck.reference);
         translator.constants.instantiateConstant(codeGen.function, b,
             StringConstant('$location'), verifyFunctionType.inputs.last);
       } else {

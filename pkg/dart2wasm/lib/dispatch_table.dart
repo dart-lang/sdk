@@ -45,6 +45,7 @@ class SelectorInfo {
   /// Maps class IDs to the selector's member in the class. The member can be
   /// abstract.
   final Map<int, Reference> targets = {};
+  late final Set<Reference> targetSet = targets.values.toSet();
 
   /// Wasm function type for the selector.
   ///
