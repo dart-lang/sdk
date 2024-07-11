@@ -352,6 +352,9 @@ CodePtr StackFrame::LookupDartCode() const {
 CodePtr StackFrame::GetCodeObject() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode) {
+    if (pc() == 0) {
+      return Code::null();
+    }
     NoSafepointScope no_safepoint;
     CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
                                      /*is_return_address=*/true);
