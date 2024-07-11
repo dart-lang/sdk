@@ -29,6 +29,12 @@
           "_internal/vm/lib/hash_factories.dart"
         ]
       },
+      "concurrent": {
+        "uri": "concurrent/concurrent.dart",
+        "patches": [
+          "_internal/vm/lib/concurrent_patch.dart"
+        ]
+      },
       "convert": {
         "uri": "convert/convert.dart",
         "patches": "_internal/vm/lib/convert_patch.dart"

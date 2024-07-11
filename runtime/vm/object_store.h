@@ -28,7 +28,8 @@ class ObjectPointerVisitor;
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
   M(TypedData, typed_data)                                                     \
-  M(VMService, _vmservice)
+  M(VMService, _vmservice)                                                     \
+  M(Concurrent, concurrent)
 
 // R_ - needs getter only
 // RW - needs getter and setter
@@ -130,6 +131,8 @@ class ObjectPointerVisitor;
   RW(Class, finalizer_class)                                                   \
   RW(Class, finalizer_entry_class)                                             \
   RW(Class, native_finalizer_class)                                            \
+  RW(Class, dart_condition_variable_class)                                     \
+  RW(Class, dart_mutex_class)                                                  \
   ARW_AR(WeakArray, symbol_table)                                              \
   ARW_AR(WeakArray, regexp_table)                                              \
   RW(Array, canonical_types)                                                   \
@@ -140,6 +143,7 @@ class ObjectPointerVisitor;
   RW(Library, async_library)                                                   \
   RW(Library, core_library)                                                    \
   RW(Library, collection_library)                                              \
+  RW(Library, concurrent_library)                                              \
   RW(Library, convert_library)                                                 \
   RW(Library, developer_library)                                               \
   RW(Library, ffi_library)                                                     \

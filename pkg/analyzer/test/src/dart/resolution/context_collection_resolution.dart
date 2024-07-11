@@ -337,7 +337,9 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
   List<String> get experiments {
     return [
+      Feature.augmentations.enableString,
       Feature.digit_separators.enableString,
+      Feature.enhanced_parts.enableString,
       Feature.macros.enableString,
       Feature.wildcard_variables.enableString,
     ];

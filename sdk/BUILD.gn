@@ -80,6 +80,7 @@ declare_args() {
 # ........js_shared/
 # ......async/
 # ......collection/
+# ......concurrent/
 # ......convert/
 # ......core/
 # ......dev_compiler/
@@ -164,6 +165,7 @@ _full_sdk_libraries = [
   "async",
   "cli",
   "collection",
+  "concurrent",
   "convert",
   "core",
   "developer",

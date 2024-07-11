@@ -25,6 +25,8 @@ class DartTextDocumentContentProviderTest
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
       ...super.serverOptions.enabledExperiments,
+      Feature.augmentations.enableString,
+      Feature.enhanced_parts.enableString,
       Feature.macros.enableString,
     ];
 

@@ -30,6 +30,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
+      Feature.augmentations.enableString,
+      Feature.enhanced_parts.enableString,
       Feature.macros.enableString,
     ];
 
