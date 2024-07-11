@@ -25,6 +25,9 @@ void main(List<String> args) async {
   if (Platform.isAndroid) {
     return; // No vm_platform_strong.dill easily available.
   }
+  if (isSimulator) {
+    return; // No ffi support on simulators
+  }
 
   asyncStart();
   final testerScriptPath = Platform.script.toFilePath();

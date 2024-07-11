@@ -5315,10 +5315,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void _maybeAddInteropNullAssertionForMember(
       FunctionEntity member, int argumentCount) {
     if (options.interopNullAssertions) {
-      final name =
-          PublicName(_nativeData.computeUnescapedJSInteropName(member.name!));
-      _addInteropNullAssertionForSelector(
-          Selector.call(name, CallStructure.unnamed(argumentCount)));
+      final functionType = _elementEnvironment.getFunctionType(member);
+      if (dartTypes.isNonNullableIfSound(functionType.returnType)) {
+        final name =
+            PublicName(_nativeData.computeUnescapedJSInteropName(member.name!));
+        _addInteropNullAssertionForSelector(
+            Selector.call(name, CallStructure.unnamed(argumentCount)));
+      }
     }
   }
 
@@ -5722,7 +5725,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       invoke.isBoundsSafe = node.isBoundsSafe;
     }
     push(invoke);
-    if (element != null) {
+    if (element != null &&
+        _abstractValueDomain.isNull(resultType).isDefinitelyFalse) {
       _maybeAddInteropNullAssertionForSelector(selector);
     }
   }

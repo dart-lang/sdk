@@ -31,6 +31,7 @@ import '../js_model/type_recipe.dart'
 import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../universe/call_structure.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
@@ -990,7 +991,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = node.inputs.last; // Drop interceptor.
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInstruction result = HInvokeExternal(
+    final result = HInvokeExternal(
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
@@ -1006,25 +1007,36 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   HInstruction maybeAddNativeReturnNullCheck(
-      HInstruction node, HInstruction replacement, FunctionEntity method) {
+      HInstruction node, HInvokeExternal invocation, FunctionEntity method) {
+    HInstruction replacement = invocation;
     if (_options.nativeNullAssertions && memberEntityIsInWebLibrary(method)) {
       FunctionType type =
           _closedWorld.elementEnvironment.getFunctionType(method);
       if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
-        node.block!.addBefore(node, replacement);
-        replacement = HNullCheck(replacement,
-            _abstractValueDomain.excludeNull(replacement.instructionType),
+        node.block!.addBefore(node, invocation);
+        replacement = HNullCheck(invocation,
+            _abstractValueDomain.excludeNull(invocation.instructionType),
             sticky: true);
       }
-    } else if (_options.interopNullAssertions &&
-        _nativeData.interopNullChecks.containsKey(Selector.getter(PublicName(
-            _nativeData.computeUnescapedJSInteropName(method.name!))))) {
-      node.block!.addBefore(node, replacement);
-      final replacementType = _options.experimentNullSafetyChecks
-          ? replacement.instructionType
-          : _abstractValueDomain.excludeNull(replacement.instructionType);
-      replacement = HInvokeStatic(commonElements.interopNullAssertion,
-          [replacement], replacementType, const <DartType>[]);
+    } else if (_options.interopNullAssertions) {
+      final name =
+          PublicName(_nativeData.computeUnescapedJSInteropName(method.name!));
+      final selector = method.isGetter
+          ? Selector.getter(name)
+          : Selector.call(
+              name, CallStructure.unnamed(invocation.inputs.length));
+      if (_nativeData.interopNullChecks.containsKey(selector)) {
+        FunctionType type =
+            _closedWorld.elementEnvironment.getFunctionType(method);
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+          node.block!.addBefore(node, invocation);
+          final replacementType = _options.experimentNullSafetyChecks
+              ? invocation.instructionType
+              : _abstractValueDomain.excludeNull(invocation.instructionType);
+          replacement = HInvokeStatic(commonElements.interopNullAssertion,
+              [invocation], replacementType, const <DartType>[]);
+        }
+      }
     }
     return replacement;
   }
@@ -1132,7 +1144,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = inputs[1];
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInstruction result = HInvokeExternal(
+    final result = HInvokeExternal(
         method,
         [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
