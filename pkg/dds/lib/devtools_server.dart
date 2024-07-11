@@ -342,7 +342,8 @@ class DevToolsServer {
     // Add the headers required to serve with wasm.
     server.defaultResponseHeaders
       ..add('Cross-Origin-Embedder-Policy', 'credentialless')
-      ..add('Cross-Origin-Opener-Policy', 'same-origin');
+      ..add('Cross-Origin-Opener-Policy', 'same-origin')
+      ..add('Cross-Origin-Resource-Policy', 'cross-origin');
 
     // Serve requests in an error zone to prevent failures
     // when running from another error zone.

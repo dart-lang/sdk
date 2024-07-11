@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dtd/dtd.dart' show RpcErrorCodes;
+import 'package:dtd/dtd.dart' show RpcErrorCodes, kFileSystemServiceName;
 import 'package:dtd_impl/dtd.dart';
 import 'package:dtd_impl/src/dtd_stream_manager.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
@@ -229,6 +229,31 @@ void main() {
         expect(methodResponse, response1);
       });
 
+      test('disallows dots in service name', () async {
+        expect(
+          () => client.sendRequest('registerService', {
+            "service": "a.b",
+            "method": method1,
+          }),
+          throwsA(
+            predicate(
+              (p0) =>
+                  p0 is RpcException &&
+                  p0.code == RpcErrorCodes.kServiceNameInvalid,
+            ),
+          ),
+        );
+      });
+
+      test('allows dots in service method name', () async {
+        final registerResult = await client.sendRequest('registerService', {
+          "service": service1,
+          "method": "a.b",
+        });
+
+        expect(registerResult, {"type": "Success"});
+      });
+
       test('registering a service method that already exists', () async {
         final registerResult = await client.sendRequest('registerService', {
           "service": service1,
@@ -242,10 +267,10 @@ void main() {
             "method": method1,
           }),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcErrorCodes.kServiceMethodAlreadyRegistered,
+            TypeMatcher<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kServiceMethodAlreadyRegistered,
             ),
           ),
         );
@@ -255,10 +280,10 @@ void main() {
         expect(
           () => client.sendRequest('zoo.abc', {}),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcException.methodNotFound('zoo.abc').code,
+            TypeMatcher<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcException.methodNotFound('zoo.abc').code,
             ),
           ),
         );
@@ -278,11 +303,36 @@ void main() {
             "method": method2,
           }),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcErrorCodes.kServiceAlreadyRegistered,
+            TypeMatcher<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kServiceAlreadyRegistered,
             ),
+          ),
+        );
+      });
+
+      test('clients cannot register an internal service', () async {
+        expect(
+          () => client.sendRequest('registerService', {
+            "service": kFileSystemServiceName,
+            "method": method2,
+          }),
+          throwsA(
+            TypeMatcher<RpcException>()
+                .having(
+                  (e) => e.code,
+                  'code',
+                  RpcErrorCodes.kServiceAlreadyRegistered,
+                )
+                .having(
+                  (e) => e.data,
+                  'data',
+                  containsPair(
+                    'details',
+                    'Service \'FileSystem\' is already registered as a DTD internal service.',
+                  ),
+                ),
           ),
         );
       });
