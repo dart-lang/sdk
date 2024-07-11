@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../source/builder_factory.dart';
-import '../source/source_library_builder.dart';
+import '../source/type_parameter_scope_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';

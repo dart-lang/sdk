@@ -75,9 +75,8 @@ import '../kernel/utils.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
 import 'source_enum_builder.dart';
-import 'source_library_builder.dart'
-    show TypeParameterScopeBuilder, TypeParameterScopeKind, FieldInfo;
 import 'stack_listener_impl.dart';
+import 'type_parameter_scope_builder.dart';
 import 'value_kinds.dart';
 
 enum MethodBody {
@@ -2294,7 +2293,7 @@ class OutlineBuilder extends StackListenerImpl {
       case _MethodKind.extensionTypeConstructor:
       case _MethodKind.enumConstructor:
         constructorName =
-            _compilationUnit.computeAndValidateConstructorName(identifier) ??
+            _builderFactory.computeAndValidateConstructorName(identifier) ??
                 name;
         break;
       case _MethodKind.classMethod:
