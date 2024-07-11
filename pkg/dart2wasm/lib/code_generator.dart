@@ -499,7 +499,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void setupParameters(Reference reference, {bool isForwarder = false}) {
     Member member = reference.asMember;
-    ParameterInfo paramInfo = translator.paramInfoFor(reference);
+    ParameterInfo paramInfo = translator.paramInfoForDirectCall(reference);
 
     int parameterOffset = _initializeThis(reference);
     int implicitParams = parameterOffset + paramInfo.typeParamCount;
@@ -527,7 +527,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void setupConstructorBodyParametersAndContexts(Reference reference) {
     Constructor member = reference.asConstructor;
-    ParameterInfo paramInfo = translator.paramInfoFor(reference);
+    ParameterInfo paramInfo = translator.paramInfoForDirectCall(reference);
 
     // For constructor body functions, the first parameter is always the
     // receiver parameter, and the second parameter is a reference to the
@@ -649,7 +649,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       namedArgs[param.name!] = locals[param]!;
     }
 
-    final ParameterInfo paramInfo = translator.paramInfoFor(target);
+    final ParameterInfo paramInfo = translator.paramInfoForDirectCall(target);
 
     for (String name in paramInfo.names) {
       w.Local namedLocal = namedArgs[name]!;
@@ -683,7 +683,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     setupParameters(member.reference, isForwarder: true);
 
     w.FunctionType initializerMethodType =
-        translator.functions.getFunctionType(member.initializerReference);
+        translator.signatureForDirectCall(member.initializerReference);
 
     List<w.Local> constructorArgs =
         _getConstructorArgumentLocals(member.reference);
@@ -1011,7 +1011,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   List<w.ValueType> call(Reference target) {
     if (translator.shouldInline(target)) {
       w.FunctionType targetFunctionType =
-          translator.functions.getFunctionType(target);
+          translator.signatureForDirectCall(target);
       List<w.Local> inlinedLocals =
           targetFunctionType.inputs.map((t) => addLocal(t)).toList();
       for (w.Local local in inlinedLocals.reversed) {
@@ -1066,18 +1066,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitRedirectingInitializer(RedirectingInitializer node) {
     Class cls = (node.parent as Constructor).enclosingClass;
 
-    final Member targetMember = node.targetReference.asMember;
-
     for (TypeParameter typeParam in cls.typeParameters) {
       types.makeType(
           this, TypeParameterType(typeParam, Nullability.nonNullable));
     }
 
-    _visitArguments(node.arguments, targetMember.initializerReference,
-        cls.typeParameters.length);
+    final targetMember = node.targetReference.asMember;
+    final target = targetMember.initializerReference;
+    _visitArguments(node.arguments, translator.signatureForDirectCall(target),
+        translator.paramInfoForDirectCall(target), cls.typeParameters.length);
 
     b.comment("Direct call of '$targetMember Redirected Initializer'");
-    call(targetMember.initializerReference);
+    call(target);
   }
 
   @override
@@ -1088,17 +1088,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // Skip calls to the constructor for Object, as this is empty
     if (supersupertype != null) {
-      final Member targetMember = node.targetReference.asMember;
-
       for (DartType typeArg in supertype!.typeArguments) {
         types.makeType(this, typeArg);
       }
 
-      _visitArguments(node.arguments, targetMember.initializerReference,
+      final targetMember = node.targetReference.asMember;
+      final target = targetMember.initializerReference;
+      _visitArguments(
+          node.arguments,
+          translator.signatureForDirectCall(target),
+          translator.paramInfoForDirectCall(target),
           supertype.typeArguments.length);
 
       b.comment("Direct call of '$targetMember Initializer'");
-      call(targetMember.initializerReference);
+      call(target);
     }
   }
 
@@ -1862,9 +1865,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
     translator.functions.recordClassAllocation(info.classId);
 
-    _visitArguments(node.arguments, node.targetReference, 0);
+    final target = node.targetReference;
+    _visitArguments(node.arguments, translator.signatureForDirectCall(target),
+        translator.paramInfoForDirectCall(target), 0);
 
-    return call(node.targetReference).single;
+    return call(target).single;
   }
 
   @override
@@ -1873,8 +1878,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType? intrinsicResult = intrinsifier.generateStaticIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    _visitArguments(node.arguments, node.targetReference, 0);
-    return translator.outputOrVoid(call(node.targetReference));
+    final target = node.targetReference;
+    _visitArguments(node.arguments, translator.signatureForDirectCall(target),
+        translator.paramInfoForDirectCall(target), 0);
+    return translator.outputOrVoid(call(target));
   }
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
@@ -1889,7 +1896,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Reference target =
         _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
     w.FunctionType targetFunctionType =
-        translator.functions.getFunctionType(target);
+        translator.signatureForDirectCall(target);
     final w.ValueType receiverType = translator.preciseThisFor(target.asMember);
 
     // When calling `==` and the argument is potentially nullable, check if the
@@ -1927,7 +1934,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     visitThis(receiverType);
-    _visitArguments(node.arguments, target, 1);
+    _visitArguments(node.arguments, translator.signatureForDirectCall(target),
+        translator.paramInfoForDirectCall(target), 1);
     return translator.outputOrVoid(call(target));
   }
 
@@ -1946,8 +1954,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         final w.Label nullReceiver = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullReceiver);
-      }, (_) {
-        _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+      }, (w.FunctionType signature, ParameterInfo paramInfo) {
+        _visitArguments(node.arguments, signature, paramInfo, 1);
       });
       b.br(done);
       b.end(); // end nullReceiver
@@ -1964,10 +1972,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
               target, (resultType) => wrap(StringLiteral("null"), resultType));
         case "noSuchMethod":
           return callWithNullCheck(target, (resultType) {
+            final target = node.interfaceTargetReference;
+            final signature = translator.signatureForDirectCall(target);
+            final paramInfo = translator.paramInfoForDirectCall(target);
+
             // Object? receiver
             b.ref_null(translator.topInfo.struct);
             // Invocation invocation
-            _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+            _visitArguments(node.arguments, signature, paramInfo, 1);
             call(translator.noSuchMethodErrorThrowWithInvocation.reference);
           });
         default:
@@ -1979,15 +1991,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget != null) {
-      w.FunctionType targetFunctionType =
-          translator.functions.getFunctionType(singleTarget.reference);
-      wrap(node.receiver, targetFunctionType.inputs.first);
-      _visitArguments(node.arguments, node.interfaceTargetReference, 1);
-      return translator.outputOrVoid(call(singleTarget.reference));
+      final target = singleTarget.reference;
+      final signature = translator.signatureForDirectCall(target);
+      final paramInfo = translator.paramInfoForDirectCall(target);
+      wrap(node.receiver, signature.inputs.first);
+      _visitArguments(node.arguments, signature, paramInfo, 1);
+
+      return translator.outputOrVoid(call(target));
     }
     return _virtualCall(node, target, _VirtualCallKind.Call,
-        (signature) => wrap(node.receiver, signature.inputs.first), (_) {
-      _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+        (signature) => wrap(node.receiver, signature.inputs.first),
+        (w.FunctionType signature, ParameterInfo paramInfo) {
+      _visitArguments(node.arguments, signature, paramInfo, 1);
     });
   }
 
@@ -2120,7 +2135,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         }
       }
 
-      void right([_]) {
+      void right([_, __]) {
         b.local_get(rightLocal);
         if (rightNullable) {
           b.ref_as_non_null();
@@ -2170,7 +2185,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       Member interfaceTarget,
       _VirtualCallKind kind,
       void Function(w.FunctionType signature) pushReceiver,
-      void Function(w.FunctionType signature) pushArguments) {
+      void Function(w.FunctionType signature, ParameterInfo) pushArguments) {
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
         interfaceTarget.referenceAs(
             getter: kind.isGetter, setter: kind.isSetter));
@@ -2179,8 +2194,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     pushReceiver(selector.signature);
 
     if (selector.targetCount == 1) {
-      pushArguments(selector.signature);
-      return translator.outputOrVoid(call(selector.singularTarget!));
+      final target = selector.singularTarget!;
+      final signature = translator.signatureForDirectCall(target);
+      final paramInfo = translator.paramInfoForDirectCall(target);
+      pushArguments(signature, paramInfo);
+      return translator.outputOrVoid(call(target));
     }
 
     int? offset = selector.offset;
@@ -2200,8 +2218,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.Local receiverVar = addLocal(selector.signature.inputs.first);
     assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
-    pushArguments(selector.signature);
-
+    pushArguments(selector.signature, selector.paramInfo);
     if (options.polymorphicSpecialization) {
       _polymorphicSpecialization(selector, receiverVar);
     } else {
@@ -2374,7 +2391,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     } else {
       w.FunctionType targetFunctionType =
-          translator.functions.getFunctionType(target.reference);
+          translator.signatureForDirectCall(target.reference);
       w.ValueType paramType = targetFunctionType.inputs.single;
       wrap(node.value, paramType);
       w.Local? temp;
@@ -2426,7 +2443,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         w.Label nullLabel = b.block();
         wrap(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
-      }, (_) {});
+      }, (_, __) {});
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2449,8 +2466,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return _directGet(singleTarget, node.receiver,
           () => intrinsifier.generateInstanceGetterIntrinsic(node));
     } else {
-      return _virtualCall(node, target, _VirtualCallKind.Get,
-          (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
+      return _virtualCall(
+          node,
+          target,
+          _VirtualCallKind.Get,
+          (signature) => wrap(node.receiver, signature.inputs.first),
+          (_, __) {});
     }
   }
 
@@ -2542,7 +2563,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Instance call of getter
       assert(target is Procedure && target.isGetter);
       w.FunctionType targetFunctionType =
-          translator.functions.getFunctionType(target.reference);
+          translator.signatureForDirectCall(target.reference);
       wrap(receiver, targetFunctionType.inputs.single);
       return translator.outputOrVoid(call(target.reference));
     }
@@ -2563,7 +2584,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.br_on_null(nullLabel);
         translator.convertType(
             function, translator.topInfo.nullableType, signature.inputs[0]);
-      }, (_) {});
+      }, (_, __) {});
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2589,7 +2610,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     return _virtualCall(node, target, _VirtualCallKind.Get,
-        (signature) => wrap(node.receiver, signature.inputs.first), (_) {});
+        (signature) => wrap(node.receiver, signature.inputs.first), (_, __) {});
   }
 
   @override
@@ -2603,7 +2624,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       _virtualCall(node, node.interfaceTarget, _VirtualCallKind.Set,
           (signature) => wrap(node.receiver, signature.inputs.first),
-          (signature) {
+          (signature, _) {
         w.ValueType paramType = signature.inputs.last;
         wrap(node.value, paramType);
         if (preserved) {
@@ -2637,7 +2658,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.struct_set(info.struct, fieldIndex);
     } else {
       w.FunctionType targetFunctionType =
-          translator.functions.getFunctionType(target.reference);
+          translator.signatureForDirectCall(target.reference);
       w.ValueType paramType = targetFunctionType.inputs.last;
       wrap(receiver, targetFunctionType.inputs.first);
       wrap(value, paramType);
@@ -2941,9 +2962,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
-  void _visitArguments(Arguments node, Reference target, int signatureOffset) {
-    final w.FunctionType signature = translator.signatureFor(target);
-    final ParameterInfo paramInfo = translator.paramInfoFor(target);
+  void _visitArguments(Arguments node, w.FunctionType signature,
+      ParameterInfo paramInfo, int signatureOffset) {
     visitArgumentsLists(node.positional, signature, paramInfo, signatureOffset,
         typeArguments: node.types, named: node.named);
   }
@@ -3492,7 +3512,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     } else {
       final setterProcedure = member_ as Procedure;
       final setterProcedureWasmType =
-          translator.functions.getFunctionType(setterProcedure.reference);
+          translator.signatureForDirectCall(setterProcedure.reference);
       final setterWasmInputs = setterProcedureWasmType.inputs;
       assert(setterWasmInputs.length == 2);
       b.local_get(receiverLocal);
@@ -3521,7 +3541,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final typeType =
         translator.classInfo[translator.typeClass]!.nonNullableType;
 
-    final targetParamInfo = translator.paramInfoFor(member.reference);
+    final targetParamInfo = translator.paramInfoForDirectCall(member.reference);
 
     final procedure = member as Procedure;
 
@@ -3630,7 +3650,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // Argument types are as expected, call the member function
     final w.FunctionType memberWasmFunctionType =
-        translator.functions.getFunctionType(member.reference);
+        translator.signatureForDirectCall(member.reference);
     final List<w.ValueType> memberWasmInputs = memberWasmFunctionType.inputs;
 
     b.local_get(receiverLocal);

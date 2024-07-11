@@ -428,8 +428,8 @@ class Types {
       b.local_get(operandTemp!);
       makeType(codeGen, testedAgainstType);
       if (location != null) {
-        w.FunctionType verifyFunctionType = translator.functions
-            .getFunctionType(translator.verifyOptimizedTypeCheck.reference);
+        w.FunctionType verifyFunctionType = translator.signatureForDirectCall(
+            translator.verifyOptimizedTypeCheck.reference);
         translator.constants.instantiateConstant(codeGen.function, b,
             StringConstant('$location'), verifyFunctionType.inputs.last);
       } else {
@@ -914,6 +914,7 @@ class RuntimeTypeInformation {
         continue;
       }
       Class superclass = superclassInfo.cls!;
+      assert(!superclass.isAnonymousMixin);
 
       // TODO(joshualitt): This includes abstract types that can't be
       // instantiated, but might be needed for subtype checks. The majority of
@@ -925,6 +926,8 @@ class RuntimeTypeInformation {
       Iterable<InterfaceType> subtypes = subclasses.map(
           (Class cls) => cls.getThisType(coreTypes, Nullability.nonNullable));
       for (InterfaceType subtype in subtypes) {
+        if (subtype.classNode.isAnonymousMixin) continue;
+
         types.interfaceTypeEnvironment._add(subtype);
 
         final List<DartType>? typeArguments = translator.hierarchy

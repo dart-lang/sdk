@@ -674,8 +674,8 @@ class Translator with KernelNodes {
     return tearOffFunctionCache.putIfAbsent(member, () {
       assert(member.kind == ProcedureKind.Method);
       w.BaseFunction target = functions.getFunction(member.reference);
-      return getClosure(member.function, target, paramInfoFor(member.reference),
-          "$member tear-off");
+      return getClosure(member.function, target,
+          paramInfoForDirectCall(member.reference), "$member tear-off");
     });
   }
 
@@ -875,23 +875,35 @@ class Translator with KernelNodes {
     }
   }
 
-  w.FunctionType signatureFor(Reference target) {
-    Member member = target.asMember;
-    if (member.isInstanceMember) {
-      return dispatchTable.selectorForTarget(target).signature;
-    } else {
-      return functions.getFunctionType(target);
-    }
+  w.FunctionType signatureForDispatchTableCall(Reference target) {
+    assert(target.asMember.isInstanceMember);
+    return dispatchTable.selectorForTarget(target).signature;
   }
 
-  ParameterInfo paramInfoFor(Reference target) {
-    Member member = target.asMember;
-    if (member.isInstanceMember) {
-      return dispatchTable.selectorForTarget(target).paramInfo;
-    } else {
-      return staticParamInfo.putIfAbsent(
-          target, () => ParameterInfo.fromMember(target));
+  ParameterInfo paramInfoForDispatchTableCall(Reference target) {
+    assert(target.asMember.isInstanceMember);
+    return dispatchTable.selectorForTarget(target).paramInfo;
+  }
+
+  w.FunctionType signatureForDirectCall(Reference target) {
+    if (target.asMember.isInstanceMember) {
+      final selector = dispatchTable.selectorForTarget(target);
+      if (selector.targetSet.contains(target)) {
+        return selector.signature;
+      }
     }
+    return functions.getFunctionType(target);
+  }
+
+  ParameterInfo paramInfoForDirectCall(Reference target) {
+    if (target.asMember.isInstanceMember) {
+      final selector = dispatchTable.selectorForTarget(target);
+      if (selector.targetSet.contains(target)) {
+        return selector.paramInfo;
+      }
+    }
+    return staticParamInfo.putIfAbsent(
+        target, () => ParameterInfo.fromMember(target));
   }
 
   w.ValueType preciseThisFor(Member member, {bool nullable = false}) {

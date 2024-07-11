@@ -134,53 +134,62 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       _worklist.add(target);
-      return _getFunctionTypeAndName(target, m.functions.define);
+      return m.functions.define(
+          translator.signatureForDirectCall(target), _getFunctionName(target));
     });
   }
 
   w.FunctionType getFunctionType(Reference target) {
-    return _getFunctionTypeAndName(target, (ftype, name) => ftype);
+    return _getFunctionType(target);
   }
 
-  /// Pass the Wasm type and name of the function for [target] to [action].
-  ///
-  /// Name should be used for the Wasm names section entry for the function so
-  /// that the error stack traces will have names expected by the Dart spec.
-  T _getFunctionTypeAndName<T>(
-      Reference target, T Function(w.FunctionType, String) action) {
+  w.FunctionType _getFunctionType(Reference target) {
+    final Member member = target.asMember;
     if (target.isTypeCheckerReference) {
-      Member member = target.asMember;
       if (member is Field || (member is Procedure && member.isSetter)) {
-        return action(translator.dynamicSetForwarderFunctionType,
-            '${target.asMember} setter type checker');
+        return translator.dynamicSetForwarderFunctionType;
       } else {
-        return action(translator.dynamicInvocationForwarderFunctionType,
-            '${target.asMember} invocation type checker');
+        return translator.dynamicInvocationForwarderFunctionType;
       }
     }
 
     if (target.isTearOffReference) {
-      return action(
-          translator.dispatchTable.selectorForTarget(target).signature,
-          "${target.asMember} tear-off");
+      assert(!translator.dispatchTable
+          .selectorForTarget(target)
+          .targetSet
+          .contains(target));
+      return translator.signatureForDirectCall(target);
     }
 
-    Member member = target.asMember;
-    final ftype = member.accept1(_FunctionTypeGenerator(translator), target);
+    return member.accept1(_FunctionTypeGenerator(translator), target);
+  }
 
+  String _getFunctionName(Reference target) {
+    if (target.isTearOffReference) {
+      return "${target.asMember} tear-off";
+    }
+
+    final Member member = target.asMember;
     String memberName = member.toString();
     if (memberName.endsWith('.')) {
       memberName = memberName.substring(0, memberName.length - 1);
     }
+    if (target.isTypeCheckerReference) {
+      if (member is Field || (member is Procedure && member.isSetter)) {
+        return '$memberName setter type checker';
+      } else {
+        return '$memberName invocation type checker';
+      }
+    }
 
     if (target.isInitializerReference) {
-      return action(ftype, 'new $memberName (initializer)');
+      return 'new $memberName (initializer)';
     } else if (target.isConstructorBodyReference) {
-      return action(ftype, 'new $memberName (constructor body)');
+      return 'new $memberName (constructor body)';
     } else if (member is Procedure && member.isFactory) {
-      return action(ftype, 'new $memberName');
+      return 'new $memberName';
     } else {
-      return action(ftype, memberName);
+      return memberName;
     }
   }
 
@@ -229,15 +238,33 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
       String kind = target == node.setterReference ? "setter" : "getter";
       throw "No implicit $kind function for static field: $node";
     }
-    return translator.dispatchTable.selectorForTarget(target).signature;
+    assert(!translator.dispatchTable
+        .selectorForTarget(target)
+        .targetSet
+        .contains(target));
+
+    final receiverType = target.asMember.enclosingClass!
+        .getThisType(translator.coreTypes, Nullability.nonNullable);
+    return _makeFunctionType(
+        translator, target, translator.translateType(receiverType));
   }
 
   @override
   w.FunctionType visitProcedure(Procedure node, Reference target) {
     assert(!node.isAbstract);
-    return node.isInstanceMember
-        ? translator.dispatchTable.selectorForTarget(node.reference).signature
-        : _makeFunctionType(translator, target, null);
+    if (!node.isInstanceMember) {
+      return _makeFunctionType(translator, target, null);
+    }
+
+    assert(!translator.dispatchTable
+        .selectorForTarget(target)
+        .targetSet
+        .contains(target));
+
+    final receiverType = target.asMember.enclosingClass!
+        .getThisType(translator.coreTypes, Nullability.nonNullable);
+    return _makeFunctionType(
+        translator, target, translator.translateType(receiverType));
   }
 
   @override
@@ -291,8 +318,8 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
         if (supersupertype != null) {
           ClassInfo superInfo = info.superInfo!;
-          w.FunctionType superInitializer = translator.functions
-              .getFunctionType(initializer.target.initializerReference);
+          w.FunctionType superInitializer = translator
+              .signatureForDirectCall(initializer.target.initializerReference);
 
           final int numSuperclassFields = superInfo.getClassFieldTypes().length;
           final int numSuperContextAndConstructorArgs =
@@ -307,8 +334,8 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         Supertype? supersupertype = initializer.target.enclosingClass.supertype;
 
         if (supersupertype != null) {
-          w.FunctionType redirectedInitializer = translator.functions
-              .getFunctionType(initializer.target.initializerReference);
+          w.FunctionType redirectedInitializer = translator
+              .signatureForDirectCall(initializer.target.initializerReference);
 
           final int numClassFields = info.getClassFieldTypes().length;
           final int numRedirectedContextAndConstructorArgs =
@@ -374,8 +401,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
         if (supersupertype != null) {
           w.FunctionType superOrRedirectedConstructorBodyType = translator
-              .functions
-              .getFunctionType(target.constructorBodyReference);
+              .signatureForDirectCall(target.constructorBodyReference);
 
           // drop receiver param
           inputs += superOrRedirectedConstructorBodyType.inputs.sublist(1);

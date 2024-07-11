@@ -224,7 +224,7 @@ class Forwarder {
           continue;
         }
 
-        final targetMemberParamInfo = translator.paramInfoFor(target);
+        final targetMemberParamInfo = translator.paramInfoForDirectCall(target);
 
         b.local_get(receiverLocal);
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
