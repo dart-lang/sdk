@@ -311,6 +311,11 @@ If successful, responds with [Success](#success-responses).
 Registers the calling client as the handler for any service method calls where
 the service is _service_ and the method is _method_.
 
+Service names may not include dots `.` (though method names may), but service
+names cannot be reused across clients. If one client has registered any method
+for the service "Foo", then no other client can register a method under the
+service "Foo".
+
 To call the method registered by this call, a client can send a
 [service method](#servicemethod) call to the Dart Tooling Daemon.
 

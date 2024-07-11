@@ -27,6 +27,7 @@ abstract class RpcErrorCodes {
 
   static const kServiceAlreadyRegistered = 111;
   static const kServiceDisappeared = 112;
+  static const kServiceNameInvalid = 113;
 
   static const kServiceMethodAlreadyRegistered = 132;
 
@@ -45,6 +46,7 @@ abstract class RpcErrorCodes {
     kStreamNotSubscribed: 'Stream not subscribed',
     kServiceAlreadyRegistered: 'Service already registered',
     kServiceDisappeared: 'Service has disappeared',
+    kServiceNameInvalid: 'The service name is not valid',
     kServiceMethodAlreadyRegistered:
         'The service method has already been registered',
     kDirectoryDoesNotExist: 'The directory does not exist',

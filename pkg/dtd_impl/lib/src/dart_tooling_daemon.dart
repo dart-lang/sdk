@@ -10,16 +10,17 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:shelf/shelf_io.dart' as io;
 
 import 'constants.dart';
 import 'dtd_client.dart';
 import 'dtd_client_manager.dart';
 import 'dtd_stream_manager.dart';
 import 'service/file_system_service.dart';
+import 'service/internal_service.dart';
 import 'service/unified_analytics_service.dart';
 
 /// Contains all the flags and options used by the DTD argument parser.
@@ -136,11 +137,16 @@ class DartToolingDaemon {
         _shouldLogRequests = shouldLogRequests {
     streamManager = DTDStreamManager(this);
     clientManager = DTDClientManager();
-    fileSystemService = FileSystemService(
-      secret: secret,
-      unrestrictedMode: unrestrictedMode,
+
+    internalServices = Map.fromEntries(
+      [
+        FileSystemService(
+          secret: secret,
+          unrestrictedMode: unrestrictedMode,
+        ),
+        UnifiedAnalyticsService(fake: useFakeAnalytics),
+      ].map((service) => MapEntry(service.serviceName, service)),
     );
-    unifiedAnalyticsService = UnifiedAnalyticsService(fake: useFakeAnalytics);
   }
   static const _kSseHandlerPath = '\$debugHandler';
 
@@ -152,10 +158,9 @@ class DartToolingDaemon {
   final bool _ipv6;
   late HttpServer _server;
   final bool _shouldLogRequests;
-  late final FileSystemService fileSystemService;
 
-  /// Provides interaction with package:unified_analytics for DTD clients.
-  late final UnifiedAnalyticsService unifiedAnalyticsService;
+  /// A map of internal DTD services, keyed by the service name.
+  late final Map<String, InternalService> internalServices;
 
   final String secret;
 
@@ -333,8 +338,9 @@ class DartToolingDaemon {
   }
 
   void _registerInternalServiceMethods(DTDClient client) {
-    fileSystemService.register(client);
-    unifiedAnalyticsService.register(client);
+    for (final service in internalServices.values) {
+      service.register(client);
+    }
   }
 
   static String _generateSecret() {

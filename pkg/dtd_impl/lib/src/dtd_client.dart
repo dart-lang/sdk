@@ -183,6 +183,10 @@ class DTDClient extends Client {
     return RPCResponses.success;
   }
 
+  bool _isValidServiceName(String serviceName) {
+    return !serviceName.contains('.');
+  }
+
   /// jrpc endpoint for registering a service to the tooling daemon.
   ///
   /// Parameters:
@@ -194,6 +198,26 @@ class DTDClient extends Client {
     final capabilities = parameters['capabilities'].exists
         ? parameters['capabilities'].asMap.cast<String, Object?>()
         : null;
+
+    if (!_isValidServiceName(serviceName)) {
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kServiceNameInvalid,
+        data: {
+          'details': "'$serviceName' is not a valid service name. "
+              "Services may not include dots in their names.",
+        },
+      );
+    }
+
+    if (dtd.internalServices.containsKey(serviceName)) {
+      throw RpcErrorCodes.buildRpcException(
+        RpcErrorCodes.kServiceAlreadyRegistered,
+        data: {
+          'details':
+              "Service '$serviceName' is already registered as a DTD internal service.",
+        },
+      );
+    }
 
     final existingServiceOwnerClient =
         dtd.clientManager.findClientThatOwnsService(serviceName);
