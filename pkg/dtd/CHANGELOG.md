@@ -1,4 +1,4 @@
-## 2.3.0
+## 2.3.0 (wip)
 - Indicate compatibility with `package:web_socket_channel` 2.x and 3.x.
 - Bump minimum version for `package:unified_analytics` to 6.1.0.
 - `DartToolingDaemon.connect` will now wait for the web socket to be connected.
@@ -10,6 +10,9 @@
   that can be supplied to clients via new `ServiceRegistered` and
   `ServiceUregistered` events on the `Service` stream (when connected to a
   version of DTD that supports these streams).
+- Calling `DartToolingDaemon.onEvent()` now returns a broadcast stream. This
+  means multiple listeners can be added, but also means you must add a listener
+  prior to calling `streamListen` to avoid the possibility of missing events.
 
 ## 2.2.0
 - Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
