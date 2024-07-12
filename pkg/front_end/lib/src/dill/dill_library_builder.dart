@@ -22,13 +22,7 @@ import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        Severity,
-        noLength,
-        templateDuplicatedDeclaration,
-        templateUnspecified;
+    show LocatedMessage, Message, Severity, noLength, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
@@ -63,7 +57,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   DillCompilationUnitImpl(this._dillLibraryBuilder);
 
   @override
-  void addExporter(LibraryBuilder exporter,
+  void addExporter(CompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
@@ -370,24 +364,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
     _addBuilder(
         typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this));
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder computeAmbiguousDeclaration(
-      String name, Builder builder, Builder other, int charOffset,
-      {bool isExport = false, bool isImport = false}) {
-    if (builder == other) return builder;
-    if (builder is InvalidTypeDeclarationBuilder) return builder;
-    if (other is InvalidTypeDeclarationBuilder) return other;
-    // For each entry mapping key `k` to declaration `d` in `NS` an entry
-    // mapping `k` to `d` is added to the exported namespace of `L` unless a
-    // top-level declaration with the name `k` exists in `L`.
-    if (builder.parent == this) return builder;
-    Message message = templateDuplicatedDeclaration.withArguments(name);
-    addProblem(message, charOffset, name.length, fileUri);
-    return new InvalidTypeDeclarationBuilder(
-        name, message.withLocation(fileUri, charOffset, name.length));
   }
 
   @override

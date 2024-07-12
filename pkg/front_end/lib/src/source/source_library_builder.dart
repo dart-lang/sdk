@@ -33,6 +33,7 @@ import '../base/messages.dart';
 import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -40,7 +41,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/inferable_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -48,7 +48,6 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
@@ -56,7 +55,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/load_library_builder.dart';
 import '../kernel/macro/macro.dart';
 import '../kernel/type_algorithms.dart'
     show
@@ -106,8 +104,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       <ConstructorReferenceBuilder>[];
 
   final List<SourceCompilationUnit> _parts = [];
-
-  final Scope importScope;
 
   @override
   final Uri fileUri;
@@ -238,7 +234,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this._packageUri,
       LanguageVersion packageLanguageVersion,
       TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
-      this.importScope,
+      Scope importScope,
       SourceLibraryBuilder? origin,
       this.library,
       this._nameOrigin,
@@ -275,7 +271,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         fileUri: fileUri,
         packageLanguageVersion: packageLanguageVersion,
         indexedLibrary: indexedLibrary,
-        omittedTypeDeclarationBuilders: omittedTypes);
+        omittedTypeDeclarationBuilders: omittedTypes,
+        importScope: importScope);
   }
 
   MergedLibraryScope get mergedScope {
@@ -631,8 +628,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void buildInitialScopes() {
     NameIterator iterator = scope.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
+    UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
-      addToExportScope(iterator.name, iterator.current);
+      addToExportScope(iterator.name, iterator.current, uriOffset: uriOffset);
     }
   }
 
@@ -713,25 +711,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               'member', 'exportScope', builder.charOffset, builder.fileUri);
         }
       }
-    }
-  }
-
-  void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    Builder? existing =
-        importScope.lookupLocalMember(name, setter: member.isSetter);
-    if (existing != null) {
-      if (existing != member) {
-        importScope.addLocalMember(
-            name,
-            computeAmbiguousDeclaration(name, existing, member, charOffset,
-                isImport: isImport),
-            setter: member.isSetter);
-      }
-    } else {
-      importScope.addLocalMember(name, member, setter: member.isSetter);
-    }
-    if (member.isExtension) {
-      importScope.addExtension(member as ExtensionBuilder);
     }
   }
 
@@ -962,36 +941,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     assert(scope.lookupLocalMember("Null", setter: false) != null,
         "No class 'Null' found in dart:core.");
-  }
-
-  List<InferableType>? _inferableTypes = [];
-
-  InferableTypeBuilder addInferableType() {
-    InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
-    registerInferableType(typeBuilder);
-    return typeBuilder;
-  }
-
-  void registerInferableType(InferableType inferableType) {
-    assert(
-        _inferableTypes != null,
-        // Coverage-ignore(suite): Not run.
-        "Late registration of inferable type $inferableType.");
-    _inferableTypes?.add(inferableType);
-  }
-
-  void collectInferableTypes(List<InferableType> inferableTypes) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.collectInferableTypes(inferableTypes);
-      }
-    }
-    if (_inferableTypes != null) {
-      inferableTypes.addAll(_inferableTypes!);
-    }
-    _inferableTypes = null;
   }
 
   @override
@@ -1327,92 +1276,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (SourceCompilationUnit part in parts) {
       part.addDependencies(library, seen);
     }
-  }
-
-  @override
-  Builder computeAmbiguousDeclaration(
-      String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport = false, bool isImport = false}) {
-    // TODO(ahe): Can I move this to Scope or Prefix?
-    if (declaration == other) return declaration;
-    if (declaration is InvalidTypeDeclarationBuilder) return declaration;
-    if (other is InvalidTypeDeclarationBuilder) return other;
-    if (declaration is AccessErrorBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      AccessErrorBuilder error = declaration;
-      declaration = error.builder;
-    }
-    if (other is AccessErrorBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      AccessErrorBuilder error = other;
-      other = error.builder;
-    }
-    Builder? preferred;
-    Uri? uri;
-    Uri? otherUri;
-    if (scope.lookupLocalMember(name, setter: false) == declaration) {
-      preferred = declaration;
-    } else {
-      uri = computeLibraryUri(declaration);
-      otherUri = computeLibraryUri(other);
-      if (declaration is LoadLibraryBuilder) {
-        preferred = declaration;
-      } else if (other is LoadLibraryBuilder) {
-        preferred = other;
-      } else if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
-        preferred = declaration;
-      } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
-        preferred = other;
-      }
-    }
-    if (preferred != null) {
-      return preferred;
-    }
-    if (declaration.next == null && other.next == null) {
-      if (isImport &&
-          declaration is PrefixBuilder &&
-          // Coverage-ignore(suite): Not run.
-          other is PrefixBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        // Handles the case where the same prefix is used for different
-        // imports.
-        return declaration
-          ..exportScope.merge(other.exportScope,
-              (String name, Builder existing, Builder member) {
-            return computeAmbiguousDeclaration(
-                name, existing, member, charOffset,
-                isExport: isExport, isImport: isImport);
-          });
-      }
-    }
-    Uri firstUri = uri!;
-    Uri secondUri = otherUri!;
-    if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
-      firstUri = secondUri;
-      secondUri = uri;
-    }
-    if (isExport) {
-      Template<Message Function(String name, Uri uri, Uri uri2)> template =
-          templateDuplicatedExport;
-      Message message = template.withArguments(name, firstUri, secondUri);
-      addProblem(message, charOffset, noLength, fileUri);
-    }
-    Template<Message Function(String name, Uri uri, Uri uri2)> builderTemplate =
-        isExport
-            ? templateDuplicatedExportInType
-            : templateDuplicatedImportInType;
-    Message message = builderTemplate.withArguments(
-        name,
-        // TODO(ahe): We should probably use a context object here
-        // instead of including URIs in this message.
-        firstUri,
-        secondUri);
-    // We report the error lazily (setting suppressMessage to false) because the
-    // spec 18.1 states that 'It is not an error if N is introduced by two or
-    // more imports but never referred to.'
-    return new InvalidTypeDeclarationBuilder(
-        name, message.withLocation(fileUri, charOffset, name.length),
-        suppressMessage: false);
   }
 
   int finishDeferredLoadTearoffs() {

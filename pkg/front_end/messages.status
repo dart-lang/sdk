@@ -728,16 +728,12 @@ MacroDefinitionApplicationSameLibraryCycle/analyzerCode: Fail
 MacroDefinitionApplicationSameLibraryCycle/example: Fail
 MainNotFunctionDeclaration/analyzerCode: Fail
 MainNotFunctionDeclarationExported/analyzerCode: Fail
-MainNotFunctionDeclarationExported/part_wrapped_script: Fail
 MainRequiredNamedParameters/analyzerCode: Fail
 MainRequiredNamedParametersExported/analyzerCode: Fail
-MainRequiredNamedParametersExported/part_wrapped_script: Fail
 MainTooManyRequiredParameters/analyzerCode: Fail
 MainTooManyRequiredParametersExported/analyzerCode: Fail
-MainTooManyRequiredParametersExported/part_wrapped_script: Fail
 MainWrongParameterType/analyzerCode: Fail
 MainWrongParameterTypeExported/analyzerCode: Fail
-MainWrongParameterTypeExported/part_wrapped_script: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
 MemberNotFound/example: Fail
 MetadataTypeArguments/example: Fail

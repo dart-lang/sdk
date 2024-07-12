@@ -24,6 +24,7 @@ import '../base/messages.dart'
         templateInternalProblemPrivateConstructorAccess;
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
@@ -35,7 +36,6 @@ import '../source/source_loader.dart';
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
 import 'declaration_builders.dart';
-import 'inferable_type_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -81,7 +81,7 @@ sealed class CompilationUnit {
 
   List<Export> get exporters;
 
-  void addExporter(LibraryBuilder exporter,
+  void addExporter(CompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 
   /// Returns an iterator of all members (typedefs, classes and members)
@@ -180,8 +180,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<MetadataBuilder>? get metadata;
 
-  void collectInferableTypes(List<InferableType> inferableTypes);
-
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);
 
@@ -229,6 +227,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
       required String? prefix,
       required List<CombinatorBuilder>? combinators,
       required bool deferred});
+
+  void addToScope(String name, Builder member, int charOffset, bool isImport);
 
   void addImportsToScope();
 
@@ -337,11 +337,8 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   NameIterator<T> fullMemberNameIterator<T extends Builder>();
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member, [int charOffset = -1]);
-
-  Builder computeAmbiguousDeclaration(
-      String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport = false, bool isImport = false});
+  bool addToExportScope(String name, Builder member,
+      {required UriOffset uriOffset});
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -471,7 +468,8 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   }
 
   @override
-  bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
+  bool addToExportScope(String name, Builder member,
+      {required UriOffset uriOffset}) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Builder? existing =
@@ -480,9 +478,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       return false;
     } else {
       if (existing != null) {
-        Builder result = computeAmbiguousDeclaration(
-            name, existing, member, charOffset,
-            isExport: true);
+        Builder result = computeAmbiguousDeclarationForScope(
+            this, scope, name, existing, member,
+            uriOffset: uriOffset, isExport: true);
         exportScope.addLocalMember(name, result, setter: member.isSetter);
         return result != existing;
       } else {

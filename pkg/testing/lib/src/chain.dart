@@ -134,7 +134,11 @@ abstract class ChainContext {
         <String>[suite.statusFile!.toFilePath()], expectationSet);
     List<TestDescription> descriptions = await list(suite);
     descriptions.sort();
-    if (shards > 1) {
+
+    /// Hack: If not running with asserts running the (invalid) configuration
+    /// shards=1 shard>0 should behave as when running with the (invalid)
+    /// configuration shards>1 shard>=shards, i.e. it should run nothing.
+    if (shards > 1 || shard >= shards) {
       List<TestDescription> shardDescriptions = [];
       for (int index = 0; index < descriptions.length; index++) {
         if (index % shards == shard) {

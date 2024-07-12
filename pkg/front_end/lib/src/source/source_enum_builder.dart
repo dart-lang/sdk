@@ -309,7 +309,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new DeclaredSourceConstructorBuilder(
               /* metadata = */ null,
               constMask,
-              /* returnType = */ libraryBuilder.addInferableType(),
+              /* returnType = */ libraryBuilder.loader.inferableTypes
+                  .addInferableType(),
               "",
               /* typeParameters = */ null,
               <FormalParameterBuilder>[
@@ -477,7 +478,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
-            libraryBuilder.addInferableType(),
+            libraryBuilder.loader.inferableTypes.addInferableType(),
             name,
             constMask | staticMask | hasInitializerMask,
             /* isTopLevel = */ false,

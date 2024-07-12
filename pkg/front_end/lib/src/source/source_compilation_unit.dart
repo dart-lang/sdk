@@ -56,17 +56,24 @@ class SourceCompilationUnitImpl
 
   late final BuilderFactoryResult _builderFactoryResult;
 
+  final Scope importScope;
+
   SourceCompilationUnitImpl(this._sourceLibraryBuilder,
       TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       {required this.importUri,
       required this.fileUri,
       required this.packageLanguageVersion,
       required this.indexedLibrary,
-      Map<String, Builder>? omittedTypeDeclarationBuilders})
+      Map<String, Builder>? omittedTypeDeclarationBuilders,
+      required this.importScope})
       : _languageVersion = packageLanguageVersion {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
-        this, _sourceLibraryBuilder, libraryTypeParameterScopeBuilder, this,
+        this,
+        _sourceLibraryBuilder,
+        _sourceLibraryBuilder,
+        libraryTypeParameterScopeBuilder,
+        this,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
   }
@@ -109,7 +116,7 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  void addExporter(LibraryBuilder exporter,
+  void addExporter(CompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
@@ -368,11 +375,6 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  void collectInferableTypes(List<InferableType> inferableTypes) {
-    _sourceLibraryBuilder.collectInferableTypes(inferableTypes);
-  }
-
-  @override
   List<ConstructorReferenceBuilder> get constructorReferences =>
       _sourceLibraryBuilder.constructorReferences;
 
@@ -607,7 +609,6 @@ class SourceCompilationUnitImpl
           (libraryBuilder.library.problemsAsJson ??= <String>[])
               .addAll(part.library.problemsAsJson!);
         }
-        part.collectInferableTypes(libraryBuilder._inferableTypes!);
         if (libraryBuilder.library != part.library) {
           // Mark the part library as synthetic as it's not an actual library
           // (anymore).
@@ -715,16 +716,37 @@ class SourceCompilationUnitImpl
       if (import.importedLibraryBuilder == loader.coreLibrary) {
         explicitCoreImport = true;
       }
-      import.finalizeImports(_sourceLibraryBuilder);
+      import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
       NameIterator<Builder> iterator = loader.coreLibrary.exportScope
           .filteredNameIterator(
               includeDuplicates: false, includeAugmentations: false);
       while (iterator.moveNext()) {
-        _sourceLibraryBuilder.addToScope(
-            iterator.name, iterator.current, -1, true);
+        addToScope(iterator.name, iterator.current, -1, true);
       }
+    }
+  }
+
+  @override
+  void addToScope(String name, Builder member, int charOffset, bool isImport) {
+    Builder? existing =
+        importScope.lookupLocalMember(name, setter: member.isSetter);
+    if (existing != null) {
+      if (existing != member) {
+        importScope.addLocalMember(
+            name,
+            computeAmbiguousDeclarationForScope(
+                this, scope, name, existing, member,
+                uriOffset: new UriOffset(fileUri, charOffset),
+                isImport: isImport),
+            setter: member.isSetter);
+      }
+    } else {
+      importScope.addLocalMember(name, member, setter: member.isSetter);
+    }
+    if (member.isExtension) {
+      importScope.addExtension(member as ExtensionBuilder);
     }
   }
 

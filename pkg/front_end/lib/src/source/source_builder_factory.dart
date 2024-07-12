@@ -36,6 +36,7 @@ import '../base/modifier.dart'
         staticMask;
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -76,14 +77,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final ProblemReporting _problemReporting;
 
-  final SourceLibraryBuilder _sourceLibraryBuilder;
+  /// The object used as the root for creating augmentation libraries.
+  // TODO(johnniwinther): Remove this once parts support augmentations.
+  final SourceLibraryBuilder _augmentationRoot;
 
-  /// Alias of the [_sourceLibraryBuilder] used for passing a parent [Builder]
-  /// to created [Builder]s. These uses are only needed because we creating
-  /// [Builder]s instead of fragments.
+  /// [SourceLibraryBuilder] used for passing a parent [Builder] to created
+  /// [Builder]s. These uses are only needed because we creating [Builder]s
+  /// instead of fragments.
   // TODO(johnniwinther): Remove this when we no longer create [Builder]s in
   // the outline builder.
-  SourceLibraryBuilder get _parent => _sourceLibraryBuilder;
+  final SourceLibraryBuilder _parent;
 
   final TypeParameterScopeBuilder _libraryTypeParameterScopeBuilder;
 
@@ -126,8 +129,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<StructuralVariableBuilder> _unboundStructuralVariables = [];
 
-  BuilderFactoryImpl(this._compilationUnit, this._sourceLibraryBuilder,
-      this._libraryTypeParameterScopeBuilder, this._problemReporting,
+  BuilderFactoryImpl(
+      this._compilationUnit,
+      this._augmentationRoot,
+      this._parent,
+      this._libraryTypeParameterScopeBuilder,
+      this._problemReporting,
       {required this.indexedLibrary,
       required Map<String, Builder>? omittedTypeDeclarationBuilders})
       : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
@@ -280,8 +287,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
-        origin:
-            _compilationUnit.isAugmenting ? _sourceLibraryBuilder.origin : null,
+        origin: _compilationUnit.isAugmenting ? _augmentationRoot.origin : null,
         fileUri: newFileUri,
         accessor: _compilationUnit,
         isPatch: _compilationUnit.isAugmenting);
@@ -369,14 +375,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     } else {
       resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
       compilationUnit = loader.read(resolvedUri, uriOffset,
-          origin: isAugmentationImport ? _sourceLibraryBuilder : null,
+          origin: isAugmentationImport ? _augmentationRoot : null,
           accessor: _compilationUnit,
           isAugmentation: isAugmentationImport,
           referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
     }
 
     Import import = new Import(
-        _sourceLibraryBuilder,
+        _parent,
         compilationUnit,
         isAugmentationImport,
         deferred,
@@ -415,9 +421,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     CompilationUnit exportedLibrary = loader.read(
         _resolve(_compilationUnit.importUri, uri, uriOffset), charOffset,
         accessor: _compilationUnit);
-    exportedLibrary.addExporter(_sourceLibraryBuilder, combinators, charOffset);
-    Export export = new Export(
-        _sourceLibraryBuilder, exportedLibrary, combinators, charOffset);
+    exportedLibrary.addExporter(_compilationUnit, combinators, charOffset);
+    Export export =
+        new Export(_compilationUnit, exportedLibrary, combinators, charOffset);
     exports.add(export);
     offsetMap.registerExport(exportKeyword, export);
   }
@@ -2091,7 +2097,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
         .resolveNamedTypesWithStructuralVariables(
-            structuralVariableBuilders, _sourceLibraryBuilder);
+            structuralVariableBuilders, _problemReporting);
     return builder;
   }
 
@@ -2271,7 +2277,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   InferableTypeBuilder addInferableType() {
-    return _sourceLibraryBuilder.addInferableType();
+    return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
   @override
@@ -2361,8 +2367,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       return existing
         ..exportScope.merge(declaration.exportScope,
             (String name, Builder existing, Builder member) {
-          return _sourceLibraryBuilder.computeAmbiguousDeclaration(
-              name, existing, member, charOffset);
+          return computeAmbiguousDeclarationForScope(
+              _problemReporting, _compilationUnit.scope, name, existing, member,
+              uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
         });
     } else if (_isDuplicatedDeclaration(existing, declaration)) {
       String fullName = name;

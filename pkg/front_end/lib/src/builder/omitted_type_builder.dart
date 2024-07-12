@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../source/builder_factory.dart';
 import '../source/source_library_builder.dart';
@@ -125,7 +126,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
     } else {
       InferableTypeUse inferableTypeUse =
           new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
-      library.registerInferableType(inferableTypeUse);
+      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }
@@ -227,7 +228,7 @@ class DependentTypeBuilder extends OmittedTypeBuilderImpl
     } else {
       InferableTypeUse inferableTypeUse =
           new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
-      library.registerInferableType(inferableTypeUse);
+      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }
@@ -264,4 +265,25 @@ abstract class Inferable {
   /// Triggers the inference of the types of one or more
   /// [InferableTypeBuilder]s.
   void inferTypes(ClassHierarchyBase hierarchy);
+}
+
+class InferableTypes {
+  final List<InferableType> _inferableTypes = [];
+
+  InferableTypeBuilder addInferableType() {
+    InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
+    registerInferableType(typeBuilder);
+    return typeBuilder;
+  }
+
+  void registerInferableType(InferableType inferableType) {
+    _inferableTypes.add(inferableType);
+  }
+
+  void inferTypes(ClassHierarchyBuilder classHierarchyBuilder) {
+    for (InferableType typeBuilder in _inferableTypes) {
+      typeBuilder.inferType(classHierarchyBuilder);
+    }
+    _inferableTypes.clear();
+  }
 }
