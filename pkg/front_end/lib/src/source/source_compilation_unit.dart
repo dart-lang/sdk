@@ -69,7 +69,11 @@ class SourceCompilationUnitImpl
       : _languageVersion = packageLanguageVersion {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
-        this, _sourceLibraryBuilder, libraryTypeParameterScopeBuilder, this,
+        this,
+        _sourceLibraryBuilder,
+        _sourceLibraryBuilder,
+        libraryTypeParameterScopeBuilder,
+        this,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
   }
