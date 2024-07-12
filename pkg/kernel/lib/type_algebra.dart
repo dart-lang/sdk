@@ -173,9 +173,8 @@ FreshStructuralParametersFromTypeParameters
               new StructuralParameterType.forAlphaRenamingFromTypeParameters(
                   typeParameters[i], freshParameters[i]),
           growable: true);
-  Map<TypeParameter, StructuralParameterType> substitutionMap =
-      new Map.fromIterables(typeParameters, freshTypeArguments);
-  Substitution substitution = Substitution.fromMap(substitutionMap);
+  Substitution substitution = Substitution.fromMap(
+      new Map.fromIterables(typeParameters, freshTypeArguments));
   for (int i = 0; i < typeParameters.length; ++i) {
     TypeParameter typeParameter = typeParameters[i];
     StructuralParameter freshTypeParameter = freshParameters[i];
@@ -190,7 +189,7 @@ FreshStructuralParametersFromTypeParameters
     // should not be copied here.
   }
   return new FreshStructuralParametersFromTypeParameters(
-      freshParameters, freshTypeArguments, substitutionMap);
+      freshParameters, freshTypeArguments, substitution);
 }
 
 /// Representation of [TypeParameter]s as a fresh copy of [StructuralParameter]s
@@ -210,12 +209,10 @@ class FreshStructuralParametersFromTypeParameters {
   final List<DartType> freshTypeArguments;
 
   /// Substitution from the original type parameters to [freshTypeArguments].
-  final Map<TypeParameter, StructuralParameterType> substitutionMap;
   final Substitution substitution;
 
   FreshStructuralParametersFromTypeParameters(
-      this.freshTypeParameters, this.freshTypeArguments, this.substitutionMap)
-      : substitution = Substitution.fromMap(substitutionMap);
+      this.freshTypeParameters, this.freshTypeArguments, this.substitution);
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 }
