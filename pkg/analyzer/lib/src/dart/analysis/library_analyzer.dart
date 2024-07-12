@@ -353,9 +353,10 @@ class LibraryAnalyzer {
     WorkspacePackage? workspacePackage;
     for (var unitAnalysis in _libraryUnits.values) {
       var linterContextUnit = LintRuleUnitContext(
-        unitAnalysis.file.content,
-        unitAnalysis.unit,
-        unitAnalysis.errorReporter,
+        file: unitAnalysis.file.resource,
+        content: unitAnalysis.file.content,
+        unit: unitAnalysis.unit,
+        errorReporter: unitAnalysis.errorReporter,
       );
       analysesToContextUnits[unitAnalysis] = linterContextUnit;
       if (unitAnalysis.unit.declaredElement == definingUnit) {

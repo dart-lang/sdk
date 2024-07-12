@@ -538,8 +538,14 @@ class BulkFixProcessor {
               errorListener,
               StringSource(parsedUnit.content, null),
             );
-            allUnits.add(LintRuleUnitContext(
-                parsedUnit.content, parsedUnit.unit, errorReporter));
+            allUnits.add(
+              LintRuleUnitContext(
+                file: parsedUnit.file,
+                content: parsedUnit.content,
+                errorReporter: errorReporter,
+                unit: parsedUnit.unit,
+              ),
+            );
           }
           for (var linterUnit in allUnits) {
             _computeParsedResultLint(linterUnit, allUnits);

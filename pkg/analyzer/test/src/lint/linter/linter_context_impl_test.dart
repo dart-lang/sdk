@@ -34,8 +34,12 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       RecordingErrorListener(),
       StringSource(result.content, null),
     );
-    var contextUnit =
-        LintRuleUnitContext(result.content, result.unit, errorReporter);
+    var contextUnit = LintRuleUnitContext(
+      file: result.file,
+      content: result.content,
+      errorReporter: errorReporter,
+      unit: result.unit,
+    );
 
     var libraryElement = result.libraryElement;
     var analysisContext = libraryElement.session.analysisContext;

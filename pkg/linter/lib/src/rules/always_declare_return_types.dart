@@ -107,7 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isSetter) return;
     if (node.name.type == TokenType.INDEX_EQ) return;
 
-    if (_isInTestDirectory()) {
+    if (context.isInTestDirectory) {
       if (node.name.lexeme.startsWith('test_') ||
           node.name.lexeme.startsWith('solo_test_')) {
         return;
@@ -119,17 +119,5 @@ class _Visitor extends SimpleAstVisitor<void> {
       arguments: [node.name.lexeme],
       errorCode: AlwaysDeclareReturnTypes.methodCode,
     );
-  }
-
-  bool _isInTestDirectory() {
-    if (context.package case PubPackage pubPackage) {
-      var packageRoot = pubPackage.pubspecFile.parent;
-      var filePath = context.libraryElement?.source.fullName;
-      if (filePath != null) {
-        var file = packageRoot.provider.getFile(filePath);
-        return pubPackage.isInTestDirectory(file);
-      }
-    }
-    return false;
   }
 }
