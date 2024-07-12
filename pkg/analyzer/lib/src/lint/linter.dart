@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -107,6 +108,9 @@ abstract class LinterContext {
   /// package-implementation directory, 'lib/src'.
   bool get isInLibDir;
 
+  /// Whether the [definingUnit] is in a [package]'s "test" directory.
+  bool get isInTestDirectory;
+
   LibraryElement? get libraryElement;
 
   /// The package in which the library being analyzed lives, or `null` if it
@@ -143,6 +147,9 @@ final class LinterContextWithParsedResults implements LinterContext {
       definingUnit.unit.declaredElement?.source.fullName, package);
 
   @override
+  bool get isInTestDirectory => false;
+
+  @override
   LibraryElement get libraryElement => throw UnsupportedError(
       'LinterContext with parsed results does not include a LibraryElement');
 
@@ -168,6 +175,7 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @override
   final WorkspacePackage? package;
+
   @override
   final TypeProvider typeProvider;
 
@@ -189,6 +197,15 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   bool get isInLibDir => LinterContext._isInLibDir(
       definingUnit.unit.declaredElement?.source.fullName, package);
+
+  @override
+  bool get isInTestDirectory {
+    if (package case var package?) {
+      var file = definingUnit.file;
+      return package.isInTestDirectory(file);
+    }
+    return false;
+  }
 
   @override
   LibraryElement get libraryElement =>
@@ -355,13 +372,17 @@ abstract class LintRule {
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
 class LintRuleUnitContext {
+  final File file;
   final String content;
-
+  final ErrorReporter errorReporter;
   final CompilationUnit unit;
 
-  final ErrorReporter errorReporter;
-
-  LintRuleUnitContext(this.content, this.unit, this.errorReporter);
+  LintRuleUnitContext({
+    required this.file,
+    required this.content,
+    required this.errorReporter,
+    required this.unit,
+  });
 }
 
 /// An error listener that only records whether any constant related errors have

@@ -285,7 +285,7 @@ const Map<String, LibraryInfo> libraries = const {
     platforms: DART2JS_PLATFORM,
   ),
   '_async_status_codes': const LibraryInfo(
-    '_internal/js_runtime/lib/synced/async_status_codes.dart',
+    '_internal/js_shared/lib/synced/async_status_codes.dart',
     categories: '',
     documented: false,
     platforms: DART2JS_PLATFORM,

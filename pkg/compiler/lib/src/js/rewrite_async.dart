@@ -7,7 +7,7 @@ library rewrite_async;
 import 'dart:collection';
 import 'dart:math' show max;
 
-import 'package:js_runtime/synced/async_status_codes.dart' as status_codes;
+import 'package:js_shared/synced/async_status_codes.dart' as status_codes;
 
 import '../common.dart';
 import '../util/util.dart' show Pair;

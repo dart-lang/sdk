@@ -301,6 +301,19 @@ Object getJSArrayInteropRti() => TYPE_REF<JSArray>();
 /// https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
 external RAW_DART_FUNCTION_REF(Function function);
 
+/// Returns the underlying JavaScript exception. Must be used in a catch block.
+///
+///     try {
+///       ...
+///     } catch (e) {
+///       ... JS_RAW_EXCEPTION();
+///     }
+///
+/// `e` would reference the Dart exception, which may have been thrown by a Dart
+/// throw expression, or might be translated from a JavaScript exception. The
+/// raw exception is the exception seen at the JavaScript level.
+external JS_RAW_EXCEPTION();
+
 /// Returns a reference to the internal value that represents [T].
 ///
 /// Static calls to this function are inserted directly by the compiler.

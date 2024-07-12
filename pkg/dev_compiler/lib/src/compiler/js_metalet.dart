@@ -5,7 +5,6 @@
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
 import 'js_names.dart' show TemporaryId;
-import 'shared_compiler.dart' show YieldFinder;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
 ///
@@ -135,15 +134,6 @@ class MetaLet extends Expression {
   }
 
   @override
-  Block toYieldStatement({bool star = false}) {
-    var statements = body
-        .map((e) =>
-            e == body.last ? e.toYieldStatement(star: star) : e.toStatement())
-        .toList();
-    return _finishStatement(statements);
-  }
-
-  @override
   T accept<T>(NodeVisitor<T> visitor) {
     // TODO(jmesserly): we special case visitors from js_ast.Template, because
     // it doesn't know about MetaLet. Should we integrate directly?
@@ -187,16 +177,7 @@ class MetaLet extends Expression {
   }
 
   Expression _toInvokedFunction(Block block) {
-    var finder = YieldFinder();
-    block.accept(finder);
-    if (!finder.hasYield) {
-      return Call(ArrowFun([], block), []);
-    }
-    // If we have a yield, it's more tricky. We'll create a `function*`, which
-    // we `yield*` to immediately invoke. We also may need to bind this:
-    Expression fn = Fun([], block, isGenerator: true);
-    if (finder.hasThis) fn = js.call('#.bind(this)', fn);
-    return Yield(Call(fn, []), star: true);
+    return Call(ArrowFun([], block), []);
   }
 
   Block _finishStatement(List<Statement> statements) {

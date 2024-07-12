@@ -27,6 +27,7 @@ import '../compiler/js_utils.dart' as js_ast;
 import '../compiler/module_builder.dart'
     show isSdkInternalRuntimeUri, libraryUriToJsIdentifier;
 import '../compiler/module_containers.dart' show ModuleItemContainer;
+import '../compiler/rewrite_async.dart';
 import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
@@ -96,9 +97,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// The variable for the current catch clause
   VariableDeclaration? _rethrowParameter;
-
-  /// In an async* function, this represents the stream controller parameter.
-  js_ast.TemporaryId? _asyncStarController;
 
   Set<Class>? _pendingClasses;
 
@@ -295,10 +293,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final Class _linkedHashSetClass;
   final Class _linkedHashSetImplClass;
   final Class _identityHashSetImplClass;
-  final Class _syncIterableClass;
-  final Class _asyncStarImplClass;
-
-  /// The dart:async `StreamIterator<T>` type.
+  // Helpers for async function lowering
+  final Member _asyncStartMember;
+  final Member _asyncAwaitMember;
+  final Member _asyncReturnMember;
+  final Member _asyncRethrowMember;
+  final Member _asyncMakeCompleterMember;
+  final Member _asyncWrapJsFunctionMember;
+  // Helpers for sync* function lowering
+  final Member _syncStarMakeIterableMember;
+  final Member _syncStarIteratorCurrentMember;
+  final Member _syncStarIteratorDatumMember;
+  final Member _syncStarIteratorYieldStarMember;
+  // Helpers for async* function lowering
+  final Member _asyncStarHelperMember;
+  final Member _asyncStreamOfControllerMember;
+  final Member _asyncMakeAsyncStarStreamControllerMember;
+  final Member _asyncIterationMarkerYieldSingleMember;
+  final Member _asyncIterationMarkerYieldStarMember;
   final Class _asyncStreamIteratorClass;
 
   final Procedure _assertInteropMethod;
@@ -359,8 +371,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       this._importToSummary,
       this._summaryToModule)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
-        _asyncStreamIteratorClass =
-            sdk.getClass('dart:async', 'StreamIterator'),
         _privateSymbolClass = sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
         _linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
         _identityHashMapImplClass =
@@ -369,10 +379,39 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _linkedHashSetImplClass = sdk.getClass('dart:_js_helper', 'LinkedSet'),
         _identityHashSetImplClass =
             sdk.getClass('dart:_js_helper', 'IdentitySet'),
-        _syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
-        _asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl'),
-        _assertInteropMethod = sdk.getTopLevelMember(
-            'dart:_runtime', 'assertInterop') as Procedure,
+        _assertInteropMethod =
+            sdk.getTopLevelProcedure('dart:_runtime', 'assertInterop'),
+        _asyncStartMember =
+            sdk.getTopLevelMember('dart:async', '_asyncStartSync'),
+        _asyncAwaitMember = sdk.getTopLevelMember('dart:async', '_asyncAwait'),
+        _asyncReturnMember =
+            sdk.getTopLevelMember('dart:async', '_asyncReturn'),
+        _asyncRethrowMember =
+            sdk.getTopLevelMember('dart:async', '_asyncRethrow'),
+        _asyncMakeCompleterMember =
+            sdk.getTopLevelMember('dart:async', '_makeAsyncAwaitCompleter'),
+        _asyncWrapJsFunctionMember =
+            sdk.getTopLevelMember('dart:async', '_wrapJsFunctionForAsync'),
+        _syncStarMakeIterableMember =
+            sdk.getTopLevelMember('dart:async', '_makeSyncStarIterable'),
+        _syncStarIteratorCurrentMember =
+            sdk.getMember('dart:async', '_SyncStarIterator', '_current'),
+        _syncStarIteratorDatumMember =
+            sdk.getMember('dart:async', '_SyncStarIterator', '_datum'),
+        _syncStarIteratorYieldStarMember =
+            sdk.getMember('dart:async', '_SyncStarIterator', '_yieldStar'),
+        _asyncStarHelperMember =
+            sdk.getTopLevelMember('dart:async', '_asyncStarHelper'),
+        _asyncStreamOfControllerMember =
+            sdk.getTopLevelMember('dart:async', '_streamOfController'),
+        _asyncMakeAsyncStarStreamControllerMember = sdk.getTopLevelMember(
+            'dart:async', '_makeAsyncStarStreamController'),
+        _asyncIterationMarkerYieldSingleMember =
+            sdk.getMember('dart:async', '_IterationMarker', 'yieldSingle'),
+        _asyncIterationMarkerYieldStarMember =
+            sdk.getMember('dart:async', '_IterationMarker', 'yieldStar'),
+        _asyncStreamIteratorClass =
+            sdk.getClass('dart:async', 'StreamIterator'),
         _futureOrNormalizer = FutureOrNormalizer(_coreTypes),
         _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy),
         _extensionIndex =
@@ -2117,7 +2156,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       fn = _emitNativeFunctionBody(member);
     } else {
       fn = _withMethodDeclarationContext(
-          member, () => _emitFunction(member.function, member.name.text));
+          member,
+          () => _emitFunction(member.function, member.name.text,
+              functionBody: _toSourceLocation(member.fileOffset),
+              functionEnd: _toSourceLocation(member.fileEndOffset)));
     }
 
     var method = js_ast.Method(_declareMemberName(member), fn,
@@ -2272,7 +2314,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedTypeEnvironment = _currentTypeEnvironment;
     _currentTypeEnvironment =
         _currentTypeEnvironment.extend(function.typeParameters);
-    var jsBody = _emitSyncFunctionBody(function, name);
+    var jsBody = js_ast.Block(_withCurrentFunction(function, () {
+      var block = _emitArgumentInitializers(function, name);
+      block.add(_emitFunctionScopedBody(function));
+      return block;
+    }));
     var jsName = _constructorName(name);
     memberNames[node] = jsName.valueWithoutQuotes;
     var jsParams = _emitParameters(function);
@@ -2983,7 +3029,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentUri = p.fileUri;
 
     var body = <js_ast.Statement>[];
-    var fn = _emitFunction(p.function, p.name.text)
+    var fn = _emitFunction(p.function, p.name.text,
+        functionBody: _toSourceLocation(p.fileOffset),
+        functionEnd: _toSourceLocation(p.fileEndOffset))
       ..sourceInformation = _nodeEnd(p.fileEndOffset);
 
     if (_currentLibrary!.importUri.isScheme('dart') &&
@@ -3364,11 +3412,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return constTable;
   }
 
-  js_ast.Fun _emitFunction(FunctionNode f, String? name) {
+  js_ast.Fun _emitFunction(FunctionNode f, String? name,
+      {SourceLocation? functionEnd, SourceLocation? functionBody}) {
     var savedTypeEnvironment = _currentTypeEnvironment;
     _currentTypeEnvironment = _currentTypeEnvironment.extend(f.typeParameters);
-    // normal function (sync), vs (sync*, async, async*)
-    var isSync = f.asyncMarker == AsyncMarker.Sync;
     var formals = _emitParameters(f);
     var typeFormals = _emitTypeFormals(f.typeParameters);
 
@@ -3381,13 +3428,100 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // potentially mutated in Kernel. For now we assume all parameters are.
     super.enterFunction(name, formals, () => true);
 
-    var block = isSync
-        ? _emitSyncFunctionBody(f, name)
-        : _emitGeneratorFunctionBody(f, name);
+    var block = js_ast.Block(_withCurrentFunction(f, () {
+      final bodyPrefix = _emitArgumentInitializers(f, name);
+
+      // Do the async transformation before adding parameter initialization
+      // logic. Any parameter initialization should be performed synchronously
+      // before the async body is evaluated.
+      final bodyFn =
+          js_ast.Fun(formals, js_ast.Block([_emitFunctionScopedBody(f)]));
+      final rewrittenFunction = _rewriteAsyncFunction(
+          bodyFn, f.asyncMarker, name, f.emittedValueType,
+          functionEnd: functionEnd,
+          functionBody: functionBody,
+          bodyPrefix: bodyPrefix);
+      formals = rewrittenFunction.params;
+      return rewrittenFunction.body.statements;
+    }));
 
     block = super.exitFunction(formals, block);
+    var fn = js_ast.Fun(formals, block);
+
     _currentTypeEnvironment = savedTypeEnvironment;
-    return js_ast.Fun(formals, block);
+    return fn;
+  }
+
+  /// Transforms [fun]'s body to support async execution if the function is
+  /// async, sync*, or async*.
+  ///
+  /// [bodyPrefix] will get prepended to the body of the rewritten function and
+  /// any references to parameters within it will be replaced with the correct
+  /// temporary ID for that parameter.
+  js_ast.Fun _rewriteAsyncFunction(js_ast.Fun fun, AsyncMarker asyncMarker,
+      String? name, DartType? asyncType,
+      {SourceLocation? functionEnd,
+      SourceLocation? functionBody,
+      List<js_ast.Statement>? bodyPrefix}) {
+    AsyncRewriterBase? asyncRewriter;
+    final bodyName = _emitTemporaryId('t\$async${name ?? 'Body'}');
+    switch (asyncMarker) {
+      case AsyncMarker.Sync:
+        break;
+      case AsyncMarker.Async:
+        asyncRewriter = AsyncRewriter(
+            asyncStart: _emitTopLevelNameNoExternalInterop(_asyncStartMember),
+            asyncAwait: _emitTopLevelNameNoExternalInterop(_asyncAwaitMember),
+            asyncReturn: _emitTopLevelNameNoExternalInterop(_asyncReturnMember),
+            asyncRethrow:
+                _emitTopLevelNameNoExternalInterop(_asyncRethrowMember),
+            completerFactory:
+                _emitTopLevelNameNoExternalInterop(_asyncMakeCompleterMember),
+            completerFactoryTypeArguments: [
+              _emitType(asyncType!),
+            ],
+            wrapBody:
+                _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
+            bodyName: bodyName);
+        break;
+      case AsyncMarker.SyncStar:
+        asyncRewriter = SyncStarRewriter(
+            makeSyncStarIterable:
+                _emitTopLevelNameNoExternalInterop(_syncStarMakeIterableMember),
+            syncStarIterableTypeArgument: _emitType(asyncType!),
+            iteratorCurrentValueProperty: _emitMemberName('_current',
+                member: _syncStarIteratorCurrentMember),
+            iteratorDatumProperty:
+                _emitMemberName('_datum', member: _syncStarIteratorDatumMember),
+            yieldStarSelector: _emitMemberName('_yieldStar',
+                member: _syncStarIteratorYieldStarMember),
+            bodyName: bodyName);
+        break;
+      case AsyncMarker.AsyncStar:
+        asyncRewriter = AsyncStarRewriter(
+            asyncStarHelper:
+                _emitTopLevelNameNoExternalInterop(_asyncStarHelperMember),
+            streamOfController: _emitTopLevelNameNoExternalInterop(
+                _asyncStreamOfControllerMember),
+            newController: _emitTopLevelNameNoExternalInterop(
+                _asyncMakeAsyncStarStreamControllerMember),
+            newControllerTypeArguments: [_emitType(asyncType!)],
+            yieldExpression:
+                _emitStaticGet(_asyncIterationMarkerYieldSingleMember),
+            yieldStarExpression:
+                _emitStaticGet(_asyncIterationMarkerYieldStarMember),
+            wrapBody:
+                _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
+            bodyName: bodyName);
+        break;
+    }
+    if (asyncRewriter != null) {
+      return asyncRewriter.rewrite(fun, functionBody, functionEnd,
+          bodyPrefix: bodyPrefix);
+    } else if (bodyPrefix != null) {
+      fun.body.statements.insertAll(0, bodyPrefix);
+    }
+    return fun;
   }
 
   js_ast.Parameter _emitParameter(VariableDeclaration node,
@@ -3428,174 +3562,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return typeFormals
         .map((t) => _emitIdentifier(getTypeParameterName(t)))
         .toList();
-  }
-
-  /// Transforms `sync*` `async` and `async*` function bodies
-  /// using ES6 generators.
-  ///
-  /// This is an internal part of [_emitGeneratorFunctionBody] and should not be
-  /// called directly.
-  js_ast.Expression _emitGeneratorFunctionExpression(
-      FunctionNode function, String? name) {
-    js_ast.Expression emitGeneratorFn(
-        List<js_ast.Parameter> Function(js_ast.Block jsBody) getParameters) {
-      var savedController = _asyncStarController;
-      _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
-          ? _emitTemporaryId('stream')
-          : null;
-
-      late js_ast.Expression gen;
-      _superDisallowed(() {
-        // Visit the body with our async* controller set.
-        //
-        // Note: we intentionally don't emit argument initializers here, because
-        // they were already emitted outside of the generator expression.
-        var jsBody = js_ast.Block(_withCurrentFunction(
-            function, () => [_emitFunctionScopedBody(function)]));
-        var genFn =
-            js_ast.Fun(getParameters(jsBody), jsBody, isGenerator: true);
-
-        // Name the function if possible, to get better stack traces.
-        var fnExpression = name != null
-            ? js_ast.NamedFunction(
-                _emitTemporaryId(
-                    js_ast.friendlyNameForDartOperator[name] ?? name),
-                genFn)
-            : genFn;
-
-        fnExpression.sourceInformation = _nodeEnd(function.fileEndOffset);
-        if (usesThisOrSuper(fnExpression)) {
-          fnExpression = js.call('#.bind(this)', fnExpression);
-        }
-
-        gen = fnExpression;
-      });
-
-      _asyncStarController = savedController;
-      return gen;
-    }
-
-    if (function.asyncMarker == AsyncMarker.SyncStar) {
-      // `sync*` wraps a generator in a Dart Iterable<E>:
-      //
-      // function name(<args>) {
-      //   return new SyncIterator<E>(() => (function* name(<mutated args>) {
-      //     <body>
-      //   }(<mutated args>));
-      // }
-      //
-      // In the body of a `sync*`, `yield` is generated simply as `yield`.
-      //
-      // We need to include all <mutated args> as parameters of the generator,
-      // so each `.iterator` starts with the same initial values.
-      //
-      // We also need to ensure the correct `this` is available.
-      //
-      // In the future, we might be able to simplify this, see:
-      // https://github.com/dart-lang/sdk/issues/28320
-      var jsParams = _emitParameters(function, isForwarding: true);
-      var mutatedParams = jsParams;
-      var gen = emitGeneratorFn((fnBody) {
-        var mutatedVars = js_ast.findMutatedVariables(fnBody);
-        mutatedParams = jsParams
-            .where((id) => mutatedVars.contains(id.parameterName))
-            .toList();
-        return mutatedParams;
-      });
-      if (mutatedParams.isNotEmpty) {
-        gen = js.call('() => #(#)', [gen, mutatedParams]);
-      }
-
-      var returnType = _expectedReturnType(function, _coreTypes.iterableClass);
-      var syncIterable = _emitClassRef(InterfaceType(
-          _syncIterableClass, Nullability.nonNullable, [returnType]));
-      return js.call('new #.new(#)', [syncIterable, gen]);
-    }
-
-    if (function.asyncMarker == AsyncMarker.AsyncStar) {
-      // `async*` uses the `_AsyncStarImpl<T>` helper class. The generator
-      // callback takes an instance of this class.
-      //
-      // `yield` is specially generated inside `async*` by visitYieldStatement.
-      // `await` is generated as `yield`.
-      //
-      // _AsyncStarImpl has an example of the generated code.
-      var gen = emitGeneratorFn((_) => [_asyncStarController!]);
-
-      var returnType = _expectedReturnType(function, _coreTypes.streamClass);
-      var asyncStarImpl = _emitClassRef(InterfaceType(
-          _asyncStarImplClass, Nullability.nonNullable, [returnType]));
-      return js.call('new #.new(#).stream', [asyncStarImpl, gen]);
-    }
-
-    assert(function.asyncMarker == AsyncMarker.Async);
-
-    // `async` works similar to `sync*`:
-    //
-    // function name(<args>) {
-    //   return async.async(E, function* name() {
-    //     <body>
-    //   });
-    // }
-    //
-    // In the body of an `async`, `await` is generated simply as `yield`.
-    var gen = emitGeneratorFn((_) => []);
-    var returnType = function.emittedValueType!;
-    return js.call('#.async(#, #)',
-        [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
-  }
-
-  /// Gets the expected return type of a `sync*` or `async*` body.
-  DartType _expectedReturnType(FunctionNode f, Class expected) {
-    var type = f
-        .computeThisFunctionType(_currentLibrary!.nonNullable,
-            reuseTypeParameters: true)
-        .returnType;
-    if (type is TypeDeclarationType) {
-      var matchArguments =
-          _hierarchy.getTypeArgumentsAsInstanceOf(type, expected);
-      if (matchArguments != null) return matchArguments[0];
-    }
-    return const DynamicType();
-  }
-
-  /// Emits a `sync` function body (the default in Dart)
-  ///
-  /// To emit an `async`, `sync*`, or `async*` function body, use
-  /// [_emitGeneratorFunctionBody] instead.
-  js_ast.Block _emitSyncFunctionBody(FunctionNode f, String? name) {
-    assert(f.asyncMarker == AsyncMarker.Sync);
-
-    var block = _withCurrentFunction(f, () {
-      /// For (normal) `sync` bodies, execute the function body immediately
-      /// after the argument initializers.
-      var block = _emitArgumentInitializers(f, name);
-      block.add(_emitFunctionScopedBody(f));
-      return block;
-    });
-
-    return js_ast.Block(block);
-  }
-
-  /// Emits an `async`, `sync*`, or `async*` function body.
-  ///
-  /// The body will perform these steps:
-  ///
-  /// - Run the argument initializers. These must be run synchronously
-  ///   (e.g. covariance checks), and this helps performance.
-  /// - Return the generator function, wrapped with the appropriate type
-  ///   (`Future`, `Iterable`, and `Stream` respectively).
-  ///
-  /// To emit a `sync` function body (the default in Dart), use
-  /// [_emitSyncFunctionBody] instead.
-  js_ast.Block _emitGeneratorFunctionBody(FunctionNode f, String? name) {
-    assert(f.asyncMarker != AsyncMarker.Sync);
-
-    var statements =
-        _withCurrentFunction(f, () => _emitArgumentInitializers(f, name));
-    statements.add(_emitGeneratorFunctionExpression(f, name).toReturn()
-      ..sourceInformation = _nodeStart(f));
-    return js_ast.Block(statements);
   }
 
   List<js_ast.Statement> _withCurrentFunction(
@@ -3865,6 +3831,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _emitFunctionScopedBody(FunctionNode f) {
     var jsBody = _visitStatement(f.body!);
+    return _emitScopedBody(f, jsBody);
+  }
+
+  js_ast.Statement _emitScopedBody(FunctionNode f, js_ast.Statement body) {
     if (f.positionalParameters.isNotEmpty || f.namedParameters.isNotEmpty) {
       // Handle shadowing of parameters by local variables, which is allowed in
       // Dart but not in JS.
@@ -3878,9 +3848,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         for (var p in f.namedParameters) p.name!,
       };
 
-      return jsBody.toScopedBlock(parameterNames);
+      return body.toScopedBlock(parameterNames);
     }
-    return jsBody;
+    return body;
   }
 
   /// Visits [nodes] with [_visitExpression].
@@ -4384,7 +4354,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (node.isAsync) {
         return _emitAwaitFor(node);
       }
-
       var iterable = _visitExpression(node.iterable);
       var body = _visitScope(_effectiveBodyOf(node, node.body));
 
@@ -4439,22 +4408,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedBreakTargets = _currentBreakTargets;
     _currentContinueTargets = <LabeledStatement>[];
     _currentBreakTargets = <LabeledStatement>[];
+    var loopStmt = js.statement('while (#) { let # = #.current; #; }', [
+      js_ast.Await(js.call('#.moveNext()', iter))
+        ..sourceInformation = _nodeStart(node.variable),
+      _emitVariableDef(node.variable),
+      iter,
+      _visitStatement(node.body)
+    ]);
+
+    // Any label on the Dart loop statement should target the inner loop rather
+    // than the try-block we will wrap it in.
+    final loopLabelName = _labelNames[node];
+    if (loopLabelName != null) {
+      loopStmt = js_ast.LabeledStatement(loopLabelName, loopStmt);
+    }
+
     var awaitForStmt = js.statement(
         '{'
         '  let # = #;'
-        '  try {'
-        '    while (#) { let # = #.current; #; }'
-        '  } finally { #; }'
+        '  try { # } finally { #; }'
         '}',
         [
           iter,
           createStreamIter,
-          js_ast.Yield(js.call('#.moveNext()', iter))
-            ..sourceInformation = _nodeStart(node.variable),
-          _emitVariableDef(node.variable),
-          iter,
-          _visitStatement(node.body),
-          js_ast.Yield(js.call('#.cancel()', iter))
+          loopStmt,
+          js_ast.Await(js.call('#.cancel()', iter))
             ..sourceInformation = _nodeStart(node.variable)
         ]);
     _currentContinueTargets = savedContinueTargets;
@@ -4713,29 +4691,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Statement visitYieldStatement(YieldStatement node) {
-    var jsExpr = _visitExpression(node.expression);
-    var star = node.isYieldStar;
-    if (_asyncStarController != null) {
-      // async* yields are generated differently from sync* yields. `yield e`
-      // becomes:
-      //
-      //     if (stream.add(e)) return;
-      //     yield;
-      //
-      // `yield* e` becomes:
-      //
-      //     if (stream.addStream(e)) return;
-      //     yield;
-      var helperName = star ? 'addStream' : 'add';
-      return js.statement('{ if(#.#(#)) return; #; }', [
-        _asyncStarController,
-        helperName,
-        jsExpr,
-        js_ast.Yield(null)..sourceInformation = _nodeStart(node)
-      ]);
-    }
-    // A normal yield in a sync*
-    return jsExpr.toYieldStatement(star: star);
+    return js_ast.DartYield(
+        _visitExpression(node.expression), node.isYieldStar);
   }
 
   @override
@@ -6067,6 +6024,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var enumField = staticGet.target as Field;
         return _emitOperationForJsBuiltIn(asJsBuiltin(enumField));
       }
+      if (name == 'JS_RAW_EXCEPTION') {
+        // Serves as a way to access the wrapped JS exception.
+        return _emitVariableRef(_rethrowParameter!);
+      }
     }
 
     if (isSdkInternalRuntime(enclosingLibrary)) {
@@ -6642,8 +6603,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Logical negation, `!e`, is a boolean conversion context since it is
     // defined as `e ? false : true`.
-    return js.call('!#', jsOperand).withSourceInformation(continueSourceMap)
-        as js_ast.Expression;
+    return js.call('!#', jsOperand).withSourceInformation(continueSourceMap);
   }
 
   @override
@@ -7017,7 +6977,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       expression = js.call('#.awaitWithTypeCheck(#, #)',
           [asyncLibrary, expectedType, expression]);
     }
-    return js_ast.Yield(expression);
+    return js_ast.Await(expression);
   }
 
   @override
@@ -7084,7 +7044,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         //
         // Annotations on a top-level, non-lazy function type should be the only
         // remaining use.
-        return js_ast.Call(js_ast.ArrowFun([temp], body), [init]);
+        var arrowFunction = js_ast.ArrowFun([temp], body);
+        final asyncAnalysis = PreTranslationAnalysis((node) {
+          throw UnsupportedError('Unknown node in block expression: $node');
+        }, arrowFunction)
+          ..analyze();
+        final isAsyncIife = asyncAnalysis.hasAwaitOrYield.contains(body);
+        if (isAsyncIife) {
+          final transformedFunction = _rewriteAsyncFunction(
+              js_ast.Fun([temp], js_ast.Block([js_ast.Return(body)])),
+              AsyncMarker.Async,
+              null,
+              node.getStaticType(_staticTypeContext),
+              functionBody: _toSourceLocation(node.fileOffset),
+              functionEnd: _toSourceLocation(node.fileOffset));
+          arrowFunction = js_ast.ArrowFun([temp], transformedFunction.body);
+        }
+        final call = js_ast.Call(arrowFunction, [init]);
+        return isAsyncIife ? js_ast.Await(call) : call;
       }
     }
     return js_ast.Binary(',', init, body);
@@ -7097,21 +7074,27 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var s in node.body.statements) _visitStatement(s),
       js_ast.Return(jsExpr),
     ];
-    var jsBlock = js_ast.Block(jsStmts);
-    // BlockExpressions with async operations must be constructed
-    // with a generator instead of a lambda.
-    var finder = YieldFinder();
-    jsBlock.accept(finder);
-    if (finder.hasYield) {
-      js_ast.Expression genFn = js_ast.Fun([], jsBlock, isGenerator: true);
-      if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
-      var asyncLibrary = emitLibraryName(_coreTypes.asyncLibrary);
-      var returnType = _emitType(node.getStaticType(_staticTypeContext));
-      var asyncCall =
-          js.call('#.async(#, #)', [asyncLibrary, returnType, genFn]);
-      return js_ast.Yield(asyncCall);
+    final statementBlock = js_ast.Block(jsStmts);
+    var arrowFunction = js_ast.ArrowFun(const [], statementBlock);
+    final asyncAnalysis = PreTranslationAnalysis((node) {
+      throw UnsupportedError(
+          'Unknown node in block expression: $node (${node.runtimeType}, '
+          '${node.sourceInformation})');
+    }, arrowFunction)
+      ..analyze();
+    final isAsyncIife = asyncAnalysis.hasAwaitOrYield.contains(statementBlock);
+    if (isAsyncIife) {
+      final transformedFunction = _rewriteAsyncFunction(
+          js_ast.Fun(const [], statementBlock),
+          AsyncMarker.Async,
+          null,
+          node.getStaticType(_staticTypeContext),
+          functionBody: _toSourceLocation(node.fileOffset),
+          functionEnd: _toSourceLocation(node.fileOffset));
+      arrowFunction = js_ast.ArrowFun(const [], transformedFunction.body);
     }
-    return js_ast.Call(js_ast.ArrowFun([], jsBlock), []);
+    final call = js_ast.Call(arrowFunction, const []);
+    return isAsyncIife ? js_ast.Await(call) : call;
   }
 
   @override

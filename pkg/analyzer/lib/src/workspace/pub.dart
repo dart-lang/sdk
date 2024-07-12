@@ -458,7 +458,7 @@ class PubPackage extends WorkspacePackage {
     return false;
   }
 
-  /// Whether [file] is in the `test` directory of this package.
+  @override
   bool isInTestDirectory(File file) {
     var resourceProvider = workspace.provider;
     var packageRoot = resourceProvider.getFolder(root);

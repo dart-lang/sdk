@@ -324,16 +324,20 @@ abstract class Node {
 
   /// Returns a node equivalent to [this], but with new source position and end
   /// source position.
-  Node withSourceInformation(sourceInformation) {
+  T _withSourceInformation<T extends Node>(
+      sourceInformation, T Function() cloneFunc) {
     if (sourceInformation == this.sourceInformation) {
-      return this;
+      return this as T;
     }
-    Node clone = _clone();
+    final clone = cloneFunc();
     // TODO(sra): Should existing data be 'sticky' if we try to overwrite with
     // `null`?
     clone.sourceInformation = sourceInformation;
     return clone;
   }
+
+  Node withSourceInformation(sourceInformation) =>
+      _withSourceInformation(sourceInformation, _clone);
 
   bool get isCommaOperator => false;
 
@@ -411,6 +415,13 @@ abstract class Statement extends ModuleItem {
   /// This is only well defined on the outermost block; it cannot be used for a
   /// block inside of a loop (because of `break` and `continue`).
   bool get alwaysReturns => false;
+
+  @override
+  Statement _clone();
+
+  @override
+  Statement withSourceInformation(Object? sourceInformation) =>
+      _withSourceInformation(sourceInformation, _clone);
 
   /// If this statement [shadows] any name from [names], this will wrap it in a
   /// new scoped [Block].
@@ -599,7 +610,7 @@ class ForOf extends Loop {
   }
 
   @override
-  ForIn _clone() => ForIn(leftHandSide, iterable, body);
+  ForOf _clone() => ForOf(leftHandSide, iterable, body);
 }
 
 class While extends Loop {
@@ -921,10 +932,6 @@ abstract class Expression extends Node {
   @override
   Statement toReturn() => Return(this);
 
-  // TODO(jmesserly): make this return a Yield?
-  Statement toYieldStatement({bool star = false}) =>
-      ExpressionStatement(Yield(this, star: star));
-
   Expression toVoidExpression() => this;
   Expression toAssignExpression(Expression left, [String? op]) =>
       Assignment.compound(left, op, this);
@@ -933,6 +940,13 @@ abstract class Expression extends Node {
   Statement toVariableDeclaration(VariableBinding name) =>
       VariableDeclarationList('let', [VariableInitialization(name, this)])
           .toStatement();
+
+  @override
+  Expression _clone();
+
+  @override
+  Expression withSourceInformation(sourceInformation) =>
+      _withSourceInformation(sourceInformation, _clone);
 }
 
 class LiteralExpression extends Expression {
@@ -1047,7 +1061,7 @@ class VariableInitialization extends Expression {
   }
 }
 
-abstract class VariableBinding extends Expression {
+sealed class VariableBinding extends Expression {
   /// True if this binding declares any name from [names].
   ///
   /// Analogous to the predicate [Statement.shadows].
@@ -1094,7 +1108,7 @@ class DestructuredVariable extends Expression implements Parameter {
   @override
   String get parameterName => name.name;
   @override
-  Node _clone() => DestructuredVariable(
+  DestructuredVariable _clone() => DestructuredVariable(
       name: name,
       property: property,
       structure: structure,
@@ -1136,7 +1150,7 @@ class SimpleBindingPattern extends BindingPattern {
   @override
   int get precedenceLevel => PRIMARY;
   @override
-  Node _clone() => SimpleBindingPattern(name);
+  SimpleBindingPattern _clone() => SimpleBindingPattern(name);
 }
 
 class ObjectBindingPattern extends BindingPattern {
@@ -1149,7 +1163,7 @@ class ObjectBindingPattern extends BindingPattern {
   @override
   int get precedenceLevel => PRIMARY;
   @override
-  Node _clone() => ObjectBindingPattern(variables);
+  ObjectBindingPattern _clone() => ObjectBindingPattern(variables);
 }
 
 class ArrayBindingPattern extends BindingPattern {
@@ -1161,7 +1175,7 @@ class ArrayBindingPattern extends BindingPattern {
   @override
   int get precedenceLevel => PRIMARY;
   @override
-  Node _clone() => ArrayBindingPattern(variables);
+  ArrayBindingPattern _clone() => ArrayBindingPattern(variables);
 }
 
 class Conditional extends Expression {
@@ -1266,12 +1280,6 @@ class Binary extends Expression {
   Statement toReturn() {
     if (!isCommaOperator) return super.toReturn();
     return Block([left.toStatement(), right.toReturn()]);
-  }
-
-  @override
-  Statement toYieldStatement({bool star = false}) {
-    if (!isCommaOperator) return super.toYieldStatement(star: star);
-    return Block([left.toStatement(), right.toYieldStatement(star: star)]);
   }
 
   List<Expression> commaToExpressionList() {
@@ -1502,6 +1510,7 @@ class NamedFunction extends Expression {
 abstract class FunctionExpression extends Expression {
   Node get body; // Expression or block
   List<Parameter> get params;
+  AsyncModifier get asyncModifier;
 }
 
 class Fun extends FunctionExpression {
@@ -1513,11 +1522,11 @@ class Fun extends FunctionExpression {
   /// Whether this is a JS generator (`function*`) that may contain `yield`.
   final bool isGenerator;
 
+  @override
   final AsyncModifier asyncModifier;
 
   Fun(this.params, this.body,
-      {this.isGenerator = false,
-      this.asyncModifier = const AsyncModifier.sync()});
+      {this.isGenerator = false, this.asyncModifier = AsyncModifier.sync});
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
@@ -1544,6 +1553,9 @@ class ArrowFun extends FunctionExpression {
   @override
   final Node body; // Expression or Block
 
+  @override
+  AsyncModifier get asyncModifier => AsyncModifier.sync;
+
   ArrowFun(this.params, this.body);
 
   @override
@@ -1567,27 +1579,20 @@ class ArrowFun extends FunctionExpression {
 /// The Dart sync, sync*, async, and async* modifier.
 ///
 /// See [DartYield]. This is not used for JS functions.
-class AsyncModifier {
+enum AsyncModifier {
+  sync(isAsync: false, isYielding: false, description: 'sync'),
+  async(isAsync: true, isYielding: false, description: 'async'),
+  asyncStar(isAsync: true, isYielding: true, description: 'async*'),
+  syncStar(isAsync: false, isYielding: true, description: 'sync*');
+
+  const AsyncModifier(
+      {required this.isAsync,
+      required this.isYielding,
+      required this.description});
+
   final bool isAsync;
   final bool isYielding;
   final String description;
-
-  const AsyncModifier.sync()
-      : isAsync = false,
-        isYielding = false,
-        description = 'sync';
-  const AsyncModifier.async()
-      : isAsync = true,
-        isYielding = false,
-        description = 'async';
-  const AsyncModifier.asyncStar()
-      : isAsync = true,
-        isYielding = true,
-        description = 'async*';
-  const AsyncModifier.syncStar()
-      : isAsync = false,
-        isYielding = true,
-        description = 'sync*';
   @override
   String toString() => description;
 }
@@ -2346,4 +2351,601 @@ class NameSpecifier extends Node {
   void visitChildren(NodeVisitor visitor) {}
   @override
   NameSpecifier _clone() => NameSpecifier(name, asName: asName);
+}
+
+/// Visitor used to transform specific subtrees within the [Node] AST.
+///
+/// This transformer will only clone a node if it detects a subtree under that
+/// node has changed, otherwise it returns the same node. Subclasses of this
+/// transformer can override specific 'visit' methods to return modified nodes.
+abstract class Transformer implements NodeVisitor<Node> {
+  T visit<T extends Node>(Node node) {
+    return (node.accept(this)..sourceInformation = node.sourceInformation) as T;
+  }
+
+  T? visitNullable<T extends Node>(Node? node) {
+    return (node?.accept(this)?..sourceInformation = node?.sourceInformation)
+        as T?;
+  }
+
+  List<T> visitList<T extends Node>(List<Node> node) {
+    return node.map((e) => visit<T>(e)).toList();
+  }
+
+  List<T>? visitNullableList<T extends Node>(List<Node>? node) {
+    return node?.map((e) => visit<T>(e)).toList();
+  }
+
+  bool isUnchanged(Node? before, Node? after) {
+    if (before == null) return after == null;
+    if (after == null) return false;
+    return identical(before, after) &&
+        identical(before.sourceInformation, after.sourceInformation);
+  }
+
+  bool isUnchangedList(List<Node>? before, List<Node>? after) {
+    if (before == null) return after == null;
+    if (after == null) return false;
+    if (before.length != after.length) return false;
+    for (var i = 0; i < before.length; i++) {
+      if (!isUnchanged(before[i], after[i])) return false;
+    }
+    return true;
+  }
+
+  N transformIfUnchanged1<N extends Node, T extends Node>(
+      N node, T childNode, N Function(T newChildNode) clone) {
+    final newChildNode = visit<T>(childNode);
+    final hasNoChange = isUnchanged(childNode, newChildNode);
+    return hasNoChange ? node : clone(newChildNode);
+  }
+
+  N transformIfUnchanged2<N extends Node, T extends Node, U extends Node>(
+      N node,
+      T childNode1,
+      U childNode2,
+      N Function(T newChildNode1, U newChildNode2) clone) {
+    final newChildNode1 = visit<T>(childNode1);
+    final newChildNode2 = visit<U>(childNode2);
+    final hasNoChange = isUnchanged(childNode1, newChildNode1) &&
+        isUnchanged(childNode2, newChildNode2);
+    return hasNoChange ? node : clone(newChildNode1, newChildNode2);
+  }
+
+  N transformIfUnchanged3<N extends Node, T extends Node, U extends Node,
+          V extends Node>(N node, T childNode1, U childNode2, V childNode3,
+      N Function(T newChildNode1, U newChildNode2, V newChildNode3) clone) {
+    final newChildNode1 = visit<T>(childNode1);
+    final newChildNode2 = visit<U>(childNode2);
+    final newChildNode3 = visit<V>(childNode3);
+    final hasNoChange = isUnchanged(childNode1, newChildNode1) &&
+        isUnchanged(childNode2, newChildNode2) &&
+        isUnchanged(childNode3, newChildNode3);
+    return hasNoChange
+        ? node
+        : clone(newChildNode1, newChildNode2, newChildNode3);
+  }
+
+  N transformIfUnchangedList<N extends Node, T extends Node>(
+      N node, List<T> childNodes, N Function(List<T> newChildNodes) clone) {
+    final newChildNodes = visitList<T>(childNodes);
+    final hasNoChange = isUnchangedList(childNodes, newChildNodes);
+    return hasNoChange ? node : clone(newChildNodes);
+  }
+
+  N transformIfUnchangedList1<N extends Node, T extends Node, U extends Node>(
+      N node,
+      List<T> childNodeList,
+      U childNode,
+      N Function(List<T> newChildNodeList, U childNode) clone) {
+    final newChildNodeList = visitList<T>(childNodeList);
+    final newChildNode = visit<U>(childNode);
+    final hasNoChange = isUnchangedList(childNodeList, newChildNodeList) &&
+        isUnchanged(childNode, newChildNode);
+    return hasNoChange ? node : clone(newChildNodeList, newChildNode);
+  }
+
+  @override
+  Node visitAccess(PropertyAccess node) {
+    return transformIfUnchanged2(
+        node, node.receiver, node.selector, PropertyAccess.new);
+  }
+
+  @override
+  Node visitArrayBindingPattern(ArrayBindingPattern node) {
+    return transformIfUnchangedList(
+        node, node.variables, ArrayBindingPattern.new);
+  }
+
+  @override
+  Node visitArrayHole(ArrayHole node) {
+    return node;
+  }
+
+  @override
+  Node visitArrayInitializer(ArrayInitializer node) {
+    return transformIfUnchangedList(node, node.elements, ArrayInitializer.new);
+  }
+
+  @override
+  Node visitArrowFun(ArrowFun node) {
+    return transformIfUnchangedList1(
+        node, node.params, node.body, ArrowFun.new);
+  }
+
+  @override
+  Node visitAssignment(Assignment node) {
+    if (node.isCompound) {
+      return transformIfUnchanged2(node, node.leftHandSide, node.value,
+          (e1, e2) => Assignment.compound(e1, node.op, e2));
+    }
+    return transformIfUnchanged2(
+        node, node.leftHandSide, node.value, Assignment.new);
+  }
+
+  @override
+  Node visitAwait(Await node) {
+    return transformIfUnchanged1(node, node.expression, Await.new);
+  }
+
+  @override
+  Node visitBinary(Binary node) {
+    return transformIfUnchanged2(
+        node, node.left, node.right, (e1, e2) => Binary(node.op, e1, e2));
+  }
+
+  @override
+  Node visitBlock(Block node) {
+    return transformIfUnchangedList(node, node.statements, Block.new);
+  }
+
+  @override
+  Node visitBreak(Break node) {
+    return node;
+  }
+
+  @override
+  Node visitCall(Call node) {
+    return transformIfUnchangedList1(
+        node, node.arguments, node.target, (e1, e2) => Call(e2, e1));
+  }
+
+  @override
+  Node visitCase(Case node) {
+    return transformIfUnchanged2(node, node.expression, node.body, Case.new);
+  }
+
+  @override
+  Node visitCatch(Catch node) {
+    return transformIfUnchanged2(node, node.declaration, node.body, Catch.new);
+  }
+
+  @override
+  Node visitClassDeclaration(ClassDeclaration node) {
+    return transformIfUnchanged1(node, node.classExpr, ClassDeclaration.new);
+  }
+
+  @override
+  Node visitClassExpression(ClassExpression node) {
+    final name = visit<Identifier>(node.name);
+    final heritage = visitNullable<Expression>(node.heritage);
+    final methods = visitList<Method>(node.methods);
+    if (isUnchanged(name, node.name) &&
+        isUnchanged(heritage, node.heritage) &&
+        isUnchangedList(methods, node.methods)) {
+      return node;
+    }
+    return ClassExpression(name, heritage, methods);
+  }
+
+  @override
+  Node visitComment(Comment node) {
+    return node;
+  }
+
+  @override
+  Node visitCommentExpression(CommentExpression node) {
+    return transformIfUnchanged1(
+        node, node.expression, (e) => CommentExpression(node.comment, e));
+  }
+
+  @override
+  Node visitConditional(Conditional node) {
+    return transformIfUnchanged3(
+        node, node.condition, node.then, node.otherwise, Conditional.new);
+  }
+
+  @override
+  Node visitContinue(Continue node) {
+    return node;
+  }
+
+  @override
+  Node visitDartYield(DartYield node) {
+    return transformIfUnchanged1(
+        node, node.expression, (e) => DartYield(e, node.hasStar));
+  }
+
+  @override
+  Node visitDebuggerStatement(DebuggerStatement node) {
+    return node;
+  }
+
+  @override
+  Node visitDefault(Default node) {
+    return transformIfUnchanged1(node, node.body, Default.new);
+  }
+
+  @override
+  Node visitDestructuredVariable(DestructuredVariable node) {
+    final name = visit<Identifier>(node.name);
+    final property = visitNullable<Expression>(node.property);
+    final structure = visitNullable<BindingPattern>(node.structure);
+    final defaultValue = visitNullable<Expression>(node.defaultValue);
+
+    if (isUnchanged(node.name, name) &&
+        isUnchanged(node.property, node.property) &&
+        isUnchanged(node.structure, structure) &&
+        isUnchanged(node.defaultValue, defaultValue)) {
+      return node;
+    }
+    return DestructuredVariable(
+        name: name,
+        property: property,
+        structure: structure,
+        defaultValue: defaultValue);
+  }
+
+  @override
+  Node visitDo(Do node) {
+    return transformIfUnchanged2(node, node.body, node.condition, Do.new);
+  }
+
+  @override
+  Node visitEmptyStatement(EmptyStatement node) {
+    return node;
+  }
+
+  @override
+  Node visitExportClause(ExportClause node) {
+    final exports = visitList<NameSpecifier>(node.exports);
+    final from = visitNullable<LiteralString>(node.from);
+    if (isUnchangedList(node.exports, exports) &&
+        isUnchanged(node.from, from)) {
+      return node;
+    }
+    return ExportClause(exports, from: from);
+  }
+
+  @override
+  Node visitExportDeclaration(ExportDeclaration node) {
+    return transformIfUnchanged1(node, node.exported,
+        (e) => ExportDeclaration(e, isDefault: node.isDefault));
+  }
+
+  @override
+  Node visitExpressionStatement(ExpressionStatement node) {
+    return transformIfUnchanged1(
+        node, node.expression, ExpressionStatement.new);
+  }
+
+  @override
+  Node visitFor(For node) {
+    final init = visitNullable<Expression>(node.init);
+    final condition = visitNullable<Expression>(node.condition);
+    final update = visitNullable<Expression>(node.update);
+    final body = visit<Statement>(node.body);
+    if (isUnchanged(node.init, init) &&
+        isUnchanged(node.condition, condition) &&
+        isUnchanged(node.update, update) &&
+        isUnchanged(node.body, body)) {
+      return node;
+    }
+    return For(init, condition, update, body);
+  }
+
+  @override
+  Node visitForIn(ForIn node) {
+    return transformIfUnchanged3(
+        node, node.leftHandSide, node.object, node.body, ForIn.new);
+  }
+
+  @override
+  Node visitForOf(ForOf node) {
+    return transformIfUnchanged3(
+        node, node.leftHandSide, node.iterable, node.body, ForOf.new);
+  }
+
+  @override
+  Node visitFun(Fun node) {
+    return transformIfUnchangedList1(
+        node,
+        node.params,
+        node.body,
+        (e1, e2) => Fun(e1, e2,
+            isGenerator: node.isGenerator, asyncModifier: node.asyncModifier));
+  }
+
+  @override
+  Node visitFunctionDeclaration(FunctionDeclaration node) {
+    return transformIfUnchanged2(
+        node, node.name, node.function, FunctionDeclaration.new);
+  }
+
+  @override
+  Node visitIdentifier(Identifier node) {
+    return node;
+  }
+
+  @override
+  Node visitIf(If node) {
+    return transformIfUnchanged3(
+        node, node.condition, node.then, node.otherwise, If.new);
+  }
+
+  @override
+  Node visitImportDeclaration(ImportDeclaration node) {
+    final defaultBinding = visitNullable<Identifier>(node.defaultBinding);
+    final namedImports = visitNullableList<NameSpecifier>(node.namedImports);
+    final from = visit<LiteralString>(node.from);
+    if (isUnchanged(node.defaultBinding, defaultBinding) &&
+        isUnchangedList(node.namedImports, namedImports) &&
+        isUnchanged(node.from, from)) {
+      return node;
+    }
+    return ImportDeclaration(
+        defaultBinding: defaultBinding, namedImports: namedImports, from: from);
+  }
+
+  @override
+  Node visitInterpolatedExpression(InterpolatedExpression node) {
+    return node;
+  }
+
+  @override
+  Node visitInterpolatedIdentifier(InterpolatedIdentifier node) {
+    return node;
+  }
+
+  @override
+  Node visitInterpolatedLiteral(InterpolatedLiteral node) {
+    return node;
+  }
+
+  @override
+  Node visitInterpolatedMethod(InterpolatedMethod node) {
+    return node;
+  }
+
+  @override
+  Node visitInterpolatedParameter(InterpolatedParameter node) {
+    return node;
+  }
+
+  @override
+  Node visitInterpolatedSelector(InterpolatedSelector node) {
+    return node;
+  }
+
+  @override
+  Node visitInterpolatedStatement(InterpolatedStatement node) {
+    return node;
+  }
+
+  @override
+  Node visitLabeledStatement(LabeledStatement node) {
+    return transformIfUnchanged1(
+        node, node.body, (e) => LabeledStatement(node.label, e));
+  }
+
+  @override
+  Node visitLiteralBool(LiteralBool node) {
+    return node;
+  }
+
+  @override
+  Node visitLiteralExpression(LiteralExpression node) {
+    return node;
+  }
+
+  @override
+  Node visitLiteralNull(LiteralNull node) {
+    return node;
+  }
+
+  @override
+  Node visitLiteralNumber(LiteralNumber node) {
+    return node;
+  }
+
+  @override
+  Node visitLiteralStatement(LiteralStatement node) {
+    return node;
+  }
+
+  @override
+  Node visitLiteralString(LiteralString node) {
+    return node;
+  }
+
+  @override
+  Node visitMethod(Method node) {
+    return transformIfUnchanged2(
+        node,
+        node.name,
+        node.function,
+        (e1, e2) => Method(e1, e2,
+            isGetter: node.isGetter,
+            isSetter: node.isSetter,
+            isStatic: node.isStatic));
+  }
+
+  @override
+  Node visitNameSpecifier(NameSpecifier node) {
+    final name = visitNullable<Identifier>(node.name);
+    final asName = visitNullable<Identifier>(node.asName);
+    if (isUnchanged(node.name, name) && isUnchanged(node.asName, asName)) {
+      return node;
+    }
+    return NameSpecifier(name, asName: asName);
+  }
+
+  @override
+  Node visitNamedFunction(NamedFunction node) {
+    return transformIfUnchanged2(node, node.name, node.function,
+        (e1, e2) => NamedFunction(e1, e2, node.immediatelyInvoked));
+  }
+
+  @override
+  Node visitNew(New node) {
+    return transformIfUnchangedList1(
+        node, node.arguments, node.target, (e1, e2) => New(e2, e1));
+  }
+
+  @override
+  Node visitObjectBindingPattern(ObjectBindingPattern node) {
+    return transformIfUnchangedList(
+        node, node.variables, ObjectBindingPattern.new);
+  }
+
+  @override
+  Node visitObjectInitializer(ObjectInitializer node) {
+    return transformIfUnchangedList(node, node.properties,
+        (e) => ObjectInitializer(e, multiline: node.multiline));
+  }
+
+  @override
+  Node visitPostfix(Postfix node) {
+    return transformIfUnchanged1(
+        node, node.argument, (e) => Postfix(node.op, e));
+  }
+
+  @override
+  Node visitPrefix(Prefix node) {
+    return transformIfUnchanged1(
+        node, node.argument, (e) => Prefix(node.op, e));
+  }
+
+  @override
+  Node visitProgram(Program node) {
+    final body = visitList<ModuleItem>(node.body);
+    final header = visitList<Comment>(node.header);
+    if (isUnchangedList(node.body, body) &&
+        isUnchangedList(node.header, header)) {
+      return node;
+    }
+    return Program(body,
+        scriptTag: node.scriptTag, name: node.name, header: header);
+  }
+
+  @override
+  Node visitProperty(Property node) {
+    return transformIfUnchanged2(node, node.name, node.value, Property.new);
+  }
+
+  @override
+  Node visitRegExpLiteral(RegExpLiteral node) {
+    return node;
+  }
+
+  @override
+  Node visitRestParameter(RestParameter node) {
+    return transformIfUnchanged1(node, node.parameter, RestParameter.new);
+  }
+
+  @override
+  Node visitReturn(Return node) {
+    final value = visitNullable<Expression>(node.value);
+    if (isUnchanged(node.value, value)) {
+      return node;
+    }
+    return Return(value);
+  }
+
+  @override
+  Node visitSimpleBindingPattern(SimpleBindingPattern node) {
+    return transformIfUnchanged1(node, node.name, SimpleBindingPattern.new);
+  }
+
+  @override
+  Node visitSpread(Spread node) {
+    return transformIfUnchanged1(node, node.argument, Spread.new);
+  }
+
+  @override
+  Node visitSuper(Super node) {
+    return node;
+  }
+
+  @override
+  Node visitSwitch(Switch node) {
+    return transformIfUnchangedList1(
+        node, node.cases, node.key, (e1, e2) => Switch(e2, e1));
+  }
+
+  @override
+  Node visitTaggedTemplate(TaggedTemplate node) {
+    return transformIfUnchanged2(
+        node, node.tag, node.template, TaggedTemplate.new);
+  }
+
+  @override
+  Node visitTemplateString(TemplateString node) {
+    return transformIfUnchangedList(
+        node, node.interpolations, (e) => TemplateString(node.strings, e));
+  }
+
+  @override
+  Node visitThis(This node) {
+    return node;
+  }
+
+  @override
+  Node visitThrow(Throw node) {
+    return transformIfUnchanged1(node, node.expression, Throw.new);
+  }
+
+  @override
+  Node visitTry(Try node) {
+    final body = visit<Block>(node.body);
+    final catchPart = visitNullable<Catch>(node.catchPart);
+    final finallyPart = visitNullable<Block>(node.finallyPart);
+    if (isUnchanged(node.body, body) &&
+        isUnchanged(node.catchPart, catchPart) &&
+        isUnchanged(node.finallyPart, finallyPart)) {
+      return node;
+    }
+    return Try(body, catchPart, finallyPart);
+  }
+
+  @override
+  Node visitVariableDeclarationList(VariableDeclarationList node) {
+    return transformIfUnchangedList(node, node.declarations,
+        (e) => VariableDeclarationList(node.keyword, node.declarations));
+  }
+
+  @override
+  Node visitVariableInitialization(VariableInitialization node) {
+    final declaration = visit<VariableBinding>(node.declaration);
+    final value = visitNullable<Expression>(node.value);
+    if (isUnchanged(node.declaration, declaration) &&
+        isUnchanged(node.value, value)) {
+      return node;
+    }
+    return VariableInitialization(declaration, value);
+  }
+
+  @override
+  Node visitWhile(While node) {
+    return transformIfUnchanged2(node, node.condition, node.body, While.new);
+  }
+
+  @override
+  Node visitYield(Yield node) {
+    final value = visitNullable<Expression>(node.value);
+    if (isUnchanged(node.value, value)) {
+      return node;
+    }
+    return Yield(value, star: node.star);
+  }
 }
