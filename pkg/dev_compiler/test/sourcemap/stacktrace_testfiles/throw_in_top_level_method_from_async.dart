@@ -6,8 +6,8 @@ void main() {
   /*1:main*/ test1();
 }
 
-Future<void> test1 /*2:test1*/ () async {
-  /*3:test1*/ test2();
+Future<void> /*2:test1*/ test1() async {
+  /*3*/ test2();
 }
 
 void test2() {
