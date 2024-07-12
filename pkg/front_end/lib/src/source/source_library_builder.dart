@@ -114,9 +114,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Uri? get packageUriForTesting => _packageUri;
 
   @override
-  final bool isUnsupported;
-
-  @override
   String? get name => compilationUnit.name;
 
   @override
@@ -130,8 +127,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final LibraryName libraryName;
 
   final SourceLibraryBuilder? _immediateOrigin;
-
-  final List<SourceFunctionBuilder> nativeMethods = <SourceFunctionBuilder>[];
 
   final List<PendingBoundsCheck> _pendingBoundsChecks = [];
   final List<GenericFunctionTypeCheck> _pendingGenericFunctionTypeChecks = [];
@@ -180,12 +175,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   int augmentationIndex = 0;
 
-  /// `true` if this is an augmentation library.
-  final bool isAugmentationLibrary;
-
-  /// `true` if this is a patch library.
-  final bool isPatchLibrary;
-
   MergedLibraryScope? _mergedScope;
 
   /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
@@ -199,6 +188,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri importUri,
       Uri fileUri,
       Uri? packageUri,
+      Uri originImportUri,
       LanguageVersion packageLanguageVersion,
       Scope? scope,
       SourceLibraryBuilder? origin,
@@ -215,6 +205,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             importUri,
             fileUri,
             packageUri,
+            originImportUri,
             packageLanguageVersion,
             new TypeParameterScopeBuilder.library(),
             scope ?? new Scope.top(kind: ScopeKind.library),
@@ -232,6 +223,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.importUri,
       this.fileUri,
       this._packageUri,
+      Uri originImportUri,
       LanguageVersion packageLanguageVersion,
       TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       Scope importScope,
@@ -239,14 +231,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.library,
       this._nameOrigin,
       IndexedLibrary? indexedLibrary,
-      {required this.isUnsupported,
+      {required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
       Map<String, Builder>? omittedTypes})
       : _immediateOrigin = origin,
         libraryName = new LibraryName(library.reference),
-        isAugmentationLibrary = isAugmentation,
-        isPatchLibrary = isPatch,
         super(
             fileUri,
             libraryTypeParameterScopeBuilder.toScope(importScope,
@@ -269,23 +259,36 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         this, libraryTypeParameterScopeBuilder,
         importUri: importUri,
         fileUri: fileUri,
+        packageUri: _packageUri,
+        originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
         indexedLibrary: indexedLibrary,
+        libraryName: libraryName,
         omittedTypeDeclarationBuilders: omittedTypes,
-        importScope: importScope);
+        importScope: importScope,
+        forAugmentationLibrary: isAugmentation,
+        forPatchLibrary: isPatch,
+        isAugmenting: origin != null,
+        isUnsupported: isUnsupported,
+        loader: loader);
   }
+
+  /// `true` if this is an augmentation library.
+  bool get isAugmentationLibrary => compilationUnit.forAugmentationLibrary;
+
+  /// `true` if this is a patch library.
+  bool get isPatchLibrary => compilationUnit.forPatchLibrary;
+
+  @override
+  bool get isUnsupported => compilationUnit.isUnsupported;
 
   MergedLibraryScope get mergedScope {
     return _mergedScope ??=
         isAugmenting ? origin.mergedScope : new MergedLibraryScope(this);
   }
 
-  LibraryFeatures? _libraryFeatures;
-
   /// Returns the state of the experimental features within this library.
-  LibraryFeatures get libraryFeatures =>
-      _libraryFeatures ??= new LibraryFeatures(loader.target.globalFeatures,
-          _packageUri ?? origin.importUri, languageVersion.version);
+  LibraryFeatures get libraryFeatures => compilationUnit.libraryFeatures;
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
@@ -341,6 +344,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {required Uri importUri,
       required Uri fileUri,
       Uri? packageUri,
+      required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       required SourceLoader loader,
       SourceLibraryBuilder? origin,
@@ -358,6 +362,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             importUri,
             fileUri,
             packageUri,
+            originImportUri,
             packageLanguageVersion,
             scope,
             origin,
@@ -447,6 +452,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     SourceLibraryBuilder augmentationLibrary = new SourceLibraryBuilder(
         fileUri: uri,
         importUri: uri,
+        originImportUri: importUri,
         packageLanguageVersion: compilationUnit.packageLanguageVersion,
         loader: loader,
         isUnsupported: false,
@@ -909,7 +915,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  bool get isAugmenting => _immediateOrigin != null;
+  bool get isAugmenting => compilationUnit.isAugmenting;
 
   @override
   SourceLibraryBuilder get origin {
@@ -1366,10 +1372,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    for (SourceFunctionBuilder method in nativeMethods) {
-      method.becomeNative(loader);
+    count += compilationUnit.finishNativeMethods();
+    for (SourceCompilationUnit part in parts) {
+      count += part.finishNativeMethods();
     }
-    count += nativeMethods.length;
 
     return count;
   }

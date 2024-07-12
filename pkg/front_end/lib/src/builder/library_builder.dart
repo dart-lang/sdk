@@ -30,7 +30,6 @@ import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import 'builder.dart';
@@ -170,7 +169,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<NamedTypeBuilder> get unresolvedNamedTypes;
 
-  List<SourceFunctionBuilder> get nativeMethods;
+  int finishNativeMethods();
 
   String? get partOfName;
 

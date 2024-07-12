@@ -129,6 +129,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<StructuralVariableBuilder> _unboundStructuralVariables = [];
 
+  final List<SourceFunctionBuilder> _nativeMethods = [];
+
   BuilderFactoryImpl(
       this._compilationUnit,
       this._augmentationRoot,
@@ -152,9 +154,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   List<ConstructorReferenceBuilder> get constructorReferences =>
       _compilationUnit.constructorReferences;
-
-  List<SourceFunctionBuilder> get nativeMethods =>
-      _compilationUnit.nativeMethods;
 
   @override
   void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
@@ -1726,7 +1725,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   void _addNativeMethod(SourceFunctionBuilder method) {
-    nativeMethods.add(method);
+    _nativeMethods.add(method);
   }
 
   @override
@@ -2512,5 +2511,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void registerUnresolvedStructuralVariables(
       List<StructuralVariableBuilder> unboundTypeVariables) {
     this._unboundStructuralVariables.addAll(unboundTypeVariables);
+  }
+
+  @override
+  int finishNativeMethods() {
+    for (SourceFunctionBuilder method in _nativeMethods) {
+      method.becomeNative(loader);
+    }
+    return _nativeMethods.length;
   }
 }

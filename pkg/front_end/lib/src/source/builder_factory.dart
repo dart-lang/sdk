@@ -59,6 +59,8 @@ abstract class BuilderFactoryResult {
       Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
       Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
 
+  int finishNativeMethods();
+
   void registerUnresolvedNamedTypes(List<NamedTypeBuilder> unboundTypes);
 
   void registerUnresolvedStructuralVariables(

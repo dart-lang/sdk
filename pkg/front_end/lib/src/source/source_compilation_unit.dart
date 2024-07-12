@@ -12,6 +12,14 @@ class SourceCompilationUnitImpl
   @override
   final Uri importUri;
 
+  final Uri? _packageUri;
+
+  @override
+  final Uri originImportUri;
+
+  @override
+  final SourceLoader loader;
+
   final SourceLibraryBuilder _sourceLibraryBuilder;
 
   SourceLibraryBuilder? _libraryBuilder;
@@ -52,21 +60,47 @@ class SourceCompilationUnitImpl
   @override
   final IndexedLibrary? indexedLibrary;
 
+  @override
+  final LibraryName libraryName;
+
   late final BuilderFactoryImpl _builderFactory;
 
   late final BuilderFactoryResult _builderFactoryResult;
 
   final Scope importScope;
 
+  LibraryFeatures? _libraryFeatures;
+
+  @override
+  final bool forAugmentationLibrary;
+
+  @override
+  final bool forPatchLibrary;
+
+  @override
+  final bool isAugmenting;
+
+  @override
+  final bool isUnsupported;
+
   SourceCompilationUnitImpl(this._sourceLibraryBuilder,
       TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       {required this.importUri,
       required this.fileUri,
+      required Uri? packageUri,
       required this.packageLanguageVersion,
+      required this.originImportUri,
       required this.indexedLibrary,
+      required this.libraryName,
       Map<String, Builder>? omittedTypeDeclarationBuilders,
-      required this.importScope})
-      : _languageVersion = packageLanguageVersion {
+      required this.importScope,
+      required this.forAugmentationLibrary,
+      required this.forPatchLibrary,
+      required this.isAugmenting,
+      required this.isUnsupported,
+      required this.loader})
+      : _languageVersion = packageLanguageVersion,
+        _packageUri = packageUri {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         this,
@@ -79,14 +113,9 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  LibraryFeatures get libraryFeatures => _sourceLibraryBuilder.libraryFeatures;
-
-  @override
-  bool get forAugmentationLibrary =>
-      _sourceLibraryBuilder.isAugmentationLibrary;
-
-  @override
-  bool get forPatchLibrary => _sourceLibraryBuilder.isPatchLibrary;
+  LibraryFeatures get libraryFeatures =>
+      _libraryFeatures ??= new LibraryFeatures(loader.target.globalFeatures,
+          _packageUri ?? originImportUri, languageVersion.version);
 
   @override
   bool get isDartLibrary =>
@@ -279,19 +308,10 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  bool get isAugmenting => _sourceLibraryBuilder.isAugmenting;
-
-  @override
   bool get isPart => _builderFactoryResult.isPart;
 
   @override
   bool get isSynthetic => accessProblem != null;
-
-  @override
-  bool get isUnsupported => _sourceLibraryBuilder.isUnsupported;
-
-  @override
-  SourceLoader get loader => _sourceLibraryBuilder.loader;
 
   @override
   NameIterator<Builder> get localMembersNameIterator =>
@@ -380,13 +400,6 @@ class SourceCompilationUnitImpl
 
   @override
   Library get library => _sourceLibraryBuilder.library;
-
-  @override
-  LibraryName get libraryName => _sourceLibraryBuilder.libraryName;
-
-  @override
-  List<SourceFunctionBuilder> get nativeMethods =>
-      _sourceLibraryBuilder.nativeMethods;
 
   @override
   String? get partOfName => _builderFactoryResult.partOfName;
@@ -601,7 +614,6 @@ class SourceCompilationUnitImpl
         // scopes correctly) the exporters in this has to be updated too).
         libraryBuilder.exporters.addAll(part.exporters);
 
-        libraryBuilder.nativeMethods.addAll(part.nativeMethods);
         // Check that the targets are different. This is not normally a problem
         // but is for augmentation libraries.
         if (libraryBuilder.library != part.library &&
@@ -633,6 +645,11 @@ class SourceCompilationUnitImpl
         }
         return false;
     }
+  }
+
+  @override
+  int finishNativeMethods() {
+    return _builderFactoryResult.finishNativeMethods();
   }
 
   void _clearPartsAndReportExporters() {
@@ -1160,11 +1177,6 @@ class SourceCompilationUnitImpl
       }
     }
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Avoid using [_sourceLibraryBuilder.library] here.
-  Uri get originImportUri => _sourceLibraryBuilder.library.importUri;
 
   @override
   Message reportFeatureNotEnabled(
