@@ -817,6 +817,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     SourceLibraryBuilder dartDocTestLibrary = new SourceLibraryBuilder(
       importUri: dartDocTestUri,
       fileUri: dartDocTestUri,
+      originImportUri: dartDocTestUri,
       packageLanguageVersion:
           new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
       loader: loader,
@@ -900,6 +901,7 @@ class DocTestSourceLoader extends SourceLoader {
       {required Uri importUri,
       required Uri fileUri,
       Uri? packageUri,
+      required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
@@ -918,6 +920,7 @@ class DocTestSourceLoader extends SourceLoader {
     return super.createLibraryBuilder(
         importUri: importUri,
         fileUri: fileUri,
+        originImportUri: originImportUri,
         packageUri: packageUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,

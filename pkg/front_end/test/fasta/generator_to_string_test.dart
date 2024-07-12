@@ -72,6 +72,7 @@ Future<void> main() async {
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
         importUri: uri,
         fileUri: uri,
+        originImportUri: uri,
         packageLanguageVersion:
             new ImplicitLanguageVersion(defaultLanguageVersion),
         loader: new KernelTarget(

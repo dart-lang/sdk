@@ -12,6 +12,9 @@ class SourceCompilationUnitImpl
   @override
   final Uri importUri;
 
+  @override
+  final Uri originImportUri;
+
   final SourceLibraryBuilder _sourceLibraryBuilder;
 
   SourceLibraryBuilder? _libraryBuilder;
@@ -63,6 +66,7 @@ class SourceCompilationUnitImpl
       {required this.importUri,
       required this.fileUri,
       required this.packageLanguageVersion,
+      required this.originImportUri,
       required this.indexedLibrary,
       Map<String, Builder>? omittedTypeDeclarationBuilders,
       required this.importScope})
@@ -1160,11 +1164,6 @@ class SourceCompilationUnitImpl
       }
     }
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Avoid using [_sourceLibraryBuilder.library] here.
-  Uri get originImportUri => _sourceLibraryBuilder.library.importUri;
 
   @override
   Message reportFeatureNotEnabled(

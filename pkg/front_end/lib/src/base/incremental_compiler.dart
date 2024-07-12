@@ -1973,6 +1973,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         importUri: libraryUri,
         fileUri: debugExprUri,
+        originImportUri: libraryUri,
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         loader: lastGoodKernelTarget.loader,
@@ -2023,6 +2024,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       debugLibrary = new SourceLibraryBuilder(
         importUri: libraryUri,
         fileUri: debugExprUri,
+        originImportUri: libraryUri,
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         loader: lastGoodKernelTarget.loader,

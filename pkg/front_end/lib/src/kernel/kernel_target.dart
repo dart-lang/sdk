@@ -1809,16 +1809,17 @@ class KernelTarget {
     return loader.libraries.contains(library);
   }
 
-  void readPatchFiles(SourceLibraryBuilder libraryBuilder) {
-    assert(libraryBuilder.importUri.isScheme("dart"));
-    List<Uri>? patches =
-        uriTranslator.getDartPatches(libraryBuilder.importUri.path);
+  void readPatchFiles(SourceLibraryBuilder libraryBuilder,
+      CompilationUnit compilationUnit, Uri originImportUri) {
+    assert(originImportUri.isScheme("dart"));
+    List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        libraryBuilder.loader.read(patch, -1,
+        loader.read(patch, -1,
             fileUri: patch,
+            originImportUri: originImportUri,
             origin: libraryBuilder,
-            accessor: libraryBuilder.compilationUnit,
+            accessor: compilationUnit,
             isPatch: true);
       }
     }

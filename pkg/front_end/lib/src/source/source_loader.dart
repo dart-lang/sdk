@@ -367,6 +367,7 @@ class SourceLoader extends Loader {
       {required Uri importUri,
       required Uri fileUri,
       Uri? packageUri,
+      required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
@@ -377,6 +378,7 @@ class SourceLoader extends Loader {
         importUri: importUri,
         fileUri: fileUri,
         packageUri: packageUri,
+        originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
         loader: this,
         origin: origin,
@@ -423,14 +425,15 @@ class SourceLoader extends Loader {
   }
 
   SourceCompilationUnit _createSourceCompilationUnit(
-      Uri uri,
-      Uri? fileUri,
-      SourceLibraryBuilder? origin,
-      IndexedLibrary? referencesFromIndex,
-      bool? referenceIsPartOwner,
-      bool isAugmentation,
-      bool isPatch,
-      bool addAsRoot) {
+      {required Uri uri,
+      required Uri? fileUri,
+      required Uri? originImportUri,
+      required SourceLibraryBuilder? origin,
+      required IndexedLibrary? referencesFromIndex,
+      required bool? referenceIsPartOwner,
+      required bool isAugmentation,
+      required bool isPatch,
+      required bool addAsRoot}) {
     if (fileUri != null &&
         (fileUri.isScheme("dart") ||
             fileUri.isScheme("package") ||
@@ -509,10 +512,12 @@ class SourceLoader extends Loader {
     packageLanguageVersion ??=
         new ImplicitLanguageVersion(target.currentSdkVersion);
 
+    originImportUri ??= uri;
     SourceLibraryBuilder libraryBuilder = createLibraryBuilder(
         importUri: uri,
         fileUri: fileUri,
         packageUri: packageUri,
+        originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
         origin: origin,
         referencesFromIndex: referencesFromIndex,
@@ -531,13 +536,12 @@ class SourceLoader extends Loader {
 
     _checkForDartCore(uri, libraryBuilder, compilationUnit);
 
-    Uri libraryUri = origin?.importUri ?? uri;
-    if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
+    if (target.backendTarget.mayDefineRestrictedType(originImportUri)) {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.mayImplementRestrictedTypes = true;
     }
     if (uri.isScheme("dart")) {
-      target.readPatchFiles(libraryBuilder);
+      target.readPatchFiles(libraryBuilder, compilationUnit, originImportUri);
     }
     _unparsedLibraries.addLast(compilationUnit);
 
@@ -606,6 +610,8 @@ class SourceLoader extends Loader {
     }
   }
 
+  /// Reads the library [uri] as an entry point. This is used for reading the
+
   /// Look up a library builder by the [uri], or if such doesn't exist, create
   /// one. The canonical URI of the library is [uri], and its actual location is
   /// [fileUri].
@@ -620,6 +626,7 @@ class SourceLoader extends Loader {
   CompilationUnit read(Uri uri, int charOffset,
       {Uri? fileUri,
       required CompilationUnit accessor,
+      Uri? originImportUri,
       SourceLibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
@@ -627,6 +634,7 @@ class SourceLoader extends Loader {
       bool isPatch = false}) {
     CompilationUnit libraryBuilder = _read(uri,
         fileUri: fileUri,
+        originImportUri: originImportUri,
         origin: origin,
         referencesFromIndex: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
@@ -643,7 +651,6 @@ class SourceLoader extends Loader {
     return libraryBuilder;
   }
 
-  /// Reads the library [uri] as an entry point. This is used for reading the
   /// entry point library of a script or the explicitly mention libraries of
   /// a modular or incremental compilation.
   ///
@@ -695,9 +702,10 @@ class SourceLoader extends Loader {
   }
 
   CompilationUnit _read(Uri uri,
-      {Uri? fileUri,
+      {required Uri? fileUri,
+      Uri? originImportUri,
       SourceLibraryBuilder? origin,
-      IndexedLibrary? referencesFromIndex,
+      required IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       required bool isAugmentation,
       required bool isPatch,
@@ -709,14 +717,15 @@ class SourceLoader extends Loader {
       }
       if (compilationUnit == null) {
         compilationUnit = _createSourceCompilationUnit(
-            uri,
-            fileUri,
-            origin,
-            referencesFromIndex,
-            referenceIsPartOwner,
-            isAugmentation,
-            isPatch,
-            addAsRoot);
+            uri: uri,
+            fileUri: fileUri,
+            originImportUri: originImportUri,
+            origin: origin,
+            referencesFromIndex: referencesFromIndex,
+            referenceIsPartOwner: referenceIsPartOwner,
+            isAugmentation: isAugmentation,
+            isPatch: isPatch,
+            addAsRoot: addAsRoot);
       }
       _compilationUnits[uri] = compilationUnit;
     }
