@@ -3651,6 +3651,9 @@ void g() {
 
 _Dead code._
 
+_Dead code: The assigned-to wildcard variable is marked late and can never be
+referenced so this initializer will never be evaluated._
+
 #### Description
 
 The analyzer produces this diagnostic when code is found that won't be
