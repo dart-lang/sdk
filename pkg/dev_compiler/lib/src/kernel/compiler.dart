@@ -6642,8 +6642,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Logical negation, `!e`, is a boolean conversion context since it is
     // defined as `e ? false : true`.
-    return js.call('!#', jsOperand).withSourceInformation(continueSourceMap)
-        as js_ast.Expression;
+    return js.call('!#', jsOperand).withSourceInformation(continueSourceMap);
   }
 
   @override

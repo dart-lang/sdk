@@ -58,6 +58,7 @@ class DevCompilerTarget extends Target {
   List<String> get extraRequiredLibraries => const [
         'dart:_ddc_only',
         'dart:_runtime',
+        'dart:_async_status_codes',
         'dart:_js_shared_embedded_names',
         'dart:_recipe_syntax',
         'dart:_rti',
