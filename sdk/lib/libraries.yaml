@@ -436,7 +436,7 @@ _dart2js_common:
       uri: "_internal/js_shared/lib/synced/embedded_names.dart"
 
     _async_status_codes:
-      uri: "_internal/js_runtime/lib/synced/async_status_codes.dart"
+      uri: "_internal/js_shared/lib/synced/async_status_codes.dart"
 
     _invocation_mirror_constants:
       uri: "_internal/js_runtime/lib/synced/invocation_mirror_constants.dart"
@@ -451,6 +451,9 @@ dartdevc:
   libraries:
     _runtime:
       uri: "_internal/js_dev_runtime/private/ddc_runtime/runtime.dart"
+
+    _async_status_codes:
+      uri: "_internal/js_shared/lib/synced/async_status_codes.dart"
 
     _debugger:
       uri: "_internal/js_dev_runtime/private/debugger.dart"
