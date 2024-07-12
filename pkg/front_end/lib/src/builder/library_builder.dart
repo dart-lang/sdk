@@ -36,7 +36,6 @@ import '../source/source_loader.dart';
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
 import 'declaration_builders.dart';
-import 'inferable_type_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -180,8 +179,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   Scope get scope;
 
   List<MetadataBuilder>? get metadata;
-
-  void collectInferableTypes(List<InferableType> inferableTypes);
 
   void takeMixinApplications(
       Map<SourceClassBuilder, TypeBuilder> mixinApplications);

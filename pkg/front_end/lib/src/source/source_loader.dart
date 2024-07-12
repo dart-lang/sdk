@@ -49,7 +49,6 @@ import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/inferable_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
@@ -621,7 +620,7 @@ class SourceLoader extends Loader {
   CompilationUnit read(Uri uri, int charOffset,
       {Uri? fileUri,
       required CompilationUnit accessor,
-      LibraryBuilder? origin,
+      SourceLibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       bool isAugmentation = false,
@@ -697,7 +696,7 @@ class SourceLoader extends Loader {
 
   CompilationUnit _read(Uri uri,
       {Uri? fileUri,
-      LibraryBuilder? origin,
+      SourceLibraryBuilder? origin,
       IndexedLibrary? referencesFromIndex,
       bool? referenceIsPartOwner,
       required bool isAugmentation,
@@ -712,7 +711,7 @@ class SourceLoader extends Loader {
         compilationUnit = _createSourceCompilationUnit(
             uri,
             fileUri,
-            origin as SourceLibraryBuilder?,
+            origin,
             referencesFromIndex,
             referenceIsPartOwner,
             isAugmentation,
@@ -882,6 +881,8 @@ severity: $severity
   TypeEnvironment get typeEnvironment {
     return _typeEnvironment ??= new TypeEnvironment(coreTypes, hierarchy);
   }
+
+  final InferableTypes inferableTypes = new InferableTypes();
 
   TypeInferenceEngineImpl get typeInferenceEngine => _typeInferenceEngine!;
 
@@ -2878,15 +2879,7 @@ severity: $severity
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
-
-    List<InferableType> inferableTypes = [];
-    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
-      libraryBuilder.collectInferableTypes(inferableTypes);
-    }
-
-    for (InferableType typeBuilder in inferableTypes) {
-      typeBuilder.inferType(typeInferenceEngine.hierarchyBuilder);
-    }
+    inferableTypes.inferTypes(typeInferenceEngine.hierarchyBuilder);
 
     typeInferenceEngine.isTypeInferencePrepared = true;
 

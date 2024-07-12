@@ -41,7 +41,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/inferable_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -49,7 +48,6 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
@@ -943,36 +941,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     assert(scope.lookupLocalMember("Null", setter: false) != null,
         "No class 'Null' found in dart:core.");
-  }
-
-  List<InferableType>? _inferableTypes = [];
-
-  InferableTypeBuilder addInferableType() {
-    InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
-    registerInferableType(typeBuilder);
-    return typeBuilder;
-  }
-
-  void registerInferableType(InferableType inferableType) {
-    assert(
-        _inferableTypes != null,
-        // Coverage-ignore(suite): Not run.
-        "Late registration of inferable type $inferableType.");
-    _inferableTypes?.add(inferableType);
-  }
-
-  void collectInferableTypes(List<InferableType> inferableTypes) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.collectInferableTypes(inferableTypes);
-      }
-    }
-    if (_inferableTypes != null) {
-      inferableTypes.addAll(_inferableTypes!);
-    }
-    _inferableTypes = null;
   }
 
   @override

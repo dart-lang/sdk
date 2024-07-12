@@ -371,11 +371,6 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  void collectInferableTypes(List<InferableType> inferableTypes) {
-    _sourceLibraryBuilder.collectInferableTypes(inferableTypes);
-  }
-
-  @override
   List<ConstructorReferenceBuilder> get constructorReferences =>
       _sourceLibraryBuilder.constructorReferences;
 
@@ -610,7 +605,6 @@ class SourceCompilationUnitImpl
           (libraryBuilder.library.problemsAsJson ??= <String>[])
               .addAll(part.library.problemsAsJson!);
         }
-        part.collectInferableTypes(libraryBuilder._inferableTypes!);
         if (libraryBuilder.library != part.library) {
           // Mark the part library as synthetic as it's not an actual library
           // (anymore).

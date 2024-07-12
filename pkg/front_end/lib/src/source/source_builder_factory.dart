@@ -2272,7 +2272,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   InferableTypeBuilder addInferableType() {
-    return _sourceLibraryBuilder.addInferableType();
+    return _compilationUnit.loader.inferableTypes.addInferableType();
   }
 
   @override

@@ -299,7 +299,7 @@ class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
     } else {
       InferableTypeUse inferableTypeUse =
           new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
-      library.registerInferableType(inferableTypeUse);
+      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
   }
