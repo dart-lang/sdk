@@ -225,7 +225,7 @@ class ErrorNotingLogger implements Logger {
 
   @override
   void noticeFrameworkCatchError(error, StackTrace stackTrace) {
-    print("Framework Catch Error: $error\n$StackTrace");
+    print("Framework Catch Error: $error\n$stackTrace");
     gotFailure = true;
   }
 }
