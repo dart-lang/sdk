@@ -14,11 +14,12 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
-import '../codes/cfe_codes.dart';
+import '../builder/prefix_builder.dart';
 import '../kernel/body_builder.dart' show JumpTarget;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
+import '../kernel/load_library_builder.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -26,7 +27,9 @@ import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'messages.dart';
 import 'problems.dart' show internalProblem, unsupported;
+import 'uri_offset.dart';
 
 enum ScopeKind {
   /// Scope of pattern switch-case statements
@@ -854,6 +857,96 @@ abstract class LazyScope extends Scope {
     ensureScope();
     return super._extensions;
   }
+}
+
+/// Computes a builder for the import/export collision between [declaration] and
+/// [other] and adds it to [scope].
+Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
+    Scope scope, String name, Builder declaration, Builder other,
+    {required UriOffset uriOffset,
+    bool isExport = false,
+    bool isImport = false}) {
+  // TODO(ahe): Can I move this to Scope or Prefix?
+  if (declaration == other) return declaration;
+  if (declaration is InvalidTypeDeclarationBuilder) return declaration;
+  if (other is InvalidTypeDeclarationBuilder) return other;
+  if (declaration is AccessErrorBuilder) {
+    // Coverage-ignore-block(suite): Not run.
+    AccessErrorBuilder error = declaration;
+    declaration = error.builder;
+  }
+  if (other is AccessErrorBuilder) {
+    // Coverage-ignore-block(suite): Not run.
+    AccessErrorBuilder error = other;
+    other = error.builder;
+  }
+  Builder? preferred;
+  Uri? uri;
+  Uri? otherUri;
+  if (scope.lookupLocalMember(name, setter: false) == declaration) {
+    preferred = declaration;
+  } else {
+    uri = computeLibraryUri(declaration);
+    otherUri = computeLibraryUri(other);
+    if (declaration is LoadLibraryBuilder) {
+      preferred = declaration;
+    } else if (other is LoadLibraryBuilder) {
+      preferred = other;
+    } else if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
+      preferred = declaration;
+    } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
+      preferred = other;
+    }
+  }
+  if (preferred != null) {
+    return preferred;
+  }
+  if (declaration.next == null && other.next == null) {
+    if (isImport &&
+        declaration is PrefixBuilder &&
+        // Coverage-ignore(suite): Not run.
+        other is PrefixBuilder) {
+      // Coverage-ignore-block(suite): Not run.
+      // Handles the case where the same prefix is used for different
+      // imports.
+      return declaration
+        ..exportScope.merge(other.exportScope,
+            (String name, Builder existing, Builder member) {
+          return computeAmbiguousDeclarationForScope(
+              problemReporting, scope, name, existing, member,
+              uriOffset: uriOffset, isExport: isExport, isImport: isImport);
+        });
+    }
+  }
+  Uri firstUri = uri!;
+  Uri secondUri = otherUri!;
+  if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
+    firstUri = secondUri;
+    secondUri = uri;
+  }
+  if (isExport) {
+    Template<Message Function(String name, Uri uri, Uri uri2)> template =
+        templateDuplicatedExport;
+    Message message = template.withArguments(name, firstUri, secondUri);
+    problemReporting.addProblem(
+        message, uriOffset.fileOffset, noLength, uriOffset.uri);
+  }
+  Template<Message Function(String name, Uri uri, Uri uri2)> builderTemplate =
+      isExport
+          ? templateDuplicatedExportInType
+          : templateDuplicatedImportInType;
+  Message message = builderTemplate.withArguments(
+      name,
+      // TODO(ahe): We should probably use a context object here
+      // instead of including URIs in this message.
+      firstUri,
+      secondUri);
+  // We report the error lazily (setting suppressMessage to false) because the
+  // spec 18.1 states that 'It is not an error if N is introduced by two or
+  // more imports but never referred to.'
+  return new InvalidTypeDeclarationBuilder(name,
+      message.withLocation(uriOffset.uri, uriOffset.fileOffset, name.length),
+      suppressMessage: false);
 }
 
 abstract class ProblemBuilder extends BuilderImpl {

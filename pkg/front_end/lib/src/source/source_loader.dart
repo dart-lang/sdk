@@ -1449,7 +1449,7 @@ severity: $severity
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
         for (Export exporter in library.exporters) {
-          exporters.add(exporter.exporter);
+          exporters.add(exporter.exporter.libraryBuilder);
         }
       }
     }

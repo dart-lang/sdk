@@ -7,6 +7,7 @@ library fasta.prefix_builder;
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 import '../source/source_library_builder.dart';
@@ -63,9 +64,9 @@ class PrefixBuilder extends BuilderImpl {
     Builder result;
     if (existing != null) {
       // Coverage-ignore-block(suite): Not run.
-      result = parent.computeAmbiguousDeclaration(
-          name, existing, member, charOffset,
-          isExport: true);
+      result = computeAmbiguousDeclarationForScope(
+          parent, parent.scope, name, existing, member,
+          uriOffset: new UriOffset(fileUri, charOffset), isExport: true);
     } else {
       result = member;
     }

@@ -36,6 +36,7 @@ import '../base/modifier.dart'
         staticMask;
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -376,7 +377,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
 
     Import import = new Import(
-        _sourceLibraryBuilder,
+        _parent,
         compilationUnit,
         isAugmentationImport,
         deferred,
@@ -415,9 +416,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     CompilationUnit exportedLibrary = loader.read(
         _resolve(_compilationUnit.importUri, uri, uriOffset), charOffset,
         accessor: _compilationUnit);
-    exportedLibrary.addExporter(_sourceLibraryBuilder, combinators, charOffset);
-    Export export = new Export(
-        _sourceLibraryBuilder, exportedLibrary, combinators, charOffset);
+    exportedLibrary.addExporter(_compilationUnit, combinators, charOffset);
+    Export export =
+        new Export(_compilationUnit, exportedLibrary, combinators, charOffset);
     exports.add(export);
     offsetMap.registerExport(exportKeyword, export);
   }
@@ -2091,7 +2092,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
         .resolveNamedTypesWithStructuralVariables(
-            structuralVariableBuilders, _sourceLibraryBuilder);
+            structuralVariableBuilders, _problemReporting);
     return builder;
   }
 
@@ -2361,8 +2362,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       return existing
         ..exportScope.merge(declaration.exportScope,
             (String name, Builder existing, Builder member) {
-          return _sourceLibraryBuilder.computeAmbiguousDeclaration(
-              name, existing, member, charOffset);
+          return computeAmbiguousDeclarationForScope(
+              _problemReporting, _compilationUnit.scope, name, existing, member,
+              uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
         });
     } else if (_isDuplicatedDeclaration(existing, declaration)) {
       String fullName = name;
