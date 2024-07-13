@@ -3958,15 +3958,139 @@ enum _VirtualCallKind {
 extension MacroAssembler on w.InstructionsBuilder {
   /// `[i32] -> [i32]`
   ///
-  /// Consumes an `i32` for a class ID, leaves an `i32` as `bool` for whether
+  /// Consumes a `i32` class ID, leaves an `i32` as `bool` for whether
   /// the class ID is in the given list of ranges.
   void emitClassIdRangeCheck(List<Range> ranges) {
-    if (ranges.isEmpty) {
-      drop();
+    final rangeValues = ranges.map((r) => (range: r, value: null)).toList();
+    classIdSearch<Null>(rangeValues, [w.NumType.i32], (_) {
+      i32_const(1);
+    }, () {
       i32_const(0);
-    } else if (ranges.length == 1) {
-      final range = ranges[0];
+    });
+  }
 
+  /// `[i32] -> [outputs]`
+  ///
+  /// Consumes a `i32` class ID and checks whether it lies within one of the
+  /// given [ranges] using a linear or binary search.
+  ///
+  /// The [ranges] have to be non-empty, non-overlapping and sorted.
+  ///
+  /// Calls [match] on a matching value and [miss] if provided and no match was
+  /// found.
+  ///
+  /// Assumes [match] and [miss] leave [outputs] on the stack.
+  void classIdSearch<T>(
+      List<({Range range, T value})> ranges,
+      List<w.ValueType> outputs,
+      void Function(T) match,
+      void Function()? miss) {
+    final bool linearSearch = ranges.length <= 3;
+    if (traceEnabled) {
+      comment('Class id ${linearSearch ? 'linear' : 'binary'} search:');
+      for (final (:range, :value) in ranges) {
+        comment('  - $range -> $value');
+      }
+    }
+    if (linearSearch) {
+      _linearClassIdSearch<T>(ranges, outputs, match, miss);
+    } else {
+      _binaryClassIdSearch<T>(ranges, outputs, match, miss);
+    }
+  }
+
+  void _binaryClassIdSearch<T>(
+      List<({Range range, T value})> ranges,
+      List<w.ValueType> outputs,
+      void Function(T) match,
+      void Function()? miss) {
+    assert(ranges.isNotEmpty || miss != null);
+    if (miss != null && ranges.isEmpty) {
+      drop();
+      miss();
+      return;
+    }
+
+    w.Local classId = addLocal(w.NumType.i32, isParameter: false);
+    local_set(classId);
+
+    final done = block([], outputs);
+    final fail = block();
+    void search(int left, int right, Range searchArea) {
+      if (left == right) {
+        final entry = ranges[left];
+        final range = entry.range;
+        assert(searchArea.containsRange(range));
+        if (miss == null || range.containsRange(searchArea)) {
+          match(entry.value);
+          br(done);
+          return;
+        }
+        local_get(classId);
+        if (range.length == 1) {
+          i32_const(range.start);
+          i32_eq();
+        } else {
+          if (searchArea.end <= range.end) {
+            i32_const(range.start);
+            i32_ge_u();
+          } else if (range.start <= searchArea.start) {
+            i32_const(range.end);
+            i32_le_u();
+          } else {
+            i32_const(range.start);
+            i32_sub();
+            i32_const(range.length);
+            i32_lt_u();
+          }
+        }
+        if_();
+        match(entry.value);
+        br(done);
+        end();
+        br(fail);
+        return;
+      }
+      final mid = (left + right) ~/ 2;
+      final midRange = ranges[mid].range;
+
+      local_get(classId);
+      i32_const(midRange.end);
+      i32_le_u();
+      if_();
+      search(left, mid, Range(searchArea.start, midRange.end));
+      end();
+      search(mid + 1, right, Range(midRange.end + 1, searchArea.end));
+    }
+
+    search(0, ranges.length - 1, Range(0, 0xffffffff));
+    end(); // fail
+    if (miss != null) {
+      miss();
+      br(done);
+    } else {
+      unreachable();
+    }
+    end(); // done
+  }
+
+  void _linearClassIdSearch<T>(
+      List<({Range range, T value})> ranges,
+      List<w.ValueType> outputs,
+      void Function(T) match,
+      void Function()? miss) {
+    assert(ranges.isNotEmpty || miss != null);
+    if (miss != null && ranges.isEmpty) {
+      drop();
+      miss();
+      return;
+    }
+
+    w.Local classId = addLocal(w.NumType.i32, isParameter: false);
+    local_set(classId);
+    final done = block([], outputs);
+    for (final (:range, :value) in ranges) {
+      local_get(classId);
       i32_const(range.start);
       if (range.length == 1) {
         i32_eq();
@@ -3975,28 +4099,18 @@ extension MacroAssembler on w.InstructionsBuilder {
         i32_const(range.length);
         i32_lt_u();
       }
-    } else {
-      w.Local idLocal = addLocal(w.NumType.i32, isParameter: false);
-      local_set(idLocal);
-      w.Label done = block(const [], const [w.NumType.i32]);
-      i32_const(1);
-
-      for (Range range in ranges) {
-        local_get(idLocal);
-        i32_const(range.start);
-        if (range.length == 1) {
-          i32_eq();
-        } else {
-          i32_sub();
-          i32_const(range.length);
-          i32_lt_u();
-        }
-        br_if(done);
-      }
-      drop();
-      i32_const(0);
-      end(); // done
+      if_();
+      match(value);
+      br(done);
+      end();
     }
+    if (miss != null) {
+      miss();
+      br(done);
+    } else {
+      unreachable();
+    }
+    end(); // done
   }
 
   /// `[ref _Closure] -> [i32]`

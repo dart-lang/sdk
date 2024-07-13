@@ -1026,58 +1026,6 @@ abstract class _TypeUniverse {
     return (-1).toWasmI32();
   }
 
-  static WasmI32 _searchSubs(WasmArray<WasmI32> table, WasmI32 key) {
-    for (WasmI32 i = 0.toWasmI32();
-        i < table.length.toWasmI32();
-        i += 3.toWasmI32()) {
-      final start = table[i.toIntSigned()];
-      final end = table[(i + 1.toWasmI32()).toIntSigned()];
-      if (start <= key && key <= end)
-        return table[(i + 2.toWasmI32()).toIntSigned()];
-    }
-    return (-1).toWasmI32();
-  }
-
-  static WasmI32 _searchSupers(WasmArray<WasmI32> table, WasmI32 key) {
-    final WasmI32 end = table.length.toWasmI32() >> 1.toWasmI32();
-    return (end < 8.toWasmI32())
-        ? _linearSearch(table, end, key)
-        : _binarySearch(table, end, key);
-  }
-
-  @pragma('wasm:prefer-inline')
-  static WasmI32 _linearSearch(
-      WasmArray<WasmI32> table, WasmI32 end, WasmI32 key) {
-    for (WasmI32 i = 0.toWasmI32(); i < end; i += 1.toWasmI32()) {
-      if (table[i.toIntSigned()] == key) return end + i;
-    }
-    return (-1).toWasmI32();
-  }
-
-  @pragma('wasm:prefer-inline')
-  static WasmI32 _binarySearch(
-      WasmArray<WasmI32> table, WasmI32 end, WasmI32 key) {
-    WasmI32 lower = 0.toWasmI32();
-    WasmI32 upper = end - 1.toWasmI32();
-    while (lower <= upper) {
-      final WasmI32 mid = (lower + upper) >> 1.toWasmI32();
-      final WasmI32 entry = table[mid.toIntSigned()];
-      if (key < entry) {
-        upper = mid - 1.toWasmI32();
-        continue;
-      }
-      if (entry < key) {
-        lower = mid + 1.toWasmI32();
-        continue;
-      }
-      assert(entry == key);
-      assert(_linearSearch(table, end, key) == (end + mid));
-      return end + mid;
-    }
-    assert(_linearSearch(table, end, key) == (-1).toWasmI32());
-    return (-1).toWasmI32();
-  }
-
   static bool isFunctionSubtype(_FunctionType s, _Environment? sEnv,
       _FunctionType t, _Environment? tEnv) {
     // Set up environments
