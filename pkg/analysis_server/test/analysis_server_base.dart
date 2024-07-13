@@ -11,13 +11,13 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -214,14 +214,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   // TODO(scheglov): Consider turning it back into a getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
 
-  // If experiments are needed,
-  // add `import 'package:analyzer/dart/analysis/features.dart';`
-  // and list the necessary experiments here.
-  List<String> get experiments => [
-        Feature.augmentations.enableString,
-        Feature.enhanced_parts.enableString,
-        Feature.macros.enableString,
-      ];
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, an empty list if there are no experiments that should be enabled.
+  List<String> get experiments => experimentsForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override

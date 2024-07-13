@@ -23360,6 +23360,12 @@ WarningCode:
         }
       }
       ```
+  DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER:
+    problemMessage: "Dead code: The assigned-to wildcard variable is marked late and can never be referenced so this initializer will never be evaluated."
+    correctionMessage: Try removing the code, removing the late modifier or changing the variable to a non-wildcard.
+    sharedName: DEAD_CODE
+    hasPublishedDocs: true
+    comment: No parameters.
   DEAD_CODE_ON_CATCH_SUBTYPE:
     problemMessage: "Dead code: This on-catch block won't be executed because '{0}' is a subtype of '{1}' and hence will have been caught already."
     correctionMessage: Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.

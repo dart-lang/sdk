@@ -6288,6 +6288,19 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER =
+      WarningCode(
+    'DEAD_CODE',
+    "Dead code: The assigned-to wildcard variable is marked late and can never "
+        "be referenced so this initializer will never be evaluated.",
+    correctionMessage:
+        "Try removing the code, removing the late modifier or changing the "
+        "variable to a non-wildcard.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
+  );
+
   ///  Dead code is code that is never reached. This case covers cases where the
   ///  user has an on-catch clause such as `on A catch (e)`, where a supertype of
   ///  `A` was already caught.
