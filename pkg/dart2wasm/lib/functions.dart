@@ -195,8 +195,8 @@ class FunctionCollector {
 
   void recordSelectorUse(SelectorInfo selector) {
     if (_calledSelectors.add(selector.id)) {
-      selector.targets.forEach((classId, target) {
-        if (!target.asMember.isAbstract) {
+      for (final (:range, :target) in selector.targetRanges) {
+        for (int classId = range.start; classId <= range.end; ++classId) {
           if (_allocatedClasses.contains(classId)) {
             // Class declaring or inheriting member is allocated somewhere.
             getFunction(target);
@@ -205,7 +205,7 @@ class FunctionCollector {
             _pendingAllocation.putIfAbsent(classId, () => []).add(target);
           }
         }
-      });
+      }
     }
   }
 

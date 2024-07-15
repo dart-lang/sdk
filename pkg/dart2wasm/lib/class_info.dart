@@ -746,6 +746,13 @@ class Range {
   }
 
   @override
+  int get hashCode => Object.hash(start, end);
+
+  @override
+  bool operator ==(other) =>
+      other is Range && other.start == start && other.end == end;
+
+  @override
   String toString() => isEmpty ? '[]' : '[$start, $end]';
 }
 

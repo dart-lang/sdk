@@ -173,8 +173,8 @@ class Translator with KernelNodes {
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
 
-  late final PartialInstantiator partialInstantiator =
-      PartialInstantiator(this);
+  late final partialInstantiator = PartialInstantiator(this);
+  late final polymorphicDispatchers = PolymorphicDispatchers(this);
 
   /// Dart types that have specialized Wasm representations.
   late final Map<Class, w.StorageType> builtinTypes = {
@@ -1535,6 +1535,61 @@ class PartialInstantiator {
         b.local_get(b.locals[i - 2]);
       }
       b.call(wasmTarget);
+      b.return_();
+      b.end();
+
+      return function;
+    });
+  }
+}
+
+class PolymorphicDispatchers {
+  final Translator translator;
+  final cache = <SelectorInfo, w.BaseFunction>{};
+
+  PolymorphicDispatchers(this.translator);
+
+  w.BaseFunction getPolymorphicDispatcher(SelectorInfo selector) {
+    assert(selector.targetRanges.length > 1);
+    return cache.putIfAbsent(selector, () {
+      final name = '${selector.name} (polymorphic dispatcher)';
+      final signature = selector.signature;
+      final inputs = signature.inputs;
+      final outputs = signature.outputs;
+      final function = translator.m.functions
+          .define(translator.m.types.defineFunction(inputs, outputs), name);
+
+      final b = function.body;
+
+      final targetRanges = selector.staticDispatchRanges
+          .map((entry) => (range: entry.range, value: entry.target))
+          .toList();
+
+      final bool needFallback =
+          selector.targetRanges.length > selector.staticDispatchRanges.length;
+      void emitDirectCall(Reference target) {
+        for (int i = 0; i < inputs.length; ++i) {
+          b.local_get(b.locals[i]);
+        }
+        b.call(translator.functions.getFunction(target));
+      }
+
+      void emitDispatchTableCall() {
+        for (int i = 0; i < inputs.length; ++i) {
+          b.local_get(b.locals[i]);
+        }
+        b.local_get(b.locals[0]);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.i32_const(selector.offset!);
+        b.i32_add();
+        b.call_indirect(signature, translator.dispatchTable.wasmTable);
+        translator.functions.recordSelectorUse(selector);
+      }
+
+      b.local_get(b.locals[0]);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.classIdSearch(targetRanges, outputs, emitDirectCall,
+          needFallback ? emitDispatchTableCall : null);
       b.return_();
       b.end();
 
