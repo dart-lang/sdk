@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*spec.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
+/*spec.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
 /*prod.class: global#JSArray:checks=[$isIterable],instance*/
 
 /*class: global#Iterable:checkedInstance*/

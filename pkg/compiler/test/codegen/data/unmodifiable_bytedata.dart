@@ -52,7 +52,7 @@ returnModifiable2() {
 /*member: guaranteedFail:function() {
   var a = new DataView(new ArrayBuffer(10));
   a.$flags = 3;
-  A.throwUnsupportedOperation(a, "setInt32");
+  A.throwUnsupportedOperation(a, 8);
   a.setInt32(0, 100, false);
   a.setUint32(4, 2000, false);
   return a;
@@ -67,7 +67,7 @@ guaranteedFail() {
 
 @pragma('dart2js:never-inline')
 /*member: multipleWrites:function(data) {
-  data.$flags & 2 && A.throwUnsupportedOperation(data, "setFloat64");
+  data.$flags & 2 && A.throwUnsupportedOperation(data, 13);
   data.setFloat64(0, 1.23, false);
   data.setFloat32(8, 1.23, false);
   return data;
@@ -83,7 +83,7 @@ multipleWrites(ByteData data) {
 /*member: hoistedLoad:function(data) {
   var t1, i;
   for (t1 = data.$flags | 0, i = 0; i < data.byteLength; i += 2) {
-    t1 & 2 && A.throwUnsupportedOperation(data, "setUint16");
+    t1 & 2 && A.throwUnsupportedOperation(data, 10);
     data.setUint16(i, 100, true);
   }
   return data;

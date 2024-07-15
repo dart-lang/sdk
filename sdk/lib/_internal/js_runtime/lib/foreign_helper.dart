@@ -336,11 +336,15 @@ external int HArrayFlagsGet(Object array);
 /// intervening HArrayFlagsSet that might invalidate the check.
 @pragma('dart2js:as:trust')
 T HArrayFlagsCheck<T>(
-    Object array, int arrayFlags, int checkFlags, String operation) {
+    Object array, int arrayFlags, int checkFlags, String operation,
+    [String verb = 'modify']) {
   // This body is unused but serves as a model for global for impacts and
   // analysis.
   if (arrayFlags & checkFlags != 0) {
-    throwUnsupportedOperation(array, operation);
+    if (operation == '[]=') throwUnsupportedOperation(array);
+    if (operation == 'setUint32') throwUnsupportedOperation(array, 1);
+    if (verb == 'remove from') throwUnsupportedOperation(array, operation, 1);
+    throwUnsupportedOperation(array, operation, verb);
   }
   return array as T;
 }
