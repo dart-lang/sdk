@@ -9,25 +9,25 @@ import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ImportDirectiveParserTest);
+    defineReflectiveTests(ExportDirectiveParserTest);
   });
 }
 
 @reflectiveTest
-class ImportDirectiveParserTest extends ParserDiagnosticsTest {
+class ExportDirectiveParserTest extends ParserDiagnosticsTest {
   test_afterPart() {
     var parseResult = parseStringWithErrors(r'''
 part 'a.dart';
-import 'b.dart';
+export 'b.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6),
+      error(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6),
     ]);
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
@@ -37,14 +37,14 @@ ImportDirective
   test_afterPartOf() {
     var parseResult = parseStringWithErrors(r'''
 part of 'a.dart';
-import 'b.dart';
+export 'b.dart';
 ''');
     parseResult.assertNoErrors();
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
@@ -53,15 +53,15 @@ ImportDirective
 
   test_configurableUri() {
     var parseResult = parseStringWithErrors(r'''
-import 'foo.dart'
+export 'foo.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
     parseResult.assertNoErrors();
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'foo.dart'
   configurations
@@ -86,14 +86,14 @@ ImportDirective
 
   test_it() {
     var parseResult = parseStringWithErrors(r'''
-import 'a.dart';
+export 'a.dart';
 ''');
     parseResult.assertNoErrors();
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
@@ -104,16 +104,16 @@ ImportDirective
     var parseResult = parseStringWithErrors(r'''
 // @dart = 3.5
 part of 'a.dart';
-import 'b.dart';
+export 'b.dart';
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 33, 6),
     ]);
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
@@ -123,17 +123,17 @@ ImportDirective
   test_language305_beforePartOf() {
     var parseResult = parseStringWithErrors(r'''
 // @dart = 3.5
-import 'b.dart';
+export 'b.dart';
 part of 'a.dart';
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 32, 4),
     ]);
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'b.dart'
   semicolon: ;
@@ -142,16 +142,16 @@ ImportDirective
 
   test_noSemicolon() {
     var parseResult = parseStringWithErrors(r'''
-import 'a.dart'
+export 'a.dart'
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_TOKEN, 7, 8),
     ]);
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ; <synthetic>
@@ -160,16 +160,16 @@ ImportDirective
 
   test_noUri_hasSemicolon() {
     var parseResult = parseStringWithErrors(r'''
-import ;
+export ;
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 1),
     ]);
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: "" <synthetic>
   semicolon: ;
@@ -178,17 +178,17 @@ ImportDirective
 
   test_noUri_noSemicolon() {
     var parseResult = parseStringWithErrors(r'''
-import
+export
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
       error(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 0),
     ]);
 
-    var node = parseResult.findNode.singleImportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
+ExportDirective
+  exportKeyword: export
   uri: SimpleStringLiteral
     literal: "" <synthetic>
   semicolon: ; <synthetic>
