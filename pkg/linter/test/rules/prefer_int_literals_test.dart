@@ -167,23 +167,15 @@ double a = 7.576e2;
 ''');
   }
 
-  test_explicitlyTypedDouble_integerWithExponent() async {
-    await assertDiagnostics(r'''
-double a = 7.0e2;
-''', [
-      lint(11, 5),
-    ]);
-  }
-
-  test_explicitlyTypeDynamic_integer() async {
-    await assertNoDiagnostics(r'''
-dynamic a = 8.0;
-''');
-  }
-
   test_explicitTypeDouble_decimal() async {
     await assertNoDiagnostics(r'''
 double a = 7.3;
+''');
+  }
+
+  test_explicitTypeDouble_decimalWithSeparators() async {
+    await assertNoDiagnostics(r'''
+double a = 1_234.567_8;
 ''');
   }
 
@@ -201,6 +193,36 @@ double a = -8.0;
 ''', [
       lint(12, 3),
     ]);
+  }
+
+  test_explicitTypeDouble_integerWithExponent() async {
+    await assertDiagnostics(r'''
+double a = 7.0e2;
+''', [
+      lint(11, 5),
+    ]);
+  }
+
+  test_explicitTypeDouble_integerWithExponentAndSeparators() async {
+    await assertDiagnostics(r'''
+double a = 7_000.0e2;
+''', [
+      lint(11, 9),
+    ]);
+  }
+
+  test_explicitTypeDouble_integerWithSeparators() async {
+    await assertDiagnostics(r'''
+double a = 8_000.000_0;
+''', [
+      lint(11, 11),
+    ]);
+  }
+
+  test_explicitTypeDynamic_integer() async {
+    await assertNoDiagnostics(r'''
+dynamic a = 8.0;
+''');
   }
 
   test_explicitTypeObject_integer() async {
