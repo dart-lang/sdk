@@ -335,7 +335,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
             name: lintName,
             description: _desc,
             details: _details,
-            categories: {Category.errorProne});
+            categories: {Category.errorProne, Category.web});
 
   @override
   List<LintCode> get lintCodes => const [

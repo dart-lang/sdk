@@ -84,6 +84,9 @@ abstract final class Category {
 
   /// A category of rules that protect against unused code.
   static const String unusedCode = 'unused code';
+
+  /// A category of rules that help to write code deployed to the web.
+  static const String web = 'web';
 }
 
 /// The result of attempting to evaluate an expression as a constant.
