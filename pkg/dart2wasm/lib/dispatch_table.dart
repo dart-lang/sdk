@@ -50,6 +50,7 @@ class SelectorInfo {
   late final List<({Range range, Reference target})> targetRanges;
   late final Set<Reference> targetSet =
       targetRanges.map((e) => e.target).toSet();
+  late final List<({Range range, Reference target})> staticDispatchRanges;
 
   /// Wasm function type for the selector.
   ///
@@ -415,7 +416,13 @@ class DispatchTable {
         }
       }
       ranges.length = writeIndex + 1;
+
+      final staticDispatchRanges =
+          translator.options.polymorphicSpecialization || ranges.length == 1
+              ? ranges
+              : <({Range range, Reference target})>[];
       selector.targetRanges = ranges;
+      selector.staticDispatchRanges = staticDispatchRanges;
     });
 
     _selectorInfo.forEach((_, selector) {
@@ -427,20 +434,24 @@ class DispatchTable {
 
     // Assign selector offsets
 
-    /// Whether the selector will be used in an instance invocation.
-    ///
-    /// If not, then we don't add the selector to the dispatch table and don't
-    /// assign it a dispatch table offset.
-    ///
-    /// Special case for `objectNoSuchMethod`: we introduce instance
-    /// invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
-    /// even if there was no references to it from the Dart code.
-    bool needsDispatch(SelectorInfo selector) =>
-        (selector.callCount > 0 && selector.targetRanges.length > 1) ||
-        (selector.paramInfo.member! == translator.objectNoSuchMethod);
+    bool isUsedViaDispatchTableCall(SelectorInfo selector) {
+      // Special case for `objectNoSuchMethod`: we introduce instance
+      // invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
+      // even if there was no references to it from the Dart code.
+      if (selector.paramInfo.member! == translator.objectNoSuchMethod) {
+        return true;
+      }
+      if (selector.callCount == 0) return false;
+      if (selector.targetRanges.length <= 1) return false;
+      if (selector.staticDispatchRanges.length ==
+          selector.targetRanges.length) {
+        return false;
+      }
+      return true;
+    }
 
     final List<SelectorInfo> selectors =
-        selectorTargets.keys.where(needsDispatch).toList();
+        selectorTargets.keys.where(isUsedViaDispatchTableCall).toList();
 
     // Sort the selectors based on number of targets and number of use sites.
     // This is a heuristic to keep the table small.

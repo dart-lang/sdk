@@ -2194,6 +2194,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     pushReceiver(selector.signature);
 
     if (selector.targetRanges.length == 1) {
+      assert(selector.staticDispatchRanges.length == 1);
       final target = selector.targetRanges[0].target;
       final signature = translator.signatureForDirectCall(target);
       final paramInfo = translator.paramInfoForDirectCall(target);
@@ -2201,13 +2202,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return translator.outputOrVoid(call(target));
     }
 
-    int? offset = selector.offset;
-    if (offset == null) {
+    if (selector.targetRanges.isEmpty) {
       // Unreachable call
-      assert(selector.targetRanges.isEmpty);
       b.comment("Virtual call of ${selector.name} with no targets"
           " at ${node.location}");
-      b.drop();
+      pushArguments(selector.signature, selector.paramInfo);
+      for (int i = 0; i < selector.signature.inputs.length; ++i) {
+        b.drop();
+      }
       b.block(const [], selector.signature.outputs);
       b.unreachable();
       b.end();
@@ -2219,9 +2221,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
     pushArguments(selector.signature, selector.paramInfo);
-    if (options.polymorphicSpecialization) {
-      _polymorphicSpecialization(selector, receiverVar);
+
+    if (selector.staticDispatchRanges.isNotEmpty) {
+      final polymorphicDispatcher =
+          translator.polymorphicDispatchers.getPolymorphicDispatcher(selector);
+      b.call(polymorphicDispatcher);
     } else {
+      final offset = selector.offset!;
       b.comment("Instance $kind of '${selector.name}'");
       b.local_get(receiverVar);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
@@ -2235,66 +2241,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     return translator.outputOrVoid(selector.signature.outputs);
-  }
-
-  void _polymorphicSpecialization(SelectorInfo selector, w.Local receiver) {
-    final implementations = <int, Reference>{};
-    for (final (:range, :target) in selector.targetRanges) {
-      for (int classId = range.start; classId <= range.end; ++classId) {
-        implementations[classId] = target;
-      }
-    }
-
-    w.Local idVar = addLocal(w.NumType.i32);
-    b.local_get(receiver);
-    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-    b.local_set(idVar);
-
-    w.Label block =
-        b.block(selector.signature.inputs, selector.signature.outputs);
-    calls:
-    while (Set.from(implementations.values).length > 1) {
-      for (int id in implementations.keys) {
-        Reference target = implementations[id]!;
-        if (implementations.values.where((t) => t == target).length == 1) {
-          // Single class id implements method.
-          b.local_get(idVar);
-          b.i32_const(id);
-          b.i32_eq();
-          b.if_(selector.signature.inputs, selector.signature.inputs);
-          call(target);
-          b.br(block);
-          b.end();
-          implementations.remove(id);
-          continue calls;
-        }
-      }
-      // Find class id that separates remaining classes in two.
-      List<int> sorted = implementations.keys.toList()..sort();
-      int pivotId = sorted.firstWhere(
-          (id) => implementations[id] != implementations[sorted.first]);
-      // Fail compilation if no such id exists.
-      assert(sorted.lastWhere(
-              (id) => implementations[id] != implementations[pivotId]) ==
-          pivotId - 1);
-      Reference target = implementations[sorted.first]!;
-      b.local_get(idVar);
-      b.i32_const(pivotId);
-      b.i32_lt_u();
-      b.if_(selector.signature.inputs, selector.signature.inputs);
-      call(target);
-      b.br(block);
-      b.end();
-      for (int id in sorted) {
-        if (id == pivotId) break;
-        implementations.remove(id);
-      }
-      continue calls;
-    }
-    // Call remaining implementation.
-    Reference target = implementations.values.first;
-    call(target);
-    b.end();
   }
 
   @override
