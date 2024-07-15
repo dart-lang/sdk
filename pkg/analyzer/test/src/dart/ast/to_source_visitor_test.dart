@@ -1144,7 +1144,7 @@ $code
   }
 
   void test_visitExportDirective_configurations() {
-    var unit = parseString(content: r'''
+    var unit = _parseStringToFindNode(r'''
 export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2059,7 +2059,7 @@ $code
   }
 
   void test_visitImportDirective_configurations() {
-    var unit = parseString(content: r'''
+    var unit = _parseStringToFindNode(r'''
 import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
@@ -2888,6 +2888,21 @@ void f(x) {
     _assertSource(code, findNode.part(code));
   }
 
+  void test_visitPartDirective_configurations() {
+    var unit = _parseStringToFindNode(r'''
+part 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''').unit;
+    var directive = unit.directives[0] as PartDirective;
+    _assertSource(
+      "part 'foo.dart'"
+      " if (dart.library.io) 'foo_io.dart'"
+      " if (dart.library.html) 'foo_html.dart';",
+      directive,
+    );
+  }
+
   void test_visitPartDirective_withMetadata() {
     var code = '@deprecated part "a.dart";';
     var findNode = _parseStringToFindNode(code);
@@ -2895,13 +2910,13 @@ void f(x) {
   }
 
   void test_visitPartOfDirective_name() {
-    var unit = parseString(content: 'part of l;').unit;
+    var unit = _parseStringToFindNode('part of l;').unit;
     var directive = unit.directives[0] as PartOfDirective;
     _assertSource("part of l;", directive);
   }
 
   void test_visitPartOfDirective_uri() {
-    var unit = parseString(content: "part of 'a.dart';").unit;
+    var unit = _parseStringToFindNode("part of 'a.dart';").unit;
     var directive = unit.directives[0] as PartOfDirective;
     _assertSource("part of 'a.dart';", directive);
   }

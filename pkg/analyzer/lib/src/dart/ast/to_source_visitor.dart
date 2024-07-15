@@ -1029,6 +1029,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('part ');
     _visitNode(node.uri);
+    _visitNodeList(node.configurations, prefix: ' ', separator: ' ');
     sink.write(';');
   }
 

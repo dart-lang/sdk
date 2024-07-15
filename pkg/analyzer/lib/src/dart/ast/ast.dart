@@ -13315,6 +13315,12 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    configurations.accept(visitor);
+  }
 }
 
 /// A part-of directive.
