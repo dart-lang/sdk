@@ -71,6 +71,9 @@ abstract final class Category {
   /// A category representing Pub-related rules.
   static const String pub = 'pub';
 
+  /// A category of rules that promote a healthy public interface.
+  static const String publicInterface = 'public interface';
+
   /// A category representing matters of style, largely derived from Effective
   /// Dart.
   static const String style = 'style';

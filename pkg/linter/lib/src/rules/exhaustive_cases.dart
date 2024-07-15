@@ -84,7 +84,7 @@ class ExhaustiveCases extends LintRule {
             name: 'exhaustive_cases',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.errorProne});
 
   @override
   LintCode get lintCode => code;

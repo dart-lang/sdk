@@ -14,6 +14,8 @@ import '../extensions.dart';
 const _desc = r'Avoid positional boolean parameters.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/design#avoid-positional-boolean-parameters):
+
 **AVOID** positional boolean parameters.
 
 Positional boolean parameters are a bad practice because they are very
@@ -48,7 +50,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
             name: 'avoid_positional_boolean_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

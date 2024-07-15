@@ -75,7 +75,7 @@ class PublicMemberApiDocs extends LintRule {
             name: 'public_member_api_docs',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.publicInterface, Category.style});
 
   @override
   LintCode get lintCode => code;
