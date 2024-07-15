@@ -1,3 +1,6 @@
+## 6.8.0-dev
+* Add `AnalysisContextCollection.dispose()`. It must be invoked at the end.
+
 ## 6.7.0
 * Deprecated `File.createSource()`, it violates levels of abstraction.
   You can get `Source` instances from `AnalysisResult`s.
