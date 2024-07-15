@@ -128,7 +128,11 @@ class LibraryOrAugmentationScope extends EnclosedScope {
   ) : super(importScope) {
     extensions.addAll(importScope.extensions);
 
-    _container.prefixes.forEach(_addGetter);
+    for (var prefix in _container.prefixes) {
+      if (!prefix.isWildcardVariable) {
+        _addGetter(prefix);
+      }
+    }
     _container.library.units.forEach(_addUnitElements);
 
     // Add implicit 'dart:core' declarations.

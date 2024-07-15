@@ -122,6 +122,7 @@ extension ElementExtension on Element {
   bool get isWildcardVariable =>
       name == '_' &&
       (this is LocalVariableElement ||
+          this is PrefixElement ||
           this is TypeParameterElement ||
           (this is ParameterElement &&
               this is! FieldFormalParameterElement &&

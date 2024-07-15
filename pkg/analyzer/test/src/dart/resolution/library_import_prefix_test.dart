@@ -140,4 +140,75 @@ main() {
     assertElement(pRef, findElement.prefix('p'));
     assertTypeNull(pRef);
   }
+
+  test_wildcardResolution() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension ExtendedString on String {
+  bool get stringExt => true;
+}
+
+var a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+extension ExtendedString2 on String {
+  bool get stringExt2 => true;
+}
+''');
+
+    // Import prefixes named `_` provide access to non-private extensions
+    // in the imported library but are non-binding.
+    await assertErrorsInCode(r'''
+import 'a.dart' as _;
+import 'b.dart' as _;
+
+f() {
+  ''.stringExt;
+  ''.stringExt2;
+  _.a;
+}
+''', [
+      // String extensions are found but `_` is not bound.
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 86, 1),
+    ]);
+  }
+
+  test_wildcardResolution_preWildcards() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension ExtendedString on String {
+  bool get stringExt => true;
+}
+
+var a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+extension ExtendedString on String {
+  bool get stringExt2 => true;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'a.dart' as _;
+import 'b.dart' as _;
+
+f() {
+  ''.stringExt;
+  ''.stringExt2;
+  _.a;
+}
+''');
+
+    // `_` is bound so `a` resolves to the int declared in `a.dart`.
+    var node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: package:test/a.dart::@getter::a
+  staticType: int
+''');
+  }
 }
