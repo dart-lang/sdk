@@ -3486,17 +3486,20 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       test = js.js('# & #', [arrayFlags, checkFlags]);
     }
 
-    final operation = node.operation;
-    // Most common operation is "[]=", so 'pass' that by leaving it out.
-    if (operation
-        case HConstant(constant: StringConstantValue(stringValue: '[]='))) {
-      _pushCallStatic(_commonElements.throwUnsupportedOperation, [array],
-          node.sourceInformation);
-    } else {
-      use(operation);
-      _pushCallStatic(_commonElements.throwUnsupportedOperation, [array, pop()],
-          node.sourceInformation);
+    List<js.Expression> arguments = [array];
+
+    if (node.hasOperation) {
+      use(node.operation);
+      arguments.add(pop());
     }
+
+    if (node.hasVerb) {
+      use(node.verb);
+      arguments.add(pop());
+    }
+
+    _pushCallStatic(_commonElements.throwUnsupportedOperation, arguments,
+        node.sourceInformation);
 
     js.Statement check;
     if (test == null) {

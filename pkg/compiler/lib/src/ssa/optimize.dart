@@ -2675,6 +2675,57 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       }
     }
 
+    // The 'operation' and 'verb' strings can be replaced with an index into a
+    // small table to known operations or verbs. This makes the call-sites
+    // smaller, so is worthwhile for calls to HArrayFlagsCheck that are inlined
+    // into multiple places.
+    //
+    // A trailing zero index (verb, or verb and operation) can be omitted from
+    // the instruction.
+    //
+    // When both indexes are replaced by indexes, the indexes are combined into
+    // a single value.
+    //
+    //     finalIndex = verbIndex * numberOfOperationIndexes + operationIndex
+
+    int? verbIndex; // Verb index if nonzero.
+
+    if (node.hasVerb) {
+      if (node.verb
+          case HConstant(constant: StringConstantValue(:final stringValue))) {
+        final index = ArrayFlags.verbToIndex[stringValue];
+        if (index != null) {
+          if (index == 0) {
+            node.removeInput(4);
+          } else {
+            final replacement = _graph.addConstantInt(index, _closedWorld);
+            node.replaceInput(4, replacement);
+            verbIndex = index;
+          }
+        }
+      }
+    }
+
+    if (node.hasOperation) {
+      if (node.operation
+          case HConstant(constant: StringConstantValue(:final stringValue))) {
+        var index = ArrayFlags.operationNameToIndex[stringValue];
+        if (index != null) {
+          if (index == 0 && !node.hasVerb) {
+            node.removeInput(3);
+          } else {
+            if (verbIndex != null) {
+              // Encode combined indexes and remove 'verb' input.
+              index += verbIndex * ArrayFlags.operationNameToIndex.length;
+              node.removeInput(4);
+            }
+            final replacement = _graph.addConstantInt(index, _closedWorld);
+            node.replaceInput(3, replacement);
+          }
+        }
+      }
+    }
+
     return node;
   }
 

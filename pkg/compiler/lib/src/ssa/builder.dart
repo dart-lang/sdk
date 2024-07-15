@@ -5424,7 +5424,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void _handleArrayFlagsCheck(
       ir.StaticInvocation invocation, SourceInformation? sourceInformation) {
     if (_unexpectedForeignArguments(invocation,
-        minPositional: 4, maxPositional: 4, typeArgumentCount: 1)) {
+        minPositional: 4, maxPositional: 5, typeArgumentCount: 1)) {
       // Result expected on stack.
       stack.add(graph.addConstantNull(closedWorld));
       return;
@@ -5434,6 +5434,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     final arrayFlags = inputs[1];
     final checkFlags = inputs[2];
     final operation = inputs[3];
+    final verb = inputs.length > 4 ? inputs[4] : null;
 
     // TODO(sra): Use the flags to improve in the AbstractValue, which may
     // contain powerset domain bits outside of the conventional type
@@ -5444,7 +5445,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     instructionType ??= _abstractValueDomain.dynamicType;
 
     push(HArrayFlagsCheck(
-        array, arrayFlags, checkFlags, operation, instructionType)
+        array, arrayFlags, checkFlags, operation, verb, instructionType)
       ..sourceInformation = sourceInformation);
   }
 

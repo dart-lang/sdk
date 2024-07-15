@@ -60,4 +60,64 @@ class ArrayFlags {
 
   /// Bit to check for constant JSArray.
   static const int constantCheck = 4;
+
+  /// A List of operation names for HArrayFlagsCheck, encoded in a string of
+  /// names separated by semicolons.
+  ///
+  /// The optimizer may replace the string with an index into this
+  /// table. Generally this makes the generated code smaller. A name does not
+  /// need to be in this table. It makes sense for this table to include only
+  /// names that occur in more than one HArrayFlagsCheck, either as written in
+  /// js_runtime, or occuring multiple times via inlining.
+  static const operationNames = //
+      '[]=' // This is the most common operation so it comes first.
+      ';add'
+      ';removeWhere'
+      ';retainWhere'
+      ';removeRange'
+      ';setRange'
+      ';setInt8'
+      ';setInt16'
+      ';setInt32'
+      ';setUint8'
+      ';setUint16'
+      ';setUint32'
+      ';setFloat32'
+      ';setFloat64'
+      //
+      ;
+
+  /// A list of 'verbs' for HArrayFlagsCheck, encoded as a string of phrases
+  /// separated by semicolons. The 'verb' fills a span of the error message, for
+  /// example, "remove from" in the message
+  ///
+  ///     Cannot remove from an unmodifiable list.
+  ///            ^^^^^^^^^^^
+  ///
+  /// The optimizer may replace the string with an index into this
+  /// table. Generally this makes the program smaller. A 'verb' does not need to
+  /// be in this table. It makes sense to only have verbs that are used by
+  /// several calls to HArrayFlagsCheck, either as written in js_runtime, or
+  /// occuring multiple times via inlining.
+  static const verbs = //
+      'modify' // This is the verb for '[]=' so it comes first.
+      ';remove from'
+      ';add to'
+      //
+      ;
+
+  /// A view of [operationNames] as a map from the name to the index of the name
+  /// in the list.
+  static final Map<String, int> operationNameToIndex = _invert(operationNames);
+
+  /// A view of [verbs] as a map from the verb to the index of the verb in the
+  /// list.
+  static final Map<String, int> verbToIndex = _invert(verbs);
+
+  static Map<String, int> _invert(String joinedStrings) {
+    return {
+      for (final entry in joinedStrings.split(';').asMap().entries)
+        entry.value: entry.key,
+    };
+  }
 }

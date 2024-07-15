@@ -1401,6 +1401,12 @@ abstract class HInstruction implements SpannableWithEntity {
     replacement.usedBy.add(this);
   }
 
+  /// Remove a single input.
+  void removeInput(int index) {
+    inputs[index].usedBy.remove(this);
+    inputs.removeAt(index);
+  }
+
   void replaceAllUsersDominatedBy(
       HInstruction cursor, HInstruction newInstruction) {
     DominatedUses.of(this, cursor).replaceWith(newInstruction);
@@ -4707,20 +4713,36 @@ class HTypeBind extends HInstruction implements HRtiInstruction {
 ///
 ///     a = ...
 ///     f = HArrayFlagsGet(a);
-///     a2 = HArrayFlagsCheck(a, f, ArrayFlags.unmodifiableCheck, "[]=")
+///     a2 = HArrayFlagsCheck(a, f, ArrayFlags.unmodifiableCheck, "[]=", "modify")
 ///     a2[i] = 0
 ///
 /// HArrayFlagsGet is a separate instruction so that 'loading' the flags from
 /// the Array can by hoisted.
 class HArrayFlagsCheck extends HCheck {
-  HArrayFlagsCheck(HInstruction array, HInstruction arrayFlags,
-      HInstruction checkFlags, HInstruction operation, AbstractValue type)
-      : super([array, arrayFlags, checkFlags, operation], type);
+  HArrayFlagsCheck(
+      HInstruction array,
+      HInstruction arrayFlags,
+      HInstruction checkFlags,
+      HInstruction? operation,
+      HInstruction? verb,
+      AbstractValue type)
+      : super([
+          array,
+          arrayFlags,
+          checkFlags,
+          if (operation != null) operation,
+          if (verb != null) verb,
+        ], type);
 
   HInstruction get array => inputs[0];
   HInstruction get arrayFlags => inputs[1];
   HInstruction get checkFlags => inputs[2];
+
+  bool get hasOperation => inputs.length > 3;
   HInstruction get operation => inputs[3];
+
+  bool get hasVerb => inputs.length > 4;
+  HInstruction get verb => inputs[4];
 
   // The checked type is the input type, refined to match the flags.
   AbstractValue computeInstructionType(

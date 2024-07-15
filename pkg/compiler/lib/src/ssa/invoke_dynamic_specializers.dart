@@ -246,10 +246,11 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       HInstruction mask =
           graph.addConstantInt(ArrayFlags.unmodifiableCheck, closedWorld);
       HInstruction name = graph.addConstantString('[]=', closedWorld);
+      HInstruction verb = graph.addConstantString('modify', closedWorld);
       final instructionType = receiver.instructionType;
-      final checkFlags =
-          HArrayFlagsCheck(receiver, getFlags, mask, name, instructionType)
-            ..sourceInformation = instruction.sourceInformation;
+      final checkFlags = HArrayFlagsCheck(
+          receiver, getFlags, mask, name, verb, instructionType)
+        ..sourceInformation = instruction.sourceInformation;
       instruction.block!.addBefore(instruction, checkFlags);
       checkFlags.instructionType = checkFlags.computeInstructionType(
           instructionType, abstractValueDomain);

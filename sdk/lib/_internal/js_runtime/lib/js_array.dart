@@ -146,24 +146,25 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return !isUnmodifiable(a);
   }
 
-  checkMutable(String reason) {
+  checkMutable(String operation, String verb) {
     final int flags = HArrayFlagsGet(this);
-    HArrayFlagsCheck(this, flags, ArrayFlags.unmodifiableCheck, reason);
+    HArrayFlagsCheck(
+        this, flags, ArrayFlags.unmodifiableCheck, operation, verb);
   }
 
-  checkGrowable(String reason) {
+  checkGrowable(String operation, String verb) {
     final int flags = HArrayFlagsGet(this);
-    HArrayFlagsCheck(this, flags, ArrayFlags.fixedLengthCheck, reason);
+    HArrayFlagsCheck(this, flags, ArrayFlags.fixedLengthCheck, operation, verb);
   }
 
   List<R> cast<R>() => List.castFrom<E, R>(this);
   void add(E value) {
-    checkGrowable('add');
+    checkGrowable('add', 'add to');
     JS('void', r'#.push(#)', this, value);
   }
 
   E removeAt(int index) {
-    checkGrowable('removeAt');
+    checkGrowable('removeAt', 'remove from');
     if (index is! int) throw argumentErrorValue(index);
     if (index < 0 || index >= length) {
       throw RangeError.value(index);
@@ -172,7 +173,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void insert(int index, E value) {
-    checkGrowable('insert');
+    checkGrowable('insert', 'add to');
     if (index is! int) throw argumentErrorValue(index);
     if (index < 0 || index > length) {
       throw RangeError.value(index);
@@ -181,7 +182,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void insertAll(int index, Iterable<E> iterable) {
-    checkGrowable('insertAll');
+    checkGrowable('insertAll', 'add to');
     RangeError.checkValueInInterval(index, 0, this.length, 'index');
     if (iterable is! EfficientLengthIterable) {
       iterable = iterable.toList();
@@ -194,7 +195,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void setAll(int index, Iterable<E> iterable) {
-    checkMutable('setAll');
+    checkMutable('setAll', 'modify');
     RangeError.checkValueInInterval(index, 0, this.length, 'index');
     for (var element in iterable) {
       this[index++] = element;
@@ -202,13 +203,13 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   E removeLast() {
-    checkGrowable('removeLast');
+    checkGrowable('removeLast', 'remove from');
     if (length == 0) throw diagnoseIndexError(this, -1);
     return JS('', r'#.pop()', this);
   }
 
   bool remove(Object? element) {
-    checkGrowable('remove');
+    checkGrowable('remove', 'remove from');
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         JS('', r'#.splice(#, 1)', this, i);
@@ -220,12 +221,12 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
 
   /// Removes elements matching [test] from this [JSArray].
   void removeWhere(bool test(E element)) {
-    checkGrowable('removeWhere');
+    checkGrowable('removeWhere', 'remove from');
     _removeWhere(test, true);
   }
 
   void retainWhere(bool test(E element)) {
-    checkGrowable('retainWhere');
+    checkGrowable('retainWhere', 'remove from');
     _removeWhere(test, false);
   }
 
@@ -266,7 +267,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void addAll(Iterable<E> collection) {
-    checkGrowable('addAll');
+    checkGrowable('addAll', 'add to');
     if (collection is JSArray) {
       _addAllFromArray(JS('', '#', collection));
       return;
@@ -289,7 +290,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
 
   @pragma('dart2js:noInline')
   void clear() {
-    checkGrowable('clear');
+    checkGrowable('clear', 'clear');
     _clear();
   }
 
@@ -459,14 +460,14 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void removeRange(int start, int end) {
-    checkGrowable('removeRange');
+    checkGrowable('removeRange', 'remove from');
     RangeError.checkValidRange(start, end, this.length);
     int deleteCount = end - start;
     JS('', '#.splice(#, #)', this, start, deleteCount);
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    checkMutable('setRange');
+    checkMutable('setRange', 'modify');
 
     RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
@@ -506,7 +507,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void fillRange(int start, int end, [E? fillValue]) {
-    checkMutable('fill range');
+    checkMutable('fillRange', 'modify');
     RangeError.checkValidRange(start, end, this.length);
     E checkedFillValue = fillValue as E;
     for (int i = start; i < end; i++) {
@@ -517,7 +518,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void replaceRange(int start, int end, Iterable<E> replacement) {
-    checkGrowable('replaceRange');
+    checkGrowable('replaceRange', 'remove from or add to');
     RangeError.checkValidRange(start, end, this.length);
     if (replacement is! EfficientLengthIterable) {
       replacement = replacement.toList();
@@ -570,7 +571,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   Iterable<E> get reversed => ReversedListIterable<E>(this);
 
   void sort([int Function(E, E)? compare]) {
-    checkMutable('sort');
+    checkMutable('sort', 'modify');
     final len = length;
     if (len < 2) return;
     compare ??= _compareAny;
@@ -664,7 +665,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   void shuffle([Random? random]) {
-    checkMutable('shuffle');
+    checkMutable('shuffle', 'modify');
     if (random == null) random = Random();
     int length = this.length;
     while (length > 1) {
@@ -740,7 +741,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   int get length => JS('JSUInt32', r'#.length', this);
 
   set length(int newLength) {
-    checkGrowable('set length');
+    checkGrowable('set length', 'change the length of');
     if (newLength is! int) {
       throw ArgumentError.value(newLength, 'newLength');
     }

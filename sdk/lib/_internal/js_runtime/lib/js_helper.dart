@@ -1253,43 +1253,76 @@ throwUnsupportedError(message) {
 
 /// Called from code generated for the HArrayFlagsCheck instruction.
 ///
-/// A missing `operation` argument defaults to '[]='.
-Never throwUnsupportedOperation(Object o, [String? operation]) {
+/// The operation can be a string, or for more compact generated code, an index
+/// into a small table of operation names.  A missing `operation` or `verb`
+/// argument defaults to index 0.
+@pragma('dart2js:assumeDynamic')
+Never throwUnsupportedOperation(Object o, [Object? operation, Object? verb]) {
   // Missing argument is defaulted manually.  The calling convention for
   // top-level methods is that the call site provides the default values. Since
-  // the generated code omits the second argument, `undefined` is passed, which
-  // presents as Dart `null`.
-  operation ??= '[]=';
+  // the generated code omits the second or thrid argument, `undefined` is
+  // passed, which presents as Dart `null`.
+  operation ??= 0;
+  verb ??= 0;
   final wrapper = JS('', 'Error()');
   throwExpressionWithWrapper(
-      _diagnoseUnsupportedOperation(o, operation), wrapper);
+      _diagnoseUnsupportedOperation(o, operation, verb), wrapper);
 }
 
-Error _diagnoseUnsupportedOperation(Object o, String operation) {
-  String? verb;
+@pragma('dart2js:never-inline')
+Error _diagnoseUnsupportedOperation(
+    Object o, Object encodedOperation, Object encodedVerb) {
+  String operation;
+  String verb;
+
+  if (encodedOperation is String) {
+    operation = encodedOperation;
+  } else {
+    final table = JS<JSArray>('', '#.split(";")', ArrayFlags.operationNames);
+    int tableLength = JS('JSUInt31', '#.length', table);
+    int index = JS('JSUInt31', '#', encodedOperation);
+    if (index > tableLength) {
+      // Verb is also encoded with the operation.
+      // Do math in JavaScript, we know there are no edge cases.
+      // Truncating divide:
+      encodedVerb = JS<int>('', '(# / #) | 0', index, tableLength);
+      index = JS<int>('', '# % #', index, tableLength);
+    }
+    // The index should be valid by construction.
+    operation = JS<String>('', '#[#]', table, index);
+  }
+
+  if (encodedVerb is String) {
+    verb = encodedVerb;
+  } else {
+    final table = JS<JSArray>('', '#.split(";")', ArrayFlags.verbs);
+    // The index should be valid by construction.
+    verb = JS<String>('', '#[#]', table, encodedVerb);
+  }
+
   String adjective = '';
-  String article = 'a';
+  String article = 'a ';
   String object;
   if (o is List) {
     object = 'list';
-    // TODO(sra): Should we do more of this?
-    if (operation == 'add' || operation == 'addAll') verb ??= 'add to';
   } else {
     object = 'ByteData';
-    verb ??= "'$operation' on";
   }
-  verb ??= 'modify';
+
   final flags = HArrayFlagsGet(o);
-  if (flags & ArrayFlags.unmodifiableCheck != 0) {
+  if (flags & ArrayFlags.constantCheck != 0) {
+    article = 'a ';
+    adjective = 'constant ';
+  } else if (flags & ArrayFlags.unmodifiableCheck != 0) {
     article = 'an ';
     adjective = 'unmodifiable ';
-  } else {
-    // No need to test for fixed-length, otherwise we would not be diagnosing
-    // the error.
+  } else if (flags & ArrayFlags.fixedLengthCheck != 0) {
     article = 'a ';
     adjective = 'fixed-length ';
   }
-  return UnsupportedError('Cannot $verb $article$adjective$object');
+
+  final prefix = "'$operation': ";
+  return UnsupportedError('${prefix}Cannot $verb $article$adjective$object');
 }
 
 // This is used in open coded for-in loops on arrays.
