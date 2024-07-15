@@ -55,4 +55,21 @@ import 'dart:async' as _1;
       lint(23, 2),
     ]);
   }
+
+  test_wildcard() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async' as _;
+''');
+  }
+
+  test_wildcard_preWildCards() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'dart:async' as _;
+''', [
+      lint(67, 1),
+    ]);
+  }
 }
