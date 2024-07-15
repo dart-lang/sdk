@@ -2193,8 +2193,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     pushReceiver(selector.signature);
 
-    if (selector.targetCount == 1) {
-      final target = selector.singularTarget!;
+    if (selector.targetRanges.length == 1) {
+      final target = selector.targetRanges[0].target;
       final signature = translator.signatureForDirectCall(target);
       final paramInfo = translator.paramInfoForDirectCall(target);
       pushArguments(signature, paramInfo);
@@ -2204,7 +2204,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     int? offset = selector.offset;
     if (offset == null) {
       // Unreachable call
-      assert(selector.targetCount == 0);
+      assert(selector.targetRanges.isEmpty);
       b.comment("Virtual call of ${selector.name} with no targets"
           " at ${node.location}");
       b.drop();
@@ -2238,8 +2238,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void _polymorphicSpecialization(SelectorInfo selector, w.Local receiver) {
-    Map<int, Reference> implementations = Map.from(selector.targets);
-    implementations.removeWhere((id, target) => target.asMember.isAbstract);
+    final implementations = <int, Reference>{};
+    for (final (:range, :target) in selector.targetRanges) {
+      for (int classId = range.start; classId <= range.end; ++classId) {
+        implementations[classId] = target;
+      }
+    }
 
     w.Local idVar = addLocal(w.NumType.i32);
     b.local_get(receiver);

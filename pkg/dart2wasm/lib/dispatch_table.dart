@@ -42,30 +42,26 @@ class SelectorInfo {
   /// Does this method have any tear-off uses?
   bool hasTearOffUses = false;
 
-  /// Maps all concrete classes implementing this selector to the relevent
-  /// implementation member reference for the class.
-  final Map<int, Reference> targets = {};
-  late final Set<Reference> targetSet = targets.values.toSet();
+  /// Targets for all concrete classes implementing this selector.
+  ///
+  /// As a subclass hierarchy often inherits the same target, we associate the
+  /// target with a range of class ids. The ranges are non-empty,
+  /// non-overlapping and sorted in ascending order.
+  late final List<({Range range, Reference target})> targetRanges;
+  late final Set<Reference> targetSet =
+      targetRanges.map((e) => e.target).toSet();
 
   /// Wasm function type for the selector.
   ///
   /// This should be read after all targets have been added to the selector.
   late final w.FunctionType signature = _computeSignature();
 
-  /// IDs of classes that implement the member. This does not include abstract
-  /// classes.
-  final List<int> classIds = [];
-
-  /// Number of non-abstract references in [targets].
-  late final int targetCount;
-
-  /// When [targetCount] is 1, this holds the only non-abstract target of the
-  /// selector.
-  late final Reference? singularTarget;
+  /// Number of concrete classes that provide this selector.
+  late final int concreteClasses;
 
   /// Offset of the selector in the dispatch table.
   ///
-  /// For a class in [targets], `class ID + offset` gives the offset of the
+  /// For a class in [targetRanges], `class ID + offset` gives the offset of the
   /// class member for this selector.
   int? offset;
 
@@ -91,7 +87,7 @@ class SelectorInfo {
         List.generate(1 + paramInfo.paramCount, (_) => {});
     List<Set<w.ValueType>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
-    targets.forEach((classId, target) {
+    for (final (range: _, :target) in targetRanges) {
       Member member = target.asMember;
       DartType receiver =
           InterfaceType(member.enclosingClass!, Nullability.nonNullable);
@@ -154,7 +150,7 @@ class SelectorInfo {
           outputSets[i].add(translator.topInfo.nullableType);
         }
       }
-    });
+    }
 
     List<w.ValueType> typeParameters = List.filled(paramInfo.typeParamCount,
         translator.classInfo[translator.typeClass]!.nonNullableType);
@@ -379,23 +375,55 @@ class DispatchTable {
       selectorsInClass[cls] = selectors;
     }
 
+    final selectorTargets = <SelectorInfo, Map<int, Reference>>{};
     final maxConcreteClassId = translator.classIdNumbering.maxConcreteClassId;
     for (int classId = 0; classId < maxConcreteClassId; ++classId) {
       final cls = translator.classes[classId].cls;
       if (cls != null) {
         selectorsInClass[cls]!.forEach((selectorInfo, target) {
-          selectorInfo.targets[classId] = target;
-          selectorInfo.classIds.add(classId);
+          if (!target.asMember.isAbstract) {
+            selectorTargets.putIfAbsent(selectorInfo, () => {})[classId] =
+                target;
+          }
         });
       }
     }
 
-    // Build lists of class IDs and count targets
-    for (SelectorInfo selector in _selectorInfo.values) {
-      final Set<Reference> targets = selector.targets.values.toSet();
-      selector.targetCount = targets.length;
-      selector.singularTarget = targets.length == 1 ? targets.single : null;
-    }
+    selectorTargets
+        .forEach((SelectorInfo selector, Map<int, Reference> targets) {
+      selector.concreteClasses = targets.length;
+
+      final List<({Range range, Reference target})> ranges = targets.entries
+          .map((entry) =>
+              (range: Range(entry.key, entry.key), target: entry.value))
+          .toList()
+        ..sort((a, b) => a.range.start.compareTo(b.range.start));
+      assert(ranges.isNotEmpty);
+      int writeIndex = 0;
+      for (int readIndex = 1; readIndex < ranges.length; ++readIndex) {
+        final current = ranges[writeIndex];
+        final next = ranges[readIndex];
+        assert(next.range.length == 1);
+        if ((current.range.end + 1) == next.range.start &&
+            identical(current.target, next.target)) {
+          ranges[writeIndex] = (
+            range: Range(current.range.start, next.range.end),
+            target: current.target
+          );
+        } else {
+          ranges[++writeIndex] = next;
+        }
+      }
+      ranges.length = writeIndex + 1;
+      selector.targetRanges = ranges;
+    });
+
+    _selectorInfo.forEach((_, selector) {
+      if (!selectorTargets.containsKey(selector)) {
+        selector.concreteClasses = 0;
+        selector.targetRanges = [];
+      }
+    });
 
     // Assign selector offsets
 
@@ -408,11 +436,11 @@ class DispatchTable {
     /// invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
     /// even if there was no references to it from the Dart code.
     bool needsDispatch(SelectorInfo selector) =>
-        (selector.callCount > 0 && selector.targetCount > 1) ||
+        (selector.callCount > 0 && selector.targetRanges.length > 1) ||
         (selector.paramInfo.member! == translator.objectNoSuchMethod);
 
     final List<SelectorInfo> selectors =
-        _selectorInfo.values.where(needsDispatch).toList();
+        selectorTargets.keys.where(needsDispatch).toList();
 
     // Sort the selectors based on number of targets and number of use sites.
     // This is a heuristic to keep the table small.
@@ -424,16 +452,18 @@ class DispatchTable {
     // more used ones first, as the smaller selector offset will have a smaller
     // instruction encoding.
     int selectorSortWeight(SelectorInfo selector) =>
-        selector.classIds.length * 10 + selector.callCount;
+        selector.concreteClasses * 10 + selector.callCount;
 
     selectors.sort((a, b) => selectorSortWeight(b) - selectorSortWeight(a));
 
     final rows = <Row<Reference>>[];
     for (final selector in selectors) {
       final rowValues = <({int index, Reference value})>[];
-      selector.targets.forEach((int classId, Reference target) {
-        rowValues.add((index: classId, value: target));
-      });
+      for (final (:range, :target) in selector.targetRanges) {
+        for (int classId = range.start; classId <= range.end; ++classId) {
+          rowValues.add((index: classId, value: target));
+        }
+      }
       rowValues.sort((a, b) => a.index.compareTo(b.index));
       rows.add(Row(rowValues));
     }
