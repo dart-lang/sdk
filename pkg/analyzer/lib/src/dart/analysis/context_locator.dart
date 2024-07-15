@@ -26,6 +26,7 @@ import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 
 /// An implementation of a context locator.
+// ignore:deprecated_member_use_from_same_package
 class ContextLocatorImpl implements ContextLocator {
   /// A flag indicating if analysis contexts are limited to one corresponding
   /// analysis options file.
