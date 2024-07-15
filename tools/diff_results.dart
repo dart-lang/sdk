@@ -29,9 +29,9 @@ ${parser.usage}""");
 
 late bool verbose;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   final options = parser.parse(args);
-  if (options["help"]) {
+  if (options.flag("help")) {
     printUsage();
     return;
   }
@@ -43,9 +43,10 @@ main(List<String> args) async {
     exitCode = 1;
     return;
   }
-  verbose = options['verbose'] ?? false;
+  verbose = options.flag('verbose');
 
-  final globs = List<Glob>.from(options["bot"].map((pattern) => Glob(pattern)));
+  final globs = List<Glob>.from(
+      options.multiOption('bot').map((pattern) => Glob(pattern)));
   final vmBuilders = loadVmBuildersFromTestMatrix(globs);
 
   final futures = <Future<List<Result>>>[];
@@ -301,7 +302,7 @@ class Result {
         result == other.result;
   }
 
-  bool equals(other) {
+  bool equals(Object other) {
     if (other is Result) {
       if (name != other.name) return false;
       if (builderName != other.builderName) return false;

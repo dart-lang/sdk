@@ -9,9 +9,9 @@ const String classPath = '.:/usr/share/java/antlr3-runtime.jar';
 const String mainClass = 'SpecParser';
 const String javaExecutable = 'java';
 
-main([arguments]) {
+void main(List<String> arguments) {
   for (String arg in arguments) {
-    handleResult(ProcessResult result) {
+    void handleResult(ProcessResult result) {
       if (result.stderr.length != 0) {
         print('Error parsing $arg:\n${result.stderr}');
       }

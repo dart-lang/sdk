@@ -1,8 +1,9 @@
-#!/usr/bin/env dart
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 /// Converts block-style Doc comments in Dart code to line style.
-
-library line_doc_comments;
+library;
 
 import 'dart:io';
 
@@ -13,7 +14,7 @@ final startBlock = RegExp(r'^(\s*)/\*\*(.*)$');
 final blockLine = RegExp(r'^\s*\*\s?(.*)$');
 final endBlock = RegExp(r'^\s*\*/\s*$');
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     print('Converts "/**"-style block doc comments in a directory ');
     print('containing Dart code to "///"-style line doc comments.');

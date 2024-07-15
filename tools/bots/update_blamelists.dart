@@ -151,7 +151,7 @@ Future<void> updateBlameLists(String configuration, String commit,
   } while (needsRetry);
 }
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   var parser = ArgParser()
     ..addOption('auth-token',
         abbr: 'a',
@@ -162,12 +162,12 @@ main(List<String> arguments) async {
     ..addFlag('staging', abbr: 's', help: 'use staging database');
   var options = parser.parse(arguments);
   if (options.rest.isNotEmpty ||
-      options['results'] == null ||
-      options['auth-token'] == null) {
+      options.option('results') == null ||
+      options.option('auth-token') == null) {
     print(parser.usage);
     exit(1);
   }
-  var results = await loadResultsMap(options['results']);
+  var results = await loadResultsMap(options.option('results')!);
   if (results.isEmpty) {
     print("No test results provided, nothing to update.");
     return;
@@ -176,9 +176,9 @@ main(List<String> arguments) async {
   var firstResult = Result.fromMap(results.values.first);
   var commit = firstResult.commitHash!;
   var configuration = firstResult.configuration;
-  var project = options['staging'] ? 'dart-ci-staging' : 'dart-ci';
+  var project = options.flag('staging') ? 'dart-ci-staging' : 'dart-ci';
   database = FirestoreDatabase(
-      project, await readGcloudAuthToken(options['auth-token']));
+      project, await readGcloudAuthToken(options.option('auth-token')!));
   await updateBlameLists(configuration, commit, results);
   database.closeClient();
 }

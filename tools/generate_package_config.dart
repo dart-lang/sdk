@@ -191,7 +191,7 @@ Iterable<Package> makeFrontendServerPackageConfigs(List<String> packageDirs) =>
 Iterable<Package> makePkgVmPackageConfigs(List<String> packageDirs) =>
     makeSpecialPackageConfigs('pkg_vm', packageDirs);
 
-/// Finds the paths of the subdirectories of [dirPath] that contain pubspecs.
+/// Finds the paths of the subdirectories of [parentPath] that contain pubspecs.
 ///
 /// This method recurses until it finds a pubspec.yaml file.
 Iterable<String> listSubdirectories(String parentPath) sync* {
