@@ -58,7 +58,7 @@ class SizedBoxForWhitespace extends LintRule {
             name: 'sized_box_for_whitespace',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.flutter, Category.style});
 
   @override
   LintCode get lintCode => code;

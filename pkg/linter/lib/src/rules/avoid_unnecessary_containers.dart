@@ -60,7 +60,7 @@ class AvoidUnnecessaryContainers extends LintRule {
             name: 'avoid_unnecessary_containers',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.flutter, Category.style});
 
   @override
   LintCode get lintCode => code;

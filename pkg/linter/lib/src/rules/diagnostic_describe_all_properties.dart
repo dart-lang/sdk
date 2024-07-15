@@ -77,7 +77,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
           name: 'diagnostic_describe_all_properties',
           description: _desc,
           details: _details,
-          categories: {Category.errorProne},
+          categories: {Category.errorProne, Category.flutter},
         );
 
   @override

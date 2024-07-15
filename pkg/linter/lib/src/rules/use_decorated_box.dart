@@ -58,7 +58,7 @@ class UseDecoratedBox extends LintRule {
             name: 'use_decorated_box',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.flutter, Category.style});
 
   @override
   LintCode get lintCode => code;
