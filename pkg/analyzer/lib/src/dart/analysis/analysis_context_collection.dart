@@ -156,6 +156,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     throw StateError('Unable to find the context to $path');
   }
 
+  @override
   Future<void> dispose({
     bool forTesting = false,
   }) async {
