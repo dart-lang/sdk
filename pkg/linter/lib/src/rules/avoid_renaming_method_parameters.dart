@@ -74,6 +74,8 @@ class AvoidRenamingMethodParameters extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static final RegExp _wildcardRegExp = RegExp(r'^_+$');
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -124,9 +126,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     var count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
+
       var paramIdentifier = parameters[i].name;
-      if (paramIdentifier != null &&
-          paramIdentifier.lexeme != parentParameters[i].name) {
+      if (paramIdentifier == null) {
+        continue;
+      }
+
+      var paramLexeme = paramIdentifier.lexeme;
+      if (_wildcardRegExp.hasMatch(paramLexeme)) {
+        continue; // wildcard identifier
+      }
+
+      if (paramLexeme != parentParameters[i].name) {
         rule.reportLintForToken(paramIdentifier,
             arguments: [paramIdentifier.lexeme, parentParameters[i].name]);
       }

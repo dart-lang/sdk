@@ -166,4 +166,50 @@ class B extends A {
 }
 ''');
   }
+
+  test_renameWithWildcard() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_) {}
+}
+''');
+  }
+
+  test_renameWithMultipleWildcard() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int a, int b) {}
+}
+class B extends A {
+  void m(_, __) {}
+}
+''');
+  }
+
+  test_renameWithWildcardMixed() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int a, int b, int c) {}
+}
+class B extends A {
+  void m(_, b, __) {}
+}
+''');
+  }
+
+  test_renameWithWildcardMixedFails() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int a, int b, int c) {}
+}
+class B extends A {
+  void m(_, c, __) {}
+}
+''', [
+      lint(77, 1),
+    ]);
+  }
 }
