@@ -19,7 +19,7 @@ abstract class Client {
   /// Sends a request to the client.
   ///
   /// This method should forward [method] with [parameters] to the client.
-  Future<dynamic> sendRequest({required String method, dynamic parameters});
+  Future<Object?> sendRequest({required String method, Object? parameters});
 
   /// A map of services that are handled by this client.
   ///

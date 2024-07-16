@@ -264,7 +264,9 @@ class DartToolingDaemon {
       final encoded = jsonEncode({
         'tooling_daemon_details': {
           'uri': dtd.uri.toString(),
-          ...(!unrestrictedMode ? {'trusted_client_secret': secret} : {}),
+          ...(!unrestrictedMode
+              ? {'trusted_client_secret': secret}
+              : <String, Object?>{}),
         },
       });
       if (sendPort == null) {

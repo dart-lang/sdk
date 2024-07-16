@@ -20,19 +20,19 @@ import 'dtd_stream_manager.dart';
 /// [DTDClient] is used only by the server to handle the remote DTD client and
 /// by the client itself/on the client side.
 class DTDClient extends Client {
-  final StreamChannel connection;
+  final StreamChannel<String> connection;
   late json_rpc.Peer _clientPeer;
   final DartToolingDaemon dtd;
-  late final Future _done;
+  late final Future<void> _done;
 
-  Future get done => _done;
+  Future<void> get done => _done;
 
   DTDClient.fromWebSocket(
     DartToolingDaemon dtd,
     WebSocketChannel ws,
   ) : this._(
           dtd,
-          ws,
+          ws.cast<String>(),
         );
 
   DTDClient.fromSSEConnection(
@@ -48,7 +48,7 @@ class DTDClient extends Client {
     this.connection,
   ) {
     _clientPeer = json_rpc.Peer(
-      connection.cast<String>(),
+      connection,
       strictProtocolChecks: false,
     );
     _registerJsonRpcMethods();
@@ -97,7 +97,9 @@ class DTDClient extends Client {
   ///
   /// Parameters:
   /// 'streamId': the stream to be cancelled.
-  _streamListen(json_rpc.Parameters parameters) async {
+  Future<Map<String, Object?>> _streamListen(
+    json_rpc.Parameters parameters,
+  ) async {
     final streamId = parameters['streamId'].asString;
     try {
       await dtd.streamManager.streamListen(
@@ -154,7 +156,9 @@ class DTDClient extends Client {
   ///
   /// Parameters:
   /// 'streamId': the stream that the client would like to stop listening to.
-  _streamCancel(json_rpc.Parameters parameters) async {
+  Future<Map<String, Object?>> _streamCancel(
+    json_rpc.Parameters parameters,
+  ) async {
     final streamId = parameters['streamId'].asString;
 
     if (!dtd.streamManager.isSubscribed(this, streamId)) {
@@ -175,7 +179,9 @@ class DTDClient extends Client {
   /// 'eventKind': the kind of event being sent.
   /// 'eventData': the data being sent over the stream.
   /// 'streamId: the stream that is being posted to.
-  _postEvent(json_rpc.Parameters parameters) async {
+  Future<Map<String, Object?>> _postEvent(
+    json_rpc.Parameters parameters,
+  ) async {
     final eventKind = parameters['eventKind'].asString;
     final eventData = parameters['eventData'].asMap.cast<String, Object?>();
     final stream = parameters['streamId'].asString;
@@ -192,7 +198,7 @@ class DTDClient extends Client {
   /// Parameters:
   /// 'service': the name of the service that is being registered to.
   /// 'method': the name of the method that is being registered on the service.
-  _registerService(json_rpc.Parameters parameters) {
+  Map<String, Object?> _registerService(json_rpc.Parameters parameters) {
     final serviceName = parameters['service'].asString;
     final methodName = parameters['method'].asString;
     final capabilities = parameters['capabilities'].exists
@@ -299,7 +305,7 @@ class DTDClient extends Client {
   ///
   /// Handles all service method calls that will be forwarded to the respective
   /// client which registered that service method.
-  _fallback(json_rpc.Parameters parameters) async {
+  Future<Object?> _fallback(json_rpc.Parameters parameters) async {
     // Lookup the client associated with the service extension's namespace.
     // If the client exists and that client has registered the specified
     // method, forward the request to that client.
