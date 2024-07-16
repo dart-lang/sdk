@@ -1264,24 +1264,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void addNativeDependency(String nativeImportPath) {
-    MemberBuilder constructor = loader.getNativeAnnotation();
-    Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
-    Expression annotation;
-    if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(
-          constructor.member as Constructor, arguments)
-        ..isConst = true;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      annotation =
-          new StaticInvocation(constructor.member as Procedure, arguments)
-            ..isConst = true;
-    }
-    library.addAnnotation(annotation);
-  }
-
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
     compilationUnit.addDependencies(library, seen);
     for (SourceCompilationUnit part in parts) {

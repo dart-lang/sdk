@@ -53,8 +53,8 @@ class SourceCompilationUnitImpl
   /// an explicit @dart= language version annotation.
   LanguageVersion _languageVersion;
 
-  bool postponedProblemsIssued = false;
-  List<PostponedProblem>? postponedProblems;
+  bool _postponedProblemsIssued = false;
+  List<PostponedProblem>? _postponedProblems;
 
   /// Index of the library we use references for.
   @override
@@ -256,26 +256,26 @@ class SourceCompilationUnitImpl
   @override
   void addPostponedProblem(
       Message message, int charOffset, int length, Uri fileUri) {
-    if (postponedProblemsIssued) {
+    if (_postponedProblemsIssued) {
       // Coverage-ignore-block(suite): Not run.
       addProblem(message, charOffset, length, fileUri);
     } else {
-      postponedProblems ??= <PostponedProblem>[];
-      postponedProblems!
+      _postponedProblems ??= <PostponedProblem>[];
+      _postponedProblems!
           .add(new PostponedProblem(message, charOffset, length, fileUri));
     }
   }
 
   @override
   void issuePostponedProblems() {
-    postponedProblemsIssued = true;
-    if (postponedProblems == null) return;
-    for (int i = 0; i < postponedProblems!.length; ++i) {
-      PostponedProblem postponedProblem = postponedProblems![i];
+    _postponedProblemsIssued = true;
+    if (_postponedProblems == null) return;
+    for (int i = 0; i < _postponedProblems!.length; ++i) {
+      PostponedProblem postponedProblem = _postponedProblems![i];
       addProblem(postponedProblem.message, postponedProblem.charOffset,
           postponedProblem.length, postponedProblem.fileUri);
     }
-    postponedProblems = null;
+    _postponedProblems = null;
   }
 
   @override
@@ -341,6 +341,24 @@ class SourceCompilationUnitImpl
   @override
   String toString() => 'SourceCompilationUnitImpl($fileUri)';
 
+  void _addNativeDependency(Library library, String nativeImportPath) {
+    MemberBuilder constructor = loader.getNativeAnnotation();
+    Arguments arguments =
+        new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
+    Expression annotation;
+    if (constructor.isConstructor) {
+      annotation = new ConstructorInvocation(
+          constructor.member as Constructor, arguments)
+        ..isConst = true;
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      annotation =
+          new StaticInvocation(constructor.member as Procedure, arguments)
+            ..isConst = true;
+    }
+    library.addAnnotation(annotation);
+  }
+
   @override
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
     if (!seen.add(this)) {
@@ -350,7 +368,7 @@ class SourceCompilationUnitImpl
     for (Import import in _builderFactoryResult.imports) {
       // Rather than add a LibraryDependency, we attach an annotation.
       if (import.nativeImportPath != null) {
-        _sourceLibraryBuilder.addNativeDependency(import.nativeImportPath!);
+        _addNativeDependency(library, import.nativeImportPath!);
         continue;
       }
 
@@ -698,7 +716,7 @@ class SourceCompilationUnitImpl
 
   @override
   void addImportsToScope() {
-    bool explicitCoreImport = _sourceLibraryBuilder == loader.coreLibrary;
+    bool hasCoreImport = originImportUri == dartCore && !forPatchLibrary;
     for (Import import in _builderFactoryResult.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
         // Coverage-ignore-block(suite): Not run.
@@ -710,11 +728,11 @@ class SourceCompilationUnitImpl
             fileUri);
       }
       if (import.importedLibraryBuilder == loader.coreLibrary) {
-        explicitCoreImport = true;
+        hasCoreImport = true;
       }
       import.finalizeImports(this);
     }
-    if (!explicitCoreImport) {
+    if (!hasCoreImport) {
       NameIterator<Builder> iterator = loader.coreLibrary.exportScope
           .filteredNameIterator(
               includeDuplicates: false, includeAugmentations: false);
