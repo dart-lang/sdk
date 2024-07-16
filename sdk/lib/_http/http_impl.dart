@@ -195,6 +195,9 @@ class _HttpProfileData {
   }
 
   void finishResponse() {
+    // Guard against the response being completed more than once or being
+    // completed before the response actually finished starting.
+    if (responseInProgress != true) return;
     responseInProgress = false;
     responseEndTimestamp = DateTime.now().microsecondsSinceEpoch;
     requestEvent('Content Download');
@@ -600,6 +603,9 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
         super(_incoming) {
     // Set uri for potential exceptions.
     _incoming.uri = _httpRequest.uri;
+    // Ensure the response profile is completed, even if the response stream is
+    // never actually listened to.
+    _incoming.dataDone.then((_) => _profileData?.finishResponse());
   }
 
   static HttpClientResponseCompressionState _getCompressionState(
@@ -708,22 +714,22 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
         return data;
       });
     }
-    return stream.listen(onData, onError: (e, st) {
-      _profileData?.finishResponseWithError(e.toString());
-      if (onError == null) {
-        return;
-      }
-      if (onError is void Function(Object, StackTrace)) {
-        onError(e, st);
-      } else {
-        (onError as void Function(Object))(e);
-      }
-    }, onDone: () {
-      _profileData?.finishResponse();
-      if (onDone != null) {
-        onDone();
-      }
-    }, cancelOnError: cancelOnError);
+    return stream.listen(
+      onData,
+      onError: (e, st) {
+        _profileData?.finishResponseWithError(e.toString());
+        if (onError == null) {
+          return;
+        }
+        if (onError is void Function(Object, StackTrace)) {
+          onError(e, st);
+        } else {
+          (onError as void Function(Object))(e);
+        }
+      },
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
   Future<Socket> detachSocket() {
