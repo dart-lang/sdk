@@ -26,7 +26,6 @@ import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../kernel/hierarchy/members_builder.dart';
-import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
@@ -156,13 +155,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   LanguageVersion get languageVersion;
 
-  // TODO(johnniwinther): Remove this.
-  Library get library;
-
   String? get name;
-
-  // TODO(johnniwinther): Remove this?
-  LibraryName get libraryName;
 
   List<NamedTypeBuilder> get unresolvedNamedTypes;
 
@@ -171,8 +164,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   String? get partOfName;
 
   Uri? get partOfUri;
-
-  Scope get scope;
 
   List<MetadataBuilder>? get metadata;
 
@@ -230,7 +221,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   void buildOutlineNode(Library library);
 
-  int finishDeferredLoadTearoffs(Library library);
+  int finishDeferredLoadTearOffs(Library library);
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f);
 

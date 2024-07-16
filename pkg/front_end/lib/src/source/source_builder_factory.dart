@@ -133,22 +133,32 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<SourceFunctionBuilder> _nativeMethods = [];
 
+  final LibraryName libraryName;
+
+  final Scope scope;
+
   BuilderFactoryImpl(
-      this._compilationUnit,
-      this._augmentationRoot,
-      this._parent,
-      this._libraryTypeParameterScopeBuilder,
-      this._problemReporting,
-      {required this.indexedLibrary,
+      {required SourceCompilationUnit compilationUnit,
+      required SourceLibraryBuilder augmentationRoot,
+      required SourceLibraryBuilder parent,
+      required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      required ProblemReporting problemReporting,
+      required Scope scope,
+      required LibraryName libraryName,
+      required IndexedLibrary? indexedLibrary,
       required Map<String, Builder>? omittedTypeDeclarationBuilders})
-      : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
+      : _compilationUnit = compilationUnit,
+        _augmentationRoot = augmentationRoot,
+        _libraryTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
+        currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
+        _problemReporting = problemReporting,
+        _parent = parent,
+        scope = scope,
+        libraryName = libraryName,
+        indexedLibrary = indexedLibrary,
         _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
 
-  Scope get scope => _compilationUnit.scope;
-
   SourceLoader get loader => _compilationUnit.loader;
-
-  LibraryName get libraryName => _compilationUnit.libraryName;
 
   LibraryFeatures get libraryFeatures => _compilationUnit.libraryFeatures;
 
@@ -2367,7 +2377,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         ..exportScope.merge(declaration.exportScope,
             (String name, Builder existing, Builder member) {
           return computeAmbiguousDeclarationForScope(
-              _problemReporting, _compilationUnit.scope, name, existing, member,
+              _problemReporting, scope, name, existing, member,
               uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
         });
     } else if (_isDuplicatedDeclaration(existing, declaration)) {

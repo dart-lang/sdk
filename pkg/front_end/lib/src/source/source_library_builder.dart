@@ -1271,20 +1271,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  int finishDeferredLoadTearoffs() {
+  int finishDeferredLoadTearOffs() {
     int total = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        total += augmentationLibrary.finishDeferredLoadTearoffs();
+        total += augmentationLibrary.finishDeferredLoadTearOffs();
       }
     }
 
-    total += compilationUnit.finishDeferredLoadTearoffs(library);
+    total += compilationUnit.finishDeferredLoadTearOffs(library);
     for (SourceCompilationUnit part in parts) {
-      total += part.finishDeferredLoadTearoffs(library);
+      total += part.finishDeferredLoadTearOffs(library);
     }
     return total;
   }

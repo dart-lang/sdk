@@ -1764,7 +1764,7 @@ severity: $severity
   void finishDeferredLoadTearoffs() {
     int count = 0;
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      count += library.finishDeferredLoadTearoffs();
+      count += library.finishDeferredLoadTearOffs();
     }
     ticker.logMs("Finished deferred load tearoffs $count");
   }
