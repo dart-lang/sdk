@@ -1454,8 +1454,8 @@ abstract interface class HttpClient {
   /// authentication.
   ///
   /// The URL requested, the authentication scheme and the security realm
-  /// from the server are passed in the arguments [f.url], [f.scheme] and
-  /// [f.realm].
+  /// from the server are passed in the arguments `f.url`, `f.scheme` and
+  /// `f.realm`.
   ///
   /// The function returns a [Future] which should complete when the
   /// authentication has been resolved. If credentials cannot be
@@ -1483,12 +1483,12 @@ abstract interface class HttpClient {
   /// Sets the function used to create socket connections.
   ///
   /// The URL requested (e.g. through [getUrl]) and proxy configuration
-  /// ([f.proxyHost] and [f.proxyPort]) are passed as arguments. [f.proxyHost]
-  /// and [f.proxyPort] will be `null` if the connection is not made through
+  /// (`f.proxyHost` and `f.proxyPort`) are passed as arguments. `f.proxyHost`
+  /// and `f.proxyPort` will be `null` if the connection is not made through
   /// a proxy.
   ///
   /// Since connections may be reused based on host and port, it is important
-  /// that the function not ignore [f.proxyHost] and [f.proxyPort] if they are
+  /// that the function not ignore `f.proxyHost` and `f.proxyPort` if they are
   /// not `null`. If proxies are not meaningful for the returned [Socket], you
   /// can set [findProxy] to use a direct connection.
   ///
@@ -1521,7 +1521,7 @@ abstract interface class HttpClient {
           f);
 
   /// Sets the function used to resolve the proxy server to be used for
-  /// opening a HTTP connection to the specified [url]. If this
+  /// opening a HTTP connection to the specified `url`. If this
   /// function is not set, direct connections will always be used.
   ///
   /// The string returned by [f] must be in the format used by browser
@@ -1608,7 +1608,7 @@ abstract interface class HttpClient {
   ///
   /// Information on the proxy in use, the authentication scheme
   /// and the security realm for the authentication
-  /// are passed in the arguments [f.host], [f.port], [f.scheme] and [f.realm].
+  /// are passed in the arguments `f.host`, `f.port`, `f.scheme` and `f.realm`.
   ///
   /// The function returns a [Future] which should complete when the
   /// authentication has been resolved. If credentials cannot be
