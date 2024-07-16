@@ -5,15 +5,14 @@
 void main() {
   /* bl */
   /*sl:1*/ var iterator = naturalsTo(2);
-  for (var /*sl:2*/ /*sl:4*/ i in iterator) {
-    /*sl:3*/ /*sl:5*/ print(i);
+  for (var /*bc:3*/ /*bc:8*/ /*bc:12*/ i in /*bc:2*/ iterator) {
+    /*bc:7*/ /*bc:11*/ print(i);
   }
-  /*s:6*/
 }
 
 Iterable<int> naturalsTo(int n) sync* {
-  var k = 0;
-  while (k < n) {
-    yield ++k;
+  /*sl:4*/ var k = 0;
+  /*sl:5*/ /*sl:9*/ /*sl:13*/ while (k < n) {
+    /*nbb:0:6*/ /*sl:6*/ /*sl:10*/ yield ++k;
   }
 }
