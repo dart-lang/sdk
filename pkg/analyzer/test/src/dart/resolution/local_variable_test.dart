@@ -134,6 +134,38 @@ void f() {
     expect(x.isStatic, isFalse);
   }
 
+  test_localVariable_wildcardFunction() async {
+    await assertErrorsInCode('''
+f() {
+  _() {}
+  _();
+}
+''', [
+      error(WarningCode.DEAD_CODE, 8, 6),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 17, 1),
+    ]);
+  }
+
+  test_localVariable_wildcardFunction_preWildcards() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  _() {}
+  _();
+}
+''');
+
+    var node = findNode.simple('_();');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: _
+  staticElement: _@52
+  staticType: Null Function()
+''');
+  }
+
   test_localVariable_wildcardVariable_field() async {
     await assertNoErrorsInCode('''
 class C {

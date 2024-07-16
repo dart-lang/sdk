@@ -281,4 +281,61 @@ FunctionDeclaration
     type: Iterable<int> Function()
 ''');
   }
+
+  test_wildCardFunction() async {
+    await assertErrorsInCode('''
+_() {}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 0, 1),
+    ]);
+
+    var node = findNode.singleFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  name: _
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: self::@function::_
+      type: dynamic Function()
+    staticType: dynamic Function()
+  declaredElement: self::@function::_
+    type: dynamic Function()
+''');
+  }
+
+  test_wildCardFunction_preWildCards() async {
+    await assertErrorsInCode('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+_() {}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 44, 1),
+    ]);
+
+    var node = findNode.singleFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  name: _
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredElement: self::@function::_
+      type: dynamic Function()
+    staticType: dynamic Function()
+  declaredElement: self::@function::_
+    type: dynamic Function()
+''');
+  }
 }
