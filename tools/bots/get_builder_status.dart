@@ -68,19 +68,31 @@ void main(List<String> args) async {
       abbr: 's', help: 'use staging database', defaultsTo: false);
 
   final options = parser.parse(args);
-  if (options['help']) {
+  if (options.flag('help')) {
     usage(parser);
   }
 
-  useStagingDatabase = options['staging'];
-  builder = options['builder'];
-  buildNumber = int.parse(options['build_number']);
-  builderBase = builder.replaceFirst(RegExp('-try\$'), '');
-  if (options['auth_token'] == null) {
-    print('Option "--auth_token (-a)" is required\n');
+  useStagingDatabase = options.flag('staging');
+
+  if (options.option('builder') == null) {
+    print('Option "--builder" is required\n');
     usage(parser);
   }
-  token = await readGcloudAuthToken(options['auth_token']);
+  builder = options.option('builder')!;
+  builderBase = builder.replaceFirst(RegExp('-try\$'), '');
+
+  if (options.option('build_number') == null) {
+    print('Option "--build_number" is required\n');
+    usage(parser);
+  }
+  buildNumber = int.parse(options.option('build_number')!);
+
+  if (options.option('auth_token') == null) {
+    print('Option "--auth_token" is required\n');
+    usage(parser);
+  }
+  token = await readGcloudAuthToken(options.option('auth_token')!);
+
   client = http.Client();
   final response = await runFirestoreQuery(buildQuery());
   if (response.statusCode != HttpStatus.ok) {

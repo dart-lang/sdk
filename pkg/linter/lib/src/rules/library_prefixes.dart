@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../utils.dart';
@@ -54,21 +56,32 @@ class LibraryPrefixes extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.libraryElement);
     registry.addImportDirective(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// Whether the `wildcard_variables` feature is enabled.
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, LibraryElement? library)
+      : _wildCardVariablesEnabled =
+            library?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 
   @override
   void visitImportDirective(ImportDirective node) {
     var prefix = node.prefix;
-    if (prefix != null && !isValidLibraryPrefix(prefix.toString())) {
-      rule.reportLint(prefix, arguments: [prefix.toString()]);
+    if (prefix == null) return;
+
+    var prefixString = prefix.toString();
+    // With wildcards, `_` is allowed.
+    if (_wildCardVariablesEnabled && prefixString == '_') return;
+
+    if (!isValidLibraryPrefix(prefixString)) {
+      rule.reportLint(prefix, arguments: [prefixString]);
     }
   }
 }

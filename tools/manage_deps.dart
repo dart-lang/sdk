@@ -73,7 +73,7 @@ This will:
       usageException('No directory $pkgDir');
     }
     final toUpdate = p.split(pkgDir).last;
-    final branchName = argResults['branch'] ?? 'bump_$toUpdate';
+    final branchName = argResults.option('branch') ?? 'bump_$toUpdate';
 
     final exists = runProcessForExitCode(
         ['git', 'rev-parse', '--verify', branchName],
@@ -115,7 +115,7 @@ This will:
       'git',
       'rev-parse',
       if (argResults.wasParsed('target'))
-        argResults['target']
+        argResults.option('target')!
       else
         'origin/${defaultBranchTarget(pkgDir)}',
     ], workingDirectory: pkgDir, explanation: 'Finding sha-id');

@@ -22,7 +22,7 @@ void main(List<String> args) async {
   parser.addFlag('no-forgive', help: 'Don\'t remove any flaky records');
 
   final options = parser.parse(args);
-  if (options['help']) {
+  if (options.flag('help')) {
     print('''
 Usage: update_flakiness.dart [OPTION]... [RESULT-FILE]...
 Update the flakiness data with a set of fresh results.
@@ -35,8 +35,8 @@ ${parser.usage}''');
   final parameters = options.rest;
 
   // Load the existing flakiness data, if any.
-  final data = options['input'] != null
-      ? await loadResultsMap(options['input'])
+  final data = options.option('input') != null
+      ? await loadResultsMap(options.option('input')!)
       : <String, Map<String, dynamic>>{};
 
   final resultsForInactiveFlakiness = {
@@ -59,7 +59,7 @@ ${parser.usage}''');
       testData['configuration'] = configuration;
       testData['name'] = name;
       testData['expected'] = resultObject['expected'];
-      final List<dynamic> outcomes = testData['outcomes'] ??= [];
+      final List<dynamic> outcomes = testData['outcomes'] ??= <dynamic>[];
       if (!outcomes.contains(result)) {
         outcomes
           ..add(result)
@@ -79,19 +79,20 @@ ${parser.usage}''');
       mapField('first_seen')[result] ??= nowString;
       mapField('last_seen')[result] = nowString;
       mapField('matches')[result] = resultObject['matches'];
-      if (options['build-id'] != null) {
-        mapField('build_ids')[result] = options['build-id'];
+      if (options.option('build-id') != null) {
+        mapField('build_ids')[result] = options.option('build-id')!;
       }
-      if (options['commit'] != null) {
-        mapField('commits')[result] = options['commit'];
+      if (options.option('commit') != null) {
+        mapField('commits')[result] = options.option('commit')!;
       }
     }
   }
 
   // Write out the new flakiness data.
   final flakinessHorizon = now.subtract(Duration(days: 7));
-  final sink =
-      options['output'] != null ? File(options['output']).openWrite() : stdout;
+  final sink = options.option('output') != null
+      ? File(options.option('output')!).openWrite()
+      : stdout;
   final keys = data.keys.toList()..sort();
   for (final key in keys) {
     final testData = data[key]!;
@@ -103,7 +104,7 @@ ${parser.usage}''');
         testData['reactivation_count'] =
             (testData['reactivation_count'] ?? 0) + 1;
       }
-    } else if (options['no-forgive']) {
+    } else if (options.flag('no-forgive')) {
       testData['active'] = true;
     } else if (testData['current_counter'] >= 100) {
       // Forgive tests that have been stable for 100 builds.

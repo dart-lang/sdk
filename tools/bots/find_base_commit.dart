@@ -28,7 +28,7 @@ void main(List<String> args) async {
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
 
   final options = parser.parse(args);
-  if (options["help"]) {
+  if (options.flag("help")) {
     print("""
 Usage: find_base_commit.dart [OPTION]...
 Find the newest commit that has a full set of results on the builders.
@@ -39,9 +39,9 @@ ${parser.usage}""");
     return;
   }
 
-  int count = int.parse(options["count"]);
+  int count = int.parse(options.option("count")!);
   final globs = List<Glob>.from(
-      options["builder"].map((String pattern) => Glob(pattern)));
+      options.multiOption("builder").map((String pattern) => Glob(pattern)));
 
   // Download the most recent builds from buildbucket.
   const maxBuilds = 1000;
@@ -126,7 +126,7 @@ ${parser.usage}""");
       continue;
     }
     final ref = input["ref"];
-    if (ref != "refs/heads/${options['branch']}") {
+    if (ref != "refs/heads/${options.option('branch')}") {
       // Ignore builds on the wrong branch.
       continue;
     }

@@ -190,10 +190,8 @@ sispIsDartEnd(line) => line.contains(dartCodeEndRE);
 // Analyzing the input to point out "interesting" lines
 
 /// Returns the event information for [lines] as determined by the
-/// given [analyzer].  The method [analyzer.analyze] indicates that a
-/// line is "uninteresting" by returning null (i.e., no events here),
-/// and "interesting" lines may be characterized by [analysisFunc] via
-/// the returned event object.
+/// given [analyzer].  The method [HashAnalyzer.analyze] indicates that a
+/// line is "uninteresting" by returning null (i.e., no events here).
 findEvents(lines, analyzer) {
   var events = [];
   for (var line in lines) {
@@ -523,7 +521,7 @@ addHashMarks(lines, hashEvents, listSink) {
 }
 
 /// Transforms LaTeX input to LaTeX output plus hash value list file.
-main([args]) {
+void main(List<String> args) {
   if (args.length != 3) {
     print("Usage: addlatexhash.dart <input-file> <output-file> <list-file>");
     throw "Received ${args.length} arguments, expected three";
