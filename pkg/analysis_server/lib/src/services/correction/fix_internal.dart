@@ -1607,6 +1607,10 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
+  WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER: [
+    RemoveInitializer.notLate,
+    RemoveLate.new,
+  ],
   WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
     // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
     //  a place where it can be reached (when possible).

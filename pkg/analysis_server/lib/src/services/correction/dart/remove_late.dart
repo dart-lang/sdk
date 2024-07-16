@@ -55,6 +55,17 @@ class RemoveLate extends ResolvedCorrectionProducer {
           }
         }
       }
+    } else {
+      var grandParent = node.parent?.parent;
+      if (grandParent is VariableDeclarationList) {
+        var lateKeyword = grandParent.lateKeyword;
+        if (lateKeyword != null) {
+          return _LateKeywordLocation(
+            lateKeyword: lateKeyword,
+            nextToken: lateKeyword.next!,
+          );
+        }
+      }
     }
 
     return null;

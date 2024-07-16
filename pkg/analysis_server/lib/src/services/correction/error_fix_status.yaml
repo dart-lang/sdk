@@ -45,8 +45,8 @@
 #
 # Stats:
 # -  42 "needsEvaluation"
-# - 307 "needsFix"
-# - 441 "hasFix"
+# - 306 "needsFix"
+# - 442 "hasFix"
 # - 517 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -3390,9 +3390,7 @@ WarningCode.DEAD_CODE:
 WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER:
-  status: needsFix
-  notes: |-
-    Remove the initializer or remove the late keyword.  
+  status: hasFix
 WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
 WarningCode.DEPRECATED_EXPORT_USE:
