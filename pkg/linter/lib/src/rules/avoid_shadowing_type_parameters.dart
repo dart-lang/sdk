@@ -39,7 +39,7 @@ class AvoidShadowingTypeParameters extends LintRule {
             name: 'avoid_shadowing_type_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.errorProne});
 
   @override
   LintCode get lintCode => code;

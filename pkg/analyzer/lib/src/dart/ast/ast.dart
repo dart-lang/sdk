@@ -13256,6 +13256,9 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 ///    partDirective ::=
 ///        [Annotation] 'part' [StringLiteral] ';'
 abstract final class PartDirective implements UriBasedDirective {
+  /// The configurations that control which file is actually included.
+  NodeList<Configuration> get configurations;
+
   @override
   PartElement? get element;
 
@@ -13272,6 +13275,9 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   final Token partKeyword;
 
   @override
+  final NodeListImpl<ConfigurationImpl> configurations = NodeListImpl._();
+
+  @override
   final Token semicolon;
 
   /// Initializes a newly created part directive.
@@ -13283,8 +13289,11 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required super.metadata,
     required this.partKeyword,
     required super.uri,
+    required List<ConfigurationImpl>? configurations,
     required this.semicolon,
-  });
+  }) {
+    this.configurations._initialize(this, configurations);
+  }
 
   @override
   PartElementImpl? get element {
@@ -13301,10 +13310,17 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
     ..addNode('uri', uri)
+    ..addNodeList('configurations', configurations)
     ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    configurations.accept(visitor);
+  }
 }
 
 /// A part-of directive.

@@ -926,13 +926,6 @@ class Foo {
     ]);
   }
 
-  void test_exportDirectiveAfterPartDirective() {
-    parseCompilationUnit("part 'a.dart'; export 'b.dart';", errors: [
-      expectedError(
-          ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6)
-    ]);
-  }
-
   void test_externalAfterConst() {
     createParser('const external C();');
     ClassMember member = parser.parseClassMember('C');
@@ -1392,13 +1385,6 @@ class Wrong<T> {
   void test_implementsBeforeWith() {
     parseCompilationUnit("class A extends B implements C with D {}",
         errors: [expectedError(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, 31, 4)]);
-  }
-
-  void test_importDirectiveAfterPartDirective() {
-    parseCompilationUnit("part 'a.dart'; import 'b.dart';", errors: [
-      expectedError(
-          ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6)
-    ]);
   }
 
   void test_initializedVariableInForEach() {
@@ -2375,21 +2361,6 @@ class Wrong<T> {
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 1)
     ]);
     expect(unit, isNotNull);
-  }
-
-  void test_nonPartOfDirectiveInPart_after() {
-    parseCompilationUnit("part of l; part 'f.dart';", errors: [
-      expectedError(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 11, 4)
-    ]);
-  }
-
-  void test_nonPartOfDirectiveInPart_before() {
-    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
-    parseCompilationUnit("part 'f.dart'; part of m;", codes: [
-      ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART
-    ], errors: [
-      expectedError(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, 0, 4)
-    ]);
   }
 
   void test_nonUserDefinableOperator() {

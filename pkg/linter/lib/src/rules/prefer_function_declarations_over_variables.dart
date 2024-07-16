@@ -10,6 +10,8 @@ import '../analyzer.dart';
 const _desc = r'Use a function declaration to bind a function to a name.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/usage#do-use-a-function-declaration-to-bind-a-function-to-a-name):
+
 **DO** use a function declaration to bind a function to a name.
 
 As Dart allows local function declarations, it is a good practice to use them in
@@ -49,7 +51,7 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
             name: 'prefer_function_declarations_over_variables',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

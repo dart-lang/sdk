@@ -42,6 +42,7 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 /// An implementation of a context builder.
+// ignore:deprecated_member_use_from_same_package
 class ContextBuilderImpl implements ContextBuilder {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;

@@ -338,10 +338,14 @@ class Parser {
   /// [parsePrimaryPattern] and [parsePattern].
   bool isLastPatternAllowedInsideUnaryPattern = false;
 
+  /// Whether the `enhanced-parts` feature is enabled.
+  final bool enableFeatureEnhancedParts;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
     this.allowPatterns = false,
+    this.enableFeatureEnhancedParts = false,
   }) : assert(listener != null); // ignore:unnecessary_null_comparison
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
@@ -401,7 +405,9 @@ class Parser {
 
     listener.beginCompilationUnit(token);
     int count = 0;
-    DirectiveContext directiveState = new DirectiveContext();
+    DirectiveContext directiveState = new DirectiveContext(
+      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
+    );
     token = syntheticPreviousToken(token);
     if (identical(token.next!.type, TokenType.SCRIPT_TAG)) {
       directiveState.checkScriptTag(this, token.next!);
@@ -448,7 +454,9 @@ class Parser {
   Token parseDirectives(Token token) {
     listener.beginCompilationUnit(token);
     int count = 0;
-    DirectiveContext directiveState = new DirectiveContext();
+    DirectiveContext directiveState = new DirectiveContext(
+      enableFeatureEnhancedParts: enableFeatureEnhancedParts,
+    );
     token = syntheticPreviousToken(token);
     while (!token.next!.isEof) {
       final Token start = token.next!;
@@ -1227,13 +1235,14 @@ class Parser {
 
   /// ```
   /// partDirective:
-  ///   'part' uri ';'
+  ///   'part' uri ('if' '(' test ')' uri)* ';'
   /// ;
   /// ```
   Token parsePart(Token partKeyword) {
     assert(optional('part', partKeyword));
     listener.beginPart(partKeyword);
     Token token = ensureLiteralString(partKeyword);
+    token = parseConditionalUriStar(token);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;

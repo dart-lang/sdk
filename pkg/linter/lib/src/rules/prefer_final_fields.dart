@@ -13,6 +13,8 @@ import '../extensions.dart';
 const _desc = r'Private field could be `final`.';
 
 const _details = r'''
+From [Effective Dart](https://dart.dev/effective-dart/design#prefer-making-fields-and-top-level-variables-final):
+
 **DO** prefer declaring private fields as `final` if they are not reassigned
 later in the library.
 
@@ -92,7 +94,7 @@ class PreferFinalFields extends LintRule {
             name: 'prefer_final_fields',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.effectiveDart, Category.style});
 
   @override
   LintCode get lintCode => code;

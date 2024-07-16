@@ -140,6 +140,8 @@ class FindNode {
 
   ParenthesizedExpression get singleParenthesizedExpression => _single();
 
+  PartDirective get singlePartDirective => _single();
+
   PatternAssignment get singlePatternAssignment => _single();
 
   PatternVariableDeclaration get singlePatternVariableDeclaration => _single();

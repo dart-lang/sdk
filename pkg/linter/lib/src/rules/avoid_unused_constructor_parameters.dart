@@ -37,12 +37,13 @@ class AvoidUnusedConstructorParameters extends LintRule {
       "The parameter '{0}' is not used in the constructor.",
       correctionMessage: 'Try using the parameter or removing it.');
 
-  AvoidUnusedConstructorParameters()
-      : super(
+  AvoidUnusedConstructorParameters() : super(
             name: 'avoid_unused_constructor_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            // TODO(srawlins): This isn't even just about unintentional syntax;
+            // unused parameters can represent code bloat.
+            categories: {Category.unintentional});
 
   @override
   LintCode get lintCode => code;

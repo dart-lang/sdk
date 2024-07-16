@@ -31,13 +31,13 @@ import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -984,7 +984,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// This is used when there are no workspace folders open directly.
   List<String> _getRootsForOpenFiles() {
     var openFiles = priorityFiles.toList();
-    var contextLocator = ContextLocator(resourceProvider: resourceProvider);
+    var contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
     var roots = contextLocator.locateRoots(includedPaths: openFiles);
 
     var packages = <String>{};

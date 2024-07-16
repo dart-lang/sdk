@@ -1,5 +1,7 @@
-## 6.8.0-dev
+## 6.8.0
 * Add `AnalysisContextCollection.dispose()`. It must be invoked at the end.
+* Deprecated `ContextLocator` and `ContextBuilder`.
+  Use `AnalysisContextCollection` instead.
 
 ## 6.7.0
 * Deprecated `File.createSource()`, it violates levels of abstraction.

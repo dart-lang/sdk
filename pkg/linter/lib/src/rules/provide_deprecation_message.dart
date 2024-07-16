@@ -43,7 +43,7 @@ class ProvideDeprecationMessage extends LintRule {
             name: 'provide_deprecation_message',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.publicInterface});
 
   @override
   LintCode get lintCode => code;

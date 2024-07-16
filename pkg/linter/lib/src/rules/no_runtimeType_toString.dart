@@ -50,7 +50,7 @@ class NoRuntimeTypeToString extends LintRule {
             name: 'no_runtimeType_toString',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.nonPerformant});
 
   @override
   LintCode get lintCode => code;

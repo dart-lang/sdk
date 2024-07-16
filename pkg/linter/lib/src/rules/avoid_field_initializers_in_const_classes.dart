@@ -44,11 +44,13 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
           'Try converting the field to a getter or initialize the field in the '
           'constructors.');
 
-  AvoidFieldInitializersInConstClasses()
-      : super(
+  AvoidFieldInitializersInConstClasses() : super(
             name: 'avoid_field_initializers_in_const_classes',
             description: _desc,
             details: _details,
+            // TODO(srawlins): This rule has nothing to do with style. It is to
+            // reduce runtime memory usage. But we don't have a Category for
+            // that yet.
             categories: {Category.style});
 
   @override

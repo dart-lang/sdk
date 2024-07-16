@@ -115,7 +115,7 @@ class CascadeInvocations extends LintRule {
             name: 'cascade_invocations',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.languageFeatureUsage, Category.style});
 
   @override
   LintCode get lintCode => code;

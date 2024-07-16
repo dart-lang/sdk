@@ -56,6 +56,9 @@ abstract final class Category {
   /// A category of rules that protect against error-prone code.
   static const String errorProne = 'error-prone';
 
+  /// A category of rules that help to write Flutter code.
+  static const String flutter = 'flutter';
+
   /// A category of rules that promote language feature usage.
   static const String languageFeatureUsage = 'language feature usage';
 
@@ -67,6 +70,9 @@ abstract final class Category {
 
   /// A category representing Pub-related rules.
   static const String pub = 'pub';
+
+  /// A category of rules that promote a healthy public interface.
+  static const String publicInterface = 'public interface';
 
   /// A category representing matters of style, largely derived from Effective
   /// Dart.

@@ -10,12 +10,14 @@ import 'augmented_expression_test.dart' as augmented_expression;
 import 'class_test.dart' as class_;
 import 'doc_comment_test.dart' as doc_comment;
 import 'enum_test.dart' as enum_;
+import 'export_directive_test.dart' as export_directive;
 import 'extension_test.dart' as extension_;
 import 'extension_type_test.dart' as extension_type;
 import 'import_directive_test.dart' as import_directive;
 import 'library_augmentation_directive_test.dart'
     as library_augmentation_directive;
 import 'mixin_test.dart' as mixin_;
+import 'part_directive_test.dart' as part_directive;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'type_alias_test.dart' as type_alias;
@@ -30,11 +32,13 @@ main() {
     class_.main();
     doc_comment.main();
     enum_.main();
+    export_directive.main();
     extension_.main();
     extension_type.main();
     import_directive.main();
     library_augmentation_directive.main();
     mixin_.main();
+    part_directive.main();
     top_level_function.main();
     top_level_variable.main();
     type_alias.main();

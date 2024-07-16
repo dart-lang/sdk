@@ -168,26 +168,6 @@ import 'bar.dart';
 ''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
   }
 
-  void test_partBeforeExport() {
-    testRecovery('''
-part 'foo.dart';
-export 'bar.dart';
-''', [ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE], '''
-export 'bar.dart';
-part 'foo.dart';
-''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
-  }
-
-  void test_partBeforeImport() {
-    testRecovery('''
-part 'foo.dart';
-import 'bar.dart';
-''', [ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE], '''
-import 'bar.dart';
-part 'foo.dart';
-''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
-  }
-
   void test_partBeforeLibrary() {
     testRecovery('''
 part 'foo.dart';

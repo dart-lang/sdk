@@ -830,11 +830,13 @@ class OutlineBuilder extends StackListenerImpl {
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("endPart");
     assert(checkState(partKeyword, [
+      /* uri string */ ValueKinds.ConfigurationListOrNull,
       /* offset */ ValueKinds.Integer,
       /* uri string */ ValueKinds.String,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
 
+    pop(); // configurations
     int charOffset = popCharOffset();
     String uri = pop() as String;
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;

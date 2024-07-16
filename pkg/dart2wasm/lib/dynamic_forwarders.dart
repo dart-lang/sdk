@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'code_generator.dart' show MacroAssembler;
 import 'dispatch_table.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
@@ -91,98 +92,88 @@ class Forwarder {
   }
 
   void _generateGetterCode(Translator translator) {
-    final b = function.body;
-
-    final receiverLocal = function.locals[0];
-
     final selectors =
         translator.dispatchTable.dynamicGetterSelectors(memberName);
-    for (final selector in selectors) {
-      for (final (:range, :target) in selector.targetRanges) {
-        for (int classId = range.start; classId <= range.end; ++classId) {
-          final targetMember = target.asMember;
+    final ranges = selectors
+        .expand((selector) =>
+            selector.targetRanges.map((r) => (range: r.range, value: r.target)))
+        .toList();
+    ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
 
-          b.local_get(receiverLocal);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-          b.i32_const(classId);
-          b.i32_eq();
-          b.if_();
+    final receiverLocal = function.locals[0];
+    final outputs = _kind.functionType(translator).outputs;
 
-          final Reference targetReference;
-          if (targetMember is Procedure) {
-            targetReference = targetMember.isGetter
-                ? targetMember.reference
-                : targetMember.tearOffReference;
-          } else if (targetMember is Field) {
-            targetReference = targetMember.getterReference;
-          } else {
-            throw '_generateGetterCode: member is not a procedure or field: $targetMember';
-          }
-
-          final w.BaseFunction targetFunction =
-              translator.functions.getFunction(targetReference);
-          b.local_get(receiverLocal);
-          translator.convertType(
-              function, receiverLocal.type, targetFunction.type.inputs.first);
-          b.call(targetFunction);
-          // Box return value if needed
-          translator.convertType(function, targetFunction.type.outputs.single,
-              _kind.functionType(translator).outputs.single);
-          b.return_();
-
-          b.end();
-        }
+    final b = function.body;
+    b.local_get(receiverLocal);
+    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.classIdSearch(ranges, outputs, (Reference target) {
+      final targetMember = target.asMember;
+      final Reference targetReference;
+      if (targetMember is Procedure) {
+        targetReference = targetMember.isGetter
+            ? targetMember.reference
+            : targetMember.tearOffReference;
+      } else if (targetMember is Field) {
+        targetReference = targetMember.getterReference;
+      } else {
+        throw '_generateGetterCode: member is not a procedure or field: $targetMember';
       }
-    }
 
-    generateNoSuchMethodCall(
-        translator,
-        function,
-        () => b.local_get(receiverLocal),
-        () => createGetterInvocationObject(translator, function, memberName));
+      final w.BaseFunction targetFunction =
+          translator.functions.getFunction(targetReference);
+      b.local_get(receiverLocal);
+      translator.convertType(
+          function, receiverLocal.type, targetFunction.type.inputs.first);
+      b.call(targetFunction);
+      // Box return value if needed
+      translator.convertType(function, targetFunction.type.outputs.single,
+          _kind.functionType(translator).outputs.single);
+    }, () {
+      generateNoSuchMethodCall(
+          translator,
+          function,
+          () => b.local_get(receiverLocal),
+          () => createGetterInvocationObject(translator, function, memberName));
+    });
 
+    b.return_();
     b.end();
   }
 
   void _generateSetterCode(Translator translator) {
-    final b = function.body;
+    final selectors =
+        translator.dispatchTable.dynamicSetterSelectors(memberName);
+    final ranges = selectors
+        .expand((selector) =>
+            selector.targetRanges.map((r) => (range: r.range, value: r.target)))
+        .toList();
+    ranges.sort((a, b) => a.range.start.compareTo(b.range.start));
 
     final receiverLocal = function.locals[0];
     final positionalArgLocal = function.locals[1];
 
-    final selectors =
-        translator.dispatchTable.dynamicSetterSelectors(memberName);
-    for (final selector in selectors) {
-      for (final (:range, :target) in selector.targetRanges) {
-        for (int classId = range.start; classId <= range.end; ++classId) {
-          final Member targetMember = target.asMember;
-          b.local_get(receiverLocal);
-          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-          b.i32_const(classId);
-          b.i32_eq();
-          b.if_();
+    final b = function.body;
+    b.local_get(receiverLocal);
+    b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+    b.classIdSearch(ranges, [positionalArgLocal.type], (Reference target) {
+      final Member targetMember = target.asMember;
+      b.local_get(receiverLocal);
+      b.local_get(positionalArgLocal);
+      b.call(
+          translator.functions.getFunction(targetMember.typeCheckerReference));
+    }, () {
+      generateNoSuchMethodCall(
+          translator,
+          function,
+          () => b.local_get(receiverLocal),
+          () => createSetterInvocationObject(
+              translator, function, memberName, positionalArgLocal));
 
-          b.local_get(receiverLocal);
-          b.local_get(positionalArgLocal);
-          b.call(translator.functions
-              .getFunction(targetMember.typeCheckerReference));
-          b.return_();
+      b.drop(); // drop noSuchMethod return value
+      b.local_get(positionalArgLocal);
+    });
 
-          b.end();
-        }
-      }
-    }
-
-    generateNoSuchMethodCall(
-        translator,
-        function,
-        () => b.local_get(receiverLocal),
-        () => createSetterInvocationObject(
-            translator, function, memberName, positionalArgLocal));
-
-    b.drop(); // drop noSuchMethod return value
-    b.local_get(positionalArgLocal);
-
+    b.return_();
     b.end();
   }
 
