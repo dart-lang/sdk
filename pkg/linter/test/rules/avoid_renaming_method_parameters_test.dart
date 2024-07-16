@@ -212,4 +212,30 @@ class B extends A {
       lint(77, 1),
     ]);
   }
+
+  test_renameWithNonWildcardButUnderscoresAround() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_p_) {}
+}
+''', [
+      lint(60, 3),
+    ]);
+  }
+
+  test_renameWithNonWildcardButUnderscoreBefore() async {
+    await assertDiagnostics(r'''
+class A {
+  void m(int a, int b) {}
+}
+class B extends A {
+  void m(_, _b) {}
+}
+''', [
+      lint(70, 2),
+    ]);
+  }
 }
