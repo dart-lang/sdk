@@ -119,8 +119,7 @@ class SourceCompilationUnitImpl
 
   @override
   bool get isDartLibrary =>
-      _sourceLibraryBuilder.origin.importUri.isScheme("dart") ||
-      fileUri.isScheme("org-dartlang-sdk");
+      originImportUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 
   /// Returns the map of objects created in the [OutlineBuilder].
   ///
@@ -202,20 +201,6 @@ class SourceCompilationUnitImpl
   @override
   void markLanguageVersionFinal() {
     _languageVersion.isFinal = true;
-    _updateLibraryNNBDSettings();
-  }
-
-  void _updateLibraryNNBDSettings() {
-    switch (loader.nnbdMode) {
-      case NnbdMode.Weak:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Weak;
-        break;
-      case NnbdMode.Strong:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Strong;
-        break;
-    }
   }
 
   /// Set the language version to an explicit major and minor version.
@@ -265,7 +250,6 @@ class SourceCompilationUnitImpl
     } else {
       _languageVersion = new LanguageVersion(version, fileUri, offset, length);
     }
-    library.setLanguageVersion(_languageVersion.version);
     _languageVersion.isFinal = true;
   }
 
@@ -763,7 +747,25 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  int finishDeferredLoadTearoffs() {
+  void buildOutlineNode(Library library) {
+    library.setLanguageVersion(_languageVersion.version);
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Weak;
+        break;
+      case NnbdMode.Strong:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Strong;
+        break;
+    }
+    for (LibraryPart libraryPart in _builderFactoryResult.libraryParts) {
+      library.addPart(libraryPart);
+    }
+  }
+
+  @override
+  int finishDeferredLoadTearoffs(Library library) {
     int total = 0;
     for (Import import in _builderFactoryResult.imports) {
       if (import.deferred) {

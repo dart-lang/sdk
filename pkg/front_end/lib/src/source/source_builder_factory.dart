@@ -107,6 +107,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// The part directives in this compilation unit.
   final List<Part> _parts = [];
 
+  final List<LibraryPart> _libraryParts = [];
+
   @override
   final List<Import> imports = <Import>[];
 
@@ -145,8 +147,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   Scope get scope => _compilationUnit.scope;
 
   SourceLoader get loader => _compilationUnit.loader;
-
-  Library get library => _compilationUnit.library;
 
   LibraryName get libraryName => _compilationUnit.libraryName;
 
@@ -286,6 +286,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // [LibraryBuilder] to represent both libraries and parts.
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
         origin: _compilationUnit.isAugmenting ? _augmentationRoot.origin : null,
+        originImportUri: _compilationUnit.originImportUri,
         fileUri: newFileUri,
         accessor: _compilationUnit,
         isPatch: _compilationUnit.isAugmenting);
@@ -294,7 +295,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(<Expression>[], uri)
       ..fileOffset = charOffset;
-    library.addPart(part);
+    _libraryParts.add(part);
     offsetMap.registerPart(partKeyword, part);
   }
 
@@ -2519,4 +2520,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     return _nativeMethods.length;
   }
+
+  @override
+  List<LibraryPart> get libraryParts => _libraryParts;
 }

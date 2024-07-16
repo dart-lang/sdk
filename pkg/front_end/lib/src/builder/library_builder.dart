@@ -228,7 +228,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   void addImportsToScope();
 
-  int finishDeferredLoadTearoffs();
+  void buildOutlineNode(Library library);
+
+  int finishDeferredLoadTearoffs(Library library);
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f);
 
@@ -298,6 +300,9 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
   Uri get importUri;
+
+  /// Returns the language [Version] used for this library.
+  Version get languageVersion;
 
   /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.

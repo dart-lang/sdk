@@ -1214,7 +1214,7 @@ class FuzzCompiles
         LibraryFeatures libFeatures = new LibraryFeatures(
             compilationSetup.options.globalFeatures,
             builder.importUri,
-            builder.library.languageVersion);
+            builder.languageVersion);
         fuzzAstVisitorSorter =
             new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
@@ -1366,7 +1366,7 @@ class FuzzCompiles
         LibraryFeatures libFeatures = new LibraryFeatures(
             compilationSetup.options.globalFeatures,
             builder.importUri,
-            builder.library.languageVersion);
+            builder.languageVersion);
         fuzzAstVisitorSorter =
             new FuzzAstVisitorSorter(orgData, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {

@@ -819,7 +819,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       fileUri: dartDocTestUri,
       originImportUri: dartDocTestUri,
       packageLanguageVersion:
-          new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+          new ImplicitLanguageVersion(libraryBuilder.languageVersion),
       loader: loader,
       // TODO(jensj): Should probably set up scopes the same was as it's done
       // (now) for expression compilation.

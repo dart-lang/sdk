@@ -198,7 +198,7 @@ class MacroIntrospection {
 
   /// Creates the [macro.LibraryImpl] corresponding to [builder].
   macro.LibraryImpl _createLibraryImpl(LibraryBuilder builder) {
-    final Version version = builder.library.languageVersion;
+    final Version version = builder.languageVersion;
     return new macro.LibraryImpl(
         id: macro.RemoteInstance.uniqueId,
         uri: builder.importUri,

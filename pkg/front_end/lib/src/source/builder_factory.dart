@@ -71,6 +71,8 @@ abstract class BuilderFactoryResult {
   Iterable<Builder> get setters;
 
   Iterable<ExtensionBuilder> get extensions;
+
+  List<LibraryPart> get libraryParts;
 }
 
 abstract class BuilderFactory {

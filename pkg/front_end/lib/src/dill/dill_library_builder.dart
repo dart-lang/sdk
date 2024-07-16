@@ -504,4 +504,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     return scope.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
   }
+
+  @override
+  Version get languageVersion => library.languageVersion;
 }
