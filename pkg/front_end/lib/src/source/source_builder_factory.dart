@@ -107,6 +107,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// The part directives in this compilation unit.
   final List<Part> _parts = [];
 
+  final List<LibraryPart> _libraryParts = [];
+
   @override
   final List<Import> imports = <Import>[];
 
@@ -131,29 +133,36 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final List<SourceFunctionBuilder> _nativeMethods = [];
 
-  BuilderFactoryImpl(
-      this._compilationUnit,
-      this._augmentationRoot,
-      this._parent,
-      this._libraryTypeParameterScopeBuilder,
-      this._problemReporting,
-      {required this.indexedLibrary,
-      required Map<String, Builder>? omittedTypeDeclarationBuilders})
-      : currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
-        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
+  final LibraryName libraryName;
 
-  Scope get scope => _compilationUnit.scope;
+  final Scope scope;
+
+  BuilderFactoryImpl(
+      {required SourceCompilationUnit compilationUnit,
+      required SourceLibraryBuilder augmentationRoot,
+      required SourceLibraryBuilder parent,
+      required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      required ProblemReporting problemReporting,
+      required Scope scope,
+      required LibraryName libraryName,
+      required IndexedLibrary? indexedLibrary,
+      required Map<String, Builder>? omittedTypeDeclarationBuilders})
+      : _compilationUnit = compilationUnit,
+        _augmentationRoot = augmentationRoot,
+        _libraryTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
+        currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
+        _problemReporting = problemReporting,
+        _parent = parent,
+        scope = scope,
+        libraryName = libraryName,
+        indexedLibrary = indexedLibrary,
+        _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
 
   SourceLoader get loader => _compilationUnit.loader;
 
-  Library get library => _compilationUnit.library;
-
-  LibraryName get libraryName => _compilationUnit.libraryName;
-
   LibraryFeatures get libraryFeatures => _compilationUnit.libraryFeatures;
 
-  List<ConstructorReferenceBuilder> get constructorReferences =>
-      _compilationUnit.constructorReferences;
+  final List<ConstructorReferenceBuilder> _constructorReferences = [];
 
   @override
   void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
@@ -287,6 +296,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // [LibraryBuilder] to represent both libraries and parts.
     CompilationUnit compilationUnit = loader.read(resolvedUri, charOffset,
         origin: _compilationUnit.isAugmenting ? _augmentationRoot.origin : null,
+        originImportUri: _compilationUnit.originImportUri,
         fileUri: newFileUri,
         accessor: _compilationUnit,
         isPatch: _compilationUnit.isAugmenting);
@@ -295,7 +305,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(<Expression>[], uri)
       ..fileOffset = charOffset;
-    library.addPart(part);
+    _libraryParts.add(part);
     offsetMap.registerPart(partKeyword, part);
   }
 
@@ -521,7 +531,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         interfaceBuilders,
         enumConstantInfos,
         _parent,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
         startCharOffset,
         charOffset,
         charEndOffset,
@@ -535,7 +545,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             isModifiable: false),
         new ConstructorScope(name, constructors),
         loader.coreLibrary);
-    constructorReferences.clear();
+    _constructorReferences.clear();
 
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, enumBuilder);
@@ -697,7 +707,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         classScope,
         constructorScope,
         _parent,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
         startOffset,
         nameOffset,
         endOffset,
@@ -711,7 +721,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass);
 
-    constructorReferences.clear();
+    _constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, classBuilder);
     void setParent(MemberBuilder? member) {
@@ -1171,7 +1181,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nameOffset,
         endOffset,
         referenceFrom);
-    constructorReferences.clear();
+    _constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, extensionBuilder);
     void setParent(MemberBuilder? member) {
@@ -1268,13 +1278,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             memberScope,
             constructorScope,
             _parent,
-            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            new List<ConstructorReferenceBuilder>.of(_constructorReferences),
             startOffset,
             identifier.nameOffset,
             endOffset,
             indexedContainer,
             representationFieldBuilder);
-    constructorReferences.clear();
+    _constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
     void setParent(MemberBuilder? member) {
@@ -1678,7 +1688,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, _compilationUnit.fileUri, charOffset);
-    constructorReferences.add(ref);
+    _constructorReferences.add(ref);
     return ref;
   }
 
@@ -2367,7 +2377,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         ..exportScope.merge(declaration.exportScope,
             (String name, Builder existing, Builder member) {
           return computeAmbiguousDeclarationForScope(
-              _problemReporting, _compilationUnit.scope, name, existing, member,
+              _problemReporting, scope, name, existing, member,
               uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
         });
     } else if (_isDuplicatedDeclaration(existing, declaration)) {
@@ -2520,4 +2530,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     }
     return _nativeMethods.length;
   }
+
+  @override
+  List<LibraryPart> get libraryParts => _libraryParts;
 }

@@ -36,7 +36,6 @@ import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
@@ -99,9 +98,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   final SourceLoader loader;
-
-  final List<ConstructorReferenceBuilder> constructorReferences =
-      <ConstructorReferenceBuilder>[];
 
   final List<SourceCompilationUnit> _parts = [];
 
@@ -304,15 +300,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String enabledVersionText = feature.flag.isEnabledByDefault
           ? feature.enabledVersion.toText()
           : "the current release";
-      if (languageVersion.isExplicit) {
+      if (_languageVersion.isExplicit) {
         message = templateExperimentOptOutExplicit.withArguments(
             feature.flag.name, enabledVersionText);
         addProblem(message, charOffset, length, fileUri,
             context: <LocatedMessage>[
               templateExperimentOptOutComment
                   .withArguments(feature.flag.name)
-                  .withLocation(languageVersion.fileUri!,
-                      languageVersion.charOffset, languageVersion.charCount)
+                  .withLocation(_languageVersion.fileUri!,
+                      _languageVersion.charOffset, _languageVersion.charCount)
             ]);
       } else {
         message = templateExperimentOptOutImplicit.withArguments(
@@ -322,7 +318,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else {
       if (feature.flag.isEnabledByDefault) {
         // Coverage-ignore-block(suite): Not run.
-        if (languageVersion.version < feature.enabledVersion) {
+        if (_languageVersion.version < feature.enabledVersion) {
           message =
               templateExperimentDisabledInvalidLanguageVersion.withArguments(
                   feature.flag.name, feature.enabledVersion.toText());
@@ -476,10 +472,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool get isInferenceUpdate1Enabled =>
       libraryFeatures.inferenceUpdate1.isSupported &&
-      languageVersion.version >=
+      _languageVersion.version >=
           libraryFeatures.inferenceUpdate1.enabledVersion;
 
-  LanguageVersion get languageVersion => compilationUnit.languageVersion;
+  @override
+  Version get languageVersion => _languageVersion.version;
+
+  LanguageVersion get _languageVersion => compilationUnit.languageVersion;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -590,6 +589,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         augmentationLibrary.buildOutlineNodes(coreLibrary);
       }
     }
+    compilationUnit.buildOutlineNode(library);
+    // TODO(johnniwinther): Include [LibraryPart]s from parts to support imports
+    // and exports in parts.
+    /*for (SourceCompilationUnit part in parts) {
+      part.buildOutlineNode(library);
+    }*/
 
     checkMemberConflicts(this, scope,
         checkForInstanceVsStaticConflict: false,
@@ -1259,24 +1264,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void addNativeDependency(String nativeImportPath) {
-    MemberBuilder constructor = loader.getNativeAnnotation();
-    Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
-    Expression annotation;
-    if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(
-          constructor.member as Constructor, arguments)
-        ..isConst = true;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      annotation =
-          new StaticInvocation(constructor.member as Procedure, arguments)
-            ..isConst = true;
-    }
-    library.addAnnotation(annotation);
-  }
-
   void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
     compilationUnit.addDependencies(library, seen);
     for (SourceCompilationUnit part in parts) {
@@ -1284,20 +1271,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  int finishDeferredLoadTearoffs() {
+  int finishDeferredLoadTearOffs() {
     int total = 0;
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         this.augmentationLibraries;
     if (augmentationLibraries != null) {
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        total += augmentationLibrary.finishDeferredLoadTearoffs();
+        total += augmentationLibrary.finishDeferredLoadTearOffs();
       }
     }
 
-    total += compilationUnit.finishDeferredLoadTearoffs();
+    total += compilationUnit.finishDeferredLoadTearOffs(library);
     for (SourceCompilationUnit part in parts) {
-      total += part.finishDeferredLoadTearoffs();
+      total += part.finishDeferredLoadTearOffs(library);
     }
     return total;
   }
@@ -1644,22 +1631,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void applyAugmentations() {
     if (!isAugmenting) return;
 
-    if (languageVersion != origin.languageVersion) {
+    if (_languageVersion != origin._languageVersion) {
       // Coverage-ignore-block(suite): Not run.
       List<LocatedMessage> context = <LocatedMessage>[];
-      if (origin.languageVersion.isExplicit) {
+      if (origin._languageVersion.isExplicit) {
         context.add(messageLanguageVersionLibraryContext.withLocation(
-            origin.languageVersion.fileUri!,
-            origin.languageVersion.charOffset,
-            origin.languageVersion.charCount));
+            origin._languageVersion.fileUri!,
+            origin._languageVersion.charOffset,
+            origin._languageVersion.charCount));
       }
 
-      if (languageVersion.isExplicit) {
+      if (_languageVersion.isExplicit) {
         addProblem(
             messageLanguageVersionMismatchInPatch,
-            languageVersion.charOffset,
-            languageVersion.charCount,
-            languageVersion.fileUri,
+            _languageVersion.charOffset,
+            _languageVersion.charCount,
+            _languageVersion.fileUri,
             context: context);
       } else {
         addProblem(messageLanguageVersionMismatchInPatch, -1, noLength, fileUri,

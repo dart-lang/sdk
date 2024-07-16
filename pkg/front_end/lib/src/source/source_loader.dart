@@ -540,7 +540,14 @@ class SourceLoader extends Loader {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.mayImplementRestrictedTypes = true;
     }
-    if (uri.isScheme("dart")) {
+    if (uri.isScheme("dart") && originImportUri.isScheme("dart")) {
+      // We only read the patch files if the [compilationUnit] is loaded as a
+      // dart: library (through [uri]) and is considered a dart: library
+      // (through [originImportUri]).
+      //
+      // This is to avoid reading patches and when reading dart: parts, and to
+      // avoid reading patches of non-dart: libraries that claim to be a part of
+      // a dart: library.
       target.readPatchFiles(libraryBuilder, compilationUnit, originImportUri);
     }
     _unparsedLibraries.addLast(compilationUnit);
@@ -610,8 +617,6 @@ class SourceLoader extends Loader {
     }
   }
 
-  /// Reads the library [uri] as an entry point. This is used for reading the
-
   /// Look up a library builder by the [uri], or if such doesn't exist, create
   /// one. The canonical URI of the library is [uri], and its actual location is
   /// [fileUri].
@@ -651,6 +656,7 @@ class SourceLoader extends Loader {
     return libraryBuilder;
   }
 
+  /// Reads the library [uri] as an entry point. This is used for reading the
   /// entry point library of a script or the explicitly mention libraries of
   /// a modular or incremental compilation.
   ///
@@ -1010,7 +1016,7 @@ severity: $severity
       /// We use the [importUri] of the created [Library] and not the
       /// [importUri] of the [LibraryBuilder] since it might be an augmentation
       /// library which is not directly part of the output.
-      Uri importUri = compilationUnit.library.importUri;
+      Uri importUri = compilationUnit.importUri;
       if (compilationUnit.isAugmenting) {
         // For patch libraries we create a "fake" import uri.
         // We cannot use the import uri from the augmented library because
@@ -1021,12 +1027,11 @@ severity: $severity
         if (compilationUnit.forPatchLibrary) {
           // TODO(johnniwinther): Use augmentation-like solution for patching.
           List<String> newPathSegments =
-              new List<String>.of(importUri.pathSegments);
+              new List<String>.of(compilationUnit.originImportUri.pathSegments);
           newPathSegments.add(compilationUnit.fileUri.pathSegments.last);
           newPathSegments[0] = "${newPathSegments[0]}-patch";
-          importUri = importUri.replace(pathSegments: newPathSegments);
-        } else {
-          importUri = compilationUnit.importUri;
+          importUri = compilationUnit.originImportUri
+              .replace(pathSegments: newPathSegments);
         }
       }
       target.addSourceInformation(
@@ -1759,7 +1764,7 @@ severity: $severity
   void finishDeferredLoadTearoffs() {
     int count = 0;
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      count += library.finishDeferredLoadTearoffs();
+      count += library.finishDeferredLoadTearOffs();
     }
     ticker.logMs("Finished deferred load tearoffs $count");
   }
@@ -1945,7 +1950,7 @@ severity: $severity
     for (SourceClassBuilder cls in classes) {
       checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
           denyListedClasses, enumClass);
-      checkSupertypeClassModifiers(cls, classToBaseOrFinalSuperClass);
+      _checkSupertypeClassModifiers(cls, classToBaseOrFinalSuperClass);
     }
 
     List<SourceClassBuilder> classesWithCycles = classResult.cyclicVertices;
@@ -2162,14 +2167,14 @@ severity: $severity
   /// class modifiers.
   // TODO(johnniwinther): Merge supertype checking with class hierarchy
   //  computation to better support transitive checking.
-  void checkSupertypeClassModifiers(SourceClassBuilder cls,
+  void _checkSupertypeClassModifiers(SourceClassBuilder cls,
       Map<ClassBuilder, ClassBuilder> classToBaseOrFinalSuperClass) {
     bool isClassModifiersEnabled(ClassBuilder typeBuilder) =>
-        typeBuilder.libraryBuilder.library.languageVersion >=
+        typeBuilder.libraryBuilder.languageVersion >=
         ExperimentalFlag.classModifiers.experimentEnabledVersion;
 
     bool isSealedClassEnabled(ClassBuilder typeBuilder) =>
-        typeBuilder.libraryBuilder.library.languageVersion >=
+        typeBuilder.libraryBuilder.languageVersion >=
         ExperimentalFlag.sealedClass.experimentEnabledVersion;
 
     /// Set when we know whether this library can ignore class modifiers.
@@ -2227,7 +2232,7 @@ severity: $severity
       }
       // "Legacy" libraries may ignore `final`, `base` and `interface`
       // from platform libraries. (But still cannot implement `int`.)
-      if (subLibrary.library.languageVersion <
+      if (subLibrary.languageVersion <
           ExperimentalFlag.classModifiers.experimentEnabledVersion) {
         isExempt = true;
         return true;
@@ -2315,7 +2320,7 @@ severity: $severity
             !superclass.isFinal &&
             !superclass.isSealed &&
             !superclass.cls.isAnonymousMixin &&
-            superclass.libraryBuilder.library.languageVersion >=
+            superclass.libraryBuilder.languageVersion >=
                 ExperimentalFlag.classModifiers.experimentEnabledVersion) {
           // Only report an error on the nearest subtype that does not fulfill
           // the base or final subtype restriction.

@@ -1775,21 +1775,21 @@ worlds:
     LibraryBuilder? libraryBuilder =
         _latestCrashingKnownInitialBuilders![asImportUri];
     if (libraryBuilder != null) {
-      return libraryBuilder.library.languageVersion;
+      return libraryBuilder.languageVersion;
     }
     print("Couldn't lookup $uri");
     for (LibraryBuilder libraryBuilder
         in _latestCrashingKnownInitialBuilders!.values) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
-        return libraryBuilder.library.languageVersion;
+        return libraryBuilder.languageVersion;
       }
       // Check parts too.
       for (LibraryPart part in libraryBuilder.library.parts) {
         Uri thisPartUri = libraryBuilder.importUri.resolve(part.partUri);
         if (thisPartUri == uri || thisPartUri == asImportUri) {
           print("Found $uri as part of ${libraryBuilder.importUri}");
-          return libraryBuilder.library.languageVersion;
+          return libraryBuilder.languageVersion;
         }
       }
     }

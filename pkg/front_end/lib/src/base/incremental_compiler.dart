@@ -1242,8 +1242,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */
                 context.options.globalFeatures.tripleShift.isEnabled);
-        bool enablePatterns = builder.library.languageVersion >=
-            ExperimentalFlag.patterns.enabledVersion;
+        bool enablePatterns =
+            builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
             performModelling: true, enablePatterns: enablePatterns);
         if (before == null) {
@@ -1975,7 +1975,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         fileUri: debugExprUri,
         originImportUri: libraryUri,
         packageLanguageVersion:
-            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+            new ImplicitLanguageVersion(libraryBuilder.languageVersion),
         loader: lastGoodKernelTarget.loader,
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
@@ -2026,7 +2026,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         fileUri: debugExprUri,
         originImportUri: libraryUri,
         packageLanguageVersion:
-            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+            new ImplicitLanguageVersion(libraryBuilder.languageVersion),
         loader: lastGoodKernelTarget.loader,
         scope: debugLibrary.scope.createNestedScope(
             debugName: "expression", kind: ScopeKind.library),

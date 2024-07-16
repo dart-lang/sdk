@@ -5805,7 +5805,7 @@ class BodyBuilder extends StackListenerImpl
     if ((kind == FormalParameterKind.optionalNamed ||
             kind == FormalParameterKind.requiredNamed) &&
         equals.lexeme == ':' &&
-        libraryBuilder.languageVersion.version.major >= 3) {
+        libraryBuilder.languageVersion.major >= 3) {
       addProblem(fasta.messageObsoleteColonForDefaultValue, equals.charOffset,
           equals.charCount);
     }

@@ -26,14 +26,12 @@ import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../kernel/hierarchy/members_builder.dart';
-import '../source/name_scheme.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import 'builder.dart';
-import 'constructor_reference_builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
@@ -155,17 +153,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// Returns `true` if the compilation unit is part of a `dart:` library.
   bool get isDartLibrary;
 
-  List<ConstructorReferenceBuilder> get constructorReferences;
-
   LanguageVersion get languageVersion;
 
-  // TODO(johnniwinther): Remove this.
-  Library get library;
-
   String? get name;
-
-  // TODO(johnniwinther): Remove this?
-  LibraryName get libraryName;
 
   List<NamedTypeBuilder> get unresolvedNamedTypes;
 
@@ -174,8 +164,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   String? get partOfName;
 
   Uri? get partOfUri;
-
-  Scope get scope;
 
   List<MetadataBuilder>? get metadata;
 
@@ -231,7 +219,9 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   void addImportsToScope();
 
-  int finishDeferredLoadTearoffs();
+  void buildOutlineNode(Library library);
+
+  int finishDeferredLoadTearOffs(Library library);
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f);
 
@@ -301,6 +291,9 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
   Uri get importUri;
+
+  /// Returns the language [Version] used for this library.
+  Version get languageVersion;
 
   /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
