@@ -81,7 +81,7 @@ class Witness {
   String toString() => _witness.toString();
 }
 
-/// Helper class used to turn a list of [Predicates] into a string.
+/// Helper class used to turn a list of [Predicate]s into a string.
 class PropertyWitness {
   StaticType staticType = StaticType.nullableObject;
   StaticType valueType = StaticType.nullableObject;

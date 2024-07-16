@@ -139,7 +139,7 @@ class ExhaustivenessCache<
   /// Cache for [SealedClassInfo] for sealed classes.
   Map<Class, SealedClassInfo<Type, Class>> _sealedClassInfo = {};
 
-  /// Cache for [UniqueStaticType]s.
+  /// Cache for unique [StaticType]s.
   Map<Object, StaticType> _uniqueTypeMap = {};
 
   /// Cache for the [StaticType] for `bool`.
@@ -458,8 +458,8 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     return new Space(path, staticType, properties: properties);
   }
 
-  /// Creates the [Space] at [path] for a record pattern of the required [type],
-  /// [positionalFields], and [namedFields].
+  /// Creates the [Space] at [path] for a record pattern of the required
+  /// [recordType], [positionalFields], and [namedFields].
   Space createRecordSpace(Path path, StaticType contextType, Type recordType,
       List<Pattern> positionalFields, Map<String, Pattern> namedFields) {
     StaticType staticType =
