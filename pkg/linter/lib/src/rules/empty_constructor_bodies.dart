@@ -47,7 +47,11 @@ class EmptyConstructorBodies extends LintRule {
             name: 'empty_constructor_bodies',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              Category.brevity,
+              Category.effectiveDart,
+              Category.style
+            });
 
   @override
   LintCode get lintCode => code;

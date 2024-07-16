@@ -5,16 +5,15 @@
 /*Debugger:stepOver*/
 void main() {
   for (var i in naturalsTo(2)) {
-    /*s:3*/ print(i);
+    print(i);
   }
-  /*s:4*/
 }
 
 Iterable<int> naturalsTo(int n) sync* {
   /*bl*/
   /*sl:1*/ var k = 0;
-  while (k < n) {
-    yield /*bc:2*/ foo(++k);
+  /*sl:2*/ /*sl:4*/ /*sl:6*/ while (k < n) {
+    yield /*bc:3*/ /*bc:5*/ foo(++k);
   }
 }
 

@@ -31,11 +31,12 @@ void main() {
           dtd!.uri!.replace(path: 'someInvalidCode').toString(),
         ),
         throwsA(
-          predicate(
-            (p0) =>
-                p0 is WebSocketException &&
-                RegExp("^Connection to '.*' was not upgraded to websocket\$")
-                    .hasMatch(p0.message),
+          isA<WebSocketException>().having(
+            (e) => e.message,
+            'message',
+            matches(
+              RegExp("^Connection to '.*' was not upgraded to websocket\$"),
+            ),
           ),
         ),
       );
@@ -49,11 +50,12 @@ void main() {
           dtd!.uri!.replace(path: '').toString(),
         ),
         throwsA(
-          predicate(
-            (p0) =>
-                p0 is WebSocketException &&
-                RegExp("^Connection to '.*' was not upgraded to websocket\$")
-                    .hasMatch(p0.message),
+          isA<WebSocketException>().having(
+            (e) => e.message,
+            'message',
+            matches(
+              RegExp("^Connection to '.*' was not upgraded to websocket\$"),
+            ),
           ),
         ),
       );
@@ -94,7 +96,7 @@ void main() {
       final eventData = {'the': 'data'};
 
       test('basics', () async {
-        var completer = Completer();
+        var completer = Completer<Map<Object?, Object?>>();
         client.registerMethod('streamNotify', (Parameters parameters) {
           completer.complete(parameters.asMap);
         });
@@ -123,7 +125,7 @@ void main() {
         });
 
         // Now cancel the stream
-        completer = Completer(); // Reset the completer
+        completer = Completer<Map<Object?, Object?>>(); // Reset the completer
         final cancelResult = await client.sendRequest(
           'streamCancel',
           {
@@ -145,7 +147,7 @@ void main() {
             const Duration(seconds: 1),
             onTimeout: () => throw TimeoutException('Timed out'),
           ),
-          throwsA(predicate((p0) => p0 is TimeoutException)),
+          throwsA(isA<TimeoutException>()),
         );
       });
 
@@ -161,10 +163,10 @@ void main() {
             "streamId": streamId,
           }),
           throwsA(
-            predicate(
-              (e) =>
-                  e is RpcException &&
-                  e.code == RpcErrorCodes.kStreamAlreadySubscribed,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kStreamAlreadySubscribed,
             ),
           ),
         );
@@ -176,10 +178,10 @@ void main() {
             "streamId": streamId,
           }),
           throwsA(
-            predicate(
-              (e) =>
-                  e is RpcException &&
-                  e.code == RpcErrorCodes.kStreamNotSubscribed,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kStreamNotSubscribed,
             ),
           ),
         );
@@ -236,10 +238,10 @@ void main() {
             "method": method1,
           }),
           throwsA(
-            predicate(
-              (p0) =>
-                  p0 is RpcException &&
-                  p0.code == RpcErrorCodes.kServiceNameInvalid,
+            isA<RpcException>().having(
+              (e) => e.code,
+              'code',
+              RpcErrorCodes.kServiceNameInvalid,
             ),
           ),
         );
@@ -252,6 +254,45 @@ void main() {
         });
 
         expect(registerResult, {"type": "Success"});
+      });
+
+      test(
+          'disconnecting while handling a service request returns an error to the caller',
+          () async {
+        // Register a never-completing request that client2 can call.
+        final requestStartedCompleter = Completer<void>();
+        client.registerMethod('$service1.$method1', (Parameters parameters) {
+          requestStartedCompleter.complete(); // Signal the request has started.
+          return Completer<void>().future; // Never complete.
+        });
+        final registerResult = await client.sendRequest('registerService', {
+          "service": service1,
+          "method": method1,
+        });
+        expect(registerResult, {"type": "Success"});
+
+        // Begin a call to that method.
+        final client2 = _createClient(uri);
+        final responseFuture = client2.sendRequest('$service1.$method1', {});
+        await requestStartedCompleter.future;
+
+        // Disconnect client1 so it never responses.
+        await client.close();
+
+        // Expect that we complete with the expected RPC error.
+        expect(
+          responseFuture,
+          throwsA(
+            isA<RpcException>().having((e) => e.code, 'code', -32000).having(
+                  (e) => e.data,
+                  'data',
+                  containsPair(
+                    'full',
+                    'Bad state: The client closed with pending request "$service1.$method1".',
+                  ),
+                ),
+          ),
+        );
       });
 
       test('registering a service method that already exists', () async {
@@ -267,7 +308,7 @@ void main() {
             "method": method1,
           }),
           throwsA(
-            TypeMatcher<RpcException>().having(
+            isA<RpcException>().having(
               (e) => e.code,
               'code',
               RpcErrorCodes.kServiceMethodAlreadyRegistered,
@@ -280,7 +321,7 @@ void main() {
         expect(
           () => client.sendRequest('zoo.abc', {}),
           throwsA(
-            TypeMatcher<RpcException>().having(
+            isA<RpcException>().having(
               (e) => e.code,
               'code',
               RpcException.methodNotFound('zoo.abc').code,
@@ -303,7 +344,7 @@ void main() {
             "method": method2,
           }),
           throwsA(
-            TypeMatcher<RpcException>().having(
+            isA<RpcException>().having(
               (e) => e.code,
               'code',
               RpcErrorCodes.kServiceAlreadyRegistered,
@@ -319,7 +360,7 @@ void main() {
             "method": method2,
           }),
           throwsA(
-            TypeMatcher<RpcException>()
+            isA<RpcException>()
                 .having(
                   (e) => e.code,
                   'code',
@@ -361,7 +402,7 @@ void main() {
             });
             break;
           } catch (_) {}
-          await Future.delayed(Duration(seconds: 1));
+          await Future<void>.delayed(Duration(seconds: 1));
         }
         expect(client2RegisterResult, {"type": "Success"});
       });
@@ -379,7 +420,7 @@ void main() {
 
         test('when a service method is registered', () async {
           // Subscribe to the services stream.
-          final serviceStream = StreamController();
+          final serviceStream = StreamController<Map<Object?, Object?>>();
           client.registerMethod('streamNotify', (Parameters parameters) {
             if (parameters['streamId'].asString ==
                 DTDStreamManager.servicesStreamId) {
@@ -427,7 +468,7 @@ void main() {
           );
 
           // Subscribe to the services stream.
-          var serviceStream = StreamController();
+          var serviceStream = StreamController<Map<Object?, Object?>>();
           client.registerMethod('streamNotify', (Parameters parameters) {
             if (parameters['streamId'].asString ==
                 DTDStreamManager.servicesStreamId) {
@@ -454,7 +495,7 @@ void main() {
 
         test('when a service method is unregistered', () async {
           // Subscribe to the services stream.
-          var serviceStream = StreamController();
+          var serviceStream = StreamController<Map<Object?, Object?>>();
           client.registerMethod('streamNotify', (Parameters parameters) {
             if (parameters['streamId'].asString ==
                 DTDStreamManager.servicesStreamId) {

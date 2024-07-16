@@ -43,7 +43,11 @@ class UnnecessaryNullAwareAssignments extends LintRule {
             name: 'unnecessary_null_aware_assignments',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              Category.brevity,
+              Category.effectiveDart,
+              Category.style,
+            });
 
   @override
   LintCode get lintCode => code;

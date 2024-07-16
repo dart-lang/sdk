@@ -56,7 +56,7 @@ class UnnecessaryStatements extends LintRule {
             name: 'unnecessary_statements',
             description: _desc,
             details: _details,
-            categories: {Category.unintentional});
+            categories: {Category.brevity, Category.unintentional});
 
   @override
   LintCode get lintCode => code;

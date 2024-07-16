@@ -37,7 +37,7 @@ class AvoidReturnTypesOnSetters extends LintRule {
             name: 'avoid_return_types_on_setters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   bool get canUseParsedResult => true;

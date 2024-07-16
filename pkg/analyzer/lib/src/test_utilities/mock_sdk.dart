@@ -380,12 +380,15 @@ abstract final class double extends num {
 }
 
 class Duration implements Comparable<Duration> {
+  static const Duration zero = Duration(seconds: 0);
+
   const Duration({int days = 0,
       int hours = 0,
       int minutes = 0,
       int seconds = 0,
       int milliseconds = 0,
       int microseconds = 0});
+
   int compareTo(Duration other) => 0;
 }
 
@@ -684,6 +687,12 @@ abstract final class String implements Comparable<String>, Pattern {
   String toLowerCase();
   String toUpperCase();
 }
+
+class StringBuffer implements StringSink {
+  external void write(Object? object);
+}
+
+abstract interface class StringSink {}
 
 class Symbol {
   const factory Symbol(String name) = internal.Symbol;

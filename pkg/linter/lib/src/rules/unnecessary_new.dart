@@ -42,7 +42,11 @@ class UnnecessaryNew extends LintRule {
             name: 'unnecessary_new',
             description: _desc,
             details: _details,
-            categories: {Category.languageFeatureUsage, Category.style});
+            categories: {
+              Category.brevity,
+              Category.languageFeatureUsage,
+              Category.style
+            });
 
   @override
   bool get canUseParsedResult => true;

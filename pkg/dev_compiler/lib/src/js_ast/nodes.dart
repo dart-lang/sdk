@@ -932,6 +932,10 @@ abstract class Expression extends Node {
   @override
   Statement toReturn() => Return(this);
 
+  // TODO(jmesserly): make this return a Yield?
+  Statement toYieldStatement({bool star = false}) =>
+      ExpressionStatement(Yield(this, star: star));
+
   Expression toVoidExpression() => this;
   Expression toAssignExpression(Expression left, [String? op]) =>
       Assignment.compound(left, op, this);

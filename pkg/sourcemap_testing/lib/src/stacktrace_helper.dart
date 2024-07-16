@@ -47,14 +47,8 @@ Test processTestCode(String code, Iterable<String> configs) {
     for (Annotation annotation in annotatedCode.annotations) {
       String text = annotation.text;
       int colonIndex = text.indexOf(':');
-      String indexText;
-      String? methodName;
-      if (colonIndex >= 0) {
-        indexText = text.substring(0, colonIndex);
-        methodName = text.substring(colonIndex + 1);
-      } else {
-        indexText = text;
-      }
+      String indexText = text.substring(0, colonIndex);
+      String methodName = text.substring(colonIndex + 1);
       StackTraceLine stackTraceLine = StackTraceLine(
           methodName, inputFileName, annotation.lineNo, annotation.columnNo);
       if (indexText == '') {

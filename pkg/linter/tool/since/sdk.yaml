@@ -114,6 +114,7 @@ noop_primitive_operations: 2.14.0
 null_check_on_nullable_type_parameter: 2.12.0
 null_closures: 2.0.0
 omit_local_variable_types: 2.0.0
+omit_obvious_local_variable_types: 3.5.0-wip
 one_member_abstracts: 2.0.0
 only_throw_errors: 2.0.0
 overridden_fields: 2.0.0

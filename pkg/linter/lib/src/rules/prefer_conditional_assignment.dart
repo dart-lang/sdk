@@ -78,7 +78,7 @@ class PreferConditionalAssignment extends LintRule {
             name: 'prefer_conditional_assignment',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   LintCode get lintCode => code;

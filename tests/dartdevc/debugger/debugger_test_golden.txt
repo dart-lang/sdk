@@ -5542,24 +5542,7 @@ Value:
                 {
                     "style": ""
                 },
-                "<DART_SDK>"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "<DART_SDK>"
+                "main.next (<anonymous>)"
             ]
         ]
     ],

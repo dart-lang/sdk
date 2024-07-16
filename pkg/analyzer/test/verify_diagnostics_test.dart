@@ -124,6 +124,11 @@ class DocumentationValidator {
     'LintCode.secure_pubspec_urls',
     // The test framework doesn't yet support lints in non-dart files.
     'LintCode.sort_pub_dependencies',
+    // Doesn't produce a lint for the first example, even though the analyzer
+    // does when the example is pasted into a file.
+    'LintCode.unnecessary_lambdas',
+    // Produces an unused_field warning.
+    'LintCode.use_setters_to_change_properties',
     // Extra warning.
     'LintCode.recursive_getters',
 

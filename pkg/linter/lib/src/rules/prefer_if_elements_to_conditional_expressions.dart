@@ -36,7 +36,7 @@ class PreferIfElementsToConditionalExpressions extends LintRule {
             name: 'prefer_if_elements_to_conditional_expressions',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   LintCode get lintCode => code;

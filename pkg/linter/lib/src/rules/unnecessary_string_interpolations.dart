@@ -39,7 +39,7 @@ class UnnecessaryStringInterpolations extends LintRule {
             name: 'unnecessary_string_interpolations',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   LintCode get lintCode => code;

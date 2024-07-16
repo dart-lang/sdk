@@ -43,7 +43,7 @@ class PreferInlinedAdds extends LintRule {
             name: 'prefer_inlined_adds',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   List<LintCode> get lintCodes => [multiple, single];

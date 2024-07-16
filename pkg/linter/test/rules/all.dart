@@ -147,6 +147,8 @@ import 'null_check_on_nullable_type_parameter_test.dart'
     as null_check_on_nullable_type_parameter;
 import 'null_closures_test.dart' as null_closures;
 import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
+import 'omit_obvious_local_variable_types_test.dart'
+    as omit_obvious_local_variable_types;
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
@@ -393,6 +395,7 @@ void main() {
   null_check_on_nullable_type_parameter.main();
   null_closures.main();
   omit_local_variable_types.main();
+  omit_obvious_local_variable_types.main();
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
