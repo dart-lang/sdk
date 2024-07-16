@@ -3379,13 +3379,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // TODO(jmesserly): need a way of determining if parameters are
     // potentially mutated in Kernel. For now we assume all parameters are.
-    super.enterFunction(name, formals, () => true);
+    enterFunction(name, formals, () => true);
 
     var block = isSync
         ? _emitSyncFunctionBody(f, name)
         : _emitGeneratorFunctionBody(f, name);
 
-    block = super.exitFunction(formals, block);
+    block = exitFunction(formals, block);
     _currentTypeEnvironment = savedTypeEnvironment;
     return js_ast.Fun(formals, block);
   }
@@ -4613,7 +4613,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement visitReturnStatement(ReturnStatement node) {
     var expression = node.expression;
     var value = expression == null ? null : _visitExpression(expression);
-    return super.emitReturnStatement(value);
+    return emitReturnStatement(value);
   }
 
   @override
