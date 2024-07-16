@@ -13,6 +13,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
   static final _underscoresPattern = RegExp('_+');
 
+  static final _tripletWithUnderscoresPattern =
+      RegExp(r'^[0-9a-fA-F]{2}_[0-9a-fA-F]{2}_[0-9a-fA-F]{2}$');
+
   /// The replacement text, used as an argument to the fix message.
   String _replacement = '';
 
@@ -39,14 +42,25 @@ class ReplaceWithEightDigitHex extends ResolvedCorrectionProducer {
         // The original string should be a substring of the replacement
         // (ignoring the '0x'). If there are existing separators, preserve them.
         var originalDigits = literal.lexeme.substring('0x'.length);
-        var originalWithoutSeparators =
-            originalDigits.replaceAll(_underscoresPattern, '');
-        var numberOfDigitsToAdd =
-            replacementDigits.length - originalWithoutSeparators.length;
-        var newLeadingDigits = '0' * numberOfDigitsToAdd;
-        replacementDigits = '$newLeadingDigits$originalDigits';
+        if (_tripletWithUnderscoresPattern.hasMatch(originalDigits)) {
+          replacementDigits = '00_$originalDigits';
+        } else {
+          var originalWithoutSeparators =
+              originalDigits.replaceAll(_underscoresPattern, '');
+          var numberOfDigitsToAdd =
+              replacementDigits.length - originalWithoutSeparators.length;
+          var newLeadingDigits = '0' * numberOfDigitsToAdd;
+          replacementDigits = '$newLeadingDigits$originalDigits';
+        }
       }
-      _replacement = '0x$replacementDigits';
+      var hexIndicator = switch (literal.type) {
+        TokenType.HEXADECIMAL ||
+        TokenType.HEXADECIMAL_WITH_SEPARATORS =>
+          literal.lexeme.substring(0, '0x'.length),
+        // Defalt to lower-case.
+        _ => '0x',
+      };
+      _replacement = '$hexIndicator$replacementDigits';
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(node), _replacement);
       });
