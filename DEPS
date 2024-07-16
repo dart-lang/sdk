@@ -190,7 +190,7 @@ vars = {
   "typed_data_rev": "365468a74251c930a463daf5b8f13227e269111a",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "0484625589d8512b36a7ad898a6cc6351d24c556",
-  "web_rev": "e4c4d8126466e28dc137890b8f999da59bdedddd",
+  "web_rev": "e89fe49d8a86845e49686b4578c56b67bdd7ba49",
   "web_socket_channel_rev": "8e95ea75302180af075295f7dd7ffe922e26f789",
   "webdev_rev": "75417c09181c97786d9539a662834bed9d2f1e77",
   "webdriver_rev": "718e4c37d004fceb9856de980782c46bf9576df5",
