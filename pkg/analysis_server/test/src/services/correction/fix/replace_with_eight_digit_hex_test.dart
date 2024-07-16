@@ -95,7 +95,49 @@ class Color {
 ''');
   }
 
-  Future<void> test_sixDigitHex_withSeparators() async {
+  Future<void> test_sixDigitHex_capitalX() async {
+    await resolveTestCode('''
+library dart.ui;
+
+var c = Color(0X000001);
+
+class Color {
+  Color(int value);
+}
+''');
+    await assertHasFix('''
+library dart.ui;
+
+var c = Color(0X00000001);
+
+class Color {
+  Color(int value);
+}
+''');
+  }
+
+  Future<void> test_sixDigitHex_withIrregularSeparators() async {
+    await resolveTestCode('''
+library dart.ui;
+
+var c = Color(0x000__001);
+
+class Color {
+  Color(int value);
+}
+''');
+    await assertHasFix('''
+library dart.ui;
+
+var c = Color(0x00000__001);
+
+class Color {
+  Color(int value);
+}
+''');
+  }
+
+  Future<void> test_sixDigitHex_withTripletSeparators() async {
     await resolveTestCode('''
 library dart.ui;
 
@@ -108,7 +150,7 @@ class Color {
     await assertHasFix('''
 library dart.ui;
 
-var c = Color(0x0000_00_01);
+var c = Color(0x00_00_00_01);
 
 class Color {
   Color(int value);
