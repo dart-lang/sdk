@@ -803,7 +803,10 @@ DEFINE_RUNTIME_ENTRY(AllocateSmallRecord, 4) {
 // Arg0: frame size.
 // Arg1: existing SuspendState object or function data.
 // Return value: newly allocated object.
-DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
+// No lazy deopt: the various suspend stubs need to save the real pc, not the
+// lazy deopt stub entry, for pointer visiting of the suspend state to work. The
+// resume stubs will do a check for disabled code.
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateSuspendState, 2) {
   const intptr_t frame_size =
       Smi::CheckedHandle(zone, arguments.ArgAt(0)).Value();
   const Object& previous_state = Object::Handle(zone, arguments.ArgAt(1));
