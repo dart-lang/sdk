@@ -7977,14 +7977,22 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
-  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
   const Error& error =
-      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, *this));
+      Error::Handle(zone, EnsureHasCompiledUnoptimizedCodeNoThrow());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
+}
+
+ErrorPtr Function::EnsureHasCompiledUnoptimizedCodeNoThrow() const {
+  ASSERT(!ForceOptimize());
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsDartMutatorThread());
+
+  return Compiler::EnsureUnoptimizedCode(thread, *this);
 }
 
 void Function::SwitchToUnoptimizedCode() const {

@@ -3181,7 +3181,14 @@ class Function : public Object {
   void SwitchToLazyCompiledUnoptimizedCode() const;
 
   // Compiles unoptimized code (if necessary) and attaches it to the function.
+  // If an error occurs during compilation, |Exceptions::PropagateError| will be
+  // called to propagate it.
   void EnsureHasCompiledUnoptimizedCode() const;
+
+  // Compiles unoptimized code (if necessary) and attaches it to the function.
+  // If an error occurs during compilation, the error is returned. Otherwise,
+  // |Error::null()| is returned.
+  ErrorPtr EnsureHasCompiledUnoptimizedCodeNoThrow() const;
 
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
