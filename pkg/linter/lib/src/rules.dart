@@ -119,6 +119,7 @@ import 'rules/noop_primitive_operations.dart';
 import 'rules/null_check_on_nullable_type_parameter.dart';
 import 'rules/null_closures.dart';
 import 'rules/omit_local_variable_types.dart';
+import 'rules/omit_obvious_local_variable_types.dart';
 import 'rules/one_member_abstracts.dart';
 import 'rules/only_throw_errors.dart';
 import 'rules/overridden_fields.dart';
@@ -358,6 +359,7 @@ void registerLintRules() {
     ..register(NullCheckOnNullableTypeParameter())
     ..register(NullClosures())
     ..register(OmitLocalVariableTypes())
+    ..register(OmitObviousLocalVariableTypes())
     ..register(OneMemberAbstracts())
     ..register(OnlyThrowErrors())
     ..register(OverriddenFields())
