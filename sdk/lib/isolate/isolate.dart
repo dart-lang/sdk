@@ -866,7 +866,6 @@ abstract interface class SendPort implements Capability {
   ///   - [Finalizable]
   ///   - [Finalizer]
   ///   - [NativeFinalizer]
-  ///   - [Pointer]
   ///   - [UserTag]
   ///   - `MirrorReference`
   ///
