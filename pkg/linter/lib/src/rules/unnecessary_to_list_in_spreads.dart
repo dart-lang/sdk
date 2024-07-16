@@ -40,7 +40,7 @@ class UnnecessaryToListInSpreads extends LintRule {
           name: 'unnecessary_to_list_in_spreads',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {Category.brevity},
         );
 
   @override

@@ -67,7 +67,7 @@ class PreferCollectionLiterals extends LintRule {
             name: 'prefer_collection_literals',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   LintCode get lintCode => code;

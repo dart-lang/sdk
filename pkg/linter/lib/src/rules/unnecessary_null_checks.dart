@@ -166,7 +166,7 @@ class UnnecessaryNullChecks extends LintRule {
             description: _desc,
             details: _details,
             state: State.experimental(),
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   LintCode get lintCode => code;

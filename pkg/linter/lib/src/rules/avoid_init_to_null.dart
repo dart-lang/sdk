@@ -69,7 +69,11 @@ class AvoidInitToNull extends LintRule {
             name: 'avoid_init_to_null',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              Category.brevity,
+              Category.effectiveDart,
+              Category.style
+            });
 
   @override
   LintCode get lintCode => code;

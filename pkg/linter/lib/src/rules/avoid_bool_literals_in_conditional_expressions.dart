@@ -42,7 +42,7 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule {
             name: 'avoid_bool_literals_in_conditional_expressions',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity});
 
   @override
   LintCode get lintCode => code;

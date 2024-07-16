@@ -59,7 +59,11 @@ class UnnecessaryThis extends LintRule {
             name: 'unnecessary_this',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              Category.brevity,
+              Category.effectiveDart,
+              Category.style,
+            });
 
   @override
   LintCode get lintCode => code;

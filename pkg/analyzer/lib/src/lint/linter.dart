@@ -41,6 +41,9 @@ abstract final class Category {
   /// A category of rules that help to minimize binary size.
   static const String binarySize = 'binary size';
 
+  /// A category of rules that encourage brevity in the source code.
+  static const String brevity = 'brevity';
+
   /// A category of rules that help to maintain documentation comments.
   static const String documentationCommentMaintenance =
       'documentation comment maintenance';

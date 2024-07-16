@@ -37,7 +37,7 @@ class UnnecessaryStringEscapes extends LintRule {
             name: 'unnecessary_string_escapes',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {Category.brevity, Category.style});
 
   @override
   bool get canUseParsedResult => true;
