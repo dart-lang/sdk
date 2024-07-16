@@ -610,8 +610,6 @@ class SourceLoader extends Loader {
     }
   }
 
-  /// Reads the library [uri] as an entry point. This is used for reading the
-
   /// Look up a library builder by the [uri], or if such doesn't exist, create
   /// one. The canonical URI of the library is [uri], and its actual location is
   /// [fileUri].
@@ -651,6 +649,7 @@ class SourceLoader extends Loader {
     return libraryBuilder;
   }
 
+  /// Reads the library [uri] as an entry point. This is used for reading the
   /// entry point library of a script or the explicitly mention libraries of
   /// a modular or incremental compilation.
   ///

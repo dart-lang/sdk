@@ -36,7 +36,6 @@ import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
@@ -99,9 +98,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   final SourceLoader loader;
-
-  final List<ConstructorReferenceBuilder> constructorReferences =
-      <ConstructorReferenceBuilder>[];
 
   final List<SourceCompilationUnit> _parts = [];
 

@@ -395,10 +395,6 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  List<ConstructorReferenceBuilder> get constructorReferences =>
-      _sourceLibraryBuilder.constructorReferences;
-
-  @override
   Library get library => _sourceLibraryBuilder.library;
 
   @override
@@ -602,7 +598,6 @@ class SourceCompilationUnitImpl
           }
         }
         libraryBuilder.unresolvedNamedTypes.addAll(part.unresolvedNamedTypes);
-        libraryBuilder.constructorReferences.addAll(part.constructorReferences);
         part.libraryName.reference =
             parentCompilationUnit.libraryName.reference;
         part.scope.becomePartOf(libraryBuilder.scope);

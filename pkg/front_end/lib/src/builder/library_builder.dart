@@ -33,7 +33,6 @@ import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import 'builder.dart';
-import 'constructor_reference_builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
@@ -154,8 +153,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   /// Returns `true` if the compilation unit is part of a `dart:` library.
   bool get isDartLibrary;
-
-  List<ConstructorReferenceBuilder> get constructorReferences;
 
   LanguageVersion get languageVersion;
 

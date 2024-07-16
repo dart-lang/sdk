@@ -152,8 +152,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   LibraryFeatures get libraryFeatures => _compilationUnit.libraryFeatures;
 
-  List<ConstructorReferenceBuilder> get constructorReferences =>
-      _compilationUnit.constructorReferences;
+  final List<ConstructorReferenceBuilder> _constructorReferences = [];
 
   @override
   void beginNestedDeclaration(TypeParameterScopeKind kind, String name,
@@ -521,7 +520,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         interfaceBuilders,
         enumConstantInfos,
         _parent,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
         startCharOffset,
         charOffset,
         charEndOffset,
@@ -535,7 +534,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             isModifiable: false),
         new ConstructorScope(name, constructors),
         loader.coreLibrary);
-    constructorReferences.clear();
+    _constructorReferences.clear();
 
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, enumBuilder);
@@ -697,7 +696,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         classScope,
         constructorScope,
         _parent,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        new List<ConstructorReferenceBuilder>.of(_constructorReferences),
         startOffset,
         nameOffset,
         endOffset,
@@ -711,7 +710,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass);
 
-    constructorReferences.clear();
+    _constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, classBuilder);
     void setParent(MemberBuilder? member) {
@@ -1171,7 +1170,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nameOffset,
         endOffset,
         referenceFrom);
-    constructorReferences.clear();
+    _constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, extensionBuilder);
     void setParent(MemberBuilder? member) {
@@ -1268,13 +1267,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             memberScope,
             constructorScope,
             _parent,
-            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            new List<ConstructorReferenceBuilder>.of(_constructorReferences),
             startOffset,
             identifier.nameOffset,
             endOffset,
             indexedContainer,
             representationFieldBuilder);
-    constructorReferences.clear();
+    _constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
         _checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
     void setParent(MemberBuilder? member) {
@@ -1678,7 +1677,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, _compilationUnit.fileUri, charOffset);
-    constructorReferences.add(ref);
+    _constructorReferences.add(ref);
     return ref;
   }
 
