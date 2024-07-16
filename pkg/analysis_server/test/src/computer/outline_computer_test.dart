@@ -1724,6 +1724,181 @@ set propB(int v) {}
 ''');
   }
 
+  Future<void> test_wildcardLocalFunction() async {
+    var unitOutline = await _computeOutline('''
+f() {
+  _() {
+    _(){}
+  }
+}
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines.first, '''
+{
+  "element": {
+    "kind": "FUNCTION",
+    "name": "f",
+    "location": {
+      "file": $testPathJson,
+      "offset": 0,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 1,
+      "endLine": 1,
+      "endColumn": 2
+    },
+    "flags": 8,
+    "parameters": "()",
+    "returnType": ""
+  },
+  "offset": 0,
+  "length": 29,
+  "codeOffset": 0,
+  "codeLength": 29,
+  "children": [
+    {
+      "element": {
+        "kind": "FUNCTION",
+        "name": "_",
+        "location": {
+          "file": $testPathJson,
+          "offset": 8,
+          "length": 1,
+          "startLine": 2,
+          "startColumn": 3,
+          "endLine": 2,
+          "endColumn": 4
+        },
+        "flags": 16,
+        "parameters": "()",
+        "returnType": ""
+      },
+      "offset": 8,
+      "length": 19,
+      "codeOffset": 8,
+      "codeLength": 19,
+      "children": [
+        {
+          "element": {
+            "kind": "FUNCTION",
+            "name": "_",
+            "location": {
+              "file": $testPathJson,
+              "offset": 18,
+              "length": 1,
+              "startLine": 3,
+              "startColumn": 5,
+              "endLine": 3,
+              "endColumn": 6
+            },
+            "flags": 16,
+            "parameters": "()",
+            "returnType": ""
+          },
+          "offset": 18,
+          "length": 5,
+          "codeOffset": 18,
+          "codeLength": 5
+        }
+      ]
+    }
+  ]
+}
+''');
+  }
+
+  Future<void> test_wildcardLocalFunction_preWildcards() async {
+    var unitOutline = await _computeOutline('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  _() {
+    _(){}
+  }
+}
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines.first, '''
+{
+  "element": {
+    "kind": "FUNCTION",
+    "name": "f",
+    "location": {
+      "file": $testPathJson,
+      "offset": 44,
+      "length": 1,
+      "startLine": 4,
+      "startColumn": 1,
+      "endLine": 4,
+      "endColumn": 2
+    },
+    "flags": 8,
+    "parameters": "()",
+    "returnType": ""
+  },
+  "offset": 44,
+  "length": 29,
+  "codeOffset": 44,
+  "codeLength": 29,
+  "children": [
+    {
+      "element": {
+        "kind": "FUNCTION",
+        "name": "_",
+        "location": {
+          "file": $testPathJson,
+          "offset": 52,
+          "length": 1,
+          "startLine": 5,
+          "startColumn": 3,
+          "endLine": 5,
+          "endColumn": 4
+        },
+        "flags": 16,
+        "parameters": "()",
+        "returnType": ""
+      },
+      "offset": 52,
+      "length": 19,
+      "codeOffset": 52,
+      "codeLength": 19,
+      "children": [
+        {
+          "element": {
+            "kind": "FUNCTION",
+            "name": "_",
+            "location": {
+              "file": $testPathJson,
+              "offset": 62,
+              "length": 1,
+              "startLine": 6,
+              "startColumn": 5,
+              "endLine": 6,
+              "endColumn": 6
+            },
+            "flags": 16,
+            "parameters": "()",
+            "returnType": ""
+          },
+          "offset": 62,
+          "length": 5,
+          "codeOffset": 62,
+          "codeLength": 5
+        }
+      ]
+    }
+  ]
+}
+''');
+  }
+
   void _expect(Outline outline,
       {ElementKind? kind,
       bool leaf = false,
