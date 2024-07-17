@@ -36,6 +36,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final List<NominalVariableBuilder>? typeParameters;
 
   @override
+  final Scope typeParameterScope;
+
+  @override
   final TypeBuilder onType;
 
   final ExtensionName extensionName;
@@ -46,6 +49,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.extensionName,
       this.typeParameters,
       this.onType,
+      this.typeParameterScope,
       Scope scope,
       SourceLibraryBuilder parent,
       int startOffset,

@@ -871,7 +871,7 @@ severity: $severity
       BodyBuilderContext bodyBuilderContext,
       Scope scope,
       Uri fileUri,
-      {Scope? formalParameterScope}) {
+      {LocalScope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
         library, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);

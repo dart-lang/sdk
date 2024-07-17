@@ -177,7 +177,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
                 inConstFields: false),
             classHierarchy,
             delayedActionPerformers,
-            scope.parent!);
+            typeParameterScope);
       }
     }
 
@@ -239,6 +239,9 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   ///
   /// This is `null` if the declaration is not generic.
   List<NominalVariableBuilder>? get typeParameters;
+
+  /// The scope in which the [typeParameters] are declared.
+  Scope get typeParameterScope;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,

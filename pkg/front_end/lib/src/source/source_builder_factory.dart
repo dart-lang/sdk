@@ -507,6 +507,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
+    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -536,11 +537,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charOffset,
         charEndOffset,
         referencesFromIndexedClass,
+        typeParameterScope,
         new Scope(
             kind: ScopeKind.declaration,
             local: members,
             setters: setters,
-            parent: scope.withTypeVariables(typeVariables),
+            parent: typeParameterScope,
             debugName: "enum $name",
             isModifiable: false),
         new ConstructorScope(name, constructors),
@@ -664,11 +666,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
+    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
     Scope classScope = new Scope(
         kind: ScopeKind.declaration,
         local: members,
         setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
+        parent: typeParameterScope,
         debugName: "class $className",
         isModifiable: false);
 
@@ -704,6 +707,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
         // here.
         null,
+        typeParameterScope,
         classScope,
         constructorScope,
         _parent,
@@ -1062,6 +1066,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               indexedLibrary!.lookupIndexedClass(fullname);
         }
 
+        Scope typeParameterScope = scope.withTypeVariables(typeVariables);
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
@@ -1075,13 +1080,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                 : isMixinDeclaration
                     ? [supertype!, mixin]
                     : null,
-            null,
-            // No `on` clause types.
+            null, // No `on` clause types.
+            typeParameterScope,
             new Scope(
                 kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
                 setters: <String, MemberBuilder>{},
-                parent: scope.withTypeVariables(typeVariables),
+                parent: typeParameterScope,
                 debugName: "mixin $fullname ",
                 isModifiable: false),
             new ConstructorScope(fullname, <String, MemberBuilder>{}),
@@ -1155,11 +1160,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
+    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
     Scope classScope = new Scope(
         kind: ScopeKind.declaration,
         local: members,
         setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
+        parent: typeParameterScope,
         debugName: "extension $name",
         isModifiable: false);
 
@@ -1175,6 +1181,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         extensionName,
         typeVariables,
         type,
+        typeParameterScope,
         classScope,
         _parent,
         startOffset,
@@ -1241,11 +1248,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
+    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
     Scope memberScope = new Scope(
         kind: ScopeKind.declaration,
         local: members,
         setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
+        parent: typeParameterScope,
         debugName: "extension type $name",
         isModifiable: false);
     ConstructorScope constructorScope =
@@ -1275,6 +1283,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             declaration.name,
             typeVariables,
             interfaces,
+            typeParameterScope,
             memberScope,
             constructorScope,
             _parent,

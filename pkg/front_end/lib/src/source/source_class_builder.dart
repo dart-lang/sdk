@@ -93,6 +93,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   List<NominalVariableBuilder>? typeVariables;
 
+  /// The scope in which the [typeParameters] are declared.
+  final Scope typeParameterScope;
+
   @override
   TypeBuilder? supertypeBuilder;
 
@@ -162,6 +165,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.supertypeBuilder,
       this.interfaceBuilders,
       this.onTypes,
+      this.typeParameterScope,
       Scope scope,
       ConstructorScope constructors,
       SourceLibraryBuilder parent,
@@ -384,7 +388,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 inConstFields: false),
             classHierarchy,
             delayedActionPerformers,
-            scope.parent!);
+            typeParameterScope);
       }
     }
 

@@ -89,7 +89,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
-      Scope scope,
+      Scope typeParameterScope,
+      Scope memberScope,
       ConstructorScope constructors,
       Class cls,
       this.elementBuilders,
@@ -113,7 +114,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             supertypeBuilder,
             interfaceBuilders,
             /* onTypes = */ null,
-            scope,
+            typeParameterScope,
+            memberScope,
             constructors,
             parent,
             constructorReferences,
@@ -136,7 +138,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       int charOffset,
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
-      Scope scope,
+      Scope typeParameterScope,
+      Scope memberScope,
       ConstructorScope constructorScope,
       LibraryBuilder coreLibrary) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
@@ -233,7 +236,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     Builder? customValuesDeclaration =
-        scope.lookupLocalMember("values", setter: false);
+        memberScope.lookupLocalMember("values", setter: false);
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
       while (customValuesDeclaration?.next != null) {
@@ -251,8 +254,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration =
-          scope.lookupLocalMember(restrictedInstanceMemberName, setter: false);
+      Builder? customIndexDeclaration = memberScope
+          .lookupLocalMember(restrictedInstanceMemberName, setter: false);
       if (customIndexDeclaration is MemberBuilder &&
           !customIndexDeclaration.isAbstract) {
         // Retrieve the earliest declaration for error reporting.
@@ -409,10 +412,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
     String className = name;
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
-    scope.forEachLocalMember((name, member) {
+    memberScope.forEachLocalMember((name, member) {
       members[name] = member as MemberBuilder;
     });
-    scope.forEachLocalSetter((name, member) {
+    memberScope.forEachLocalSetter((name, member) {
       setters[name] = member;
     });
 
@@ -502,11 +505,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
         typeVariables,
         supertypeBuilder,
         interfaceBuilders,
+        typeParameterScope,
         new Scope(
             kind: ScopeKind.declaration,
             local: members,
             setters: setters,
-            parent: scope.parent,
+            // TODO(johnniwinther): Why is the parent not the [memberScope]?
+            parent: memberScope.parent,
             debugName: "enum $name",
             isModifiable: false),
         constructorScope..addLocalMembers(constructors),

@@ -33,18 +33,15 @@ import 'dill_member_builder.dart';
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
 class LazyLibraryScope extends LazyScope {
-  DillLibraryBuilder? libraryBuilder;
+  final DillLibraryBuilder libraryBuilder;
 
-  LazyLibraryScope.top({bool isModifiable = false})
+  LazyLibraryScope.top(this.libraryBuilder)
       : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
-            isModifiable: isModifiable, kind: ScopeKind.library);
+            isModifiable: false, kind: ScopeKind.library);
 
   @override
   void ensureScope() {
-    if (libraryBuilder == null) {
-      throw new StateError("No library builder.");
-    }
-    libraryBuilder!.ensureLoaded();
+    libraryBuilder.ensureLoaded();
   }
 }
 
@@ -118,6 +115,10 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
+  late final LazyLibraryScope _scope;
+
+  late final LazyLibraryScope _exportScope;
+
   @override
   final Library library;
 
@@ -141,14 +142,16 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool isBuilt = false;
   bool isBuiltAndMarked = false;
 
-  DillLibraryBuilder(this.library, this.loader)
-      : super(library.fileUri, new LazyLibraryScope.top(),
-            new LazyLibraryScope.top()) {
-    LazyLibraryScope lazyScope = scope as LazyLibraryScope;
-    lazyScope.libraryBuilder = this;
-    LazyLibraryScope lazyExportScope = exportScope as LazyLibraryScope;
-    lazyExportScope.libraryBuilder = this;
+  DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
+    _scope = new LazyLibraryScope.top(this);
+    _exportScope = new LazyLibraryScope.top(this);
   }
+
+  @override
+  Scope get scope => _scope;
+
+  @override
+  Scope get exportScope => _exportScope;
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;

@@ -387,19 +387,12 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     implements LibraryBuilder {
   @override
-  final Scope scope;
-
-  @override
-  final Scope exportScope;
-
-  @override
   final Uri fileUri;
 
   @override
   bool mayImplementRestrictedTypes = false;
 
-  LibraryBuilderImpl(this.fileUri, this.scope, this.exportScope)
-      : super(null, -1);
+  LibraryBuilderImpl(this.fileUri) : super(null, -1);
 
   @override
   // Coverage-ignore(suite): Not run.

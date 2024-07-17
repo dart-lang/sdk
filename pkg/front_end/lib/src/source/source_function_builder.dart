@@ -76,7 +76,7 @@ abstract class SourceFunctionBuilder
   /// Language Specification, 4th ed, section 9.2.
   Scope computeFormalParameterScope(Scope parent);
 
-  Scope computeFormalParameterInitializerScope(Scope parent);
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
 
   /// This scope doesn't correspond to any scope specified in the Dart
   /// Programming Language Specification, 4th ed. It's an unspecified extension
@@ -226,7 +226,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  Scope computeFormalParameterInitializerScope(Scope parent) {
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     // From
     // [dartLangSpec.tex](../../../../../../docs/language/dartLangSpec.tex) at
     // revision 94b23d3b125e9d246e07a2b43b61740759a0dace:
@@ -251,12 +251,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
-    return new Scope(
-        kind: ScopeKind.initializers,
-        local: local,
-        parent: parent,
+    return parent.createNestedScope(
         debugName: "formal parameter initializer",
-        isModifiable: false);
+        kind: ScopeKind.initializers,
+        isModifiable: false,
+        local: local);
   }
 
   @override

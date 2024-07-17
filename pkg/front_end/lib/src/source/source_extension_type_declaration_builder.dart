@@ -59,6 +59,9 @@ class SourceExtensionTypeDeclarationBuilder
   final List<NominalVariableBuilder>? typeParameters;
 
   @override
+  final Scope typeParameterScope;
+
+  @override
   List<TypeBuilder>? interfaceBuilders;
 
   final SourceFieldBuilder? representationFieldBuilder;
@@ -71,6 +74,7 @@ class SourceExtensionTypeDeclarationBuilder
       String name,
       this.typeParameters,
       this.interfaceBuilders,
+      this.typeParameterScope,
       Scope scope,
       ConstructorScope constructorScope,
       SourceLibraryBuilder parent,
