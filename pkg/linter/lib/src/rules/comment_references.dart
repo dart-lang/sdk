@@ -90,6 +90,8 @@ class CommentReferences extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static final _commentStartPattern = RegExp(r'^///+\s*$');
+
   final LintRule rule;
 
   /// Recognized Markdown link references (see
@@ -104,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     linkReferences.clear();
 
     // Check for keywords that are not treated as references by the parser
-    // but should be flagged by the linter.
+    // but should be reported.
     // Note that no special care is taken to handle embedded code blocks.
     // TODO(srawlins): Skip over code blocks, made available via
     // `Comment.codeBlocks`.
@@ -112,21 +114,28 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (token.isSynthetic) continue;
 
       var comment = token.lexeme;
-      var leftIndex = comment.indexOf('[');
-      while (leftIndex >= 0) {
-        var rightIndex = comment.indexOf(']', leftIndex);
-        if (rightIndex >= 0) {
-          var reference = comment.substring(leftIndex + 1, rightIndex);
-          if (_isParserSpecialCase(reference)) {
-            var nameOffset = token.offset + leftIndex + 1;
-            rule.reportLintForOffset(nameOffset, reference.length);
-          }
-          if (rightIndex + 1 < comment.length &&
-              comment[rightIndex + 1] == ':') {
-            linkReferences.add(reference);
-          }
+      var referenceIndices = comment.referenceIndices(0);
+      if (referenceIndices == null) continue;
+      var (leftIndex, rightIndex) = referenceIndices;
+      var prefix = comment.substring(0, leftIndex);
+      if (_commentStartPattern.hasMatch(prefix)) {
+        // Check for a Markdown [link reference
+        // definition](https://spec.commonmark.org/0.31.2/#link-reference-definitions).
+        var reference = comment.substring(leftIndex + 1, rightIndex);
+        if (rightIndex + 1 < comment.length && comment[rightIndex + 1] == ':') {
+          linkReferences.add(reference);
         }
-        leftIndex = rightIndex < 0 ? -1 : comment.indexOf('[', rightIndex);
+      }
+
+      while (referenceIndices != null) {
+        (leftIndex, rightIndex) = referenceIndices;
+        var reference = comment.substring(leftIndex + 1, rightIndex);
+        if (_isParserSpecialCase(reference)) {
+          var nameOffset = token.offset + leftIndex + 1;
+          rule.reportLintForOffset(nameOffset, reference.length);
+        }
+
+        referenceIndices = comment.referenceIndices(rightIndex);
       }
     }
   }
@@ -158,4 +167,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       reference == 'null' ||
       reference == 'true' ||
       reference == 'false';
+}
+
+extension on String {
+  /// Returns the first indices of a left and right bracket, if a left bracket
+  /// is found before a right bracket in this [String], starting at [start], and
+  /// `null` otherwise.
+  (int, int)? referenceIndices(int start) {
+    var leftIndex = indexOf('[', start);
+    if (leftIndex < 0) return null;
+    var rightIndex = indexOf(']', leftIndex);
+    if (rightIndex < 0) return null;
+    return (leftIndex, rightIndex);
+  }
 }

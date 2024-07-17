@@ -263,6 +263,15 @@ class C {}
     ]);
   }
 
+  test_unknownElement_followedByColon() async {
+    await assertDiagnostics(r'''
+/// Parameter [y]: z.
+void f(int x) {}
+''', [
+      lint(15, 1),
+    ]);
+  }
+
   test_unknownElement_twiceDottedName() async {
     await assertDiagnostics(r'''
 /// Parameter [x.y.z].
