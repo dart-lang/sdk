@@ -19,6 +19,7 @@ import '../base/combinator.dart' as type;
 import '../base/configuration.dart' as type;
 import '../base/constant_context.dart' as type;
 import '../base/identifiers.dart' as type;
+import '../base/local_scope.dart' as type;
 import '../base/modifier.dart' as type;
 import '../base/operator.dart' as type;
 import '../base/scope.dart' as type;
@@ -181,7 +182,7 @@ class ValueKinds {
   static const ValueKind RecordTypeFieldBuilderListOrNull =
       const SingleValueKind<List<type.RecordTypeFieldBuilder>>(
           NullValues.RecordTypeFieldList);
-  static const ValueKind Scope = const SingleValueKind<type.Scope>();
+  static const ValueKind Scope = const SingleValueKind<type.LocalScope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
   static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
   static const ValueKind SwitchCaseList =
@@ -191,7 +192,7 @@ class ValueKinds {
   static const ValueKind SwitchExpressionCaseList =
       const SingleValueKind<List<type.SwitchExpressionCase>>();
   static const ValueKind SwitchScopeOrNull =
-      const SingleValueKind<type.Scope>(NullValues.SwitchScope);
+      const SingleValueKind<type.SwitchScope>(NullValues.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValues.Block);

@@ -41,6 +41,7 @@ import '../base/export.dart' show Export;
 import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
+import '../base/local_scope.dart';
 import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';

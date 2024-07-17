@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../api_prototype/lowering_predicates.dart';
+import '../base/local_scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -251,10 +252,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
-    return parent.createNestedScope(
+    return parent.createNestedFixedScope(
         debugName: "formal parameter initializer",
         kind: ScopeKind.initializers,
-        isModifiable: false,
         local: local);
   }
 

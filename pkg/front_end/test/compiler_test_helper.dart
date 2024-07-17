@@ -10,6 +10,7 @@ import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/constant_context.dart';
 import 'package:front_end/src/base/incremental_compiler.dart';
+import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/ticker.dart';
@@ -331,8 +332,8 @@ class BodyBuilderTest extends BodyBuilder {
       : super(
             libraryBuilder: libraryBuilder,
             context: context,
-            enclosingScope: enclosingScope,
-            formalParameterScope: formalParameterScope,
+            enclosingScope: enclosingScope.toLocalScope(),
+            formalParameterScope: formalParameterScope?.toLocalScope(),
             hierarchy: hierarchy,
             coreTypes: coreTypes,
             thisVariable: thisVariable,
