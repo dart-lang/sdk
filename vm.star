@@ -17,6 +17,7 @@ load(
     "mac",
     "no_android",
     "no_reclient",
+    "noble",
     "slow_shards",
     "windows",
     "windows11",
@@ -410,7 +411,7 @@ _vm_builder(
 _nightly_builder(
     "vm-gcc-linux",
     category = "vm|misc|g",
-    dimensions = jammy,
+    dimensions = noble,
     execution_timeout = 5 * time.hour,
     rbe = False,
     properties = {

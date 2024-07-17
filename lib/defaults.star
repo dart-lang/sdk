@@ -35,6 +35,7 @@ _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
 _FOCAL = {"os": "Ubuntu-20"}
 _JAMMY = {"os": "Ubuntu-22"}
+_NOBLE = {"os": "Ubuntu-24"}
 _WINDOWS10 = {"os": "Windows-10"}
 _WINDOWS11 = {"os": "Windows-11"}
 
@@ -56,6 +57,7 @@ focal = _FOCAL
 jammy = _JAMMY
 linux = _FOCAL
 mac = _MAC
+noble = _NOBLE
 windows = _WINDOWS10
 windows10 = _WINDOWS10
 windows11 = _WINDOWS11
