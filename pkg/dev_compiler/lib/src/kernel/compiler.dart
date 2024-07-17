@@ -3379,13 +3379,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // TODO(jmesserly): need a way of determining if parameters are
     // potentially mutated in Kernel. For now we assume all parameters are.
-    super.enterFunction(name, formals, () => true);
+    enterFunction(name, formals, () => true);
 
     var block = isSync
         ? _emitSyncFunctionBody(f, name)
         : _emitGeneratorFunctionBody(f, name);
 
-    block = super.exitFunction(formals, block);
+    block = exitFunction(formals, block);
     _currentTypeEnvironment = savedTypeEnvironment;
     return js_ast.Fun(formals, block);
   }
@@ -4613,7 +4613,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement visitReturnStatement(ReturnStatement node) {
     var expression = node.expression;
     var value = expression == null ? null : _visitExpression(expression);
-    return super.emitReturnStatement(value);
+    return emitReturnStatement(value);
   }
 
   @override
@@ -4773,14 +4773,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitConstantExpression(ConstantExpression node) =>
       visitConstant(node.constant);
-
-  @override
-  js_ast.Expression canonicalizeConstObject(js_ast.Expression expr) {
-    if (isSdkInternalRuntime(_currentLibrary!)) {
-      return super.canonicalizeConstObject(expr);
-    }
-    return runtimeCall('const(#)', [expr]);
-  }
 
   @override
   js_ast.Expression visitVariableGet(VariableGet node) {
@@ -6924,8 +6916,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType elementType, List<js_ast.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArrayClass);
-    return cacheConst(
-        runtimeCall('constList([#], #)', [elements, _emitType(elementType)]));
+    return runtimeCall('constList([#], #)', [elements, _emitType(elementType)]);
   }
 
   @override
@@ -6946,8 +6937,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitConstSet(
       DartType elementType, List<js_ast.Expression> elements) {
-    return cacheConst(
-        runtimeCall('constSet(#, [#])', [_emitType(elementType), elements]));
+    return runtimeCall('constSet(#, [#])', [_emitType(elementType), elements]);
   }
 
   @override
@@ -6973,8 +6963,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitConstMap(
       DartType keyType, DartType valueType, List<js_ast.Expression> entries) {
-    return cacheConst(runtimeCall('constMap(#, #, [#])',
-        [_emitType(keyType), _emitType(valueType), entries]));
+    return runtimeCall('constMap(#, #, [#])',
+        [_emitType(keyType), _emitType(valueType), entries]);
   }
 
   /// Returns the key used for shape lookup at runtime.
@@ -7197,14 +7187,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression cacheConst(js_ast.Expression jsExpr) {
-    if (isSdkInternalRuntime(_currentLibrary!)) {
-      return super.cacheConst(jsExpr);
-    }
-    return jsExpr;
-  }
-
-  @override
   js_ast.Expression visitConstant(Constant node) {
     if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
@@ -7247,7 +7229,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           type == const VoidType());
       return _emitTypeLiteral(type);
     }
-    if (isSdkInternalRuntime(_currentLibrary!) || node is PrimitiveConstant) {
+    if (node is PrimitiveConstant) {
       return super.visitConstant(node);
     }
 

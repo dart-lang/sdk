@@ -374,40 +374,6 @@ mixin SharedCompiler<Library extends Object, Class extends Object,
     return js.call('#.# = #', args);
   }
 
-  /// Caches a constant (list/set/map or class instance) in a variable, so it's
-  /// only canonicalized once at this location in the code, which improves
-  /// performance.
-  ///
-  /// This method ensures the constant is not initialized until use.
-  ///
-  /// The expression [jsExpr] should contain the already-canonicalized constant.
-  /// If the constant is not canonicalized yet, it should be wrapped in the
-  /// appropriate call, such as:
-  ///
-  /// - dart.constList (for Lists),
-  /// - dart.constMap (for Maps),
-  /// - dart.constSet (for Sets),
-  /// - dart.const (for other instances of classes)
-  ///
-  /// [canonicalizeConstObject] can be used for class instances; it will wrap
-  /// the expression in `dart.const` and then call this method.
-  ///
-  /// If the same constant is used elsewhere (in this module, or another
-  /// module), that will require a second canonicalization. In general it is
-  /// uncommon to define the same large constant (such as lists, maps) in
-  /// different locations, because that requires copy+paste, so in practice this
-  /// optimization is rather effective (we should consider caching once
-  /// per-module, though, as that would be relatively easy for the compiler to
-  /// implement once we have a single Kernel backend).
-  @protected
-  js_ast.Expression cacheConst(js_ast.Expression jsExpr) {
-    if (currentFunction == null) return jsExpr;
-
-    var temp = js_ast.TemporaryId('const');
-    moduleItems.add(js.statement('let #;', [temp]));
-    return js.call('# || (# = #)', [temp, temp, jsExpr]);
-  }
-
   /// Emits a Dart Symbol with the given member [symbolName].
   ///
   /// If the symbol refers to a private name, its library will be set to the
@@ -437,7 +403,7 @@ mixin SharedCompiler<Library extends Object, Class extends Object,
   /// constant instance of a user-defined class stored in [expr].
   @protected
   js_ast.Expression canonicalizeConstObject(js_ast.Expression expr) =>
-      cacheConst(runtimeCall('const(#)', [expr]));
+      runtimeCall('const(#)', [expr]);
 
   /// Emits preamble for the module containing [libraries], and returns the
   /// list of module items for further items to be added.
