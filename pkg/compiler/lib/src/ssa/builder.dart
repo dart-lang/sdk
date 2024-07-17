@@ -5806,9 +5806,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
-    type = type.withoutNullability;
-    if (type is InterfaceType && _nativeData.isNativeClass(type.element)) {
-      nativeBehavior.typesInstantiated.add(type);
+    final nonNullableType = type.withoutNullability;
+    if (nonNullableType is InterfaceType &&
+        _nativeData.isNativeClass(nonNullableType.element)) {
+      nativeBehavior.typesInstantiated.add(nonNullableType);
     }
 
     // It also includes any other JS interop type. Technically, a JS interop API

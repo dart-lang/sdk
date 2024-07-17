@@ -78,6 +78,30 @@ external bool undefinedField;
 external bool undefinedFieldInlined;
 
 @JS()
+@pragma('dart2js:never-inline')
+external int? nullableFunction();
+
+@JS()
+@pragma('dart2js:prefer-inline')
+external int? nullableFunctionInlined();
+
+@JS()
+@pragma('dart2js:never-inline')
+external int? get nullableGetter;
+
+@JS()
+@pragma('dart2js:prefer-inline')
+external int? get nullableGetterInlined;
+
+@JS()
+@pragma('dart2js:never-inline')
+external int? nullableField;
+
+@JS()
+@pragma('dart2js:prefer-inline')
+external int? nullableFieldInlined;
+
+@JS()
 @anonymous
 class SomeClass {
   @pragma('dart2js:never-inline')
@@ -127,6 +151,24 @@ class SomeClass {
 
   @pragma('dart2js:prefer-inline')
   external bool undefinedFieldInlined;
+
+  @pragma('dart2js:never-inline')
+  external int? nullableFunction();
+
+  @pragma('dart2js:prefer-inline')
+  external int? nullableFunctionInlined();
+
+  @pragma('dart2js:never-inline')
+  external int? get nullableGetter;
+
+  @pragma('dart2js:prefer-inline')
+  external int? get nullableGetterInlined;
+
+  @pragma('dart2js:never-inline')
+  external int? nullableField;
+
+  @pragma('dart2js:prefer-inline')
+  external int? nullableFieldInlined;
 }
 
 @JS()
@@ -180,6 +222,24 @@ class AnotherClass {
 
   @pragma('dart2js:prefer-inline')
   external static bool staticUndefinedFieldInlined;
+
+  @pragma('dart2js:never-inline')
+  external static int? staticNullableFunction();
+
+  @pragma('dart2js:prefer-inline')
+  external static int? staticNullableFunctionInlined();
+
+  @pragma('dart2js:never-inline')
+  external static int? get staticNullableGetter;
+
+  @pragma('dart2js:prefer-inline')
+  external static int? get staticNullableGetterInlined;
+
+  @pragma('dart2js:never-inline')
+  external static int? staticNullableField;
+
+  @pragma('dart2js:prefer-inline')
+  external static int? staticNullableFieldInlined;
 }
 
 @JS()
@@ -270,6 +330,24 @@ class NamedClass {
   external bool undefinedFieldInlined;
 
   @pragma('dart2js:never-inline')
+  external int? nullableFunction();
+
+  @pragma('dart2js:prefer-inline')
+  external int? nullableFunctionInlined();
+
+  @pragma('dart2js:never-inline')
+  external int? get nullableGetter;
+
+  @pragma('dart2js:prefer-inline')
+  external int? get nullableGetterInlined;
+
+  @pragma('dart2js:never-inline')
+  external int? nullableField;
+
+  @pragma('dart2js:prefer-inline')
+  external int? nullableFieldInlined;
+
+  @pragma('dart2js:never-inline')
   external static bool staticNullField;
 
   @pragma('dart2js:prefer-inline')
@@ -280,6 +358,24 @@ class NamedClass {
 
   @pragma('dart2js:prefer-inline')
   external static bool staticUndefinedFieldInlined;
+
+  @pragma('dart2js:never-inline')
+  external static int? staticNullableFunction();
+
+  @pragma('dart2js:prefer-inline')
+  external static int? staticNullableFunctionInlined();
+
+  @pragma('dart2js:never-inline')
+  external static int? get staticNullableGetter;
+
+  @pragma('dart2js:prefer-inline')
+  external static int? get staticNullableGetterInlined;
+
+  @pragma('dart2js:never-inline')
+  external static int? staticNullableField;
+
+  @pragma('dart2js:prefer-inline')
+  external static int? staticNullableFieldInlined;
 
   external factory NamedClass.createNamedClass();
 }
@@ -325,6 +421,15 @@ void topLevelMemberTests({required bool checksEnabled}) {
   eval(r'self.nullField = null;');
   Expect.throwsTypeErrorWhen(checksEnabled, () => nullField);
   Expect.throwsTypeErrorWhen(checksEnabled, () => undefinedField);
+
+  eval(r'self.nullableFunction = function() { return null; };');
+  Expect.isNull(nullableFunction());
+
+  eval(r'self.nullableGetter = null;');
+  Expect.isNull(nullableGetter);
+
+  eval(r'self.nullableField = null;');
+  Expect.isNull(nullableField);
 }
 
 void inlinedTopLevelMemberTests({required bool checksEnabled}) {
@@ -365,6 +470,15 @@ void inlinedTopLevelMemberTests({required bool checksEnabled}) {
   eval(r'self.nullFieldInlined = null;');
   Expect.throwsTypeErrorWhen(checksEnabled, () => nullFieldInlined);
   Expect.throwsTypeErrorWhen(checksEnabled, () => undefinedFieldInlined);
+
+  eval(r'self.nullableFunctionInlined = function() { return null; };');
+  Expect.isNull(nullableFunctionInlined());
+
+  eval(r'self.nullableGetterInlined = null;');
+  Expect.isNull(nullableGetterInlined);
+
+  eval(r'self.nullableFieldInlined = null;');
+  Expect.isNull(nullableFieldInlined);
 }
 
 void anonymousClassSetup() {
@@ -386,6 +500,12 @@ void anonymousClassSetup() {
           "getterFunctionReturnsUndefinedInlined": function() { return void 0; },
           "nullField" : null,
           "nullFieldInlined" : null,
+          "nullableFunction": function() { return null; },
+          "nullableFunctionInlined": function() { return null; },
+          "nullableGetter": null,
+          "nullableGetterInlined": null,
+          "nullableField": null,
+          "nullableFieldInlined": null,
         };
       };
       ''');
@@ -409,6 +529,12 @@ void anonymousClassSetup() {
           static get staticGetterFunctionReturnsUndefinedInlined() {
             return function() { return void 0; };
           }
+          static staticNullableFunction() { return null; }
+          static staticNullableFunctionInlined() { return null; }
+          static get staticNullableGetter() { return null; }
+          static get staticNullableGetterInlined() { return null; }
+          static staticNullableField = null;
+          static staticNullableFieldInlined = null;
       };''');
 }
 
@@ -450,6 +576,10 @@ void anonymousClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(checksEnabled, () => x.nullField);
   Expect.throwsTypeErrorWhen(checksEnabled, () => x.undefinedField);
 
+  Expect.isNull(x.nullableFunction());
+  Expect.isNull(x.nullableGetter);
+  Expect.isNull(x.nullableField);
+
   Expect.throwsTypeErrorWhen(
       checksEnabled, () => AnotherClass.staticReturnsNull());
   Expect.throwsTypeErrorWhen(
@@ -476,6 +606,10 @@ void anonymousClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(checksEnabled, () => AnotherClass.staticNullField);
   Expect.throwsTypeErrorWhen(
       checksEnabled, () => AnotherClass.staticUndefinedField);
+
+  Expect.isNull(AnotherClass.staticNullableFunction());
+  Expect.isNull(AnotherClass.staticNullableGetter);
+  Expect.isNull(AnotherClass.staticNullableField);
 }
 
 void inlinedAnonymousClassTests({required bool checksEnabled}) {
@@ -516,6 +650,10 @@ void inlinedAnonymousClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(checksEnabled, () => x.nullFieldInlined);
   Expect.throwsTypeErrorWhen(checksEnabled, () => x.undefinedFieldInlined);
 
+  Expect.isNull(x.nullableFunctionInlined());
+  Expect.isNull(x.nullableGetterInlined);
+  Expect.isNull(x.nullableFieldInlined);
+
   Expect.throwsTypeErrorWhen(
       checksEnabled, () => AnotherClass.staticReturnsNullInlined());
   Expect.throwsTypeErrorWhen(
@@ -544,6 +682,10 @@ void inlinedAnonymousClassTests({required bool checksEnabled}) {
       checksEnabled, () => AnotherClass.staticNullFieldInlined);
   Expect.throwsTypeErrorWhen(
       checksEnabled, () => AnotherClass.staticUndefinedFieldInlined);
+
+  Expect.isNull(AnotherClass.staticNullableFunctionInlined());
+  Expect.isNull(AnotherClass.staticNullableGetterInlined);
+  Expect.isNull(AnotherClass.staticNullableFieldInlined);
 }
 
 // DDC does not perform checks for dynamic invocations.
@@ -587,6 +729,10 @@ void dynamicAnonymousClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.nullField);
   Expect.throwsTypeErrorWhen(
       dart2js && checksEnabled, () => obj.undefinedField);
+
+  Expect.isNull(obj.nullableFunction());
+  Expect.isNull(obj.nullableGetter);
+  Expect.isNull(obj.nullableField);
 }
 
 // DDC does not perform checks for dynamic invocations.
@@ -633,6 +779,10 @@ void dynamicInlinedAnonymousClassTests({required bool checksEnabled}) {
       dart2js && checksEnabled, () => obj.nullFieldInlined);
   Expect.throwsTypeErrorWhen(
       dart2js && checksEnabled, () => obj.undefinedFieldInlined);
+
+  Expect.isNull(obj.nullableFunctionInlined());
+  Expect.isNull(obj.nullableGetterInlined);
+  Expect.isNull(obj.nullableFieldInlined);
 }
 
 void namedClassSetup() {
@@ -673,6 +823,18 @@ void namedClassSetup() {
           static get staticGetterFunctionReturnsUndefinedInlined() {
             return function() { return void 0; };
           }
+          nullableFunction() { return null; }
+          nullableFunctionInlined() { return null; }
+          get nullableGetter() { return null; }
+          get nullableGetterInlined() { return null; }
+          nullableField = null;
+          nullableFieldInlined = null;
+          static staticNullableFunction() { return null; }
+          static staticNullableFunctionInlined() { return null; }
+          static get staticNullableGetter() { return null; }
+          static get staticNullableGetterInlined() { return null; }
+          static staticNullableField = null;
+          static staticNullableFieldInlined = null;
           static createNamedClass() { return new NamedClass(); }
       };''');
 }
@@ -733,6 +895,13 @@ void namedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(checksEnabled, () => NamedClass.staticNullField);
   Expect.throwsTypeErrorWhen(
       checksEnabled, () => NamedClass.staticUndefinedField);
+
+  Expect.isNull(y.nullableFunction());
+  Expect.isNull(y.nullableGetter);
+  Expect.isNull(y.nullableField);
+  Expect.isNull(NamedClass.staticNullableFunction());
+  Expect.isNull(NamedClass.staticNullableGetter);
+  Expect.isNull(NamedClass.staticNullableField);
 }
 
 void inlinedNamedClassTests({required bool checksEnabled}) {
@@ -793,6 +962,13 @@ void inlinedNamedClassTests({required bool checksEnabled}) {
       checksEnabled, () => NamedClass.staticNullFieldInlined);
   Expect.throwsTypeErrorWhen(
       checksEnabled, () => NamedClass.staticUndefinedFieldInlined);
+
+  Expect.isNull(y.nullableFunctionInlined());
+  Expect.isNull(y.nullableGetterInlined);
+  Expect.isNull(y.nullableFieldInlined);
+  Expect.isNull(NamedClass.staticNullableFunctionInlined());
+  Expect.isNull(NamedClass.staticNullableGetterInlined);
+  Expect.isNull(NamedClass.staticNullableFieldInlined);
 }
 
 // DDC does not perform checks for dynamic invocations.
@@ -835,6 +1011,10 @@ void dynamicNamedClassTests({required bool checksEnabled}) {
   Expect.throwsTypeErrorWhen(dart2js && checksEnabled, () => obj.nullField);
   Expect.throwsTypeErrorWhen(
       dart2js && checksEnabled, () => obj.undefinedField);
+
+  Expect.isNull(obj.nullableFunction());
+  Expect.isNull(obj.nullableGetter);
+  Expect.isNull(obj.nullableField);
 }
 
 // DDC does not perform checks for dynamic invocations.
@@ -880,6 +1060,10 @@ void dynamicInlinedNamedClassTests({required bool checksEnabled}) {
       dart2js && checksEnabled, () => obj.nullFieldInlined);
   Expect.throwsTypeErrorWhen(
       dart2js && checksEnabled, () => obj.undefinedFieldInlined);
+
+  Expect.isNull(obj.nullableFunctionInlined());
+  Expect.isNull(obj.nullableGetterInlined);
+  Expect.isNull(obj.nullableFieldInlined);
 }
 
 @JS()
