@@ -96,6 +96,10 @@ part 'source_compilation_unit.dart';
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   late final SourceCompilationUnit compilationUnit;
 
+  final Scope _scope;
+
+  final Scope _exportScope;
+
   @override
   final SourceLoader loader;
 
@@ -233,11 +237,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<String, Builder>? omittedTypes})
       : _immediateOrigin = origin,
         libraryName = new LibraryName(library.reference),
-        super(
-            fileUri,
-            libraryTypeParameterScopeBuilder.toScope(importScope,
-                omittedTypeDeclarationBuilders: omittedTypes),
-            origin?.exportScope ?? new Scope.top(kind: ScopeKind.library)) {
+        _scope = libraryTypeParameterScopeBuilder.toScope(importScope,
+            omittedTypeDeclarationBuilders: omittedTypes),
+        _exportScope =
+            origin?.exportScope ?? new Scope.top(kind: ScopeKind.library),
+        super(fileUri) {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
@@ -377,6 +381,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isAugmentation: isAugmentation,
             isPatch: isPatch,
             omittedTypes: omittedTypes);
+
+  @override
+  Scope get scope => _scope;
+  @override
+  Scope get exportScope => _exportScope;
 
   Iterable<SourceCompilationUnit> get parts => _parts;
 
