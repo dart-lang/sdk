@@ -184,7 +184,7 @@ class A {
   void m(int a, int b) {}
 }
 class B extends A {
-  void m(_, __) {}
+  void m(_, _) {}
 }
 ''');
   }
@@ -195,7 +195,7 @@ class A {
   void m(int a, int b, int c) {}
 }
 class B extends A {
-  void m(_, b, __) {}
+  void m(_, b, _) {}
 }
 ''');
   }
@@ -206,7 +206,7 @@ class A {
   void m(int a, int b, int c) {}
 }
 class B extends A {
-  void m(_, c, __) {}
+  void m(_, c, _) {}
 }
 ''', [
       lint(77, 1),
