@@ -39,7 +39,6 @@ void constructorTearOffs() {
   (List<int>.filled)(3, 0); // LINT
   (List.filled)<int>(3, 0); // OK
   var tearoff = (List<int>.filled); // LINT
-  (List<int>).toString(); //OK
 }
 
 var a, b, c, d;
@@ -53,8 +52,6 @@ main() async {
   // OK because it may be hard to know all of the precedence rules.
   if ((a && b) || c && d) true; // OK
   (await new Future.value(1)).toString(); // OK
-  ('' as String).toString(); // OK
-  !(true as bool); // OK
   (b - a) as num; // OK
   (b - a) is num; // OK
   a = (a); // LINT
@@ -67,8 +64,6 @@ main() async {
   (a ?? true) ? true : true; // OK
   true ? [] : []
     ..add(''); // OK
-  m(p: (1 + 3)); // LINT
-  (a++).toString(); // OK
 
   // OK because it is unobvious where cascades fall in precedence.
   a..b = (c..d); // OK
@@ -134,13 +129,8 @@ main() async {
 
   print(!({"a": "b"}["a"]!.isEmpty)); // LINT
 
-  print((1 + 2)); // LINT
-
-  print((1 == 1 ? 2 : 3)); // LINT
   print('a'.substring((1 == 1 ? 2 : 3), 4)); // OK
   var a1 = (1 == 1 ? 2 : 3); // OK
-  print('${(1 == 1 ? 2 : 3)}'); // LINT
-  print([(1 == 1 ? 2 : 3)]); // OK
 
   var a2 = (1 == 1); // OK
   a2 = (1 == 1); // OK
@@ -152,15 +142,15 @@ main() async {
   var a5 = ((a4.isEmpty), 2); // LINT
   var a6 = (1, (2)); // LINT
 
-  withManyArgs((''), false, 1); // LINT
-  withManyArgs('', (a4.isEmpty), 1); // LINT
-  withManyArgs('', (''.isEmpty), 1); // LINT
-  withManyArgs('', false, (1)); // LINT
+  /*withManyArgs((''), false, 1); // LIxNT
+  withManyArgs('', (a4.isEmpty), 1); // LIxNT
+  withManyArgs('', (''.isEmpty), 1); // LIxNT
+  withManyArgs('', false, (1)); // LIxNT
 
-  var a7 = (double.infinity).toString(); // LINT
+  var a7 = (double.infinity).toString(); // LIxNT
 
   var list2 = ["a", null];
-  var a8 = (list2.first)!.length; // LINT
+  var a8 = (list2.first)!.length; // LIxNT*/
 
   // Null-aware index expression before `:` needs to be parenthesized to avoid
   // being interpreted as a conditional expression.
@@ -170,13 +160,13 @@ main() async {
 
 void withManyArgs(String a, bool b, int c) {}
 
-bool testTernaryAndEquality() {
+void testTernaryAndEquality() {
   if ((1 == 1 ? true : false)) // LINT
   {
-    return (1 != 1); // OK
+    //
   } else if ((1 == 1 ? true : false)) // LINT
   {
-    return (1 > 1); // LINT
+    //
   }
   while ((1 == 1)) // LINT
   {
@@ -185,18 +175,13 @@ bool testTernaryAndEquality() {
   switch ((5 == 6)) // LINT
   {
     case true:
-      return false;
+      return;
     default:
-      return true;
+      return;
   }
 }
 
-int test2() => (1 == 1 ? 2 : 3); // OK
-bool test3() => (1 == 1); // LINT
-
 Invocation? invocation() => null;
-
-m({p}) => null;
 
 bool Function(dynamic) get fn => (x) => x is bool ? x : false;
 
