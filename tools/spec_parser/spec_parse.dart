@@ -12,7 +12,7 @@ const String javaExecutable = 'java';
 void main(List<String> arguments) {
   for (String arg in arguments) {
     void handleResult(ProcessResult result) {
-      if (result.stderr.length != 0) {
+      if ((result.stderr as String).isNotEmpty) {
         print('Error parsing $arg:\n${result.stderr}');
       }
       print(result.stdout);

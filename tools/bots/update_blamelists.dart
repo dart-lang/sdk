@@ -21,11 +21,11 @@ const maxAttempts = 20;
 late FirestoreDatabase database;
 
 class ResultRecord {
-  final Map data;
+  final Map<String, dynamic> data;
 
   ResultRecord(this.data);
 
-  Map field(String name) => data['fields'][name] /*!*/;
+  Map field(String name) => (data['fields'] as Map)[name];
 
   int get blamelistStartIndex {
     return int.parse(field('blamelist_start_index')['integerValue']);
@@ -61,8 +61,9 @@ Query unapprovedActiveFailuresQuery(String configuration) {
 
 Future<int> getCommitIndex(String commit) async {
   try {
-    Map document = await database.getDocument('commits', commit);
-    var index = document['fields']['index'];
+    var document =
+        (await database.getDocument('commits', commit)).cast<String, dynamic>();
+    var index = (document['fields'] as Map)['index'] as Map;
     if (index['integerValue'] == null) {
       throw Exception('Expected an integer, but got "$index"');
     }
@@ -103,14 +104,15 @@ Future<void> updateBlameLists(String configuration, String commit,
   int attempts = 0;
   do {
     needsRetry = false;
-    var documents = (await database.runQuery(query))
+    var documentPaths = (await database.runQuery(query))
+        .cast<Map>()
         .where((result) => result['document'] != null)
-        .map((result) => result['document']['name']);
-    for (var documentPath in documents) {
+        .map((result) => (result['document'] as Map)['name'] as String);
+    for (var documentPath in documentPaths) {
       database.beginTransaction();
       var documentName = documentPath.split('/').last;
-      var result =
-          ResultRecord(await database.getDocument('results', documentName));
+      final docMap = await database.getDocument('results', documentName);
+      var result = ResultRecord(docMap.cast<String, dynamic>());
       if (commitIndex < result.blamelistStartIndex ||
           commitIndex >= result.blamelistEndIndex) {
         continue;
