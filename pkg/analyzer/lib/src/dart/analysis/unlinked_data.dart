@@ -181,7 +181,7 @@ class UnlinkedLibraryAugmentationDirective {
 }
 
 class UnlinkedLibraryDirective {
-  /// `@docImport` directives in a library doc comment.
+  /// `@docImport` directives in the doc comment.
   final List<UnlinkedLibraryImportDirective> docImports;
 
   final String? name;
@@ -203,7 +203,7 @@ class UnlinkedLibraryDirective {
   }
 
   void write(BufferedSink sink) {
-    sink.writeList<UnlinkedLibraryImportDirective>(docImports, (docImport) {
+    sink.writeList(docImports, (docImport) {
       docImport.write(sink);
     });
     sink.writeOptionalStringUtf8(name);
@@ -253,6 +253,7 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
 /// Unlinked information about an 'import' directive.
 class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
   final int importKeywordOffset;
+  final bool isDocImport;
   final bool isSyntheticDartCore;
   final UnlinkedLibraryImportPrefix? prefix;
 
@@ -260,6 +261,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
     required super.combinators,
     required super.configurations,
     required this.importKeywordOffset,
+    required this.isDocImport,
     this.isSyntheticDartCore = false,
     required this.prefix,
     required super.uri,
@@ -274,6 +276,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
       importKeywordOffset: reader.readUInt30() - 1,
+      isDocImport: reader.readBool(),
       isSyntheticDartCore: reader.readBool(),
       prefix: reader.readOptionalObject(
         UnlinkedLibraryImportPrefix.read,
@@ -294,6 +297,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
       },
     );
     sink.writeUInt30(1 + importKeywordOffset);
+    sink.writeBool(isDocImport);
     sink.writeBool(isSyntheticDartCore);
     sink.writeOptionalObject<UnlinkedLibraryImportPrefix>(
       prefix,
@@ -409,10 +413,14 @@ class UnlinkedPartDirective {
 }
 
 class UnlinkedPartOfNameDirective {
+  /// `@docImport` directives in the doc comment.
+  final List<UnlinkedLibraryImportDirective> docImports;
+
   final String name;
   final UnlinkedSourceRange nameRange;
 
   UnlinkedPartOfNameDirective({
+    required this.docImports,
     required this.name,
     required this.nameRange,
   });
@@ -421,22 +429,32 @@ class UnlinkedPartOfNameDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedPartOfNameDirective(
+      docImports: reader.readTypedList(
+        () => UnlinkedLibraryImportDirective.read(reader),
+      ),
       name: reader.readStringUtf8(),
       nameRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList(docImports, (docImport) {
+      docImport.write(sink);
+    });
     sink.writeStringUtf8(name);
     nameRange.write(sink);
   }
 }
 
 class UnlinkedPartOfUriDirective {
+  /// `@docImport` directives in the doc comment.
+  final List<UnlinkedLibraryImportDirective> docImports;
+
   final String? uri;
   final UnlinkedSourceRange uriRange;
 
   UnlinkedPartOfUriDirective({
+    required this.docImports,
     required this.uri,
     required this.uriRange,
   });
@@ -445,12 +463,18 @@ class UnlinkedPartOfUriDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedPartOfUriDirective(
+      docImports: reader.readTypedList(
+        () => UnlinkedLibraryImportDirective.read(reader),
+      ),
       uri: reader.readOptionalStringUtf8(),
       uriRange: UnlinkedSourceRange.read(reader),
     );
   }
 
   void write(BufferedSink sink) {
+    sink.writeList(docImports, (docImport) {
+      docImport.write(sink);
+    });
     sink.writeOptionalStringUtf8(uri);
     uriRange.write(sink);
   }
@@ -496,11 +520,17 @@ class UnlinkedUnit {
   /// `export` directives.
   final List<UnlinkedLibraryExportDirective> exports;
 
+  /// Whether this file has explicit `dart:core` import.
+  final bool hasDartCoreImport;
+
   /// `import` directives.
   final List<UnlinkedLibraryImportDirective> imports;
 
   /// Encoded informative data.
   final Uint8List informativeBytes;
+
+  /// Whether this file is `dart:core` library.
+  final bool isDartCore;
 
   /// The `augment library 'uri';` directive.
   final UnlinkedLibraryAugmentationDirective? libraryAugmentationDirective;
@@ -530,8 +560,10 @@ class UnlinkedUnit {
     required this.apiSignature,
     required this.augmentations,
     required this.exports,
+    required this.hasDartCoreImport,
     required this.imports,
     required this.informativeBytes,
+    required this.isDartCore,
     required this.libraryAugmentationDirective,
     required this.libraryDirective,
     required this.lineStarts,
@@ -551,10 +583,12 @@ class UnlinkedUnit {
       exports: reader.readTypedList(
         () => UnlinkedLibraryExportDirective.read(reader),
       ),
+      hasDartCoreImport: reader.readBool(),
       imports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
       ),
       informativeBytes: reader.readUint8List(),
+      isDartCore: reader.readBool(),
       libraryAugmentationDirective: reader.readOptionalObject(
         UnlinkedLibraryAugmentationDirective.read,
       ),
@@ -586,10 +620,12 @@ class UnlinkedUnit {
     sink.writeList<UnlinkedLibraryExportDirective>(exports, (x) {
       x.write(sink);
     });
+    sink.writeBool(hasDartCoreImport);
     sink.writeList<UnlinkedLibraryImportDirective>(imports, (x) {
       x.write(sink);
     });
     sink.writeUint8List(informativeBytes);
+    sink.writeBool(isDartCore);
     sink.writeOptionalObject<UnlinkedLibraryAugmentationDirective>(
       libraryAugmentationDirective,
       (x) => x.write(sink),

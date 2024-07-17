@@ -549,6 +549,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -617,6 +618,7 @@ files
     current
       id: file_8
       kind: partOfUriKnown_8
+        uriFile: file_7
         library: library_7
       referencingFiles: file_7
       unlinkedKey: k01
@@ -681,6 +683,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -779,6 +782,7 @@ files
     current
       id: file_9
       kind: partOfUriKnown_9
+        uriFile: file_8
         library: library_8
       referencingFiles: file_8
       unlinkedKey: k01

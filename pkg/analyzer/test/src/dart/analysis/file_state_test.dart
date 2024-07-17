@@ -2923,6 +2923,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_0
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k00
@@ -2931,6 +2932,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k01
@@ -2966,6 +2968,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_8
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k03
@@ -2974,6 +2977,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k01
@@ -3009,6 +3013,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_8
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k03
@@ -3017,6 +3022,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_9
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k04
@@ -3652,6 +3658,52 @@ elementFactory
 ''');
   }
 
+  test_newFile_partOfUri_docImports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+part of 'a.dart';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        docImports
+          library_4 dart:async
+          library_6 dart:math
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_partOfUri_doesNotExist() async {
     var a = getFile('$testPackageLibPath/a.dart');
 
@@ -3721,6 +3773,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_7
       referencingFiles: file_0
       unlinkedKey: k01
@@ -3751,6 +3804,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_8
+        uriFile: file_0
         library: library_7
       referencingFiles: file_0
       unlinkedKey: k01
@@ -3793,6 +3847,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -3823,6 +3878,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_7
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -3864,6 +3920,103 @@ files
       id: file_1
       kind: partOfUriKnown_1
         uriFile: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_partOfUri_exports_library_dart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+export 'dart:collection';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+export 'dart:async';
+export 'dart:math';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_2 dart:core synthetic
+        libraryExports
+          library_6 dart:collection
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        libraryExports
+          library_4 dart:async
+          library_7 dart:math
+      referencingFiles: file_0
+      unlinkedKey: k01
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_partOfUri_imports_library_dart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:collection';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+import 'dart:async';
+import 'dart:math';
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_6 dart:collection
+          library_2 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:collection dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        libraryImports
+          library_4 dart:async
+          library_7 dart:math
+      referencingFiles: file_0
       unlinkedKey: k01
 libraryCycles
 elementFactory
@@ -3926,6 +4079,66 @@ elementFactory
 ''');
   }
 
+  test_newFile_partOfUri_parts() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'c.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+import 'dart:async';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        libraryImports
+          library_3 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+  /home/test/lib/b.dart
+    uri: package:test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        uriFile: file_0
+        library: library_0
+        parts
+          partOfUriKnown_2
+      referencingFiles: file_0
+      unlinkedKey: k01
+  /home/test/lib/c.dart
+    uri: package:test/c.dart
+    current
+      id: file_2
+      kind: partOfUriKnown_2
+        uriFile: file_1
+        library: library_0
+        libraryImports
+          library_5 dart:async
+      referencingFiles: file_1
+      unlinkedKey: k02
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_partOfUri_twoLibraries() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'c.dart';
@@ -3963,6 +4176,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -4007,6 +4221,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0 file_7
       unlinkedKey: k01
@@ -4051,6 +4266,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0 file_7
       unlinkedKey: k01
@@ -4095,6 +4311,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_9
       referencingFiles: file_0 file_7
       unlinkedKey: k01
@@ -4271,6 +4488,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_13
       referencingFiles: file_0 file_7
       unlinkedKey: k01
@@ -4772,6 +4990,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_7
+        uriFile: file_0
         library: library_9
       referencingFiles: file_0
       unlinkedKey: k02
@@ -5026,6 +5245,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_0
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k00
@@ -5034,6 +5254,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_2
         library: library_2
       referencingFiles: file_2
       unlinkedKey: k00
@@ -5077,6 +5298,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_2
         library: library_8
       referencingFiles: file_2
       unlinkedKey: k00
@@ -5386,6 +5608,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_7
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k02
@@ -5578,6 +5801,7 @@ files
     current
       id: file_1
       kind: partOfUriKnown_1
+        uriFile: file_0
         library: library_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -5649,6 +5873,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_0
+        uriFile: file_1
         library: library_1
       referencingFiles: file_1
       unlinkedKey: k00
@@ -5678,6 +5903,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_0
+        uriFile: file_1
         library: library_1
       referencingFiles: file_1 file_7
       unlinkedKey: k00
@@ -5731,6 +5957,7 @@ files
     current
       id: file_0
       kind: partOfUriKnown_8
+        uriFile: file_1
         library: library_1
       referencingFiles: file_1 file_7
       unlinkedKey: k02
