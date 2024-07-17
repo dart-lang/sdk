@@ -103,7 +103,7 @@ vars = {
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "e77d6ce142b7bc737af3652f5727e449e84b7b03",
-  "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
+  "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
   "libcxxabi_rev": "2ce528fb5e0f92e57c97ec3ff53b75359d33af12",

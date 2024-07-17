@@ -169,16 +169,12 @@ source_set("libprotozero") {
 
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
-  extra_product_deps = [
-    "//third_party/icu:icui18n_hidden_visibility",
-    "//third_party/icu:icuuc_hidden_visibility",
-  ]
-  extra_nonproduct_deps = [
-    ":libprotozero",
+  extra_product_deps = []
+  extra_nonproduct_deps = [ ":libprotozero" ]
+  extra_deps = [
     "//third_party/icu:icui18n",
     "//third_party/icu:icuuc",
   ]
-  extra_deps = []
   if (is_fuchsia) {
     extra_deps += [
       "$fuchsia_sdk/fidl/fuchsia.intl",
