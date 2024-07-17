@@ -8,11 +8,12 @@ analyzer:
     - dart2js/**
     - dom/**
     - test_generators/**
+  language:
+    strict-inference: true
 
 linter:
   rules:
-    # TODO: Enable this once other issues are addressed.
-    # - avoid_dynamic_calls
+    - avoid_dynamic_calls
     - comment_references
     - depend_on_referenced_packages
     - directives_ordering

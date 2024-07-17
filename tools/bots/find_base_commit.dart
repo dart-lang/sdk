@@ -100,14 +100,14 @@ ${parser.usage}""");
   // can, the first time we see a commit, we know it's newer than all commits
   // we haven't seen yet. The insertion order into the buildersForCommits map
   // will then sorted with the newest commit first.
-  final builds = searchResult["builds"];
+  final builds = searchResult["builds"] as List<Map>?;
   if (builds == null) {
     print("No builds found");
     exit(1);
   }
   final buildersForCommits = <String, Set<String>>{};
   for (final build in builds) {
-    final builder = build["builder"]?["builder"];
+    final builder = (build["builder"] as Map?)?["builder"];
     if (builder is! String ||
         builder.endsWith("-beta") ||
         builder.endsWith("-dev") ||
@@ -120,7 +120,7 @@ ${parser.usage}""");
       // Filter way builders we're not interested in.
       continue;
     }
-    final input = build["input"]?["gitilesCommit"];
+    final input = (build["input"] as Map?)?["gitilesCommit"] as Map?;
     if (input == null) {
       // Ignore builds not triggered by a commit, e.g. fuzz-linux.
       continue;

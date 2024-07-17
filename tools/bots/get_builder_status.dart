@@ -36,8 +36,8 @@ String get buildTable => builder.endsWith('-try') ? 'try_builds' : 'builds';
 String get resultsTable => builder.endsWith('-try') ? 'try_results' : 'results';
 
 bool booleanFieldOrFalse(Map<String, dynamic> document, String field) {
-  final fieldObject = document['fields'][field];
-  return fieldObject?['booleanValue'] ?? false;
+  final fieldObject = (document['fields'] as Map)[field];
+  return (fieldObject as Map?)?['booleanValue'] ?? false;
 }
 
 void usage(ArgParser parser) {
@@ -100,8 +100,8 @@ void main(List<String> args) async {
         'when fetching build data');
     exit(2);
   }
-  final documents = jsonDecode(response.body);
-  final document = documents.first['document'];
+  final documents = jsonDecode(response.body) as List;
+  final document = (documents.first as Map)['document'];
   if (document == null) {
     print('No results received for build $buildNumber of $builder');
     exit(2);
@@ -133,7 +133,7 @@ Future<List<String>> getConfigurations() async {
   final groups = <String>{
     for (Map document in documents)
       if (document.containsKey('document'))
-        document['document']['name'].split('/').last
+        ((document['document'] as Map)['name'] as String).split('/').last
   };
   return groups.toList();
 }
@@ -145,9 +145,10 @@ Future<String> commitHash(int index) =>
 Future<String> fetchCommitHash(int index) async {
   final response = await runFirestoreQuery(commitQuery(index));
   if (response.statusCode == HttpStatus.ok) {
-    final document = jsonDecode(response.body).first['document'];
+    final documents = jsonDecode(response.body) as List;
+    final document = (documents.first as Map)['document'] as Map?;
     if (document != null) {
-      return document['name'].split('/').last;
+      return (document['name'] as String).split('/').last;
     }
   }
   print('Could not fetch commit with index $index');
@@ -161,20 +162,20 @@ Future<Map<String, List<Map<String, dynamic>>>> fetchActiveFailures(
     final response =
         await runFirestoreQuery(unapprovedFailuresQuery(configuration));
     if (response.statusCode == HttpStatus.ok) {
-      final documents = jsonDecode(response.body);
+      final documents = (jsonDecode(response.body) as List).cast<Map>();
       for (final documentItem in documents) {
-        final document = documentItem['document'];
+        final document = documentItem['document'] as Map?;
         if (document == null) continue;
-        final fields = document['fields'];
+        final fields = document['fields'] as Map;
         failures.putIfAbsent(configuration, () => []).add({
-          'name': fields['name']['stringValue'],
-          'start_commit': await commitHash(
-              int.parse(fields['blamelist_start_index']['integerValue'])),
-          'end_commit': await commitHash(
-              int.parse(fields['blamelist_end_index']['integerValue'])),
-          'result': fields['result']['stringValue'],
-          'expected': fields['expected']['stringValue'],
-          'previous': fields['previous_result']['stringValue'],
+          'name': (fields['name'] as Map)['stringValue'],
+          'start_commit': await commitHash(int.parse(
+              (fields['blamelist_start_index'] as Map)['integerValue'])),
+          'end_commit': await commitHash(int.parse(
+              (fields['blamelist_end_index'] as Map)['integerValue'])),
+          'result': (fields['result'] as Map)['stringValue'],
+          'expected': (fields['expected'] as Map)['stringValue'],
+          'previous': (fields['previous_result'] as Map)['stringValue'],
         });
       }
     }
@@ -196,10 +197,10 @@ void printActiveFailures(Map<String, List<Map<String, dynamic>>> failures) {
         ', expected ',
         failure['expected'],
         ') at ',
-        failure['start_commit'].substring(0, 6),
+        (failure['start_commit'] as String).substring(0, 6),
         if (failure['end_commit'] != failure['start_commit']) ...[
           '..',
-          failure['end_commit'].substring(0, 6)
+          (failure['end_commit'] as String).substring(0, 6)
         ]
       ].join(''));
     }

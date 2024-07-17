@@ -67,7 +67,8 @@ ${parser.usage}''');
         testData['last_new_result_seen'] = nowString;
       }
       if (testData['current'] == result) {
-        testData['current_counter']++;
+        var currentCounter = testData['current_counter'] as int;
+        testData['current_counter'] = currentCounter + 1;
       } else {
         testData['current'] = result;
         testData['current_counter'] = 1;
@@ -75,7 +76,7 @@ ${parser.usage}''');
       Map<String, dynamic> mapField(String key) =>
           testData[key] ??= <String, dynamic>{};
       mapField('occurrences')[result] =
-          (mapField('occurrences')[result] ?? 0) + 1;
+          (mapField('occurrences')[result] as int? ?? 0) + 1;
       mapField('first_seen')[result] ??= nowString;
       mapField('last_seen')[result] = nowString;
       mapField('matches')[result] = resultObject['matches'];
@@ -96,23 +97,23 @@ ${parser.usage}''');
   final keys = data.keys.toList()..sort();
   for (final key in keys) {
     final testData = data[key]!;
-    if (testData['outcomes'].length < 2) continue;
+    if ((testData['outcomes'] as List).length < 2) continue;
     // Reactivate inactive flaky results that are flaky again.
     if (testData['active'] == false) {
       if (resultsForInactiveFlakiness[key]!.length > 1) {
         testData['active'] = true;
         testData['reactivation_count'] =
-            (testData['reactivation_count'] ?? 0) + 1;
+            (testData['reactivation_count'] as int? ?? 0) + 1;
       }
     } else if (options.flag('no-forgive')) {
       testData['active'] = true;
-    } else if (testData['current_counter'] >= 100) {
+    } else if (testData['current_counter'] as int >= 100) {
       // Forgive tests that have been stable for 100 builds.
       testData['active'] = false;
     } else {
       // Forgive tests that have been stable since flakiness horizon (one week).
       final resultTimes = [
-        for (final timeString in testData['last_seen'].values)
+        for (final timeString in (testData['last_seen'] as Map).values)
           DateTime.parse(timeString)
       ]..sort();
       // The latest timestamp is the current result. The one before that is the

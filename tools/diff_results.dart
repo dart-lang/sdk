@@ -87,7 +87,7 @@ Future<DateTime> getDateOfCommit(String commit) async {
     print(result.stderr);
     exit(1);
   }
-  return DateTime.parse(result.stdout.trim());
+  return DateTime.parse((result.stdout as String).trim());
 }
 
 Future<List<Result>> getResults(
@@ -147,12 +147,12 @@ Future<List<Result>> getResults(
   } else {
     print('Running the following query failed:\nbq ${arguments.join(' ')}');
     print('Exit code: ${result.exitCode}');
-    final stdout = result.stdout.trim();
-    if (stdout.length > 0) {
+    final stdout = (result.stdout as String).trim();
+    if (stdout.isNotEmpty) {
       print('Stdout:\n$stdout');
     }
-    final stderr = result.stderr.trim();
-    if (stderr.length > 0) {
+    final stderr = (result.stderr as String).trim();
+    if (stderr.isNotEmpty) {
       print('Stderr:\n$stderr');
     }
     return <Result>[];
@@ -327,11 +327,14 @@ String currentDate() {
 
 Set<String> loadVmBuildersFromTestMatrix(List<Glob> globs) {
   final contents = File('tools/bots/test_matrix.json').readAsStringSync();
-  final testMatrix = json.decode(contents);
+  final testMatrix = json.decode(contents) as Map<String, dynamic>;
 
   final vmBuilders = <String>{};
   for (final config in testMatrix['builder_configurations']) {
-    for (final builder in config['builders']) {
+    for (final builder in (config as Map)['builders']) {
+      // Cast to a string.
+      builder as String;
+
       if (builder.startsWith('vm-') || builder.startsWith('app-')) {
         vmBuilders.add(builder);
       }
