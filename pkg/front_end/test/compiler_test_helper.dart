@@ -229,7 +229,7 @@ class SourceLoaderTest extends SourceLoader {
       BodyBuilderContext bodyBuilderContext,
       Scope scope,
       Uri fileUri,
-      {Scope? formalParameterScope}) {
+      {LocalScope? formalParameterScope}) {
     return bodyBuilderCreator.createForOutlineExpression(
         library, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);
@@ -301,7 +301,7 @@ typedef BodyBuilderCreatorForOutlineExpression = BodyBuilderTest Function(
     BodyBuilderContext bodyBuilderContext,
     Scope scope,
     Uri fileUri,
-    {Scope? formalParameterScope});
+    {LocalScope? formalParameterScope});
 
 typedef BodyBuilderCreator = ({
   BodyBuilderCreatorUnnamed create,
@@ -353,7 +353,7 @@ class BodyBuilderTest extends BodyBuilder {
   @override
   BodyBuilderTest.forOutlineExpression(SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext, Scope scope, Uri fileUri,
-      {Scope? formalParameterScope})
+      {LocalScope? formalParameterScope})
       : super.forOutlineExpression(library, bodyBuilderContext, scope, fileUri,
             formalParameterScope: formalParameterScope);
 }

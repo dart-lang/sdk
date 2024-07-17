@@ -28,7 +28,7 @@ import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'messages.dart';
-import 'problems.dart' show internalProblem, unsupported;
+import 'problems.dart' show internalProblem;
 import 'uri_offset.dart';
 
 enum ScopeKind {
@@ -106,6 +106,66 @@ enum ScopeKind {
   typeParameters,
 }
 
+abstract class NestedScope {
+  NestedScope? get parent;
+}
+
+abstract class ParentScope implements NestedScope {
+  @override
+  ParentScope? get parent;
+  void forEachExtension(void Function(ExtensionBuilder) f);
+  Builder? lookup(String name, int charOffset, Uri fileUri);
+  JumpTarget? lookupLabel(String name);
+  Builder? lookupSetter(String name, int charOffset, Uri fileUri);
+  int writeOn(StringSink sink);
+}
+
+abstract class LocalScope extends NestedScope {
+  ScopeKind get kind;
+
+  @override
+  LocalScope? get parent;
+
+  LocalScope createNestedScope(
+      {required String debugName,
+      bool isModifiable = true,
+      required ScopeKind kind,
+      Map<String, Builder>? local});
+
+  LocalScope createNestedLabelScope();
+
+  Iterable<Builder> get localMembers;
+
+  Builder? lookupLocalMember(String name, {required bool setter});
+
+  List<int>? declare(String name, Builder builder, Uri uri);
+
+  void addLocalMember(String name, Builder member, {required bool setter});
+
+  void declareLabel(String name, JumpTarget target);
+  bool hasLocalLabel(String name);
+  bool claimLabel(String name);
+  JumpTarget? lookupLabel(String name);
+
+  Builder? lookup(String name, int charOffset, Uri fileUri);
+  Builder? lookupSetter(String name, int charOffset, Uri uri);
+
+  Map<String, List<int>>? get usedNames;
+
+  Iterator<T> filteredIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+
+  SwitchScope get switchScope;
+}
+
+abstract class SwitchScope {
+  Map<String, JumpTarget>? get unclaimedForwardDeclarations;
+  JumpTarget? lookupLabel(String name);
+  void forwardDeclareLabel(String name, JumpTarget target);
+}
+
 class MutableScope {
   /// Names declared in this scope.
   Map<String, Builder>? _local;
@@ -146,7 +206,7 @@ class MutableScope {
 
   /// The scope that this scope is nested within, or `null` if this is the top
   /// level scope.
-  Scope? _parent;
+  ParentScope? _parent;
 
   final String classNameOrDebugName;
 
@@ -155,13 +215,14 @@ class MutableScope {
   MutableScope(this.kind, this._local, this._setters, this._extensions,
       this._parent, this.classNameOrDebugName);
 
-  Scope? get parent => _parent;
+  ParentScope? get parent => _parent;
 
   @override
   String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local?.keys})";
 }
 
-class Scope extends MutableScope {
+class Scope extends MutableScope
+    implements ParentScope, LocalScope, SwitchScope {
   /// Indicates whether an attempt to declare new names in this scope should
   /// succeed.
   final bool isModifiable;
@@ -170,6 +231,7 @@ class Scope extends MutableScope {
 
   Map<String, JumpTarget>? forwardDeclaredLabels;
 
+  @override
   Map<String, List<int>>? usedNames;
 
   Map<String, List<Builder>>? augmentations;
@@ -181,7 +243,7 @@ class Scope extends MutableScope {
       Map<String, Builder>? local,
       Map<String, MemberBuilder>? setters,
       Set<ExtensionBuilder>? extensions,
-      Scope? parent,
+      ParentScope? parent,
       this.augmentations,
       this.setterAugmentations,
       required String debugName,
@@ -205,12 +267,22 @@ class Scope extends MutableScope {
             isModifiable: false);
 
   Scope.nested(Scope parent, String debugName,
-      {bool isModifiable = true, required ScopeKind kind})
+      {bool isModifiable = true,
+      required ScopeKind kind,
+      Map<String, Builder>? local})
       : this(
             kind: kind,
             parent: parent,
             debugName: debugName,
-            isModifiable: isModifiable);
+            isModifiable: isModifiable,
+            local: local);
+
+  @override
+  SwitchScope get switchScope => this;
+
+  // TODO(johnniwinther): Remove this.
+  @override
+  Scope? get parent => _parent as Scope?;
 
   /// Returns an iterator of all members and setters mapped in this scope,
   /// including duplicate members mapped to the same name.
@@ -241,6 +313,7 @@ class Scope extends MutableScope {
   /// declared member is included. If [includeAugmentations] is `true`, both
   /// original and augmenting/patching members are included, otherwise, only
   /// original members are included.
+  @override
   Iterator<T> filteredIterator<T extends Builder>(
       {Builder? parent,
       required bool includeDuplicates,
@@ -443,27 +516,25 @@ class Scope extends MutableScope {
         isModifiable: isModifiable);
   }
 
-  // Coverage-ignore(suite): Not run.
-  /// Don't use this. Use [becomePartOf] instead.
-  void set parent(_) => unsupported("parent=", -1, null);
-
   /// This scope becomes equivalent to [scope]. This is used for parts to
   /// become part of their library's scope.
   void becomePartOf(Scope scope) {
-    assert(_parent!._parent == null);
-    assert(scope._parent!._parent == null);
+    assert(_parent!.parent == null);
+    assert(scope._parent!.parent == null);
     super._local = scope._local;
     super._setters = scope._setters;
     super._parent = scope._parent;
     super._extensions = scope._extensions;
   }
 
+  @override
   Scope createNestedScope(
       {required String debugName,
       bool isModifiable = true,
-      required ScopeKind kind}) {
+      required ScopeKind kind,
+      Map<String, Builder>? local}) {
     return new Scope.nested(this, debugName,
-        isModifiable: isModifiable, kind: kind);
+        isModifiable: isModifiable, kind: kind, local: local);
   }
 
   Scope withTypeVariables(List<NominalVariableBuilder>? typeVariables) {
@@ -495,6 +566,7 @@ class Scope extends MutableScope {
   ///     L: var x;
   ///     x = 42;
   ///     print("The answer is $x.");
+  @override
   Scope createNestedLabelScope() {
     // The scopes needs to reference the same locals and setters so we have to
     // eagerly initialize them.
@@ -544,6 +616,7 @@ class Scope extends MutableScope {
   }
 
   /// Lookup a member with [name] in the scope.
+  @override
   Builder? lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
@@ -565,6 +638,7 @@ class Scope extends MutableScope {
     return builder ?? _parent?.lookup(name, charOffset, fileUri);
   }
 
+  @override
   Builder? lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
@@ -586,10 +660,12 @@ class Scope extends MutableScope {
     return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
 
+  @override
   Builder? lookupLocalMember(String name, {required bool setter}) {
     return setter ? (_setters?[name]) : (_local?[name]);
   }
 
+  @override
   void addLocalMember(String name, Builder member, {required bool setter}) {
     if (setter) {
       (_setters ??= // Coverage-ignore(suite): Not run.
@@ -611,11 +687,14 @@ class Scope extends MutableScope {
     _extensions?.forEach(f);
   }
 
+  @override
   Iterable<Builder> get localMembers => _local?.values ?? const {};
 
+  @override
   bool hasLocalLabel(String name) =>
       labels != null && labels!.containsKey(name);
 
+  @override
   void declareLabel(String name, JumpTarget target) {
     if (isModifiable) {
       labels ??= <String, JumpTarget>{};
@@ -626,12 +705,14 @@ class Scope extends MutableScope {
     }
   }
 
+  @override
   void forwardDeclareLabel(String name, JumpTarget target) {
     declareLabel(name, target);
     forwardDeclaredLabels ??= <String, JumpTarget>{};
     forwardDeclaredLabels![name] = target;
   }
 
+  @override
   bool claimLabel(String name) {
     if (forwardDeclaredLabels == null ||
         forwardDeclaredLabels!.remove(name) == null) {
@@ -643,10 +724,12 @@ class Scope extends MutableScope {
     return true;
   }
 
+  @override
   Map<String, JumpTarget>? get unclaimedForwardDeclarations {
     return forwardDeclaredLabels;
   }
 
+  @override
   JumpTarget? lookupLabel(String name) {
     return labels?[name] ?? _parent?.lookupLabel(name);
   }
@@ -657,6 +740,7 @@ class Scope extends MutableScope {
   /// that can be used as context for reporting a compile-time error about
   /// [name] being used before its declared. [fileUri] is used to bind the
   /// location of this message.
+  @override
   List<int>? declare(String name, Builder builder, Uri fileUri) {
     if (isModifiable) {
       List<int>? previousOffsets = usedNames?[name];
@@ -678,6 +762,7 @@ class Scope extends MutableScope {
   }
 
   /// Calls [f] for each extension in this scope and parent scopes.
+  @override
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _extensions?.forEach(f);
     _parent?.forEachExtension(f);
@@ -724,6 +809,7 @@ class Scope extends MutableScope {
   }
 
   // Coverage-ignore(suite): Not run.
+  @override
   int writeOn(StringSink sink) {
     int nestingLevel = (_parent?.writeOn(sink) ?? -1) + 1;
     String indent = "  " * nestingLevel;

@@ -304,7 +304,7 @@ abstract class AbstractSourceConstructorBuilder
       List<DelayedActionPerformer> delayedActionPerformers,
       Scope declarationScope) {
     if (beginInitializers != null) {
-      final Scope? formalParameterScope;
+      final LocalScope? formalParameterScope;
       if (isConst) {
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(

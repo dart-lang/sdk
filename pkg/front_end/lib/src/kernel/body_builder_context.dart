@@ -202,7 +202,7 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.formals');
   }
 
-  Scope computeFormalParameterInitializerScope(Scope parent) {
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     throw new UnsupportedError(
         '${runtimeType}.computeFormalParameterInitializerScope');
   }
@@ -712,7 +712,7 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   List<FormalParameterBuilder>? get formals => _member.formals;
 
   @override
-  Scope computeFormalParameterInitializerScope(Scope parent) {
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     return _member.computeFormalParameterInitializerScope(parent);
   }
 

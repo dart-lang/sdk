@@ -160,7 +160,7 @@ class BodyBuilder extends StackListenerImpl
   ///    initializer. This avoids cascading errors.
   bool needsImplicitSuperInitializer;
 
-  Scope? formalParameterScope;
+  LocalScope? formalParameterScope;
 
   /// This is set to true when we start parsing an initializer. We use this to
   /// find the correct scope for initializers like in this example:
@@ -349,7 +349,7 @@ class BodyBuilder extends StackListenerImpl
 
   Statement? problemInLoopOrSwitch;
 
-  Scope? switchScope;
+  SwitchScope? switchScope;
 
   late _BodyBuilderCloner _cloner = new _BodyBuilderCloner(this);
 
@@ -417,7 +417,7 @@ class BodyBuilder extends StackListenerImpl
 
   final List<TypeParameter>? thisTypeParameters;
 
-  Scope scope;
+  LocalScope scope;
 
   Set<VariableDeclaration>? declaredInCurrentGuard;
 
@@ -478,7 +478,7 @@ class BodyBuilder extends StackListenerImpl
 
   BodyBuilder.forOutlineExpression(SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext, Scope scope, Uri fileUri,
-      {Scope? formalParameterScope})
+      {LocalScope? formalParameterScope})
       : this(
             libraryBuilder: library,
             context: bodyBuilderContext,
@@ -520,7 +520,7 @@ class BodyBuilder extends StackListenerImpl
     return createJumpTarget(JumpTargetKind.Goto, charOffset);
   }
 
-  void enterLocalScope(Scope localScope) {
+  void enterLocalScope(LocalScope localScope) {
     push(scope);
     scope = localScope;
     if (scope.kind == ScopeKind.functionBody) {
@@ -830,11 +830,11 @@ class BodyBuilder extends StackListenerImpl
 
   void enterSwitchScope() {
     push(switchScope ?? NullValues.SwitchScope);
-    switchScope = scope;
+    switchScope = scope.switchScope;
   }
 
   void exitSwitchScope() {
-    Scope? outerSwitchScope = pop() as Scope?;
+    SwitchScope? outerSwitchScope = pop() as SwitchScope?;
     if (switchScope!.unclaimedForwardDeclarations != null) {
       switchScope!.unclaimedForwardDeclarations!
           .forEach((String name, JumpTarget declaration) {
@@ -874,7 +874,7 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  void declareVariable(VariableDeclaration variable, Scope scope) {
+  void declareVariable(VariableDeclaration variable, LocalScope scope) {
     String name = variable.name!;
     Builder? existing = scope.lookupLocalMember(name, setter: false);
     if (existing != null) {
@@ -3339,7 +3339,8 @@ class BodyBuilder extends StackListenerImpl
           this.scope == enclosingScope ||
           this.scope.parent == enclosingScope);
       // This deals with this kind of initializer: `C(a) : a = a;`
-      Scope scope = inInitializerLeftHandSide ? enclosingScope : this.scope;
+      LocalScope scope =
+          inInitializerLeftHandSide ? enclosingScope : this.scope;
       push(scopeLookup(scope, token));
     } else {
       if (!context.inDeclaration &&
@@ -3397,7 +3398,7 @@ class BodyBuilder extends StackListenerImpl
     return declaredInCurrentGuard?.contains(variable) ?? false;
   }
 
-  bool isGuardScope(Scope scope) =>
+  bool isGuardScope(LocalScope scope) =>
       scope.kind == ScopeKind.caseHead || scope.kind == ScopeKind.ifCaseHead;
 
   /// Look up [name] in [scope] using [nameToken] as location information (both
@@ -3406,7 +3407,7 @@ class BodyBuilder extends StackListenerImpl
   /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
   /// if the name doesn't resolve in the scope).
   @override
-  Expression_Generator_Builder scopeLookup(Scope scope, Token nameToken,
+  Expression_Generator_Builder scopeLookup(LocalScope scope, Token nameToken,
       {PrefixBuilder? prefix, Token? prefixToken}) {
     String name = nameToken.lexeme;
     int nameOffset = nameToken.charOffset;
@@ -3595,7 +3596,7 @@ class BodyBuilder extends StackListenerImpl
   /// Returns the setter builder corresponding to [declaration] using the
   /// [name] and [charOffset] for the lookup into [scope] if necessary.
   MemberBuilder? _getCorrespondingSetterBuilder(
-      Scope scope, Builder declaration, String name, int charOffset) {
+      LocalScope scope, Builder declaration, String name, int charOffset) {
     Builder? setter;
     if (declaration.isSetter) {
       setter = declaration;
@@ -3843,7 +3844,7 @@ class BodyBuilder extends StackListenerImpl
     PatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null && patternGuard.guard != null) {
       assert(checkState(token, [ValueKinds.Scope]));
-      Scope thenScope = scope.createNestedScope(
+      LocalScope thenScope = scope.createNestedScope(
           debugName: "then body", kind: ScopeKind.statementLocalScope);
       exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
       push(condition);
@@ -3859,7 +3860,7 @@ class BodyBuilder extends StackListenerImpl
             in patternGuard.pattern.declaredVariables) {
           declareVariable(variable, scope);
         }
-        Scope thenScope = scope.createNestedScope(
+        LocalScope thenScope = scope.createNestedScope(
             debugName: "then body", kind: ScopeKind.statementLocalScope);
         exitLocalScope();
         enterLocalScope(thenScope);
@@ -4369,7 +4370,7 @@ class BodyBuilder extends StackListenerImpl
       for (VariableDeclaration variable in pattern.declaredVariables) {
         declareVariable(variable, scope);
       }
-      Scope forScope = scope.createNestedScope(
+      LocalScope forScope = scope.createNestedScope(
           debugName: "pattern-for internal variables",
           kind: ScopeKind.forStatement);
       exitLocalScope();
@@ -7101,7 +7102,7 @@ class BodyBuilder extends StackListenerImpl
     PatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null) {
       if (patternGuard.guard != null) {
-        Scope thenScope = scope.createNestedScope(
+        LocalScope thenScope = scope.createNestedScope(
             debugName: "then-control-flow", kind: ScopeKind.ifElement);
         exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
         enterLocalScope(thenScope);
@@ -7112,7 +7113,7 @@ class BodyBuilder extends StackListenerImpl
             in patternGuard.pattern.declaredVariables) {
           declareVariable(variable, scope);
         }
-        Scope thenScope = scope.createNestedScope(
+        LocalScope thenScope = scope.createNestedScope(
             debugName: "then-control-flow", kind: ScopeKind.ifElement);
         exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
         enterLocalScope(thenScope);
@@ -8278,7 +8279,7 @@ class BodyBuilder extends StackListenerImpl
             ]),
             count)));
 
-    Scope? switchCaseScope;
+    LocalScope? switchCaseScope;
     List<Label>? labels =
         labelCount == 0 ? null : new List<Label>.filled(labelCount, dummyLabel);
     int labelIndex = labelCount - 1;
@@ -8320,6 +8321,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
+    // ignore: unrelated_type_equality_checks
     assert(scope == switchScope);
 
     if (labels != null) {
@@ -10409,8 +10411,8 @@ class FormalParameters {
         hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
   }
 
-  Scope computeFormalParameterScope(
-      Scope parent, ExpressionGeneratorHelper helper,
+  LocalScope computeFormalParameterScope(
+      LocalScope parent, ExpressionGeneratorHelper helper,
       {bool wildcardVariablesEnabled = false}) {
     if (parameters == null) return parent;
     assert(parameters!.isNotEmpty);
@@ -10427,12 +10429,11 @@ class FormalParameters {
         local[parameter.name] = parameter;
       }
     }
-    return new Scope(
-        kind: ScopeKind.formals,
-        local: local,
-        parent: parent,
+    return parent.createNestedScope(
         debugName: "formals",
-        isModifiable: false);
+        kind: ScopeKind.formals,
+        isModifiable: false,
+        local: local);
   }
 
   @override
