@@ -817,7 +817,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // assumptions from field guards or CHA or deferred library prefixes.
   // TODO(johnmccutchan): Deoptimizing dependent code here (before the reload)
   // is paranoid. This likely can be moved to the commit phase.
-  IG->program_reload_context()->EnsuredUnoptimizedCodeForStack();
+  const Error& error = Error::Handle(
+      IG->program_reload_context()->EnsuredUnoptimizedCodeForStack());
+  if (!error.IsNull()) {
+    AddReasonForCancelling(new Aborted(Z, error));
+    ReportReasonsForCancelling();
+    CommonFinalizeTail(num_old_libs_);
+    return false;
+  }
   IG->program_reload_context()->DeoptimizeDependentCode();
   IG->program_reload_context()->ReloadPhase1AllocateStorageMapsAndCheckpoint();
 
@@ -963,9 +970,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       if (discard_class_tables) {
         IG->DropOriginalClassTable();
       }
-      isolate_group_->program_reload_context()->ReloadPhase4CommitFinish();
-      TIR_Print("---- DONE COMMIT\n");
-      isolate_group_->set_last_reload_timestamp(reload_timestamp_);
+      const Error& error = Error::Handle(
+          isolate_group_->program_reload_context()->ReloadPhase4CommitFinish());
+      if (error.IsNull()) {
+        TIR_Print("---- DONE COMMIT\n");
+        isolate_group_->set_last_reload_timestamp(reload_timestamp_);
+      } else {
+        AddReasonForCancelling(new Aborted(Z, error));
+      }
     } else {
       TIR_Print("---- ROLLING BACK");
       isolate_group_->program_reload_context()->ReloadPhase4Rollback();
@@ -1233,9 +1245,9 @@ void ProgramReloadContext::ReloadPhase4CommitPrepare() {
   CommitBeforeInstanceMorphing();
 }
 
-void ProgramReloadContext::ReloadPhase4CommitFinish() {
+ErrorPtr ProgramReloadContext::ReloadPhase4CommitFinish() {
   CommitAfterInstanceMorphing();
-  PostCommit();
+  return PostCommit();
 }
 
 void ProgramReloadContext::ReloadPhase4Rollback() {
@@ -1318,10 +1330,17 @@ void IsolateGroupReloadContext::ReportOnJSON(JSONStream* stream,
   }
 }
 
-void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
+ErrorPtr ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
 
-  IG->ForEachIsolate([](Isolate* isolate) {
+  Error& error = Error::Handle();
+  IG->ForEachIsolate([&error](Isolate* isolate) {
+    if (!error.IsNull()) {
+      // An error occurred the previous time this callback was called, but
+      // |ForEachIsolate| does not support stopping iteration early, so we
+      // return here.
+      return;
+    }
     auto thread = isolate->mutator_thread();
     if (thread == nullptr) {
       return;
@@ -1338,11 +1357,16 @@ void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
         // Force-optimized functions don't need unoptimized code because their
         // optimized code cannot deopt.
         if (!func.ForceOptimize()) {
-          func.EnsureHasCompiledUnoptimizedCode();
+          error = func.EnsureHasCompiledUnoptimizedCodeNoThrow();
+          if (!error.IsNull()) {
+            return;
+          }
         }
       }
     }
   });
+
+  return error.ptr();
 }
 
 void ProgramReloadContext::DeoptimizeDependentCode() {
@@ -1772,11 +1796,11 @@ bool ProgramReloadContext::IsDirty(const Library& lib) {
   return library_infos_[index].dirty;
 }
 
-void ProgramReloadContext::PostCommit() {
+ErrorPtr ProgramReloadContext::PostCommit() {
   TIMELINE_SCOPE(PostCommit);
   saved_root_library_ = Library::null();
   saved_libraries_ = GrowableObjectArray::null();
-  InvalidateWorld();
+  return InvalidateWorld();
 }
 
 void IsolateGroupReloadContext::AddReasonForCancelling(
@@ -1984,7 +2008,7 @@ class InvalidationCollector : public ObjectVisitor {
   GrowableArray<const Instance*>* const instances_;
 };
 
-void ProgramReloadContext::RunInvalidationVisitors() {
+ErrorPtr ProgramReloadContext::RunInvalidationVisitors() {
   TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -2005,12 +2029,20 @@ void ProgramReloadContext::RunInvalidationVisitors() {
   }
 
   InvalidateKernelInfos(zone, kernel_infos);
-  InvalidateSuspendStates(zone, suspend_states);
+
+  const Error& error =
+      Error::Handle(InvalidateSuspendStates(zone, suspend_states));
+  if (!error.IsNull()) {
+    return error.ptr();
+  }
+
   InvalidateFields(zone, fields, instances);
 
   // After InvalidateFields in order to invalidate
   // implicit getters which need load guards.
   InvalidateFunctions(zone, functions);
+
+  return Error::null();
 }
 
 void ProgramReloadContext::InvalidateKernelInfos(
@@ -2114,7 +2146,7 @@ void ProgramReloadContext::InvalidateFunctions(
   }
 }
 
-void ProgramReloadContext::InvalidateSuspendStates(
+ErrorPtr ProgramReloadContext::InvalidateSuspendStates(
     Zone* zone,
     const GrowableArray<const SuspendState*>& suspend_states) {
   TIMELINE_SCOPE(InvalidateSuspendStates);
@@ -2124,6 +2156,7 @@ void ProgramReloadContext::InvalidateSuspendStates(
   CallSiteResetter resetter(zone);
   Code& code = Code::Handle(zone);
   Function& function = Function::Handle(zone);
+  Error& error = Error::Handle(zone);
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0, n = suspend_states.length(); i < n; ++i) {
@@ -2156,11 +2189,16 @@ void ProgramReloadContext::InvalidateSuspendStates(
       // can be cleared along with the code in InvalidateFunctions
       // during previous hot reloads.
       // Rebuild an unoptimized code in order to recreate ICData array.
-      function.EnsureHasCompiledUnoptimizedCode();
+      error = function.EnsureHasCompiledUnoptimizedCodeNoThrow();
+      if (!error.IsNull()) {
+        return error.ptr();
+      }
       resetter.ResetSwitchableCalls(code);
       resetter.ResetCaches(code);
     }
   }
+
+  return Error::null();
 }
 
 // Finds fields that are initialized or have a value that does not conform to
@@ -2404,7 +2442,7 @@ void ProgramReloadContext::InvalidateFields(
   invalidator.CheckInstances(instances);
 }
 
-void ProgramReloadContext::InvalidateWorld() {
+ErrorPtr ProgramReloadContext::InvalidateWorld() {
   TIMELINE_SCOPE(InvalidateWorld);
   TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
@@ -2413,7 +2451,7 @@ void ProgramReloadContext::InvalidateWorld() {
   }
   DeoptimizeFunctionsOnStack();
   ResetUnoptimizedICsOnStack();
-  RunInvalidationVisitors();
+  return RunInvalidationVisitors();
 }
 
 ClassPtr ProgramReloadContext::OldClassOrNull(const Class& replacement_or_new) {

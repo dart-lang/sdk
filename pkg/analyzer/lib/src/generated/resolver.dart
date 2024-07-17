@@ -5307,7 +5307,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     var outerScope = nameScope;
     try {
       var enclosedScope = LocalScope(nameScope);
-      BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
+      for (var statement in BlockScope.elementsInStatements(statements)) {
+        if (!statement.isWildcardFunction) {
+          enclosedScope.add(statement);
+        }
+      }
 
       nameScope = enclosedScope;
       node.nameScope = nameScope;
@@ -5606,4 +5610,11 @@ class _WhyNotPromotedVisitor
         length: property.nameLength,
         url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url);
   }
+}
+
+extension on Element {
+  bool get isWildcardFunction =>
+      this is FunctionElement &&
+      name == '_' &&
+      library.hasWildcardVariablesFeatureEnabled;
 }

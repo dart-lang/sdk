@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -68,6 +69,59 @@ SimpleIdentifier
   token: _
   staticElement: self::@class::A::@getter::_
   staticType: int
+''');
+  }
+
+  test_wildCardMethod() async {
+    await assertErrorsInCode('''
+class C {
+  _() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 12, 1),
+    ]);
+
+    var node = findNode.methodDeclaration('_');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  name: _
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: self::@class::C::@method::_
+    type: dynamic Function()
+''');
+  }
+
+  test_wildCardMethod_preWildCards() async {
+    await assertErrorsInCode('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class C {
+  _() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 56, 1),
+    ]);
+
+    var node = findNode.methodDeclaration('_');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  name: _
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredElement: self::@class::C::@method::_
+    type: dynamic Function()
 ''');
   }
 }

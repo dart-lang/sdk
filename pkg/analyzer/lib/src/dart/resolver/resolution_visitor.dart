@@ -16,6 +16,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -1494,7 +1495,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
     node.declaredElement = element;
-    _define(element);
+    if (nameToken.lexeme != '_' ||
+        !_libraryElement.hasWildcardVariablesFeatureEnabled) {
+      _define(element);
+    }
     _elementHolder.enclose(element);
   }
 

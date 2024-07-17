@@ -278,7 +278,7 @@ class _Checker {
   /// [singleSpace] doesn't care about that property, so inserts a default
   /// [Space] that matches all values for the property. If the [type] doesn't
   /// know about the property, the static type of the property is read from
-  /// [extensionPropertyTypes].
+  /// [Key].
   ///
   /// In other words, this unpacks a set of properties so that the main
   /// algorithm can add them to the worklist.
