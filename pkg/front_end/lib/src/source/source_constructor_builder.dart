@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart';
+import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
@@ -309,7 +310,8 @@ abstract class AbstractSourceConstructorBuilder
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(
             computeFormalParameterScope(
-                computeTypeParameterScope(declarationBuilder.scope)));
+                    computeTypeParameterScope(declarationBuilder.scope))
+                .toLocalScope());
       } else {
         formalParameterScope = null;
       }

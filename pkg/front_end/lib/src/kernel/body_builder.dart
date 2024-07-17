@@ -52,6 +52,7 @@ import '../base/identifiers.dart'
         QualifiedName,
         SimpleIdentifier,
         flattenName;
+import '../base/local_scope.dart';
 import '../base/modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 import '../base/problems.dart' show internalProblem, unhandled, unsupported;
@@ -136,7 +137,7 @@ class BodyBuilder extends StackListenerImpl
 
   final CoreTypes coreTypes;
 
-  final Scope enclosingScope;
+  final LocalScope enclosingScope;
 
   final bool enableNative;
 
@@ -468,7 +469,7 @@ class BodyBuilder extends StackListenerImpl
       : this(
             libraryBuilder: libraryBuilder,
             context: bodyBuilderContext,
-            enclosingScope: enclosingScope,
+            enclosingScope: enclosingScope.toLocalScope(),
             formalParameterScope: null,
             hierarchy: libraryBuilder.loader.hierarchy,
             coreTypes: libraryBuilder.loader.coreTypes,
@@ -482,7 +483,7 @@ class BodyBuilder extends StackListenerImpl
       : this(
             libraryBuilder: library,
             context: bodyBuilderContext,
-            enclosingScope: scope,
+            enclosingScope: scope.toLocalScope(),
             formalParameterScope: formalParameterScope,
             hierarchy: library.loader.hierarchy,
             coreTypes: library.loader.coreTypes,
@@ -566,7 +567,7 @@ class BodyBuilder extends StackListenerImpl
     if (scope.kind == ScopeKind.functionBody) {
       _inBodyCount--;
     }
-    scope = pop() as Scope;
+    scope = pop() as LocalScope;
   }
 
   void enterBreakTarget(int charOffset, [JumpTarget? target]) {
@@ -1238,7 +1239,8 @@ class BodyBuilder extends StackListenerImpl
     if (functionNestingLevel == 0) {
       prepareInitializers();
       scope = formalParameterScope ??
-          new Scope.immutable(kind: ScopeKind.initializers);
+          new FixedLocalScope(
+              kind: ScopeKind.initializers, debugName: "initializers");
     }
   }
 
@@ -1256,7 +1258,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("Initializers");
     if (functionNestingLevel == 0) {
       scope = formalParameterScope ??
-          new Scope.immutable(kind: ScopeKind.initializers);
+          new FixedLocalScope(
+              kind: ScopeKind.initializers, debugName: "initializers");
     }
     inConstructorInitializer = false;
   }
@@ -2418,7 +2421,7 @@ class BodyBuilder extends StackListenerImpl
     if (case_ != null) {
       // ignore: unused_local_variable
       Expression? guard;
-      Scope? scope;
+      LocalScope? scope;
       if (when != null) {
         assert(checkState(token, [
           unionOfKinds([
@@ -2438,7 +2441,7 @@ class BodyBuilder extends StackListenerImpl
           ]),
         ]));
         guard = popForValue();
-        scope = pop() as Scope;
+        scope = pop() as LocalScope;
       }
       assert(checkState(token, [
         unionOfKinds([
@@ -2675,7 +2678,7 @@ class BodyBuilder extends StackListenerImpl
       if (value is Label) {
         (labels ??= <Label>[]).add(value);
       }
-    } while (value is! Scope);
+    } while (value is! LocalScope);
     push(value);
 
     // Scope of the preceding case head or a sentinel if it's the first head.
@@ -2723,12 +2726,12 @@ class BodyBuilder extends StackListenerImpl
     }
     Object? value = pop();
     constantContext = pop() as ConstantContext;
-    Scope headScope = pop() as Scope;
+    LocalScope headScope = pop() as LocalScope;
     assert(
-        headScope.classNameOrDebugName == "switch block",
+        headScope.kind == ScopeKind.switchBlock,
         // Coverage-ignore(suite): Not run.
-        "Expected to have scope 'switch block', "
-        "but got '${headScope.classNameOrDebugName}'.");
+        "Expected to have scope kind ${ScopeKind.switchBlock}, "
+        "but got ${headScope.kind}.");
     if (value is Pattern) {
       super.push(new ExpressionOrPatternGuardCase.patternGuard(
           caseKeyword.charOffset,
@@ -3407,7 +3410,7 @@ class BodyBuilder extends StackListenerImpl
   /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
   /// if the name doesn't resolve in the scope).
   @override
-  Expression_Generator_Builder scopeLookup(LocalScope scope, Token nameToken,
+  Expression_Generator_Builder scopeLookup(LookupScope scope, Token nameToken,
       {PrefixBuilder? prefix, Token? prefixToken}) {
     String name = nameToken.lexeme;
     int nameOffset = nameToken.charOffset;
@@ -3596,7 +3599,7 @@ class BodyBuilder extends StackListenerImpl
   /// Returns the setter builder corresponding to [declaration] using the
   /// [name] and [charOffset] for the lookup into [scope] if necessary.
   MemberBuilder? _getCorrespondingSetterBuilder(
-      LocalScope scope, Builder declaration, String name, int charOffset) {
+      LookupScope scope, Builder declaration, String name, int charOffset) {
     Builder? setter;
     if (declaration.isSetter) {
       setter = declaration;
@@ -5313,9 +5316,7 @@ class BodyBuilder extends StackListenerImpl
       List<NominalVariableBuilder>? nominalVariableBuilders) {
     debugEvent("enterNominalVariableScope");
     enterLocalScope(scope.createNestedScope(
-        debugName: "function-type scope",
-        isModifiable: true,
-        kind: ScopeKind.typeParameters));
+        debugName: "function-type scope", kind: ScopeKind.typeParameters));
     if (nominalVariableBuilders != null) {
       for (NominalVariableBuilder builder in nominalVariableBuilders) {
         if (builder.isWildcard) continue;
@@ -5336,9 +5337,7 @@ class BodyBuilder extends StackListenerImpl
       List<StructuralVariableBuilder>? structuralVariableBuilders) {
     debugEvent("enterStructuralVariableScope");
     enterLocalScope(scope.createNestedScope(
-        debugName: "function-type scope",
-        isModifiable: true,
-        kind: ScopeKind.typeParameters));
+        debugName: "function-type scope", kind: ScopeKind.typeParameters));
     if (structuralVariableBuilders != null) {
       for (StructuralVariableBuilder builder in structuralVariableBuilders) {
         if (builder.isWildcard) continue;
@@ -7516,7 +7515,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("exitFunction");
     functionNestingLevel--;
     inCatchBlock = pop() as bool;
-    switchScope = pop() as Scope?;
+    switchScope = pop() as SwitchScope?;
     List<NominalVariableBuilder>? typeVariables =
         pop() as List<NominalVariableBuilder>?;
     exitLocalScope();
@@ -8258,7 +8257,7 @@ class BodyBuilder extends StackListenerImpl
     // This is matched by the [endNode] call in [endSwitchStatement].
     typeInferrer.assignedVariables.beginNode();
     createAndEnterLocalScope(
-        debugName: "switch block", kind: ScopeKind.statementLocalScope);
+        debugName: "switch block", kind: ScopeKind.switchBlock);
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
     createAndEnterLocalScope(
@@ -8295,7 +8294,7 @@ class BodyBuilder extends StackListenerImpl
       if (value is Label) {
         labels![labelIndex--] = value;
         pop();
-      } else if (value is Scope) {
+      } else if (value is LocalScope) {
         assert(switchCaseScope == null);
         if (expressionCount == 1) {
           // The single-head case. The scope of the head should be remembered
@@ -8327,9 +8326,9 @@ class BodyBuilder extends StackListenerImpl
     if (labels != null) {
       for (Label label in labels) {
         String labelName = label.name;
-        if (scope.hasLocalLabel(labelName)) {
+        if (switchScope!.hasLocalLabel(labelName)) {
           // TODO(ahe): Should validate this is a goto target.
-          if (!scope.claimLabel(labelName)) {
+          if (!switchScope!.claimLabel(labelName)) {
             // Coverage-ignore-block(suite): Not run.
             addProblem(
                 fasta.templateDuplicateLabelInSwitchStatement
@@ -10429,11 +10428,8 @@ class FormalParameters {
         local[parameter.name] = parameter;
       }
     }
-    return parent.createNestedScope(
-        debugName: "formals",
-        kind: ScopeKind.formals,
-        isModifiable: false,
-        local: local);
+    return parent.createNestedFixedScope(
+        debugName: "formals", kind: ScopeKind.formals, local: local);
   }
 
   @override

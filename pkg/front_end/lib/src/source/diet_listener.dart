@@ -868,8 +868,8 @@ class DietListener extends StackListenerImpl {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
         context: bodyBuilderContext,
-        enclosingScope: memberScope,
-        formalParameterScope: formalParameterScope,
+        enclosingScope: memberScope.toLocalScope(),
+        formalParameterScope: formalParameterScope?.toLocalScope(),
         hierarchy: hierarchy,
         coreTypes: coreTypes,
         thisVariable: thisVariable,

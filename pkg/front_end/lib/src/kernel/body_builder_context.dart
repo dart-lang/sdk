@@ -9,7 +9,7 @@ import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart' show Identifier;
-import '../base/scope.dart';
+import '../base/local_scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';

@@ -125,7 +125,8 @@ Future<void> main() async {
             inMetadata: false,
             inConstFields: false),
         uri: uri,
-        enclosingScope: new Scope.immutable(kind: ScopeKind.functionBody),
+        enclosingScope:
+            new Scope.immutable(kind: ScopeKind.functionBody).toLocalScope(),
         coreTypes: coreTypes,
         hierarchy: hierarchy,
         typeInferrer:
