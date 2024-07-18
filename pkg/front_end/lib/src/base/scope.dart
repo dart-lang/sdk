@@ -29,7 +29,6 @@ import '../source/source_member_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'local_scope.dart';
 import 'messages.dart';
-import 'problems.dart' show internalProblem;
 import 'uri_offset.dart';
 
 enum ScopeKind {
@@ -116,16 +115,10 @@ abstract class LookupScope {
   Builder? lookupSetter(String name, int charOffset, Uri uri);
 }
 
-abstract class NestedScope {
-  NestedScope? get parent;
-}
-
-abstract class ParentScope implements NestedScope {
-  @override
+abstract class ParentScope {
   ParentScope? get parent;
   void forEachExtension(void Function(ExtensionBuilder) f);
   Builder? lookup(String name, int charOffset, Uri fileUri);
-  JumpTarget? lookupLabel(String name);
   Builder? lookupSetter(String name, int charOffset, Uri fileUri);
   int writeOn(StringSink sink);
 }
@@ -194,8 +187,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
 
   Map<String, JumpTarget>? forwardDeclaredLabels;
 
-  Map<String, List<int>>? usedNames;
-
   Map<String, List<Builder>>? augmentations;
 
   Map<String, List<Builder>>? setterAugmentations;
@@ -219,14 +210,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
             setters: <String, MemberBuilder>{},
             debugName: "top",
             isModifiable: isModifiable);
-
-  Scope.immutable({required ScopeKind kind})
-      : this(
-            kind: kind,
-            local: const <String, Builder>{},
-            setters: const <String, MemberBuilder>{},
-            debugName: "immutable",
-            isModifiable: false);
 
   Scope.nested(Scope parent, String debugName,
       {bool isModifiable = true,
@@ -518,37 +501,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
     return newScope;
   }
 
-  /// Create a special scope for use by labeled statements. This scope doesn't
-  /// introduce a new scope for local variables, only for labels. This deals
-  /// with corner cases like this:
-  ///
-  ///     L: var x;
-  ///     x = 42;
-  ///     print("The answer is $x.");
-  Scope createNestedLabelScope() {
-    // The scopes needs to reference the same locals and setters so we have to
-    // eagerly initialize them.
-    _local ??= {};
-    _setters ??= {};
-    return new Scope(
-        kind: ScopeKind.labels,
-        local: _local,
-        setters: _setters,
-        extensions: _extensions,
-        parent: _parent,
-        debugName: "label",
-        isModifiable: true);
-  }
-
-  void recordUse(String name, int charOffset) {
-    if (isModifiable) {
-      usedNames ??= <String, List<int>>{};
-      // Don't use putIfAbsent to avoid the context allocation needed
-      // for the closure.
-      (usedNames![name] ??= []).add(charOffset);
-    }
-  }
-
   Builder? lookupIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder> map, bool isInstanceScope) {
     Builder? builder = map[name];
@@ -577,7 +529,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope = true}) {
-    recordUse(name, charOffset);
     Builder? builder;
     if (_local != null) {
       builder = lookupIn(name, charOffset, fileUri, _local!, isInstanceScope);
@@ -599,7 +550,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
   @override
   Builder? lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope = true}) {
-    recordUse(name, charOffset);
     Builder? builder;
     if (_setters != null) {
       builder = lookupIn(name, charOffset, fileUri, _setters!, isInstanceScope);
@@ -644,65 +594,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
   }
 
   Iterable<Builder> get localMembers => _local?.values ?? const {};
-
-  bool hasLocalLabel(String name) =>
-      labels != null && labels!.containsKey(name);
-
-  void declareLabel(String name, JumpTarget target) {
-    if (isModifiable) {
-      labels ??= <String, JumpTarget>{};
-      labels![name] = target;
-    } else {
-      internalProblem(
-          messageInternalProblemExtendingUnmodifiableScope, -1, null);
-    }
-  }
-
-  void forwardDeclareLabel(String name, JumpTarget target) {
-    declareLabel(name, target);
-    forwardDeclaredLabels ??= <String, JumpTarget>{};
-    forwardDeclaredLabels![name] = target;
-  }
-
-  bool claimLabel(String name) {
-    if (forwardDeclaredLabels == null ||
-        forwardDeclaredLabels!.remove(name) == null) {
-      return false;
-    }
-    if (forwardDeclaredLabels!.length == 0) {
-      forwardDeclaredLabels = null;
-    }
-    return true;
-  }
-
-  Map<String, JumpTarget>? get unclaimedForwardDeclarations {
-    return forwardDeclaredLabels;
-  }
-
-  @override
-  JumpTarget? lookupLabel(String name) {
-    return labels?[name] ?? _parent?.lookupLabel(name);
-  }
-
-  /// Declares that the meaning of [name] in this scope is [builder].
-  ///
-  /// If name was used previously in this scope, this method returns a message
-  /// that can be used as context for reporting a compile-time error about
-  /// [name] being used before its declared. [fileUri] is used to bind the
-  /// location of this message.
-  List<int>? declare(String name, Builder builder, Uri fileUri) {
-    if (isModifiable) {
-      List<int>? previousOffsets = usedNames?[name];
-      if (previousOffsets != null && previousOffsets.isNotEmpty) {
-        return previousOffsets;
-      }
-      (_local ??= {})[name] = builder;
-    } else {
-      internalProblem(
-          messageInternalProblemExtendingUnmodifiableScope, -1, null);
-    }
-    return null;
-  }
 
   /// Adds [builder] to the extensions in this scope.
   void addExtension(ExtensionBuilder builder) {
