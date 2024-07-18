@@ -1648,10 +1648,8 @@ class AnalysisDriver {
     var dartCoreUri = uriCache.parse('dart:core');
     var dartCoreResolution = _fsState.getFileForUri(dartCoreUri);
     if (dartCoreResolution is UriResolutionFile) {
-      var kind = dartCoreResolution.file.kind;
-      if (kind is LibraryFileKind) {
-        kind.discoverReferencedFiles();
-      }
+      var dartCoreFile = dartCoreResolution.file;
+      dartCoreFile.kind.discoverReferencedFiles();
     }
   }
 

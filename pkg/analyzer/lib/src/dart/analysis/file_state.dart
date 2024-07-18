@@ -188,11 +188,6 @@ class AugmentationKnownFileKind
   }
 
   @override
-  void invalidateLibraryCycle() {
-    augmented?.invalidateLibraryCycle();
-  }
-
-  @override
   bool isAugmentationOf(FileKind container) {
     return uriFile == container.file;
   }
@@ -543,6 +538,11 @@ abstract class FileKind {
           import.importedLibrary?.collectTransitive(files);
         }
       }
+      for (var part in parts) {
+        if (part is PartWithFile) {
+          part.includedPart?.collectTransitive(files);
+        }
+      }
     }
   }
 
@@ -551,15 +551,12 @@ abstract class FileKind {
   /// textual dumps we want to check that we reference only objects that
   /// are available. So, we need to discover all referenced files before
   /// we register available objects.
-  @visibleForTesting
   void discoverReferencedFiles() {
+    augmentationImports;
     libraryExports;
     libraryImports;
-    for (var import in augmentationImports) {
-      if (import is AugmentationImportWithFile) {
-        import.importedAugmentation?.discoverReferencedFiles();
-      }
-    }
+    parts;
+    docImports;
   }
 
   @mustCallSuper
@@ -567,6 +564,7 @@ abstract class FileKind {
     _augmentationImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
+    _parts?.disposeAll();
     _docImports?.disposeAll();
   }
 
@@ -603,7 +601,11 @@ abstract class FileKind {
   }
 
   /// Invalidates the containing [LibraryFileKind] cycle.
-  void invalidateLibraryCycle() {}
+  void invalidateLibraryCycle() {
+    for (var reference in file.referencingFiles) {
+      reference.kind.invalidateLibraryCycle();
+    }
+  }
 
   /// Creates a [LibraryImportState] with the given unlinked [directive].
   LibraryImportState _buildLibraryImportState(
@@ -1636,6 +1638,20 @@ class FileSystemState {
     }
   }
 
+  /// When printing the state for testing, we want to see all files.
+  @visibleForTesting
+  void discoverReferencedFiles() {
+    while (true) {
+      var fileCount = _pathToFile.length;
+      for (var file in _pathToFile.values.toList()) {
+        file.kind.discoverReferencedFiles();
+      }
+      if (_pathToFile.length == fileCount) {
+        break;
+      }
+    }
+  }
+
   /// Notifies this object that it is about to be discarded.
   ///
   /// Returns the keys of the artifacts that are no longer used.
@@ -1776,23 +1792,6 @@ class FileSystemState {
       _hasUriForPath[path] = flag;
     }
     return flag;
-  }
-
-  /// When printing the state for testing, we want to see all files.
-  @visibleForTesting
-  void pullReferencedFiles() {
-    while (true) {
-      var fileCount = _pathToFile.length;
-      for (var file in _pathToFile.values.toList()) {
-        var kind = file.kind;
-        kind.libraryImports;
-        kind.libraryExports;
-        kind.parts;
-      }
-      if (_pathToFile.length == fileCount) {
-        break;
-      }
-    }
   }
 
   /// Remove the file with the given [path].
@@ -2163,18 +2162,32 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return result;
   }
 
-  /// The list of files that this library consists of, i.e. this library file
-  /// itself, its [parts], and augmentations.
+  /// The list of files that this library consists of:
+  /// - the library file itself;
+  /// - the part files, in the depth-first pre-order order.
+  List<FileKind> get fileKinds {
+    var result = <FileKind>[];
+
+    void visitParts(FileKind kind) {
+      result.add(kind);
+      for (var part in kind.parts) {
+        if (part is PartWithFile) {
+          var includedPart = part.includedPart;
+          if (includedPart != null) {
+            visitParts(includedPart);
+          }
+        }
+      }
+    }
+
+    visitParts(this);
+    result.addAll(augmentations);
+    return result;
+  }
+
+  /// The files extracted from [fileKinds].
   List<FileState> get files {
-    return [
-      file,
-      ...parts
-          .whereType<PartWithFile>()
-          .map((partState) => partState.includedPart)
-          .nonNulls
-          .map((partKind) => partKind.file),
-      ...augmentations.map((e) => e.file),
-    ];
+    return fileKinds.map((kind) => kind.file).toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
@@ -2274,26 +2287,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   }
 
   @override
-  void collectTransitive(Set<FileState> files) {
-    super.collectTransitive(files);
-    for (var part in parts) {
-      if (part is PartWithFile) {
-        files.add(part.includedFile);
-      }
-    }
-  }
-
-  @override
-  void discoverReferencedFiles() {
-    super.discoverReferencedFiles();
-    parts;
-  }
-
-  @override
   void dispose() {
     invalidateLibraryCycle();
     file._fsState._libraryNameToFiles.remove(this);
-    _parts?.disposeAll();
     super.dispose();
   }
 
@@ -2526,9 +2522,7 @@ abstract class PartFileKind extends FileKind {
   /// This method is invoked when the part file is updated.
   /// The file either becomes a part, or might stop being a part.
   void _invalidateLibraries() {
-    for (var reference in file.referencingFiles) {
-      reference.kind.invalidateLibraryCycle();
-    }
+    invalidateLibraryCycle();
   }
 }
 
