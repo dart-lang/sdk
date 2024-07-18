@@ -6,8 +6,8 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
+import '../kernel/compiler.dart';
 import 'js_names.dart';
-import 'shared_compiler.dart';
 
 /// The module format to emit.
 enum ModuleFormat {
@@ -294,7 +294,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
       js.commentExpression(
           'Imports', ArrayInitializer(importNames, multiline: true)),
       resultModule,
-      SharedCompiler.metricsLocationID
+      ProgramCompiler.metricsLocationID
     ]);
     return Program(<ModuleItem>[...module.header, moduleDef]);
   }

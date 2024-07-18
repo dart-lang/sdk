@@ -28,7 +28,6 @@ import '../compiler/module_builder.dart'
     show isSdkInternalRuntimeUri, libraryUriToJsIdentifier;
 import '../compiler/module_containers.dart' show ModuleItemContainer;
 import '../compiler/shared_command.dart' show SharedCompilerOptions;
-import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show ModuleItem, js;
 import '../js_ast/source_map_printer.dart'
@@ -47,9 +46,7 @@ import 'type_recipe_generator.dart';
 import 'type_table.dart';
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
-    with
-        SharedCompiler<Library, Class, InterfaceType, FunctionNode>,
-        OnceConstantVisitorDefaultMixin<js_ast.Expression>
+    with OnceConstantVisitorDefaultMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression> {
@@ -288,6 +285,89 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // avoid having to recompute?
   final ExtensionIndex _extensionIndex;
 
+  /// When inside a `[]=` operator, this will be a non-null value that should be
+  /// returned by any `return;` statement.
+  ///
+  /// This lets DDC use the setter method's return value directly.
+  final _operatorSetResultStack = <js_ast.Identifier?>[];
+
+  /// Private member names in this module, organized by their library.
+  final _privateNames = HashMap<Library, HashMap<String, js_ast.TemporaryId>>();
+
+  /// Holds all top-level JS symbols (used for caching or indexing fields).
+  final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
+      keyToString: (js_ast.Identifier i) => i.name);
+
+  /// Extension member symbols for adding Dart members to JS types.
+  ///
+  /// These are added to the [extensionSymbolsModule]; see that field for more
+  /// information.
+  final _extensionSymbols = <String, js_ast.TemporaryId>{};
+
+  /// The set of libraries we are currently compiling, and the temporaries used
+  /// to refer to them.
+  final _libraries = <Library, js_ast.Identifier>{};
+
+  /// Imported libraries, and the temporaries used to refer to them.
+  final _imports = <Library, js_ast.TemporaryId>{};
+
+  /// Incremental mode for expression compilation.
+  ///
+  /// If set to true, triggers emitting all used types, symbols, libraries,
+  /// constants, urs inside the generated function.
+  bool _incrementalMode = false;
+
+  /// Modules and libraries accessed during compilation in incremental mode.
+  final incrementalModules = <String, Set<String>>{};
+
+  /// The identifier used to reference DDC's core "dart:_runtime" library from
+  /// generated JS code, typically called "dart" e.g. `dart.dcall`.
+  late js_ast.Identifier runtimeModule;
+
+  /// The identifier used to reference DDC's "extension method" symbols, used to
+  /// safely add Dart-specific member names to JavaScript classes, such as
+  /// primitive types (e.g. String) or DOM types in "dart:html".
+  late js_ast.Identifier extensionSymbolsModule;
+
+  /// The identifier used to reference DDC's core "dart:_rti" library from
+  /// generated JS code.
+  ///
+  /// Must manually name the dart:_rti library because there are local variables
+  /// within the library that inadvertently shadow the default name.
+  final js_ast.TemporaryId rtiLibraryId = js_ast.TemporaryId('dart_rti');
+
+  /// The library referred to by [rtiLibraryId].
+  late Library rtiLibrary;
+
+  /// The `Rti` class defined in [rtiLibrary].
+  late Class rtiClass;
+
+  /// Whether we're currently building the SDK, which may require special
+  /// bootstrapping logic.
+  ///
+  /// This is initialized by [emitModule], which must be called before
+  /// accessing this field.
+  bool isBuildingSdk = false;
+
+  /// Whether or not to move top level symbols into top-level containers.
+  ///
+  /// This is set in both [emitModule] and [emitLibrary].
+  /// Depends on [isBuildingSdk].
+  bool containerizeSymbols = false;
+
+  /// The temporary variable that stores named arguments (these are passed via a
+  /// JS object literal, to match JS conventions).
+  final namedArgumentTemp = js_ast.TemporaryId('opts');
+
+  /// The list of output module items, in the order they need to be emitted in.
+  final moduleItems = <js_ast.ModuleItem>[];
+
+  /// Like [moduleItems] but for items that should be emitted after classes.
+  ///
+  /// This is used for deferred supertypes of mutually recursive non-generic
+  /// classes.
+  final afterClassDefItems = <js_ast.ModuleItem>[];
+
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
   final Class _linkedHashMapImplClass;
@@ -379,20 +459,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment),
         _inlineTester = BasicInlineTester(_constants);
 
-  @override
+  /// The current library being compiled.
   Library? get currentLibrary => _currentLibrary;
 
-  @override
+  /// The library for dart:core in the SDK.
   Library get coreLibrary => _coreTypes.coreLibrary;
 
-  @override
+  /// The current function being compiled, if any.
   FunctionNode? get currentFunction => _currentFunction;
 
-  @override
+  /// The type used for private Dart [Symbol]s.
   InterfaceType get privateSymbolType =>
       _coreTypes.nonNullableRawType(_privateSymbolClass);
 
-  @override
+  /// The type used for public Dart [Symbol]s.
   InterfaceType get internalSymbolType =>
       _coreTypes.nonNullableRawType(_coreTypes.internalSymbolClass);
 
@@ -642,12 +722,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return module;
   }
 
-  @override
+  /// Choose a canonical name from the [library] element.
   String jsLibraryName(Library library) {
     return libraryUriToJsIdentifier(library.importUri);
   }
 
-  @override
+  /// Choose a module-unique name from the [library] element.
+  ///
+  /// Returns null if no alias exists or there are multiple output paths
+  /// (e.g., when compiling the Dart SDK).
+  ///
+  /// This never uses the library's name (the identifier in the `library`
+  /// declaration) as it doesn't have any meaningful rules enforced.
   String? jsLibraryAlias(Library library) {
     var uri = library.importUri.normalizePath();
     if (uri.isScheme('dart')) return null;
@@ -665,10 +751,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return qualifiedPath == jsLibraryName(library) ? null : qualifiedPath;
   }
 
-  @override
+  /// Debugger friendly name for a Dart [library].
   String jsLibraryDebuggerName(Library library) => '${library.importUri}';
 
-  @override
+  /// Debugger friendly names for all parts in a Dart [library].
   Iterable<String> jsPartDebuggerNames(Library library) =>
       library.parts.map((part) => part.partUri);
 
@@ -685,18 +771,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// True when [library] is the sdk library 'dart:js_util'.
   bool _isDartJsUtil(Library library) => isDartLibrary(library, 'js_util');
 
-  @override
+  /// Returns true if [library] is identified by [name].
   bool isDartLibrary(Library library, String name) {
     var importUri = library.importUri;
     return importUri.isScheme('dart') && importUri.path == name;
   }
 
-  @override
+  /// Returns true if the library [l] is "dart:_runtime".
   bool isSdkInternalRuntime(Library l) {
     return isSdkInternalRuntimeUri(l.importUri);
   }
 
-  @override
+  /// Gets the module import URI that contains [library].
   String libraryToModule(Library library, {bool throwIfNotFound = true}) {
     if (library.importUri.isScheme('dart')) {
       // TODO(jmesserly): we need to split out HTML.
@@ -1955,7 +2041,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
   }
 
-  @override
+  /// Whether any superclass of [c] defines a static [name].
   bool superclassHasStatic(Class c, String memberName) {
     // Note: because we're only considering statics, we can ignore mixins.
     // We're only trying to find conflicts due to JS inheriting statics.
@@ -2282,7 +2368,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
   }
 
-  @override
+  /// Emits the expression necessary to access a constructor of [type];
   js_ast.Expression emitConstructorAccess(InterfaceType type) =>
       _emitJSInterop(type.classNode) ?? _emitClassRef(type);
 
@@ -3273,15 +3359,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Called for each expression compilation to set the incremental mode
   /// and clear referenced items.
   ///
+  /// Sets all tables and internal structures to incremental mode so
+  /// only referenced items will be emitted in a generated function.
+  ///
   /// The compiler cannot revert to non-incremental mode, and requires the
   /// original module to be already emitted by the same compiler instance.
-  @override
   void setIncrementalMode() {
     if (!_moduleEmitted) {
       throw StateError(
           'Cannot run in incremental mode before module completion');
     }
-    super.setIncrementalMode();
+    incrementalModules.clear();
+    _privateNames.clear();
+    _symbolContainer.setIncrementalMode();
+    _incrementalMode = true;
 
     _constTableCache = ModuleItemContainer<String>.asArray('C');
     _constLazyAccessors.clear();
@@ -3333,7 +3424,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ...extensionSymbols,
       ..._typeTable.dischargeBoundTypes(),
       ..._genericClassTable.dischargeBoundTypes(),
-      ...symbolContainer.emit(),
+      ..._symbolContainer.emit(),
       ..._emitConstTable(),
       ..._uriContainer.emit(),
       ...fun.body.statements
@@ -3464,7 +3555,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             : genFn;
 
         fnExpression.sourceInformation = _nodeEnd(function.fileEndOffset);
-        if (usesThisOrSuper(fnExpression)) {
+        if (js_ast.usesThisOrSuper(fnExpression)) {
           fnExpression = js.call('#.bind(this)', fnExpression);
         }
 
@@ -4395,7 +4486,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       if (node.variable.name != null &&
-          variableIsReferenced(node.variable.name!, iterable)) {
+          js_ast.variableIsReferenced(node.variable.name!, iterable)) {
         var temp = _emitTemporaryId('iter');
         return js_ast.Block([
           iterable.toVariableDeclaration(temp),
@@ -4754,7 +4845,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var name = _emitVariableDef(node.variable);
     js_ast.Statement declareFn;
-    declareFn = toBoundFunctionStatement(fn, name);
+    declareFn = js_ast.toBoundFunctionStatement(fn, name);
     if (_reifyFunctionType(func)) {
       declareFn = js_ast.Block([
         declareFn,
@@ -7089,11 +7180,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsBlock = js_ast.Block(jsStmts);
     // BlockExpressions with async operations must be constructed
     // with a generator instead of a lambda.
-    var finder = YieldFinder();
+    var finder = js_ast.YieldFinder();
     jsBlock.accept(finder);
     if (finder.hasYield) {
       js_ast.Expression genFn = js_ast.Fun([], jsBlock, isGenerator: true);
-      if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
+      if (js_ast.usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
       var asyncLibrary = emitLibraryName(_coreTypes.asyncLibrary);
       var returnType = _emitType(node.getStaticType(_staticTypeContext));
       var asyncCall =
@@ -7512,6 +7603,591 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     throw UnsupportedError(
         'Unsupported auxiliary statement $node (${node.runtimeType}).');
   }
+
+  /// Adds an import mapping from [library] to [id].
+  ///
+  /// This is a temporary work around until imports can be manually added in
+  /// `startModule()`.
+  void forceLibraryImport(Library library, js_ast.TemporaryId id) {
+    _imports[library] = id;
+  }
+
+  void setEmitIfIncrementalLibrary(Library library) {
+    if (_incrementalMode) {
+      setEmitIfIncremental(libraryToModule(library), jsLibraryName(library));
+    }
+  }
+
+  void setEmitIfIncremental(String module, String library) {
+    if (_incrementalMode) {
+      incrementalModules.putIfAbsent(module, () => {}).add(library);
+    }
+  }
+
+  /// When compiling the body of a `operator []=` method, this will be non-null
+  /// and will indicate the value that should be returned from any `return;`
+  /// statements.
+  js_ast.Identifier? get _operatorSetResult {
+    var stack = _operatorSetResultStack;
+    return stack.isEmpty ? null : stack.last;
+  }
+
+  /// Called when starting to emit methods/functions, in particular so we can
+  /// implement special handling of the user-defined `[]=` and `==` methods.
+  ///
+  /// See also [exitFunction] and [emitReturnStatement].
+  void enterFunction(String? name, List<js_ast.Parameter> formals,
+      bool Function() isLastParamMutated) {
+    if (name == '[]=') {
+      _operatorSetResultStack.add(isLastParamMutated()
+          ? js_ast.TemporaryId((formals.last as js_ast.Identifier).name)
+          : formals.last as js_ast.Identifier);
+    } else {
+      _operatorSetResultStack.add(null);
+    }
+  }
+
+  /// Called when finished emitting methods/functions, and must correspond to a
+  /// previous [enterFunction] call.
+  js_ast.Block exitFunction(List<js_ast.Parameter> formals, js_ast.Block code) {
+    var setOperatorResult = _operatorSetResultStack.removeLast();
+    if (setOperatorResult != null) {
+      // []= methods need to return the value. We could also address this at
+      // call sites, but it's less code size to handle inside the operator.
+      var valueParam = formals.last;
+      var statements = code.statements;
+      if (statements.isEmpty || !statements.last.alwaysReturns) {
+        statements.add(js_ast.Return(setOperatorResult));
+      }
+      if (!identical(setOperatorResult, valueParam)) {
+        // If the value parameter was mutated, then we use a temporary
+        // variable to track the initial value
+        formals.last = setOperatorResult;
+        code = js
+            .block('{ let # = #; #; }', [valueParam, setOperatorResult, code]);
+      }
+    }
+    return code;
+  }
+
+  /// Emits a return statement `return <value>;`, handling special rules for
+  /// the `operator []=` method.
+  js_ast.Statement emitReturnStatement(js_ast.Expression? value) {
+    if (_operatorSetResult != null) {
+      var result = js_ast.Return(_operatorSetResult);
+      return value != null
+          ? js_ast.Block([value.toStatement(), result])
+          : result;
+    }
+    return value != null ? value.toReturn() : js_ast.Return();
+  }
+
+  /// Prepends the `dart.` and then uses [js.call] to parse the specified JS
+  /// [code] template, passing [args].
+  ///
+  /// For example:
+  ///
+  ///     runtimeCall('asInt(#)', [<expr>])
+  ///
+  /// Generates a JS AST representing:
+  ///
+  ///     dart.asInt(<expr>)
+  ///
+  js_ast.Expression runtimeCall(String code, [List<Object>? args]) {
+    setEmitIfIncremental(libraryToModule(coreLibrary), runtimeModule.name);
+    return js.call('#.$code', <Object>[runtimeModule, ...?args]);
+  }
+
+  /// Calls [runtimeCall] and uses `toStatement()` to convert the resulting
+  /// expression into a statement.
+  js_ast.Statement runtimeStatement(String code, [List<Object>? args]) =>
+      runtimeCall(code, args).toStatement();
+
+  /// Emits a private name JS Symbol for [name] scoped to the Dart [library].
+  ///
+  /// If the same name is used in multiple libraries in the same module,
+  /// distinct symbols will be used, so each library will have distinct private
+  /// member names, that won't collide at runtime, as required by the Dart
+  /// language spec.
+  ///
+  /// If an [id] is provided, try to use that.
+  ///
+  /// TODO(vsm): Clean up id generation logic.  This method is used to both
+  /// define new symbols and to reference existing ones.  If it's called
+  /// multiple times with same [library] and [name], we'll allocate redundant
+  /// top-level variables (see callers to this method).
+  js_ast.TemporaryId emitPrivateNameSymbol(Library library, String name,
+      [js_ast.TemporaryId? id]) {
+    /// Initializes the JS `Symbol` for the private member [name] in [library].
+    ///
+    /// If the library is in the current JS module ([_libraries] contains it),
+    /// the private name will be created and exported. The exported symbol is
+    /// used for a few things:
+    ///
+    /// - private fields of constant objects
+    /// - stateful hot reload (not yet implemented)
+    /// - correct library scope in REPL (not yet implemented)
+    ///
+    /// If the library is imported, then the existing private name will be
+    /// retrieved from it. In both cases, we use the same `dart.privateName`
+    /// runtime call.
+    js_ast.TemporaryId initPrivateNameSymbol() {
+      var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
+      idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
+      var identifier = id ?? js_ast.TemporaryId(idName);
+      addSymbol(
+          identifier,
+          runtimeCall('privateName(#, #)',
+              [emitLibraryName(library), js.string(name)]));
+      if (!containerizeSymbols) {
+        // TODO(vsm): Change back to `const`.
+        // See https://github.com/dart-lang/sdk/issues/40380.
+        moduleItems.add(js.statement('var # = #', [
+          identifier,
+          runtimeCall(
+              'privateName(#, #)', [emitLibraryName(library), js.string(name)])
+        ]));
+      }
+      return identifier;
+    }
+
+    var privateNames = _privateNames.putIfAbsent(library, () => HashMap());
+    var symbolId = privateNames.putIfAbsent(name, initPrivateNameSymbol);
+
+    setEmitIfIncrementalLibrary(library);
+    setEmitIfIncremental(libraryToModule(coreLibrary), runtimeModule.name);
+    _symbolContainer.setEmitIfIncremental(symbolId);
+
+    return symbolId;
+  }
+
+  /// Emits an expression to set the property [nameExpr] on the class [className],
+  /// with [value].
+  ///
+  /// This will use `className.name = value` if possible, otherwise it will use
+  /// `dart.defineValue(className, name, value)`. This is required when
+  /// `FunctionNode.prototype` already defines a getters with the same name.
+  js_ast.Expression defineValueOnClass(Class c, js_ast.Expression className,
+      js_ast.Expression nameExpr, js_ast.Expression value) {
+    var args = [className, nameExpr, value];
+    if (nameExpr is js_ast.LiteralString) {
+      var name = nameExpr.valueWithoutQuotes;
+      if (js_ast.isFunctionPrototypeGetter(name) ||
+          superclassHasStatic(c, name)) {
+        return runtimeCall('defineValue(#, #, #)', args);
+      }
+    }
+    return js.call('#.# = #', args);
+  }
+
+  /// Emits a Dart Symbol with the given member [symbolName].
+  ///
+  /// If the symbol refers to a private name, its library will be set to the
+  /// [currentLibrary], so the Symbol is scoped properly.
+  js_ast.Expression emitDartSymbol(String symbolName) {
+    // TODO(vsm): Handle qualified symbols correctly.
+    var last = symbolName.split('.').last;
+    var name = js.escapedString(symbolName, "'");
+    js_ast.Expression result;
+    if (last.startsWith('_')) {
+      var nativeSymbolAccessor =
+          getSymbol(emitPrivateNameSymbol(currentLibrary!, last));
+      result = js.call('new #.new(#, #)', [
+        emitConstructorAccess(privateSymbolType),
+        name,
+        nativeSymbolAccessor
+      ]);
+    } else {
+      result = js.call(
+          'new #.new(#)', [emitConstructorAccess(internalSymbolType), name]);
+    }
+    return canonicalizeConstObject(result);
+  }
+
+  /// Calls the `dart.const` function in "dart:_runtime" to canonicalize a
+  /// constant instance of a user-defined class stored in [expr].
+  js_ast.Expression canonicalizeConstObject(js_ast.Expression expr) =>
+      runtimeCall('const(#)', [expr]);
+
+  /// Emits preamble for the module containing [libraries], and returns the
+  /// list of module items for further items to be added.
+  ///
+  /// The preamble consists of initializing the identifiers for each library,
+  /// that will be used to store their members. It also generates the
+  /// appropriate ES6 `export` declaration to export them from this module.
+  ///
+  /// After the code for all of the library members is emitted,
+  /// [emitImportsAndExtensionSymbols] should be used to emit imports/extension
+  /// symbols into the list returned by this method. Finally, [finishModule]
+  /// can be called to complete the module and return the resulting JS AST.
+  ///
+  /// This also initializes several fields: [runtimeModule],
+  /// [extensionSymbolsModule], and the [_libraries] map needed by
+  /// [emitLibraryName].
+  List<js_ast.ModuleItem> startModule(Iterable<Library> libraries) {
+    if (isBuildingSdk) {
+      // Don't allow these to be renamed when we're building the SDK.
+      // There is JS code in dart:* that depends on their names.
+      runtimeModule = js_ast.Identifier('dart');
+      extensionSymbolsModule = js_ast.Identifier('dartx');
+    } else {
+      // Otherwise allow these to be renamed so users can write them.
+      runtimeModule = js_ast.TemporaryId('dart');
+      extensionSymbolsModule = js_ast.TemporaryId('dartx');
+    }
+
+    // Initialize our library variables.
+    var items = <js_ast.ModuleItem>[];
+    var exports = <js_ast.NameSpecifier>[];
+
+    if (isBuildingSdk) {
+      // Bootstrap the ability to create Dart library objects.
+      var libraryProto = js_ast.TemporaryId('_library');
+      items.add(js.statement('const # = Object.create(null)', libraryProto));
+      items.add(js.statement(
+          'const # = Object.create(#)', [runtimeModule, libraryProto]));
+      items.add(js.statement('#.library = #', [runtimeModule, libraryProto]));
+      exports.add(js_ast.NameSpecifier(runtimeModule));
+    }
+
+    for (var library in libraries) {
+      if (isBuildingSdk && isSdkInternalRuntime(library)) {
+        _libraries[library] = runtimeModule;
+        continue;
+      }
+      var libraryId = isBuildingSdk && isDartLibrary(library, '_rti')
+          ? rtiLibraryId
+          : js_ast.TemporaryId(jsLibraryName(library));
+
+      _libraries[library] = libraryId;
+      var alias = jsLibraryAlias(library);
+      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
+
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js.statement(
+          'var # = Object.create(#.library)', [libraryId, runtimeModule]));
+      exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
+    }
+
+    // dart:_runtime has a magic module that holds extension method symbols.
+    // TODO(jmesserly): find a cleaner design for this.
+    if (isBuildingSdk) {
+      var id = extensionSymbolsModule;
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js
+          .statement('var # = Object.create(#.library)', [id, runtimeModule]));
+      exports.add(js_ast.NameSpecifier(id));
+    }
+    items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
+
+    if (isBuildingSdk) {
+      // Initialize the private name function.
+      // To bootstrap the SDK, this needs to be emitted before other code.
+      var symbol = js_ast.TemporaryId('_privateNames');
+      items.add(js.statement('const # = Symbol("_privateNames")', symbol));
+      items.add(runtimeStatement(r'''
+        privateName = function(library, name) {
+          let names = library[#];
+          if (names == null) names = library[#] = new Map();
+          let symbol = names.get(name);
+          if (symbol == null) names.set(name, symbol = Symbol(name));
+          return symbol;
+        }
+      ''', [symbol, symbol]));
+    }
+
+    return items;
+  }
+
+  /// Returns the canonical name to refer to the Dart library.
+  js_ast.Identifier emitLibraryName(Library library) {
+    setEmitIfIncrementalLibrary(library);
+
+    // Avoid adding the dart:_runtime to _imports when our runtime unit tests
+    // import it explicitly. It will always be implicitly imported.
+    if (isSdkInternalRuntime(library)) return runtimeModule;
+
+    // It's either one of the libraries in this module, or it's an import.
+    return _libraries[library] ??
+        _imports.putIfAbsent(
+            library, () => js_ast.TemporaryId(jsLibraryName(library)));
+  }
+
+  /// Emits imports into [items].
+  void emitImports(List<js_ast.ModuleItem> items) {
+    var modules = <String, List<Library>>{};
+    for (var import in _imports.keys) {
+      modules.putIfAbsent(libraryToModule(import), () => []).add(import);
+    }
+
+    String? coreModuleName;
+    if (!_libraries.containsKey(coreLibrary)) {
+      coreModuleName = libraryToModule(coreLibrary);
+    }
+
+    modules.forEach((module, libraries) {
+      if (!_incrementalMode || incrementalModules.containsKey(module)) {
+        var usedLibraries = incrementalModules[module];
+
+        // Generate import directives.
+        //
+        // Our import variables are temps and can get renamed. Since our renaming
+        // is integrated into js_ast, it is aware of this possibility and will
+        // generate an "as" if needed. For example:
+        //
+        //     import {foo} from 'foo';         // if no rename needed
+        //     import {foo as foo$} from 'foo'; // if rename was needed
+        //
+        var imports = <js_ast.NameSpecifier>[];
+        for (var library in libraries) {
+          if (!_incrementalMode ||
+              usedLibraries!.contains(jsLibraryName(library))) {
+            var alias = jsLibraryAlias(library);
+            if (alias != null) {
+              var aliasId = js_ast.TemporaryId(alias);
+              imports.add(
+                  js_ast.NameSpecifier(aliasId, asName: _imports[library]));
+            } else {
+              imports.add(js_ast.NameSpecifier(_imports[library]));
+            }
+          }
+        }
+
+        if (module == coreModuleName) {
+          if (!_incrementalMode ||
+              usedLibraries!.contains(runtimeModule.name)) {
+            imports.add(js_ast.NameSpecifier(runtimeModule));
+          }
+          if (!_incrementalMode ||
+              usedLibraries!.contains(extensionSymbolsModule.name)) {
+            imports.add(js_ast.NameSpecifier(extensionSymbolsModule));
+          }
+        }
+
+        if (!_incrementalMode || imports.isNotEmpty) {
+          items.add(js_ast.ImportDeclaration(
+              namedImports: imports, from: js.string(module, "'")));
+        }
+      }
+    });
+  }
+
+  /// Emits extension methods into [items].
+  void emitExtensionSymbols(List<js_ast.ModuleItem> items,
+      {bool forceExtensionSymbols = false}) {
+    // Initialize extension symbols
+    _extensionSymbols.forEach((name, id) {
+      js_ast.Expression value =
+          js_ast.PropertyAccess(extensionSymbolsModule, propertyName(name));
+      if (isBuildingSdk) {
+        value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
+      } else if (forceExtensionSymbols) {
+        value = js.call(
+            '# || (# = Symbol(#))', [value, value, js.string('dartx.$name')]);
+      }
+      // Emit hoisted extension symbols that are marked as noEmit in regular as
+      // well as incremental mode (if needed) since they are going to be
+      // referenced as such in the generated expression.
+      if (!_incrementalMode ||
+          _symbolContainer.incrementalModuleItems.contains(id)) {
+        if (!_symbolContainer.canEmit(id)) {
+          // Extension symbols marked with noEmit are managed manually.
+          // TODO(vsm): Change back to `const`.
+          // See https://github.com/dart-lang/sdk/issues/40380.
+          items.add(js.statement('var # = #;', [id, value]));
+        }
+      }
+      if (_symbolContainer.incrementalModuleItems.contains(id)) {
+        setEmitIfIncremental(
+            libraryToModule(coreLibrary), extensionSymbolsModule.name);
+      }
+      _symbolContainer[id] = value;
+    });
+  }
+
+  /// Emits exports as imports into [items].
+  ///
+  /// Use information from exports to re-define library variables referenced
+  /// inside compiled expressions in incremental mode. That matches importing
+  /// a current module into the symbol used to represent the library during
+  /// original compilation in [ProgramCompiler.emitModule].
+  ///
+  /// Example of exports emitted to JavaScript during emitModule:
+  ///
+  /// ```
+  /// dart.trackLibraries("web/main", { ... });
+  /// // Exports:
+  /// return {
+  ///  web__main: main
+  /// };
+  /// ```
+  ///
+  /// The transformation to imports during expression compilation converts the
+  /// exports above to:
+  ///
+  /// ```
+  /// const web__main = require('web/main');
+  /// const main = web__main.web__main;
+  /// ```
+  ///
+  /// Where the compiled expression references `main`.
+  void emitExportsAsImports(List<js_ast.ModuleItem> items, Library current) {
+    var exports = <js_ast.NameSpecifier>[];
+    assert(_incrementalMode);
+    assert(!isBuildingSdk);
+
+    var module = libraryToModule(current);
+    var usedLibraries = incrementalModules[module] ?? {};
+
+    if (usedLibraries.isNotEmpty) {
+      _libraries.forEach((library, libraryId) {
+        if (usedLibraries.contains(jsLibraryName(library))) {
+          var alias = jsLibraryAlias(library);
+          var aliasId = alias == null ? libraryId : js_ast.TemporaryId(alias);
+          var asName = alias == null ? null : libraryId;
+          exports.add(js_ast.NameSpecifier(aliasId, asName: asName));
+        }
+      });
+
+      items.add(js_ast.ImportDeclaration(
+          namedImports: exports, from: js.string(module, "'")));
+    }
+  }
+
+  /// Emits imports and extension methods into [items].
+  void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items,
+      {bool forceExtensionSymbols = false}) {
+    emitImports(items);
+    emitExtensionSymbols(items, forceExtensionSymbols: forceExtensionSymbols);
+  }
+
+  void _emitDebuggerExtensionInfo(String name) {
+    var properties = <js_ast.Property>[];
+    var parts = <js_ast.Property>[];
+    _libraries.forEach((library, value) {
+      // TODO(jacobr): we could specify a short library name instead of the
+      // full library uri if we wanted to save space.
+      var libraryName = js.escapedString(jsLibraryDebuggerName(library));
+      properties.add(js_ast.Property(libraryName, value));
+      var partNames = jsPartDebuggerNames(library);
+      if (partNames.isNotEmpty) {
+        parts.add(js_ast.Property(libraryName, js.stringArray(partNames)));
+      }
+    });
+    var module = js_ast.ObjectInitializer(properties, multiline: true);
+    var partMap = js_ast.ObjectInitializer(parts, multiline: true);
+
+    // Track the module name for each library in the module.
+    // This data is only required for debugging.
+    moduleItems.add(runtimeStatement(
+        'trackLibraries(#, #, #, $sourceMapLocationID)',
+        [js.string(name), module, partMap]));
+  }
+
+  /// Returns an accessor for [id] via the symbol container.
+  /// E.g., transforms $sym to S$5.$sym.
+  ///
+  /// A symbol lookup on an id marked no emit omits the symbol accessor.
+  js_ast.Expression getSymbol(js_ast.Identifier id) {
+    _symbolContainer.setEmitIfIncremental(id);
+    return _symbolContainer.canEmit(id) ? _symbolContainer.access(id) : id;
+  }
+
+  /// Returns the raw JS value associated with [id].
+  js_ast.Expression getSymbolValue(js_ast.Identifier id) {
+    _symbolContainer.setEmitIfIncremental(id);
+    return _symbolContainer[id]!;
+  }
+
+  /// Inserts a symbol into the symbol table.
+  js_ast.Expression addSymbol(js_ast.Identifier id, js_ast.Expression symbol) {
+    _symbolContainer[id] = symbol;
+    _symbolContainer.setEmitIfIncremental(id);
+    if (!containerizeSymbols) {
+      _symbolContainer.setNoEmit(id);
+    }
+    return _symbolContainer[id]!;
+  }
+
+  /// Finishes the module created by [startModule], by combining the preamble
+  /// [items] with the [moduleItems] that have been emitted.
+  ///
+  /// The [moduleName] should specify the module's name, and the items should
+  /// be the list resulting from startModule, with additional items added,
+  /// but not including the contents of moduleItems (which will be handled by
+  /// this method itself).
+  ///
+  /// Note, this function mutates the items list and returns it as the `body`
+  /// field of the result.
+  js_ast.Program finishModule(List<js_ast.ModuleItem> items, String moduleName,
+      {List<js_ast.Comment> header = const []}) {
+    // TODO(jmesserly): there's probably further consolidation we can do
+    // between DDC's two backends, by moving more code into this method, as the
+    // code between `startModule` and `finishModule` is very similar in both.
+    _emitDebuggerExtensionInfo(moduleName);
+
+    // Emit all top-level JS symbol containers.
+    items.addAll(_symbolContainer.emit());
+
+    // Add the module's code (produced by visiting compilation units, above)
+    _copyAndFlattenBlocks(items, moduleItems);
+    moduleItems.clear();
+
+    // Build the module.
+    return js_ast.Program(items, name: moduleName, header: header);
+  }
+
+  /// Flattens blocks in [items] to a single list.
+  ///
+  /// This will not flatten blocks that are marked as being scopes.
+  void _copyAndFlattenBlocks(
+      List<js_ast.ModuleItem> result, Iterable<js_ast.ModuleItem> items) {
+    for (var item in items) {
+      if (item is js_ast.Block && !item.isScope) {
+        _copyAndFlattenBlocks(result, item.statements);
+      } else {
+        result.add(item);
+      }
+    }
+  }
+
+  /// This is an internal method used by [_emitMemberName] and the
+  /// optimized `dart:_runtime extensionSymbol` builtin to get the symbol
+  /// for `dartx.<name>`.
+  ///
+  /// Do not call this directly; you want [_emitMemberName], which knows how to
+  /// handle the many details involved in naming.
+  js_ast.TemporaryId getExtensionSymbolInternal(String name) {
+    if (!_extensionSymbols.containsKey(name)) {
+      var id = js_ast.TemporaryId(
+          '\$${js_ast.friendlyNameForDartOperator[name] ?? name}');
+      _extensionSymbols[name] = id;
+      addSymbol(id, id);
+    }
+    var symbolId = _extensionSymbols[name]!;
+    _symbolContainer.setEmitIfIncremental(symbolId);
+    return symbolId;
+  }
+
+  /// Shorthand for identifier-like property names.
+  /// For now, we emit them as strings and the printer restores them to
+  /// identifiers if it can.
+  // TODO(jmesserly): avoid the round tripping through quoted form.
+  js_ast.LiteralString propertyName(String name) => js.string(name, "'");
+
+  /// Unique identifiers indicating the locations to inline the corresponding
+  /// information.
+  ///
+  /// We cannot generate the source map before the script it is for is
+  /// generated so we have generate the script including this identifier in the
+  /// JS AST, and then replace it once the source map is generated.  Similarly,
+  /// metrics include the size of the source map.
+  static const String sourceMapLocationID =
+      'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
+  static const String metricsLocationID =
+      'MetricsJ7xFWBfSv6ZjrW9yLb21GNzisZr3anSf5h';
 }
 
 bool _isInlineJSFunction(Statement? body) {
