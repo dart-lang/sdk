@@ -138,6 +138,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var recordTypeResolver = RecordTypeAnnotationResolver(
       typeProvider: typeProvider,
       errorReporter: errorReporter,
+      libraryElement: libraryElement,
     );
 
     return ResolutionVisitor._(
