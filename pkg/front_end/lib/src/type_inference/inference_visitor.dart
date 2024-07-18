@@ -8677,7 +8677,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitThrow(Throw node, DartType typeContext) {
     ExpressionInferenceResult expressionResult = inferExpression(
-        node.expression, const UnknownType(),
+        node.expression, coreTypes.objectNonNullableRawType,
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
     flowAnalysis.handleExit();

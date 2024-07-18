@@ -1,5 +1,15 @@
 ## 3.6.0
 
+### Language
+
+- **Breaking Change** [#56065][]: The context used by the compiler and analyzer
+  to perform type inference on the operand of a `throw` expression has been
+  changed from the "unknown type" to `Object`. This makes the type system more
+  self-consistent, because it reflects the fact that it's not legal to throw
+  `null`. This change is not expected to make any difference in practice.
+
+[#56065]: https://github.com/dart-lang/sdk/issues/56065
+
 ## 3.5.0
 
 ### Language
