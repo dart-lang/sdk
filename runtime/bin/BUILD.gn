@@ -44,9 +44,6 @@ config("export_api_symbols") {
       "-Wl,-exported_symbol",
       "-Wl,_Dart_*",
     ]
-  } else if (!is_clang) {
-    # TODO(rmacnak): Remove once bots are updated to a newer gcc.
-    ldflags = [ "-rdynamic" ]
   } else {
     ldflags = [ "-Wl,--export-dynamic-symbol=Dart_*" ]
   }

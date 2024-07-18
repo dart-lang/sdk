@@ -210,6 +210,25 @@ Comment
 ''');
   }
 
+  test_commentReference_followedByColon() {
+    var parseResult = parseStringWithErrors(r'''
+/// Regarding [a]: it's an A.
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.comment('[a]');
+    assertParsedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      expression: SimpleIdentifier
+        token: a
+  tokens
+    /// Regarding [a]: it's an A.
+''');
+  }
+
   test_commentReference_multiple() {
     var parseResult = parseStringWithErrors(r'''
 /// [a] and [b].

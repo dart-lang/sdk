@@ -151,11 +151,12 @@ class AnalyzerStatePrinter {
     });
   }
 
-  void _writeDocImports(LibraryOrAugmentationFileKind container) {
+  void _writeDocImports(FileKind container) {
     _writeElements<LibraryImportState>(
       'docImports',
       container.docImports,
       (import) {
+        expect(import.isDocImport, isTrue);
         _writeLibraryImport(container, import);
       },
     );
@@ -260,8 +261,9 @@ class AnalyzerStatePrinter {
         _writeLibraryImports(kind);
         _writeLibraryExports(kind);
         _writeAugmentationImports(kind);
+        _writeParts(kind);
         _writeDocImports(kind);
-        _writeLibraryParts(kind);
+
         _writeLibraryCycle(kind);
       });
     } else if (kind is PartOfNameFileKind) {
@@ -282,17 +284,26 @@ class AnalyzerStatePrinter {
         } else {
           _writelnWithIndent('name: ${kind.unlinked.name}');
         }
+
+        _writeLibraryImports(kind);
+        _writeLibraryExports(kind);
+        _writeParts(kind);
+        _writeDocImports(kind);
       });
     } else if (kind is PartOfUriKnownFileKind) {
       _withIndent(() {
-        var library = kind.library;
-        if (library != null) {
+        var uriFileId = idProvider.fileState(kind.uriFile);
+        _writelnWithIndent('uriFile: $uriFileId');
+
+        if (kind.library case var library?) {
           var id = idProvider.fileKind(library);
           _writelnWithIndent('library: $id');
-        } else {
-          var id = idProvider.fileState(kind.uriFile);
-          _writelnWithIndent('uriFile: $id');
         }
+
+        _writeLibraryImports(kind);
+        _writeLibraryExports(kind);
+        _writeParts(kind);
+        _writeDocImports(kind);
       });
     } else if (kind is PartOfUriUnknownFileKind) {
       _withIndent(() {
@@ -509,7 +520,7 @@ class AnalyzerStatePrinter {
     });
   }
 
-  void _writeLibraryExports(LibraryOrAugmentationFileKind container) {
+  void _writeLibraryExports(FileKind container) {
     _writeElements<LibraryExportState>(
       'libraryExports',
       container.libraryExports,
@@ -555,7 +566,7 @@ class AnalyzerStatePrinter {
   }
 
   void _writeLibraryImport(
-    LibraryOrAugmentationFileKind container,
+    FileKind container,
     LibraryImportState<DirectiveUri> import,
   ) {
     if (import is LibraryImportWithFile) {
@@ -617,7 +628,7 @@ class AnalyzerStatePrinter {
     }
   }
 
-  void _writeLibraryImports(LibraryOrAugmentationFileKind container) {
+  void _writeLibraryImports(FileKind container) {
     _writeElements<LibraryImportState>(
       'libraryImports',
       container.libraryImports,
@@ -627,9 +638,14 @@ class AnalyzerStatePrinter {
     );
   }
 
-  void _writeLibraryParts(LibraryFileKind library) {
-    _writeElements<PartState>('parts', library.parts, (part) {
-      expect(part.library, same(library));
+  void _writelnWithIndent(String line) {
+    sink.write(_indent);
+    sink.writeln(line);
+  }
+
+  void _writeParts(FileKind container) {
+    _writeElements<PartState>('parts', container.parts, (part) {
+      expect(part.container, same(container));
       if (part is PartWithFile) {
         var file = part.includedFile;
         sink.write(_indent);
@@ -649,11 +665,6 @@ class AnalyzerStatePrinter {
         _writelnWithIndent('noUri');
       }
     });
-  }
-
-  void _writelnWithIndent(String line) {
-    sink.write(_indent);
-    sink.writeln(line);
   }
 
   void _writeReferencingFiles(FileState file) {

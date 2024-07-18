@@ -692,6 +692,52 @@ void f() {
   Future<void> test_whitespace() async {
     await expectNoTarget(TestCode.parse(' ^  void f() {}'));
   }
+
+  Future<void> test_wildcardVariable() async {
+    var code = TestCode.parse('''
+f() {
+  [!^_() {}!]
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.function,
+        '_',
+        testFile.path,
+        containerName: 'f',
+        nameRange: SourceRange(8, 1),
+        codeRange: code.range.sourceRange,
+      ),
+    );
+  }
+
+  Future<void> test_wildcardVariable_preWildcards() async {
+    var code = TestCode.parse('''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+f() {
+  [!_() {}!]
+  ^_();
+}
+''');
+
+    var target = await findTarget(code);
+    expect(
+      target,
+      _isItem(
+        CallHierarchyKind.function,
+        '_',
+        testFile.path,
+        containerName: 'f',
+        nameRange: SourceRange(52, 1),
+        codeRange: code.range.sourceRange,
+      ),
+    );
+  }
 }
 
 @reflectiveTest
