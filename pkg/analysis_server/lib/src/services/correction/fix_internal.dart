@@ -445,6 +445,9 @@ final _builtInLintProducers = <String, List<ProducerGenerator>>{
   LintNames.omit_local_variable_types: [
     ReplaceWithVar.new,
   ],
+  LintNames.omit_obvious_local_variable_types: [
+    ReplaceWithVar.new,
+  ],
   LintNames.prefer_adjacent_string_concatenation: [
     RemoveOperator.new,
   ],

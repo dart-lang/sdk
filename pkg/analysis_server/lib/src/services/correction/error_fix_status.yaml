@@ -2203,10 +2203,7 @@ LintCode.null_closures:
 LintCode.omit_local_variable_types:
   status: hasFix
 LintCode.omit_obvious_local_variable_types:
-  status: needsEvaluation
-  notes: |-
-    The fix `ReplaceWithVar` which is used with omit_local_variable_types
-    should work for this one as well.
+  status: hasFix
 LintCode.one_member_abstracts:
   status: noFix
   notes: |-
