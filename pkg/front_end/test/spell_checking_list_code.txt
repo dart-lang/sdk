@@ -234,6 +234,7 @@ ce
 ceil
 certainly
 cfe
+cfe's
 ch
 chaining
 channel
@@ -861,6 +862,7 @@ inhibit
 init
 initializations
 initializer's
+injecting
 inlines
 insertion
 inspect
@@ -1034,6 +1036,7 @@ m
 machinery
 macos
 macro
+macro's
 macros
 maintaining
 malbounded

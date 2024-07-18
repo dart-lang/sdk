@@ -19,6 +19,7 @@ import '../../builder/member_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../codes/cfe_codes.dart';
+import '../../macros/macro_injected_impl.dart' as injected;
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_extension_builder.dart';
@@ -84,7 +85,7 @@ class MacroApplication {
 
   bool get isUnhandled => unhandledReason != null;
 
-  late macro.MacroInstanceIdentifier instanceIdentifier;
+  late Object instanceIdentifier;
   late Set<macro.Phase> phasesToExecute;
 
   @override
@@ -675,7 +676,82 @@ class MacroApplications {
   }
 
   Future<void> loadMacroIds(Benchmarker? benchmarker) async {
-    Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
+    Map<MacroApplication, Object> instanceIdCache = {};
+
+    Future<void> defaultEnsureMacroClassIds(
+        {required MacroApplication application,
+        required ApplicationData applicationData,
+        required Uri libraryUri,
+        required macro.DeclarationKind targetDeclarationKind}) async {
+      macro.MacroInstanceIdentifier? instance;
+      try {
+        instance = application.instanceIdentifier =
+            (instanceIdCache[application] ??=
+                // TODO: Dispose of these instances using
+                // `macroExecutor.disposeMacro` once we are done with them.
+                await macroExecutor.instantiateMacro(
+                    libraryUri,
+                    application.classBuilder.name,
+                    application.constructorName,
+                    application.arguments)) as macro.MacroInstanceIdentifier;
+      } catch (_) {
+        applicationData.libraryBuilder.addProblem(
+            messageUnsupportedMacroApplication,
+            application.uriOffset.fileOffset,
+            noLength,
+            application.uriOffset.uri);
+      }
+
+      application.phasesToExecute = instance == null
+          ? {}
+          : macro.Phase.values.where((phase) {
+              return instance!.shouldExecute(targetDeclarationKind, phase);
+            }).toSet();
+
+      if (instance != null &&
+          !instance.supportsDeclarationKind(targetDeclarationKind)) {
+        Iterable<macro.DeclarationKind> supportedKinds = macro
+            .DeclarationKind.values
+            .where(instance.supportsDeclarationKind);
+        if (supportedKinds.isEmpty) {
+          // TODO(johnniwinther): Improve messaging here. Is it an error
+          //  for a macro class to _not_ implement at least one of the
+          //  macro interfaces?
+          applicationData.libraryBuilder.addProblem(
+              messageNoMacroApplicationTarget,
+              application.uriOffset.fileOffset,
+              noLength,
+              application.uriOffset.uri);
+        } else {
+          applicationData.libraryBuilder.addProblem(
+              templateInvalidMacroApplicationTarget.withArguments(
+                  DeclarationKindHelper.joinWithOr(supportedKinds)),
+              application.uriOffset.fileOffset,
+              noLength,
+              application.uriOffset.uri);
+        }
+      }
+    }
+
+    Future<void> injectedEnsureMacroClassIds(
+        {required MacroApplication application,
+        required ApplicationData applicationData,
+        required Uri libraryUri,
+        required macro.DeclarationKind targetDeclarationKind}) async {
+      try {
+        application.instanceIdentifier = (instanceIdCache[application] ??=
+            injected.macroImplementation!.macroRunner
+                .run(libraryUri, macroClassName)) as injected.RunningMacro;
+      } catch (_) {
+        applicationData.libraryBuilder.addProblem(
+            messageUnsupportedMacroApplication,
+            application.uriOffset.fileOffset,
+            noLength,
+            application.uriOffset.uri);
+      }
+
+      application.phasesToExecute = macro.Phase.values.toSet();
+    }
 
     Future<void> ensureMacroClassIds(ApplicationData? applicationData) async {
       if (applicationData == null) {
@@ -690,7 +766,6 @@ class MacroApplications {
           continue;
         }
         Uri libraryUri = application.classBuilder.libraryBuilder.importUri;
-        String macroClassName = application.classBuilder.name;
         try {
           benchmarker?.beginSubdivide(
               BenchmarkSubdivides.macroApplications_macroExecutorLoadMacro);
@@ -698,54 +773,20 @@ class MacroApplications {
           try {
             benchmarker?.beginSubdivide(BenchmarkSubdivides
                 .macroApplications_macroExecutorInstantiateMacro);
-            macro.MacroInstanceIdentifier? instance;
-            try {
-              instance = application.instanceIdentifier = instanceIdCache[
-                      application] ??=
-                  // TODO: Dispose of these instances using
-                  // `macroExecutor.disposeMacro` once we are done with them.
-                  await macroExecutor.instantiateMacro(
-                      libraryUri,
-                      macroClassName,
-                      application.constructorName,
-                      application.arguments);
-            } catch (_) {
-              applicationData.libraryBuilder.addProblem(
-                  messageUnsupportedMacroApplication,
-                  application.uriOffset.fileOffset,
-                  noLength,
-                  application.uriOffset.uri);
-            }
-
-            application.phasesToExecute = instance == null
-                ? {}
-                : macro.Phase.values.where((phase) {
-                    return instance!
-                        .shouldExecute(targetDeclarationKind, phase);
-                  }).toSet();
-
-            if (instance != null &&
-                !instance.supportsDeclarationKind(targetDeclarationKind)) {
-              Iterable<macro.DeclarationKind> supportedKinds = macro
-                  .DeclarationKind.values
-                  .where(instance.supportsDeclarationKind);
-              if (supportedKinds.isEmpty) {
-                // TODO(johnniwinther): Improve messaging here. Is it an error
-                //  for a macro class to _not_ implement at least one of the
-                //  macro interfaces?
-                applicationData.libraryBuilder.addProblem(
-                    messageNoMacroApplicationTarget,
-                    application.uriOffset.fileOffset,
-                    noLength,
-                    application.uriOffset.uri);
-              } else {
-                applicationData.libraryBuilder.addProblem(
-                    templateInvalidMacroApplicationTarget.withArguments(
-                        DeclarationKindHelper.joinWithOr(supportedKinds)),
-                    application.uriOffset.fileOffset,
-                    noLength,
-                    application.uriOffset.uri);
-              }
+            if (injected.macroImplementation == null) {
+              await defaultEnsureMacroClassIds(
+                application: application,
+                applicationData: applicationData,
+                libraryUri: libraryUri,
+                targetDeclarationKind: targetDeclarationKind,
+              );
+            } else {
+              await injectedEnsureMacroClassIds(
+                application: application,
+                applicationData: applicationData,
+                libraryUri: libraryUri,
+                targetDeclarationKind: targetDeclarationKind,
+              );
             }
             benchmarker?.endSubdivide();
           } catch (e, s) {
@@ -801,11 +842,20 @@ class MacroApplications {
         dataForTesting!.typesApplicationOrder.add(
             new ApplicationDataForTesting(applicationData, macroApplication));
       }
-      macro.MacroExecutionResult result =
-          await _macroExecutor.executeTypesPhase(
-              macroApplication.instanceIdentifier,
-              macroTarget,
-              _macroIntrospection.typePhaseIntrospector);
+      macro.MacroExecutionResult result;
+      Object instanceIdentifier = macroApplication.instanceIdentifier;
+      if (instanceIdentifier is macro.MacroInstanceIdentifier) {
+        result = await _macroExecutor.executeTypesPhase(
+          instanceIdentifier,
+          macroTarget,
+          _macroIntrospection.typePhaseIntrospector,
+        );
+      } else if (instanceIdentifier is injected.RunningMacro) {
+        result = await instanceIdentifier.executeTypesPhase(
+            macroTarget, _macroIntrospection.typePhaseIntrospector);
+      } else {
+        throw new UnimplementedError('$instanceIdentifier');
+      }
       result.reportDiagnostics(
           _macroIntrospection, macroApplication, applicationData);
       if (result.isNotEmpty) {
@@ -929,11 +979,19 @@ class MacroApplications {
         dataForTesting!.declarationsApplicationOrder.add(
             new ApplicationDataForTesting(applicationData, macroApplication));
       }
-      macro.MacroExecutionResult result =
-          await _macroExecutor.executeDeclarationsPhase(
-              macroApplication.instanceIdentifier,
-              macroTarget,
-              _macroIntrospection.declarationPhaseIntrospector);
+      macro.MacroExecutionResult result;
+      Object instanceIdentifier = macroApplication.instanceIdentifier;
+      if (instanceIdentifier is macro.MacroInstanceIdentifier) {
+        result = await _macroExecutor.executeDeclarationsPhase(
+            instanceIdentifier,
+            macroTarget,
+            _macroIntrospection.declarationPhaseIntrospector);
+      } else if (instanceIdentifier is injected.RunningMacro) {
+        result = await instanceIdentifier.executeDeclarationsPhase(
+            macroTarget, _macroIntrospection.declarationPhaseIntrospector);
+      } else {
+        throw new UnimplementedError('$instanceIdentifier');
+      }
       result.reportDiagnostics(
           _macroIntrospection, macroApplication, applicationData);
       if (result.isNotEmpty) {
@@ -1084,11 +1142,19 @@ class MacroApplications {
         dataForTesting!.definitionApplicationOrder.add(
             new ApplicationDataForTesting(applicationData, macroApplication));
       }
-      macro.MacroExecutionResult result =
-          await _macroExecutor.executeDefinitionsPhase(
-              macroApplication.instanceIdentifier,
-              macroTarget,
-              _macroIntrospection.definitionPhaseIntrospector);
+      macro.MacroExecutionResult result;
+      Object instanceIdentifier = macroApplication.instanceIdentifier;
+      if (instanceIdentifier is macro.MacroInstanceIdentifier) {
+        result = await _macroExecutor.executeDefinitionsPhase(
+            instanceIdentifier,
+            macroTarget,
+            _macroIntrospection.definitionPhaseIntrospector);
+      } else if (instanceIdentifier is injected.RunningMacro) {
+        result = await instanceIdentifier.executeDefinitionsPhase(
+            macroTarget, _macroIntrospection.definitionPhaseIntrospector);
+      } else {
+        throw new UnimplementedError('$instanceIdentifier');
+      }
       result.reportDiagnostics(
           _macroIntrospection, macroApplication, applicationData);
       if (result.isNotEmpty) {

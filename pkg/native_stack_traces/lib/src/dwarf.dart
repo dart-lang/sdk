@@ -2047,20 +2047,24 @@ class DwarfSnapshot extends Dwarf {
   DwarfSnapshot._(this._container, this._abbreviationsTables, this._debugInfo,
       this._lineNumberInfo);
 
-  static DwarfSnapshot fromDwarfContainer(
+  static DwarfSnapshot? fromDwarfContainer(
           Reader reader, DwarfContainer container) =>
       // We use Zone values to pass around the string tables that may be used
       // when parsing different sections.
       runZoned(() {
         final abbrevReader = container.abbreviationsTableReader(reader);
+        if (abbrevReader == null) return null;
         final abbreviationsTables = Map.fromEntries(abbrevReader
             .readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
 
-        final debugInfo = DebugInfo.fromReader(
-            container.debugInfoReader(reader), abbreviationsTables);
+        final debugInfoReader = container.debugInfoReader(reader);
+        if (debugInfoReader == null) return null;
+        final debugInfo =
+            DebugInfo.fromReader(debugInfoReader, abbreviationsTables);
 
-        final lineNumberInfo =
-            LineNumberInfo.fromReader(container.lineNumberInfoReader(reader));
+        final lineNumberInfoReader = container.lineNumberInfoReader(reader);
+        if (lineNumberInfoReader == null) return null;
+        final lineNumberInfo = LineNumberInfo.fromReader(lineNumberInfoReader);
 
         return DwarfSnapshot._(
             container, abbreviationsTables, debugInfo, lineNumberInfo);
@@ -2190,8 +2194,10 @@ class DwarfUniversalBinary extends Dwarf {
       final container = binary.containerForCpuType(cpuType)!;
       final reader = binary.readerForCpuType(originalReader, cpuType)!;
       final dwarf = DwarfSnapshot.fromDwarfContainer(reader, container);
+      if (dwarf == null) continue;
       dwarfs[cpuType] = dwarf;
     }
+    if (dwarfs.isEmpty) return null;
     return DwarfUniversalBinary._(binary, dwarfs);
   }
 

@@ -75,6 +75,7 @@ import '../kernel/kernel_helper.dart'
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro/macro.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
+import '../macros/macro_injected_impl.dart' as injected;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart';
@@ -1727,7 +1728,7 @@ severity: $severity
       ?.cls;
 
   Future<MacroApplications?> computeMacroApplications() async {
-    if (_macroClassBuilder == null) {
+    if (injected.macroImplementation == null && _macroClassBuilder == null) {
       return null;
     }
 

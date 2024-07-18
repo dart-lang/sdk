@@ -18,6 +18,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/prefix_builder.dart';
+import '../../macros/macro_injected_impl.dart' as injected;
 import '../../source/diet_parser.dart';
 import '../../source/source_library_builder.dart';
 import 'macro.dart';
@@ -251,12 +252,21 @@ class _MacroListener implements Listener {
     pushUnsupported();
   }
 
+  /// A class is a macro if it uses the `macro` keyword or if a macro
+  /// implementation has been injected and it decides the class is a macro.
+  bool _isMacroOrMacroAnnotation(ClassBuilder builder) {
+    return builder.isMacro ||
+        (injected.macroImplementation?.packageConfigs
+                .isMacro(builder.fileUri, builder.name) ??
+            false);
+  }
+
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     switch (context) {
       case IdentifierContext.metadataReference:
         Builder? builder = scope.lookup(token.lexeme, token.charOffset, uri);
-        if (builder is ClassBuilder && builder.isMacro) {
+        if (builder is ClassBuilder && _isMacroOrMacroAnnotation(builder)) {
           _macroClassBuilder ??= builder;
           push(new _MacroClassNode(token, builder));
         } else if (builder is PrefixBuilder) {
@@ -270,7 +280,7 @@ class _MacroListener implements Listener {
         if (node is _PrefixNode) {
           Builder? builder =
               node.prefixBuilder.lookup(token.lexeme, token.charOffset, uri);
-          if (builder is ClassBuilder && builder.isMacro) {
+          if (builder is ClassBuilder && _isMacroOrMacroAnnotation(builder)) {
             _macroClassBuilder ??= builder;
             push(new _MacroClassNode(token, builder));
           } else {
