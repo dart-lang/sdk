@@ -167,6 +167,22 @@ class B extends A {
 ''');
   }
 
+  test_renameWithWildcardDisabled() async {
+    await assertDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(_) {}
+}
+''', [
+      lint(104, 1),
+    ]);
+  }
+
   test_renameWithWildcard() async {
     await assertNoDiagnostics(r'''
 class A {
