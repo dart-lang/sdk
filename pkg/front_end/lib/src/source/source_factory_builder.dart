@@ -841,7 +841,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType,
           factoryType.withoutTypeParameters,
-          SubtypeCheckMode.ignoringNullabilities)) {
+          SubtypeCheckMode.withNullabilities)) {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
@@ -849,19 +849,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);
-      } else {
-        if (!typeEnvironment.isSubtypeOf(
-            redirecteeType,
-            factoryType.withoutTypeParameters,
-            SubtypeCheckMode.withNullabilities)) {
-          libraryBuilder.addProblemForRedirectingFactory(
-              this,
-              templateIncompatibleRedirecteeFunctionType.withArguments(
-                  redirecteeType, factoryType.withoutTypeParameters),
-              redirectionTarget.charOffset,
-              noLength,
-              redirectionTarget.fileUri);
-        }
       }
     }
   }
