@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
+import 'package:analyzer/src/summary2/macro_injected_impl.dart' as injected;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -295,7 +296,10 @@ class LibraryMacroApplier {
     required LibraryBuilder libraryBuilder,
   }) {
     for (var application in libraryBuilder._applications) {
-      macroExecutor.disposeMacro(application.instance);
+      var instance = application.instance;
+      if (instance is macro.MacroInstanceIdentifier) {
+        macroExecutor.disposeMacro(instance);
+      }
     }
   }
 
@@ -349,11 +353,22 @@ class LibraryMacroApplier {
           libraryBuilder.element.typeSystem,
         );
 
-        var result = await macroExecutor.executeDeclarationsPhase(
-          application.instance,
-          target,
-          introspector,
-        );
+        var instance = application.instance;
+        macro.MacroExecutionResult result;
+        if (instance is macro.MacroInstanceIdentifier) {
+          result = await macroExecutor.executeDeclarationsPhase(
+            instance,
+            target,
+            introspector,
+          );
+        } else if (instance is injected.RunningMacro) {
+          result = await instance.executeDeclarationsPhase(
+            target,
+            introspector,
+          );
+        } else {
+          throw UnimplementedError('$instance');
+        }
 
         _addDiagnostics(application, result);
         if (result.isNotEmpty) {
@@ -398,11 +413,22 @@ class LibraryMacroApplier {
           application.target.library.element.typeSystem,
         );
 
-        var result = await macroExecutor.executeDefinitionsPhase(
-          application.instance,
-          target,
-          introspector,
-        );
+        macro.MacroExecutionResult result;
+        var instance = application.instance;
+        if (instance is macro.MacroInstanceIdentifier) {
+          result = await macroExecutor.executeDefinitionsPhase(
+            instance,
+            target,
+            introspector,
+          );
+        } else if (instance is injected.RunningMacro) {
+          result = await instance.executeDefinitionsPhase(
+            target,
+            introspector,
+          );
+        } else {
+          throw UnimplementedError('$instance');
+        }
 
         _addDiagnostics(application, result);
         if (result.isNotEmpty) {
@@ -438,11 +464,23 @@ class LibraryMacroApplier {
       () async {
         var target = _buildTarget(application.target.node);
 
-        var result = await macroExecutor.executeTypesPhase(
-          application.instance,
-          target,
-          _typesPhaseIntrospector,
-        );
+        macro.MacroExecutionResult result;
+        var instance = application.instance;
+
+        if (instance is macro.MacroInstanceIdentifier) {
+          result = await macroExecutor.executeTypesPhase(
+            instance,
+            target,
+            _typesPhaseIntrospector,
+          );
+        } else if (instance is injected.RunningMacro) {
+          result = await instance.executeTypesPhase(
+            target,
+            _typesPhaseIntrospector,
+          );
+        } else {
+          throw UnimplementedError('$instance');
+        }
 
         _addDiagnostics(application, result);
         if (result.isNotEmpty) {
@@ -494,6 +532,32 @@ class LibraryMacroApplier {
       element: targetElement,
     );
 
+    if (injected.macroImplementation == null) {
+      await _addAnnotationsDefault(
+        libraryBuilder: libraryBuilder,
+        container: container,
+        annotations: annotations,
+        macroTarget: macroTarget,
+        targetDeclarationKind: targetDeclarationKind,
+      );
+    } else {
+      await _addAnnotationsInjected(
+        libraryBuilder: libraryBuilder,
+        container: container,
+        annotations: annotations,
+        macroTarget: macroTarget,
+        targetDeclarationKind: targetDeclarationKind,
+      );
+    }
+  }
+
+  Future<void> _addAnnotationsDefault({
+    required LibraryBuilder libraryBuilder,
+    required LibraryOrAugmentationElementImpl container,
+    required List<ast.Annotation> annotations,
+    required _MacroTarget macroTarget,
+    required macro.DeclarationKind targetDeclarationKind,
+  }) async {
     for (var (annotationIndex, annotation) in annotations.indexed) {
       var importedMacro = _importedMacro(
         container: container,
@@ -523,7 +587,7 @@ class LibraryMacroApplier {
             arguments: arguments,
           );
         },
-        targetElement: targetElement,
+        targetElement: macroTarget.element,
         annotationIndex: annotationIndex,
       );
       if (instance == null) {
@@ -553,6 +617,46 @@ class LibraryMacroApplier {
         annotationNode: annotation,
         instance: instance,
         phasesToExecute: phasesToExecute,
+      );
+
+      libraryBuilder._applications.add(application);
+    }
+  }
+
+  Future<void> _addAnnotationsInjected({
+    required LibraryBuilder libraryBuilder,
+    required LibraryOrAugmentationElementImpl container,
+    required List<ast.Annotation> annotations,
+    required _MacroTarget macroTarget,
+    required macro.DeclarationKind targetDeclarationKind,
+  }) async {
+    var macroPackageConfigs = injected.macroImplementation!.packageConfigs;
+    for (var (annotationIndex, annotation) in annotations.indexed) {
+      var macroClassAndConstructorName = _lookupMacroClassAndConstructorName(
+        container: container,
+        annotation: annotation,
+      );
+      if (macroClassAndConstructorName == null) continue;
+      var macroUri = macroClassAndConstructorName.$1.librarySource.uri;
+      var macroName = annotation.name.name;
+      if (!macroPackageConfigs.isMacro(
+          macroClassAndConstructorName.$1.librarySource.uri,
+          annotation.name.name)) {
+        continue;
+      }
+
+      var instance =
+          injected.macroImplementation!.runner.run(macroUri, macroName);
+      var application = _MacroApplication(
+        target: macroTarget,
+        annotationIndex: annotationIndex,
+        annotationNode: annotation,
+        instance: instance,
+        phasesToExecute: {
+          macro.Phase.types,
+          macro.Phase.declarations,
+          macro.Phase.definitions
+        },
       );
 
       libraryBuilder._applications.add(application);
@@ -699,6 +803,33 @@ class LibraryMacroApplier {
       return null;
     }
 
+    var macroClassAndConstructorName = _lookupMacroClassAndConstructorName(
+      container: container,
+      annotation: annotation,
+    );
+    if (macroClassAndConstructorName == null) return null;
+    var macroClass = macroClassAndConstructorName.$1;
+    var macroLibrary = macroClass.library;
+    var bundleExecutor = macroLibrary.bundleMacroExecutor;
+    if (bundleExecutor == null) {
+      return null;
+    }
+
+    if (!macroClass.isMacro) return null;
+
+    return _AnnotationMacro(
+      macroLibrary: macroLibrary,
+      bundleExecutor: bundleExecutor,
+      macroClass: macroClass,
+      constructorName: macroClassAndConstructorName.$2,
+      arguments: arguments,
+    );
+  }
+
+  (ClassElementImpl, String?)? _lookupMacroClassAndConstructorName({
+    required LibraryOrAugmentationElementImpl container,
+    required ast.Annotation annotation,
+  }) {
     String? prefix;
     String name;
     String? constructorName;
@@ -741,30 +872,14 @@ class LibraryMacroApplier {
       }
 
       var macroClass = importedLibrary.exportNamespace.get(name);
-      if (macroClass is! ClassElementImpl) {
-        continue;
-      }
-
-      var macroLibrary = macroClass.library;
-      var bundleExecutor = macroLibrary.bundleMacroExecutor;
-      if (bundleExecutor == null) {
-        continue;
-      }
-
-      if (macroClass.isMacro) {
-        return _AnnotationMacro(
-          macroLibrary: macroLibrary,
-          bundleExecutor: bundleExecutor,
-          macroClass: macroClass,
-          constructorName: constructorName,
-          arguments: arguments,
-        );
+      if (macroClass is ClassElementImpl) {
+        return (macroClass, constructorName);
       }
     }
     return null;
   }
 
-  _MacroApplication? _nextForDeclarationsPhase({
+  _MacroApplication<Object>? _nextForDeclarationsPhase({
     required LibraryBuilder libraryBuilder,
     required Element? targetElement,
   }) {
@@ -786,7 +901,7 @@ class LibraryMacroApplier {
     return null;
   }
 
-  _MacroApplication? _nextForDefinitionsPhase({
+  _MacroApplication<Object>? _nextForDefinitionsPhase({
     required LibraryBuilder libraryBuilder,
   }) {
     var applications = libraryBuilder._applications;
@@ -799,7 +914,7 @@ class LibraryMacroApplier {
     return null;
   }
 
-  _MacroApplication? _nextForTypesPhase({
+  _MacroApplication<Object>? _nextForTypesPhase({
     required LibraryBuilder libraryBuilder,
   }) {
     var applications = libraryBuilder._applications;
@@ -922,7 +1037,7 @@ mixin MacroApplicationsContainer {
   /// 1. inner before outer
   /// 2. right to left
   /// 3. source order
-  final List<_MacroApplication> _applications = [];
+  final List<_MacroApplication<Object>> _applications = [];
 }
 
 /// Facts about applying macros in a library.
@@ -1294,11 +1409,11 @@ class _InterfaceTypeImpl extends _StaticTypeImpl
   });
 }
 
-class _MacroApplication {
+class _MacroApplication<I> {
   final _MacroTarget target;
   final int annotationIndex;
   final ast.Annotation annotationNode;
-  final macro.MacroInstanceIdentifier instance;
+  final I instance;
   final Set<macro.Phase> phasesToExecute;
   ElementImpl? lastIntrospectedElement;
 
