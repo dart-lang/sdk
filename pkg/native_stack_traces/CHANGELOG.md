@@ -1,3 +1,10 @@
+## 0.6.0
+- Make return type of DwarfContainer reader methods nullable so null
+  can be returned if there is no relevant DWARF information.
+- Allow DwarfSnapshot.fromDwarfContainer to return null if the DwarfContainer
+  contents is missing expected DWARF information (that is, if any of the
+  used DwarfContainer reader methods return null).
+
 ## 0.5.7
 
 - Translates non-symbolic stack traces that include information for
