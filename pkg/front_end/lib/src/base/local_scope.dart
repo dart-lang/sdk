@@ -7,11 +7,10 @@ import '../builder/member_builder.dart';
 import '../kernel/body_builder.dart' show JumpTarget;
 import 'scope.dart';
 
-abstract class LocalScope extends NestedScope implements LookupScope {
+abstract class LocalScope implements LookupScope {
   @override
   ScopeKind get kind;
 
-  @override
   LocalScope? get parent;
 
   LocalScope createNestedScope(
@@ -22,12 +21,25 @@ abstract class LocalScope extends NestedScope implements LookupScope {
       required Map<String, Builder> local,
       required ScopeKind kind});
 
+  /// Create a special scope for use by labeled statements. This scope doesn't
+  /// introduce a new scope for local variables, only for labels. This deals
+  /// with corner cases like this:
+  ///
+  ///     L: var x;
+  ///     x = 42;
+  ///     print("The answer is $x.");
   LocalScope createNestedLabelScope();
 
   Iterable<Builder> get localMembers;
 
   Builder? lookupLocalMember(String name, {required bool setter});
 
+  /// Declares that the meaning of [name] in this scope is [builder].
+  ///
+  /// If name was used previously in this scope, this method returns a message
+  /// that can be used as context for reporting a compile-time error about
+  /// [name] being used before its declared. [fileUri] is used to bind the
+  /// location of this message.
   List<int>? declare(String name, Builder builder, Uri uri);
 
   void addLocalMember(String name, Builder member, {required bool setter});
@@ -358,9 +370,7 @@ final class EnclosingLocalScope extends BaseLocalScope
   }
 
   @override
-  JumpTarget? lookupLabel(String name) {
-    return _scope.lookupLabel(name);
-  }
+  JumpTarget? lookupLabel(String name) => null;
 
   @override
   Builder? lookupLocalMember(String name, {required bool setter}) {

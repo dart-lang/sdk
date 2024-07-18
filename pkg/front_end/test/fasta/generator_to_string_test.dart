@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
@@ -126,7 +127,7 @@ Future<void> main() async {
             inConstFields: false),
         uri: uri,
         enclosingScope:
-            new Scope.immutable(kind: ScopeKind.functionBody).toLocalScope(),
+            new FixedLocalScope(kind: ScopeKind.library, debugName: "dummy"),
         coreTypes: coreTypes,
         hierarchy: hierarchy,
         typeInferrer:
