@@ -998,7 +998,7 @@ abstract class Token implements SyntacticEntity {
    * For symbol and keyword tokens, returns the string value represented by this
    * token. For [StringToken]s this method returns [:null:].
    *
-   * For [SymbolToken]s and [KeywordToken]s, the string value is a compile-time
+   * For symbol [Token]s and [KeywordToken]s, the string value is a compile-time
    * constant originating in the [TokenType] or in the [Keyword] instance.
    * This allows testing for keywords and symbols using [:identical:], e.g.,
    * [:identical('class', token.value):].
