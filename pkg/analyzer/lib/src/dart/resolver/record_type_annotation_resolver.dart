@@ -30,6 +30,11 @@ class RecordTypeAnnotationResolver {
   bool get isWildCardVariablesEnabled =>
       libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
 
+  bool isPositionalWildCard(AstNode field, String name) =>
+      field is RecordTypeAnnotationPositionalField &&
+      name == '_' &&
+      isWildCardVariablesEnabled;
+
   /// Report any named fields in the record type [node] that use a previously
   /// defined name.
   void reportDuplicateFieldDefinitions(RecordTypeAnnotationImpl node) {
@@ -37,6 +42,9 @@ class RecordTypeAnnotationResolver {
     for (var field in node.fields) {
       var name = field.name?.lexeme;
       if (name != null) {
+        // Multiple positional `_`s are legal with wildcards.
+        if (isPositionalWildCard(field, name)) continue;
+
         var previousField = usedNames[name];
         if (previousField != null) {
           errorReporter.reportError(DiagnosticFactory()
@@ -58,11 +66,8 @@ class RecordTypeAnnotationResolver {
       if (nameToken != null) {
         var name = nameToken.lexeme;
         if (name.startsWith('_')) {
-          if (field is RecordTypeAnnotationPositionalField &&
-              name.length == 1 &&
-              isWildCardVariablesEnabled) {
-            // Positional record fields named `_` are legal w/ wildcards.
-          } else {
+          // Positional record fields named `_` are legal w/ wildcards.
+          if (!isPositionalWildCard(field, name)) {
             errorReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
