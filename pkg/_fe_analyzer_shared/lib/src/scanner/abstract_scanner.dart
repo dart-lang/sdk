@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'string_scanner.dart';
+/// @docImport 'utf8_bytes_scanner.dart';
+/// @docImport '../parser/class_member_parser.dart';
 library _fe_analyzer_shared.scanner.abstract_scanner;
 
 import 'dart:collection' show ListMixin;
@@ -660,7 +663,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * This method is called to discard '<' from the "grouping" stack.
    *
-   * [PartialParser.skipExpression] relies on the fact that we do not
+   * [ClassMemberParser.skipExpression] relies on the fact that we do not
    * create groups for stuff like:
    * [:a = b < c, d = e > f:].
    *

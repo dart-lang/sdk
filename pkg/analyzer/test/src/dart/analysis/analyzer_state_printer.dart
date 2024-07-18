@@ -264,6 +264,9 @@ class AnalyzerStatePrinter {
         _writeParts(kind);
         _writeDocImports(kind);
 
+        var filesIds = kind.files.map(idProvider.fileState);
+        _writelnWithIndent('files: ${filesIds.join(' ')}');
+
         _writeLibraryCycle(kind);
       });
     } else if (kind is PartOfNameFileKind) {

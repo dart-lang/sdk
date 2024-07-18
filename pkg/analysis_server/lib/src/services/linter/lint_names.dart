@@ -99,6 +99,8 @@ abstract final class LintNames {
       'null_check_on_nullable_type_parameter';
   static const String null_closures = 'null_closures';
   static const String omit_local_variable_types = 'omit_local_variable_types';
+  static const String omit_obvious_local_variable_types =
+      'omit_obvious_local_variable_types';
   static const String prefer_adjacent_string_concatenation =
       'prefer_adjacent_string_concatenation';
   static const String prefer_collection_literals = 'prefer_collection_literals';

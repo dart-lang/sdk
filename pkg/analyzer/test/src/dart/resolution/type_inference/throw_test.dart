@@ -32,10 +32,10 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic Function()
-  staticType: dynamic
+  staticInvokeType: Object Function()
+  staticType: Object
   typeArgumentTypes
-    dynamic
+    Object
 ''');
   }
 }

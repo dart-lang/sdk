@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport '../scanner/scanner.dart';
+/// @docImport 'util.dart';
 library _fe_analyzer_shared.parser.parser;
 
 import '../experiments/flags.dart';
@@ -181,9 +183,9 @@ import 'util.dart'
 /// to the keyword table.
 ///
 /// As a consequence of this, one should not use `==` to compare strings in the
-/// parser. One should favor the methods [optional] and [expect] to recognize
-/// keywords or identifiers. In some cases, it's possible to compare a token's
-/// `stringValue` using [identical], but normally [optional] will suffice.
+/// parser. One should favor the method [optional] to recognize keywords or
+/// identifiers. In some cases, it's possible to compare a token's `stringValue`
+/// using [identical], but normally [optional] will suffice.
 ///
 /// Historically, we over-used identical, and when identical is used on objects
 /// other than strings, it can often be replaced by `==`.
@@ -229,7 +231,7 @@ import 'util.dart'
 ///
 /// When attempting to parse this function, the parser eventually calls
 /// [parseFunctionBody]. This method will report an unrecoverable error to the
-/// listener with the code [fasta.messageExpectedFunctionBody]. The listener can
+/// listener with the code [codes.codeExpectedFunctionBody]. The listener can
 /// then look at the error code and the token and use the methods in
 /// [native_support.dart](native_support.dart) to parse the native syntax.
 ///
@@ -4191,11 +4193,10 @@ class Parser {
     return token;
   }
 
-  /// If the next token is an opening curly brace, return it. Otherwise, use the
-  /// given [template] or [missingBlockName] to report an error, insert an
-  /// opening and a closing curly brace, and return the newly inserted opening
-  /// curly brace. If  [template] and [missingBlockName] are `null`, then use
-  /// a default error message instead.
+  /// If the next token is an opening curly brace, return it. Otherwise, use
+  /// [missingBlockKind] to report an error, insert an opening and a closing
+  /// curly brace, and return the newly inserted opening curly brace. If
+  /// [missingBlockKind] is `null`, then use a default error message instead.
   Token ensureBlock(Token token, BlockKind? missingBlockKind) {
     Token next = token.next!;
     if (optional('{', next)) return next;
@@ -5251,9 +5252,9 @@ class Parser {
         beforeName, start.next!, formals, /* isFunctionExpression = */ true);
   }
 
-  /// Parses the rest of a named function declaration starting from its [name]
-  /// but then skips any type parameters and continue parsing from [formals]
-  /// (the formal parameters).
+  /// Parses the rest of a named function declaration starting from its name
+  /// (the token following [beforeName]) but then skips any type parameters and
+  /// continue parsing from [formals] (the formal parameters).
   ///
   /// If [isFunctionExpression] is true, this method parses the rest of named
   /// function expression which isn't legal syntax in Dart.  Useful for
@@ -6143,7 +6144,7 @@ class Parser {
     return token;
   }
 
-  /// Attempt a recovery where [token.next] is replaced.
+  /// Attempt a recovery where [token].next is replaced.
   bool _attemptPrecedenceLevelRecovery(Token token, int precedence,
       int currentLevel, bool allowCascades, TypeParamOrArgInfo typeArg) {
     // Attempt recovery.
@@ -7983,7 +7984,7 @@ class Parser {
     return parseExpressionStatementOrDeclaration(start);
   }
 
-  /// This method has two modes based upon [onlyParseVariableDeclarationStart].
+  /// This method has two modes based upon [forPartsContext].
   ///
   /// If [forPartsContext] is `null` (the default), then the parser is currently
   /// processing a statement or declaration.  This method will parse a local
