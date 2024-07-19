@@ -139,9 +139,9 @@ linter:
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
       ..add(name: 'foo', rootPath: fooFolder.path);
-    newPackageConfigJsonFile(
+    newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
-      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+      packageConfigFileBuilder,
     );
 
     var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, r'''
@@ -634,50 +634,44 @@ workspaces
     var workspaceRootPath = '/home';
 
     var fooPackagePath = '$workspaceRootPath/foo';
-    newFile('$fooPackagePath/pubspec.yaml', '''
+    newPackageConfigJsonFileFromBuilder(
+      fooPackagePath,
+      PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooPackagePath),
+    );
+
+    newPubspecYamlFile(fooPackagePath, r'''
 name: foo
 ''');
+
     newFile('$fooPackagePath/lib/included.yaml', r'''
 linter:
   rules:
     - empty_statements
 ''');
-    var packageConfigFileBuilder = PackageConfigFileBuilder()
-      ..add(name: 'foo', rootPath: fooPackagePath);
-    newPackageConfigJsonFile(
-      fooPackagePath,
-      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
-    );
 
     var testPackagePath = '$workspaceRootPath/test';
-    packageConfigFileBuilder.add(name: 'test', rootPath: testPackagePath);
-
-    newPackageConfigJsonFile(
+    newPackageConfigJsonFileFromBuilder(
       testPackagePath,
-      packageConfigFileBuilder.toContent(toUriStr: toUriStr),
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooPackagePath)
+        ..add(name: 'test', rootPath: testPackagePath),
     );
-    newFile('$testPackagePath/pubspec.yaml', '''
+
+    newPubspecYamlFile(testPackagePath, r'''
 name: test
 ''');
 
-    var optionsFile = newAnalysisOptionsYamlFile(testPackagePath, r'''
+    newAnalysisOptionsYamlFile(testPackagePath, r'''
 include: package:foo/included.yaml
 
 linter:
   rules:
     - unnecessary_parenthesis
 ''');
+
     newFile('$testPackagePath/lib/a.dart', '');
 
-    var collection = _newCollection(includedPaths: [workspaceRootPath]);
-    var analysisContext = collection.contextFor(testPackagePath);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile);
-
-    expect(
-      analysisOptions.lintRules.map((e) => e.name),
-      unorderedEquals(['empty_statements', 'unnecessary_parenthesis']),
-    );
+    configuration.withLintRules = true;
 
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
@@ -695,6 +689,9 @@ contexts
         workspacePackage_1_0
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
+    lintRules
+      empty_statements
+      unnecessary_parenthesis
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/foo
@@ -704,15 +701,6 @@ workspaces
       workspacePackage_1_0: PubPackage
         root: /home/test
 ''');
-  }
-
-  AnalysisContextCollectionImpl _newCollection(
-      {required List<String> includedPaths}) {
-    return AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      includedPaths: includedPaths,
-      sdkPath: sdkRoot.path,
-    );
   }
 }
 
@@ -757,7 +745,7 @@ workspaces
   }
 
   test_packageConfigWorkspace_enabledExperiment() async {
-    configuration.showEnabledFeatures = true;
+    configuration.withEnabledFeatures = true;
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -797,31 +785,31 @@ contexts
         workspacePackage_0_0
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
-  features
-    class-modifiers
-    constant-update-2018
-    constructor-tearoffs
-    control-flow-collections
-    digit-separators
-    enhanced-enums
-    extension-methods
-    generic-metadata
-    inference-update-1
-    inference-update-2
-    inference-update-3
-    inline-class
-    named-arguments-anywhere
-    non-nullable
-    nonfunction-type-aliases
-    patterns
-    records
-    sealed-class
-    set-literals
-    spread-collections
-    super-parameters
-    triple-shift
-    unnamed-libraries
-    variance
+    features
+      class-modifiers
+      constant-update-2018
+      constructor-tearoffs
+      control-flow-collections
+      digit-separators
+      enhanced-enums
+      extension-methods
+      generic-metadata
+      inference-update-1
+      inference-update-2
+      inference-update-3
+      inline-class
+      named-arguments-anywhere
+      non-nullable
+      nonfunction-type-aliases
+      patterns
+      records
+      sealed-class
+      set-literals
+      spread-collections
+      super-parameters
+      triple-shift
+      unnamed-libraries
+      variance
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -832,8 +820,9 @@ workspaces
   }
 
   test_packageConfigWorkspace_enabledExperiment_noAnalysisOptionsFile() async {
-    configuration.withAnalysisOptionsWithoutFiles = true;
-    configuration.showEnabledFeatures = true;
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withEnabledFeatures = true;
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -871,30 +860,30 @@ contexts
         workspacePackage_0_0
 analysisOptions
   analysisOptions_0: <no file>
-  features
-    class-modifiers
-    constant-update-2018
-    constructor-tearoffs
-    control-flow-collections
-    enhanced-enums
-    extension-methods
-    generic-metadata
-    inference-update-1
-    inference-update-2
-    inference-update-3
-    inline-class
-    named-arguments-anywhere
-    non-nullable
-    nonfunction-type-aliases
-    patterns
-    records
-    sealed-class
-    set-literals
-    spread-collections
-    super-parameters
-    triple-shift
-    unnamed-libraries
-    variance
+    features
+      class-modifiers
+      constant-update-2018
+      constructor-tearoffs
+      control-flow-collections
+      enhanced-enums
+      extension-methods
+      generic-metadata
+      inference-update-1
+      inference-update-2
+      inference-update-3
+      inline-class
+      named-arguments-anywhere
+      non-nullable
+      nonfunction-type-aliases
+      patterns
+      records
+      sealed-class
+      set-literals
+      spread-collections
+      super-parameters
+      triple-shift
+      unnamed-libraries
+      variance
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -1617,23 +1606,34 @@ class _AnalysisContextCollectionPrinter {
         .toList();
 
     sink.writeElements('analysisOptions', filtered, (pair) {
-      var id = _idOfAnalysisOptions(pair.$1);
+      var analysisOptions = pair.$1;
       var file = pair.$2;
+      var id = _idOfAnalysisOptions(analysisOptions);
       if (file == null && configuration.withAnalysisOptionsWithoutFiles) {
         sink.writelnWithIndent('$id: <no file>');
       } else {
         _writeNamedFile(id, file);
       }
-      if (configuration.showEnabledFeatures) {
-        var options = pair.$1;
-        var contextFeatures = options.contextFeatures;
-        var enabledFeatures = ExperimentStatus.knownFeatures.values
-            .where((f) => contextFeatures.isEnabled(f))
-            .toList();
-        sink.writeElements('features', enabledFeatures, (feature) {
-          sink.writelnWithIndent(feature);
-        });
-      }
+      sink.withIndent(() {
+        if (configuration.withEnabledFeatures) {
+          var contextFeatures = analysisOptions.contextFeatures;
+          var enabledFeatures = ExperimentStatus.knownFeatures.values
+              .where((f) => contextFeatures.isEnabled(f))
+              .toList();
+          sink.writeElements('features', enabledFeatures, (feature) {
+            sink.writelnWithIndent(feature);
+          });
+        }
+        if (configuration.withLintRules) {
+          sink.writeElements(
+            'lintRules',
+            analysisOptions.lintRules,
+            (lintRule) {
+              sink.writelnWithIndent(lintRule.name);
+            },
+          );
+        }
+      });
     });
   }
 
@@ -1724,7 +1724,8 @@ class _AnalysisContextCollectionPrinter {
 }
 
 class _AnalysisContextCollectionPrinterConfiguration {
-  bool showEnabledFeatures = false;
-  bool withEmptyContextRoots = false;
   bool withAnalysisOptionsWithoutFiles = false;
+  bool withEmptyContextRoots = false;
+  bool withEnabledFeatures = false;
+  bool withLintRules = false;
 }
