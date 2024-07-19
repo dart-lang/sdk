@@ -25,12 +25,28 @@ class UseStringInPartOfDirectivesTest extends LintRuleTest {
 library lib;
 part '$testFileName';
 ''');
+    await assertNoDiagnostics(r'''
+part of lib;
+''');
+  }
+
+  test_part_of_with_library_name_preEnhancedParts() async {
+    newFile('$testPackageRootPath/lib/lib.dart', '''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+library lib;
+part '$testFileName';
+''');
     await assertDiagnostics(
       r'''
+// @dart = 3.4
+// (pre enhanced-parts)
+
 part of lib;
 ''',
       [
-        lint(0, 12),
+        lint(40, 12),
       ],
     );
   }

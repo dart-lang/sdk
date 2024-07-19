@@ -286,6 +286,8 @@ import 'use_rethrow_when_possible_test.dart' as use_rethrow_when_possible;
 import 'use_setters_to_change_properties_test.dart'
     as use_setters_to_change_properties;
 import 'use_string_buffers_test.dart' as use_string_buffers;
+import 'use_string_in_part_of_directives_test.dart'
+    as use_string_in_part_of_directives;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'use_to_and_as_if_applicable_test.dart' as use_to_and_as_if_applicable;
@@ -498,6 +500,7 @@ void main() {
   use_rethrow_when_possible.main();
   use_setters_to_change_properties.main();
   use_string_buffers.main();
+  use_string_in_part_of_directives.main();
   use_super_parameters.main();
   use_test_throws_matchers.main();
   use_to_and_as_if_applicable.main();
