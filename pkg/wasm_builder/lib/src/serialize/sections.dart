@@ -17,6 +17,8 @@ abstract class Section implements Serializable {
       serializeContents(contents);
       s.writeByte(id);
       s.writeUnsigned(contents.data.length);
+      s.sourceMapSerializer
+          .copyMappings(contents.sourceMapSerializer, s.offset);
       s.writeData(contents, watchPoints);
     }
   }
@@ -388,5 +390,20 @@ class NameSection extends CustomSection {
     s.writeByte(7); // Global names subsection
     s.writeUnsigned(globalNameSubsection.data.length);
     s.writeData(globalNameSubsection);
+  }
+}
+
+class SourceMapSection extends CustomSection {
+  final String url;
+
+  SourceMapSection(this.url) : super([]);
+
+  @override
+  bool get isNotEmpty => true;
+
+  @override
+  void serializeContents(Serializer s) {
+    s.writeName("sourceMappingURL");
+    s.writeName(url);
   }
 }

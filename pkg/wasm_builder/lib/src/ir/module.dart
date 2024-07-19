@@ -17,8 +17,10 @@ class Module implements Serializable {
   final DataSegments dataSegments;
   final List<Import> imports;
   final List<int> watchPoints;
+  final Uri? sourceMapUrl;
 
   Module(
+      this.sourceMapUrl,
       this.functions,
       this.tables,
       this.tags,
@@ -51,6 +53,10 @@ class Module implements Serializable {
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
+    if (sourceMapUrl != null) {
+      SourceMapSection(sourceMapUrl.toString()).serialize(s);
+    }
+
     if (functions.namedCount > 0 ||
         types.namedCount > 0 ||
         globals.namedCount > 0) {

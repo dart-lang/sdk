@@ -6,6 +6,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../../source_map.dart';
+
 abstract class Serializable {
   void serialize(Serializer s);
 }
@@ -22,6 +24,11 @@ class Serializer {
   // Stack traces or other serializers attached to byte positions within the
   // chunk of data produced by this serializer.
   late final SplayTreeMap<int, Object> _traces = SplayTreeMap();
+
+  /// Get the current offset in the serialized data.
+  int get offset => _index;
+
+  final SourceMapSerializer sourceMapSerializer = SourceMapSerializer();
 
   void _ensure(int size) {
     // Ensure space for at least `size` additional bytes.
