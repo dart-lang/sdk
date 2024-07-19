@@ -792,6 +792,7 @@ final _builtInNonLintMultiProducers = {
   CompileTimeErrorCode.UNDEFINED_FUNCTION: [
     DataDriven.new,
     ImportLibrary.forExtension,
+    ImportLibrary.forExtensionType,
     ImportLibrary.forFunction,
     ImportLibrary.forType,
   ],

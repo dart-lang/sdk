@@ -37,6 +37,11 @@ class ImportLibrary extends MultiCorrectionProducer {
   ImportLibrary.forExtensionMember({required super.context})
       : _importKind = _ImportKind.forExtensionMember;
 
+  /// Initialize a newly created instance that will add an import for an
+  /// extension type.
+  ImportLibrary.forExtensionType({required super.context})
+      : _importKind = _ImportKind.forExtensionType;
+
   /// Initialize a newly created instance that will add an import for a
   /// top-level function.
   ImportLibrary.forFunction({required super.context})
@@ -47,20 +52,20 @@ class ImportLibrary extends MultiCorrectionProducer {
   ImportLibrary.forTopLevelVariable({required super.context})
       : _importKind = _ImportKind.forTopLevelVariable;
 
-  /// Initialize a newly created instance that will add an import for a type
-  /// (class, enum, mixin).
+  /// Initialize a newly created instance that will add an import for a
+  /// type-like declaration (class, enum, mixin, typedef), a constructor, a
+  /// static member of a declaration, or an enum value.
   ImportLibrary.forType({required super.context})
       : _importKind = _ImportKind.forType;
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    // TODO(srawlins): static member? enum value? constructor? extension type?
-    // typedef?
     return switch (_importKind) {
       _ImportKind.dartAsync =>
         _importLibrary(DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async')),
       _ImportKind.forExtension => await _producersForExtension(),
       _ImportKind.forExtensionMember => await _producersForExtensionMember(),
+      _ImportKind.forExtensionType => await _producersForExtensionType(),
       _ImportKind.forFunction => await _producersForFunction(),
       _ImportKind.forTopLevelVariable => await _producersForTopLevelVariable(),
       _ImportKind.forType => await _producersForType(),
@@ -263,9 +268,10 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   Future<List<ResolvedCorrectionProducer>> _producersForExtension() async {
     if (node case SimpleIdentifier(:var name)) {
-      return await _importLibraryForElement(name, const [
-        ElementKind.EXTENSION,
-      ]);
+      return await _importLibraryForElement(
+        name,
+        const [ElementKind.EXTENSION],
+      );
     }
 
     return const [];
@@ -306,6 +312,17 @@ class ImportLibrary extends MultiCorrectionProducer {
           .addAll(_importExtensionInLibrary(libraryToImport, targetType, name));
     }
     return producers;
+  }
+
+  Future<List<ResolvedCorrectionProducer>> _producersForExtensionType() async {
+    if (node case SimpleIdentifier(:var name)) {
+      return await _importLibraryForElement(
+        name,
+        const [ElementKind.EXTENSION_TYPE],
+      );
+    }
+
+    return const [];
   }
 
   Future<List<ResolvedCorrectionProducer>> _producersForFunction() async {
@@ -412,6 +429,7 @@ enum _ImportKind {
   dartAsync,
   forExtension,
   forExtensionMember,
+  forExtensionType,
   forFunction,
   forTopLevelVariable,
   forType
