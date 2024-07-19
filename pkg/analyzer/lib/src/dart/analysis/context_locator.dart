@@ -313,15 +313,6 @@ class ContextLocatorImpl implements ContextLocator {
     }
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
-    if (localOptionsFile != null) {
-      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
-          localOptionsFile;
-      // Add excluded globs.
-      var excludes =
-          _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
-      containingRoot.excludedGlobs.addAll(excludes);
-    }
-
     //
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified.
@@ -350,6 +341,15 @@ class ContextLocatorImpl implements ContextLocator {
       containingRoot = root;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
       root.excludedGlobs = excludedGlobs;
+    }
+
+    if (localOptionsFile != null) {
+      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
+          localOptionsFile;
+      // Add excluded globs.
+      var excludes =
+          _getExcludedGlobs(localOptionsFile, containingRoot.workspace);
+      containingRoot.excludedGlobs.addAll(excludes);
     }
     _createContextRootsIn(roots, visited, folder, excludedFolders,
         containingRoot, excludedGlobs, optionsFile, packagesFile);
