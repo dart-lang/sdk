@@ -173,21 +173,6 @@ class AugmentationKnownFileKind
   FileState get uriFile => uri.file;
 
   @override
-  void dispose() {
-    super.dispose();
-
-    // We dispose partial macro augmentations when we are about to add the
-    // merged macro augmentation with all execution results. These macro
-    // augmentations never add new dependencies, other than already present
-    // via the augmented library. So, there is no reason to invalidate.
-    if (file.isMacroAugmentation) {
-      return;
-    }
-
-    invalidateLibraryCycle();
-  }
-
-  @override
   bool isAugmentationOf(FileKind container) {
     return uriFile == container.file;
   }
@@ -351,7 +336,9 @@ abstract class FileKind {
 
   FileKind({
     required this.file,
-  });
+  }) {
+    invalidateLibraryCycle();
+  }
 
   /// When [library] returns `null`, this getter is used to look at this
   /// file itself as a library.
@@ -562,6 +549,8 @@ abstract class FileKind {
 
   @mustCallSuper
   void dispose() {
+    invalidateLibraryCycle();
+
     _augmentationImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
@@ -603,6 +592,12 @@ abstract class FileKind {
 
   /// Invalidates the containing [LibraryFileKind] cycle.
   void invalidateLibraryCycle() {
+    // Macro generated files never add new dependencies.
+    // So, there is no reason to dispose.
+    if (file.isMacroAugmentation) {
+      return;
+    }
+
     for (var reference in file.referencingFiles) {
       reference.kind.invalidateLibraryCycle();
     }
@@ -2289,7 +2284,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   @override
   void dispose() {
-    invalidateLibraryCycle();
     file._fsState._libraryNameToFiles.remove(this);
     super.dispose();
   }
@@ -2507,24 +2501,10 @@ class ParsedFileStateCache {
 abstract class PartFileKind extends FileKind {
   PartFileKind({
     required super.file,
-  }) {
-    _invalidateLibraries();
-  }
-
-  @override
-  void dispose() {
-    _invalidateLibraries();
-    super.dispose();
-  }
+  });
 
   /// Returns `true` if the `part of` directive confirms the [container].
   bool isPartOf(FileKind container);
-
-  /// This method is invoked when the part file is updated.
-  /// The file either becomes a part, or might stop being a part.
-  void _invalidateLibraries() {
-    invalidateLibraryCycle();
-  }
 }
 
 /// Information about a single `part` directive.

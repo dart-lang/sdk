@@ -5668,7 +5668,7 @@ augment library 'a.dart';
 
     // We will discover the target by URI.
     fileStateFor(b).refresh();
-    // TODO(scheglov): The API signature must be different.
+
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart
@@ -5681,10 +5681,10 @@ files
         augmentationImports
           augmentation_7
         files: file_0 file_1
-        cycle_0
+        cycle_3
           dependencies: dart:core
           libraries: library_0
-          apiSignature_0
+          apiSignature_2
       unlinkedKey: k00
   /home/test/lib/b.dart
     uri: package:test/b.dart
