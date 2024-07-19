@@ -5,7 +5,13 @@
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart'
     show NullabilitySuffix;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
+    as shared
+    show
+        TypeConstraintGenerator,
+        TypeConstraintGeneratorState,
+        TypeDeclarationKind,
+        TypeDeclarationMatchResult,
+        Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show SharedDynamicType, SharedUnknownType, SharedVoidType;
 import 'package:kernel/ast.dart';
@@ -19,7 +25,14 @@ import 'type_schema_environment.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
-class TypeConstraintGatherer {
+class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
+    VariableDeclaration,
+    DartType,
+    DartType,
+    StructuralParameter,
+    TypeDeclarationType,
+    TypeDeclaration,
+    TreeNode> {
   final List<GeneratedTypeConstraint> _protoConstraints = [];
 
   final List<StructuralParameter> _parametersToConstrain;
@@ -38,6 +51,22 @@ class TypeConstraintGatherer {
         _parametersToConstrain =
             new List<StructuralParameter>.of(typeParameters),
         _inferenceResultForTesting = inferenceResultForTesting;
+
+  @override
+  bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr => true;
+
+  @override
+  shared.TypeConstraintGeneratorState get currentState {
+    return new shared.TypeConstraintGeneratorState(_protoConstraints.length);
+  }
+
+  @override
+  void restoreState(shared.TypeConstraintGeneratorState state) {
+    _protoConstraints.length = state.count;
+  }
+
+  @override
+  OperationsCfe get typeAnalyzerOperations => typeOperations;
 
   /// Applies all the argument constraints implied by trying to make
   /// [actualTypes] assignable to [formalTypes].
@@ -319,6 +348,20 @@ class TypeConstraintGatherer {
     return true;
   }
 
+  @override
+  bool performSubtypeConstraintGenerationRightSchema(DartType p, DartType q,
+      {required TreeNode? astNodeForTesting}) {
+    return _isNullabilityAwareSubtypeMatch(p, q,
+        constrainSupertype: false, treeNodeForTesting: astNodeForTesting);
+  }
+
+  @override
+  bool performSubtypeConstraintGenerationLeftSchema(DartType p, DartType q,
+      {required TreeNode? astNodeForTesting}) {
+    return _isNullabilityAwareSubtypeMatch(p, q,
+        constrainSupertype: true, treeNodeForTesting: astNodeForTesting);
+  }
+
   /// Matches [p] against [q] as a subtype against supertype.
   ///
   /// Returns true if [p] is a subtype of [q] under some constraints, and false
@@ -473,47 +516,12 @@ class TypeConstraintGatherer {
       _protoConstraints.length = baseConstraintCount;
     }
 
-    // If Q is FutureOr<Q0> the match holds under constraint set C:
-    //
-    // If P is FutureOr<P0> and P0 is a subtype match for Q0 under constraint
-    // set C.  Or if P is a subtype match for Future<Q0> under non-empty
-    // constraint set C.  Or if P is a subtype match for Q0 under constraint set
-    // C.  Or if P is a subtype match for Future<Q0> under empty constraint set
-    // C.
-    if (typeOperations.matchFutureOr(q) case DartType q0?) {
-      final int baseConstraintCount = _protoConstraints.length;
-
-      if (typeOperations.matchFutureOr(p) case DartType p0?) {
-        if (_isNullabilityAwareSubtypeMatch(p0, q0,
-            constrainSupertype: constrainSupertype,
-            treeNodeForTesting: treeNodeForTesting)) {
-          return true;
-        }
-      }
-      _protoConstraints.length = baseConstraintCount;
-
-      bool isMatchWithFuture = _isNullabilityAwareSubtypeMatch(
-          p, typeOperations.futureType(q0),
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting);
-      bool matchWithFutureAddsConstraints =
-          _protoConstraints.length != baseConstraintCount;
-      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
-
-      if (_isNullabilityAwareSubtypeMatch(p, q0,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
-
-      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
+    if (constrainSupertype
+        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(p, q,
+            astNodeForTesting: treeNodeForTesting)
+        : performSubtypeConstraintGenerationForFutureOrRightSchema(p, q,
+            astNodeForTesting: treeNodeForTesting)) {
+      return true;
     }
 
     // If Q is Q0? the match holds under constraint set C:

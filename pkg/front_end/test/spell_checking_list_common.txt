@@ -922,6 +922,7 @@ discover
 discovered
 discovery
 discrepancy
+discrepant
 disk
 dispatch
 dispatches
@@ -2094,6 +2095,7 @@ object
 object's
 objects
 oblivious
+obliviousness
 observation
 observations
 observed
@@ -2701,6 +2703,7 @@ rights
 rise
 roles
 roll
+rolled
 root
 roots
 round
@@ -2723,6 +2726,7 @@ same
 sample
 samples
 sanity
+sate
 satisfied
 satisfies
 satisfy

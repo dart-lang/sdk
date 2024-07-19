@@ -442,6 +442,11 @@ class TypeSystemOperations
   }
 
   @override
+  DartType futureTypeSchema(DartType argumentTypeSchema) {
+    return typeSystem.typeProvider.futureType(argumentTypeSchema);
+  }
+
+  @override
   TypeDeclarationKind? getTypeDeclarationKind(DartType type) {
     if (isInterfaceType(type)) {
       return TypeDeclarationKind.interfaceDeclaration;
@@ -686,6 +691,15 @@ class TypeSystemOperations
   }
 
   @override
+  DartType? matchTypeSchemaFutureOr(DartType typeSchema) {
+    if (typeSchema is InterfaceType && typeSchema.isDartAsyncFutureOr) {
+      return typeSchema.typeArguments[0];
+    } else {
+      return null;
+    }
+  }
+
+  @override
   DartType normalize(DartType type) {
     return typeSystem.normalize(type);
   }
@@ -754,6 +768,11 @@ class TypeSystemOperations
   @override
   DartType typeSchemaLub(DartType typeSchema1, DartType typeSchema2) {
     return typeSystem.leastUpperBound(typeSchema1, typeSchema2);
+  }
+
+  @override
+  NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
+    return typeSchema.nullabilitySuffix;
   }
 
   @override

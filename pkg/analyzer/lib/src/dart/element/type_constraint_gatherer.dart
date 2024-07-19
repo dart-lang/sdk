@@ -3,7 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    as shared show TypeDeclarationKind, TypeDeclarationMatchResult, Variance;
+    as shared
+    show
+        TypeConstraintGenerator,
+        TypeConstraintGeneratorState,
+        TypeDeclarationKind,
+        TypeDeclarationMatchResult,
+        Variance;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,7 +24,14 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 
 /// Creates sets of [TypeConstraint]s for type parameters, based on an attempt
 /// to make one type schema a subtype of another.
-class TypeConstraintGatherer {
+class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
+    PromotableElement,
+    DartType,
+    DartType,
+    TypeParameterElement,
+    InterfaceType,
+    InterfaceElement,
+    AstNode> {
   final TypeSystemImpl _typeSystem;
   final Set<TypeParameterElement> _typeParameters = Set.identity();
   final List<
@@ -37,7 +50,18 @@ class TypeConstraintGatherer {
     _typeParameters.addAll(typeParameters);
   }
 
+  @override
+  shared.TypeConstraintGeneratorState get currentState {
+    return shared.TypeConstraintGeneratorState(_constraints.length);
+  }
+
+  @override
+  bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr => false;
+
   bool get isConstraintSetEmpty => _constraints.isEmpty;
+
+  @override
+  TypeSystemOperations get typeAnalyzerOperations => _typeSystemOperations;
 
   /// Returns the set of type constraints that was gathered.
   Map<
@@ -74,6 +98,25 @@ class TypeConstraintGatherer {
     }
 
     return result;
+  }
+
+  @override
+  bool performSubtypeConstraintGenerationLeftSchema(DartType p, DartType q,
+      {required AstNode? astNodeForTesting}) {
+    return trySubtypeMatch(p, q, /* leftSchema */ true,
+        nodeForTesting: astNodeForTesting);
+  }
+
+  @override
+  bool performSubtypeConstraintGenerationRightSchema(DartType p, DartType q,
+      {required AstNode? astNodeForTesting}) {
+    return trySubtypeMatch(p, q, /* leftSchema */ false,
+        nodeForTesting: astNodeForTesting);
+  }
+
+  @override
+  void restoreState(shared.TypeConstraintGeneratorState state) {
+    _constraints.length = state.count;
   }
 
   /// Tries to match [P] as a subtype for [Q].
@@ -119,43 +162,16 @@ class TypeConstraintGatherer {
       return true;
     }
 
-    // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
-    if (_typeSystemOperations.matchFutureOr(Q) case var Q0?
-        when Q_nullability == NullabilitySuffix.none) {
-      var rewind = _constraints.length;
-
-      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
-      // constraint set `C`.
-      if (_typeSystemOperations.matchFutureOr(P) case var P0?
-          when P_nullability == NullabilitySuffix.none) {
-        if (trySubtypeMatch(P0, Q0, leftSchema,
-            nodeForTesting: nodeForTesting)) {
-          return true;
-        }
-        _constraints.length = rewind;
-      }
-
-      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
-      // constraint set `C`.
-      var futureQ0 = _typeSystemOperations.futureType(Q0);
-      var P_matches_FutureQ0 = trySubtypeMatch(P, futureQ0, leftSchema,
-          nodeForTesting: nodeForTesting);
-      if (P_matches_FutureQ0 && _constraints.length != rewind) {
-        return true;
-      }
-      _constraints.length = rewind;
-
-      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
-      if (trySubtypeMatch(P, Q0, leftSchema, nodeForTesting: nodeForTesting)) {
-        return true;
-      }
-      _constraints.length = rewind;
-
-      // Or if `P` is a subtype match for `Future<Q0>` under empty
-      // constraint set `C`.
-      if (P_matches_FutureQ0) {
-        return true;
-      }
+    // Note that it's not necessary to rewind [_constraints] to its prior state
+    // in case [performSubtypeConstraintGenerationForFutureOr] returns false, as
+    // [performSubtypeConstraintGenerationForFutureOr] handles the rewinding of
+    // the state itself.
+    if (leftSchema
+        ? performSubtypeConstraintGenerationForFutureOrLeftSchema(P, Q,
+            astNodeForTesting: nodeForTesting)
+        : performSubtypeConstraintGenerationForFutureOrRightSchema(P, Q,
+            astNodeForTesting: nodeForTesting)) {
+      return true;
     }
 
     // If `Q` is `Q0?` the match holds under constraint set `C`:
