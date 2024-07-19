@@ -138,8 +138,6 @@ class FindNode {
 
   NamedType get singleNamedType => _single();
 
-  NullAwareElement get singleNullAwareElement => _single();
-
   ParenthesizedExpression get singleParenthesizedExpression => _single();
 
   PartDirective get singlePartDirective => _single();

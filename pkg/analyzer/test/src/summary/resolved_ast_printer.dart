@@ -1098,14 +1098,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitNullAwareElement(NullAwareElement node) {
-    _sink.writeln('NullAwareElement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
   void visitNullCheckPattern(NullCheckPattern node) {
     _sink.writeln('NullCheckPattern');
     _sink.withIndent(() {

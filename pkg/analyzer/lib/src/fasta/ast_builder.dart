@@ -4829,24 +4829,21 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("LiteralMapEntry");
 
+    // TODO(cstefantsova): Handle null-aware map entries.
     if (!enableNullAwareElements &&
         (nullAwareKeyToken != null || nullAwareValueToken != null)) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.null_aware_elements,
         startToken: nullAwareKeyToken ?? nullAwareValueToken!,
       );
-      nullAwareKeyToken = null;
-      nullAwareValueToken = null;
     }
 
     var value = pop() as ExpressionImpl;
     var key = pop() as ExpressionImpl;
     push(
       MapLiteralEntryImpl(
-        keyQuestion: nullAwareKeyToken,
         key: key,
         separator: colon,
-        valueQuestion: nullAwareValueToken,
         value: value,
       ),
     );
@@ -5142,18 +5139,11 @@ class AstBuilder extends StackListener {
   @override
   void handleNullAwareElement(Token nullAwareElement) {
     debugEvent('NullAwareElement');
+    // TODO(cstefantsova): Handle null-aware elements.
     if (!enableNullAwareElements) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.null_aware_elements,
         startToken: nullAwareElement,
-      );
-    } else {
-      var expression = pop() as ExpressionImpl;
-      push(
-        NullAwareElementImpl(
-          question: nullAwareElement,
-          value: expression,
-        ),
       );
     }
   }
