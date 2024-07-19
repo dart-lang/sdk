@@ -263,7 +263,7 @@ class AnalyzerStatePrinter {
         _writeLibraryImports(kind);
         _writeLibraryExports(kind);
         _writeAugmentationImports(kind);
-        _writeParts(kind);
+        _writePartIncludes(kind);
         _writeDocImports(kind);
 
         var filesIds = kind.files.map(idProvider.fileState);
@@ -292,7 +292,7 @@ class AnalyzerStatePrinter {
 
         _writeLibraryImports(kind);
         _writeLibraryExports(kind);
-        _writeParts(kind);
+        _writePartIncludes(kind);
         _writeDocImports(kind);
       });
     } else if (kind is PartOfUriKnownFileKind) {
@@ -307,7 +307,7 @@ class AnalyzerStatePrinter {
 
         _writeLibraryImports(kind);
         _writeLibraryExports(kind);
-        _writeParts(kind);
+        _writePartIncludes(kind);
         _writeDocImports(kind);
       });
     } else if (kind is PartOfUriUnknownFileKind) {
@@ -639,28 +639,32 @@ class AnalyzerStatePrinter {
     sink.writeln(line);
   }
 
-  void _writeParts(FileKind container) {
-    _writeElements<PartState>('parts', container.parts, (part) {
-      expect(part.container, same(container));
-      if (part is PartWithFile) {
-        var file = part.includedFile;
-        sink.write(_indent);
+  void _writePartIncludes(FileKind container) {
+    _writeElements<PartIncludeState>(
+      'partIncludes',
+      container.partIncludes,
+      (part) {
+        expect(part.container, same(container));
+        if (part is PartIncludeWithFile) {
+          var file = part.includedFile;
+          sink.write(_indent);
 
-        var includedPart = part.includedPart;
-        if (includedPart != null) {
-          expect(includedPart.file, file);
-          sink.write(idProvider.fileKind(includedPart));
+          var includedPart = part.includedPart;
+          if (includedPart != null) {
+            expect(includedPart.file, file);
+            sink.write(idProvider.fileKind(includedPart));
+          } else {
+            sink.write('notPart ${idProvider.fileState(file)}');
+          }
+          sink.writeln();
+        } else if (part is PartIncludeWithUri) {
+          var uriStr = _stringOfUriStr(part.uri.relativeUriStr);
+          _writelnWithIndent('uri: $uriStr');
         } else {
-          sink.write('notPart ${idProvider.fileState(file)}');
+          _writelnWithIndent('noUri');
         }
-        sink.writeln();
-      } else if (part is PartWithUri) {
-        var uriStr = _stringOfUriStr(part.uri.relativeUriStr);
-        _writelnWithIndent('uri: $uriStr');
-      } else {
-        _writelnWithIndent('noUri');
-      }
-    });
+      },
+    );
   }
 
   void _writeReferencingFiles(FileState file) {
