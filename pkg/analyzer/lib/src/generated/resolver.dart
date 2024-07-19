@@ -3250,6 +3250,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitNullAwareElement(NullAwareElement node,
+      {CollectionLiteralContext? context}) {
+    inferenceLogWriter?.enterElement(node);
+
+    var elementType = context?.elementType;
+    if (elementType != null) {
+      elementType = typeSystem.makeNullable(elementType);
+    }
+
+    analyzeExpression(node.value, elementType ?? UnknownInferredType.instance);
+
+    inferenceLogWriter?.exitElement(node);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node,
       {DartType contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);

@@ -688,6 +688,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAwareElement(NullAwareElement node) {
+    _runSubscriptions(node, registry._forNullAwareElement);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitNullCheckPattern(NullCheckPattern node) {
     _runSubscriptions(node, registry._forNullCheckPattern);
     node.visitChildren(this);
@@ -1244,6 +1250,7 @@ class NodeLintRegistry {
   final List<_Subscription<NativeClause>> _forNativeClause = [];
   final List<_Subscription<NativeFunctionBody>> _forNativeFunctionBody = [];
   final List<_Subscription<NullAssertPattern>> _forNullAssertPattern = [];
+  final List<_Subscription<NullAwareElement>> _forNullAwareElement = [];
   final List<_Subscription<NullCheckPattern>> _forNullCheckPattern = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
   final List<_Subscription<ParenthesizedExpression>>
