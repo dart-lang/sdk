@@ -162,7 +162,7 @@ files
       kind: library_0
         libraryImports
           library_4 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -175,7 +175,7 @@ files
       kind: library_1
         libraryImports
           library_4 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -188,7 +188,7 @@ files
       kind: library_2
         libraryImports
           library_4 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: dart:core
           libraries: library_2
@@ -201,7 +201,7 @@ files
       kind: library_3
         libraryImports
           library_4 dart:core synthetic
-        files: file_3
+        fileKinds: library_3
         cycle_3
           dependencies: dart:core
           libraries: library_3
@@ -226,7 +226,7 @@ files
         libraryImports
           library_1
           library_4 dart:core synthetic
-        files: file_0
+        fileKinds: library_9
         cycle_5
           dependencies: cycle_1 dart:core
           libraries: library_9
@@ -239,7 +239,7 @@ files
       kind: library_1
         libraryImports
           library_4 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -254,7 +254,7 @@ files
       kind: library_2
         libraryImports
           library_4 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: dart:core
           libraries: library_2
@@ -267,7 +267,7 @@ files
       kind: library_3
         libraryImports
           library_4 dart:core synthetic
-        files: file_3
+        fileKinds: library_3
         cycle_3
           dependencies: dart:core
           libraries: library_3
@@ -292,7 +292,7 @@ files
         libraryImports
           library_10
           library_4 dart:core synthetic
-        files: file_0
+        fileKinds: library_9
         cycle_6
           dependencies: cycle_7 dart:core
           libraries: library_9
@@ -306,7 +306,7 @@ files
         libraryImports
           library_2
           library_4 dart:core synthetic
-        files: file_1
+        fileKinds: library_10
         cycle_7
           dependencies: cycle_2 dart:core
           libraries: library_10
@@ -321,7 +321,7 @@ files
       kind: library_2
         libraryImports
           library_4 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: dart:core
           libraries: library_2
@@ -336,7 +336,7 @@ files
       kind: library_3
         libraryImports
           library_4 dart:core synthetic
-        files: file_3
+        fileKinds: library_3
         cycle_3
           dependencies: dart:core
           libraries: library_3
@@ -361,7 +361,7 @@ files
         libraryImports
           library_11
           library_4 dart:core synthetic
-        files: file_0
+        fileKinds: library_9
         cycle_8
           dependencies: cycle_9 dart:core
           libraries: library_9
@@ -376,7 +376,7 @@ files
           library_4 dart:core synthetic
         libraryExports
           library_3
-        files: file_1
+        fileKinds: library_11
         cycle_9
           dependencies: cycle_3 dart:core
           libraries: library_11
@@ -391,7 +391,7 @@ files
       kind: library_2
         libraryImports
           library_4 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: dart:core
           libraries: library_2
@@ -404,7 +404,7 @@ files
       kind: library_3
         libraryImports
           library_4 dart:core synthetic
-        files: file_3
+        fileKinds: library_3
         cycle_3
           dependencies: dart:core
           libraries: library_3
@@ -430,7 +430,7 @@ files
       kind: library_12
         libraryImports
           library_4 dart:core synthetic
-        files: file_0
+        fileKinds: library_12
         cycle_10
           dependencies: dart:core
           libraries: library_12
@@ -445,7 +445,7 @@ files
           library_4 dart:core synthetic
         libraryExports
           library_3
-        files: file_1
+        fileKinds: library_11
         cycle_9
           dependencies: cycle_3 dart:core
           libraries: library_11
@@ -458,7 +458,7 @@ files
       kind: library_2
         libraryImports
           library_4 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: dart:core
           libraries: library_2
@@ -471,7 +471,7 @@ files
       kind: library_3
         libraryImports
           library_4 dart:core synthetic
-        files: file_3
+        fileKinds: library_3
         cycle_3
           dependencies: dart:core
           libraries: library_3
@@ -506,7 +506,7 @@ files
           library_2 dart:core synthetic
         libraryExports
           library_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0 library_1
@@ -522,7 +522,7 @@ files
           library_2 dart:core synthetic
         libraryExports
           library_0
-        files: file_1
+        fileKinds: library_1
         cycle_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -542,7 +542,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -559,7 +559,7 @@ files
           library_2 dart:core synthetic
         libraryExports
           library_7
-        files: file_1
+        fileKinds: library_1
         cycle_3
           dependencies: cycle_2 dart:core
           libraries: library_1
@@ -591,7 +591,7 @@ files
         libraryImports
           library_1
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0 library_1
@@ -606,7 +606,7 @@ files
         libraryImports
           library_0
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_0
       referencingFiles: file_0
       unlinkedKey: k01
@@ -626,7 +626,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -642,7 +642,7 @@ files
         libraryImports
           library_7
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_3
           dependencies: cycle_2 dart:core
           libraries: library_1
@@ -711,7 +711,7 @@ files
           library_3 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1 file_2
+        fileKinds: library_0 augmentation_1 augmentation_2
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -769,7 +769,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -829,7 +829,7 @@ files
           library_3 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -885,7 +885,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -936,7 +936,7 @@ files
           library_3 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1 file_2
+        fileKinds: library_0 augmentation_1 augmentation_2
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1017,7 +1017,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1060,7 +1060,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1090,7 +1090,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -1190,7 +1190,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1237,7 +1237,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1271,7 +1271,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1286,7 +1286,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_7
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -1320,7 +1320,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1335,7 +1335,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_7
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -1369,7 +1369,7 @@ files
       kind: library_9
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_9
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -1384,7 +1384,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_7
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -1416,7 +1416,7 @@ files
       kind: library_9
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_9
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -1429,7 +1429,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_7
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -1462,7 +1462,7 @@ files
       kind: library_9
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_9
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -1477,7 +1477,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_7
+        fileKinds: library_11
         cycle_6
           dependencies: dart:core
           libraries: library_11
@@ -1513,7 +1513,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_12 augmentation_1
         cycle_7
           dependencies: dart:core
           libraries: library_12
@@ -1528,7 +1528,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_7
+        fileKinds: library_11
         cycle_6
           dependencies: dart:core
           libraries: library_11
@@ -1568,7 +1568,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1597,7 +1597,7 @@ files
         name: L
         libraryImports
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1626,7 +1626,7 @@ files
           library_1 dart:core synthetic
         augmentationImports
           notAugmentation file_0
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1663,7 +1663,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1692,7 +1692,7 @@ files
           library_3 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_2 file_1
+        fileKinds: library_2 augmentation_1
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_2
@@ -1733,7 +1733,7 @@ files
       kind: library_0
         libraryImports
           library_4 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1775,7 +1775,7 @@ files
           library_4 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_3 file_2 file_1
+        fileKinds: library_3 augmentation_2 augmentation_1
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_3
@@ -1804,7 +1804,7 @@ files
           library_1 dart:core synthetic
         augmentationImports
           uriStr: :net
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1833,7 +1833,7 @@ files
           library_1 dart:core synthetic
         augmentationImports
           noUriStr
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1862,7 +1862,7 @@ files
           library_1 dart:core synthetic
         augmentationImports
           uri: foo:bar
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1909,7 +1909,7 @@ files
         docImports
           library_3 dart:async
           library_5 dart:math
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1940,7 +1940,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -1965,7 +1965,7 @@ files
           library_3 dart:core synthetic
         libraryExports
           notLibrary file_1
-        files: file_2
+        fileKinds: library_2
         cycle_1
           dependencies: dart:core
           libraries: library_2
@@ -1996,7 +1996,7 @@ files
         libraryExports
           library_3 dart:async
           library_5 dart:math
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2025,7 +2025,7 @@ files
           library_1 dart:core synthetic
         libraryExports
           library_0
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2066,7 +2066,7 @@ files
           inSummary dart:async
           inSummary package:foo/foo.dart
           library_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: cycle_1
           libraries: library_0
@@ -2079,7 +2079,7 @@ files
       kind: library_1
         libraryImports
           inSummary dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: none
           libraries: library_1
@@ -2122,7 +2122,7 @@ files
         libraryExports
           inSummary package:foo/foo2.dart notLibrary
           library_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: cycle_1
           libraries: library_0
@@ -2135,7 +2135,7 @@ files
       kind: library_1
         libraryImports
           inSummary dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: none
           libraries: library_1
@@ -2168,7 +2168,7 @@ files
           library_1 dart:core synthetic
         libraryExports
           uriStr: :net
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2197,7 +2197,7 @@ files
           library_1 dart:core synthetic
         libraryExports
           noUriStr
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2226,7 +2226,7 @@ files
           library_1 dart:core synthetic
         libraryExports
           uri: foo:bar
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2254,7 +2254,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2269,7 +2269,7 @@ files
       kind: library_1
         libraryImports
           library_3 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -2287,7 +2287,7 @@ files
         libraryExports
           library_0
           library_1
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: cycle_0 cycle_1 dart:core
           libraries: library_2
@@ -2328,7 +2328,7 @@ files
           library_2 dart:core synthetic
         libraryExports
           notLibrary file_0
-        files: file_1
+        fileKinds: library_1
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -2359,7 +2359,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2383,7 +2383,7 @@ files
         libraryImports
           notLibrary file_1
           library_3 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_1
           dependencies: dart:core
           libraries: library_2
@@ -2411,7 +2411,7 @@ files
         libraryImports
           library_0
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2442,7 +2442,7 @@ files
           library_3 dart:async
           library_5 dart:math
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2471,7 +2471,7 @@ files
         libraryImports
           library_1 dart:core
           library_5 dart:math
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2510,7 +2510,7 @@ files
           inSummary package:foo/foo.dart
           library_1
           inSummary dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: cycle_1
           libraries: library_0
@@ -2523,7 +2523,7 @@ files
       kind: library_1
         libraryImports
           inSummary dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: none
           libraries: library_1
@@ -2565,7 +2565,7 @@ files
           inSummary package:foo/foo2.dart notLibrary
           library_1
           inSummary dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: cycle_1
           libraries: library_0
@@ -2578,7 +2578,7 @@ files
       kind: library_1
         libraryImports
           inSummary dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: none
           libraries: library_1
@@ -2613,7 +2613,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2628,7 +2628,7 @@ files
       kind: library_1
         libraryImports
           library_3 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -2645,7 +2645,7 @@ files
           library_0
           library_1
           library_3 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_2
           dependencies: cycle_0 cycle_1 dart:core
           libraries: library_2
@@ -2675,7 +2675,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2692,7 +2692,7 @@ files
           library_0
           library_0
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -2720,7 +2720,7 @@ files
         libraryImports
           uriStr: :net
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2748,7 +2748,7 @@ files
         libraryImports
           noUriStr
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2776,7 +2776,7 @@ files
         libraryImports
           uri: foo:bar
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2816,7 +2816,7 @@ files
         libraryImports
           notLibrary file_0
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -2849,7 +2849,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2862,7 +2862,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -2886,7 +2886,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_7
         cycle_3
           dependencies: dart:core
           libraries: library_7
@@ -2899,7 +2899,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -2929,7 +2929,7 @@ files
           library_1 dart:core synthetic
         partIncludes
           notPart file_0
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2959,7 +2959,7 @@ files
           library_1 dart:core synthetic
         partIncludes
           uri: da:
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -2988,7 +2988,7 @@ files
           library_1 dart:core synthetic
         partIncludes
           noUri
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3047,7 +3047,7 @@ files
         partIncludes
           partOfUriKnown_0
           partOfUriKnown_1
-        files: file_2 file_0 file_1
+        fileKinds: library_2 partOfUriKnown_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_2
@@ -3093,7 +3093,7 @@ files
         partIncludes
           partOfUriKnown_8
           partOfUriKnown_1
-        files: file_2 file_0 file_1
+        fileKinds: library_2 partOfUriKnown_8 partOfUriKnown_1
         cycle_2
           dependencies: dart:core
           libraries: library_2
@@ -3139,7 +3139,7 @@ files
         partIncludes
           partOfUriKnown_8
           partOfUriKnown_9
-        files: file_2 file_0 file_1
+        fileKinds: library_2 partOfUriKnown_8 partOfUriKnown_9
         cycle_3
           dependencies: dart:core
           libraries: library_2
@@ -3167,7 +3167,7 @@ files
         name: my
         libraryImports
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3192,7 +3192,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3255,7 +3255,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_0
-        files: file_1 file_0
+        fileKinds: library_1 partOfName_0
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -3291,7 +3291,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3326,7 +3326,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3373,7 +3373,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfName_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3423,7 +3423,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfName_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3457,7 +3457,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfName_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3473,7 +3473,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_7 file_1
+        fileKinds: library_7 partOfName_1
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -3506,7 +3506,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfName_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3522,7 +3522,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_7 file_1
+        fileKinds: library_8 partOfName_1
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -3555,7 +3555,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_0 file_1
+        fileKinds: library_9 partOfName_1
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -3571,7 +3571,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_7 file_1
+        fileKinds: library_8 partOfName_1
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -3602,7 +3602,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -3618,7 +3618,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_7 file_1
+        fileKinds: library_8 partOfName_1
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -3649,7 +3649,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -3662,7 +3662,7 @@ files
       kind: library_11
         libraryImports
           library_2 dart:core synthetic
-        files: file_7
+        fileKinds: library_11
         cycle_6
           dependencies: dart:core
           libraries: library_11
@@ -3694,7 +3694,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -3710,7 +3710,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_7 file_1
+        fileKinds: library_12 partOfName_1
         cycle_7
           dependencies: dart:core
           libraries: library_12
@@ -3747,7 +3747,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_0 file_1
+        fileKinds: library_13 partOfName_1
         cycle_8
           dependencies: dart:core
           libraries: library_13
@@ -3763,7 +3763,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_7 file_1
+        fileKinds: library_12 partOfName_1
         cycle_7
           dependencies: dart:core
           libraries: library_12
@@ -3807,7 +3807,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3851,7 +3851,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3890,7 +3890,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_7 partOfUriKnown_1
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -3922,7 +3922,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_8
-        files: file_0 file_1
+        fileKinds: library_7 partOfUriKnown_8
         cycle_3
           dependencies: dart:core
           libraries: library_7
@@ -3966,7 +3966,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -3998,7 +3998,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_7
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_7
         cycle_2
           dependencies: dart:core
           libraries: library_0
@@ -4040,7 +4040,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4085,7 +4085,7 @@ files
           library_6 dart:collection
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:collection dart:core
           libraries: library_0
@@ -4134,7 +4134,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:collection dart:core
           libraries: library_0
@@ -4195,7 +4195,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_0
-        files: file_1
+        fileKinds: library_1
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -4242,7 +4242,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1 file_2
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_2
         cycle_0
           dependencies: dart:core dart:io
           libraries: library_0
@@ -4302,7 +4302,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4334,7 +4334,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4349,7 +4349,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_7
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -4381,7 +4381,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4396,7 +4396,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_7
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -4428,7 +4428,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_9 partOfUriKnown_1
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -4443,7 +4443,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_7
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -4475,7 +4475,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -4490,7 +4490,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_7
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -4520,7 +4520,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -4533,7 +4533,7 @@ files
       kind: library_11
         libraryImports
           library_2 dart:core synthetic
-        files: file_7
+        fileKinds: library_11
         cycle_6
           dependencies: dart:core
           libraries: library_11
@@ -4564,7 +4564,7 @@ files
       kind: library_10
         libraryImports
           library_2 dart:core synthetic
-        files: file_0
+        fileKinds: library_10
         cycle_5
           dependencies: dart:core
           libraries: library_10
@@ -4579,7 +4579,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_7
+        fileKinds: library_12
         cycle_7
           dependencies: dart:core
           libraries: library_12
@@ -4613,7 +4613,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_13 partOfUriKnown_1
         cycle_8
           dependencies: dart:core
           libraries: library_13
@@ -4628,7 +4628,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_7
+        fileKinds: library_12
         cycle_7
           dependencies: dart:core
           libraries: library_12
@@ -4682,7 +4682,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_0
-        files: file_1 file_0
+        fileKinds: library_1 augmentation_0
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -4723,7 +4723,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_7
-        files: file_1 file_0
+        fileKinds: library_1 augmentation_7
         cycle_2
           dependencies: dart:core
           libraries: library_1
@@ -4755,7 +4755,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4793,7 +4793,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_0
         cycle_2
           dependencies: dart:core
           libraries: library_0
@@ -4806,7 +4806,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_7
         cycle_3
           dependencies: dart:core
           libraries: library_7
@@ -4830,7 +4830,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_8
         cycle_4
           dependencies: dart:core
           libraries: library_8
@@ -4843,7 +4843,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_7
         cycle_3
           dependencies: dart:core
           libraries: library_7
@@ -4879,7 +4879,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -4924,7 +4924,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_0
         cycle_2
           dependencies: dart:core
           libraries: library_0
@@ -4957,7 +4957,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -4996,7 +4996,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_7
-        files: file_0 file_1
+        fileKinds: library_9 partOfName_7
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -5037,7 +5037,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -5078,7 +5078,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_0
         cycle_2
           dependencies: dart:core
           libraries: library_0
@@ -5109,7 +5109,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -5145,7 +5145,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_7
-        files: file_0 file_1
+        fileKinds: library_9 partOfUriKnown_7
         cycle_4
           dependencies: dart:core
           libraries: library_9
@@ -5192,7 +5192,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -5221,7 +5221,7 @@ files
           library_3 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_2 file_1
+        fileKinds: library_2 augmentation_1
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_2
@@ -5247,7 +5247,7 @@ files
       kind: library_8
         libraryImports
           library_3 dart:core synthetic
-        files: file_0
+        fileKinds: library_8
         cycle_3
           dependencies: dart:core
           libraries: library_8
@@ -5276,7 +5276,7 @@ files
           library_3 dart:core synthetic
         augmentationImports
           augmentation_1
-        files: file_2 file_1
+        fileKinds: library_2 augmentation_1
         cycle_4
           dependencies: cycle_3 dart:core
           libraries: library_2
@@ -5315,7 +5315,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: cycle_1 dart:core
           libraries: library_0
@@ -5339,7 +5339,7 @@ files
       kind: library_2
         libraryImports
           library_3 dart:core synthetic
-        files: file_2
+        fileKinds: library_2
         cycle_1
           dependencies: dart:core
           libraries: library_2
@@ -5369,7 +5369,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_3
           dependencies: cycle_4 dart:core
           libraries: library_0
@@ -5393,7 +5393,7 @@ files
       kind: library_8
         libraryImports
           library_3 dart:core synthetic
-        files: file_2
+        fileKinds: library_8
         cycle_4
           dependencies: dart:core
           libraries: library_8
@@ -5455,7 +5455,7 @@ files
         partIncludes
           partOfName_0
           partOfName_1
-        files: file_2 file_0 file_1
+        fileKinds: library_2 partOfName_0 partOfName_1
         cycle_0
           dependencies: dart:core
           libraries: library_2
@@ -5501,7 +5501,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfName_1
-        files: file_2 file_1
+        fileKinds: library_8 partOfName_1
         cycle_2
           dependencies: dart:core
           libraries: library_8
@@ -5559,7 +5559,7 @@ files
         partIncludes
           partOfUriKnown_0
           partOfUriKnown_1
-        files: file_2 file_0 file_1
+        fileKinds: library_2 partOfUriKnown_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_2
@@ -5604,7 +5604,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_2 file_1
+        fileKinds: library_8 partOfUriKnown_1
         cycle_2
           dependencies: dart:core
           libraries: library_8
@@ -5637,7 +5637,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           notAugmentation file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -5651,7 +5651,7 @@ files
         name: b
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -5680,7 +5680,7 @@ files
           library_2 dart:core synthetic
         augmentationImports
           augmentation_7
-        files: file_0 file_1
+        fileKinds: library_0 augmentation_7
         cycle_3
           dependencies: dart:core
           libraries: library_0
@@ -5724,7 +5724,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -5737,7 +5737,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -5767,7 +5767,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_7
-        files: file_0 file_1
+        fileKinds: library_0 partOfName_7
         cycle_3
           dependencies: dart:core
           libraries: library_0
@@ -5804,7 +5804,7 @@ files
         name: my
         libraryImports
           library_1 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -5857,7 +5857,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -5871,7 +5871,7 @@ files
         name: b
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: dart:core
           libraries: library_1
@@ -5900,7 +5900,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_7
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_7
         cycle_3
           dependencies: dart:core
           libraries: library_0
@@ -5959,7 +5959,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_0
-        files: file_1 file_0
+        fileKinds: library_1 partOfName_0
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -5992,7 +5992,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_0
-        files: file_1 file_0
+        fileKinds: library_1 partOfName_0
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -6008,7 +6008,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_0
-        files: file_7 file_0
+        fileKinds: library_7 partOfName_0
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -6049,7 +6049,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_8
-        files: file_1 file_0
+        fileKinds: library_1 partOfName_8
         cycle_3
           dependencies: dart:core
           libraries: library_1
@@ -6065,7 +6065,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfName_8
-        files: file_7 file_0
+        fileKinds: library_7 partOfName_8
         cycle_4
           dependencies: dart:core
           libraries: library_7
@@ -6103,7 +6103,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1 file_2
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_2
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -6150,7 +6150,7 @@ files
           library_3 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1 file_2
+        fileKinds: library_0 partOfUriKnown_1 partOfUriKnown_8
         cycle_2
           dependencies: dart:core
           libraries: library_0
@@ -6204,7 +6204,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_1
-        files: file_0 file_1
+        fileKinds: library_0 partOfUriKnown_1
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -6242,7 +6242,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_1
-        files: file_0
+        fileKinds: library_0
         cycle_2
           dependencies: dart:core
           libraries: library_0
@@ -6255,7 +6255,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        files: file_1
+        fileKinds: library_7
         cycle_3
           dependencies: dart:core
           libraries: library_7
@@ -6302,7 +6302,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_0
-        files: file_1 file_0
+        fileKinds: library_1 partOfUriKnown_0
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -6333,7 +6333,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_0
-        files: file_1 file_0
+        fileKinds: library_1 partOfUriKnown_0
         cycle_0
           dependencies: dart:core
           libraries: library_1
@@ -6348,7 +6348,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_0
-        files: file_7
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
           libraries: library_7
@@ -6389,7 +6389,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           partOfUriKnown_8
-        files: file_1 file_0
+        fileKinds: library_1 partOfUriKnown_8
         cycle_3
           dependencies: dart:core
           libraries: library_1
@@ -6404,7 +6404,7 @@ files
           library_2 dart:core synthetic
         partIncludes
           notPart file_0
-        files: file_7
+        fileKinds: library_7
         cycle_4
           dependencies: dart:core
           libraries: library_7
