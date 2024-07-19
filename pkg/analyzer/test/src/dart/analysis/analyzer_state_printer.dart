@@ -68,6 +68,8 @@ class AnalyzerStatePrinter {
         } else if (cycle.libraries
             .any((e) => e.file.uriStr == 'dart:collection')) {
           return 'dart:collection';
+        } else if (cycle.libraries.any((e) => e.file.uriStr == 'dart:io')) {
+          return 'dart:io';
         } else {
           throw UnimplementedError('$cycle');
         }
@@ -319,7 +321,7 @@ class AnalyzerStatePrinter {
   }
 
   void _writeFiles(FileSystemTestData testData) {
-    fileSystemState.pullReferencedFiles();
+    fileSystemState.discoverReferencedFiles();
 
     if (configuration.discardPartialMacroAugmentationFiles) {
       var pattern = RegExp(r'^.*\.macro\d+\.dart$');
@@ -342,17 +344,8 @@ class AnalyzerStatePrinter {
       }
     }
 
-    // Discover referenced files.
     // This is required for consistency checking.
-    for (var fileData in testData.files.values.toList()) {
-      var current = fileSystemState.getExisting(fileData.file);
-      if (current != null) {
-        var kind = current.kind;
-        if (kind is LibraryOrAugmentationFileKind) {
-          kind.discoverReferencedFiles();
-        }
-      }
-    }
+    fileSystemState.discoverReferencedFiles();
 
     // Sort, mostly by path.
     // But sort SDK libraries to the end, with `dart:core` first.

@@ -186,20 +186,27 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    var referencedLibraries = {kind, ...kind.augmentations}
-        .map((container) => [
-              ...container.libraryImports
-                  .whereType<LibraryImportWithFile>()
-                  .map((import) => import.importedLibrary),
-              ...container.libraryExports
-                  .whereType<LibraryExportWithFile>()
-                  .map((export) => export.exportedLibrary),
-            ])
+    var referencedLibraries = kind.fileKinds
+        .map((fileKind) {
+          return [
+            ...fileKind.libraryImports
+                .whereType<LibraryImportWithFile>()
+                .map((import) => import.importedLibrary),
+            ...fileKind.libraryExports
+                .whereType<LibraryExportWithFile>()
+                .map((export) => export.exportedLibrary),
+          ];
+        })
         .flattenedToList
         .nonNulls
         .toSet();
 
     return referencedLibraries.map(walker.getNode).toList();
+  }
+
+  @override
+  String toString() {
+    return 'LibraryNode($kind)';
   }
 }
 
