@@ -305,6 +305,24 @@ void f() {
 ''');
   }
 
+  Future<void> test_extensionType_notImported() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type ET(String it) {}
+''');
+    await resolveTestCode('''
+void f(String s) {
+  ET(s);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(String s) {
+  ET(s);
+}
+''');
+  }
+
   Future<void> test_invalidUri_interpolation() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 class Test {
@@ -999,6 +1017,25 @@ import 'package:test/lib.dart';
 
 @Test.instance
 void f() {
+}
+''');
+  }
+
+  Future<void> test_withEnum_value() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+library lib;
+enum E { one, two }
+''');
+    await resolveTestCode('''
+void f() {
+  E.one;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f() {
+  E.one;
 }
 ''');
   }
