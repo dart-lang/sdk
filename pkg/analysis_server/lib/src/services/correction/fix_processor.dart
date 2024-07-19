@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
@@ -62,6 +61,10 @@ class FixProcessor {
   /// A map from error codes to a list of fix generators that work with only
   /// parsed results.
   static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {};
+
+  /// A list of generators that are used to create correction producers that
+  /// produce corrections that ignore diagnostics locally.
+  static final List<ProducerGenerator> ignoreProducerGenerators = [];
 
   final DartFixContext _fixContext;
 
@@ -152,12 +155,7 @@ class FixProcessor {
     if (errorCode is LintCode ||
         errorCode is HintCode ||
         errorCode is WarningCode) {
-      var generators = [
-        IgnoreDiagnosticOnLine.new,
-        IgnoreDiagnosticInFile.new,
-        IgnoreDiagnosticInAnalysisOptionsFile.new,
-      ];
-      for (var generator in generators) {
+      for (var generator in ignoreProducerGenerators) {
         await compute(generator(context: context));
       }
     }

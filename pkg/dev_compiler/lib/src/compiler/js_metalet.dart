@@ -5,7 +5,7 @@
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
 import 'js_names.dart' show TemporaryId;
-import 'shared_compiler.dart' show YieldFinder;
+import 'js_utils.dart' show YieldFinder;
 
 /// A synthetic `let*` node, similar to that found in Scheme.
 ///

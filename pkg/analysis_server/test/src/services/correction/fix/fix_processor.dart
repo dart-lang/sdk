@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
@@ -588,5 +588,5 @@ extension FixExtension on Fix {
 
 extension FixKindExtension on FixKind {
   // TODO(pq): temporary
-  bool canBeAppliedTogether() => priority == DartFixKindPriority.IN_FILE;
+  bool canBeAppliedTogether() => priority == DartFixKindPriority.inFile;
 }
