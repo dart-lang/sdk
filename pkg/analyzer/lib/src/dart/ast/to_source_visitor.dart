@@ -985,6 +985,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAwareElement(NullAwareElement node) {
+    sink.write(node.question.lexeme);
+    _visitNode(node.value);
+  }
+
+  @override
   void visitNullCheckPattern(NullCheckPattern node) {
     _visitNode(node.pattern);
     sink.write(node.operator.lexeme);
