@@ -983,6 +983,26 @@ class OperationsCfe
   bool isDartCoreFunction(DartType type) {
     return type == typeEnvironment.coreTypes.functionNonNullableRawType;
   }
+
+  @override
+  NullabilitySuffix typeSchemaNullabilitySuffix(DartType typeSchema) {
+    return typeSchema.nullabilitySuffix;
+  }
+
+  @override
+  DartType futureTypeSchema(DartType argumentTypeSchema) {
+    return new InterfaceType(typeEnvironment.coreTypes.futureClass,
+        Nullability.nonNullable, <DartType>[argumentTypeSchema]);
+  }
+
+  @override
+  DartType? matchTypeSchemaFutureOr(DartType typeSchema) {
+    if (typeSchema is! FutureOrType) {
+      return null;
+    } else {
+      return typeSchema.typeArgument;
+    }
+  }
 }
 
 /// Type inference results used for testing.

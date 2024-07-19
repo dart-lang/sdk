@@ -3037,6 +3037,15 @@ class MiniAstOperations
   }
 
   @override
+  TypeSchema? matchTypeSchemaFutureOr(TypeSchema typeSchema) {
+    Type type = typeSchema.toType();
+    if (type is FutureOrType) {
+      return TypeSchema.fromType(type.typeArgument);
+    }
+    return null;
+  }
+
+  @override
   PromotedTypeVariableType? matchInferableParameter(Type type) {
     // TODO(cstefantsova): Add support for type parameter objects in Mini AST.
     return null;
@@ -3221,6 +3230,17 @@ class MiniAstOperations
   @override
   Type withNullabilitySuffix(Type type, NullabilitySuffix modifier) =>
       type.withNullability(modifier);
+
+  @override
+  NullabilitySuffix typeSchemaNullabilitySuffix(TypeSchema typeSchema) {
+    return typeSchema.toType().nullabilitySuffix;
+  }
+
+  @override
+  TypeSchema futureTypeSchema(TypeSchema argumentTypeSchema) {
+    return TypeSchema.fromType(
+        PrimaryType('Future', args: [argumentTypeSchema.toType()]));
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
