@@ -548,7 +548,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -618,7 +618,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_8
         files: file_7 file_8
         cycle_2
@@ -682,7 +682,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -783,7 +783,7 @@ files
       kind: library_8
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_9
         files: file_8 file_9
         cycle_3

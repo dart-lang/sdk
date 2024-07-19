@@ -1352,10 +1352,10 @@ class LibraryBuilder with MacroApplicationsContainer {
       libraryElement.definingCompilationUnit = unitElement;
     }
 
-    libraryElement.parts = inputLibrary.parts.map((partState) {
+    libraryElement.parts = inputLibrary.partIncludes.map((partState) {
       var uriState = partState.uri;
       DirectiveUri directiveUri;
-      if (partState is PartWithFile) {
+      if (partState is PartIncludeWithFile) {
         var includedPart = partState.includedPart;
         if (includedPart != null) {
           var partFile = includedPart.file;

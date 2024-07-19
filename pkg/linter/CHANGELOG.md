@@ -22,6 +22,7 @@
       'b';
       '';
   ```
+- update `avoid_renaming_method_parameters` to ignore wildcard renames
 
 # 3.4.0
 

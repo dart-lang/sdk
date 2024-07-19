@@ -346,8 +346,8 @@ abstract class FileKind {
   List<AugmentationImportState>? _augmentationImports;
   List<LibraryExportState>? _libraryExports;
   List<LibraryImportState>? _libraryImports;
+  List<PartIncludeState>? _partIncludes;
   List<LibraryImportState>? _docImports;
-  List<PartState>? _parts;
 
   FileKind({
     required this.file,
@@ -485,30 +485,31 @@ abstract class FileKind {
     return _libraryImports = result;
   }
 
-  List<PartState> get parts {
-    return _parts ??= file.unlinked2.parts.map<PartState>((unlinked) {
+  List<PartIncludeState> get partIncludes {
+    return _partIncludes ??=
+        file.unlinked2.parts.map<PartIncludeState>((unlinked) {
       var uri = file._buildDirectiveUri(unlinked.uri);
       switch (uri) {
         case DirectiveUriWithFile():
-          return PartWithFile(
+          return PartIncludeWithFile(
             container: this,
             unlinked: unlinked,
             uri: uri,
           );
         case DirectiveUriWithUri():
-          return PartWithUri(
+          return PartIncludeWithUri(
             container: this,
             unlinked: unlinked,
             uri: uri,
           );
         case DirectiveUriWithString():
-          return PartWithUriStr(
+          return PartIncludeWithUriStr(
             container: this,
             unlinked: unlinked,
             uri: uri,
           );
         case DirectiveUriWithoutString():
-          return PartState(
+          return PartIncludeState(
             container: this,
             unlinked: unlinked,
             uri: uri,
@@ -523,24 +524,24 @@ abstract class FileKind {
   @mustCallSuper
   void collectTransitive(Set<FileState> files) {
     if (files.add(file)) {
-      for (var augmentation in augmentationImports) {
-        if (augmentation is AugmentationImportWithFile) {
-          augmentation.importedAugmentation?.collectTransitive(files);
+      for (var directive in augmentationImports) {
+        if (directive is AugmentationImportWithFile) {
+          directive.importedAugmentation?.collectTransitive(files);
         }
       }
-      for (var export in libraryExports) {
-        if (export is LibraryExportWithFile) {
-          export.exportedLibrary?.collectTransitive(files);
+      for (var directive in libraryExports) {
+        if (directive is LibraryExportWithFile) {
+          directive.exportedLibrary?.collectTransitive(files);
         }
       }
-      for (var import in libraryImports) {
-        if (import is LibraryImportWithFile) {
-          import.importedLibrary?.collectTransitive(files);
+      for (var directive in libraryImports) {
+        if (directive is LibraryImportWithFile) {
+          directive.importedLibrary?.collectTransitive(files);
         }
       }
-      for (var part in parts) {
-        if (part is PartWithFile) {
-          part.includedPart?.collectTransitive(files);
+      for (var directive in partIncludes) {
+        if (directive is PartIncludeWithFile) {
+          directive.includedPart?.collectTransitive(files);
         }
       }
     }
@@ -555,7 +556,7 @@ abstract class FileKind {
     augmentationImports;
     libraryExports;
     libraryImports;
-    parts;
+    partIncludes;
     docImports;
   }
 
@@ -564,7 +565,7 @@ abstract class FileKind {
     _augmentationImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
-    _parts?.disposeAll();
+    _partIncludes?.disposeAll();
     _docImports?.disposeAll();
   }
 
@@ -580,9 +581,9 @@ abstract class FileKind {
   }
 
   bool hasPart(PartFileKind partKind) {
-    for (var partDirective in parts) {
-      if (partDirective is PartWithFile) {
-        if (partDirective.includedFile == partKind.file) {
+    for (var directive in partIncludes) {
+      if (directive is PartIncludeWithFile) {
+        if (directive.includedFile == partKind.file) {
           return true;
         }
       }
@@ -2170,9 +2171,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
     void visitParts(FileKind kind) {
       result.add(kind);
-      for (var part in kind.parts) {
-        if (part is PartWithFile) {
-          var includedPart = part.includedPart;
+      for (var directive in kind.partIncludes) {
+        if (directive is PartIncludeWithFile) {
+          var includedPart = directive.includedPart;
           if (includedPart != null) {
             visitParts(includedPart);
           }
@@ -2526,6 +2527,67 @@ abstract class PartFileKind extends FileKind {
   }
 }
 
+/// Information about a single `part` directive.
+final class PartIncludeState<U extends DirectiveUri> extends DirectiveState {
+  final UnlinkedPartDirective unlinked;
+  final U uri;
+
+  PartIncludeState({
+    required super.container,
+    required this.unlinked,
+    required this.uri,
+  });
+}
+
+/// [PartIncludeWithUri] that has a valid URI that references a file.
+final class PartIncludeWithFile
+    extends PartIncludeWithUri<DirectiveUriWithFile> {
+  PartIncludeWithFile({
+    required super.container,
+    required super.unlinked,
+    required super.uri,
+  }) {
+    includedFile.referencingFiles.add(container.file);
+  }
+
+  FileState get includedFile => uri.file;
+
+  /// If [includedFile] is a [PartFileKind], and it confirms that it
+  /// is a part of the [container], returns the [includedFile].
+  PartFileKind? get includedPart {
+    var kind = includedFile.kind;
+    if (kind is PartFileKind && kind.isPartOf(container)) {
+      return kind;
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    includedFile.referencingFiles.remove(container.file);
+  }
+}
+
+/// [PartIncludeState] that has a valid URI.
+final class PartIncludeWithUri<U extends DirectiveUriWithUri>
+    extends PartIncludeWithUriStr<U> {
+  PartIncludeWithUri({
+    required super.container,
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
+/// [PartIncludeState] that has a relative URI string.
+final class PartIncludeWithUriStr<U extends DirectiveUriWithString>
+    extends PartIncludeState<U> {
+  PartIncludeWithUriStr({
+    required super.container,
+    required super.unlinked,
+    required super.uri,
+  });
+}
+
 /// The file has `part of name` directive.
 class PartOfNameFileKind extends PartFileKind {
   final UnlinkedPartOfNameDirective unlinked;
@@ -2660,66 +2722,6 @@ class PartOfUriUnknownFileKind extends PartOfUriFileKind {
 
   @override
   bool isPartOf(FileKind container) => false;
-}
-
-/// Information about a single `part` directive.
-final class PartState<U extends DirectiveUri> extends DirectiveState {
-  final UnlinkedPartDirective unlinked;
-  final U uri;
-
-  PartState({
-    required super.container,
-    required this.unlinked,
-    required this.uri,
-  });
-}
-
-/// [PartWithUri] that has a valid URI that references a file.
-final class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
-  PartWithFile({
-    required super.container,
-    required super.unlinked,
-    required super.uri,
-  }) {
-    includedFile.referencingFiles.add(container.file);
-  }
-
-  FileState get includedFile => uri.file;
-
-  /// If [includedFile] is a [PartFileKind], and it confirms that it
-  /// is a part of the [container], returns the [includedFile].
-  PartFileKind? get includedPart {
-    var kind = includedFile.kind;
-    if (kind is PartFileKind && kind.isPartOf(container)) {
-      return kind;
-    }
-    return null;
-  }
-
-  @override
-  void dispose() {
-    includedFile.referencingFiles.remove(container.file);
-  }
-}
-
-/// [PartState] that has a valid URI.
-final class PartWithUri<U extends DirectiveUriWithUri>
-    extends PartWithUriStr<U> {
-  PartWithUri({
-    required super.container,
-    required super.unlinked,
-    required super.uri,
-  });
-}
-
-/// [PartState] that has a relative URI string.
-final class PartWithUriStr<U extends DirectiveUriWithString>
-    extends PartState<U> {
-  PartWithUriStr({
-    required super.container,
-    required super.unlinked,
-    required super.uri,
-  });
 }
 
 class StoredFileContent implements FileContent {

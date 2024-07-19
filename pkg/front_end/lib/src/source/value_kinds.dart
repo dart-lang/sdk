@@ -182,7 +182,6 @@ class ValueKinds {
   static const ValueKind RecordTypeFieldBuilderListOrNull =
       const SingleValueKind<List<type.RecordTypeFieldBuilder>>(
           NullValues.RecordTypeFieldList);
-  static const ValueKind Scope = const SingleValueKind<type.LocalScope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
   static const ValueKind SwitchCase = const SingleValueKind<type.SwitchCase>();
   static const ValueKind SwitchCaseList =

@@ -2,15 +2,39 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/continue_label_invalid.dart:5:7: Error: A 'continue' label must be on a loop or a switch member.
-//       continue L;
+// pkg/front_end/testcases/general/continue_label_invalid.dart:9:7: Error: A 'continue' label must be on a loop or a switch member.
+//       continue L; // Error
 //       ^^^^^^^^
 //
+// pkg/front_end/testcases/general/continue_label_invalid.dart:31:9: Error: A 'continue' label must be on a loop or a switch member.
+//         continue alias2; // Error
+//         ^^^^^^^^
+//
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/general/continue_label_invalid.dart:5:7: Error: A 'continue' label must be on a loop or a switch member.
-      continue L;
+  invalid-expression "pkg/front_end/testcases/general/continue_label_invalid.dart:9:7: Error: A 'continue' label must be on a loop or a switch member.
+      continue L; // Error
       ^^^^^^^^";
   1;
+  #L1:
+  {
+    synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic i = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      #L2:
+      {
+        if(i =={core::Object::==}{(core::Object) → core::bool} 0) {
+          break #L2;
+        }
+        else {
+          break #L2;
+        }
+      }
+    }
+  }
+  invalid-expression "pkg/front_end/testcases/general/continue_label_invalid.dart:31:9: Error: A 'continue' label must be on a loop or a switch member.
+        continue alias2; // Error
+        ^^^^^^^^";
 }

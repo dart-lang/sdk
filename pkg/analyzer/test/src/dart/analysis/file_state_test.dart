@@ -2847,7 +2847,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_0
@@ -2884,7 +2884,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_3
@@ -2927,7 +2927,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        parts
+        partIncludes
           notPart file_0
         files: file_0
         cycle_0
@@ -2957,7 +2957,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        parts
+        partIncludes
           uri: da:
         files: file_0
         cycle_0
@@ -2986,7 +2986,7 @@ files
       kind: library_0
         libraryImports
           library_1 dart:core synthetic
-        parts
+        partIncludes
           noUri
         files: file_0
         cycle_0
@@ -3044,7 +3044,7 @@ files
       kind: library_2
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_0
           partOfUriKnown_1
         files: file_2 file_0 file_1
@@ -3090,7 +3090,7 @@ files
       kind: library_2
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_8
           partOfUriKnown_1
         files: file_2 file_0 file_1
@@ -3136,7 +3136,7 @@ files
       kind: library_2
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_8
           partOfUriKnown_9
         files: file_2 file_0 file_1
@@ -3253,7 +3253,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_0
         files: file_1 file_0
         cycle_0
@@ -3289,7 +3289,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_0
@@ -3324,7 +3324,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_0
@@ -3371,7 +3371,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_0 file_1
         cycle_0
@@ -3421,7 +3421,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_0 file_1
         cycle_0
@@ -3455,7 +3455,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_0 file_1
         cycle_0
@@ -3471,7 +3471,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_7 file_1
         cycle_2
@@ -3504,7 +3504,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_0 file_1
         cycle_0
@@ -3520,7 +3520,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_7 file_1
         cycle_3
@@ -3553,7 +3553,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_0 file_1
         cycle_4
@@ -3569,7 +3569,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_7 file_1
         cycle_3
@@ -3616,7 +3616,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_7 file_1
         cycle_3
@@ -3708,7 +3708,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_7 file_1
         cycle_7
@@ -3745,7 +3745,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_0 file_1
         cycle_8
@@ -3761,7 +3761,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_7 file_1
         cycle_7
@@ -3805,7 +3805,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -3888,7 +3888,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_2
@@ -3920,7 +3920,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_8
         files: file_0 file_1
         cycle_3
@@ -3964,7 +3964,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -3996,7 +3996,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_7
         files: file_0 file_1
         cycle_2
@@ -4083,7 +4083,7 @@ files
           library_2 dart:core synthetic
         libraryExports
           library_6 dart:collection
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -4132,7 +4132,7 @@ files
         libraryImports
           library_6 dart:collection
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -4193,7 +4193,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_0
         files: file_1
         cycle_0
@@ -4240,7 +4240,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1 file_2
         cycle_0
@@ -4255,7 +4255,7 @@ files
       kind: partOfUriKnown_1
         uriFile: file_0
         library: library_0
-        parts
+        partIncludes
           partOfUriKnown_2
       referencingFiles: file_0
       unlinkedKey: k01
@@ -4300,7 +4300,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -4332,7 +4332,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -4347,7 +4347,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_7
         cycle_2
@@ -4379,7 +4379,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -4394,7 +4394,7 @@ files
       kind: library_8
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_7
         cycle_3
@@ -4426,7 +4426,7 @@ files
       kind: library_9
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_4
@@ -4441,7 +4441,7 @@ files
       kind: library_8
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_7
         cycle_3
@@ -4488,7 +4488,7 @@ files
       kind: library_8
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_7
         cycle_3
@@ -4577,7 +4577,7 @@ files
       kind: library_12
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_7
         cycle_7
@@ -4611,7 +4611,7 @@ files
       kind: library_13
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_8
@@ -4626,7 +4626,7 @@ files
       kind: library_12
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_7
         cycle_7
@@ -4994,7 +4994,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_7
         files: file_0 file_1
         cycle_4
@@ -5143,7 +5143,7 @@ files
       kind: library_9
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_7
         files: file_0 file_1
         cycle_4
@@ -5313,7 +5313,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -5367,7 +5367,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_3
@@ -5452,7 +5452,7 @@ files
         name: my
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfName_0
           partOfName_1
         files: file_2 file_0 file_1
@@ -5499,7 +5499,7 @@ files
         name: my
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfName_1
         files: file_2 file_1
         cycle_2
@@ -5556,7 +5556,7 @@ files
       kind: library_2
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_0
           partOfUriKnown_1
         files: file_2 file_0 file_1
@@ -5602,7 +5602,7 @@ files
         name: my
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_2 file_1
         cycle_2
@@ -5722,7 +5722,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_0
@@ -5765,7 +5765,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_7
         files: file_0 file_1
         cycle_3
@@ -5855,7 +5855,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_0
@@ -5898,7 +5898,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_7
         files: file_0 file_1
         cycle_3
@@ -5957,7 +5957,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_0
         files: file_1 file_0
         cycle_0
@@ -5990,7 +5990,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_0
         files: file_1 file_0
         cycle_0
@@ -6006,7 +6006,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_0
         files: file_7 file_0
         cycle_2
@@ -6047,7 +6047,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_8
         files: file_1 file_0
         cycle_3
@@ -6063,7 +6063,7 @@ files
         name: my.lib
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfName_8
         files: file_7 file_0
         cycle_4
@@ -6101,7 +6101,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1 file_2
         cycle_0
@@ -6116,7 +6116,7 @@ files
       kind: partOfUriKnown_1
         uriFile: file_0
         library: library_0
-        parts
+        partIncludes
           partOfUriKnown_2
       referencingFiles: file_0
       unlinkedKey: k01
@@ -6148,7 +6148,7 @@ files
       kind: library_0
         libraryImports
           library_3 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1 file_2
         cycle_2
@@ -6163,7 +6163,7 @@ files
       kind: partOfUriKnown_1
         uriFile: file_0
         library: library_0
-        parts
+        partIncludes
           partOfUriKnown_8
       referencingFiles: file_0
       unlinkedKey: k01
@@ -6202,7 +6202,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_1
         files: file_0 file_1
         cycle_0
@@ -6240,7 +6240,7 @@ files
       kind: library_0
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_1
         files: file_0
         cycle_2
@@ -6300,7 +6300,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_0
         files: file_1 file_0
         cycle_0
@@ -6331,7 +6331,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_0
         files: file_1 file_0
         cycle_0
@@ -6346,7 +6346,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_0
         files: file_7
         cycle_2
@@ -6387,7 +6387,7 @@ files
       kind: library_1
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           partOfUriKnown_8
         files: file_1 file_0
         cycle_3
@@ -6402,7 +6402,7 @@ files
       kind: library_7
         libraryImports
           library_2 dart:core synthetic
-        parts
+        partIncludes
           notPart file_0
         files: file_7
         cycle_4

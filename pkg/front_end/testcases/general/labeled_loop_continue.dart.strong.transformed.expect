@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int i = 0;
+  core::int j = 0;
+  #L1:
+  while ((i = i.{core::num::+}(1){(core::num) → core::int}).{core::num::<}(10){(core::num) → core::bool})
+    #L2:
+    {
+      if(i.{core::num::<}(4){(core::num) → core::bool})
+        break #L2;
+      j = j.{core::num::+}(1){(core::num) → core::int};
+    }
+  if(!(i =={core::num::==}{(core::Object) → core::bool} 10))
+    throw "Expected i=10, actual ${i}";
+  if(!(j =={core::num::==}{(core::Object) → core::bool} 6))
+    throw "Expected j=6, actual ${j}";
+}

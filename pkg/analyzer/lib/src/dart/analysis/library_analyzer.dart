@@ -819,7 +819,7 @@ class LibraryAnalyzer {
           var index = partIndex++;
           _resolvePartDirective(
             directive: directive,
-            partState: containerKind.parts[index],
+            partState: containerKind.partIncludes[index],
             partElement: containerElement.parts[index],
             errorReporter: containerErrorReporter,
             libraryNameNode: libraryNameNode,
@@ -1074,7 +1074,7 @@ class LibraryAnalyzer {
 
   void _resolvePartDirective({
     required PartDirectiveImpl directive,
-    required PartState partState,
+    required PartIncludeState partState,
     required PartElementImpl partElement,
     required ErrorReporter errorReporter,
     required LibraryIdentifier? libraryNameNode,
@@ -1084,7 +1084,7 @@ class LibraryAnalyzer {
 
     directive.element = partElement;
 
-    if (partState is! PartWithUriStr) {
+    if (partState is! PartIncludeWithUriStr) {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
@@ -1092,7 +1092,7 @@ class LibraryAnalyzer {
       return;
     }
 
-    if (partState is! PartWithUri) {
+    if (partState is! PartIncludeWithUri) {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.INVALID_URI,
@@ -1101,7 +1101,7 @@ class LibraryAnalyzer {
       return;
     }
 
-    if (partState is! PartWithFile) {
+    if (partState is! PartIncludeWithFile) {
       errorReporter.atNode(
         directive.uri,
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
