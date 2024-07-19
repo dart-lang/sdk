@@ -9490,8 +9490,15 @@ class BreakStatement extends Statement {
   }
 }
 
-class WhileStatement extends Statement {
+/// Common interface for loop statements.
+abstract interface class LoopStatement implements Statement {
+  abstract Statement body;
+}
+
+class WhileStatement extends Statement implements LoopStatement {
   Expression condition;
+
+  @override
   Statement body;
 
   WhileStatement(this.condition, this.body) {
@@ -9542,8 +9549,10 @@ class WhileStatement extends Statement {
   }
 }
 
-class DoStatement extends Statement {
+class DoStatement extends Statement implements LoopStatement {
+  @override
   Statement body;
+
   Expression condition;
 
   DoStatement(this.body, this.condition) {
@@ -9595,10 +9604,12 @@ class DoStatement extends Statement {
   }
 }
 
-class ForStatement extends Statement {
+class ForStatement extends Statement implements LoopStatement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
+
+  @override
   Statement body;
 
   ForStatement(this.variables, this.condition, this.updates, this.body) {
@@ -9673,7 +9684,7 @@ class ForStatement extends Statement {
   }
 }
 
-class ForInStatement extends Statement {
+class ForInStatement extends Statement implements LoopStatement {
   /// Offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -9685,7 +9696,10 @@ class ForInStatement extends Statement {
 
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
+
+  @override
   Statement body;
+
   bool isAsync; // True if this is an 'await for' loop.
 
   ForInStatement(this.variable, this.iterable, this.body,

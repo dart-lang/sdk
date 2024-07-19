@@ -11,8 +11,6 @@ abstract class LocalScope implements LookupScope {
   @override
   ScopeKind get kind;
 
-  LocalScope? get parent;
-
   LocalScope createNestedScope(
       {required String debugName, required ScopeKind kind});
 
@@ -161,12 +159,7 @@ mixin LocalScopeMixin implements LocalScope {
       return builder;
     }
   }
-
-  @override
-  LocalScope? get parent => _parent;
 }
-
-mixin LabelScopeMixin implements LocalScope {}
 
 final class LocalScopeImpl extends BaseLocalScope
     with LocalScopeMixin, SwitchScopeMixin
@@ -381,9 +374,6 @@ final class EnclosingLocalScope extends BaseLocalScope
   Builder? lookupSetter(String name, int charOffset, Uri uri) {
     return _scope.lookupSetter(name, charOffset, uri);
   }
-
-  @override
-  LocalScope? get parent => null;
 
   @override
   String toString() => "$runtimeType(${kind},$_scope)";
