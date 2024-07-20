@@ -17,7 +17,6 @@ import 'import_directive_test.dart' as import_directive;
 import 'library_augmentation_directive_test.dart'
     as library_augmentation_directive;
 import 'mixin_test.dart' as mixin_;
-import 'null_aware_elements_test.dart' as null_aware_elements_test;
 import 'part_directive_test.dart' as part_directive;
 import 'top_level_function_test.dart' as top_level_function;
 import 'top_level_variable_test.dart' as top_level_variable;
@@ -39,7 +38,6 @@ main() {
     import_directive.main();
     library_augmentation_directive.main();
     mixin_.main();
-    null_aware_elements_test.main();
     part_directive.main();
     top_level_function.main();
     top_level_variable.main();

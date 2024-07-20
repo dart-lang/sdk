@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/lint/linter.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -51,8 +53,10 @@ class UseStringInPartOfDirectives extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this);
-    registry.addPartOfDirective(this, visitor);
+    if (!context.hasEnancedPartsFeatureEnabled) {
+      var visitor = _Visitor(this);
+      registry.addPartOfDirective(this, visitor);
+    }
   }
 }
 
@@ -66,5 +70,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.libraryName != null) {
       rule.reportLint(node);
     }
+  }
+}
+
+extension on LinterContext {
+  bool get hasEnancedPartsFeatureEnabled {
+    var self = this;
+    return self is LinterContextWithResolvedResults &&
+        self.libraryElement.featureSet.isEnabled(Feature.enhanced_parts);
   }
 }

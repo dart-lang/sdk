@@ -266,8 +266,8 @@ class AnalyzerStatePrinter {
         _writePartIncludes(kind);
         _writeDocImports(kind);
 
-        var filesIds = kind.files.map(idProvider.fileState);
-        _writelnWithIndent('files: ${filesIds.join(' ')}');
+        var filesIds = kind.fileKinds.map(idProvider.fileKind);
+        _writelnWithIndent('fileKinds: ${filesIds.join(' ')}');
 
         _writeLibraryCycle(kind);
       });

@@ -1115,13 +1115,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitNullAwareElement(NullAwareElement node) {
-    NullAwareElement other = _other as NullAwareElement;
-    return isEqualTokens(node.question, other.question) &&
-        isEqualNodes(node.value, other.value);
-  }
-
-  @override
   bool visitNullCheckPattern(NullCheckPattern node) {
     var other = _other as NullCheckPattern;
     return isEqualNodes(node.pattern, other.pattern) &&
@@ -3044,15 +3037,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       node.documentationComment = _newNode as CommentImpl;
       return true;
     } else if (_replaceInList(node.metadata)) {
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
-  bool visitNullAwareElement(NullAwareElement node) {
-    if (identical(node.value, _oldNode)) {
-      (node as NullAwareElementImpl).value = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);

@@ -224,7 +224,11 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check remaining functions.
-    functions.forEach(check);
+    for (var function in functions) {
+      if (!function.isEffectivelyPrivate) {
+        check(function);
+      }
+    }
 
     super.visitCompilationUnit(node);
   }

@@ -1442,8 +1442,6 @@ abstract class AstVisitor<R> {
 
   R? visitNullAssertPattern(NullAssertPattern node);
 
-  R? visitNullAwareElement(NullAwareElement node);
-
   R? visitNullCheckPattern(NullCheckPattern node);
 
   R? visitNullLiteral(NullLiteral node);
@@ -11270,47 +11268,31 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 /// A single key/value pair in a map literal.
 ///
 ///    mapLiteralEntry ::=
-///        '?'? [Expression] ':' '?'? [Expression]
+///        [Expression] ':' [Expression]
 abstract final class MapLiteralEntry implements CollectionElement {
   /// The expression computing the key with which the value is associated.
   Expression get key;
-
-  /// The question prefix for the key that may present in null-aware map
-  /// entries.
-  Token? get keyQuestion;
 
   /// The colon that separates the key from the value.
   Token get separator;
 
   /// The expression computing the value that is associated with the key.
   Expression get value;
-
-  /// The question prefix for the value that may present in null-aware map
-  /// entries.
-  Token? get valueQuestion;
 }
 
 final class MapLiteralEntryImpl extends CollectionElementImpl
     implements MapLiteralEntry {
-  @override
-  final Token? keyQuestion;
-
   ExpressionImpl _key;
 
   @override
   final Token separator;
 
-  @override
-  final Token? valueQuestion;
-
   ExpressionImpl _value;
 
   /// Initializes a newly created map literal entry.
   MapLiteralEntryImpl({
-    required this.keyQuestion,
     required ExpressionImpl key,
     required this.separator,
-    required this.valueQuestion,
     required ExpressionImpl value,
   })  : _key = key,
         _value = value {
@@ -11319,7 +11301,7 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
   }
 
   @override
-  Token get beginToken => keyQuestion ?? _key.beginToken;
+  Token get beginToken => _key.beginToken;
 
   @override
   Token get endToken => _value.endToken;
@@ -11340,10 +11322,8 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
 
   @override
   ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyQuestion', keyQuestion)
     ..addNode('key', key)
     ..addToken('separator', separator)
-    ..addToken('valueQuestion', valueQuestion)
     ..addNode('value', value);
 
   @override
@@ -12836,66 +12816,6 @@ final class NullAssertPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
-  }
-}
-
-/// A null-aware element in a list or set literal.
-///
-///    <nullAwareExpressionElement> ::= '?' <expression>
-abstract final class NullAwareElement implements CollectionElement {
-  /// The question mark before the expression.
-  Token get question;
-
-  /// The expression computing the value that is associated with the element.
-  Expression get value;
-}
-
-final class NullAwareElementImpl extends CollectionElementImpl
-    implements NullAwareElement {
-  @override
-  final Token question;
-
-  ExpressionImpl _value;
-
-  /// Initializes a newly created null-aware element.
-  NullAwareElementImpl({
-    required this.question,
-    required ExpressionImpl value,
-  }) : _value = value {
-    _becomeParentOf(_value);
-  }
-
-  @override
-  Token get beginToken => question;
-
-  @override
-  Token get endToken => _value.endToken;
-
-  @override
-  ExpressionImpl get value => _value;
-
-  set value(ExpressionImpl expression) {
-    _value = _becomeParentOf(expression);
-  }
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('question', question)
-    ..addNode('value', value);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
-
-  @override
-  void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
-    // resolver.visitNullAwareElement(this, context: context);
-    resolver.pushRewrite(null);
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    _value.accept(visitor);
   }
 }
 

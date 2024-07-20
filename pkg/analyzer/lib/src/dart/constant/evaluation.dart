@@ -1440,24 +1440,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               }
               list.addAll(listValue);
           }
-        case NullAwareElement():
-          var value = evaluateConstant(element.value);
-          switch (value) {
-            case InvalidConstant():
-              return value;
-            case DartObjectImpl():
-              if (value.isNull) {
-                continue;
-              }
-              var result = _buildListConstant(
-                list,
-                [element.value],
-                typeSystem,
-                listType,
-                elementType,
-              );
-              return result;
-          }
       }
     }
 
@@ -1548,11 +1530,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               }
               map.addAll(mapValue);
           }
-        case NullAwareElement():
-          // TODO(cstefantsova): Should it rather be its own code, for example,
-          // `CompileTimeErrorCode.NULL_AWARE_ELEMENT_IN_MAP`?
-          return InvalidConstant.forEntity(
-              element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
       }
     }
 
@@ -1629,19 +1606,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
                     CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
               }
               set.addAll(setValue);
-          }
-        case NullAwareElement():
-          var value = evaluateConstant(element.value);
-          switch (value) {
-            case InvalidConstant():
-              return value;
-            case DartObjectImpl():
-              if (value.isNull) {
-                continue;
-              }
-              var result =
-                  _buildSetConstant(set, [element.value], typeSystem, setType);
-              return result;
           }
       }
     }

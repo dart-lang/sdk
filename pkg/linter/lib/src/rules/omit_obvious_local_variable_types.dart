@@ -169,10 +169,6 @@ extension on CollectionElement {
         return self.staticType;
       case SpreadElement():
         return self.expression.staticType.elementTypeOfIterable;
-      case NullAwareElement():
-        // This should be the non-nullable version of `self.value.staticType`,
-        // but since it requires computation, we return null.
-        return null;
     }
   }
 
@@ -190,8 +186,6 @@ extension on CollectionElement {
         return self.hasObviousType;
       case SpreadElement():
         return self.expression.hasObviousType;
-      case NullAwareElement():
-        return self.value.hasObviousType;
     }
   }
 }

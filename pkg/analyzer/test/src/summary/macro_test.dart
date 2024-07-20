@@ -8460,7 +8460,7 @@ files
         libraryImports
           library_9 package:macros/macros.dart
           library_10 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -8476,7 +8476,7 @@ files
         libraryImports
           library_0
           library_10 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -14942,7 +14942,7 @@ files
       kind: library_0
         libraryImports
           library_12 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -14960,7 +14960,7 @@ files
           library_11 package:macros/macros.dart
           library_0
           library_12 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
@@ -14978,7 +14978,7 @@ files
           library_12 dart:core synthetic
         augmentationImports
           augmentation_3
-        files: file_2 file_3
+        fileKinds: library_2 augmentation_3
         cycle_2
           dependencies: cycle_1 dart:core
           libraries: library_2
@@ -15041,7 +15041,7 @@ files
       kind: library_0
         libraryImports
           library_12 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -15059,7 +15059,7 @@ files
           library_11 package:macros/macros.dart
           library_0
           library_12 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
@@ -15075,7 +15075,7 @@ files
         libraryImports
           library_1
           library_12 dart:core synthetic
-        files: file_2
+        fileKinds: library_18
         cycle_7
           dependencies: cycle_1 dart:core
           libraries: library_18
@@ -15131,7 +15131,7 @@ files
       kind: library_0
         libraryImports
           library_12 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core
           libraries: library_0
@@ -15149,7 +15149,7 @@ files
           library_11 package:macros/macros.dart
           library_0
           library_12 dart:core synthetic
-        files: file_1
+        fileKinds: library_1
         cycle_1
           dependencies: cycle_0 dart:core package:macros/macros.dart
           libraries: library_1
@@ -15167,7 +15167,7 @@ files
           library_12 dart:core synthetic
         augmentationImports
           augmentation_3
-        files: file_2 file_3
+        fileKinds: library_2 augmentation_3
         cycle_2
           dependencies: cycle_1 dart:core
           libraries: library_2
@@ -15313,7 +15313,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15331,7 +15331,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_1 augmentation_2
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -15388,7 +15388,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15406,7 +15406,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_1 augmentation_2
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -15537,7 +15537,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15555,7 +15555,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_1 augmentation_2
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -15617,7 +15617,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15630,7 +15630,7 @@ files
       kind: library_17
         libraryImports
           library_11 dart:core synthetic
-        files: file_1
+        fileKinds: library_17
         cycle_6
           dependencies: dart:core
           libraries: library_17
@@ -15694,7 +15694,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15712,7 +15712,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_18 augmentation_2
         cycle_7
           dependencies: cycle_0 dart:core
           libraries: library_18
@@ -15777,7 +15777,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15795,7 +15795,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_1 augmentation_2
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -15861,7 +15861,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15879,7 +15879,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_18
-        files: file_1 file_2
+        fileKinds: library_17 augmentation_18
         cycle_6
           dependencies: cycle_0 dart:core
           libraries: library_17
@@ -15950,7 +15950,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -15968,7 +15968,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_1 augmentation_2
         cycle_1
           dependencies: cycle_0 dart:core
           libraries: library_1
@@ -16025,7 +16025,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -16041,7 +16041,7 @@ files
         libraryImports
           library_0
           library_11 dart:core synthetic
-        files: file_1
+        fileKinds: library_17
         cycle_6
           dependencies: cycle_0 dart:core
           libraries: library_17
@@ -16095,7 +16095,7 @@ files
         libraryImports
           library_10 package:macros/macros.dart
           library_11 dart:core synthetic
-        files: file_0
+        fileKinds: library_0
         cycle_0
           dependencies: dart:core package:macros/macros.dart
           libraries: library_0
@@ -16113,7 +16113,7 @@ files
           library_11 dart:core synthetic
         augmentationImports
           augmentation_2
-        files: file_1 file_2
+        fileKinds: library_17 augmentation_2
         cycle_6
           dependencies: cycle_0 dart:core
           libraries: library_17
