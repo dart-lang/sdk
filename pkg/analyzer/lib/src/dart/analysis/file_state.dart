@@ -337,7 +337,7 @@ abstract class FileKind {
   FileKind({
     required this.file,
   }) {
-    invalidateLibraryCycle();
+    disposeLibraryCycle();
   }
 
   /// When [library] returns `null`, this getter is used to look at this
@@ -549,13 +549,26 @@ abstract class FileKind {
 
   @mustCallSuper
   void dispose() {
-    invalidateLibraryCycle();
+    disposeLibraryCycle();
 
     _augmentationImports?.disposeAll();
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
     _partIncludes?.disposeAll();
     _docImports?.disposeAll();
+  }
+
+  /// Dispose the containing [LibraryFileKind] cycle.
+  void disposeLibraryCycle() {
+    // Macro generated files never add new dependencies.
+    // So, there is no reason to dispose.
+    if (file.isMacroAugmentation) {
+      return;
+    }
+
+    for (var reference in file.referencingFiles) {
+      reference.kind.disposeLibraryCycle();
+    }
   }
 
   bool hasAugmentation(AugmentationFileKind augmentation) {
@@ -588,19 +601,6 @@ abstract class FileKind {
         libraryImports
             .whereType<LibraryImportWithFile>()
             .any((import) => import.importedFile == file);
-  }
-
-  /// Invalidates the containing [LibraryFileKind] cycle.
-  void invalidateLibraryCycle() {
-    // Macro generated files never add new dependencies.
-    // So, there is no reason to dispose.
-    if (file.isMacroAugmentation) {
-      return;
-    }
-
-    for (var reference in file.referencingFiles) {
-      reference.kind.invalidateLibraryCycle();
-    }
   }
 
   /// Creates a [LibraryImportState] with the given unlinked [directive].
@@ -2288,7 +2288,13 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     super.dispose();
   }
 
-  /// When the library cycle that contains this library is invalidated, the
+  @override
+  void disposeLibraryCycle() {
+    _libraryCycle?.dispose();
+    _libraryCycle = null;
+  }
+
+  /// When the library cycle that contains this library is disposed, the
   /// macros might potentially generate different code, or no code at all. So,
   /// we discard the existing macro augmentation library, it will be rebuilt
   /// during linking.
@@ -2308,12 +2314,6 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     _libraryCycle = cycle;
     // Keep the merged augmentation file, as we do for normal files.
     disposeMacroAugmentations(disposeFiles: false);
-  }
-
-  @override
-  void invalidateLibraryCycle() {
-    _libraryCycle?.invalidate();
-    _libraryCycle = null;
   }
 
   void removeLastMacroAugmentation() {

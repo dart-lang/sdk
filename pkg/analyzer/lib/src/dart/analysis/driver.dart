@@ -2032,7 +2032,7 @@ class AnalysisDriver {
     for (var file in affected) {
       var kind = file.kind;
       if (kind is LibraryFileKind) {
-        kind.invalidateLibraryCycle();
+        kind.disposeLibraryCycle();
       }
       accumulatedAffected.add(file.path);
     }

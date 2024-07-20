@@ -81,6 +81,15 @@ const double myDouble = 4200;
 ''');
   }
 
+  Future<void> test_scientificWithCapitalE() async {
+    await resolveTestCode('''
+const double myDouble = /*caret*/4.2E3;
+''');
+    await assertHasAssist('''
+const double myDouble = 4200;
+''');
+  }
+
   Future<void> test_scientificWithSeparators() async {
     await resolveTestCode('''
 const double myDouble = /*caret*/4_00.200_000e3;

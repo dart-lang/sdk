@@ -47,7 +47,7 @@ class ConvertToIntLiteral extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      if (!literal.literal.lexeme.contains('e')) {
+      if (!literal.literal.lexeme.toLowerCase().contains('e')) {
         var indexOfDecimal = literal.literal.lexeme.indexOf('.');
         if (indexOfDecimal > 0) {
           // Preserve digit separators by just truncating the existing lexeme.
