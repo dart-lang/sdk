@@ -70,15 +70,15 @@ final class Platform {
   /// A string representing the operating system or platform.
   ///
   /// Possible values include:
-  ///   "android"
-  ///   "fuchsia"
-  ///   "ios"
-  ///   "linux"
-  ///   "macos"
-  ///   "windows"
+  /// * "android"
+  /// * "fuchsia"
+  /// * "ios"
+  /// * "linux"
+  /// * "macos"
+  /// * "windows"
   ///
   /// Note that this list may change over time so platform-specific logic
-  /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
+  /// should be guarded by the appropriate Boolean getter e.g. [isMacOS].
   @pragma("vm:platform-const")
   static final operatingSystem = _Platform.operatingSystem;
 
