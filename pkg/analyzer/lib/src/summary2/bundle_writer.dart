@@ -736,6 +736,10 @@ class BundleWriter {
 
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
+
+    _writeList(unitElement.libraryImports, _writeImportElement);
+    _writeList(unitElement.libraryExports, _writeExportElement);
+
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);

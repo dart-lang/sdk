@@ -733,6 +733,20 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   final Source librarySource;
 
+  /// The libraries exported by this unit.
+  List<LibraryExportElementImpl> _libraryExports =
+      _Sentinel.libraryExportElement;
+
+  /// The libraries imported by this unit.
+  List<LibraryImportElementImpl> _libraryImports =
+      _Sentinel.libraryImportElement;
+
+  /// The cached list of prefixes from [libraryImports].
+  List<PrefixElementImpl>? _libraryImportPrefixes;
+
+  /// The parts included by this unit.
+  List<PartElementImpl> _parts = const <PartElementImpl>[];
+
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
   List<PropertyAccessorElementImpl> _accessors = const [];
@@ -884,6 +898,46 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
+  List<LibraryExportElementImpl> get libraryExports {
+    linkedData?.read(this);
+    return _libraryExports;
+  }
+
+  set libraryExports(List<LibraryExportElementImpl> exports) {
+    for (var exportElement in exports) {
+      exportElement.enclosingElement = this;
+    }
+    _libraryExports = exports;
+  }
+
+  List<LibraryExportElementImpl> get libraryExports_unresolved {
+    return _libraryExports;
+  }
+
+  @override
+  List<PrefixElementImpl> get libraryImportPrefixes {
+    return _libraryImportPrefixes ??= _buildPrefixesFromImports();
+  }
+
+  @override
+  List<LibraryImportElementImpl> get libraryImports {
+    linkedData?.read(this);
+    return _libraryImports;
+  }
+
+  set libraryImports(List<LibraryImportElementImpl> imports) {
+    for (var importElement in imports) {
+      importElement.enclosingElement = this;
+    }
+    _libraryImports = imports;
+    _libraryImportPrefixes = null;
+  }
+
+  List<LibraryImportElementImpl> get libraryImports_unresolved {
+    return _libraryImports;
+  }
+
+  @override
   List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
@@ -900,6 +954,20 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       mixin_.enclosingElement = this;
     }
     _mixins = mixins;
+  }
+
+  @override
+  List<PartElementImpl> get parts => _parts;
+
+  set parts(List<PartElementImpl> parts) {
+    for (var part in parts) {
+      part.enclosingElement = this;
+      var uri = part.uri;
+      if (uri is DirectiveUriWithUnitImpl) {
+        uri.unit.enclosingElement = this;
+      }
+    }
+    _parts = parts;
   }
 
   @override
@@ -982,6 +1050,17 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     reference.element = this;
 
     this.linkedData = linkedData;
+  }
+
+  List<PrefixElementImpl> _buildPrefixesFromImports() {
+    var prefixes = <PrefixElementImpl>{};
+    for (var import in libraryImports) {
+      var prefix = import.prefix?.element;
+      if (prefix != null) {
+        prefixes.add(prefix);
+      }
+    }
+    return prefixes.toFixedList();
   }
 }
 

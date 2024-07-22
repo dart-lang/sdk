@@ -172,6 +172,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
 class CompilationUnitElementLinkedData
     extends ElementLinkedData<CompilationUnitElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   CompilationUnitElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -185,7 +187,29 @@ class CompilationUnitElementLinkedData
   }
 
   @override
-  void _read(element, reader) {}
+  void _read(element, reader) {
+    for (var import in element.libraryImports) {
+      import.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      var uri = import.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
+    }
+
+    for (var export in element.libraryExports) {
+      export.metadata = reader._readAnnotationList(
+        unitElement: unitElement,
+      );
+      var uri = export.uri;
+      if (uri is DirectiveUriWithLibraryImpl) {
+        uri.library = reader.libraryOfUri(uri.source.uri);
+      }
+    }
+
+    applyConstantOffsets?.perform();
+  }
 }
 
 class ConstructorElementLinkedData
@@ -912,7 +936,7 @@ class LibraryReader {
   }
 
   DirectiveUri _readDirectiveUri({
-    required LibraryOrAugmentationElementImpl container,
+    required ElementImpl container,
   }) {
     DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
       var relativeUriString = _reader.readStringReference();
@@ -956,7 +980,7 @@ class LibraryReader {
       case DirectiveUriKind.withAugmentation:
         var parent = readWithSource();
         var augmentation = _readAugmentationElement(
-          augmentationTarget: container,
+          augmentationTarget: container as LibraryOrAugmentationElementImpl,
           unitSource: parent.source,
         );
         return DirectiveUriWithAugmentationImpl(
@@ -975,7 +999,7 @@ class LibraryReader {
       case DirectiveUriKind.withUnit:
         var parent = readWithSource();
         var unitElement = _readUnitElement(
-          containerSource: container.source,
+          containerSource: container.source!,
           unitSource: parent.source,
           unitContainerRef: _reference.getChild('@unit'),
         );
@@ -1061,7 +1085,7 @@ class LibraryReader {
   }
 
   LibraryExportElementImpl _readExportElement({
-    required LibraryOrAugmentationElementImpl container,
+    required ElementImpl container,
   }) {
     return LibraryExportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
@@ -1273,7 +1297,7 @@ class LibraryReader {
   }
 
   LibraryImportElementImpl _readImportElement({
-    required LibraryOrAugmentationElementImpl container,
+    required ElementImpl container,
   }) {
     var element = LibraryImportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
@@ -1290,7 +1314,7 @@ class LibraryReader {
   }
 
   ImportElementPrefixImpl? _readImportElementPrefix({
-    required LibraryOrAugmentationElementImpl container,
+    required ElementImpl container,
   }) {
     PrefixElementImpl buildElement(String name) {
       // TODO(scheglov): Make reference required.
@@ -1818,6 +1842,18 @@ class LibraryReader {
 
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
+
+    unitElement.libraryImports = _reader.readTypedList(() {
+      return _readImportElement(
+        container: unitElement,
+      );
+    });
+
+    unitElement.libraryExports = _reader.readTypedList(() {
+      return _readExportElement(
+        container: unitElement,
+      );
+    });
 
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);

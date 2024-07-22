@@ -764,6 +764,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static uValue @80
         type: Future<int> Function()
@@ -1316,6 +1318,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: int
@@ -1388,6 +1392,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: int
@@ -1418,6 +1424,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: int
@@ -1490,6 +1498,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: int
@@ -1775,6 +1785,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static vFuture @25
         type: Future<int>
@@ -6119,6 +6131,8 @@ library
   imports
     package:test/other.dart
   definingUnit
+    libraryImports
+      package:test/other.dart
     classes
       class A1 @27
         constructors

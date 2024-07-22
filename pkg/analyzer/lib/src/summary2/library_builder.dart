@@ -1065,16 +1065,20 @@ class LibraryBuilder with MacroApplicationsContainer {
     required LibraryOrAugmentationFileKind kind,
     required LibraryOrAugmentationElementImpl container,
   }) {
-    container.libraryExports = kind.libraryExports.map((state) {
+    var definingUnit = container.definingCompilationUnit;
+
+    definingUnit.libraryExports = kind.libraryExports.map((state) {
       return _buildExport(state);
     }).toFixedList();
+    container.libraryExports = definingUnit.libraryExports;
 
-    container.libraryImports = kind.libraryImports.map((state) {
+    definingUnit.libraryImports = kind.libraryImports.map((state) {
       return _buildImport(
         container: container,
         state: state,
       );
     }).toFixedList();
+    container.libraryImports = definingUnit.libraryImports;
 
     container.augmentationImports = kind.augmentationImports.map((state) {
       return _buildAugmentationImport(

@@ -4478,6 +4478,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class B @49
         augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B
@@ -4552,6 +4554,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         classes
           augment class B @60
             augmentationTarget: self::@class::B
@@ -4607,6 +4611,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         classes
           augment class B @60
             augmentationTarget: self::@class::B
@@ -4643,6 +4649,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class B @49
         augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B
@@ -5530,6 +5538,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         functions
           f @51
             parameters
@@ -5577,6 +5587,8 @@ library
       imports
         package:test/a.dart as prefix @48
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix @48
         functions
           f @61
             parameters
@@ -5647,6 +5659,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         topLevelVariables
           static const b @52
             type: int
@@ -5687,6 +5701,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         topLevelVariables
           static const b @52
             type: int
@@ -5735,6 +5751,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         topLevelVariables
           static const a @52
             type: A
@@ -5782,6 +5800,8 @@ library
       imports
         package:test/a.dart as prefix @48
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix @48
         topLevelVariables
           static const b @62
             type: int
@@ -5839,6 +5859,8 @@ library
       imports
         package:test/a.dart as prefix @48
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix @48
         functions
           f @74
             metadata
@@ -5887,6 +5909,8 @@ library
       imports
         package:test/a.dart as prefix @48
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix @48
         functions
           f @65
             returnType: A
@@ -5916,6 +5940,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         topLevelVariables
           static final b @52
             type: int
@@ -5955,6 +5981,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         functions
           f @48
             returnType: A
@@ -5984,6 +6012,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     functions
       f @44
         returnType: A
@@ -6016,16 +6046,23 @@ library
   imports
     dart:io
   definingUnit
+    libraryImports
+      dart:io
   augmentationImports
     package:test/a.dart
       exports
         dart:async
       definingUnit
+        libraryExports
+          dart:async
     package:test/b.dart
       exports
         dart:collection
         dart:math
       definingUnit
+        libraryExports
+          dart:collection
+          dart:math
 ''');
   }
 
@@ -6049,16 +6086,23 @@ library
   imports
     dart:io
   definingUnit
+    libraryImports
+      dart:io
   augmentationImports
     package:test/a.dart
       imports
         dart:async
       definingUnit
+        libraryImports
+          dart:async
     package:test/b.dart
       imports
         dart:collection
         dart:math
       definingUnit
+        libraryImports
+          dart:collection
+          dart:math
 ''');
   }
 
@@ -8308,6 +8352,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
     classes
       class C @25
         constructors
@@ -8338,6 +8384,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
     classes
       class C @25
         typeParameters
@@ -8375,6 +8423,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @32
         constructors
@@ -8405,6 +8455,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @32
         typeParameters
@@ -8605,6 +8657,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
     classes
       class C @25
         constructors
@@ -8635,6 +8689,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
     classes
       class C @25
         typeParameters
@@ -8673,6 +8729,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
     classes
       class C @25
         constructors
@@ -8703,6 +8761,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @32
         constructors
@@ -8733,6 +8793,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @32
         typeParameters
@@ -8771,6 +8833,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @32
         constructors
@@ -10776,6 +10840,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class A @24
         fields
@@ -10998,6 +11064,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class C @23
         fields
@@ -11947,6 +12015,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     classes
       class C @27
         constructors
@@ -11969,6 +12039,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     classes
       class C @27
         constructors
@@ -15071,6 +15143,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class alias A @23
         supertype: Object
@@ -15307,6 +15381,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class M @23
         constructors
@@ -15368,6 +15444,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class M @23
         constructors
@@ -18942,6 +19020,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: C<int, String>
@@ -19007,6 +19087,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: C<int, String>
@@ -19233,6 +19315,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: C<int, String>
@@ -19285,6 +19369,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: C<int, String>
@@ -19425,6 +19511,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: C
@@ -19468,6 +19556,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: C
@@ -19588,6 +19678,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: C
@@ -19631,6 +19723,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: InvalidType
@@ -19797,6 +19891,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: C
@@ -19835,6 +19931,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: C
@@ -19903,6 +20001,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: InvalidType
@@ -20072,6 +20172,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const v @27
         type: int
@@ -20117,6 +20219,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const v @32
         type: int
@@ -20233,6 +20337,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const v @23
         type: int
@@ -20269,6 +20375,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const v @28
         type: int
@@ -21170,6 +21278,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const b @23
         type: int
@@ -21389,6 +21499,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: int
@@ -21427,6 +21539,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: int
@@ -21517,6 +21631,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: int Function(int, String)
@@ -21555,6 +21671,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: int Function(int, String)
@@ -21702,6 +21820,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const V @23
         type: dynamic Function()
@@ -21730,6 +21850,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const V @28
         type: dynamic Function()
@@ -21806,6 +21928,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const B @23
         type: int
@@ -21842,6 +21966,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const B @28
         type: int
@@ -22111,6 +22237,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const vClass @23
         type: Type
@@ -22163,6 +22291,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const vClass @28
         type: Type
@@ -22318,6 +22448,8 @@ library
   imports
     package:test/foo.dart as p @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as p @21
     topLevelVariables
       static const V @30
         type: InvalidType
@@ -23706,6 +23838,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static const v @23
         type: List<C>
@@ -23741,6 +23875,8 @@ library
   imports
     package:test/a.dart as p @19
   definingUnit
+    libraryImports
+      package:test/a.dart as p @19
     topLevelVariables
       static const v @28
         type: List<C>
@@ -28664,6 +28800,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
@@ -28684,6 +28822,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
@@ -28709,6 +28849,8 @@ library
   exports
     package:test/foo.dart
   definingUnit
+    libraryExports
+      package:test/foo.dart
   exportedReferences
     exported[(0, 0)] package:test/foo.dart::@class::A
   exportNamespace
@@ -28737,6 +28879,8 @@ library
   exports
     package:test/foo_io.dart
   definingUnit
+    libraryExports
+      package:test/foo_io.dart
   exportedReferences
     exported[(0, 0)] package:test/foo_io.dart::@class::A
   exportNamespace
@@ -28765,6 +28909,8 @@ library
   exports
     package:test/foo_html.dart
   definingUnit
+    libraryExports
+      package:test/foo_html.dart
   exportedReferences
     exported[(0, 0)] package:test/foo_html.dart::@class::A
   exportNamespace
@@ -28790,6 +28936,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
     classes
       class X @23
         constructors
@@ -28812,6 +28960,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@function::f
   exportNamespace
@@ -28827,6 +28977,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -28848,6 +29000,10 @@ library
       combinators
         hide: A, C
   definingUnit
+    libraryExports
+      package:test/a.dart
+        combinators
+          hide: A, C
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@class::B
     exported[(0, 0)] package:test/a.dart::@class::D
@@ -28876,6 +29032,11 @@ library
         hide: A
         show: C
   definingUnit
+    libraryExports
+      package:test/a.dart
+        combinators
+          hide: A
+          show: C
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
@@ -28911,6 +29072,9 @@ library
     package:test/b.dart
     package:test/c.dart
   definingUnit
+    libraryExports
+      package:test/b.dart
+      package:test/c.dart
     classes
       class X @40
         constructors
@@ -28937,6 +29101,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
@@ -28962,6 +29128,10 @@ library
       combinators
         show: A, C
   definingUnit
+    libraryExports
+      package:test/a.dart
+        combinators
+          show: A, C
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@class::A
     exported[(0, 0)] package:test/a.dart::@class::C
@@ -28985,6 +29155,10 @@ library
       combinators
         show: f
   definingUnit
+    libraryExports
+      package:test/a.dart
+        combinators
+          show: f
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@getter::f
     exported[(0, 0)] package:test/a.dart::@setter::f
@@ -29003,6 +29177,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@typeAlias::F
   exportNamespace
@@ -29028,6 +29204,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@getter::x
     exported[(0, 0)] package:test/a.dart::@setter::x
@@ -29046,6 +29224,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
@@ -29062,6 +29242,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
   exportedReferences
     exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
@@ -29090,6 +29272,8 @@ library
   imports
     package:test/bar.dart
   definingUnit
+    libraryImports
+      package:test/bar.dart
     classes
       class B @25
         supertype: A
@@ -29123,6 +29307,8 @@ library
   imports
     package:test/bar.dart
   definingUnit
+    libraryImports
+      package:test/bar.dart
     classes
       class B @25
         supertype: A
@@ -29156,6 +29342,8 @@ library
   imports
     package:test/bar.dart
   definingUnit
+    libraryImports
+      package:test/bar.dart
     classes
       class B @25
         supertype: A
@@ -29178,6 +29366,9 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
+      package:test/b.dart
   exportedReferences
   exportNamespace
 ''');
@@ -29261,11 +29452,16 @@ library
       exports
         package:test/a.dart
       definingUnit
+        libraryExports
+          package:test/a.dart
     package:test/e.dart
       exports
         package:test/b.dart
         package:test/c.dart
       definingUnit
+        libraryExports
+          package:test/b.dart
+          package:test/c.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B1
@@ -29311,6 +29507,10 @@ library
           combinators
             hide: A2, A4
       definingUnit
+        libraryExports
+          package:test/a.dart
+            combinators
+              hide: A2, A4
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
@@ -29351,6 +29551,10 @@ library
           combinators
             show: A1, A3
       definingUnit
+        libraryExports
+          package:test/a.dart
+            combinators
+              show: A1, A3
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
@@ -29482,11 +29686,15 @@ library
       exports
         package:test/a.dart
       definingUnit
+        libraryExports
+          package:test/a.dart
       augmentationImports
         package:test/d.dart
           exports
             package:test/b.dart
           definingUnit
+            libraryExports
+              package:test/b.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B
@@ -29677,6 +29885,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     functions
       f @28 async
         returnType: Future<dynamic>
@@ -29693,6 +29903,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     functions
       f @28 async*
         returnType: Stream<dynamic>
@@ -29735,6 +29947,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -29748,6 +29962,10 @@ library
       combinators
         hide: main
   definingUnit
+    libraryExports
+      package:test/a.dart
+        combinators
+          hide: main
 ''');
   }
 
@@ -30475,6 +30693,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static x @35
         type: FutureOr<int>
@@ -30500,6 +30720,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static const x @27
         type: Type
@@ -30532,6 +30754,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static x @52
         type: FutureOr<int>
@@ -31359,6 +31583,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       synthetic static foo @-1
         type: Stream<int>
@@ -31656,6 +31882,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
     classes
       class B @104
         supertype: A
@@ -31687,6 +31915,8 @@ library
   imports
     package:test/foo_io.dart
   definingUnit
+    libraryImports
+      package:test/foo_io.dart
     classes
       class B @104
         supertype: A
@@ -31718,6 +31948,8 @@ library
   imports
     package:test/foo_io.dart
   definingUnit
+    libraryImports
+      package:test/foo_io.dart
     classes
       class B @124
         supertype: A
@@ -31749,6 +31981,8 @@ library
   imports
     package:test/foo_html.dart
   definingUnit
+    libraryImports
+      package:test/foo_html.dart
     classes
       class B @104
         supertype: A
@@ -31780,6 +32014,8 @@ library
   imports
     package:test/foo_html.dart
   definingUnit
+    libraryImports
+      package:test/foo_html.dart
     classes
       class B @124
         supertype: A
@@ -31802,6 +32038,9 @@ library
     dart:core
     dart:math
   definingUnit
+    libraryImports
+      dart:core
+      dart:math
 ''');
   }
 
@@ -31814,6 +32053,8 @@ library
   imports
     dart:math
   definingUnit
+    libraryImports
+      dart:math
 ''');
   }
 
@@ -31827,6 +32068,8 @@ library
   imports
     package:test/a.dart deferred as p @28
   definingUnit
+    libraryImports
+      package:test/a.dart deferred as p @28
 ''');
   }
 
@@ -31850,6 +32093,14 @@ library
     dart:math
     dart:math
   definingUnit
+    libraryImports
+      dart:async as i1 @23
+      dart:async as i2 @70
+      dart:async as i3 @117
+    libraryExports
+      dart:math
+      dart:math
+      dart:math
 ''');
   }
 
@@ -31864,6 +32115,10 @@ library
       combinators
         hide: Stream, Completer
   definingUnit
+    libraryImports
+      dart:async
+        combinators
+          hide: Stream, Completer
     topLevelVariables
       static f @51
         type: Future<dynamic>
@@ -31914,6 +32169,16 @@ library
             staticType: null
           element: <null>
   definingUnit
+    libraryImports
+      relativeUri 'ht:'
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: foo @1
+              staticElement: <null>
+              staticType: null
+            element: <null>
 ''');
   }
 
@@ -31930,6 +32195,11 @@ library
         hide: Stream
         show: Future
   definingUnit
+    libraryImports
+      dart:async
+        combinators
+          hide: Stream
+          show: Future
     topLevelVariables
       static f @52
         type: Future<dynamic>
@@ -31956,6 +32226,8 @@ library
   imports
     package:test/a.dart as a @19
   definingUnit
+    libraryImports
+      package:test/a.dart as a @19
     topLevelVariables
       static c @26
         type: C
@@ -31985,6 +32257,8 @@ library
   imports
     package:test/test.dart as p @22
   definingUnit
+    libraryImports
+      package:test/test.dart as p @22
     classes
       class C @31
         constructors
@@ -32010,6 +32284,10 @@ library
       combinators
         show: Future, Stream
   definingUnit
+    libraryImports
+      dart:async
+        combinators
+          show: Future, Stream
     topLevelVariables
       static f @48
         type: Future<dynamic>
@@ -32063,6 +32341,9 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
+      package:test/b.dart
     topLevelVariables
       static c @36
         type: C
@@ -32818,6 +33099,8 @@ library
   imports
     dart:collection
   definingUnit
+    libraryImports
+      dart:collection
     topLevelVariables
       static m @30
         type: HashMap<dynamic, dynamic>
@@ -32954,6 +33237,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: int
@@ -32980,6 +33265,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: int?
@@ -33006,6 +33293,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: void Function()
@@ -33032,6 +33321,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static x @21
         type: void Function()?
@@ -33215,6 +33506,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class C @23
         supertype: D
@@ -33394,6 +33687,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class B @23
         supertype: A
@@ -33477,6 +33772,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     topLevelVariables
       static a1 @30
         type: A
@@ -33653,6 +33950,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static v @25
         type: Future<int> Function(Future<Future<Future<int>>>)
@@ -33678,6 +33977,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static v @25
         type: Future<int> Function(Future<int>)
@@ -33703,6 +34004,8 @@ library
   imports
     dart:async
   definingUnit
+    libraryImports
+      dart:async
     topLevelVariables
       static v @25
         type: Future<dynamic> Function(Future<dynamic>)
@@ -33791,6 +34094,8 @@ library
   imports
     package:test/nullSafe.dart
   definingUnit
+    libraryImports
+      package:test/nullSafe.dart
     classes
       class X1 @30
         supertype: NullSafeDefault
@@ -33972,6 +34277,8 @@ library
   imports
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/b.dart
     classes
       class C @23
         constructors
@@ -34194,6 +34501,8 @@ library
   imports
     package:test/a.dart as a @19
   definingUnit
+    libraryImports
+      package:test/a.dart as a @19
     classes
       class C @39
         metadata
@@ -34238,6 +34547,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class C @32
         metadata
@@ -34273,6 +34584,8 @@ library
   imports
     dart:async as ppp @23
   definingUnit
+    libraryImports
+      dart:async as ppp @23
     classes
       class C @34
         fields
@@ -34305,6 +34618,9 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
+      package:test/b.dart
     functions
       foo @34
         parameters
@@ -34335,6 +34651,8 @@ library
   imports
     package:test/c.dart
   definingUnit
+    libraryImports
+      package:test/c.dart
     functions
       foo @17
         parameters
@@ -34657,6 +34975,8 @@ library
   exports
     noRelativeUriString
   definingUnit
+    libraryExports
+      noRelativeUriString
 ''');
   }
 
@@ -34669,6 +34989,8 @@ library
   exports
     package:test/test.dart
   definingUnit
+    libraryExports
+      package:test/test.dart
 ''');
   }
 
@@ -34681,6 +35003,8 @@ library
   exports
     relativeUri 'foo:bar'
   definingUnit
+    libraryExports
+      relativeUri 'foo:bar'
 ''');
   }
 
@@ -34693,6 +35017,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -34708,6 +35034,8 @@ library
   exports
     source 'package:test/a.dart'
   definingUnit
+    libraryExports
+      source 'package:test/a.dart'
 ''');
   }
 
@@ -34723,6 +35051,8 @@ library
   exports
     source 'package:test/a.dart'
   definingUnit
+    libraryExports
+      source 'package:test/a.dart'
 ''');
   }
 
@@ -34735,6 +35065,8 @@ library
   exports
     relativeUriString ':'
   definingUnit
+    libraryExports
+      relativeUriString ':'
 ''');
   }
 
@@ -34747,6 +35079,8 @@ library
   imports
     noRelativeUriString
   definingUnit
+    libraryImports
+      noRelativeUriString
 ''');
   }
 
@@ -34770,6 +35104,8 @@ library
   imports
     dart:core synthetic
   definingUnit
+    libraryImports
+      dart:core synthetic
 ''');
   }
 
@@ -34782,6 +35118,8 @@ library
   imports
     package:test/test.dart
   definingUnit
+    libraryImports
+      package:test/test.dart
 ''');
   }
 
@@ -34794,6 +35132,8 @@ library
   imports
     relativeUri 'foo:bar'
   definingUnit
+    libraryImports
+      relativeUri 'foo:bar'
 ''');
   }
 
@@ -34806,6 +35146,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
 ''');
   }
 
@@ -34821,6 +35163,8 @@ library
   imports
     source 'package:test/a.dart'
   definingUnit
+    libraryImports
+      source 'package:test/a.dart'
 ''');
   }
 
@@ -34836,6 +35180,8 @@ library
   imports
     source 'package:test/a.dart'
   definingUnit
+    libraryImports
+      source 'package:test/a.dart'
 ''');
   }
 
@@ -34848,6 +35194,8 @@ library
   imports
     relativeUriString ':'
   definingUnit
+    libraryImports
+      relativeUriString ':'
 ''');
   }
 
@@ -35215,6 +35563,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -35226,6 +35576,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -35251,6 +35603,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -35275,6 +35629,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -35305,6 +35661,8 @@ library
   exports
     package:test/a.dart
   definingUnit
+    libraryExports
+      package:test/a.dart
 ''');
   }
 
@@ -35388,6 +35746,16 @@ library
                 staticType: null
               element: dart:core::@getter::deprecated
       definingUnit
+        libraryExports
+          dart:math
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::@getter::deprecated
+                  staticType: null
+                element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -35448,6 +35816,16 @@ library
                 staticType: null
               element: dart:core::@getter::deprecated
       definingUnit
+        libraryImports
+          dart:math
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::@getter::deprecated
+                  staticType: null
+                element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -35938,6 +36316,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @48
         metadata
@@ -35989,6 +36369,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @48
         metadata
@@ -36044,6 +36426,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @52
         metadata
@@ -36305,6 +36689,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @42
         metadata
@@ -36351,6 +36737,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @42
         metadata
@@ -36399,6 +36787,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @46
         metadata
@@ -37280,6 +37670,16 @@ library
             staticType: null
           element: self::@getter::a
   definingUnit
+    libraryExports
+      package:test/foo.dart
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: a @1
+              staticElement: self::@getter::a
+              staticType: null
+            element: self::@getter::a
     topLevelVariables
       static const a @28
         type: dynamic
@@ -37841,6 +38241,16 @@ library
             staticType: null
           element: self::@getter::a
   definingUnit
+    libraryImports
+      dart:math
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: a @1
+              staticElement: self::@getter::a
+              staticType: null
+            element: self::@getter::a
     topLevelVariables
       static const a @29
         type: int
@@ -37885,6 +38295,18 @@ library
       combinators
         show: Random
   definingUnit
+    libraryImports
+      dart:math
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: a @1
+              staticElement: self::@getter::a
+              staticType: null
+            element: self::@getter::a
+        combinators
+          show: Random
     topLevelVariables
       static const a @42
         type: int
@@ -39583,6 +40005,8 @@ library
   imports
     package:test/a.dart as a @19
   definingUnit
+    libraryImports
+      package:test/a.dart as a @19
     classes
       class C @33
         metadata
@@ -40273,6 +40697,8 @@ library
   imports
     package:test/foo.dart as foo @21
   definingUnit
+    libraryImports
+      package:test/foo.dart as foo @21
     classes
       class C @41
         metadata
@@ -41196,6 +41622,8 @@ library
   imports
     package:test/c.dart
   definingUnit
+    libraryImports
+      package:test/c.dart
     topLevelVariables
       static v @19
         type: C
@@ -41227,6 +41655,8 @@ library
   imports
     package:test/d.dart
   definingUnit
+    libraryImports
+      package:test/d.dart
     topLevelVariables
       static v @19
         type: C
@@ -41262,6 +41692,8 @@ library
   imports
     package:test/c.dart
   definingUnit
+    libraryImports
+      package:test/c.dart
     topLevelVariables
       static v @19
         type: C
@@ -41295,6 +41727,9 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
+      package:test/b.dart
     topLevelVariables
       static v @36
         type: A
@@ -44010,6 +44445,8 @@ library
   imports
     package:test/a.dart deferred as a @28
   definingUnit
+    libraryImports
+      package:test/a.dart deferred as a @28
     topLevelVariables
       static x @35
         type: Future<dynamic> Function()
@@ -44081,6 +44518,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static y @21
         type: int
@@ -44400,6 +44839,9 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
+      package:test/b.dart
     topLevelVariables
       static v @38
         type: InvalidType
@@ -45556,6 +45998,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static c @19
         type: C
@@ -45601,6 +46045,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static c @19
         type: C
@@ -45647,6 +46093,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static c @19
         type: C
@@ -45693,6 +46141,8 @@ library
   imports
     package:test/a/a.dart
   definingUnit
+    libraryImports
+      package:test/a/a.dart
     topLevelVariables
       static c @21
         type: C
@@ -45738,6 +46188,8 @@ library
   imports
     package:test/a/a.dart
   definingUnit
+    libraryImports
+      package:test/a/a.dart
     topLevelVariables
       static c @21
         type: C
@@ -45783,6 +46235,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static c @19
         type: C
@@ -45829,6 +46283,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static c1 @20
         type: C1
@@ -45862,6 +46318,8 @@ library
   imports
     package:test/a/b.dart
   definingUnit
+    libraryImports
+      package:test/a/b.dart
     topLevelVariables
       static c @21
         type: C
@@ -45906,6 +46364,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static c @19
         type: C
@@ -46083,6 +46543,8 @@ library
   imports
     dart:core as core @22
   definingUnit
+    libraryImports
+      dart:core as core @22
     topLevelVariables
       static c @35
         type: InvalidType
@@ -48550,6 +49012,8 @@ library
   imports
     dart:async as foo @23
   definingUnit
+    libraryImports
+      dart:async as foo @23
     classes
       class C @43
         metadata
@@ -48617,6 +49081,8 @@ library
   imports
     dart:async as foo @23
   definingUnit
+    libraryImports
+      dart:async as foo @23
     classes
       class C @49
         metadata
@@ -48656,6 +49122,8 @@ library
   imports
     dart:async as foo @23
   definingUnit
+    libraryImports
+      dart:async as foo @23
     classes
       class C @52
         metadata
@@ -48726,6 +49194,8 @@ library
   imports
     dart:async as foo @23
   definingUnit
+    libraryImports
+      dart:async as foo @23
     classes
       class C @45
         metadata
@@ -48788,6 +49258,9 @@ library
     package:test/a.dart
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
+      package:test/b.dart
     classes
       class C @44
         metadata
@@ -48833,6 +49306,8 @@ library
   exports
     package:test/foo.dart
   definingUnit
+    libraryExports
+      package:test/foo.dart
 ''');
   }
 
@@ -48847,6 +49322,8 @@ library
   imports
     package:test/foo.dart
   definingUnit
+    libraryImports
+      package:test/foo.dart
 ''');
   }
 
@@ -49344,6 +49821,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     topLevelVariables
       static final b @23
         type: double
@@ -49407,6 +49886,8 @@ library
   imports
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/b.dart
     topLevelVariables
       static final x @23
         type: C
@@ -55082,6 +55563,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     enums
       enum B @48
         augmentation: self::@augmentation::package:test/b.dart::@enumAugmentation::B
@@ -55200,6 +55683,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         enums
           augment enum B @59
             augmentationTarget: self::@enum::B
@@ -55277,6 +55762,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         enums
           augment enum B @59
             augmentationTarget: self::@enum::B
@@ -60126,6 +60613,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     extensionTypes
       A @32
         representation: self::@extensionType::A::@field::it
@@ -60473,6 +60962,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     extensionTypes
       A @37
         metadata
@@ -64046,6 +64537,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     mixins
       mixin B @49
         augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
@@ -64118,6 +64611,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         mixins
           augment mixin B @60
             augmentationTarget: self::@mixin::B
@@ -64169,6 +64664,8 @@ library
       imports
         package:test/a.dart
       definingUnit
+        libraryImports
+          package:test/a.dart
         mixins
           augment mixin B @60
             augmentationTarget: self::@mixin::B
@@ -64205,6 +64702,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     mixins
       mixin B @49
         augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B

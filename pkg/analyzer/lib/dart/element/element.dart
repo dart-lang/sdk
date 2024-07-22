@@ -403,11 +403,25 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The top-level functions declared in this compilation unit.
   List<FunctionElement> get functions;
 
+  /// The libraries exported by this unit.
+  List<LibraryExportElement> get libraryExports;
+
+  /// The prefixes used by [libraryImports].
+  ///
+  /// Each prefix can be used in more than one `import` directive.
+  List<PrefixElement> get libraryImportPrefixes;
+
+  /// The libraries imported by this unit.
+  List<LibraryImportElement> get libraryImports;
+
   /// The [LineInfo] for the [source].
   LineInfo get lineInfo;
 
   /// The mixins declared in this compilation unit.
   List<MixinElement> get mixins;
+
+  /// The parts included by this unit.
+  List<PartElement> get parts;
 
   @override
   AnalysisSession get session;

@@ -1495,6 +1495,16 @@ class _ElementWriter {
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
     _writeReference(e);
+
+    if (configuration.withImports) {
+      var imports = e.libraryImports.where((import) {
+        return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
+      }).toList();
+      _writeElements('libraryImports', imports, _writeImportElement);
+    }
+    _writeElements('libraryExports', e.libraryExports, _writeExportElement);
+    _writeElements('partIncludes', e.parts, _writePartElement);
+
     _writeElements('classes', e.classes, _writeInterfaceElement);
     _writeElements('enums', e.enums, _writeInterfaceElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
