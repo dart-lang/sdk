@@ -185,13 +185,13 @@ class ErrorData {
 }
 
 extension on ErrorCode {
-  /// Whether this [errorCode] is likely to have a fix associated with
+  /// Whether this [ErrorCode] is likely to have a fix associated with
   /// it.
   bool get hasFix {
     var self = this;
     if (self is LintCode) {
       var lintName = self.name;
-      return FixProcessor.lintProducerMap.containsKey(lintName) ||
+      return FixProcessor.lintProducerMap.containsKey(self) ||
           FixProcessor.lintMultiProducerMap.containsKey(lintName);
     }
     return FixProcessor.nonLintProducerMap.containsKey(self) ||

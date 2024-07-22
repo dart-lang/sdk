@@ -42,7 +42,7 @@ class FixProcessor {
   /// the lint, so most of the keys are constants defined by [LintNames]. But
   /// when a lint produces multiple codes, each with a different unique name,
   /// the unique name must be used here.
-  static final Map<String, List<ProducerGenerator>> lintProducerMap = {};
+  static final Map<LintCode, List<ProducerGenerator>> lintProducerMap = {};
 
   /// A map from error codes to a list of generators used to create multiple
   /// correction producers used to build fixes for those diagnostics.
@@ -131,7 +131,7 @@ class FixProcessor {
     List<MultiProducerGenerator>? multiGenerators;
     if (errorCode is LintCode) {
       var uniqueLintName = errorCode.uniqueLintName;
-      generators = lintProducerMap[uniqueLintName];
+      generators = lintProducerMap[errorCode];
       multiGenerators = lintMultiProducerMap[uniqueLintName];
     } else {
       generators = nonLintProducerMap[errorCode];
@@ -172,7 +172,7 @@ class FixProcessor {
 
     return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {
       if (errorCode is LintCode) {
-        var producers = FixProcessor.lintProducerMap[errorCode.name];
+        var producers = FixProcessor.lintProducerMap[errorCode];
         if (hasBulkFixProducers(producers)) {
           return true;
         }
@@ -194,9 +194,10 @@ class FixProcessor {
   }
 
   /// Associates the given correction producer [generator] with the lint with
-  /// the given [lintName].
-  static void registerFixForLint(String lintName, ProducerGenerator generator) {
-    lintProducerMap.putIfAbsent(lintName, () => []).add(generator);
+  /// the given [lintCode].
+  static void registerFixForLint(
+      LintCode lintCode, ProducerGenerator generator) {
+    lintProducerMap.putIfAbsent(lintCode, () => []).add(generator);
   }
 }
 

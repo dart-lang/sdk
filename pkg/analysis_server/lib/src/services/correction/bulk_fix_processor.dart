@@ -741,7 +741,7 @@ class BulkFixProcessor {
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
-        var generators = FixProcessor.lintProducerMap[codeName] ?? [];
+        var generators = FixProcessor.lintProducerMap[errorCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;

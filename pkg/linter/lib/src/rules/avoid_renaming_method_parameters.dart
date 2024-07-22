@@ -47,7 +47,7 @@ abstract class B extends A {
 ''';
 
 class AvoidRenamingMethodParameters extends LintRule {
-  static const LintCode parameterCode = LintCode(
+  static const LintCode code = LintCode(
       'avoid_renaming_method_parameters',
       "The parameter name '{0}' doesn't match the name '{1}' in the overridden "
           'method.',
@@ -62,7 +62,7 @@ class AvoidRenamingMethodParameters extends LintRule {
             categories: {Category.documentationCommentMaintenance});
 
   @override
-  LintCode get lintCode => parameterCode;
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

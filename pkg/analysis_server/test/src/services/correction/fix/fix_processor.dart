@@ -90,7 +90,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   @override
   List<String> get experiments => const [];
 
-  /// Return the lint code being tested.
+  /// The name of the lint code being tested.
   String? get lintCode => null;
 
   /// The workspace in which fixes contributor operates.
