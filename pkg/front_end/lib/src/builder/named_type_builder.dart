@@ -192,7 +192,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  void resolveIn(Scope scope, int charOffset, Uri fileUri,
+  void resolveIn(LookupScope scope, int charOffset, Uri fileUri,
       ProblemReporting problemReporting) {
     if (_declaration != null) return;
     Builder? member;

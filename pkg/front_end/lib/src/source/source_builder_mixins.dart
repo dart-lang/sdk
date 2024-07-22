@@ -48,7 +48,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   /// library.
   void buildInternal(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
         checkForInstanceVsStaticConflict: true,
         checkForMethodVsSetterConflict: true);
 
@@ -94,13 +94,13 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       }
     }
 
-    scope.unfilteredNameIterator.forEach(buildBuilders);
+    nameSpace.unfilteredNameIterator.forEach(buildBuilders);
     constructorScope.unfilteredNameIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    Iterator<SourceMemberBuilder> iterator = scope
+    Iterator<SourceMemberBuilder> iterator = nameSpace
         .filteredIterator<SourceMemberBuilder>(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .join(constructorScope.filteredIterator<SourceMemberBuilder>(
@@ -132,7 +132,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
         libraryBuilder.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
           Builder? setterDeclaration =
-              scope.lookupLocalMember(builder.name, setter: true);
+              nameSpace.lookupLocalMember(builder.name, setter: true);
           if (setterDeclaration != null) {
             libraryBuilder.checkGetterSetterTypes(builder,
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
@@ -181,7 +181,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       }
     }
 
-    Iterator<SourceMemberBuilder> iterator = scope.filteredIterator(
+    Iterator<SourceMemberBuilder> iterator = nameSpace.filteredIterator(
         parent: this, includeDuplicates: false, includeAugmentations: true);
     while (iterator.moveNext()) {
       iterator.current.buildOutlineExpressions(
@@ -296,7 +296,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
     while (iterator.moveNext()) {
       String name = iterator.name;
       MemberBuilder constructor = iterator.current;
-      Builder? member = scope.lookupLocalMember(name, setter: false);
+      Builder? member = nameSpace.lookupLocalMember(name, setter: false);
       if (member == null) continue;
       if (!member.isStatic) continue;
       // TODO(ahe): Revisit these messages. It seems like the last two should
@@ -317,7 +317,7 @@ mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
       }
     }
 
-    scope.forEachLocalSetter((String name, Builder setter) {
+    nameSpace.forEachLocalSetter((String name, Builder setter) {
       Builder? constructor = constructorScope.lookupLocalMember(name);
       if (constructor == null || !setter.isStatic) return;
       // Coverage-ignore-block(suite): Not run.

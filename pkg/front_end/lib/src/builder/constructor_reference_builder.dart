@@ -34,7 +34,7 @@ class ConstructorReferenceBuilder {
         "${suffix == null ? '' : '.$suffix'}";
   }
 
-  void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
+  void resolveIn(LookupScope scope, LibraryBuilder accessingLibrary) {
     Builder? declaration;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {

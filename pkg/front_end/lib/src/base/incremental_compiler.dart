@@ -640,7 +640,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
-            for (Builder builder in builder.scope.localMembers) {
+            for (Builder builder in builder.nameSpace.localMembers) {
               if (builder is DillClassBuilder) {
                 builder.clearCachedValues();
               }
@@ -1042,7 +1042,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (builder.isBuiltAndMarked) {
           // Clear cached calculations in classes which upon calculation can
           // mark things as needed.
-          for (Builder builder in builder.scope.localMembers) {
+          for (Builder builder in builder.nameSpace.localMembers) {
             if (builder is DillClassBuilder) {
               builder.clearCachedValues();
             }
@@ -1886,8 +1886,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        Builder? scopeMember =
-            libraryBuilder.scope.lookupLocalMember(className, setter: false);
+        Builder? scopeMember = libraryBuilder.nameSpace
+            .lookupLocalMember(className, setter: false);
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
         } else {
@@ -1902,8 +1902,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder =
-              libraryBuilder.scope.lookupLocalMember(beforeDot, setter: false);
+          Builder? builder = libraryBuilder.nameSpace
+              .lookupLocalMember(beforeDot, setter: false);
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
@@ -1983,14 +1983,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         isPatch: false,
       );
       debugLibrary.compilationUnit.createLibrary();
-      libraryBuilder.scope.forEachLocalMember((name, member) {
-        debugLibrary.scope.addLocalMember(name, member, setter: false);
+      libraryBuilder.nameSpace.forEachLocalMember((name, member) {
+        debugLibrary.nameSpace.addLocalMember(name, member, setter: false);
       });
-      libraryBuilder.scope.forEachLocalSetter((name, member) {
-        debugLibrary.scope.addLocalMember(name, member, setter: true);
+      libraryBuilder.nameSpace.forEachLocalSetter((name, member) {
+        debugLibrary.nameSpace.addLocalMember(name, member, setter: true);
       });
-      libraryBuilder.scope.forEachLocalExtension((member) {
-        debugLibrary.scope.addExtension(member);
+      libraryBuilder.nameSpace.forEachLocalExtension((member) {
+        debugLibrary.nameSpace.addExtension(member);
       });
       _ticker.logMs("Created debug library");
 

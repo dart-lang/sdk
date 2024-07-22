@@ -39,7 +39,7 @@ void main() {}
   ];
   for (LibraryBuilder builder in builders) {
     if (builder is! DillLibraryBuilder) continue;
-    builder.scope.forEachLocalMember((name, member) {
+    builder.nameSpace.forEachLocalMember((name, member) {
       if (member is! DillTypeAliasBuilder) return;
       try {
         member.type;

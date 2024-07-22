@@ -7,6 +7,8 @@ part of 'declaration_builders.dart';
 abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   Scope get scope;
 
+  NameSpace get nameSpace;
+
   LibraryBuilder get libraryBuilder;
 
   @override
@@ -49,22 +51,10 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     implements IDeclarationBuilder {
   @override
-  final Scope scope;
-
-  @override
-  final ConstructorScope constructorScope;
-
-  @override
   final Uri fileUri;
 
-  DeclarationBuilderImpl(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      LibraryBuilder parent,
-      int charOffset,
-      this.scope,
-      this.constructorScope)
+  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
+      String name, LibraryBuilder parent, int charOffset)
       : fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 

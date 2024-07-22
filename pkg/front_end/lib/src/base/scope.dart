@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: annotate_overrides
+
 library fasta.scope;
 
 import 'package:kernel/ast.dart';
@@ -178,7 +180,68 @@ class MutableScope {
   String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local?.keys})";
 }
 
-class Scope extends MutableScope implements ParentScope, LookupScope {
+abstract class NameSpace {
+  void addLocalMember(String name, Builder member, {required bool setter});
+
+  Builder? lookupLocalMember(String name, {required bool setter});
+
+  void forEachLocalMember(void Function(String name, Builder member) f);
+
+  void forEachLocalSetter(void Function(String name, MemberBuilder member) f);
+
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f);
+
+  Iterable<Builder> get localMembers;
+
+  /// Returns an iterator of all members and setters mapped in this scope,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// The iterator does _not_ include the members and setters mapped in the
+  /// [parent] scope.
+  Iterator<Builder> get unfilteredIterator;
+
+  /// Returns an iterator of all members and setters mapped in this scope,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// The iterator does _not_ include the members and setters mapped in the
+  /// [parent] scope.
+  ///
+  /// Compared to [unfilteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator get unfilteredNameIterator;
+
+  /// Returns a filtered iterator of members and setters mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+
+  /// Returns a filtered iterator of members and setters mapped in this scope.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<T> filteredNameIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+}
+
+class Scope extends MutableScope
+    implements ParentScope, LookupScope, NameSpace {
   /// Indicates whether an attempt to declare new names in this scope should
   /// succeed.
   final bool isModifiable;

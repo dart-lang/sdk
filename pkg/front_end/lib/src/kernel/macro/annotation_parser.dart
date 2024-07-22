@@ -28,7 +28,7 @@ List<MacroApplication>? prebuildAnnotations(
     {required SourceLibraryBuilder enclosingLibrary,
     required List<MetadataBuilder>? metadataBuilders,
     required Uri fileUri,
-    required Scope scope,
+    required LookupScope scope,
     required Set<ClassBuilder> currentMacroDeclarations}) {
   if (metadataBuilders == null) return null;
   List<MacroApplication>? result;
@@ -154,7 +154,7 @@ class _MacroListener implements Listener {
   @override
   final Uri uri;
 
-  final Scope scope;
+  final LookupScope scope;
 
   final List<_Node> _stack = [];
 

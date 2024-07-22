@@ -58,7 +58,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   }
 
   void forEach(void f(String name, Builder builder)) {
-    scope
+    nameSpace
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: false)
         .forEach(f);
@@ -72,7 +72,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
       {bool setter = false, bool required = false}) {
     // TODO(johnniwinther): Support augmented on extensions/extension type
     //  declarations.
-    Builder? builder = scope.lookupLocalMember(name, setter: setter);
+    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

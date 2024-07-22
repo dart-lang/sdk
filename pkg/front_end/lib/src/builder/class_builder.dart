@@ -177,16 +177,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
 
-  ClassBuilderImpl(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      Scope scope,
-      ConstructorScope constructorScope,
-      LibraryBuilder parent,
-      int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset, scope,
-            constructorScope);
+  ClassBuilderImpl(List<MetadataBuilder>? metadata, int modifiers, String name,
+      LibraryBuilder parent, int charOffset)
+      : super(metadata, modifiers, name, parent, charOffset);
 
   @override
   String get debugName => "ClassBuilder";
@@ -236,10 +229,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    Builder? builder = scope.lookupLocalMember(name, setter: setter);
+    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
     if (builder == null && isAugmenting) {
       // Coverage-ignore-block(suite): Not run.
-      builder = origin.scope.lookupLocalMember(name, setter: setter);
+      builder = origin.nameSpace.lookupLocalMember(name, setter: setter);
     }
     if (required && builder == null) {
       internalProblem(

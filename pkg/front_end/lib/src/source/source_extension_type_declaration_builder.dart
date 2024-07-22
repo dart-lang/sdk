@@ -56,6 +56,12 @@ class SourceExtensionTypeDeclarationBuilder
   MergedClassMemberScope? _mergedScope;
 
   @override
+  final Scope scope;
+
+  @override
+  final ConstructorScope constructorScope;
+
+  @override
   final List<NominalVariableBuilder>? typeParameters;
 
   @override
@@ -75,8 +81,8 @@ class SourceExtensionTypeDeclarationBuilder
       this.typeParameters,
       this.interfaceBuilders,
       this.typeParameterScope,
-      Scope scope,
-      ConstructorScope constructorScope,
+      this.scope,
+      this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
       int startOffset,
@@ -91,8 +97,10 @@ class SourceExtensionTypeDeclarationBuilder
                 typeParameters),
             reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset, scope,
-            constructorScope);
+        super(metadata, modifiers, name, parent, nameOffset);
+
+  @override
+  NameSpace get nameSpace => scope;
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -686,16 +694,16 @@ class SourceExtensionTypeDeclarationBuilder
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceExtensionTypeDeclarationBuilder) {
       augmentation._origin = this;
-      scope.forEachLocalMember((String name, Builder member) {
+      nameSpace.forEachLocalMember((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: false);
+            augmentation.nameSpace.lookupLocalMember(name, setter: false);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }
       });
-      scope.forEachLocalSetter((String name, Builder member) {
+      nameSpace.forEachLocalSetter((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: true);
+            augmentation.nameSpace.lookupLocalMember(name, setter: true);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }

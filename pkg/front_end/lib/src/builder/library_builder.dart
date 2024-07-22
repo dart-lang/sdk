@@ -260,6 +260,8 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 abstract class LibraryBuilder implements Builder, ProblemReporting {
   Scope get scope;
 
+  NameSpace get nameSpace;
+
   Scope get exportScope;
 
   List<Export> get exporters;
@@ -420,19 +422,19 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   Iterator<Builder> get localMembersIterator {
-    return scope.filteredIterator(
+    return nameSpace.filteredIterator(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
   Iterator<T> localMembersIteratorOfType<T extends Builder>() {
-    return scope.filteredIterator<T>(
+    return nameSpace.filteredIterator<T>(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
   @override
   NameIterator<Builder> get localMembersNameIterator {
-    return scope.filteredNameIterator(
+    return nameSpace.filteredNameIterator(
         parent: this, includeDuplicates: true, includeAugmentations: true);
   }
 
@@ -523,7 +525,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   Builder? lookupLocalMember(String name, {bool required = false}) {
-    Builder? builder = scope.lookupLocalMember(name, setter: false);
+    Builder? builder = nameSpace.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

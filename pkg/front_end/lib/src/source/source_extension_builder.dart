@@ -33,6 +33,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   MergedClassMemberScope? _mergedScope;
 
   @override
+  final Scope scope;
+
+  @override
+  final ConstructorScope constructorScope;
+
+  @override
   final List<NominalVariableBuilder>? typeParameters;
 
   @override
@@ -50,7 +56,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.typeParameters,
       this.onType,
       this.typeParameterScope,
-      Scope scope,
+      this.scope,
       SourceLibraryBuilder parent,
       int startOffset,
       int nameOffset,
@@ -65,10 +71,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
           ..isExtensionTypeDeclaration = false
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, extensionName.name, parent, nameOffset,
-            scope) {
+        constructorScope = new ConstructorScope(extensionName.name, const {}),
+        super(metadata, modifiers, extensionName.name, parent, nameOffset) {
     extensionName.attachExtension(_extension);
   }
+
+  @override
+  NameSpace get nameSpace => scope;
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -197,16 +206,16 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       // TODO(johnniwinther): Check that type parameters and on-type match
       // with origin declaration.
 
-      scope.forEachLocalMember((String name, Builder member) {
+      nameSpace.forEachLocalMember((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: false);
+            augmentation.nameSpace.lookupLocalMember(name, setter: false);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }
       });
-      scope.forEachLocalSetter((String name, Builder member) {
+      nameSpace.forEachLocalSetter((String name, Builder member) {
         Builder? memberAugmentation =
-            augmentation.scope.lookupLocalMember(name, setter: true);
+            augmentation.nameSpace.lookupLocalMember(name, setter: true);
         if (memberAugmentation != null) {
           member.applyAugmentation(memberAugmentation);
         }
