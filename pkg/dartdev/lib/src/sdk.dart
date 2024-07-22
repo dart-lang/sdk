@@ -30,7 +30,15 @@ class Sdk {
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
   // if the SDK isn't completely built.
-  String get dart => Platform.executable;
+  String get dart => path.absolute(
+        _runFromBuildRoot
+            ? sdkPath
+            : path.absolute(
+                sdkPath,
+                'bin',
+              ),
+        path.basename(Platform.executable),
+      );
 
   String get dartAotRuntime => _runFromBuildRoot
       ? path.absolute(
