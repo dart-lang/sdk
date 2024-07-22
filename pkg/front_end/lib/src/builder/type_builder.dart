@@ -491,7 +491,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   TypeName get typeName;
 
-  void resolveIn(Scope scope, int charOffset, Uri fileUri,
+  void resolveIn(LookupScope scope, int charOffset, Uri fileUri,
       ProblemReporting problemReporting);
   void bind(
       ProblemReporting problemReporting, TypeDeclarationBuilder declaration);

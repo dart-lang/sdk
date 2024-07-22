@@ -228,7 +228,7 @@ class SourceLoaderTest extends SourceLoader {
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext,
-      Scope scope,
+      LookupScope scope,
       Uri fileUri,
       {LocalScope? formalParameterScope}) {
     return bodyBuilderCreator.createForOutlineExpression(
@@ -240,7 +240,7 @@ class SourceLoaderTest extends SourceLoader {
   BodyBuilder createBodyBuilderForField(
       SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
-      Scope enclosingScope,
+      LookupScope enclosingScope,
       TypeInferrer typeInferrer,
       Uri uri) {
     return bodyBuilderCreator.createForField(
@@ -257,8 +257,8 @@ class DietListenerTest extends DietListener {
   @override
   BodyBuilder createListenerInternal(
       BodyBuilderContext bodyBuilderContext,
-      Scope memberScope,
-      Scope? formalParameterScope,
+      LookupScope memberScope,
+      LocalScope? formalParameterScope,
       VariableDeclaration? extensionThis,
       List<TypeParameter>? extensionTypeParameters,
       TypeInferrer typeInferrer,
@@ -281,8 +281,8 @@ class DietListenerTest extends DietListener {
 typedef BodyBuilderCreatorUnnamed = BodyBuilderTest Function(
     {required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext context,
-    required Scope enclosingScope,
-    Scope? formalParameterScope,
+    required LookupScope enclosingScope,
+    LocalScope? formalParameterScope,
     required ClassHierarchy hierarchy,
     required CoreTypes coreTypes,
     VariableDeclaration? thisVariable,
@@ -293,14 +293,14 @@ typedef BodyBuilderCreatorUnnamed = BodyBuilderTest Function(
 typedef BodyBuilderCreatorForField = BodyBuilderTest Function(
     SourceLibraryBuilder libraryBuilder,
     BodyBuilderContext bodyBuilderContext,
-    Scope enclosingScope,
+    LookupScope enclosingScope,
     TypeInferrer typeInferrer,
     Uri uri);
 
 typedef BodyBuilderCreatorForOutlineExpression = BodyBuilderTest Function(
     SourceLibraryBuilder library,
     BodyBuilderContext bodyBuilderContext,
-    Scope scope,
+    LookupScope scope,
     Uri fileUri,
     {LocalScope? formalParameterScope});
 
@@ -321,8 +321,8 @@ class BodyBuilderTest extends BodyBuilder {
   BodyBuilderTest(
       {required SourceLibraryBuilder libraryBuilder,
       required BodyBuilderContext context,
-      required Scope enclosingScope,
-      Scope? formalParameterScope,
+      required LookupScope enclosingScope,
+      LocalScope? formalParameterScope,
       required ClassHierarchy hierarchy,
       required CoreTypes coreTypes,
       VariableDeclaration? thisVariable,
@@ -332,8 +332,8 @@ class BodyBuilderTest extends BodyBuilder {
       : super(
             libraryBuilder: libraryBuilder,
             context: context,
-            enclosingScope: enclosingScope.toLocalScope(),
-            formalParameterScope: formalParameterScope?.toLocalScope(),
+            enclosingScope: new EnclosingLocalScope(enclosingScope),
+            formalParameterScope: formalParameterScope,
             hierarchy: hierarchy,
             coreTypes: coreTypes,
             thisVariable: thisVariable,
@@ -345,7 +345,7 @@ class BodyBuilderTest extends BodyBuilder {
   BodyBuilderTest.forField(
       SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
-      Scope enclosingScope,
+      LookupScope enclosingScope,
       TypeInferrer typeInferrer,
       Uri uri)
       : super.forField(libraryBuilder, bodyBuilderContext, enclosingScope,
@@ -353,7 +353,7 @@ class BodyBuilderTest extends BodyBuilder {
 
   @override
   BodyBuilderTest.forOutlineExpression(SourceLibraryBuilder library,
-      BodyBuilderContext bodyBuilderContext, Scope scope, Uri fileUri,
+      BodyBuilderContext bodyBuilderContext, LookupScope scope, Uri fileUri,
       {LocalScope? formalParameterScope})
       : super.forOutlineExpression(library, bodyBuilderContext, scope, fileUri,
             formalParameterScope: formalParameterScope);

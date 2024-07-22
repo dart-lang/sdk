@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
-import '../base/scope.dart' show Scope;
+import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -41,7 +41,7 @@ class MetadataBuilder {
       BodyBuilderContext bodyBuilderContext,
       SourceLibraryBuilder library,
       Uri fileUri,
-      Scope scope,
+      LookupScope scope,
       {bool createFileUriExpression = false}) {
     if (metadata == null) return;
 

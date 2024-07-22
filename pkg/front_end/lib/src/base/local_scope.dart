@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../builder/builder.dart';
-import '../builder/member_builder.dart';
 import '../kernel/body_builder.dart' show JumpTarget;
 import 'scope.dart';
 
@@ -43,19 +42,16 @@ abstract class LocalScope implements LookupScope {
   void addLocalMember(String name, Builder member, {required bool setter});
 
   void declareLabel(String name, JumpTarget target);
+
   JumpTarget? lookupLabel(String name);
 
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri);
+
   @override
   Builder? lookupSetter(String name, int charOffset, Uri uri);
 
   Map<String, List<int>>? get usedNames;
-
-  Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
 
   SwitchScope get switchScope;
 }
@@ -85,24 +81,13 @@ abstract base class BaseLocalScope implements LocalScope {
   }
 }
 
-mixin LocalScopeMixin implements LocalScope {
-  LocalScope? get _parent;
+mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
+  LookupScope? get _parent;
 
   Map<String, Builder>? get _local;
 
-  String get classNameOrDebugName;
-
   @override
-  Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
-    return new FilteredIterator<T>(
-        new ScopeIterator.fromIterators(_local?.values.iterator, null, null),
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
-  }
+  String get classNameOrDebugName;
 
   @override
   Iterable<Builder> get localMembers => _local?.values ?? const {};
@@ -126,43 +111,15 @@ mixin LocalScopeMixin implements LocalScope {
   @override
   Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
     recordUse(name, charOffset);
-    Builder? builder;
-    if (_local != null) {
-      builder = lookupIn(name, charOffset, fileUri, _local!);
-      if (builder != null && !builder.hasProblem) {
-        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-      }
-    }
+    Builder? builder = lookupSetterIn(name, charOffset, fileUri, _local);
     return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
 
   void recordUse(String name, int charOffset) {}
-
-  Builder? lookupIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder> map) {
-    Builder? builder = map[name];
-    if (builder == null) return null;
-    if (builder.next != null) {
-      return new AmbiguousBuilder(
-          name.isEmpty
-              ?
-              // Coverage-ignore(suite): Not run.
-              classNameOrDebugName
-              : name,
-          builder,
-          charOffset,
-          fileUri);
-    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
-      return null;
-    } else {
-      return builder;
-    }
-  }
 }
 
 final class LocalScopeImpl extends BaseLocalScope
-    with LocalScopeMixin, SwitchScopeMixin
+    with LookupScopeMixin, LocalScopeMixin, SwitchScopeMixin
     implements LocalScope, SwitchScope {
   @override
   final LocalScope? _parent;
@@ -304,7 +261,7 @@ mixin ImmutableLocalScopeMixin implements LocalScope {
 }
 
 final class FixedLocalScope extends BaseLocalScope
-    with ImmutableLocalScopeMixin, LocalScopeMixin {
+    with LookupScopeMixin, ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
   final LocalScope? _parent;
   @override
@@ -334,28 +291,42 @@ final class FixedLocalScope extends BaseLocalScope
       "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
 }
 
-final class EnclosingLocalScope extends BaseLocalScope
-    with ImmutableLocalScopeMixin {
-  final Scope _scope;
+final class FormalParameterScope extends BaseLocalScope
+    with LookupScopeMixin, ImmutableLocalScopeMixin, LocalScopeMixin {
+  @override
+  final LookupScope? _parent;
+  @override
+  final Map<String, Builder>? _local;
 
-  EnclosingLocalScope(this._scope);
+  FormalParameterScope({LookupScope? parent, Map<String, Builder>? local})
+      : _parent = parent,
+        _local = local;
 
   @override
-  Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
-    return _scope.filteredIterator(
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
-  }
+  ScopeKind get kind => ScopeKind.formals;
+
+  @override
+  JumpTarget? lookupLabel(String name) => null;
+
+  @override
+  String get classNameOrDebugName => "formal parameter";
+
+  @override
+  String toString() =>
+      "$runtimeType(${kind}, $classNameOrDebugName, ${_local?.keys})";
+}
+
+final class EnclosingLocalScope extends BaseLocalScope
+    with ImmutableLocalScopeMixin {
+  final LookupScope _scope;
+
+  EnclosingLocalScope(this._scope);
 
   @override
   ScopeKind get kind => _scope.kind;
 
   @override
-  Iterable<Builder> get localMembers => _scope.localMembers;
+  Iterable<Builder> get localMembers => const [];
 
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri) {
@@ -366,9 +337,7 @@ final class EnclosingLocalScope extends BaseLocalScope
   JumpTarget? lookupLabel(String name) => null;
 
   @override
-  Builder? lookupLocalMember(String name, {required bool setter}) {
-    return _scope.lookupLocalMember(name, setter: setter);
-  }
+  Builder? lookupLocalMember(String name, {required bool setter}) => null;
 
   @override
   Builder? lookupSetter(String name, int charOffset, Uri uri) {

@@ -52,6 +52,12 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
+  @override
+  final Scope scope;
+
+  @override
+  final ConstructorScope constructorScope;
+
   List<NominalVariableBuilder>? _typeVariables;
 
   TypeBuilder? _supertypeBuilder;
@@ -59,20 +65,20 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, DillLibraryBuilder parent)
-      : super(
-            /*metadata builders*/ null,
-            computeModifiers(cls),
-            cls.name,
-            new Scope(
-                kind: ScopeKind.declaration,
-                local: <String, MemberBuilder>{},
-                setters: <String, MemberBuilder>{},
-                parent: parent.scope,
-                debugName: "class ${cls.name}",
-                isModifiable: false),
+      : scope = new Scope(
+            kind: ScopeKind.declaration,
+            local: <String, MemberBuilder>{},
+            setters: <String, MemberBuilder>{},
+            parent: parent.scope,
+            debugName: "class ${cls.name}",
+            isModifiable: false),
+        constructorScope =
             new ConstructorScope(cls.name, <String, MemberBuilder>{}),
-            parent,
-            cls.fileOffset);
+        super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
+            parent, cls.fileOffset);
+
+  @override
+  NameSpace get nameSpace => scope;
 
   @override
   bool get isEnum => cls.isEnum;
@@ -137,7 +143,7 @@ class DillClassBuilder extends ClassBuilderImpl
   void addField(Field field) {
     DillFieldBuilder builder = new DillFieldBuilder(field, this);
     String name = field.name.text;
-    scope.addLocalMember(name, builder, setter: false);
+    nameSpace.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
@@ -160,19 +166,19 @@ class DillClassBuilder extends ClassBuilderImpl
         // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillSetterBuilder(procedure, this),
             setter: true);
         break;
       case ProcedureKind.Getter:
-        scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillGetterBuilder(procedure, this),
             setter: false);
         break;
       case ProcedureKind.Operator:
-        scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillOperatorBuilder(procedure, this),
             setter: false);
         break;
       case ProcedureKind.Method:
-        scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+        nameSpace.addLocalMember(name, new DillMethodBuilder(procedure, this),
             setter: false);
         break;
     }

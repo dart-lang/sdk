@@ -91,10 +91,16 @@ class SourceClassBuilder extends ClassBuilderImpl
   final Class actualCls;
 
   @override
+  final Scope scope;
+
+  @override
+  final ConstructorScope constructorScope;
+
+  @override
   List<NominalVariableBuilder>? typeVariables;
 
   /// The scope in which the [typeParameters] are declared.
-  final Scope typeParameterScope;
+  final LookupScope typeParameterScope;
 
   @override
   TypeBuilder? supertypeBuilder;
@@ -166,8 +172,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       this.typeParameterScope,
-      Scope scope,
-      ConstructorScope constructors,
+      this.scope,
+      this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
@@ -188,10 +194,12 @@ class SourceClassBuilder extends ClassBuilderImpl
             startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, scope, constructors, parent,
-            nameOffset) {
+        super(metadata, modifiers, name, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
+
+  @override
+  NameSpace get nameSpace => scope;
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ?
@@ -215,7 +223,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       super.libraryBuilder as SourceLibraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, scope,
+    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
         // These checks are performed as part of the class hierarchy
         // computation.
         checkForInstanceVsStaticConflict: false,
@@ -253,7 +261,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    scope.unfilteredIterator.forEach(buildBuilders);
+    nameSpace.unfilteredIterator.forEach(buildBuilders);
     constructorScope.unfilteredIterator.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
@@ -396,7 +404,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         .filteredIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
-    scope
+    nameSpace
         .filteredIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
@@ -652,14 +660,14 @@ class SourceClassBuilder extends ClassBuilderImpl
               hierarchyBuilder.getNodeFromClass(interfaceClass);
           for (String restrictedMemberName in restrictedNames) {
             // TODO(johnniwinther): Handle injected members.
-            Builder? member = superclassHierarchyNode.classBuilder.scope
+            Builder? member = superclassHierarchyNode.classBuilder.nameSpace
                 .lookupLocalMember(restrictedMemberName, setter: false);
             if (member is MemberBuilder && !member.isAbstract) {
               restrictedMembersInSuperclasses[restrictedMemberName] ??=
                   superclassHierarchyNode.classBuilder;
             }
           }
-          Builder? member = superclassHierarchyNode.classBuilder.scope
+          Builder? member = superclassHierarchyNode.classBuilder.nameSpace
               .lookupLocalMember("values", setter: false);
           if (member is MemberBuilder && !member.isAbstract) {
             superclassDeclaringConcreteValues ??= member.classBuilder;
@@ -680,7 +688,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
         // Instance members named `values` are restricted.
         Builder? customValuesDeclaration =
-            scope.lookupLocalMember("values", setter: false);
+            nameSpace.lookupLocalMember("values", setter: false);
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -696,7 +704,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               fileUri);
         }
         customValuesDeclaration =
-            scope.lookupLocalMember("values", setter: true);
+            nameSpace.lookupLocalMember("values", setter: true);
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -724,7 +732,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // operator == are restricted.
         for (String restrictedMemberName in restrictedNames) {
           Builder? member =
-              scope.lookupLocalMember(restrictedMemberName, setter: false);
+              nameSpace.lookupLocalMember(restrictedMemberName, setter: false);
           if (member is MemberBuilder && !member.isAbstract) {
             libraryBuilder.addProblem(
                 templateEnumImplementerContainsRestrictedInstanceDeclaration
@@ -1165,7 +1173,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    scope
+    nameSpace
         .filteredIterator(
             parent: this, includeDuplicates: true, includeAugmentations: true)
         .forEach(buildMembers);

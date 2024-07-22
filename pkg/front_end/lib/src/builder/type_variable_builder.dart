@@ -401,7 +401,7 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
       BodyBuilderContext bodyBuilderContext,
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
-      Scope scope) {
+      LookupScope scope) {
     MetadataBuilder.buildAnnotations(parameter, metadata, bodyBuilderContext,
         libraryBuilder, fileUri!, scope);
   }

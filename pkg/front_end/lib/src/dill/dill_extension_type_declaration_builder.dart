@@ -19,6 +19,12 @@ class DillExtensionTypeDeclarationBuilder
     with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
+  @override
+  final Scope scope;
+
+  @override
+  final ConstructorScope constructorScope;
+
   List<NominalVariableBuilder>? _typeParameters;
 
   List<TypeBuilder>? _interfaceBuilders;
@@ -27,23 +33,23 @@ class DillExtensionTypeDeclarationBuilder
 
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, DillLibraryBuilder parent)
-      : super(
+      : scope = new Scope(
+            kind: ScopeKind.declaration,
+            local: <String, MemberBuilder>{},
+            setters: <String, MemberBuilder>{},
+            parent: parent.scope,
+            debugName: "extension type ${_extensionTypeDeclaration.name}",
+            isModifiable: false),
+        constructorScope = new ConstructorScope(
+            _extensionTypeDeclaration.name, <String, MemberBuilder>{}),
+        super(
             /*metadata builders*/
             null,
             /* modifiers*/
             0,
             _extensionTypeDeclaration.name,
             parent,
-            _extensionTypeDeclaration.fileOffset,
-            new Scope(
-                kind: ScopeKind.declaration,
-                local: <String, MemberBuilder>{},
-                setters: <String, MemberBuilder>{},
-                parent: parent.scope,
-                debugName: "extension type ${_extensionTypeDeclaration.name}",
-                isModifiable: false),
-            new ConstructorScope(
-                _extensionTypeDeclaration.name, <String, MemberBuilder>{})) {
+            _extensionTypeDeclaration.fileOffset) {
     for (Procedure procedure in _extensionTypeDeclaration.procedures) {
       String name = procedure.name.text;
       switch (procedure.kind) {
@@ -54,19 +60,20 @@ class DillExtensionTypeDeclarationBuilder
               "$procedure (${procedure.kind}).");
         case ProcedureKind.Setter:
           // Coverage-ignore(suite): Not run.
-          scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+          nameSpace.addLocalMember(name, new DillSetterBuilder(procedure, this),
               setter: true);
           break;
         case ProcedureKind.Getter:
-          scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+          nameSpace.addLocalMember(name, new DillGetterBuilder(procedure, this),
               setter: false);
           break;
         case ProcedureKind.Operator:
-          scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+          nameSpace.addLocalMember(
+              name, new DillOperatorBuilder(procedure, this),
               setter: false);
           break;
         case ProcedureKind.Method:
-          scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+          nameSpace.addLocalMember(name, new DillMethodBuilder(procedure, this),
               setter: false);
           break;
       }
@@ -78,7 +85,7 @@ class DillExtensionTypeDeclarationBuilder
         case ExtensionTypeMemberKind.Method:
           if (descriptor.isStatic) {
             Procedure procedure = descriptor.memberReference.asProcedure;
-            scope.addLocalMember(
+            nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionTypeStaticMethodBuilder(
                     procedure, descriptor, this),
@@ -89,7 +96,7 @@ class DillExtensionTypeDeclarationBuilder
             assert(
                 tearOff != null, // Coverage-ignore(suite): Not run.
                 "No tear found for ${descriptor}");
-            scope.addLocalMember(
+            nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionTypeInstanceMethodBuilder(
                     procedure, descriptor, this, tearOff!),
@@ -98,25 +105,25 @@ class DillExtensionTypeDeclarationBuilder
           break;
         case ExtensionTypeMemberKind.Getter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          scope.addLocalMember(name.text,
+          nameSpace.addLocalMember(name.text,
               new DillExtensionTypeGetterBuilder(procedure, descriptor, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Field:
           Field field = descriptor.memberReference.asField;
-          scope.addLocalMember(name.text,
+          nameSpace.addLocalMember(name.text,
               new DillExtensionTypeFieldBuilder(field, descriptor, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Setter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          scope.addLocalMember(name.text,
+          nameSpace.addLocalMember(name.text,
               new DillExtensionTypeSetterBuilder(procedure, descriptor, this),
               setter: true);
           break;
         case ExtensionTypeMemberKind.Operator:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          scope.addLocalMember(name.text,
+          nameSpace.addLocalMember(name.text,
               new DillExtensionTypeOperatorBuilder(procedure, descriptor, this),
               setter: false);
           break;
@@ -143,6 +150,9 @@ class DillExtensionTypeDeclarationBuilder
 
   @override
   DillLibraryBuilder get libraryBuilder => parent as DillLibraryBuilder;
+
+  @override
+  NameSpace get nameSpace => scope;
 
   @override
   DartType get declaredRepresentationType =>

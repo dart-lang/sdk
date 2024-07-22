@@ -384,6 +384,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   Scope get scope => _scope;
+
+  @override
+  Scope get nameSpace => _scope;
+
   @override
   Scope get exportScope => _exportScope;
 
@@ -503,8 +507,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return compilationUnit.addBuilder(name, declaration, charOffset);
   }
 
-  /// Checks [scope] for conflicts between setters and non-setters and reports
-  /// them in [sourceLibraryBuilder].
+  /// Checks [nameSpace] for conflicts between setters and non-setters and
+  /// reports them in [sourceLibraryBuilder].
   ///
   /// If [checkForInstanceVsStaticConflict] is `true`, conflicts between
   /// instance and static members of the same name are reported.
@@ -512,11 +516,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// If [checkForMethodVsSetterConflict] is `true`, conflicts between
   /// methods and setters of the same name are reported.
   static void checkMemberConflicts(
-      SourceLibraryBuilder sourceLibraryBuilder, Scope scope,
+      SourceLibraryBuilder sourceLibraryBuilder, NameSpace nameSpace,
       {required bool checkForInstanceVsStaticConflict,
       required bool checkForMethodVsSetterConflict}) {
-    scope.forEachLocalSetter((String name, MemberBuilder setter) {
-      Builder? getable = scope.lookupLocalMember(name, setter: false);
+    nameSpace.forEachLocalSetter((String name, MemberBuilder setter) {
+      Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
       if (getable == null) {
         // Setter without getter.
         return;
@@ -646,7 +650,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
-    NameIterator iterator = scope.filteredNameIterator(
+    NameIterator iterator = nameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
     UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
@@ -876,7 +880,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         localMembersIteratorOfType();
     while (extensionIterator.moveNext()) {
       SourceExtensionBuilder extension_ = extensionIterator.current;
-      for (Builder member in extension_.scope.localMembers) {
+      for (Builder member in extension_.nameSpace.localMembers) {
         if (member is SourceProcedureBuilder &&
             !member.isStatic &&
             member.isGetter) {
@@ -899,7 +903,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         individualPropertyReasons[representationGetter] =
             PropertyNonPromotabilityReason.isNotPrivate;
       }
-      for (Builder member in extensionType.scope.localMembers) {
+      for (Builder member in extensionType.nameSpace.localMembers) {
         if (member is SourceProcedureBuilder &&
             !member.isStatic &&
             member.isGetter) {
@@ -948,18 +952,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   void becomeCoreLibrary() {
-    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
+    if (nameSpace.lookupLocalMember("dynamic", setter: false) == null) {
       addBuilder("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
     }
-    if (scope.lookupLocalMember("Never", setter: false) == null) {
+    if (nameSpace.lookupLocalMember("Never", setter: false) == null) {
       addBuilder(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),
           -1);
     }
-    assert(scope.lookupLocalMember("Null", setter: false) != null,
+    assert(nameSpace.lookupLocalMember("Null", setter: false) != null,
         "No class 'Null' found in dart:core.");
   }
 
@@ -2158,7 +2162,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         declaration.checkTypes(this, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
-              scope.lookupLocalMember(declaration.name, setter: true);
+              nameSpace.lookupLocalMember(declaration.name, setter: true);
           if (setterDeclaration != null) {
             checkGetterSetterTypes(declaration,
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
@@ -2750,7 +2754,7 @@ class SourceLibraryBuilderMemberNameIterator<T extends Builder>
   SourceLibraryBuilderMemberNameIterator._(
       SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = libraryBuilder.scope.filteredNameIterator<T>(
+      : _iterator = libraryBuilder.nameSpace.filteredNameIterator<T>(
             parent: libraryBuilder,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -2765,7 +2769,7 @@ class SourceLibraryBuilderMemberNameIterator<T extends Builder>
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       SourceLibraryBuilder augmentationLibraryBuilder =
           augmentationBuilders!.current;
-      _iterator = augmentationLibraryBuilder.scope.filteredNameIterator<T>(
+      _iterator = augmentationLibraryBuilder.nameSpace.filteredNameIterator<T>(
           parent: augmentationLibraryBuilder,
           includeDuplicates: includeDuplicates,
           includeAugmentations: false);

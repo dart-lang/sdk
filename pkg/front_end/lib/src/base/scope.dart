@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: annotate_overrides
+
 library fasta.scope;
 
 import 'package:kernel/ast.dart';
@@ -27,7 +29,6 @@ import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
-import 'local_scope.dart';
 import 'messages.dart';
 import 'uri_offset.dart';
 
@@ -112,7 +113,71 @@ enum ScopeKind {
 abstract class LookupScope {
   ScopeKind get kind;
   Builder? lookup(String name, int charOffset, Uri fileUri);
-  Builder? lookupSetter(String name, int charOffset, Uri uri);
+  Builder? lookupSetter(String name, int charOffset, Uri fileUri);
+}
+
+mixin LookupScopeMixin implements LookupScope {
+  String get classNameOrDebugName;
+
+  Builder? lookupIn(
+      String name, int charOffset, Uri fileUri, Map<String, Builder> map) {
+    Builder? builder = map[name];
+    if (builder == null) return null;
+    if (builder.next != null) {
+      return new AmbiguousBuilder(
+          name.isEmpty
+              ?
+              // Coverage-ignore(suite): Not run.
+              classNameOrDebugName
+              : name,
+          builder,
+          charOffset,
+          fileUri);
+    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
+      return null;
+    } else {
+      return builder;
+    }
+  }
+
+  Builder? lookupSetterIn(
+      String name, int charOffset, Uri fileUri, Map<String, Builder>? map) {
+    Builder? builder;
+    if (map != null) {
+      builder = lookupIn(name, charOffset, fileUri, map);
+      if (builder != null && !builder.hasProblem) {
+        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
+      }
+    }
+    return builder;
+  }
+}
+
+class TypeParameterScope with LookupScopeMixin {
+  final LookupScope _parent;
+  final Map<String, Builder> _typeParameters;
+
+  TypeParameterScope(this._parent, this._typeParameters);
+
+  @override
+  ScopeKind get kind => ScopeKind.typeParameters;
+
+  @override
+  Builder? lookup(String name, int charOffset, Uri fileUri) {
+    return lookupIn(name, charOffset, fileUri, _typeParameters) ??
+        _parent.lookup(name, charOffset, fileUri);
+  }
+
+  @override
+  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+    Builder? builder =
+        lookupSetterIn(name, charOffset, fileUri, _typeParameters);
+    return builder ?? _parent.lookupSetter(name, charOffset, fileUri);
+  }
+
+  @override
+  String get classNameOrDebugName => "type parameter";
 }
 
 abstract class ParentScope {
@@ -178,7 +243,64 @@ class MutableScope {
   String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local?.keys})";
 }
 
-class Scope extends MutableScope implements ParentScope, LookupScope {
+abstract class NameSpace {
+  void addLocalMember(String name, Builder member, {required bool setter});
+
+  Builder? lookupLocalMember(String name, {required bool setter});
+
+  void forEachLocalMember(void Function(String name, Builder member) f);
+
+  void forEachLocalSetter(void Function(String name, MemberBuilder member) f);
+
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f);
+
+  Iterable<Builder> get localMembers;
+
+  /// Returns an iterator of all members and setters mapped in this name space,
+  /// including duplicate members mapped to the same name.
+  Iterator<Builder> get unfilteredIterator;
+
+  /// Returns an iterator of all members and setters mapped in this name space,
+  /// including duplicate members mapped to the same name.
+  ///
+  /// Compared to [unfilteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator get unfilteredNameIterator;
+
+  /// Returns a filtered iterator of members and setters mapped in this name
+  /// space.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  Iterator<T> filteredIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+
+  /// Returns a filtered iterator of members and setters mapped in this name
+  /// space.
+  ///
+  /// Only members of type [T] are included. If [parent] is provided, on members
+  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
+  /// duplicates of the same name are included, otherwise, only the first
+  /// declared member is included. If [includeAugmentations] is `true`, both
+  /// original and augmenting/patching members are included, otherwise, only
+  /// original members are included.
+  ///
+  /// Compared to [filteredIterator] this iterator also gives access to the
+  /// name that the builders are mapped to.
+  NameIterator<T> filteredNameIterator<T extends Builder>(
+      {Builder? parent,
+      required bool includeDuplicates,
+      required bool includeAugmentations});
+}
+
+class Scope extends MutableScope
+    implements ParentScope, LookupScope, NameSpace {
   /// Indicates whether an attempt to declare new names in this scope should
   /// succeed.
   final bool isModifiable;
@@ -221,12 +343,6 @@ class Scope extends MutableScope implements ParentScope, LookupScope {
             debugName: debugName,
             isModifiable: isModifiable,
             local: local);
-
-  LocalScope toLocalScope() => new EnclosingLocalScope(this);
-
-  // TODO(johnniwinther): Remove this.
-  @override
-  Scope? get parent => _parent as Scope?;
 
   /// Returns an iterator of all members and setters mapped in this scope,
   /// including duplicate members mapped to the same name.

@@ -151,6 +151,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Scope get scope => _scope;
 
   @override
+  Scope get nameSpace => _scope;
+
+  @override
   Scope get exportScope => _exportScope;
 
   @override
@@ -235,17 +238,17 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void becomeCoreLibrary() {
-    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
+    if (nameSpace.lookupLocalMember("dynamic", setter: false) == null) {
       _addBuilder("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
     }
-    if (scope.lookupLocalMember("Never", setter: false) == null) {
+    if (nameSpace.lookupLocalMember("Never", setter: false) == null) {
       _addBuilder(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1));
     }
-    assert(scope.lookupLocalMember("Null", setter: false) != null,
+    assert(nameSpace.lookupLocalMember("Null", setter: false) != null,
         "No class 'Null' found in dart:core.");
   }
 
@@ -346,12 +349,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
     bool isSetter = declaration.isSetter;
     if (isSetter) {
-      scope.addLocalMember(name, declaration as MemberBuilder, setter: true);
+      nameSpace.addLocalMember(name, declaration as MemberBuilder,
+          setter: true);
     } else {
-      scope.addLocalMember(name, declaration, setter: false);
+      nameSpace.addLocalMember(name, declaration, setter: false);
     }
     if (declaration.isExtension) {
-      scope.addExtension(declaration as ExtensionBuilder);
+      nameSpace.addExtension(declaration as ExtensionBuilder);
     }
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
@@ -497,14 +501,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullMemberIterator<T extends Builder>() {
-    return scope.filteredIterator<T>(
+    return nameSpace.filteredIterator<T>(
         includeDuplicates: false, includeAugmentations: false);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() {
-    return scope.filteredNameIterator(
+    return nameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
   }
 
