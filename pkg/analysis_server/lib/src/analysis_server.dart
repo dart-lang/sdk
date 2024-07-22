@@ -48,6 +48,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -236,7 +237,7 @@ abstract class AnalysisServer {
 
   /// A mapping of [ProducerGenerator]s to the set of lint names with which they
   /// are associated (can fix).
-  final Map<ProducerGenerator, Set<String>> producerGeneratorsForLintRules;
+  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
 
   AnalysisServer(
     this.options,

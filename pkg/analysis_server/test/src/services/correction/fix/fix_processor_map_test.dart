@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,15 +43,15 @@ class FixProcessorMapTest {
             {required CorrectionProducerContext context}) =>
         MockCorrectionProducer();
 
-    var lintName = 'not_a_lint';
-    expect(FixProcessor.lintProducerMap[lintName], null);
-    FixProcessor.registerFixForLint(lintName, generator);
-    expect(FixProcessor.lintProducerMap[lintName], contains(generator));
+    var lintCode = LintCode('test_rule', 'Test rule.');
+    expect(FixProcessor.lintProducerMap[lintCode], null);
+    FixProcessor.registerFixForLint(lintCode, generator);
+    expect(FixProcessor.lintProducerMap[lintCode], contains(generator));
     // Restore the map to it's original state so as to not impact other tests.
-    FixProcessor.lintProducerMap.remove(lintName);
+    FixProcessor.lintProducerMap.remove(lintCode);
   }
 
-  void _assertMap(Map<Object, List<ProducerGenerator>> producerMap,
+  void _assertMap(Map<ErrorCode, List<ProducerGenerator>> producerMap,
       [List<String> codesAllowedToHaveMultipleBulkFixes = const []]) {
     var unexpectedBulkCodes = <String>[];
     for (var MapEntry(:key, value: generators) in producerMap.entries) {
@@ -64,7 +65,7 @@ class FixProcessorMapTest {
         }
       }
       if (bulkCount > 1) {
-        var name = key.toString();
+        var name = key.name;
         if (!codesAllowedToHaveMultipleBulkFixes.contains(name)) {
           unexpectedBulkCodes.add(name);
         }

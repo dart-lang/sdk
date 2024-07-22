@@ -252,6 +252,142 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/rules/always_declare_return_types.dart';
+import 'package:linter/src/rules/always_put_control_body_on_new_line.dart';
+import 'package:linter/src/rules/always_put_required_named_parameters_first.dart';
+import 'package:linter/src/rules/always_specify_types.dart';
+import 'package:linter/src/rules/always_use_package_imports.dart';
+import 'package:linter/src/rules/annotate_overrides.dart';
+import 'package:linter/src/rules/annotate_redeclares.dart';
+import 'package:linter/src/rules/avoid_annotating_with_dynamic.dart';
+import 'package:linter/src/rules/avoid_empty_else.dart';
+import 'package:linter/src/rules/avoid_escaping_inner_quotes.dart';
+import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
+import 'package:linter/src/rules/avoid_init_to_null.dart';
+import 'package:linter/src/rules/avoid_multiple_declarations_per_line.dart';
+import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
+import 'package:linter/src/rules/avoid_print.dart';
+import 'package:linter/src/rules/avoid_private_typedef_functions.dart';
+import 'package:linter/src/rules/avoid_redundant_argument_values.dart';
+import 'package:linter/src/rules/avoid_relative_lib_imports.dart';
+import 'package:linter/src/rules/avoid_renaming_method_parameters.dart';
+import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
+import 'package:linter/src/rules/avoid_returning_null_for_void.dart';
+import 'package:linter/src/rules/avoid_single_cascade_in_expression_statements.dart';
+import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
+import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
+import 'package:linter/src/rules/avoid_unnecessary_containers.dart';
+import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
+import 'package:linter/src/rules/avoid_void_async.dart';
+import 'package:linter/src/rules/await_only_futures.dart';
+import 'package:linter/src/rules/cascade_invocations.dart';
+import 'package:linter/src/rules/cast_nullable_to_non_nullable.dart';
+import 'package:linter/src/rules/combinators_ordering.dart';
+import 'package:linter/src/rules/constant_identifier_names.dart';
+import 'package:linter/src/rules/curly_braces_in_flow_control_structures.dart';
+import 'package:linter/src/rules/dangling_library_doc_comments.dart';
+import 'package:linter/src/rules/diagnostic_describe_all_properties.dart';
+import 'package:linter/src/rules/directives_ordering.dart';
+import 'package:linter/src/rules/discarded_futures.dart';
+import 'package:linter/src/rules/empty_catches.dart';
+import 'package:linter/src/rules/empty_constructor_bodies.dart';
+import 'package:linter/src/rules/empty_statements.dart';
+import 'package:linter/src/rules/eol_at_end_of_file.dart';
+import 'package:linter/src/rules/exhaustive_cases.dart';
+import 'package:linter/src/rules/flutter_style_todos.dart';
+import 'package:linter/src/rules/hash_and_equals.dart';
+import 'package:linter/src/rules/implicit_call_tearoffs.dart';
+import 'package:linter/src/rules/implicit_reopen.dart';
+import 'package:linter/src/rules/invalid_case_patterns.dart';
+import 'package:linter/src/rules/leading_newlines_in_multiline_strings.dart';
+import 'package:linter/src/rules/library_annotations.dart';
+import 'package:linter/src/rules/no_duplicate_case_values.dart';
+import 'package:linter/src/rules/no_leading_underscores_for_library_prefixes.dart';
+import 'package:linter/src/rules/no_leading_underscores_for_local_identifiers.dart';
+import 'package:linter/src/rules/no_literal_bool_comparisons.dart';
+import 'package:linter/src/rules/non_constant_identifier_names.dart';
+import 'package:linter/src/rules/noop_primitive_operations.dart';
+import 'package:linter/src/rules/null_check_on_nullable_type_parameter.dart';
+import 'package:linter/src/rules/null_closures.dart';
+import 'package:linter/src/rules/omit_local_variable_types.dart';
+import 'package:linter/src/rules/omit_obvious_local_variable_types.dart';
+import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
+import 'package:linter/src/rules/prefer_collection_literals.dart';
+import 'package:linter/src/rules/prefer_conditional_assignment.dart';
+import 'package:linter/src/rules/prefer_const_constructors.dart';
+import 'package:linter/src/rules/prefer_const_constructors_in_immutables.dart';
+import 'package:linter/src/rules/prefer_const_declarations.dart';
+import 'package:linter/src/rules/prefer_const_literals_to_create_immutables.dart';
+import 'package:linter/src/rules/prefer_contains.dart';
+import 'package:linter/src/rules/prefer_double_quotes.dart';
+import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
+import 'package:linter/src/rules/prefer_final_fields.dart';
+import 'package:linter/src/rules/prefer_final_in_for_each.dart';
+import 'package:linter/src/rules/prefer_final_locals.dart';
+import 'package:linter/src/rules/prefer_final_parameters.dart';
+import 'package:linter/src/rules/prefer_for_elements_to_map_fromIterable.dart';
+import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
+import 'package:linter/src/rules/prefer_generic_function_type_aliases.dart';
+import 'package:linter/src/rules/prefer_if_elements_to_conditional_expressions.dart';
+import 'package:linter/src/rules/prefer_if_null_operators.dart';
+import 'package:linter/src/rules/prefer_initializing_formals.dart';
+import 'package:linter/src/rules/prefer_inlined_adds.dart';
+import 'package:linter/src/rules/prefer_int_literals.dart';
+import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
+import 'package:linter/src/rules/prefer_is_empty.dart';
+import 'package:linter/src/rules/prefer_is_not_empty.dart';
+import 'package:linter/src/rules/prefer_is_not_operator.dart';
+import 'package:linter/src/rules/prefer_iterable_whereType.dart';
+import 'package:linter/src/rules/prefer_null_aware_operators.dart';
+import 'package:linter/src/rules/prefer_relative_imports.dart';
+import 'package:linter/src/rules/prefer_single_quotes.dart';
+import 'package:linter/src/rules/prefer_spread_collections.dart';
+import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
+import 'package:linter/src/rules/prefer_void_to_null.dart';
+import 'package:linter/src/rules/require_trailing_commas.dart';
+import 'package:linter/src/rules/sized_box_for_whitespace.dart';
+import 'package:linter/src/rules/slash_for_doc_comments.dart';
+import 'package:linter/src/rules/sort_child_properties_last.dart';
+import 'package:linter/src/rules/sort_constructors_first.dart';
+import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
+import 'package:linter/src/rules/type_annotate_public_apis.dart';
+import 'package:linter/src/rules/type_init_formals.dart';
+import 'package:linter/src/rules/type_literal_in_constant_pattern.dart';
+import 'package:linter/src/rules/unawaited_futures.dart';
+import 'package:linter/src/rules/unnecessary_await_in_return.dart';
+import 'package:linter/src/rules/unnecessary_brace_in_string_interps.dart';
+import 'package:linter/src/rules/unnecessary_breaks.dart';
+import 'package:linter/src/rules/unnecessary_const.dart';
+import 'package:linter/src/rules/unnecessary_constructor_name.dart';
+import 'package:linter/src/rules/unnecessary_final.dart';
+import 'package:linter/src/rules/unnecessary_getters_setters.dart';
+import 'package:linter/src/rules/unnecessary_lambdas.dart';
+import 'package:linter/src/rules/unnecessary_late.dart';
+import 'package:linter/src/rules/unnecessary_library_directive.dart';
+import 'package:linter/src/rules/unnecessary_library_name.dart';
+import 'package:linter/src/rules/unnecessary_new.dart';
+import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
+import 'package:linter/src/rules/unnecessary_null_checks.dart';
+import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
+import 'package:linter/src/rules/unnecessary_nullable_for_final_variable_declarations.dart';
+import 'package:linter/src/rules/unnecessary_overrides.dart';
+import 'package:linter/src/rules/unnecessary_parenthesis.dart';
+import 'package:linter/src/rules/unnecessary_raw_strings.dart';
+import 'package:linter/src/rules/unnecessary_string_escapes.dart';
+import 'package:linter/src/rules/unnecessary_string_interpolations.dart';
+import 'package:linter/src/rules/unnecessary_this.dart';
+import 'package:linter/src/rules/unnecessary_to_list_in_spreads.dart';
+import 'package:linter/src/rules/unreachable_from_main.dart';
+import 'package:linter/src/rules/use_decorated_box.dart';
+import 'package:linter/src/rules/use_enums.dart';
+import 'package:linter/src/rules/use_full_hex_values_for_flutter_colors.dart';
+import 'package:linter/src/rules/use_function_type_syntax_for_parameters.dart';
+import 'package:linter/src/rules/use_key_in_widget_constructors.dart';
+import 'package:linter/src/rules/use_named_constants.dart';
+import 'package:linter/src/rules/use_raw_strings.dart';
+import 'package:linter/src/rules/use_rethrow_when_possible.dart';
+import 'package:linter/src/rules/use_string_in_part_of_directives.dart';
+import 'package:linter/src/rules/use_super_parameters.dart';
 
 final _builtInLintMultiProducers = {
   LintNames.deprecated_member_use_from_same_package: [
@@ -265,424 +401,467 @@ final _builtInLintMultiProducers = {
   ],
 };
 
-final _builtInLintProducers = <String, List<ProducerGenerator>>{
-  LintNames.always_declare_return_types: [
+final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
+  AlwaysDeclareReturnTypes.functionCode: [
     AddReturnType.new,
   ],
-  LintNames.always_put_control_body_on_new_line: [
+  AlwaysDeclareReturnTypes.methodCode: [
+    AddReturnType.new,
+  ],
+  AlwaysPutControlBodyOnNewLine.code: [
     UseCurlyBraces.nonBulk,
   ],
-  LintNames.always_put_required_named_parameters_first: [
+  AlwaysPutRequiredNamedParametersFirst.code: [
     MakeRequiredNamedParametersFirst.new,
   ],
-  LintNames.always_specify_types: [
+  AlwaysSpecifyTypes.code: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LintNames.always_use_package_imports: [
+  AlwaysUsePackageImports.code: [
     ConvertToPackageImport.new,
   ],
-  LintNames.annotate_overrides: [
+  AnnotateOverrides.code: [
     AddOverride.new,
   ],
-  LintNames.annotate_redeclares: [
+  AnnotateRedeclares.code: [
     AddRedeclare.new,
   ],
-  LintNames.avoid_annotating_with_dynamic: [
+  AvoidAnnotatingWithDynamic.code: [
     RemoveTypeAnnotation.other,
   ],
-  LintNames.avoid_empty_else: [
+  AvoidEmptyElse.code: [
     RemoveEmptyElse.new,
   ],
-  LintNames.avoid_escaping_inner_quotes: [
+  AvoidEscapingInnerQuotes.code: [
     ConvertQuotes.new,
   ],
-  LintNames.avoid_function_literals_in_foreach_calls: [
+  AvoidFunctionLiteralsInForeachCalls.code: [
     ConvertForEachToForLoop.new,
   ],
-  LintNames.avoid_init_to_null: [
+  AvoidInitToNull.code: [
     RemoveInitializer.bulkFixable,
   ],
-  LintNames.avoid_multiple_declarations_per_line: [
+  AvoidMultipleDeclarationsPerLine.code: [
     SplitMultipleDeclarations.new,
   ],
-  LintNames.avoid_null_checks_in_equality_operators: [
+  AvoidNullChecksInEqualityOperators.code: [
     RemoveComparison.new,
   ],
-  LintNames.avoid_print: [
+  AvoidPrint.code: [
     MakeConditionalOnDebugMode.new,
     RemovePrint.new,
   ],
-  LintNames.avoid_private_typedef_functions: [
+  AvoidPrivateTypedefFunctions.code: [
     InlineTypedef.new,
   ],
-  LintNames.avoid_redundant_argument_values: [
+  AvoidRedundantArgumentValues.code: [
     RemoveArgument.new,
   ],
-  LintNames.avoid_relative_lib_imports: [
+  AvoidRelativeLibImports.code: [
     ConvertToPackageImport.new,
   ],
-  LintNames.avoid_renaming_method_parameters: [
+  AvoidRenamingMethodParameters.code: [
     RenameMethodParameter.new,
   ],
-  LintNames.avoid_return_types_on_setters: [
+  AvoidReturnTypesOnSetters.code: [
     RemoveTypeAnnotation.other,
   ],
-  LintNames.avoid_returning_null_for_void: [
+  AvoidReturningNullForVoid.fromFunction: [
     RemoveReturnedValue.new,
   ],
-  LintNames.avoid_single_cascade_in_expression_statements: [
+  AvoidReturningNullForVoid.fromMethod: [
+    RemoveReturnedValue.new,
+  ],
+  AvoidSingleCascadeInExpressionStatements.code: [
     // TODO(brianwilkerson): This fix should be applied to some non-lint
     //  diagnostics and should also be available as an assist.
     ReplaceCascadeWithDot.new,
   ],
-  LintNames.avoid_types_as_parameter_names: [
+  AvoidTypesAsParameterNames.code: [
     ConvertToOnType.new,
   ],
-  LintNames.avoid_types_on_closure_parameters: [
+  AvoidTypesOnClosureParameters.code: [
     ReplaceWithIdentifier.new,
     RemoveTypeAnnotation.other,
   ],
-  LintNames.avoid_unused_constructor_parameters: [
+  AvoidUnusedConstructorParameters.code: [
     RemoveUnusedParameter.new,
   ],
-  LintNames.avoid_unnecessary_containers: [
+  AvoidUnnecessaryContainers.code: [
     FlutterRemoveWidget.new,
   ],
-  LintNames.avoid_void_async: [
+  AvoidVoidAsync.code: [
     ReplaceReturnTypeFuture.new,
   ],
-  LintNames.await_only_futures: [
+  AwaitOnlyFutures.code: [
     RemoveAwait.new,
   ],
-  LintNames.cascade_invocations: [
+  CascadeInvocations.code: [
     ConvertToCascade.new,
   ],
-  LintNames.cast_nullable_to_non_nullable: [
+  CastNullableToNonNullable.code: [
     AddNullCheck.withoutAssignabilityCheck,
   ],
-  LintNames.combinators_ordering: [
+  CombinatorsOrdering.code: [
     SortCombinators.new,
   ],
-  LintNames.constant_identifier_names: [
+  ConstantIdentifierNames.code: [
     RenameToCamelCase.new,
   ],
-  LintNames.curly_braces_in_flow_control_structures: [
+  CurlyBracesInFlowControlStructures.code: [
     UseCurlyBraces.new,
   ],
-  LintNames.dangling_library_doc_comments: [
+  DanglingLibraryDocComments.code: [
     MoveDocCommentToLibraryDirective.new,
   ],
-  LintNames.diagnostic_describe_all_properties: [
+  DiagnosticDescribeAllProperties.code: [
     AddDiagnosticPropertyReference.new,
   ],
-  LintNames.directives_ordering: [
+  DirectivesOrdering.dartDirectiveGoFirst: [
     OrganizeImports.new,
   ],
-  LintNames.discarded_futures: [
+  DirectivesOrdering.directiveSectionOrderedAlphabetically: [
+    OrganizeImports.new,
+  ],
+  DirectivesOrdering.exportDirectiveAfterImportDirectives: [
+    OrganizeImports.new,
+  ],
+  DirectivesOrdering.packageDirectiveBeforeRelative: [
+    OrganizeImports.new,
+  ],
+  DiscardedFutures.code: [
     AddAsync.new,
     WrapInUnawaited.new,
   ],
-  LintNames.empty_catches: [
+  EmptyCatches.code: [
     RemoveEmptyCatch.new,
   ],
-  LintNames.empty_constructor_bodies: [
+  EmptyConstructorBodies.code: [
     RemoveEmptyConstructorBody.new,
   ],
-  LintNames.empty_statements: [
+  EmptyStatements.code: [
     RemoveEmptyStatement.new,
     ReplaceWithBrackets.new,
   ],
-  LintNames.eol_at_end_of_file: [
+  EolAtEndOfFile.code: [
     AddEolAtEndOfFile.new,
   ],
-  LintNames.exhaustive_cases: [
+  ExhaustiveCases.code: [
     AddMissingEnumLikeCaseClauses.new,
   ],
-  LintNames.flutter_style_todos: [
+  FlutterStyleTodos.code: [
     ConvertToFlutterStyleTodo.new,
   ],
-  LintNames.hash_and_equals: [
+  HashAndEquals.code: [
     CreateMethod.equalityOrHashCode,
   ],
-  LintNames.implicit_call_tearoffs: [
+  ImplicitCallTearoffs.code: [
     AddExplicitCall.new,
   ],
-  LintNames.implicit_reopen: [
+  ImplicitReopen.code: [
     AddReopen.new,
   ],
-  LintNames.invalid_case_patterns: [
+  InvalidCasePatterns.code: [
     AddConst.new,
   ],
-  LintNames.leading_newlines_in_multiline_strings: [
+  LeadingNewlinesInMultilineStrings.code: [
     AddLeadingNewlineToString.new,
   ],
-  LintNames.library_annotations: [
+  LibraryAnnotations.code: [
     MoveAnnotationToLibraryDirective.new,
   ],
-  LintNames.no_duplicate_case_values: [
+  NoDuplicateCaseValues.code: [
     RemoveDuplicateCase.new,
   ],
-  LintNames.no_leading_underscores_for_library_prefixes: [
+  NoLeadingUnderscoresForLibraryPrefixes.code: [
     RemoveLeadingUnderscore.new,
   ],
-  LintNames.no_literal_bool_comparisons: [
+  NoLeadingUnderscoresForLocalIdentifiers.code: [
+    RemoveLeadingUnderscore.new,
+  ],
+  NoLiteralBoolComparisons.code: [
     ConvertToBooleanExpression.new,
   ],
-  LintNames.no_leading_underscores_for_local_identifiers: [
-    RemoveLeadingUnderscore.new,
-  ],
-  LintNames.non_constant_identifier_names: [
+  NonConstantIdentifierNames.code: [
     RenameToCamelCase.new,
   ],
-  LintNames.noop_primitive_operations: [
+  NoopPrimitiveOperations.code: [
     RemoveInvocation.new,
   ],
-  LintNames.null_check_on_nullable_type_parameter: [
+  NullCheckOnNullableTypeParameter.code: [
     ReplaceNullCheckWithCast.new,
   ],
-  LintNames.null_closures: [
+  NullClosures.code: [
     ReplaceNullWithClosure.new,
   ],
-  LintNames.omit_local_variable_types: [
+  OmitLocalVariableTypes.code: [
     ReplaceWithVar.new,
   ],
-  LintNames.omit_obvious_local_variable_types: [
+  OmitObviousLocalVariableTypes.code: [
     ReplaceWithVar.new,
   ],
-  LintNames.prefer_adjacent_string_concatenation: [
+  PreferAdjacentStringConcatenation.code: [
     RemoveOperator.new,
   ],
-  LintNames.prefer_collection_literals: [
+  PreferCollectionLiterals.code: [
     ConvertToMapLiteral.new,
     ConvertToSetLiteral.new,
   ],
-  LintNames.prefer_conditional_assignment: [
+  PreferConditionalAssignment.code: [
     ReplaceWithConditionalAssignment.new,
   ],
-  LintNames.prefer_const_constructors: [
+  PreferConstConstructors.code: [
     AddConst.new,
     ReplaceNewWithConst.new,
   ],
-  LintNames.prefer_const_constructors_in_immutables: [
+  PreferConstConstructorsInImmutables.code: [
     AddConst.new,
   ],
-  LintNames.prefer_const_declarations: [
+  PreferConstDeclarations.code: [
     ReplaceFinalWithConst.new,
   ],
-  LintNames.prefer_const_literals_to_create_immutables: [
+  PreferConstLiteralsToCreateImmutables.code: [
     AddConst.new,
   ],
-  LintNames.prefer_contains: [
+  PreferContains.alwaysFalse: [
     ConvertToContains.new,
   ],
-  LintNames.prefer_double_quotes: [
+  PreferContains.alwaysTrue: [
+    ConvertToContains.new,
+  ],
+  PreferContains.useContains: [
+    ConvertToContains.new,
+  ],
+  PreferDoubleQuotes.code: [
     ConvertToDoubleQuotes.new,
   ],
-  LintNames.prefer_expression_function_bodies: [
+  PreferExpressionFunctionBodies.code: [
     ConvertToExpressionFunctionBody.new,
   ],
-  LintNames.prefer_final_fields: [
+  PreferFinalFields.code: [
     MakeFinal.new,
   ],
-  LintNames.prefer_final_in_for_each: [
+  PreferFinalInForEach.code: [
     MakeFinal.new,
   ],
-  LintNames.prefer_final_locals: [
+  PreferFinalLocals.code: [
     MakeFinal.new,
   ],
-  LintNames.prefer_final_parameters: [
+  PreferFinalParameters.code: [
     MakeFinal.new,
   ],
-  LintNames.prefer_for_elements_to_map_fromIterable: [
+  PreferForElementsToMapFromIterable.code: [
     ConvertMapFromIterableToForLiteral.new,
   ],
-  LintNames.prefer_function_declarations_over_variables: [
+  PreferFunctionDeclarationsOverVariables.code: [
     ConvertToFunctionDeclaration.new,
   ],
-  LintNames.prefer_generic_function_type_aliases: [
+  PreferGenericFunctionTypeAliases.code: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  LintNames.prefer_if_elements_to_conditional_expressions: [
+  PreferIfElementsToConditionalExpressions.code: [
     ConvertConditionalExpressionToIfElement.new,
   ],
-  LintNames.prefer_if_null_operators: [
+  PreferIfNullOperators.code: [
     ConvertToIfNull.new,
   ],
-  LintNames.prefer_initializing_formals: [
+  PreferInitializingFormals.code: [
     ConvertToInitializingFormal.new,
   ],
-  LintNames.prefer_inlined_adds: [
+  PreferInlinedAdds.single: [
     ConvertAddAllToSpread.new,
     InlineInvocation.new,
   ],
-  LintNames.prefer_int_literals: [
+  PreferInlinedAdds.multiple: [
+    ConvertAddAllToSpread.new,
+    InlineInvocation.new,
+  ],
+  PreferIntLiterals.code: [
     ConvertToIntLiteral.new,
   ],
-  LintNames.prefer_interpolation_to_compose_strings: [
+  PreferInterpolationToComposeStrings.code: [
     ReplaceWithInterpolation.new,
   ],
-  LintNames.prefer_is_empty: [
+  PreferIsEmpty.alwaysFalse: [
     ReplaceWithIsEmpty.new,
   ],
-  LintNames.prefer_is_not_empty: [
+  PreferIsEmpty.alwaysTrue: [
+    ReplaceWithIsEmpty.new,
+  ],
+  PreferIsEmpty.useIsEmpty: [
+    ReplaceWithIsEmpty.new,
+  ],
+  PreferIsEmpty.useIsNotEmpty: [
+    ReplaceWithIsEmpty.new,
+  ],
+  PreferIsNotEmpty.code: [
     UseIsNotEmpty.new,
   ],
-  LintNames.prefer_is_not_operator: [
+  PreferIsNotOperator.code: [
     ConvertIntoIsNot.new,
   ],
-  LintNames.prefer_iterable_whereType: [
+  PreferIterableWhereType.code: [
     ConvertToWhereType.new,
   ],
-  LintNames.prefer_null_aware_operators: [
+  PreferNullAwareOperators.code: [
     ConvertToNullAware.new,
   ],
-  LintNames.prefer_relative_imports: [
+  PreferRelativeImports.code: [
     ConvertToRelativeImport.new,
   ],
-  LintNames.prefer_single_quotes: [
+  PreferSingleQuotes.code: [
     ConvertToSingleQuotes.new,
   ],
-  LintNames.prefer_spread_collections: [
+  PreferSpreadCollections.code: [
     ConvertAddAllToSpread.new,
   ],
-  LintNames.prefer_typing_uninitialized_variables: [
+  PreferTypingUninitializedVariables.forField: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LintNames.prefer_void_to_null: [
+  PreferTypingUninitializedVariables.forVariable: [
+    AddTypeAnnotation.bulkFixable,
+  ],
+  PreferVoidToNull.code: [
     ReplaceNullWithVoid.new,
   ],
-  LintNames.require_trailing_commas: [
+  RequireTrailingCommas.code: [
     AddTrailingComma.new,
   ],
-  LintNames.sized_box_for_whitespace: [
+  SizedBoxForWhitespace.code: [
     ReplaceContainerWithSizedBox.new,
   ],
-  LintNames.slash_for_doc_comments: [
+  SlashForDocComments.code: [
     ConvertDocumentationIntoLine.new,
   ],
-  LintNames.sort_child_properties_last: [
+  SortChildPropertiesLast.code: [
     SortChildPropertyLast.new,
   ],
-  LintNames.sort_constructors_first: [
+  SortConstructorsFirst.code: [
     SortConstructorFirst.new,
   ],
-  LintNames.sort_unnamed_constructors_first: [
+  SortUnnamedConstructorsFirst.code: [
     SortUnnamedConstructorFirst.new,
   ],
-  LintNames.type_annotate_public_apis: [
+  TypeAnnotatePublicApis.code: [
     AddTypeAnnotation.bulkFixable,
   ],
-  LintNames.type_init_formals: [
+  TypeInitFormals.code: [
     RemoveTypeAnnotation.other,
   ],
-  LintNames.type_literal_in_constant_pattern: [
+  TypeLiteralInConstantPattern.code: [
     ConvertToConstantPattern.new,
     ConvertToWildcardPattern.new,
   ],
-  LintNames.unawaited_futures: [
+  UnawaitedFutures.code: [
     AddAwait.unawaited,
     WrapInUnawaited.new,
   ],
-  LintNames.unnecessary_await_in_return: [
+  UnnecessaryAwaitInReturn.code: [
     RemoveAwait.new,
   ],
-  LintNames.unnecessary_brace_in_string_interps: [
+  UnnecessaryBraceInStringInterps.code: [
     RemoveInterpolationBraces.new,
   ],
-  LintNames.unnecessary_breaks: [
+  UnnecessaryBreaks.code: [
     RemoveBreak.new,
   ],
-  LintNames.unnecessary_const: [
+  UnnecessaryConst.code: [
     RemoveUnnecessaryConst.new,
   ],
-  LintNames.unnecessary_constructor_name: [
+  UnnecessaryConstructorName.code: [
     RemoveConstructorName.new,
   ],
-  LintNames.unnecessary_final: [
+  UnnecessaryFinal.withType: [
     ReplaceFinalWithVar.new,
   ],
-  LintNames.unnecessary_getters_setters: [
+  UnnecessaryFinal.withoutType: [
+    ReplaceFinalWithVar.new,
+  ],
+  UnnecessaryGettersSetters.code: [
     MakeFieldPublic.new,
   ],
-  LintNames.unnecessary_lambdas: [
+  UnnecessaryLambdas.code: [
     ReplaceWithTearOff.new,
   ],
-  LintNames.unnecessary_late: [
+  UnnecessaryLate.code: [
     RemoveUnnecessaryLate.new,
   ],
-  LintNames.unnecessary_library_directive: [
+  UnnecessaryLibraryDirective.code: [
     RemoveUnnecessaryLibraryDirective.new,
   ],
-  LintNames.unnecessary_library_name: [
+  UnnecessaryLibraryName.code: [
     RemoveLibraryName.new,
   ],
-  LintNames.unnecessary_new: [
+  UnnecessaryNew.code: [
     RemoveUnnecessaryNew.new,
   ],
-  LintNames.unnecessary_null_aware_assignments: [
+  UnnecessaryNullAwareAssignments.code: [
     RemoveAssignment.new,
   ],
-  LintNames.unnecessary_null_checks: [
+  UnnecessaryNullChecks.code: [
     RemoveNonNullAssertion.new,
   ],
-  LintNames.unnecessary_null_in_if_null_operators: [
+  UnnecessaryNullInIfNullOperators.code: [
     RemoveIfNullOperator.new,
   ],
-  LintNames.unnecessary_nullable_for_final_variable_declarations: [
+  UnnecessaryNullableForFinalVariableDeclarations.code: [
     RemoveQuestionMark.new,
   ],
-  LintNames.unnecessary_overrides: [
+  UnnecessaryOverrides.code: [
     RemoveMethodDeclaration.new,
   ],
-  LintNames.unnecessary_parenthesis: [
+  UnnecessaryParenthesis.code: [
     RemoveUnnecessaryParentheses.new,
   ],
-  LintNames.unnecessary_raw_strings: [
+  UnnecessaryRawStrings.code: [
     RemoveUnnecessaryRawString.new,
   ],
-  LintNames.unnecessary_string_escapes: [
+  UnnecessaryStringEscapes.code: [
     RemoveUnnecessaryStringEscape.new,
   ],
-  LintNames.unnecessary_string_interpolations: [
+  UnnecessaryStringInterpolations.code: [
     RemoveUnnecessaryStringInterpolation.new,
   ],
-  LintNames.unnecessary_to_list_in_spreads: [
+  UnnecessaryToListInSpreads.code: [
     RemoveToList.new,
   ],
-  LintNames.unnecessary_this: [
+  UnnecessaryThis.code: [
     RemoveThisExpression.new,
   ],
-  LintNames.unreachable_from_main: [
+  UnreachableFromMain.code: [
     RemoveUnusedElement.new,
   ],
-  LintNames.use_decorated_box: [
+  UseDecoratedBox.code: [
     ReplaceWithDecoratedBox.new,
   ],
-  LintNames.use_enums: [
+  UseEnums.code: [
     ConvertClassToEnum.new,
   ],
-  LintNames.use_full_hex_values_for_flutter_colors: [
+  UseFullHexValuesForFlutterColors.code: [
     ReplaceWithEightDigitHex.new,
   ],
-  LintNames.use_function_type_syntax_for_parameters: [
+  UseFunctionTypeSyntaxForParameters.code: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  LintNames.use_key_in_widget_constructors: [
+  UseKeyInWidgetConstructors.code: [
     AddKeyToConstructors.new,
   ],
-  LintNames.use_named_constants: [
+  UseNamedConstants.code: [
     ReplaceWithNamedConstant.new,
   ],
-  LintNames.use_raw_strings: [
+  UseRawStrings.code: [
     ConvertToRawString.new,
   ],
-  LintNames.use_rethrow_when_possible: [
+  UseRethrowWhenPossible.code: [
     UseRethrow.new,
   ],
-  LintNames.use_string_in_part_of_directives: [
+  UseStringInPartOfDirectives.code: [
     ReplaceWithPartOrUriEmpty.new,
   ],
-  LintNames.use_super_parameters: [
+  UseSuperParameters.singleParam: [
+    ConvertToSuperParameters.new,
+  ],
+  UseSuperParameters.multipleParams: [
     ConvertToSuperParameters.new,
   ],
 };
@@ -1958,7 +2137,7 @@ class FixInFileProcessor {
 
   List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
     if (errorCode is LintCode) {
-      return FixProcessor.lintProducerMap[errorCode.uniqueLintName] ?? [];
+      return FixProcessor.lintProducerMap[errorCode] ?? [];
     } else {
       // TODO(pq): consider support for multiGenerators
       return FixProcessor.nonLintProducerMap[errorCode] ?? [];

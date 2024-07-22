@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 
 /// An object used to provide context information for Dart assist contributors.
@@ -17,7 +18,7 @@ abstract class DartAssistContext {
 
   /// A mapping of [ProducerGenerator]s to the set of lint names with which they
   /// are associated (can fix).
-  Map<ProducerGenerator, Set<String>> get producerGeneratorsForLintRules;
+  Map<ProducerGenerator, Set<LintCode>> get producerGeneratorsForLintRules;
 
   /// The resolution result in which assist operates.
   ResolvedUnitResult get resolveResult;
