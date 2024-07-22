@@ -1268,7 +1268,10 @@ class InferrerEngine {
       SideEffectsBuilder sideEffectsBuilder,
       {required bool inLoop,
       required bool isConditional}) {
-    if (selector.isClosureCall) {
+    if (selector.isMaybeClosureCall && node is! ir.InstanceGetterInvocation) {
+      // If node is an InstanceGetterInvocation then the target is an invocation
+      // of a closure retreived from an instance member (field or getter) rather
+      // than a method invocation.
       return registerCalledClosure(
           node, selector, receiverType, caller, arguments, sideEffectsBuilder,
           inLoop: inLoop);

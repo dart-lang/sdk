@@ -96,7 +96,7 @@ class MethodNode extends CallableNode {
   @override
   bool selectorApplies(Selector selector, BuiltWorld world) {
     if (isNoSuchMethod) return true;
-    return (isCallTarget && selector.isClosureCall ||
+    return (isCallTarget && selector.isMaybeClosureCall ||
             instanceName == selector.memberName) &&
         selector.callStructure.signatureApplies(parameterStructure);
   }

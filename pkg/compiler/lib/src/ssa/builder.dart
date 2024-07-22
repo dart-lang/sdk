@@ -5710,7 +5710,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _metrics.countSettersTotal.add();
       invoke = HInvokeDynamicSetter(selector, receiverType, element, inputs,
           isIntercepted, resultType, sourceInformation);
-    } else if (selector.isClosureCall) {
+    } else if (selector.isMaybeClosureCall) {
       assert(!isIntercepted);
       invoke = HInvokeClosure(
           selector, receiverType, inputs, resultType, typeArguments)
