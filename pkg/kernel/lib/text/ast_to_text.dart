@@ -1254,9 +1254,6 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('extension');
-    if (node.isExtensionTypeDeclaration) {
-      writeWord('type');
-    }
     if (node.isUnnamedExtension) {
       writeWord('/* unnamed */');
     }

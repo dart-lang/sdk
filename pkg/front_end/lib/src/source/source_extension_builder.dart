@@ -68,7 +68,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
             reference: referenceFrom?.reference)
-          ..isExtensionTypeDeclaration = false
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
         constructorScope = new ConstructorScope(extensionName.name, const {}),
