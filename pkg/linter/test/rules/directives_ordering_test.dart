@@ -26,6 +26,20 @@ class DirectivesOrderingTest extends LintRuleTest {
   @override
   String get lintRule => 'directives_ordering';
 
+  test_dartDirectivesGoFirst_docImports() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await assertDiagnostics(r'''
+/// @docImport 'dart:math';
+/// @docImport 'a.dart';
+/// @docImport 'dart:html';
+/// @docImport 'dart:isolate';
+library;
+''', [
+      lint(61, 19),
+      lint(89, 22),
+    ]);
+  }
+
   test_dartDirectivesGoFirst_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
     await assertDiagnostics(r'''
@@ -117,6 +131,21 @@ main() {}
 ''');
   }
 
+  test_packageDirectivesGoBeforeRelative_docImports() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/b.dart', '');
+    await assertDiagnostics(r'''
+/// @docImport 'dart:math';
+/// @docImport 'package:js/js.dart';
+/// @docImport 'a.dart';
+/// @docImport 'package:meta/meta.dart';
+/// @docImport 'b.dart';
+library;
+''', [
+      lint(98, 32),
+    ]);
+  }
+
   test_packageDirectivesGoBeforeRelative_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
@@ -176,6 +205,18 @@ import 'package:js/js.dart';
 // ignore_for_file: unused_import
 ''', [
       lint(50, 28),
+    ]);
+  }
+
+  test_sortDirectiveSectionsAlphabetically_dartSchema_docImport() async {
+    await assertDiagnostics(r'''
+/// @docImport 'dart:html';
+/// @docImport 'dart:isolate';
+/// @docImport 'dart:convert';
+/// @docImport 'dart:math';
+library;
+''', [
+      lint(67, 22),
     ]);
   }
 
