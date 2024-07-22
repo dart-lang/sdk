@@ -45,23 +45,32 @@ void main(List<String> args) async {
           await driver.checkInFrame(
               breakpointId: 'bp',
               expression: 'myAssert()',
-              expectedError: allOf(
-                contains('Error: Assertion failed:'),
-                contains('test.dart:8:16'),
-                contains('false'),
-                contains('is not true'),
-              ));
+              // TODO(sigmund): Since Chrome 125, Chrome broke how errors are
+              // printed. The fix landed in Chrome 128. When that version gets
+              // rolled, this expectation can be updated back to:
+              //  expectedError: allOf(
+              //      contains('Error: Assertion failed:'),
+              //      contains('test.dart:8:16'),
+              //      contains('false'),
+              //      contains('is not true'),
+              //    ));
+              expectedError: startsWith('Error\n'));
         });
+
         test('assert errors in evaluated expression', () async {
           await driver.checkInFrame(
               breakpointId: 'bp',
               expression: '() { assert(false); return 0; } ()',
-              expectedError: allOf(
-                contains('Error: Assertion failed:'),
-                contains('org-dartlang-debug:synthetic_debug_expression:1:13'),
-                contains('false'),
-                contains('is not true'),
-              ));
+              // TODO(sigmund): Since Chrome 125, Chrome broke how errors are
+              // printed. The fix landed in Chrome 128. When that version gets
+              // rolled, this expectation can be updated back to:
+              //  expectedError: allOf(
+              //    contains('Error: Assertion failed:'),
+              //    contains('org-dartlang-debug:synthetic_debug_expression:1:13'),
+              //    contains('false'),
+              //    contains('is not true'),
+              //  ));
+              expectedError: startsWith('Error\n'));
         });
       });
     }

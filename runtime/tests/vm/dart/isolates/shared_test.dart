@@ -69,6 +69,10 @@ void main(List<String> args) async {
       ]);
       if (Platform.version.contains('(main)') ||
           Platform.version.contains('(dev)')) {
+        if (result.exitCode != 0) {
+          print('stdout: ${result.stdout}');
+          print('stderr: ${result.stderr}');
+        }
         Expect.equals(0, result.exitCode);
       } else {
         Expect.notEquals(0, result.exitCode);

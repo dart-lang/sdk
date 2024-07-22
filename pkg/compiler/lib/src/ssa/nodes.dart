@@ -1899,7 +1899,7 @@ class HInvokeClosure extends HInvokeDynamic {
   HInvokeClosure(Selector selector, AbstractValue receiverType,
       List<HInstruction> inputs, AbstractValue resultType, this.typeArguments)
       : super(selector, receiverType, null, inputs, false, resultType) {
-    assert(selector.isClosureCall);
+    assert(selector.isMaybeClosureCall);
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
     assert(!isInterceptedCall);
   }

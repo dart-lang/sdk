@@ -151,7 +151,7 @@ vars = {
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "8b05be87f84f74d90dc0c15956f3ff95805322e5",
   "html_rev": "0da420ca1e196cda54ede476d0d8d3ecf55375ef",
-  "http_rev": "a0781c52def5354bf0f069b56649a018f3ca357c",
+  "http_rev": "73fce7763a40920c1ce6cb5d2258d8662813ac9d",
   "http_multi_server_rev": "8348be1bf8fd17881e2643086e68c9d2b28dd9ce",
   "http_parser_rev": "ce528cf82f3d26ac761e29b2494a9e0c270d4939",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
@@ -180,7 +180,7 @@ vars = {
   "stream_channel_rev": "28a65331aa2d66a5e953205aa462bcdb1e240a5b",
   "string_scanner_rev": "a40bbbd83f1176bcc0021b336f5841310f91d8cb",
   "sync_http_rev": "ab8377eba79baff3d77e8c75d502efc2b85a9342",
-  "tar_rev": "552a49d7595e444184d4f91e9afd533aa253a31d",
+  "tar_rev": "d33204cb623b87bfe9cfc92ca37d9469feba126b",
   "term_glyph_rev": "38a158f55006cf30942c928171ea601ee5e0308f",
   "test_rev": "2c2ac49de0e9d6ea9744c6e7990d5730806410c0",
   "test_descriptor_rev": "90743bc16bc00526a1b9a64f813614be9b2479d9",
@@ -195,7 +195,7 @@ vars = {
   "webdev_rev": "75417c09181c97786d9539a662834bed9d2f1e77",
   "webdriver_rev": "718e4c37d004fceb9856de980782c46bf9576df5",
   "webkit_inspection_protocol_rev": "32fffa53df3f54005c742ddf4f859fb585a6b254",
-  "yaml_rev": "30fd9e0cd49b2e04f74769f9b24a0300e400403e",
+  "yaml_rev": "a645c3905fc3cc2bbd3def9879ba8dedd26e3aa5",
   "yaml_edit_rev": "d605cce3946828253a97f4b3de1a43260b6edf3b",
 
   # Windows deps
@@ -207,7 +207,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "121.0.6167.85",
+  "chrome_tag": "127.0.6533.43",
   "download_firefox": False,
   "firefox_tag": "127.0.2",
 
