@@ -822,8 +822,12 @@ void runNullSafeSharedTests(
           await driver.checkInFrame(
               breakpointId: 'lateGlobalVariableBP',
               expression: 'lateGlobal2',
-              expectedError: 'Error: LateInitializationError: '
-                  "Field 'lateGlobal2' has not been initialized.");
+              // TODO(sigmund): Since Chrome 125, Chrome broke how errors are
+              // printed. The fix landed in Chrome 128. When that version gets
+              // rolled, this expectation can be updated back to:
+              //expectedError: 'Error: LateInitializationError: '
+              //    "Field 'lateGlobal2' has not been initialized.");
+              expectedError: startsWith('Error\n'));
         });
       });
     });

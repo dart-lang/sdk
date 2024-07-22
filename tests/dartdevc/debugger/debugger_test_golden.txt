@@ -5457,7 +5457,7 @@ Value:
                 {
                     "style": ""
                 },
-                "Error: Instance of 'Error'"
+                "Error"
             ]
         ]
     ],
