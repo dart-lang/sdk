@@ -809,18 +809,14 @@ class SourceCompilationUnitImpl
     if (_extensionsInScope == null) {
       _extensionsInScope = <ExtensionBuilder>{};
       _scope.forEachExtension((e) {
-        if (!e.extension.isExtensionTypeDeclaration) {
-          _extensionsInScope!.add(e);
-        }
+        _extensionsInScope!.add(e);
       });
       List<PrefixBuilder>? prefixBuilders =
           _builderFactoryResult.prefixBuilders;
       if (prefixBuilders != null) {
         for (PrefixBuilder prefix in prefixBuilders) {
-          prefix.exportScope.forEachExtension((e) {
-            if (!e.extension.isExtensionTypeDeclaration) {
-              _extensionsInScope!.add(e);
-            }
+          prefix.forEachExtension((e) {
+            _extensionsInScope!.add(e);
           });
         }
       }

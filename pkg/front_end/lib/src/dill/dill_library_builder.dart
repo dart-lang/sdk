@@ -154,7 +154,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Scope get nameSpace => _scope;
 
   @override
-  Scope get exportScope => _exportScope;
+  NameSpace get exportScope => _exportScope;
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
@@ -514,4 +514,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   Version get languageVersion => library.languageVersion;
+
+  /// Patch up the export scope, using the two replacement maps to replace
+  /// builders in the export scope. The replacement maps from old LibraryBuilder
+  /// to map, mapping from name to new (replacement) builder.
+  void patchUpExportScope(
+      Map<LibraryBuilder, Map<String, Builder>> replacementMap,
+      Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
+    _exportScope.patchUpScope(replacementMap, replacementMapSetters);
+  }
 }

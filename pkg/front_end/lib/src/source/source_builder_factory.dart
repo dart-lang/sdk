@@ -2382,13 +2382,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                       _compilationUnit.fileUri, other!.charOffset, noLength)
             ]);
       }
-      return existing
-        ..exportScope.merge(declaration.exportScope,
-            (String name, Builder existing, Builder member) {
-          return computeAmbiguousDeclarationForScope(
-              _problemReporting, scope, name, existing, member,
-              uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
-        });
+      existing.mergeScopes(declaration, _problemReporting, scope,
+          uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
+      return existing;
     } else if (_isDuplicatedDeclaration(existing, declaration)) {
       String fullName = name;
       if (isConstructor) {

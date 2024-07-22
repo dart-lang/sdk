@@ -89,7 +89,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<NominalVariableBuilder>? typeVariables,
       TypeBuilder supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
-      Scope typeParameterScope,
+      LookupScope typeParameterScope,
       Scope memberScope,
       ConstructorScope constructors,
       Class cls,
@@ -138,7 +138,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       int charOffset,
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
-      Scope typeParameterScope,
+      LookupScope typeParameterScope,
       Scope memberScope,
       ConstructorScope constructorScope,
       LibraryBuilder coreLibrary) {
