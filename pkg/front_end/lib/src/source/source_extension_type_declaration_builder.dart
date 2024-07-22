@@ -65,7 +65,7 @@ class SourceExtensionTypeDeclarationBuilder
   final List<NominalVariableBuilder>? typeParameters;
 
   @override
-  final Scope typeParameterScope;
+  final LookupScope typeParameterScope;
 
   @override
   List<TypeBuilder>? interfaceBuilders;

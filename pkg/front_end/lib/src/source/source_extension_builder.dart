@@ -42,7 +42,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   final List<NominalVariableBuilder>? typeParameters;
 
   @override
-  final Scope typeParameterScope;
+  final LookupScope typeParameterScope;
 
   @override
   final TypeBuilder onType;

@@ -446,12 +446,11 @@ class BodyBuilder extends StackListenerImpl
             context.needsImplicitSuperInitializer(coreTypes),
         benchmarker = libraryBuilder.loader.target.benchmarker,
         _localScopes = new LocalStack([enclosingScope]) {
-    Iterator<VariableBuilder>? iterator =
-        formalParameterScope?.filteredIterator<VariableBuilder>(
-            includeDuplicates: false, includeAugmentations: false);
-    if (iterator != null) {
-      while (iterator.moveNext()) {
-        typeInferrer.assignedVariables.declare(iterator.current.variable!);
+    if (formalParameterScope != null) {
+      for (Builder builder in formalParameterScope!.localMembers) {
+        if (builder is VariableBuilder) {
+          typeInferrer.assignedVariables.declare(builder.variable!);
+        }
       }
     }
     if (thisVariable != null && context.isConstructor) {
@@ -464,13 +463,13 @@ class BodyBuilder extends StackListenerImpl
   BodyBuilder.forField(
       SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
-      Scope enclosingScope,
+      LookupScope enclosingScope,
       TypeInferrer typeInferrer,
       Uri uri)
       : this(
             libraryBuilder: libraryBuilder,
             context: bodyBuilderContext,
-            enclosingScope: enclosingScope.toLocalScope(),
+            enclosingScope: new EnclosingLocalScope(enclosingScope),
             formalParameterScope: null,
             hierarchy: libraryBuilder.loader.hierarchy,
             coreTypes: libraryBuilder.loader.coreTypes,
@@ -479,12 +478,12 @@ class BodyBuilder extends StackListenerImpl
             typeInferrer: typeInferrer);
 
   BodyBuilder.forOutlineExpression(SourceLibraryBuilder library,
-      BodyBuilderContext bodyBuilderContext, Scope scope, Uri fileUri,
+      BodyBuilderContext bodyBuilderContext, LookupScope scope, Uri fileUri,
       {LocalScope? formalParameterScope})
       : this(
             libraryBuilder: library,
             context: bodyBuilderContext,
-            enclosingScope: scope.toLocalScope(),
+            enclosingScope: new EnclosingLocalScope(scope),
             formalParameterScope: formalParameterScope,
             hierarchy: library.loader.hierarchy,
             coreTypes: library.loader.coreTypes,

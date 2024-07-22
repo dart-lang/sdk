@@ -13,7 +13,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/modifier.dart';
-import '../base/scope.dart' show Scope;
+import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
@@ -279,7 +279,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       if (initializerToken != null) {
         final DeclarationBuilder declarationBuilder =
             parent!.parent as DeclarationBuilder;
-        Scope scope = declarationBuilder.scope;
+        LookupScope scope = declarationBuilder.scope;
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
             this,
             inOutlineBuildingPhase: true,

@@ -75,14 +75,14 @@ abstract class SourceFunctionBuilder
 
   /// This is the formal parameter scope as specified in the Dart Programming
   /// Language Specification, 4th ed, section 9.2.
-  Scope computeFormalParameterScope(Scope parent);
+  LocalScope computeFormalParameterScope(LookupScope parent);
 
   LocalScope computeFormalParameterInitializerScope(LocalScope parent);
 
   /// This scope doesn't correspond to any scope specified in the Dart
   /// Programming Language Specification, 4th ed. It's an unspecified extension
   /// to support generic methods.
-  Scope computeTypeParameterScope(Scope parent);
+  LookupScope computeTypeParameterScope(LookupScope parent);
 
   FormalParameterBuilder? getFormal(Identifier identifier);
 
@@ -206,8 +206,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   bool get isAugmented;
 
   @override
-  Scope computeFormalParameterScope(Scope parent) {
-    if (formals == null) return parent;
+  LocalScope computeFormalParameterScope(LookupScope parent) {
+    if (formals == null) return new FormalParameterScope(parent: parent);
     Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals!) {
       if (formal.isWildcard) {
@@ -218,12 +218,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         local[formal.name] = formal;
       }
     }
-    return new Scope(
-        kind: ScopeKind.formals,
-        local: local,
-        parent: parent,
-        debugName: "formal parameter",
-        isModifiable: false);
+    return new FormalParameterScope(local: local, parent: parent);
   }
 
   @override
@@ -259,19 +254,14 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  Scope computeTypeParameterScope(Scope parent) {
+  LookupScope computeTypeParameterScope(LookupScope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (NominalVariableBuilder variable in typeVariables!) {
       if (variable.isWildcard) continue;
       local[variable.name] = variable;
     }
-    return new Scope(
-        kind: ScopeKind.typeParameters,
-        local: local,
-        parent: parent,
-        debugName: "type parameter",
-        isModifiable: false);
+    return new TypeParameterScope(parent, local);
   }
 
   @override

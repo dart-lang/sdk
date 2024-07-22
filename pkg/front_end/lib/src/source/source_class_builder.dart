@@ -100,7 +100,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   List<NominalVariableBuilder>? typeVariables;
 
   /// The scope in which the [typeParameters] are declared.
-  final Scope typeParameterScope;
+  final LookupScope typeParameterScope;
 
   @override
   TypeBuilder? supertypeBuilder;

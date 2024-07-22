@@ -363,18 +363,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     });
   }
 
-  Scope computeTypeParameterScope(Scope parent) {
+  LookupScope computeTypeParameterScope(LookupScope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (NominalVariableBuilder variable in typeVariables!) {
       local[variable.name] = variable;
     }
-    return new Scope(
-        kind: ScopeKind.typeParameters,
-        local: local,
-        parent: parent,
-        debugName: "type parameter",
-        isModifiable: false);
+    return new TypeParameterScope(parent, local);
   }
 
   Map<Procedure, Member>? _tearOffDependencies;

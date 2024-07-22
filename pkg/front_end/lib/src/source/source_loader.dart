@@ -871,7 +871,7 @@ severity: $severity
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       BodyBuilderContext bodyBuilderContext,
-      Scope scope,
+      LookupScope scope,
       Uri fileUri,
       {LocalScope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
@@ -3078,7 +3078,7 @@ severity: $severity
   BodyBuilder createBodyBuilderForField(
       SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
-      Scope enclosingScope,
+      LookupScope enclosingScope,
       TypeInferrer typeInferrer,
       Uri uri) {
     return new BodyBuilder.forField(

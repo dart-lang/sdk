@@ -303,15 +303,14 @@ abstract class AbstractSourceConstructorBuilder
   void _buildConstructorForOutline(
       Token? beginInitializers,
       List<DelayedActionPerformer> delayedActionPerformers,
-      Scope declarationScope) {
+      LookupScope declarationScope) {
     if (beginInitializers != null) {
       final LocalScope? formalParameterScope;
       if (isConst) {
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(
             computeFormalParameterScope(
-                    computeTypeParameterScope(declarationBuilder.scope))
-                .toLocalScope());
+                computeTypeParameterScope(declarationBuilder.scope)));
       } else {
         formalParameterScope = null;
       }
@@ -1230,7 +1229,7 @@ class SourceExtensionTypeConstructorBuilder
     if (isConst) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
-      Scope typeParameterScope =
+      LookupScope typeParameterScope =
           computeTypeParameterScope(extensionTypeDeclarationBuilder.scope);
       _buildConstructorForOutline(
           beginInitializers, delayedActionPerformers, typeParameterScope);

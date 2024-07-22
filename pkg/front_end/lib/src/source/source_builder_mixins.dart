@@ -241,7 +241,7 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   List<NominalVariableBuilder>? get typeParameters;
 
   /// The scope in which the [typeParameters] are declared.
-  Scope get typeParameterScope;
+  LookupScope get typeParameterScope;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
