@@ -815,7 +815,7 @@ class SourceCompilationUnitImpl
           _builderFactoryResult.prefixBuilders;
       if (prefixBuilders != null) {
         for (PrefixBuilder prefix in prefixBuilders) {
-          prefix.exportScope.forEachExtension((e) {
+          prefix.forEachExtension((e) {
             _extensionsInScope!.add(e);
           });
         }

@@ -262,7 +262,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 
   NameSpace get nameSpace;
 
-  Scope get exportScope;
+  NameSpace get exportScope;
 
   List<Export> get exporters;
 
@@ -489,7 +489,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
           null);
     }
     Builder? cls = (bypassLibraryPrivacy ? scope : exportScope)
-        .lookup(className, -1, fileUri);
+        .lookupLocalMember(className, setter: false);
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;

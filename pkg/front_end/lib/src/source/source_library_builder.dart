@@ -98,7 +98,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final Scope _scope;
 
-  final Scope _exportScope;
+  final NameSpace _exportScope;
 
   @override
   final SourceLoader loader;
@@ -389,7 +389,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Scope get nameSpace => _scope;
 
   @override
-  Scope get exportScope => _exportScope;
+  NameSpace get exportScope => _exportScope;
 
   Iterable<SourceCompilationUnit> get parts => _parts;
 

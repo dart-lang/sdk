@@ -951,13 +951,9 @@ Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
       // Coverage-ignore-block(suite): Not run.
       // Handles the case where the same prefix is used for different
       // imports.
-      return declaration
-        ..exportScope.merge(other.exportScope,
-            (String name, Builder existing, Builder member) {
-          return computeAmbiguousDeclarationForScope(
-              problemReporting, scope, name, existing, member,
-              uriOffset: uriOffset, isExport: isExport, isImport: isImport);
-        });
+      declaration.mergeScopes(other, problemReporting, scope,
+          uriOffset: uriOffset, isImport: isImport, isExport: isExport);
+      return declaration;
     }
   }
   Uri firstUri = uri!;

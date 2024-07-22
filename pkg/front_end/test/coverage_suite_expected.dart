@@ -360,7 +360,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/prefix_builder.dart": (
-    hitCount: 35,
+    hitCount: 46,
     missCount: 0,
   ),
   // 100.0%.
@@ -775,7 +775,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1213,
+    hitCount: 1209,
     missCount: 0,
   ),
   // 100.0%.
@@ -788,9 +788,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 1213,
     missCount: 0,
   ),
-  // 99.4729907773386%.
+  // 99.46949602122017%.
   "package:front_end/src/source/source_compilation_unit.dart": (
-    hitCount: 755,
+    hitCount: 750,
     missCount: 4,
   ),
   // 100.0%.
@@ -805,7 +805,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_extension_builder.dart": (
-    hitCount: 72,
+    hitCount: 71,
     missCount: 0,
   ),
   // 100.0%.

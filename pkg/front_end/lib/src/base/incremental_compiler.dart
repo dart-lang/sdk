@@ -635,8 +635,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         for (DillLibraryBuilder builder
             in experimentalInvalidation.originalNotReusedLibraries) {
           if (builder.isBuilt) {
-            builder.exportScope
-                .patchUpScope(replacementMap, replacementSettersMap);
+            builder.patchUpExportScope(replacementMap, replacementSettersMap);
 
             // Clear cached calculations that points (potential) to now replaced
             // things.
@@ -950,8 +949,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           in experimentalInvalidation.originalNotReusedLibraries) {
         // There's only something to patch up if it was build already.
         if (builder.isBuilt) {
-          builder.exportScope
-              .patchUpScope(replacementMap, replacementSettersMap);
+          builder.patchUpExportScope(replacementMap, replacementSettersMap);
         }
       }
     }
