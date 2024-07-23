@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../base/common.dart';
+import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';

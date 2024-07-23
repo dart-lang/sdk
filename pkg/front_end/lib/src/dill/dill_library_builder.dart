@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import '../base/combinator.dart';
 import '../base/export.dart';
 import '../base/loader.dart';
+import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../base/uris.dart';
@@ -117,7 +118,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 class DillLibraryBuilder extends LibraryBuilderImpl {
   late final LazyLibraryScope _scope;
 
-  late final LazyLibraryScope _exportScope;
+  late final DillExportNameSpace _exportScope;
 
   @override
   final Library library;
@@ -144,14 +145,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
     _scope = new LazyLibraryScope.top(this);
-    _exportScope = new LazyLibraryScope.top(this);
+    _exportScope = new DillExportNameSpace(this);
   }
 
   @override
   Scope get scope => _scope;
 
   @override
-  Scope get nameSpace => _scope;
+  NameSpace get nameSpace => _scope;
 
   @override
   NameSpace get exportScope => _exportScope;
