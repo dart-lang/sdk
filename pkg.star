@@ -31,6 +31,7 @@ dart.ci_sandbox_builder(
     category = "pkg|la",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 dart.ci_sandbox_builder(
     "pkg-mac-release",
@@ -55,6 +56,7 @@ dart.ci_sandbox_builder(
     category = "pkg|wa",
     dimensions = [windows11, arm64, flutter_pool],
     properties = [{"clobber": False}, no_reclient],
+    rbe = False,
 )
 dart.ci_sandbox_builder(
     "pkg-linux-debug",

@@ -108,6 +108,7 @@ _vm_builder(
     category = "vm|jit|a6",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 _vm_builder(
     "vm-mac-debug-arm64",
@@ -160,12 +161,14 @@ _nightly_builder(
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
     properties = [{"clobber": False}, no_reclient],
+    rbe = False,
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
     dimensions = [windows11, arm64, flutter_pool],
     properties = [{"clobber": False}, no_reclient],
+    rbe = False,
 )
 
 # vm|appjit
@@ -212,6 +215,7 @@ _nightly_builder(
     category = "vm|aot|a6",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 _vm_builder(
     "vm-aot-mac-release-arm64",
@@ -241,12 +245,14 @@ _nightly_builder(
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
     properties = [{"clobber": False}, no_reclient],
+    rbe = False,
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
     dimensions = [windows11, arm64, flutter_pool],
     properties = [{"clobber": False}, no_reclient],
+    rbe = False,
 )
 
 # vm|aot|android
@@ -338,24 +344,28 @@ _nightly_builder(
     category = "vm|misc|sanitizer|a",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-msan-linux-release-arm64",
     category = "vm|misc|sanitizer|m",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-tsan-linux-release-arm64",
     category = "vm|misc|sanitizer|t",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-ubsan-linux-release-arm64",
     category = "vm|misc|sanitizer|u",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 _nightly_builder(
     "vm-reload-linux-debug-x64",
@@ -469,6 +479,7 @@ _vm_builder(
     category = "vm|ffi|qr",
     dimensions = [jammy, arm64],
     properties = {"clobber": False},
+    rbe = False,  # b/306641265
 )
 
 # Isolate stress test builder
