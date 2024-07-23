@@ -114,41 +114,125 @@ abstract class LookupScope {
   Builder? lookupSetter(String name, int charOffset, Uri fileUri);
 }
 
+/// Returns the correct value of [builder] found as a lookup of [name].
+///
+/// This ensures that an [AmbiguousBuilder] is return of the found builder is
+/// a duplicate.
+Builder? normalizeLookup(Builder? builder,
+    {required String name,
+    required int charOffset,
+    required Uri fileUri,
+    required String classNameOrDebugName}) {
+  if (builder == null) return null;
+  if (builder.next != null) {
+    return new AmbiguousBuilder(
+        name.isEmpty
+            ?
+            // Coverage-ignore(suite): Not run.
+            classNameOrDebugName
+            : name,
+        builder,
+        charOffset,
+        fileUri);
+  } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+    // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
+    return null;
+  } else {
+    return builder;
+  }
+}
+
+/// Returns the correct value of [builder] found as a lookup of [name] where
+/// [builder] is found as a setable in search of a getable or as a getable in
+/// search of a setable.
+///
+/// This ensures that an [AccessErrorBuilder] is returned if a non-problem
+/// builder was found.
+Builder? normalizeCrossLookup(Builder? builder,
+    {required String name, required int charOffset, required Uri fileUri}) {
+  if (builder != null && !builder.hasProblem) {
+    return new AccessErrorBuilder(name, builder, charOffset, fileUri);
+  }
+  return builder;
+}
+
 mixin LookupScopeMixin implements LookupScope {
   String get classNameOrDebugName;
 
   Builder? lookupIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder> map) {
-    Builder? builder = map[name];
-    if (builder == null) return null;
-    if (builder.next != null) {
-      return new AmbiguousBuilder(
-          name.isEmpty
-              ?
-              // Coverage-ignore(suite): Not run.
-              classNameOrDebugName
-              : name,
-          builder,
-          charOffset,
-          fileUri);
-    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
-      return null;
-    } else {
-      return builder;
-    }
+      String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
+    return normalizeLookup(getables[name],
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName);
   }
 
-  Builder? lookupSetterIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder>? map) {
+  Builder? lookupSetterIn(String name, int charOffset, Uri fileUri,
+      Map<String, Builder>? getables) {
     Builder? builder;
-    if (map != null) {
-      builder = lookupIn(name, charOffset, fileUri, map);
-      if (builder != null && !builder.hasProblem) {
-        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-      }
+    if (getables != null) {
+      builder = lookupIn(name, charOffset, fileUri, getables);
+      builder = normalizeCrossLookup(builder,
+          name: name, charOffset: charOffset, fileUri: fileUri);
     }
     return builder;
+  }
+}
+
+/// A [LookupScope] based directly on a [NameSpace].
+class NameSpaceLookupScope implements LookupScope {
+  final NameSpace _nameSpace;
+
+  @override
+  final ScopeKind kind;
+
+  final String classNameOrDebugName;
+
+  NameSpaceLookupScope(this._nameSpace, this.kind, this.classNameOrDebugName);
+
+  @override
+  Builder? lookup(String name, int charOffset, Uri fileUri) {
+    Builder? builder = normalizeLookup(
+        _nameSpace.lookupLocalMember(name, setter: false),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName);
+    if (builder != null) {
+      return builder;
+    }
+    return normalizeCrossLookup(
+        normalizeLookup(_nameSpace.lookupLocalMember(name, setter: true),
+            name: name,
+            charOffset: charOffset,
+            fileUri: fileUri,
+            classNameOrDebugName: classNameOrDebugName),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri);
+  }
+
+  @override
+  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+    Builder? builder = normalizeLookup(
+        _nameSpace.lookupLocalMember(name, setter: true),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName);
+    if (builder != null) {
+      return builder;
+    }
+    return normalizeCrossLookup(
+        normalizeLookup(_nameSpace.lookupLocalMember(name, setter: false),
+            name: name,
+            charOffset: charOffset,
+            fileUri: fileUri,
+            classNameOrDebugName: classNameOrDebugName),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri);
   }
 }
 
@@ -531,37 +615,6 @@ class Scope extends MutableScope
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _extensions?.forEach(f);
     _parent?.forEachExtension(f);
-  }
-
-  void merge(
-      Scope scope,
-      Builder computeAmbiguousDeclaration(
-          String name, Builder existing, Builder member)) {
-    Map<String, Builder> map = const {};
-
-    void mergeMember(String name, Builder member) {
-      Builder? existing = map[name];
-      if (existing != null) {
-        if (existing != member) {
-          member = computeAmbiguousDeclaration(name, existing, member);
-        }
-      }
-      map[name] = member;
-    }
-
-    if (scope._local != null) {
-      map = _local ??= // Coverage-ignore(suite): Not run.
-          {};
-      scope._local?.forEach(mergeMember);
-    }
-    if (scope._setters != null) {
-      map = _setters ??= // Coverage-ignore(suite): Not run.
-          {};
-      scope._setters?.forEach(mergeMember);
-    }
-    if (scope._extensions != null) {
-      (_extensions ??= {}).addAll(scope._extensions!);
-    }
   }
 
   String get debugString {

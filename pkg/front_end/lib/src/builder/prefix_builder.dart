@@ -7,6 +7,7 @@ library fasta.prefix_builder;
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/messages.dart';
+import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
@@ -17,7 +18,10 @@ import 'declaration_builders.dart';
 class PrefixBuilder extends BuilderImpl {
   final String name;
 
-  final Scope _exportScope = new Scope.top(kind: ScopeKind.library);
+  final PrefixNameSpace _exportNameSpace = new PrefixNameSpace();
+
+  late final LookupScope _exportScope =
+      new NameSpaceLookupScope(_exportNameSpace, ScopeKind.library, "top");
 
   @override
   final SourceLibraryBuilder parent;
@@ -46,7 +50,7 @@ class PrefixBuilder extends BuilderImpl {
   LookupScope get exportScope => _exportScope;
 
   void forEachExtension(void Function(ExtensionBuilder) f) {
-    _exportScope.forEachExtension(f);
+    _exportNameSpace.forEachLocalExtension(f);
   }
 
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
@@ -66,7 +70,7 @@ class PrefixBuilder extends BuilderImpl {
     }
 
     Builder? existing =
-        _exportScope.lookupLocalMember(name, setter: member.isSetter);
+        _exportNameSpace.lookupLocalMember(name, setter: member.isSetter);
     Builder result;
     if (existing != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -76,9 +80,9 @@ class PrefixBuilder extends BuilderImpl {
     } else {
       result = member;
     }
-    _exportScope.addLocalMember(name, result, setter: member.isSetter);
+    _exportNameSpace.addLocalMember(name, result, setter: member.isSetter);
     if (result is ExtensionBuilder) {
-      _exportScope.addExtension(result);
+      _exportNameSpace.addExtension(result);
     }
   }
 
@@ -91,7 +95,7 @@ class PrefixBuilder extends BuilderImpl {
       {required UriOffset uriOffset,
       bool isImport = false,
       bool isExport = false}) {
-    return _exportScope.merge(other._exportScope,
+    return _exportNameSpace.merge(other._exportNameSpace,
         (String name, Builder existing, Builder member) {
       return computeAmbiguousDeclarationForScope(
           problemReporting, scope, name, existing, member,

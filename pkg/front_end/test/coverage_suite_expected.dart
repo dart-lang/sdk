@@ -163,10 +163,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 25,
     missCount: 0,
   ),
-  // 90.29126213592234%.
+  // 93.20388349514563%.
   "package:front_end/src/base/local_scope.dart": (
-    hitCount: 93,
-    missCount: 10,
+    hitCount: 96,
+    missCount: 7,
   ),
   // 100.0%.
   "package:front_end/src/base/messages.dart": (
@@ -178,10 +178,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 29,
     missCount: 0,
   ),
-  // 66.94915254237289%.
+  // 73.52941176470588%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 79,
-    missCount: 39,
+    hitCount: 100,
+    missCount: 36,
   ),
   // 100.0%.
   "package:front_end/src/base/operator.dart": (
@@ -198,10 +198,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 246,
     missCount: 0,
   ),
-  // 96.41025641025641%.
+  // 96.95431472081218%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 752,
-    missCount: 28,
+    hitCount: 764,
+    missCount: 24,
   ),
   // 100.0%.
   "package:front_end/src/base/ticker.dart": (
@@ -365,7 +365,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/prefix_builder.dart": (
-    hitCount: 46,
+    hitCount: 49,
     missCount: 0,
   ),
   // 100.0%.
