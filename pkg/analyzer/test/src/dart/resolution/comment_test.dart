@@ -36,14 +36,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: named
-      staticElement: self::@class::A::@constructor::named
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
       staticType: null
-    staticElement: self::@class::A::@constructor::named
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -63,14 +63,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
       staticType: null
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -90,14 +90,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: null
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -117,14 +117,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -144,14 +144,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
       staticType: null
-    staticElement: self::@class::A::@setter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -209,14 +209,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: null
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -236,14 +236,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
       staticType: null
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -263,14 +263,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
       staticType: null
-    staticElement: self::@class::A::@setter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -294,14 +294,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: named
-      staticElement: package:test/foo.dart::@class::A::@constructor::named
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::named
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@constructor::named
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -325,14 +325,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: new
-      staticElement: package:test/foo.dart::@class::A::@constructor::new
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::new
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@constructor::new
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::new
     staticType: null
 ''');
   }
@@ -356,14 +356,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@class::A::@getter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@getter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -387,14 +387,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@class::A::@getter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@getter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@getter::foo
     staticType: null
 ''');
   }
@@ -418,14 +418,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@class::A::@method::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@method::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -449,14 +449,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@class::A::@setter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@setter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@setter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@setter::foo
     staticType: null
 ''');
   }
@@ -480,14 +480,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@extension::E::@getter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@extension::E::@getter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -511,14 +511,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@extension::E::@method::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@extension::E::@method::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -542,14 +542,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@extension::E::@setter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@setter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@extension::E::@setter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -573,14 +573,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@extension::E::@getter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@getter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@extension::E::@getter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -604,14 +604,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@extension::E::@method::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@method::foo
       staticType: null
-    staticElement: package:test/foo.dart::@extension::E::@method::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -635,14 +635,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: package:test/foo.dart::@extension::E
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/foo.dart::@extension::E::@setter::foo
+      staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@setter::foo
       staticType: null
-    staticElement: package:test/foo.dart::@extension::E::@setter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -662,14 +662,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@getter::foo
       staticType: null
-    staticElement: self::@extension::E::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -689,14 +689,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
       staticType: null
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -716,14 +716,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@setter::foo
       staticType: null
-    staticElement: self::@extension::E::@setter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -743,14 +743,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@getter::foo
       staticType: null
-    staticElement: self::@extension::E::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@getter::foo
     staticType: null
 ''');
   }
@@ -770,14 +770,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
       staticType: null
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: null
 ''');
   }
@@ -797,14 +797,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@setter::foo
       staticType: null
-    staticElement: self::@extension::E::@setter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@setter::foo
     staticType: null
 ''');
   }
@@ -830,19 +830,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: named
-      staticElement: self::@class::A::@constructor::named
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
       staticType: null
     staticType: null
 ''');
@@ -865,19 +865,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: new
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
       staticType: null
     staticType: null
 ''');
@@ -900,19 +900,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -935,19 +935,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -970,19 +970,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1005,19 +1005,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -1040,19 +1040,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1075,19 +1075,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1110,19 +1110,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
-        staticElement: self::@extension::E
+        staticElement: <thisLibrary>::<definingUnit>::@extension::E
         staticType: null
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -1145,19 +1145,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
-        staticElement: self::@extension::E
+        staticElement: <thisLibrary>::<definingUnit>::@extension::E
         staticType: null
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1180,19 +1180,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
-        staticElement: self::@extension::E
+        staticElement: <thisLibrary>::<definingUnit>::@extension::E
         staticType: null
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1215,19 +1215,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
-        staticElement: self::@extension::E
+        staticElement: <thisLibrary>::<definingUnit>::@extension::E
         staticType: null
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@getter::foo
       staticType: null
     staticType: null
 ''');
@@ -1250,19 +1250,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
-        staticElement: self::@extension::E
+        staticElement: <thisLibrary>::<definingUnit>::@extension::E
         staticType: null
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
       staticType: null
     staticType: null
 ''');
@@ -1285,19 +1285,19 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: self::@prefix::self
+        staticElement: <thisLibrary>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: E
-        staticElement: self::@extension::E
+        staticElement: <thisLibrary>::<definingUnit>::@extension::E
         staticType: null
-      staticElement: self::@extension::E
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::E::@setter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::E::@setter::foo
       staticType: null
     staticType: null
 ''');
@@ -1320,7 +1320,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: null
 ''');
   }
@@ -1341,7 +1341,7 @@ extension E2 on int {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E2::@setter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E2::@setter::foo
     staticType: null
 ''');
   }
@@ -1358,7 +1358,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: null
 ''');
   }
@@ -1377,7 +1377,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: self::@class::A::@constructor::new::@parameter::p
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new::@parameter::p
     staticType: null
 ''');
   }
@@ -1393,7 +1393,7 @@ class A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: self::@class::A::@constructor::new::@parameter::p
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new::@parameter::p
     staticType: null
 ''');
   }
@@ -1414,7 +1414,7 @@ class B extends A {
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: self::@class::B::@constructor::new::@parameter::p
+    staticElement: <thisLibrary>::<definingUnit>::@class::B::@constructor::new::@parameter::p
     staticType: null
 ''');
   }
@@ -1433,7 +1433,7 @@ enum Samurai {
 CommentReference
   expression: SimpleIdentifier
     token: Samurai
-    staticElement: self::@enum::Samurai
+    staticElement: <thisLibrary>::<definingUnit>::@enum::Samurai
     staticType: null
 ''');
 
@@ -1441,7 +1441,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: int
-    staticElement: dart:core::@class::int
+    staticElement: dart:core::<definingUnit>::@class::int
     staticType: null
 ''');
 
@@ -1449,7 +1449,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: WITH_SWORD
-    staticElement: self::@enum::Samurai::@getter::WITH_SWORD
+    staticElement: <thisLibrary>::<definingUnit>::@enum::Samurai::@getter::WITH_SWORD
     staticType: null
 ''');
   }
@@ -1476,7 +1476,7 @@ foo(int p) => null;
 CommentReference
   expression: SimpleIdentifier
     token: p
-    staticElement: self::@function::foo::@parameter::p
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::p
     staticType: null
 ''');
   }
@@ -1557,7 +1557,7 @@ abstract class A {
 CommentReference
   expression: SimpleIdentifier
     token: p1
-    staticElement: self::@class::A::@method::ma::@parameter::p1
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::ma::@parameter::p1
     staticType: null
 ''');
 
@@ -1565,7 +1565,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p2
-    staticElement: self::@class::A::@method::mb::@parameter::p2
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::mb::@parameter::p2
     staticType: null
 ''');
 
@@ -1573,7 +1573,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p3
-    staticElement: self::@class::A::@method::mc::@parameter::p3
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::mc::@parameter::p3
     staticType: null
 ''');
 
@@ -1581,7 +1581,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p4
-    staticElement: self::@class::A::@method::mc::@parameter::p4
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::mc::@parameter::p4
     staticType: null
 ''');
 
@@ -1589,7 +1589,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p5
-    staticElement: self::@class::A::@method::md::@parameter::p5
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::md::@parameter::p5
     staticType: null
 ''');
 
@@ -1597,7 +1597,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: p6
-    staticElement: self::@class::A::@method::md::@parameter::p6
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::md::@parameter::p6
     staticType: null
 ''');
   }
@@ -1620,7 +1620,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@getter::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@getter::foo
     staticType: null
 ''');
   }
@@ -1645,7 +1645,7 @@ extension E2 on int {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E2::@setter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E2::@setter::foo
     staticType: null
 ''');
   }
@@ -1669,7 +1669,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: C
-    staticElement: package:test/one.dart::@class::C
+    staticElement: package:test/one.dart::<definingUnit>::@class::C
     staticType: null
 ''');
   }
@@ -1697,7 +1697,7 @@ CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@class::A::@constructor::new
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -1707,14 +1707,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: package:test/foo.dart::@class::A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: named
-      staticElement: package:test/foo.dart::@class::A::@constructor::named
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::named
       staticType: null
-    staticElement: package:test/foo.dart::@class::A::@constructor::named
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -1738,7 +1738,7 @@ enum E {
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@function::foo
     staticType: null
 ''');
   }
@@ -1759,7 +1759,7 @@ extension type ET(int it) {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@function::foo
     staticType: null
 ''');
   }
@@ -1781,7 +1781,7 @@ class C {
 CommentReference
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@class::A
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A
     staticType: null
 ''');
   }
@@ -1801,7 +1801,7 @@ library;
 CommentReference
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@class::A
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A
     staticType: null
 ''');
   }
@@ -1822,7 +1822,7 @@ void f() {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@function::foo
     staticType: null
 ''');
   }
@@ -1842,7 +1842,7 @@ int x = 1;
 CommentReference
   expression: SimpleIdentifier
     token: A
-    staticElement: package:test/foo.dart::@class::A
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A
     staticType: null
 ''');
   }
@@ -1863,7 +1863,7 @@ typedef T = int;
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: package:test/foo.dart::@function::foo
+    staticElement: package:test/foo.dart::<definingUnit>::@function::foo
     staticType: null
 ''');
   }
@@ -1887,7 +1887,7 @@ CommentReference
   newKeyword: new
   expression: SimpleIdentifier
     token: A
-    staticElement: self::@class::A::@constructor::new
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
     staticType: null
 ''');
 
@@ -1897,14 +1897,14 @@ CommentReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
-      staticElement: self::@class::A
+      staticElement: <thisLibrary>::<definingUnit>::@class::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: named
-      staticElement: self::@class::A::@constructor::named
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
       staticType: null
-    staticElement: self::@class::A::@constructor::named
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
     staticType: null
 ''');
   }
@@ -1919,7 +1919,7 @@ foo(int bar()) {}
 CommentReference
   expression: SimpleIdentifier
     token: bar
-    staticElement: self::@function::foo::@parameter::bar
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::bar
     staticType: null
 ''');
   }
@@ -1942,7 +1942,7 @@ class B extends A {
 CommentReference
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@setter::x
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
     staticType: null
 ''');
 
@@ -1950,7 +1950,7 @@ CommentReference
 CommentReference
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@class::A::@setter::x
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
     staticType: null
 ''');
   }
@@ -1969,7 +1969,7 @@ class B extends A {}
 CommentReference
   expression: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: null
 ''');
   }

@@ -47,7 +47,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferContraContra
-    staticElement: self::@function::inferContraContra
+    staticElement: <thisLibrary>::<definingUnit>::@function::inferContraContra
     staticType: Exactly<T> Function<T>(Contravariant<T>, Contravariant<T>)
   staticInvokeType: Exactly<Middle> Function(Contravariant<Middle>, Contravariant<Middle>)
   staticType: Exactly<Middle>
@@ -77,10 +77,10 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@class::B
+      element: <thisLibrary>::<definingUnit>::@class::B
       type: B<num>
     staticElement: ConstructorMember
-      base: self::@class::B::@constructor::new
+      base: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
       substitution: {T: num}
   staticType: B<num>
 ''');
@@ -109,7 +109,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferInvInv
-    staticElement: self::@function::inferInvInv
+    staticElement: <thisLibrary>::<definingUnit>::@function::inferInvInv
     staticType: Exactly<T> Function<T>(Invariant<T>, Invariant<T>)
   staticInvokeType: Exactly<Object> Function(Invariant<Object>, Invariant<Object>)
   staticType: Exactly<Object>
@@ -140,7 +140,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: inferCovCov
-    staticElement: self::@function::inferCovCov
+    staticElement: <thisLibrary>::<definingUnit>::@function::inferCovCov
     staticType: Exactly<T> Function<T>(Covariant<T>, Covariant<T>)
   staticInvokeType: Exactly<Upper> Function(Covariant<Upper>, Covariant<Upper>)
   staticType: Exactly<Upper>

@@ -38,7 +38,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: Enum
-      element: dart:core::@class::Enum
+      element: dart:core::<definingUnit>::@class::Enum
       type: Enum
 ''');
   }
@@ -76,7 +76,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
 ''');
   }

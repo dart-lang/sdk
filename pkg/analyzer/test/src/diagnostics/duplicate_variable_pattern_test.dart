@@ -33,7 +33,7 @@ IfStatement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: int
   caseClause: CaseClause
     caseKeyword: case

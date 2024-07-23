@@ -37,10 +37,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
       rightBracket: >
-    element: dart:async::@class::Stream
+    element: dart:async::@unit::dart:async/stream.dart::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -60,10 +60,10 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: self::@function::f
+    declaredElement: <thisLibrary>::<definingUnit>::@function::f
       type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: self::@function::f
+  declaredElement: <thisLibrary>::<definingUnit>::@function::f
     type: Stream<int> Function()
 ''');
   }
@@ -87,10 +87,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
       rightBracket: >
-    element: dart:async::@class::Stream
+    element: dart:async::@unit::dart:async/stream.dart::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -105,10 +105,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: self::@function::f
+    declaredElement: <thisLibrary>::<definingUnit>::@function::f
       type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: self::@function::f
+  declaredElement: <thisLibrary>::<definingUnit>::@function::f
     type: Stream<int> Function()
 ''');
   }
@@ -159,7 +159,7 @@ int get foo(double a) => 0;
 FunctionDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<definingUnit>::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -169,10 +169,10 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: double
-          element: dart:core::@class::double
+          element: dart:core::<definingUnit>::@class::double
           type: double
         name: a
-        declaredElement: self::@getter::foo::@parameter::a
+        declaredElement: <thisLibrary>::<definingUnit>::@getter::foo::@parameter::a
           type: double
       rightParenthesis: )
     body: ExpressionFunctionBody
@@ -181,10 +181,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: self::@getter::foo
+    declaredElement: <thisLibrary>::<definingUnit>::@getter::foo
       type: int Function(double)
     staticType: int Function(double)
-  declaredElement: self::@getter::foo
+  declaredElement: <thisLibrary>::<definingUnit>::@getter::foo
     type: int Function(double)
 ''');
   }
@@ -208,10 +208,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
       rightBracket: >
-    element: dart:core::@class::Iterable
+    element: dart:core::<definingUnit>::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -231,10 +231,10 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: self::@function::f
+    declaredElement: <thisLibrary>::<definingUnit>::@function::f
       type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: self::@function::f
+  declaredElement: <thisLibrary>::<definingUnit>::@function::f
     type: Iterable<int> Function()
 ''');
   }
@@ -256,10 +256,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
       rightBracket: >
-    element: dart:core::@class::Iterable
+    element: dart:core::<definingUnit>::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -274,10 +274,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: self::@function::f
+    declaredElement: <thisLibrary>::<definingUnit>::@function::f
       type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: self::@function::f
+  declaredElement: <thisLibrary>::<definingUnit>::@function::f
     type: Iterable<int> Function()
 ''');
   }
@@ -301,10 +301,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: self::@function::_
+    declaredElement: <thisLibrary>::<definingUnit>::@function::_
       type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: self::@function::_
+  declaredElement: <thisLibrary>::<definingUnit>::@function::_
     type: dynamic Function()
 ''');
   }
@@ -331,10 +331,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: self::@function::_
+    declaredElement: <thisLibrary>::<definingUnit>::@function::_
       type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: self::@function::_
+  declaredElement: <thisLibrary>::<definingUnit>::@function::_
     type: dynamic Function()
 ''');
   }

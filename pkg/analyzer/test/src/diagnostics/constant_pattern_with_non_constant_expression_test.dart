@@ -52,14 +52,14 @@ GuardedPattern
     expression: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: A
-        staticElement: self::@class::A
+        staticElement: <thisLibrary>::<definingUnit>::@class::A
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: a
-        staticElement: self::@class::A::@getter::a
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::a
         staticType: int
-      staticElement: self::@class::A::@getter::a
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -121,19 +121,19 @@ GuardedPattern
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
-          staticElement: self::@prefix::prefix
+          staticElement: <thisLibrary>::@prefix::prefix
           staticType: null
         period: .
         identifier: SimpleIdentifier
           token: A
-          staticElement: package:test/a.dart::@class::A
+          staticElement: package:test/a.dart::<definingUnit>::@class::A
           staticType: null
-        staticElement: package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<definingUnit>::@class::A
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        staticElement: package:test/a.dart::@class::A::@getter::a
+        staticElement: package:test/a.dart::<definingUnit>::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -163,19 +163,19 @@ GuardedPattern
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
-          staticElement: self::@prefix::prefix
+          staticElement: <thisLibrary>::@prefix::prefix
           staticType: null
         period: .
         identifier: SimpleIdentifier
           token: A
-          staticElement: package:test/a.dart::@class::A
+          staticElement: package:test/a.dart::<definingUnit>::@class::A
           staticType: null
-        staticElement: package:test/a.dart::@class::A
+        staticElement: package:test/a.dart::<definingUnit>::@class::A
         staticType: null
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        staticElement: package:test/a.dart::@class::A::@getter::a
+        staticElement: package:test/a.dart::<definingUnit>::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -202,9 +202,9 @@ GuardedPattern
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <thisLibrary>::<definingUnit>::@class::A
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -524,7 +524,7 @@ GuardedPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@getter::a
+      staticElement: <thisLibrary>::<definingUnit>::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -548,7 +548,7 @@ GuardedPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: a
-      staticElement: self::@getter::a
+      staticElement: <thisLibrary>::<definingUnit>::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');

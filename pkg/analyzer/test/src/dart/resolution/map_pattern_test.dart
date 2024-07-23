@@ -39,7 +39,7 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: String
-          element: dart:core::@class::String
+          element: dart:core::<definingUnit>::@class::String
           type: String
         name: a
         declaredElement: a@47
@@ -103,11 +103,11 @@ MapPattern
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       NamedType
         name: String
-        element: dart:core::@class::String
+        element: dart:core::<definingUnit>::@class::String
         type: String
     rightBracket: >
   leftBracket: {
@@ -323,11 +323,11 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<definingUnit>::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -415,7 +415,7 @@ MapPattern
       value: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
         name: a
         declaredElement: a@43
@@ -471,11 +471,11 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<definingUnit>::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -512,11 +512,11 @@ MapPattern
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<definingUnit>::@class::bool
         type: bool
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -555,7 +555,7 @@ MapPattern
       key: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -606,7 +606,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
 ''');
@@ -632,11 +632,11 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: bool
-          element: dart:core::@class::bool
+          element: dart:core::<definingUnit>::@class::bool
           type: bool
         NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
       rightBracket: >
     leftBracket: {
@@ -658,7 +658,7 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: self::@function::g
+      staticElement: <thisLibrary>::<definingUnit>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -696,7 +696,7 @@ PatternVariableDeclaration
         value: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<definingUnit>::@class::int
             type: int
           name: a
           declaredElement: a@28
@@ -709,7 +709,7 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: self::@function::g
+      staticElement: <thisLibrary>::<definingUnit>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (

@@ -36,7 +36,7 @@ void g(Object a) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: self::@function::g
+    staticElement: <thisLibrary>::<definingUnit>::@function::g
     staticType: void Function(Object)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -67,19 +67,19 @@ void g(int a, int b) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: g
-    staticElement: self::@function::g
+    staticElement: <thisLibrary>::<definingUnit>::@function::g
     staticType: void Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: <empty> <synthetic>
-        parameter: self::@function::g::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
         staticElement: <null>
         staticType: InvalidType
       SimpleIdentifier
         token: <empty> <synthetic>
-        parameter: self::@function::g::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@function::g::@parameter::b
         staticElement: <null>
         staticType: InvalidType
     rightParenthesis: )
@@ -105,14 +105,14 @@ void f(A a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   cascadeSections
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
         token: foo
-        staticElement: self::@class::A::@method::foo
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -123,7 +123,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        staticElement: self::@class::A::@method::bar
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::bar
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -148,7 +148,7 @@ h(double x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: h
-    staticElement: self::@function::h
+    staticElement: <thisLibrary>::<definingUnit>::@function::h
     staticType: dynamic Function(double)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -156,12 +156,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: self::@function::g::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
           staticType: double
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -169,12 +169,12 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
@@ -182,18 +182,18 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: double Function()
               staticType: double
               typeArgumentTypes
                 double
           rightParenthesis: )
-        parameter: self::@function::h::@parameter::x
+        parameter: <thisLibrary>::<definingUnit>::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: double
     rightParenthesis: )
@@ -218,7 +218,7 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: h
-    staticElement: self::@function::h
+    staticElement: <thisLibrary>::<definingUnit>::@function::h
     staticType: dynamic Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -226,12 +226,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: self::@function::g::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
           staticType: double
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -239,12 +239,12 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -252,18 +252,18 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
           rightParenthesis: )
-        parameter: self::@function::h::@parameter::x
+        parameter: <thisLibrary>::<definingUnit>::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
@@ -285,12 +285,12 @@ g(double a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::g::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -298,12 +298,12 @@ MethodInvocation
       MethodInvocation
         methodName: SimpleIdentifier
           token: f
-          staticElement: self::@function::f
+          staticElement: <thisLibrary>::<definingUnit>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -311,12 +311,12 @@ MethodInvocation
       MethodInvocation
         methodName: SimpleIdentifier
           token: f
-          staticElement: self::@function::f
+          staticElement: <thisLibrary>::<definingUnit>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -339,25 +339,25 @@ f(double a, double b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -377,25 +377,25 @@ f(double a, double b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -415,25 +415,25 @@ f(double a, int b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -453,25 +453,25 @@ f(double a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: double
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -495,7 +495,7 @@ h(double x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: h
-    staticElement: self::@function::h
+    staticElement: <thisLibrary>::<definingUnit>::@function::h
     staticType: dynamic Function(double)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -503,12 +503,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: self::@function::g::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
           staticType: int
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -516,12 +516,12 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
@@ -529,18 +529,18 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
           rightParenthesis: )
-        parameter: self::@function::h::@parameter::x
+        parameter: <thisLibrary>::<definingUnit>::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
@@ -563,7 +563,7 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: h
-    staticElement: self::@function::h
+    staticElement: <thisLibrary>::<definingUnit>::@function::h
     staticType: dynamic Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -571,12 +571,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: self::@function::g::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
           staticType: int
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: dart:core::@class::num::@method::clamp
+          staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
           staticType: num Function(num, num)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -584,12 +584,12 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
@@ -597,18 +597,18 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
+              parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
               staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
                 int
           rightParenthesis: )
-        parameter: self::@function::h::@parameter::x
+        parameter: <thisLibrary>::<definingUnit>::@function::h::@parameter::x
         staticInvokeType: num Function(num, num)
         staticType: int
     rightParenthesis: )
@@ -630,12 +630,12 @@ g(int a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::g::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -643,12 +643,12 @@ MethodInvocation
       MethodInvocation
         methodName: SimpleIdentifier
           token: f
-          staticElement: self::@function::f
+          staticElement: <thisLibrary>::<definingUnit>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -656,12 +656,12 @@ MethodInvocation
       MethodInvocation
         methodName: SimpleIdentifier
           token: f
-          staticElement: self::@function::f
+          staticElement: <thisLibrary>::<definingUnit>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
         staticInvokeType: num Function()
         staticType: num
         typeArgumentTypes
@@ -684,25 +684,25 @@ f(int a, double b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -722,25 +722,25 @@ f(int a, double b, dynamic c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -760,25 +760,25 @@ f(int a, double b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: double
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -798,25 +798,25 @@ f(int a, dynamic b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -836,25 +836,25 @@ f(int a, dynamic b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: dynamic
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -874,25 +874,25 @@ f(int a, int b, double c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -912,25 +912,25 @@ f(int a, int b, dynamic c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -950,25 +950,25 @@ f(int a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -989,20 +989,20 @@ MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1031,29 +1031,29 @@ MethodInvocation
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
           staticType: int
       rightParenthesis: )
-    element: self::@extension::E
+    element: <thisLibrary>::<definingUnit>::@extension::E
     extendedType: int
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: self::@extension::E::@method::clamp
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: self::@extension::E::@method::clamp::@parameter::x
-        staticElement: self::@function::f::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp::@parameter::x
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: self::@extension::E::@method::clamp::@parameter::y
-        staticElement: self::@function::f::@parameter::c
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp::@parameter::y
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1073,25 +1073,25 @@ f(int a, int b, Never c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: Never
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1113,25 +1113,25 @@ f(int a, Never b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: dart:core::@class::num::@method::clamp
+    staticElement: dart:core::<definingUnit>::@class::num::@method::clamp
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::clamp::@parameter::lowerLimit
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::lowerLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: Never
       SimpleIdentifier
         token: c
-        parameter: dart:core::@class::num::@method::clamp::@parameter::upperLimit
-        staticElement: self::@function::f::@parameter::c
+        parameter: dart:core::<definingUnit>::@class::num::@method::clamp::@parameter::upperLimit
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num, num)
@@ -1154,7 +1154,7 @@ f(Never a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -1167,12 +1167,12 @@ MethodInvocation
       SimpleIdentifier
         token: b
         parameter: <null>
-        staticElement: self::@function::f::@parameter::b
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
         parameter: <null>
-        staticElement: self::@function::f::@parameter::c
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -1199,7 +1199,7 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: h
-    staticElement: self::@function::h
+    staticElement: <thisLibrary>::<definingUnit>::@function::h
     staticType: dynamic Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1207,12 +1207,12 @@ MethodInvocation
       MethodInvocation
         target: SimpleIdentifier
           token: a
-          staticElement: self::@function::g::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::a
           staticType: A
         operator: .
         methodName: SimpleIdentifier
           token: clamp
-          staticElement: self::@class::A::@method::clamp
+          staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::clamp
           staticType: num Function(String, String)
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1220,12 +1220,12 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: self::@class::A::@method::clamp::@parameter::x
+              parameter: <thisLibrary>::<definingUnit>::@class::A::@method::clamp::@parameter::x
               staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
@@ -1233,18 +1233,18 @@ MethodInvocation
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f
-                staticElement: self::@function::f
+                staticElement: <thisLibrary>::<definingUnit>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
-              parameter: self::@class::A::@method::clamp::@parameter::y
+              parameter: <thisLibrary>::<definingUnit>::@class::A::@method::clamp::@parameter::y
               staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
                 String
           rightParenthesis: )
-        parameter: self::@function::h::@parameter::x
+        parameter: <thisLibrary>::<definingUnit>::@function::h::@parameter::x
         staticInvokeType: num Function(String, String)
         staticType: num
     rightParenthesis: )
@@ -1268,25 +1268,25 @@ f(A a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: self::@class::A::@method::clamp
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: self::@class::A::@method::clamp::@parameter::x
-        staticElement: self::@function::f::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::clamp::@parameter::x
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: self::@class::A::@method::clamp::@parameter::y
-        staticElement: self::@function::f::@parameter::c
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::clamp::@parameter::y
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1316,29 +1316,29 @@ MethodInvocation
         SimpleIdentifier
           token: a
           parameter: <null>
-          staticElement: self::@function::f::@parameter::a
+          staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
-    element: self::@extension::E
+    element: <thisLibrary>::<definingUnit>::@extension::E
     extendedType: A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: self::@extension::E::@method::clamp
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: self::@extension::E::@method::clamp::@parameter::x
-        staticElement: self::@function::f::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp::@parameter::x
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: self::@extension::E::@method::clamp::@parameter::y
-        staticElement: self::@function::f::@parameter::c
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp::@parameter::y
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1362,25 +1362,25 @@ f(A a, int b, int c) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: clamp
-    staticElement: self::@extension::E::@method::clamp
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp
     staticType: String Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: self::@extension::E::@method::clamp::@parameter::x
-        staticElement: self::@function::f::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp::@parameter::x
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
       SimpleIdentifier
         token: c
-        parameter: self::@extension::E::@method::clamp::@parameter::y
-        staticElement: self::@function::f::@parameter::c
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::clamp::@parameter::y
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: int
     rightParenthesis: )
   staticInvokeType: String Function(int, int)
@@ -1419,7 +1419,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1458,7 +1458,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1493,7 +1493,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1528,7 +1528,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1563,7 +1563,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1590,7 +1590,7 @@ void f<S>(S s) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: test
-    staticElement: self::@function::test
+    staticElement: <thisLibrary>::<definingUnit>::@function::test
     staticType: void Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1598,9 +1598,9 @@ MethodInvocation
       SimpleIdentifier
         token: s
         parameter: ParameterMember
-          base: self::@function::test::@parameter::t
+          base: <thisLibrary>::<definingUnit>::@function::test::@parameter::t
           substitution: {T: S}
-        staticElement: self::@function::f::@parameter::s
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::s
         staticType: S & int
     rightParenthesis: )
   staticInvokeType: void Function(S)
@@ -1641,7 +1641,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@function::foo::@parameter::_
+        parameter: package:test/a.dart::<definingUnit>::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1673,7 +1673,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    staticElement: self::@prefix::p
+    staticElement: <thisLibrary>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -1685,7 +1685,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@function::foo::@parameter::_
+        parameter: package:test/a.dart::<definingUnit>::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1711,19 +1711,19 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1749,7 +1749,7 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1777,12 +1777,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
       staticType: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -1812,7 +1812,7 @@ class B extends A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1839,7 +1839,7 @@ class C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1862,7 +1862,7 @@ f(Function foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::f::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::foo
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1901,9 +1901,9 @@ class C<T extends MyFunction> {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
     staticType: double Function(int)
-      alias: self::@typeAlias::MyFunction
+      alias: <thisLibrary>::<definingUnit>::@typeAlias::MyFunction
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1914,7 +1914,7 @@ FunctionExpressionInvocation
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: double Function(int)
-    alias: self::@typeAlias::MyFunction
+    alias: <thisLibrary>::<definingUnit>::@typeAlias::MyFunction
   staticType: double
 ''');
   }
@@ -1933,7 +1933,7 @@ main(Object foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::main::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::main::@parameter::foo
     staticType: Object
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1956,7 +1956,7 @@ main(var foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::main::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::main::@parameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1986,12 +1986,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: C
-      staticElement: self::@class::C
+      staticElement: <thisLibrary>::<definingUnit>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
       staticType: int
     staticType: int
   argumentList: ArgumentList
@@ -2021,7 +2021,7 @@ class C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2057,7 +2057,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: int
     staticType: int
   argumentList: ArgumentList
@@ -2089,12 +2089,12 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    staticElement: self::@prefix::prefix
+    staticElement: <thisLibrary>::@prefix::prefix
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<definingUnit>::@function::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2121,7 +2121,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: self::@prefix::math
+    staticElement: <thisLibrary>::@prefix::math
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2152,7 +2152,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@prefix::foo
+    staticElement: <thisLibrary>::@prefix::foo
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2207,7 +2207,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: self::@prefix::math
+    staticElement: <thisLibrary>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2276,7 +2276,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: C
-    staticElement: self::@class::C
+    staticElement: <thisLibrary>::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2313,7 +2313,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: C
-    staticElement: self::@class::C
+    staticElement: <thisLibrary>::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2326,7 +2326,7 @@ MethodInvocation
       SimpleIdentifier
         token: x
         parameter: <null>
-        staticElement: self::@getter::x
+        staticElement: <thisLibrary>::<definingUnit>::@getter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: InvalidType
@@ -2354,7 +2354,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: C
-    staticElement: self::@class::C
+    staticElement: <thisLibrary>::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2390,7 +2390,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: C
-    staticElement: self::@class::C
+    staticElement: <thisLibrary>::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2402,7 +2402,7 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -2429,7 +2429,7 @@ class C<T> {
 MethodInvocation
   target: SimpleIdentifier
     token: C
-    staticElement: self::@class::C
+    staticElement: <thisLibrary>::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2669,7 +2669,7 @@ class B extends A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2704,7 +2704,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    staticElement: self::@prefix::p
+    staticElement: <thisLibrary>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2779,13 +2779,13 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
       staticType: C<void>
     operator: .
     propertyName: SimpleIdentifier
       token: foo
       staticElement: PropertyAccessorMember
-        base: self::@class::C::@getter::foo
+        base: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
         substitution: {T: void}
       staticType: void
     staticType: void
@@ -2840,7 +2840,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2866,7 +2866,7 @@ main() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: void
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2979,14 +2979,14 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function()
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3013,14 +3013,14 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: Map<T, U> Function<T extends num, U>()
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3046,7 +3046,7 @@ void f(double Function(int p) g) {
 MethodInvocation
   target: SimpleIdentifier
     token: g
-    staticElement: self::@function::f::@parameter::g
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::g
     staticType: double Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -3082,19 +3082,19 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: call
-    staticElement: self::@class::C::@method::call
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::call
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@method::call::@parameter::p
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@method::call::@parameter::p
         staticType: int
     rightParenthesis: )
   staticInvokeType: double Function(int)
@@ -3122,7 +3122,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3148,7 +3148,7 @@ extension type A(int it) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3175,12 +3175,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: C
-      staticElement: self::@class::C
+      staticElement: <thisLibrary>::<definingUnit>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3213,19 +3213,19 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: C
-    staticElement: self::@class::C
+    staticElement: <thisLibrary>::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3258,12 +3258,12 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: A
-    staticElement: self::@class::A
+    staticElement: <thisLibrary>::<definingUnit>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3296,12 +3296,12 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: A
-    staticElement: self::@class::A
+    staticElement: <thisLibrary>::<definingUnit>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3327,7 +3327,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: self::@prefix::math
+    staticElement: <thisLibrary>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3359,7 +3359,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: self::@prefix::math
+    staticElement: <thisLibrary>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3376,10 +3376,10 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::@class::num::@method::+::@parameter::other
+          parameter: dart:core::<definingUnit>::@class::num::@method::+::@parameter::other
           staticType: int
         parameter: <null>
-        staticElement: dart:core::@class::num::@method::+
+        staticElement: dart:core::<definingUnit>::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
@@ -3400,7 +3400,7 @@ void f(dynamic a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -3441,12 +3441,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: A
-      staticElement: self::@extension::A
+      staticElement: <thisLibrary>::<definingUnit>::@extension::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extension::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3482,12 +3482,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: A
-      staticElement: self::@extension::A
+      staticElement: <thisLibrary>::<definingUnit>::@extension::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@extensionAugmentation::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@extensionAugmentation::A::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3520,19 +3520,19 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: A
-    staticElement: self::@extension::A
+    staticElement: <thisLibrary>::<definingUnit>::@extension::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extension::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@extension::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3558,19 +3558,19 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: A
-    staticElement: self::@extension::A
+    staticElement: <thisLibrary>::<definingUnit>::@extension::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionAugmentation::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extensionAugmentation::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@extensionAugmentation::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3594,12 +3594,12 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: A
-    staticElement: self::@extensionType::A
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3623,7 +3623,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -3635,7 +3635,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@function::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -3657,7 +3657,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T>(T)
   operator: .
   methodName: SimpleIdentifier
@@ -3670,7 +3670,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::_
+          base: <thisLibrary>::<definingUnit>::@function::foo::@parameter::_
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3699,12 +3699,12 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    staticElement: self::@prefix::prefix
+    staticElement: <thisLibrary>::@prefix::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@function::foo
+    staticElement: package:test/a.dart::<definingUnit>::@function::foo
     staticType: T Function<T extends num>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3712,13 +3712,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         parameter: ParameterMember
-          base: package:test/a.dart::@function::foo::@parameter::a
+          base: package:test/a.dart::<definingUnit>::@function::foo::@parameter::a
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         parameter: ParameterMember
-          base: package:test/a.dart::@function::foo::@parameter::b
+          base: package:test/a.dart::<definingUnit>::@function::foo::@parameter::b
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -3748,14 +3748,14 @@ FunctionExpressionInvocation
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: self::@prefix::prefix
+      staticElement: <thisLibrary>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@getter::foo
+      staticElement: package:test/a.dart::<definingUnit>::@getter::foo
       staticType: T Function<T>(T, T)
-    staticElement: package:test/a.dart::@getter::foo
+    staticElement: package:test/a.dart::<definingUnit>::@getter::foo
     staticType: T Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3829,7 +3829,7 @@ void main() {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: Function
   operator: .
   methodName: SimpleIdentifier
@@ -3866,12 +3866,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -3911,7 +3911,7 @@ var v = C()..foo(0) = 0;
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3947,12 +3947,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
       staticType: C
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
       staticType: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -3980,19 +3980,19 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -4018,12 +4018,12 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::foo
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4031,7 +4031,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::C::@method::foo::@parameter::a
+          base: <thisLibrary>::<definingUnit>::@class::C::@method::foo::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -4068,12 +4068,12 @@ void f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::I2::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::I2::@method::foo
     staticType: void Function(Object)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4107,19 +4107,19 @@ class C<T extends A> {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@class::C::@getter::a
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::a
     staticType: T
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -4139,7 +4139,7 @@ void f(Function? foo) {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: self::@function::f::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::foo
     staticType: Function?
   operator: ?.
   methodName: SimpleIdentifier
@@ -4169,7 +4169,7 @@ void f(Function? foo) {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: self::@function::f::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::foo
     staticType: Function?
   operator: .
   methodName: SimpleIdentifier
@@ -4202,12 +4202,12 @@ MethodInvocation
   target: MethodInvocation
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::testShort::@parameter::c
+      staticElement: <thisLibrary>::<definingUnit>::@function::testShort::@parameter::c
       staticType: C?
     operator: ?.
     methodName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@method::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::foo
       staticType: C Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4217,7 +4217,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: bar
-    staticElement: self::@class::C::@method::bar
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::bar
     staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4244,12 +4244,12 @@ FunctionExpressionInvocation
   function: PropertyAccess
     target: SimpleIdentifier
       token: c
-      staticElement: self::@function::f::@parameter::c
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
       staticType: C?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::C::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
       staticType: void Function(C)
     staticType: void Function(C)
   argumentList: ArgumentList
@@ -4258,7 +4258,7 @@ FunctionExpressionInvocation
       SimpleIdentifier
         token: c
         parameter: root::@parameter::
-        staticElement: self::@function::f::@parameter::c
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
         staticType: C
     rightParenthesis: )
   staticElement: <null>
@@ -4292,12 +4292,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4330,12 +4330,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4362,12 +4362,12 @@ void f(E e) {
 MethodInvocation
   target: SimpleIdentifier
     token: e
-    staticElement: self::@function::f::@parameter::e
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::e
     staticType: E
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@enum::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@enum::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4397,12 +4397,12 @@ void f(E e) {
 MethodInvocation
   target: SimpleIdentifier
     token: e
-    staticElement: self::@function::f::@parameter::e
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::e
     staticType: E
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@mixin::M::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4428,12 +4428,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4459,12 +4459,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4493,12 +4493,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4524,12 +4524,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: ?.
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4559,12 +4559,12 @@ void f(X x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: X
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4596,7 +4596,7 @@ void f(X x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: X
   operator: .
   methodName: SimpleIdentifier
@@ -4631,12 +4631,12 @@ void f(X x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: X
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extensionType::X::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extensionType::X::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4671,12 +4671,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4709,12 +4709,12 @@ void f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4744,7 +4744,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4782,7 +4782,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::foo
     staticType: InvalidType Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4809,7 +4809,7 @@ MethodInvocation
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -4828,7 +4828,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@class::int::@method::toString
+    staticElement: dart:core::<definingUnit>::@class::int::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4857,12 +4857,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4895,12 +4895,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4930,12 +4930,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4961,13 +4961,13 @@ void f(int? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int?
   operator: .
   methodName: SimpleIdentifier
     token: foo
     staticElement: MethodMember
-      base: self::@extension::E::@method::foo
+      base: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
       substitution: {T: int}
     staticType: int Function()
   argumentList: ArgumentList
@@ -4995,7 +4995,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5031,7 +5031,7 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
@@ -5064,12 +5064,12 @@ void f(A? a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5101,19 +5101,19 @@ FunctionExpressionInvocation
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: self::@prefix::prefix
+        staticElement: <thisLibrary>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
         token: C
-        staticElement: package:test/a.dart::@class::C
+        staticElement: package:test/a.dart::<definingUnit>::@class::C
         staticType: null
-      staticElement: package:test/a.dart::@class::C
+      staticElement: package:test/a.dart::<definingUnit>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: package:test/a.dart::@class::C::@getter::foo
+      staticElement: package:test/a.dart::<definingUnit>::@class::C::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -5151,26 +5151,26 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: self::@prefix::prefix
+      staticElement: <thisLibrary>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: C
-      staticElement: package:test/a.dart::@class::C
+      staticElement: package:test/a.dart::<definingUnit>::@class::C
       staticType: null
-    staticElement: package:test/a.dart::@class::C
+    staticElement: package:test/a.dart::<definingUnit>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: package:test/a.dart::@class::C::@method::foo
+    staticElement: package:test/a.dart::<definingUnit>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: package:test/a.dart::@class::C::@method::foo::@parameter::_
+        parameter: package:test/a.dart::<definingUnit>::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5194,19 +5194,19 @@ void f((int, String) r) {
 MethodInvocation
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::r
     staticType: (int, String)
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extension::E::@method::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::foo::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5230,19 +5230,19 @@ void f((int, String)? r) {
 MethodInvocation
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::r
     staticType: (int, String)?
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@extension::E::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@extension::E::@method::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::foo::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5269,7 +5269,7 @@ void f((int, String)? r) {
 MethodInvocation
   target: SimpleIdentifier
     token: r
-    staticElement: self::@function::f::@parameter::r
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::r
     staticType: (int, String)?
   operator: .
   methodName: SimpleIdentifier
@@ -5309,7 +5309,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5341,7 +5341,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5383,7 +5383,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5461,7 +5461,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -5500,14 +5500,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5535,7 +5535,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5567,7 +5567,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5595,19 +5595,19 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: B
-    staticElement: self::@typeAlias::B
+    staticElement: <thisLibrary>::<definingUnit>::@typeAlias::B
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5633,19 +5633,19 @@ void f() {
 MethodInvocation
   target: SimpleIdentifier
     token: B
-    staticElement: self::@typeAlias::B
+    staticElement: <thisLibrary>::<definingUnit>::@typeAlias::B
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -5667,12 +5667,12 @@ void f<T>(T? t) {
 MethodInvocation
   target: SimpleIdentifier
     token: t
-    staticElement: self::@function::f::@parameter::t
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::t
     staticType: T & int
   operator: .
   methodName: SimpleIdentifier
     token: abs
-    staticElement: dart:core::@class::int::@method::abs
+    staticElement: dart:core::<definingUnit>::@class::int::@method::abs
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5702,12 +5702,12 @@ void f<T extends A, U extends B>(T a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: T & U
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::B::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::B::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5735,7 +5735,7 @@ class A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5767,7 +5767,7 @@ class A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5799,7 +5799,7 @@ class A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5827,7 +5827,7 @@ void f(foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::f::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5861,7 +5861,7 @@ void f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function({int? p})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5870,25 +5870,25 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: p
-            staticElement: self::@function::foo::@parameter::p
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::p
             staticType: null
           colon: :
         expression: IntegerLiteral
           literal: 0
           staticType: int
-        parameter: self::@function::foo::@parameter::p
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::p
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: p
-            staticElement: self::@function::foo::@parameter::p
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::p
             staticType: null
           colon: :
         expression: SimpleIdentifier
           token: a
-          staticElement: self::@getter::a
+          staticElement: <thisLibrary>::<definingUnit>::@getter::a
           staticType: int
-        parameter: self::@function::foo::@parameter::p
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::p
     rightParenthesis: )
   staticInvokeType: void Function({int? p})
   staticType: void
@@ -5911,7 +5911,7 @@ void f() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5941,7 +5941,7 @@ void f() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5973,14 +5973,14 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::p
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::p
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6004,7 +6004,7 @@ class A<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: E Function<E>(A<E>)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6012,7 +6012,7 @@ MethodInvocation
       ThisExpression
         thisKeyword: this
         parameter: ParameterMember
-          base: self::@class::A::@method::foo::@parameter::p
+          base: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::p
           substitution: {E: T}
         staticType: A<T>
     rightParenthesis: )
@@ -6037,14 +6037,14 @@ void f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@function::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6066,7 +6066,7 @@ void f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6074,7 +6074,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::a
+          base: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -6152,20 +6152,20 @@ const b = A.foo(a);
 MethodInvocation
   target: SimpleIdentifier
     token: A
-    staticElement: self::@class::A
+    staticElement: <thisLibrary>::<definingUnit>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: a
-        parameter: self::@class::A::@method::foo::@parameter::_
-        staticElement: self::@getter::a
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
+        staticElement: <thisLibrary>::<definingUnit>::@getter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: int Function(int)
@@ -6189,15 +6189,15 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: codeUnitAt
-    staticElement: dart:core::@class::String::@method::codeUnitAt
+    staticElement: dart:core::<definingUnit>::@class::String::@method::codeUnitAt
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: a
-        parameter: dart:core::@class::String::@method::codeUnitAt::@parameter::index
-        staticElement: self::@getter::a
+        parameter: dart:core::<definingUnit>::@class::String::@method::codeUnitAt::@parameter::index
+        staticElement: <thisLibrary>::<definingUnit>::@getter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: int Function(int)
@@ -6372,7 +6372,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6407,7 +6407,7 @@ mixin A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6431,7 +6431,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function({int? a, bool? b})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6440,24 +6440,24 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: b
-            staticElement: self::@function::foo::@parameter::b
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::b
             staticType: null
           colon: :
         expression: BooleanLiteral
           literal: false
           staticType: bool
-        parameter: self::@function::foo::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::b
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: a
-            staticElement: self::@function::foo::@parameter::a
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
             staticType: null
           colon: :
         expression: IntegerLiteral
           literal: 0
           staticType: int
-        parameter: self::@function::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
     rightParenthesis: )
   staticInvokeType: void Function({int? a, bool? b})
   staticType: void
@@ -6488,7 +6488,7 @@ void f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function(A, B, {C? c, D? d})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6496,12 +6496,12 @@ MethodInvocation
       MethodInvocation
         methodName: SimpleIdentifier
           token: g1
-          staticElement: self::@function::g1
+          staticElement: <thisLibrary>::<definingUnit>::@function::g1
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: self::@function::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -6510,13 +6510,13 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: c
-            staticElement: self::@function::foo::@parameter::c
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::c
             staticType: null
           colon: :
         expression: MethodInvocation
           methodName: SimpleIdentifier
             token: g3
-            staticElement: self::@function::g3
+            staticElement: <thisLibrary>::<definingUnit>::@function::g3
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -6525,16 +6525,16 @@ MethodInvocation
           staticType: C?
           typeArgumentTypes
             C?
-        parameter: self::@function::foo::@parameter::c
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
-          staticElement: self::@function::g2
+          staticElement: <thisLibrary>::<definingUnit>::@function::g2
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        parameter: self::@function::foo::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -6543,13 +6543,13 @@ MethodInvocation
         name: Label
           label: SimpleIdentifier
             token: d
-            staticElement: self::@function::foo::@parameter::d
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::d
             staticType: null
           colon: :
         expression: MethodInvocation
           methodName: SimpleIdentifier
             token: g4
-            staticElement: self::@function::g4
+            staticElement: <thisLibrary>::<definingUnit>::@function::g4
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -6558,7 +6558,7 @@ MethodInvocation
           staticType: D?
           typeArgumentTypes
             D?
-        parameter: self::@function::foo::@parameter::d
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::d
     rightParenthesis: )
   staticInvokeType: void Function(A, B, {C? c, D? d})
   staticType: void
@@ -6631,7 +6631,7 @@ class B extends A {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6663,7 +6663,7 @@ class C {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6695,7 +6695,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: math
-    staticElement: self::@prefix::math
+    staticElement: <thisLibrary>::@prefix::math
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6750,17 +6750,17 @@ void f(C c) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: c
-    staticElement: self::@function::f::@parameter::c
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@method::call::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@method::call::@parameter::_
         staticType: int
     rightParenthesis: )
-  staticElement: self::@class::C::@method::call
+  staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::call
   staticInvokeType: void Function(int)
   staticType: void
 ''');
@@ -6815,14 +6815,14 @@ class B extends A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::A::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6846,14 +6846,14 @@ class C {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::C::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@method::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@method::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6873,7 +6873,7 @@ void f(void Function(int) foo) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@function::f::@parameter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6903,7 +6903,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: double Function(int)?
   operator: ?.
   methodName: SimpleIdentifier
@@ -6937,15 +6937,15 @@ void f(F a) {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: void Function()
-      alias: self::@typeAlias::F
+      alias: <thisLibrary>::<definingUnit>::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
   staticInvokeType: void Function()
-    alias: self::@typeAlias::F
+    alias: <thisLibrary>::<definingUnit>::@typeAlias::F
   staticType: void
 ''');
   }
@@ -6964,14 +6964,14 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@function::foo::@parameter::_
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -6993,7 +6993,7 @@ main() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7023,7 +7023,7 @@ main() {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    staticElement: self::@getter::foo
+    staticElement: <thisLibrary>::<definingUnit>::@getter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7056,14 +7056,14 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   cascadeSections
     MethodInvocation
       operator: ?..
       methodName: SimpleIdentifier
         token: foo
-        staticElement: self::@class::A::@method::foo
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7074,7 +7074,7 @@ CascadeExpression
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        staticElement: self::@class::A::@method::bar
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::bar
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7102,21 +7102,21 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: A?
   cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
         token: foo
-        staticElement: self::@class::A::@getter::foo
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
         staticType: int
       staticType: int
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
         token: bar
-        staticElement: self::@class::A::@method::bar
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::bar
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7146,9 +7146,9 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element: self::@class::A
+        element: <thisLibrary>::<definingUnit>::@class::A
         type: A
-      staticElement: self::@class::A::@constructor::new
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -7159,7 +7159,7 @@ CascadeExpression
         operator: ..
         methodName: SimpleIdentifier
           token: foo
-          staticElement: self::@class::A::@method::foo
+          staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -7169,7 +7169,7 @@ CascadeExpression
       operator: ?.
       methodName: SimpleIdentifier
         token: abs
-        staticElement: dart:core::@class::int::@method::abs
+        staticElement: dart:core::<definingUnit>::@class::int::@method::abs
         staticType: int Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -7192,7 +7192,7 @@ void f(a, int b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
@@ -7205,7 +7205,7 @@ MethodInvocation
       SimpleIdentifier
         token: b
         parameter: <null>
-        staticElement: self::@function::f::@parameter::b
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: dynamic
@@ -7225,12 +7225,12 @@ void f(a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: dynamic
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@class::Object::@method::toString
+    staticElement: dart:core::<definingUnit>::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7254,12 +7254,12 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: void Function()
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::@class::Object::@method::toString
+    staticElement: dart:core::<definingUnit>::@class::Object::@method::toString
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7299,12 +7299,12 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7326,12 +7326,12 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -7353,12 +7353,12 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -7385,12 +7385,12 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@extension::E::@method::remainder::@parameter::x
+  parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7411,12 +7411,12 @@ g(int a) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: dart:core::@class::num::@method::remainder::@parameter::other
+  parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7436,20 +7436,20 @@ f(int a, double b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    staticElement: dart:core::@class::num::@method::remainder
+    staticElement: dart:core::<definingUnit>::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::remainder::@parameter::other
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: double
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7469,20 +7469,20 @@ f(int a, int b) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: int
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    staticElement: dart:core::@class::num::@method::remainder
+    staticElement: dart:core::<definingUnit>::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::remainder::@parameter::other
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7503,7 +7503,7 @@ MethodInvocation
   target: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -7514,15 +7514,15 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: remainder
-    staticElement: dart:core::@class::num::@method::remainder
+    staticElement: dart:core::<definingUnit>::@class::num::@method::remainder
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: b
-        parameter: dart:core::@class::num::@method::remainder::@parameter::other
-        staticElement: self::@function::f::@parameter::b
+        parameter: dart:core::<definingUnit>::@class::num::@method::remainder::@parameter::other
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::b
         staticType: int
     rightParenthesis: )
   staticInvokeType: num Function(num)
@@ -7550,12 +7550,12 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@extension::E::@method::remainder::@parameter::x
+  parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7583,12 +7583,12 @@ h(int x) {}
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  parameter: self::@extension::E::@method::remainder::@parameter::x
+  parameter: <thisLibrary>::<definingUnit>::@extension::E::@method::remainder::@parameter::x
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -7619,7 +7619,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@mixin::M::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@mixin::M::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7769,10 +7769,10 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::@class::num::@method::+::@parameter::other
+          parameter: dart:core::<definingUnit>::@class::num::@method::+::@parameter::other
           staticType: int
         parameter: <null>
-        staticElement: dart:core::@class::num::@method::+
+        staticElement: dart:core::<definingUnit>::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
       ListLiteral
@@ -7807,26 +7807,26 @@ void f() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function(int, {required bool b})
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@function::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
         staticType: int
       NamedExpression
         name: Label
           label: SimpleIdentifier
             token: b
-            staticElement: self::@function::foo::@parameter::b
+            staticElement: <thisLibrary>::<definingUnit>::@function::foo::@parameter::b
             staticType: null
           colon: :
         expression: BooleanLiteral
           literal: true
           staticType: bool
-        parameter: self::@function::foo::@parameter::b
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::b
     rightParenthesis: )
   staticInvokeType: void Function(int, {required bool b})
   staticType: void
@@ -7849,7 +7849,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: U Function<T, U>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7857,7 +7857,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::a
+          base: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
           substitution: {T: int, U: bool}
         staticType: int
     rightParenthesis: )
@@ -7883,7 +7883,7 @@ void f(dynamic o) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T extends Object>(T?)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7891,9 +7891,9 @@ MethodInvocation
       SimpleIdentifier
         token: o
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::value
+          base: <thisLibrary>::<definingUnit>::@function::foo::@parameter::value
           substitution: {T: Object}
-        staticElement: self::@function::f::@parameter::o
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::o
         staticType: dynamic
     rightParenthesis: )
   staticInvokeType: void Function(Object?)
@@ -7917,7 +7917,7 @@ void f(List<void> o) {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T extends Object>(List<T?>)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7925,9 +7925,9 @@ MethodInvocation
       SimpleIdentifier
         token: o
         parameter: ParameterMember
-          base: self::@function::foo::@parameter::value
+          base: <thisLibrary>::<definingUnit>::@function::foo::@parameter::value
           substitution: {T: Object}
-        staticElement: self::@function::f::@parameter::o
+        staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::o
         staticType: List<void>
     rightParenthesis: )
   staticInvokeType: void Function(List<Object?>)
@@ -7951,7 +7951,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T extends num>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7979,14 +7979,14 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T extends num>()
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: bool
-        element: dart:core::@class::bool
+        element: dart:core::<definingUnit>::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -8015,18 +8015,18 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       NamedType
         name: double
-        element: dart:core::@class::double
+        element: dart:core::<definingUnit>::@class::double
         type: double
     rightBracket: >
   argumentList: ArgumentList
@@ -8053,14 +8053,14 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@function::foo
+    staticElement: <thisLibrary>::<definingUnit>::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@function::foo::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@function::foo::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)

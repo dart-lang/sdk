@@ -134,56 +134,56 @@ library
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
       class A2 @125
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A1
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
       class A3 @222
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 1
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A1
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
 ''');
   }
 
@@ -275,56 +275,56 @@ library
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
       class A2 @113
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A1
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
       class A3 @198
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 1
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A1
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
 ''');
   }
 
@@ -415,56 +415,56 @@ library
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
       class A2 @115
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A1
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
       class A3 @202
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 1
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A1
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A1
+                element: <thisLibrary>::<definingUnit>::@class::A1
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A1
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A1
 ''');
   }
 
@@ -497,44 +497,44 @@ library
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A3
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A3
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A3
+                element: <thisLibrary>::<definingUnit>::@class::A3
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
       class A2 @115
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A3
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A3
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A3
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A3
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A3
+                element: <thisLibrary>::<definingUnit>::@class::A3
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
       class A3 @165
         macroDiagnostics
           DeclarationsIntrospectionCycleDiagnostic
             annotationIndex: 0
-            introspectedElement: self::@class::A2
+            introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
             components
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A2
+                element: <thisLibrary>::<definingUnit>::@class::A2
                 annotationIndex: 0
-                introspectedElement: self::@class::A3
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A3
               DeclarationsIntrospectionCycleComponent
-                element: self::@class::A3
+                element: <thisLibrary>::<definingUnit>::@class::A3
                 annotationIndex: 0
-                introspectedElement: self::@class::A2
+                introspectedElement: <thisLibrary>::<definingUnit>::@class::A2
 ''');
   }
 
@@ -2811,30 +2811,30 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @37
-        reference: self::@class::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
         metadata
           Annotation
             atSign: @ @18
             name: SimpleIdentifier
               token: AddClassB @19
-              staticElement: package:test/a.dart::@class::AddClassB
+              staticElement: package:test/a.dart::<definingUnit>::@class::AddClassB
               staticType: null
             arguments: ArgumentList
               leftParenthesis: ( @28
               rightParenthesis: ) @29
-            element: package:test/a.dart::@class::AddClassB::@constructor::new
+            element: package:test/a.dart::<definingUnit>::@class::AddClassB::@constructor::new
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -2853,64 +2853,64 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/a.dart as prefix0 @75
         classes
           class B @115
-            reference: self::@augmentation::package:test/test.macro.dart::@class::B
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
             metadata
               Annotation
                 atSign: @ @85
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: AddMethodFoo @94
-                    staticElement: package:test/a.dart::@class::AddMethodFoo
+                    staticElement: package:test/a.dart::<definingUnit>::@class::AddMethodFoo
                     staticType: null
-                  staticElement: package:test/a.dart::@class::AddMethodFoo
+                  staticElement: package:test/a.dart::<definingUnit>::@class::AddMethodFoo
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @106
                   rightParenthesis: ) @107
-                element: package:test/a.dart::@class::AddMethodFoo::@constructor::new
-            augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                element: package:test/a.dart::<definingUnit>::@class::AddMethodFoo::@constructor::new
+            augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmented
               methods
-                self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
-                self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
+                <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           augment class B @135
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            augmentationTarget: self::@augmentation::package:test/test.macro.dart::@class::B
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
             methods
               foo @172
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
                 metadata
                   Annotation
                     atSign: @ @141
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @142
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @149
                       identifier: SimpleIdentifier
                         token: AddMethodBar @150
-                        staticElement: package:test/a.dart::@class::AddMethodBar
+                        staticElement: package:test/a.dart::<definingUnit>::@class::AddMethodBar
                         staticType: null
-                      staticElement: package:test/a.dart::@class::AddMethodBar
+                      staticElement: package:test/a.dart::<definingUnit>::@class::AddMethodBar
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @162
                       rightParenthesis: ) @163
-                    element: package:test/a.dart::@class::AddMethodBar::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::AddMethodBar::@constructor::new
                 returnType: void
               bar @188
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 returnType: void
 ''');
   }
@@ -2930,35 +2930,35 @@ class A {
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @66
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         fields
           final f @82
-            reference: self::@class::A::@field::f
+            reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
             type: int
         accessors
           synthetic get f @-1
-            reference: self::@class::A::@getter::f
+            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::f
             returnType: int
         augmented
           fields
-            self::@class::A::@field::f
+            <thisLibrary>::<definingUnit>::@class::A::@field::f
           constructors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
           accessors
-            self::@class::A::@getter::f
+            <thisLibrary>::<definingUnit>::@class::A::@getter::f
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -2968,20 +2968,20 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @65
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
                 periodOffset: 64
                 nameEnd: 70
                 parameters
                   requiredPositional final this.f @76
                     type: int
-                    field: self::@class::A::@field::f
+                    field: <thisLibrary>::<definingUnit>::@class::A::@field::f
 ''');
   }
 
@@ -2998,23 +2998,23 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @65
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           constructors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -3024,14 +3024,14 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @65
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
                 periodOffset: 64
                 nameEnd: 70
                 parameters
@@ -3053,23 +3053,23 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @59
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           constructors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -3079,14 +3079,14 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               @63
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
                 parameters
                   requiredPositional a @69
                     type: int
@@ -3107,26 +3107,26 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @62
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -3136,22 +3136,22 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               foo @67
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
               synthetic get foo @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
               synthetic set foo= @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
                   requiredPositional _foo @-1
                     type: int
@@ -3173,25 +3173,25 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @67
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -3201,18 +3201,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
             accessors
               get foo @71
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
 ''');
   }
@@ -3231,23 +3231,23 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @73
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -3257,14 +3257,14 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               foo @67
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
                 parameters
                   requiredPositional a @78
                     type: double
@@ -3286,25 +3286,25 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @67
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -3314,18 +3314,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class A @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
             accessors
               set foo= @67
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
                   requiredPositional a @75
                     type: int
@@ -3373,7 +3373,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             constructors
               @105
                 parameters
@@ -3383,14 +3383,14 @@ augment class B {
                       PrefixedIdentifier
                         prefix: SimpleIdentifier
                           token: prefix0 @112
-                          staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                          staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                           staticType: null
                         period: . @119
                         identifier: SimpleIdentifier
                           token: a @120
-                          staticElement: package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<definingUnit>::@getter::a
                           staticType: int
-                        staticElement: package:test/a.dart::@getter::a
+                        staticElement: package:test/a.dart::<definingUnit>::@getter::a
                         staticType: int
 ''');
   }
@@ -3433,7 +3433,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @110
                 parameters
@@ -3443,14 +3443,14 @@ augment class B {
                       PrefixedIdentifier
                         prefix: SimpleIdentifier
                           token: prefix0 @119
-                          staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                          staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                           staticType: null
                         period: . @126
                         identifier: SimpleIdentifier
                           token: a @127
-                          staticElement: package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<definingUnit>::@getter::a
                           staticType: int
-                        staticElement: package:test/a.dart::@getter::a
+                        staticElement: package:test/a.dart::<definingUnit>::@getter::a
                         staticType: int
                 returnType: void
 ''');
@@ -3494,7 +3494,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @110
                 parameters
@@ -3506,16 +3506,16 @@ augment class B {
                         name: PrefixedIdentifier
                           prefix: SimpleIdentifier
                             token: prefix0 @116
-                            staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                            staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                             staticType: null
                           period: . @123
                           identifier: SimpleIdentifier
                             token: a @124
-                            staticElement: package:test/a.dart::@getter::a
+                            staticElement: package:test/a.dart::<definingUnit>::@getter::a
                             staticType: null
-                          staticElement: package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<definingUnit>::@getter::a
                           staticType: null
-                        element: package:test/a.dart::@getter::a
+                        element: package:test/a.dart::<definingUnit>::@getter::a
                 returnType: void
 ''');
   }
@@ -3558,7 +3558,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @110
                 parameters
@@ -3570,16 +3570,16 @@ augment class B {
                         name: PrefixedIdentifier
                           prefix: SimpleIdentifier
                             token: prefix0 @115
-                            staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                            staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                             staticType: null
                           period: . @122
                           identifier: SimpleIdentifier
                             token: a @123
-                            staticElement: package:test/a.dart::@getter::a
+                            staticElement: package:test/a.dart::<definingUnit>::@getter::a
                             staticType: null
-                          staticElement: package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<definingUnit>::@getter::a
                           staticType: null
-                        element: package:test/a.dart::@getter::a
+                        element: package:test/a.dart::<definingUnit>::@getter::a
                 returnType: void
 ''');
   }
@@ -3622,7 +3622,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               synthetic foo @-1
                 type: dynamic
@@ -3637,16 +3637,16 @@ augment class B {
                         name: PrefixedIdentifier
                           prefix: SimpleIdentifier
                             token: prefix0 @114
-                            staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                            staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                             staticType: null
                           period: . @121
                           identifier: SimpleIdentifier
                             token: a @122
-                            staticElement: package:test/a.dart::@getter::a
+                            staticElement: package:test/a.dart::<definingUnit>::@getter::a
                             staticType: null
-                          staticElement: package:test/a.dart::@getter::a
+                          staticElement: package:test/a.dart::<definingUnit>::@getter::a
                           staticType: null
-                        element: package:test/a.dart::@getter::a
+                        element: package:test/a.dart::<definingUnit>::@getter::a
                 returnType: void
 ''');
   }
@@ -3689,7 +3689,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               static const x @118
                 type: int
@@ -3698,14 +3698,14 @@ augment class B {
                   PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: prefix0 @122
-                      staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                      staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                       staticType: null
                     period: . @129
                     identifier: SimpleIdentifier
                       token: a @130
-                      staticElement: package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<definingUnit>::@getter::a
                       staticType: int
-                    staticElement: package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<definingUnit>::@getter::a
                     staticType: int
             accessors
               synthetic static get x @-1
@@ -3753,7 +3753,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final x @111
                 type: int
@@ -3762,14 +3762,14 @@ augment class B {
                   PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: prefix0 @115
-                      staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                      staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                       staticType: null
                     period: . @122
                     identifier: SimpleIdentifier
                       token: a @123
-                      staticElement: package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<definingUnit>::@getter::a
                       staticType: int
-                    staticElement: package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<definingUnit>::@getter::a
                     staticType: int
             accessors
               synthetic get x @-1
@@ -3815,7 +3815,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final x @111
                 type: int
@@ -3864,7 +3864,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               static const x @118
                 type: Type
@@ -3875,7 +3875,7 @@ augment class B {
                       importPrefix: ImportPrefixReference
                         name: prefix0 @122
                         period: . @129
-                        element: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        element: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                       name: A @130
                       typeArguments: TypeArgumentList
                         leftBracket: < @131
@@ -3885,7 +3885,7 @@ augment class B {
                             element: <null>
                             type: void
                         rightBracket: > @136
-                      element: package:test/a.dart::@class::A
+                      element: package:test/a.dart::<definingUnit>::@class::A
                       type: A<void>
                     staticType: Type
             accessors
@@ -3936,14 +3936,14 @@ const x = prefix0.a;
               PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: prefix0 @95
-                  staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                  staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @102
                 identifier: SimpleIdentifier
                   token: a @103
-                  staticElement: package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<definingUnit>::@getter::a
                   staticType: int
-                staticElement: package:test/a.dart::@getter::a
+                staticElement: package:test/a.dart::<definingUnit>::@getter::a
                 staticType: int
         accessors
           synthetic static get x @-1
@@ -3995,29 +3995,29 @@ const x = prefix0.a + prefix0.b;
                 leftOperand: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @95
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @102
                   identifier: SimpleIdentifier
                     token: a @103
-                    staticElement: package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<definingUnit>::@getter::a
                     staticType: int
-                  staticElement: package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<definingUnit>::@getter::a
                   staticType: int
                 operator: + @105
                 rightOperand: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @107
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @114
                   identifier: SimpleIdentifier
                     token: b @115
-                    staticElement: package:test/a.dart::@getter::b
+                    staticElement: package:test/a.dart::<definingUnit>::@getter::b
                     staticType: int
-                  staticElement: package:test/a.dart::@getter::b
+                  staticElement: package:test/a.dart::<definingUnit>::@getter::b
                   staticType: int
-                staticElement: dart:core::@class::num::@method::+
+                staticElement: dart:core::<definingUnit>::@class::num::@method::+
                 staticInvokeType: num Function(num)
                 staticType: int
         accessors
@@ -4077,33 +4077,33 @@ const x = prefix0.a, y = prefix0.a;
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
               PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: prefix0 @108
-                  staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                  staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @115
                 identifier: SimpleIdentifier
                   token: a @116
-                  staticElement: package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<definingUnit>::@getter::a
                   staticType: int
-                staticElement: package:test/a.dart::@getter::a
+                staticElement: package:test/a.dart::<definingUnit>::@getter::a
                 staticType: int
           static const y @119
             metadata
@@ -4112,33 +4112,33 @@ const x = prefix0.a, y = prefix0.a;
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
               PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: prefix0 @123
-                  staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                  staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                   staticType: null
                 period: . @130
                 identifier: SimpleIdentifier
                   token: a @131
-                  staticElement: package:test/a.dart::@getter::a
+                  staticElement: package:test/a.dart::<definingUnit>::@getter::a
                   staticType: int
-                staticElement: package:test/a.dart::@getter::a
+                staticElement: package:test/a.dart::<definingUnit>::@getter::a
                 staticType: int
         accessors
           synthetic static get x @-1
@@ -4192,7 +4192,7 @@ const x = prefix0.A<void>;
                   importPrefix: ImportPrefixReference
                     name: prefix0 @95
                     period: . @102
-                    element: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    element: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                   name: A @103
                   typeArguments: TypeArgumentList
                     leftBracket: < @104
@@ -4202,7 +4202,7 @@ const x = prefix0.A<void>;
                         element: <null>
                         type: void
                     rightBracket: > @109
-                  element: package:test/a.dart::@class::A
+                  element: package:test/a.dart::<definingUnit>::@class::A
                   type: A<void>
                 staticType: Type
         accessors
@@ -4258,19 +4258,19 @@ class C {}
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
 ''');
   }
 
@@ -4319,7 +4319,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             constructors
               named @122
                 metadata
@@ -4328,19 +4328,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 periodOffset: 121
                 nameEnd: 127
 ''');
@@ -4389,7 +4389,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final foo @130
                 metadata
@@ -4398,19 +4398,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
@@ -4462,7 +4462,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final foo @130
                 metadata
@@ -4471,19 +4471,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
               final bar @139
@@ -4493,19 +4493,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
@@ -4559,7 +4559,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               synthetic foo @-1
                 type: int
@@ -4571,19 +4571,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 returnType: int
 ''');
   }
@@ -4631,7 +4631,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @125
                 metadata
@@ -4640,19 +4640,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 returnType: void
 ''');
   }
@@ -4700,7 +4700,7 @@ augment class B {
           package:test/a.dart as prefix0 @75
         classes
           augment class B @99
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               synthetic foo @-1
                 type: int
@@ -4712,19 +4712,19 @@ augment class B {
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @106
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @113
                       identifier: SimpleIdentifier
                         token: A @114
-                        staticElement: package:test/a.dart::@class::A
+                        staticElement: package:test/a.dart::<definingUnit>::@class::A
                         staticType: null
-                      staticElement: package:test/a.dart::@class::A
+                      staticElement: package:test/a.dart::<definingUnit>::@class::A
                       staticType: null
                     arguments: ArgumentList
                       leftParenthesis: ( @115
                       rightParenthesis: ) @116
-                    element: package:test/a.dart::@class::A::@constructor::new
+                    element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
                 parameters
                   requiredPositional _ @132
                     type: int
@@ -4779,19 +4779,19 @@ void foo() {}
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             returnType: void
 ''');
   }
@@ -4839,14 +4839,14 @@ void foo([x = prefix0.a]) {}
                   PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: prefix0 @99
-                      staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                      staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                       staticType: null
                     period: . @106
                     identifier: SimpleIdentifier
                       token: a @107
-                      staticElement: package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<definingUnit>::@getter::a
                       staticType: int
-                    staticElement: package:test/a.dart::@getter::a
+                    staticElement: package:test/a.dart::<definingUnit>::@getter::a
                     staticType: int
             returnType: void
 ''');
@@ -4902,19 +4902,19 @@ int get foo => 0;
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             returnType: int
 ''');
   }
@@ -4969,19 +4969,19 @@ set foo(int _) {}
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             parameters
               requiredPositional _ @110
                 type: int
@@ -5037,16 +5037,16 @@ set foo(@prefix0.a x) {}
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @94
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @101
                       identifier: SimpleIdentifier
                         token: a @102
-                        staticElement: package:test/a.dart::@getter::a
+                        staticElement: package:test/a.dart::<definingUnit>::@getter::a
                         staticType: null
-                      staticElement: package:test/a.dart::@getter::a
+                      staticElement: package:test/a.dart::<definingUnit>::@getter::a
                       staticType: null
-                    element: package:test/a.dart::@getter::a
+                    element: package:test/a.dart::<definingUnit>::@getter::a
             returnType: void
 ''');
   }
@@ -5098,19 +5098,19 @@ final foo = 0;
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
@@ -5166,19 +5166,19 @@ final foo = 0, bar = 1;
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
           static final bar @113
@@ -5188,19 +5188,19 @@ final foo = 0, bar = 1;
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
                   rightParenthesis: ) @96
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
@@ -5260,14 +5260,14 @@ class C {}
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
@@ -5275,17 +5275,17 @@ class C {}
                     PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix0 @96
-                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         staticType: null
                       period: . @103
                       identifier: SimpleIdentifier
                         token: foo @104
-                        staticElement: package:test/a.dart::@function::foo
+                        staticElement: package:test/a.dart::<definingUnit>::@function::foo
                         staticType: void Function()
-                      staticElement: package:test/a.dart::@function::foo
+                      staticElement: package:test/a.dart::<definingUnit>::@function::foo
                       staticType: void Function()
                   rightParenthesis: ) @107
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
 ''');
   }
 
@@ -5338,24 +5338,24 @@ class C {}
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 period: . @95
                 constructorName: SimpleIdentifier
                   token: named @96
-                  staticElement: package:test/a.dart::@class::A::@constructor::named
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A::@constructor::named
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @101
                   rightParenthesis: ) @102
-                element: package:test/a.dart::@class::A::@constructor::named
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::named
 ''');
   }
 
@@ -5408,14 +5408,14 @@ class C {}
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix0 @86
-                    staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                    staticElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                     staticType: null
                   period: . @93
                   identifier: SimpleIdentifier
                     token: A @94
-                    staticElement: package:test/a.dart::@class::A
+                    staticElement: package:test/a.dart::<definingUnit>::@class::A
                     staticType: null
-                  staticElement: package:test/a.dart::@class::A
+                  staticElement: package:test/a.dart::<definingUnit>::@class::A
                   staticType: null
                 arguments: ArgumentList
                   leftParenthesis: ( @95
@@ -5425,7 +5425,7 @@ class C {}
                         importPrefix: ImportPrefixReference
                           name: prefix0 @96
                           period: . @103
-                          element: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                          element: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
                         name: X @104
                         typeArguments: TypeArgumentList
                           leftBracket: < @105
@@ -5435,11 +5435,11 @@ class C {}
                               element: <null>
                               type: void
                           rightBracket: > @110
-                        element: package:test/a.dart::@class::X
+                        element: package:test/a.dart::<definingUnit>::@class::X
                         type: X<void>
                       staticType: Type
                   rightParenthesis: ) @111
-                element: package:test/a.dart::@class::A::@constructor::new
+                element: package:test/a.dart::<definingUnit>::@class::A::@constructor::new
 ''');
   }
 
@@ -5568,23 +5568,23 @@ class B {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
       package:test/a.dart
     classes
       class B @71
-        reference: self::@class::B
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        reference: <thisLibrary>::<definingUnit>::@class::B
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
         augmented
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -5594,11 +5594,11 @@ augment class B {
 }
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           augment class B @57
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            augmentationTarget: self::@class::B
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
 ''');
   }
 
@@ -5618,19 +5618,19 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @64
-        reference: self::@class::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -5638,17 +5638,17 @@ augment library 'package:test/test.dart';
 void foo() {}
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         functions
           foo @48
-            reference: self::@augmentation::package:test/test.macro.dart::@function::foo
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
             returnType: void
   exportedReferences
-    declared self::@augmentation::package:test/test.macro.dart::@function::foo
-    declared self::@class::A
+    declared <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
+    declared <thisLibrary>::<definingUnit>::@class::A
   exportNamespace
-    A: self::@class::A
-    foo: self::@augmentation::package:test/test.macro.dart::@function::foo
+    A: <thisLibrary>::<definingUnit>::@class::A
+    foo: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
 ''');
   }
 
@@ -5668,19 +5668,19 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @64
-        reference: self::@class::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -5688,26 +5688,26 @@ augment library 'package:test/test.dart';
 final x = 42;
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         topLevelVariables
           static final x @49
-            reference: self::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
             type: int
             shouldUseTypeForInitializerInference: false
             id: variable_0
             getter: getter_0
         accessors
           synthetic static get x @-1
-            reference: self::@augmentation::package:test/test.macro.dart::@accessor::x
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
             returnType: int
             id: getter_0
             variable: variable_0
   exportedReferences
-    declared self::@augmentation::package:test/test.macro.dart::@accessor::x
-    declared self::@class::A
+    declared <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
+    declared <thisLibrary>::<definingUnit>::@class::A
   exportNamespace
-    A: self::@class::A
-    x: self::@augmentation::package:test/test.macro.dart::@accessor::x
+    A: <thisLibrary>::<definingUnit>::@class::A
+    x: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
 ''');
   }
 }
@@ -5743,23 +5743,23 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @42
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           constructors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -5775,24 +5775,24 @@ augment class A {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/a.dart as prefix0 @75
         classes
           augment class A @99
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @139
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
                 periodOffset: 138
                 nameEnd: 144
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
               augment named @160
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
                 periodOffset: 159
                 nameEnd: 165
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
 ''');
   }
 
@@ -5816,26 +5816,26 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @36
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
           accessors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -5853,36 +5853,36 @@ augment class A {
         package:test/a.dart as prefix0 @75
         dart:core as prefix1 @106
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/a.dart as prefix0 @75
           dart:core as prefix1 @106
         classes
           augment class A @130
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               foo @174
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 id: field_0
                 getter: getter_0
                 setter: setter_0
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               augment foo @201
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
             accessors
               synthetic get foo @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
                 id: getter_0
                 variable: field_0
               synthetic set foo= @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
                   requiredPositional _foo @-1
                     type: int
@@ -5912,25 +5912,25 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @37
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -5948,33 +5948,33 @@ augment class A {
         package:test/a.dart as prefix0 @75
         dart:core as prefix1 @106
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/a.dart as prefix0 @75
           dart:core as prefix1 @106
         classes
           augment class A @130
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 id: field_0
                 getter: getter_0
             accessors
               external get foo @188
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
                 id: getter_0
                 variable: field_0
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
               augment get foo @219
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
                 returnType: int
                 id: getter_1
                 variable: field_0
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
 ''');
   }
 
@@ -5997,23 +5997,23 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @37
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -6031,23 +6031,23 @@ augment class A {
         package:test/a.dart as prefix0 @75
         dart:core as prefix1 @106
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/a.dart as prefix0 @75
           dart:core as prefix1 @106
         classes
           augment class A @130
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               external foo @184
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
                 returnType: int
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
               augment foo @213
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
                 returnType: int
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
   }
 
@@ -6071,25 +6071,25 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @37
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -6107,39 +6107,39 @@ augment class A {
         package:test/a.dart as prefix0 @75
         dart:core as prefix1 @106
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/a.dart as prefix0 @75
           dart:core as prefix1 @106
         classes
           augment class A @130
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 id: field_0
                 setter: setter_0
             accessors
               external set foo= @181
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
                   requiredPositional value @197
                     type: int
                 returnType: void
                 id: setter_0
                 variable: field_0
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
               augment set foo= @224
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
                 parameters
                   requiredPositional value @240
                     type: int
                 returnType: void
                 id: setter_1
                 variable: field_0
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
 ''');
   }
 }
@@ -6556,7 +6556,7 @@ library
             message: MacroDiagnosticMessage
               message: Reported message
               target: ElementAnnotationMacroDiagnosticTarget
-                element: self::@class::X
+                element: <thisLibrary>::<definingUnit>::@class::X
                 annotationIndex: 1
             severity: warning
             correctionMessage: Correction message
@@ -6600,7 +6600,7 @@ library
             message: MacroDiagnosticMessage
               message: Reported message
               target: ElementAnnotationMacroDiagnosticTarget
-                element: self::@class::X
+                element: <thisLibrary>::<definingUnit>::@class::X
                 annotationIndex: 1
             severity: warning
             correctionMessage: Correction message
@@ -6637,7 +6637,7 @@ library
             message: MacroDiagnosticMessage
               message: Reported message
               target: ElementMacroDiagnosticTarget
-                element: self::@class::A
+                element: <thisLibrary>::<definingUnit>::@class::A
             severity: warning
             correctionMessage: Correction message
 ''');
@@ -6764,7 +6764,7 @@ library
                 message: MacroDiagnosticMessage
                   message: Reported message
                   target: ElementMacroDiagnosticTarget
-                    element: self::@class::A::@constructor::new
+                    element: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
                 severity: warning
                 correctionMessage: Correction message
 ''');
@@ -6806,7 +6806,7 @@ library
                 message: MacroDiagnosticMessage
                   message: Reported message
                   target: ElementMacroDiagnosticTarget
-                    element: self::@class::A::@field::foo
+                    element: <thisLibrary>::<definingUnit>::@class::A::@field::foo
                 severity: warning
                 correctionMessage: Correction message
         accessors
@@ -6891,7 +6891,7 @@ library
                 message: MacroDiagnosticMessage
                   message: Reported message
                   target: ElementMacroDiagnosticTarget
-                    element: self::@class::A::@method::foo
+                    element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
                 severity: warning
                 correctionMessage: Correction message
 ''');
@@ -6927,7 +6927,7 @@ library
             message: MacroDiagnosticMessage
               message: Reported message
               target: ElementMacroDiagnosticTarget
-                element: self::@mixin::A
+                element: <thisLibrary>::<definingUnit>::@mixin::A
             severity: warning
             correctionMessage: Correction message
         superclassConstraints
@@ -7050,7 +7050,7 @@ library
             message: MacroDiagnosticMessage
               message: Reported message
               target: ElementMacroDiagnosticTarget
-                element: self::@class::A::@method::foo
+                element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             severity: warning
         methods
           foo @67
@@ -7091,7 +7091,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@class::A
+                  element: <thisLibrary>::<definingUnit>::@class::A
                 ExtendsClauseTypeLocation
             severity: warning
 ''');
@@ -7136,7 +7136,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@field::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@field::foo
                     VariableTypeLocation
                 severity: warning
         accessors
@@ -7186,7 +7186,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 FormalParameterTypeLocation
                   index: 1
                 VariableTypeLocation
@@ -7233,7 +7233,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 FormalParameterTypeLocation
                   index: 1
                 VariableTypeLocation
@@ -7275,7 +7275,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
             severity: warning
 ''');
@@ -7316,7 +7316,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
                 FormalParameterTypeLocation
                   index: 2
@@ -7359,7 +7359,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
                 FormalParameterTypeLocation
                   index: 1
@@ -7402,7 +7402,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
                 ReturnTypeLocation
             severity: warning
@@ -7443,7 +7443,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
             severity: warning
 ''');
@@ -7488,7 +7488,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@field::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@field::foo
                     VariableTypeLocation
                 severity: warning
         accessors
@@ -7534,7 +7534,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 FormalParameterTypeLocation
                   index: 0
                 VariableTypeLocation
@@ -7576,7 +7576,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
             severity: warning
 ''');
@@ -7620,7 +7620,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@method::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
                     ReturnTypeLocation
                 severity: warning
 ''');
@@ -7661,7 +7661,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@variable::foo
+                  element: <thisLibrary>::<definingUnit>::@variable::foo
                 VariableTypeLocation
             severity: warning
     accessors
@@ -7704,7 +7704,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
             severity: warning
 ''');
@@ -7743,14 +7743,14 @@ library
     functions
       foo @98
         returnType: List<int>
-          alias: self::@typeAlias::A
+          alias: <thisLibrary>::<definingUnit>::@typeAlias::A
         macroDiagnostics
           MacroDiagnostic
             message: MacroDiagnosticMessage
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
             severity: warning
 ''');
@@ -7799,7 +7799,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@method::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
                     FormalParameterTypeLocation
                       index: 1
                     VariableTypeLocation
@@ -7845,7 +7845,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@method::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
                     ReturnTypeLocation
                 severity: warning
 ''');
@@ -7886,7 +7886,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@function::foo
+                  element: <thisLibrary>::<definingUnit>::@function::foo
                 ReturnTypeLocation
                 ListIndexTypeLocation
                   index: 1
@@ -7934,7 +7934,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@field::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@field::foo
                     VariableTypeLocation
                     RecordNamedFieldTypeLocation
                       index: 1
@@ -7985,7 +7985,7 @@ library
                   message: Reported message
                   target: TypeAnnotationMacroDiagnosticTarget
                     ElementTypeLocation
-                      element: self::@class::A::@field::foo
+                      element: <thisLibrary>::<definingUnit>::@class::A::@field::foo
                     VariableTypeLocation
                     RecordPositionalFieldTypeLocation
                       index: 1
@@ -8030,7 +8030,7 @@ library
               message: Reported message
               target: TypeAnnotationMacroDiagnosticTarget
                 ElementTypeLocation
-                  element: self::@typeAlias::A
+                  element: <thisLibrary>::<definingUnit>::@typeAlias::A
                 AliasedTypeLocation
             severity: warning
 ''');
@@ -8069,16 +8069,16 @@ library
             message: MacroDiagnosticMessage
               message: Reported message
               target: ElementMacroDiagnosticTarget
-                element: self::@class::A
+                element: <thisLibrary>::<definingUnit>::@class::A
             contextMessages
               MacroDiagnosticMessage
                 message: See foo
                 target: ElementMacroDiagnosticTarget
-                  element: self::@class::A::@method::foo
+                  element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
               MacroDiagnosticMessage
                 message: See bar
                 target: ElementMacroDiagnosticTarget
-                  element: self::@class::A::@method::bar
+                  element: <thisLibrary>::<definingUnit>::@class::A::@method::bar
             severity: warning
             correctionMessage: Correction message
         methods
@@ -8586,7 +8586,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::new
+                staticElement: dart:core::<definingUnit>::@class::Object::@constructor::new
     mixins
       mixin M @6
         superclassConstraints
@@ -8621,7 +8621,7 @@ library
     classes
       class A @29
       class B @125
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
         supertype: A
         augmented
   augmentationImports
@@ -8644,7 +8644,7 @@ augment class B extends prefix0.A {
         classes
           class C @94
           augment class B @113
-            augmentationTarget: self::@class::B
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
 ''');
   }
 
@@ -9291,14 +9291,14 @@ library
       package:test/append.dart
     classes
       class A @29
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         methods
           foo @82
             returnType: void
-            augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
         augmented
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
       macroGeneratedCode
@@ -9312,11 +9312,11 @@ augment class A {
       definingUnit
         classes
           augment class A @57
-            augmentationTarget: self::@class::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @76
                 returnType: void
-                augmentationTarget: self::@class::A::@method::foo
+                augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
 ''');
   }
 
@@ -9518,43 +9518,43 @@ class A {
       ..withMetadata = false;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/auto_to_string.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/auto_to_string.dart
     classes
       class A @53
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         fields
           final foo @69
-            reference: self::@class::A::@field::foo
+            reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
             type: int
           final bar @86
-            reference: self::@class::A::@field::bar
+            reference: <thisLibrary>::<definingUnit>::@class::A::@field::bar
             type: int
         accessors
           synthetic get foo @-1
-            reference: self::@class::A::@getter::foo
+            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
             returnType: int
           synthetic get bar @-1
-            reference: self::@class::A::@getter::bar
+            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::bar
             returnType: int
         augmented
           fields
-            self::@class::A::@field::bar
-            self::@class::A::@field::foo
+            <thisLibrary>::<definingUnit>::@class::A::@field::bar
+            <thisLibrary>::<definingUnit>::@class::A::@field::foo
           accessors
-            self::@class::A::@getter::bar
-            self::@class::A::@getter::foo
+            <thisLibrary>::<definingUnit>::@class::A::@getter::bar
+            <thisLibrary>::<definingUnit>::@class::A::@getter::foo
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -9577,22 +9577,22 @@ A {
       imports
         dart:core as prefix0 @65
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           dart:core as prefix0 @65
         classes
           augment class A @89
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               abstract toString @130
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
                 returnType: String
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
               augment toString @167
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
                 returnType: String
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
 ''');
   }
 
@@ -9615,45 +9615,45 @@ class A {
       ..withMetadata = false;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/json_serializable.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/json_serializable.dart
     classes
       class A @60
-        reference: self::@class::A
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         fields
           final foo @76
-            reference: self::@class::A::@field::foo
+            reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
             type: int
           final bar @93
-            reference: self::@class::A::@field::bar
+            reference: <thisLibrary>::<definingUnit>::@class::A::@field::bar
             type: int
         accessors
           synthetic get foo @-1
-            reference: self::@class::A::@getter::foo
+            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
             returnType: int
           synthetic get bar @-1
-            reference: self::@class::A::@getter::bar
+            reference: <thisLibrary>::<definingUnit>::@class::A::@getter::bar
             returnType: int
         augmented
           fields
-            self::@class::A::@field::bar
-            self::@class::A::@field::foo
+            <thisLibrary>::<definingUnit>::@class::A::@field::bar
+            <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
           accessors
-            self::@class::A::@getter::bar
-            self::@class::A::@getter::foo
+            <thisLibrary>::<definingUnit>::@class::A::@getter::bar
+            <thisLibrary>::<definingUnit>::@class::A::@getter::foo
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -9681,40 +9681,40 @@ json['bar'] = this.bar;
         package:test/json_serializable.dart as prefix0 @91
         dart:core as prefix1 @122
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         libraryImports
           package:test/json_serializable.dart as prefix0 @91
           dart:core as prefix1 @122
         classes
           augment class A @146
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            augmentationTarget: self::@class::A
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               external fromJson @185
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
                 periodOffset: 184
                 nameEnd: 193
                 parameters
                   requiredPositional json @239
                     type: Map<String, Object?>
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
               augment fromJson @344
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
                 periodOffset: 343
                 nameEnd: 352
                 parameters
                   requiredPositional json @398
                     type: Map<String, Object?>
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
             methods
               external toJson @322
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
                 returnType: Map<String, Object?>
-                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
               augment toJson @555
-                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
                 returnType: Map<String, Object?>
-                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
 ''');
   }
 
@@ -9789,10 +9789,10 @@ library
       package:test/a.dart
     classes
       class X @80
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
         augmented
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
   augmentationImports
     package:test/test.macro.dart
       macroGeneratedCode
@@ -9806,7 +9806,7 @@ augment class X {
       definingUnit
         classes
           augment class X @57
-            augmentationTarget: self::@class::X
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::X
             methods
               foo @68
                 returnType: void
@@ -9868,10 +9868,10 @@ library
       package:test/a.dart
     classes
       class X @101
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
         augmented
           methods
-            self::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
   augmentationImports
     package:test/test.macro.dart
       macroGeneratedCode
@@ -9891,7 +9891,7 @@ augment class X {
           package:test/a.dart as prefix0 @75
         classes
           augment class X @99
-            augmentationTarget: self::@class::X
+            augmentationTarget: <thisLibrary>::<definingUnit>::@class::X
             methods
               foo @115
                 returnType: A
@@ -14786,19 +14786,19 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @67
-        reference: self::@class::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -14806,10 +14806,10 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           class MyClass @49
-            reference: self::@augmentation::package:test/test.macro.dart::@class::MyClass
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -14937,19 +14937,19 @@ class A {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
     classes
       class A @61
-        reference: self::@class::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -14957,16 +14957,16 @@ augment library 'package:test/test.dart';
 class B {}
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           class B @49
-            reference: self::@augmentation::package:test/test.macro.dart::@class::B
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
   exportedReferences
-    declared self::@augmentation::package:test/test.macro.dart::@class::B
-    declared self::@class::A
+    declared <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
+    declared <thisLibrary>::<definingUnit>::@class::A
   exportNamespace
-    A: self::@class::A
-    B: self::@augmentation::package:test/test.macro.dart::@class::B
+    A: <thisLibrary>::<definingUnit>::@class::A
+    B: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
 ''');
   }
 
@@ -15131,19 +15131,19 @@ class A {}
         ..withReferences = true;
       checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/a.dart
     classes
       class A @35
-        reference: self::@class::A
+        reference: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -15151,10 +15151,10 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           class MyClass @49
-            reference: self::@augmentation::package:test/test.macro.dart::@class::MyClass
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
 ''');
     }
   }
@@ -15796,21 +15796,21 @@ class B {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
-  reference: self
+  reference: <thisLibrary>
   imports
     package:test/append.dart
     package:test/a.dart
   definingUnit
-    reference: self
+    reference: <thisLibrary>::<definingUnit>
     libraryImports
       package:test/append.dart
       package:test/a.dart
     classes
       class B @78
-        reference: self::@class::B
+        reference: <thisLibrary>::<definingUnit>::@class::B
   augmentationImports
     package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
+      reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
       macroGeneratedCode
 ---
 augment library 'package:test/test.dart';
@@ -15818,10 +15818,10 @@ augment library 'package:test/test.dart';
 class X {}
 ---
       definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         classes
           class X @49
-            reference: self::@augmentation::package:test/test.macro.dart::@class::X
+            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::X
 ''');
   }
 

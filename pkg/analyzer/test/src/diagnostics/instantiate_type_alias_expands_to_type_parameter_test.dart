@@ -118,7 +118,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <thisLibrary>::<definingUnit>::@typeAlias::B
       type: InvalidType
     staticElement: <null>
   argumentList: ArgumentList

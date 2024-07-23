@@ -32,15 +32,15 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::named
+    fieldElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
+    constructorElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named
   leftBracket: {
   rightBracket: }
-  declaredElement: self::@extensionType::A
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
 
@@ -61,18 +61,18 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::new
+    fieldElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
+    constructorElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
   leftBracket: {
   members
     ConstructorDeclaration
       returnType: SimpleIdentifier
         token: A
-        staticElement: self::@extensionType::A
+        staticElement: <thisLibrary>::<definingUnit>::@extensionType::A
         staticType: null
       period: .
       name: named
@@ -82,15 +82,15 @@ ExtensionTypeDeclaration
           thisKeyword: this
           period: .
           name: it
-          declaredElement: self::@extensionType::A::@constructor::named::@parameter::it
+          declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named::@parameter::it
             type: int
         rightParenthesis: )
       body: EmptyFunctionBody
         semicolon: ;
-      declaredElement: self::@extensionType::A::@constructor::named
+      declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named
         type: A Function(int)
   rightBracket: }
-  declaredElement: self::@extensionType::A
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
 
@@ -111,19 +111,19 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: num
-      element: dart:core::@class::num
+      element: dart:core::<definingUnit>::@class::num
       type: num
     fieldName: it
     rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::new
+    fieldElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
+    constructorElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
   leftBracket: {
   members
     ConstructorDeclaration
       constKeyword: const
       returnType: SimpleIdentifier
         token: A
-        staticElement: self::@extensionType::A
+        staticElement: <thisLibrary>::<definingUnit>::@extensionType::A
         staticType: null
       period: .
       name: named
@@ -132,10 +132,10 @@ ExtensionTypeDeclaration
         parameter: SimpleFormalParameter
           type: NamedType
             name: int
-            element: dart:core::@class::int
+            element: dart:core::<definingUnit>::@class::int
             type: int
           name: a
-          declaredElement: self::@extensionType::A::@constructor::named::@parameter::a
+          declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named::@parameter::a
             type: int
         rightParenthesis: )
       separator: :
@@ -143,19 +143,19 @@ ExtensionTypeDeclaration
         ConstructorFieldInitializer
           fieldName: SimpleIdentifier
             token: it
-            staticElement: self::@extensionType::A::@field::it
+            staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
             staticType: null
           equals: =
           expression: SimpleIdentifier
             token: a
-            staticElement: self::@extensionType::A::@constructor::named::@parameter::a
+            staticElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named::@parameter::a
             staticType: int
       body: EmptyFunctionBody
         semicolon: ;
-      declaredElement: self::@extensionType::A::@constructor::named
+      declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named
         type: A Function(int)
   rightBracket: }
-  declaredElement: self::@extensionType::A
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
 
@@ -174,15 +174,15 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::new
+    fieldElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
+    constructorElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
   leftBracket: {
   rightBracket: }
-  declaredElement: self::@extensionType::A
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
 
@@ -201,22 +201,22 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::new
+    fieldElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
+    constructorElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
   implementsClause: ImplementsClause
     implementsKeyword: implements
     interfaces
       NamedType
         name: num
-        element: dart:core::@class::num
+        element: dart:core::<definingUnit>::@class::num
         type: num
   leftBracket: {
   rightBracket: }
-  declaredElement: self::@extensionType::A
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
 
@@ -253,7 +253,7 @@ MethodDeclaration
         element: T@17
         type: T
       name: t
-      declaredElement: self::@extensionType::A::@method::foo::@parameter::t
+      declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo::@parameter::t
         type: T
     parameter: SimpleFormalParameter
       type: NamedType
@@ -261,7 +261,7 @@ MethodDeclaration
         element: U@41
         type: U
       name: u
-      declaredElement: self::@extensionType::A::@method::foo::@parameter::u
+      declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo::@parameter::u
         type: U
     rightParenthesis: )
   body: BlockFunctionBody
@@ -281,7 +281,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
       rightBracket: }
-  declaredElement: self::@extensionType::A::@method::foo
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
     type: void Function<U>(T, U)
 ''');
   }
@@ -323,15 +323,15 @@ ExtensionTypeDeclaration
             element: U@20
             type: U
         rightBracket: >
-      element: dart:core::@class::Map
+      element: dart:core::<definingUnit>::@class::Map
       type: Map<T, U>
     fieldName: it
     rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::new
+    fieldElement: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
+    constructorElement: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
   leftBracket: {
   rightBracket: }
-  declaredElement: self::@extensionType::A
+  declaredElement: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
 }

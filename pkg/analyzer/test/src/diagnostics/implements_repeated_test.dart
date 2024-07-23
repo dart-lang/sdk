@@ -30,11 +30,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
 ''');
   }
@@ -76,13 +76,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
     NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <thisLibrary>::<definingUnit>::@typeAlias::B
       type: A
-        alias: self::@typeAlias::B
+        alias: <thisLibrary>::<definingUnit>::@typeAlias::B
 ''');
   }
 
@@ -114,11 +114,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
 ''');
   }
@@ -162,13 +162,13 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
     NamedType
       name: B
-      element: self::@typeAlias::B
+      element: <thisLibrary>::<definingUnit>::@typeAlias::B
       type: A
-        alias: self::@typeAlias::B
+        alias: <thisLibrary>::<definingUnit>::@typeAlias::B
 ''');
   }
 
@@ -199,11 +199,11 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
 ''');
   }
@@ -243,13 +243,13 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     NamedType
       name: A
-      element: self::@typeAlias::A
+      element: <thisLibrary>::<definingUnit>::@typeAlias::A
       type: int
-        alias: self::@typeAlias::A
+        alias: <thisLibrary>::<definingUnit>::@typeAlias::A
 ''');
   }
 

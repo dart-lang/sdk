@@ -32,7 +32,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -57,7 +57,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: bool
   staticElement: <null>
   staticType: bool
@@ -79,7 +79,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: int
   staticElement: <null>
   staticType: bool
@@ -106,12 +106,12 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: bool
     staticType: bool?
   staticElement: <null>
@@ -160,13 +160,13 @@ PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
       staticType: null
-    readElement: self::@function::f::@parameter::x
+    readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     readType: int
-    writeElement: self::@function::f::@parameter::x
+    writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     writeType: int
-    staticElement: dart:core::@class::num::@method::+
+    staticElement: dart:core::<definingUnit>::@class::num::@method::+
     staticType: int
   readElement: <null>
   readType: InvalidType
@@ -194,11 +194,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: null
-  readElement: self::@function::f::@parameter::a
+  readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
   readType: A
-  writeElement: self::@function::f::@parameter::a
+  writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
   writeType: A
   staticElement: <null>
   staticType: InvalidType
@@ -224,21 +224,21 @@ PrefixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <thisLibrary>::<definingUnit>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
     staticType: null
-  readElement: self::@class::A::@method::[]
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@method::[]
   readType: int
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -268,16 +268,16 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <thisLibrary>::<definingUnit>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
     staticType: null
-  readElement: self::@class::A::@method::[]
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@method::[]
   readType: int
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -305,16 +305,16 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: self::@class::A::@method::[]=::@parameter::index
+      parameter: <thisLibrary>::<definingUnit>::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
     staticType: null
-  readElement: self::@class::A::@method::[]
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@method::[]
   readType: int
-  writeElement: self::@class::A::@method::[]=
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@method::[]=
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -368,9 +368,9 @@ PrefixExpression
   operator: -
   operand: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@field::foo
+    element: <thisLibrary>::<definingUnit>::@class::A::@field::foo
     staticType: int
-  staticElement: dart:core::@class::int::@method::unary-
+  staticElement: dart:core::<definingUnit>::@class::int::@method::unary-
   staticType: int
 ''');
   }
@@ -400,9 +400,9 @@ PrefixExpression
   operator: -
   operand: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@getter::foo
+    element: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     staticType: int
-  staticElement: dart:core::@class::int::@method::unary-
+  staticElement: dart:core::<definingUnit>::@class::int::@method::unary-
   staticType: int
 ''');
   }
@@ -434,7 +434,7 @@ PrefixExpression
   operator: -
   operand: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@method::foo
+    element: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: A
   staticElement: <null>
   staticType: InvalidType
@@ -468,7 +468,7 @@ PrefixExpression
   operator: -
   operand: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@setter::foo
+    element: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
     staticType: InvalidType
   staticElement: <null>
   staticType: InvalidType
@@ -500,9 +500,9 @@ PrefixExpression
   operator: -
   operand: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@method::unary-
+    element: <thisLibrary>::<definingUnit>::@class::A::@method::unary-
     staticType: A
-  staticElement: self::@class::A::@method::unary-
+  staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::unary-
   staticType: int
 ''');
   }
@@ -520,7 +520,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
-    staticElement: self::@function::f::@parameter::a
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
     staticType: dynamic
   staticElement: <null>
   staticType: dynamic
@@ -547,15 +547,15 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: int
     staticType: int?
-  staticElement: dart:core::@class::int::@method::unary-
+  staticElement: dart:core::<definingUnit>::@class::int::@method::unary-
   staticType: int
 ''');
   }
@@ -573,9 +573,9 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: int
-  staticElement: dart:core::@class::int::@method::unary-
+  staticElement: dart:core::<definingUnit>::@class::int::@method::unary-
   staticType: int
 ''');
   }
@@ -598,13 +598,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: null
-  readElement: self::@function::f::@parameter::x
+  readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   readType: A
-  writeElement: self::@function::f::@parameter::x
+  writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   writeType: Object
-  staticElement: self::@class::A::@method::+
+  staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::+
   staticType: Object
 ''');
   }
@@ -638,17 +638,17 @@ PrefixExpression
         SimpleIdentifier
           token: c
           parameter: <null>
-          staticElement: self::@function::f::@parameter::c
+          staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
-    element: self::@extension::Ext
+    element: <thisLibrary>::<definingUnit>::@extension::Ext
     extendedType: C
     staticType: null
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
   writeType: InvalidType
-  staticElement: self::@extension::Ext::@method::+
+  staticElement: <thisLibrary>::<definingUnit>::@extension::Ext::@method::+
   staticType: InvalidType
 ''');
   }
@@ -670,9 +670,9 @@ PrefixExpression
     token: int
     staticElement: <null>
     staticType: null
-  readElement: dart:core::@class::int
+  readElement: dart:core::<definingUnit>::@class::int
   readType: InvalidType
-  writeElement: dart:core::@class::int
+  writeElement: dart:core::<definingUnit>::@class::int
   writeType: InvalidType
   staticElement: <null>
   staticType: InvalidType
@@ -696,7 +696,7 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -704,11 +704,11 @@ PrefixExpression
       staticElement: <null>
       staticType: null
     staticType: null
-  readElement: self::@class::A::@getter::foo
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
   readType: int
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int?
 ''');
   }
@@ -732,7 +732,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -741,11 +741,11 @@ PrefixExpression
       staticType: null
     staticElement: <null>
     staticType: null
-  readElement: self::@extensionType::A::@getter::foo
+  readElement: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
   readType: int
-  writeElement: self::@extensionType::A::@setter::foo
+  writeElement: <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -768,7 +768,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -777,11 +777,11 @@ PrefixExpression
       staticType: null
     staticElement: <null>
     staticType: null
-  readElement: self::@class::A::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@getter::x
   readType: int
-  writeElement: self::@class::A::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -805,7 +805,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      staticElement: self::@prefix::p
+      staticElement: <thisLibrary>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -814,11 +814,11 @@ PrefixExpression
       staticType: null
     staticElement: <null>
     staticType: null
-  readElement: package:test/a.dart::@getter::x
+  readElement: package:test/a.dart::<definingUnit>::@getter::x
   readType: int
-  writeElement: package:test/a.dart::@setter::x
+  writeElement: package:test/a.dart::<definingUnit>::@setter::x
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -843,9 +843,9 @@ PrefixExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <thisLibrary>::<definingUnit>::@class::A
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -856,11 +856,11 @@ PrefixExpression
       staticElement: <null>
       staticType: null
     staticType: null
-  readElement: self::@class::A::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@getter::x
   readType: int
-  writeElement: self::@class::A::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -896,11 +896,11 @@ PrefixExpression
       staticElement: <null>
       staticType: null
     staticType: null
-  readElement: self::@class::A::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@getter::x
   readType: int
-  writeElement: self::@class::A::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -931,11 +931,11 @@ PrefixExpression
       staticElement: <null>
       staticType: null
     staticType: null
-  readElement: self::@class::A::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@getter::x
   readType: int
-  writeElement: self::@class::A::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -953,13 +953,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: null
-  readElement: self::@function::f::@parameter::x
+  readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   readType: double
-  writeElement: self::@function::f::@parameter::x
+  writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   writeType: double
-  staticElement: dart:core::@class::double::@method::+
+  staticElement: dart:core::<definingUnit>::@class::double::@method::+
   staticType: double
 ''');
   }
@@ -977,13 +977,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: null
-  readElement: self::@function::f::@parameter::x
+  readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   readType: int
-  writeElement: self::@function::f::@parameter::x
+  writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1001,13 +1001,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: null
-  readElement: self::@function::f::@parameter::x
+  readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   readType: num
-  writeElement: self::@function::f::@parameter::x
+  writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: num
 ''');
   }
@@ -1027,13 +1027,13 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: null
-  readElement: self::@function::f::@parameter::x
+  readElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   readType: T
-  writeElement: self::@function::f::@parameter::x
+  writeElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
   writeType: T
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: num
 ''');
   }
@@ -1060,11 +1060,11 @@ PrefixExpression
     token: x
     staticElement: <null>
     staticType: null
-  readElement: self::@class::B::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@class::B::@getter::x
   readType: int
-  writeElement: self::@class::A::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1088,11 +1088,11 @@ PrefixExpression
     token: x
     staticElement: <null>
     staticType: null
-  readElement: self::@class::A::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@class::A::@getter::x
   readType: int
-  writeElement: self::@class::A::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1116,11 +1116,11 @@ PrefixExpression
     token: x
     staticElement: <null>
     staticType: null
-  readElement: self::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@getter::x
   readType: int
-  writeElement: self::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@setter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1146,11 +1146,11 @@ PrefixExpression
     token: x
     staticElement: <null>
     staticType: null
-  readElement: self::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@getter::x
   readType: int
-  writeElement: self::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@setter::x
   writeType: num
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1202,7 +1202,7 @@ PrefixExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -1246,11 +1246,11 @@ PrefixExpression
     token: x
     staticElement: <null>
     staticType: null
-  readElement: self::@getter::x
+  readElement: <thisLibrary>::<definingUnit>::@getter::x
   readType: int
-  writeElement: self::@setter::x
+  writeElement: <thisLibrary>::<definingUnit>::@setter::x
   writeType: int
-  staticElement: dart:core::@class::num::@method::+
+  staticElement: dart:core::<definingUnit>::@class::num::@method::+
   staticType: int
 ''');
   }
@@ -1282,7 +1282,7 @@ PrefixExpression
   operator: ~
   operand: AugmentedExpression
     augmentedKeyword: augmented
-    element: self::@class::A::@method::unary-
+    element: <thisLibrary>::<definingUnit>::@class::A::@method::unary-
     staticType: A
   staticElement: <null>
   staticType: InvalidType
@@ -1309,15 +1309,15 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: self::@function::f::@parameter::a
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
       token: foo
-      staticElement: self::@class::A::@getter::foo
+      staticElement: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
       staticType: int
     staticType: int?
-  staticElement: dart:core::@class::int::@method::~
+  staticElement: dart:core::<definingUnit>::@class::int::@method::~
   staticType: int
 ''');
   }
@@ -1335,9 +1335,9 @@ PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: int
-  staticElement: dart:core::@class::int::@method::~
+  staticElement: dart:core::<definingUnit>::@class::int::@method::~
   staticType: int
 ''');
   }

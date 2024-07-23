@@ -40,7 +40,7 @@ class A {}
 ThisExpression
   thisKeyword: this
   staticType: A
-    element: self::@class::A
+    element: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
 
@@ -71,7 +71,7 @@ mixin M {}
 ThisExpression
   thisKeyword: this
   staticType: M
-    element: self::@mixin::M
+    element: <thisLibrary>::<definingUnit>::@mixin::M
 ''');
   }
 }

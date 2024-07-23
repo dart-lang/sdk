@@ -167,7 +167,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     name: a
     declaredElement: isFinal a@39
@@ -229,7 +229,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -270,7 +270,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -281,7 +281,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@54
@@ -357,7 +357,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@39
@@ -375,7 +375,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     name: a
     declaredElement: isFinal a@59
@@ -409,7 +409,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       name: a
       declaredElement: isFinal a@44
@@ -555,7 +555,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
     name: a
     declaredElement: isFinal a@50

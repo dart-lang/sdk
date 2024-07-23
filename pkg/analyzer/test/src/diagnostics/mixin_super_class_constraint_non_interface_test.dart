@@ -53,7 +53,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: E
-      element: self::@enum::E
+      element: <thisLibrary>::<definingUnit>::@enum::E
       type: E
 ''');
   }
@@ -74,7 +74,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element: self::@extensionType::A
+      element: <thisLibrary>::<definingUnit>::@extensionType::A
       type: A
 ''');
   }

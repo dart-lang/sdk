@@ -279,7 +279,7 @@ ExportDirective
       hiddenNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@class::Random
+          staticElement: dart:math::<definingUnit>::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryExportElement
@@ -333,7 +333,7 @@ ExportDirective
       shownNames
         SimpleIdentifier
           token: Random
-          staticElement: dart:math::@class::Random
+          staticElement: dart:math::<definingUnit>::@class::Random
           staticType: null
   semicolon: ;
   element: LibraryExportElement

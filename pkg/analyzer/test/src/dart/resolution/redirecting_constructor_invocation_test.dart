@@ -31,17 +31,17 @@ RedirectingConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: self::@class::C::@constructor::named
+    staticElement: <thisLibrary>::<definingUnit>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@constructor::named::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@constructor::named::@parameter::a
         staticType: int
     rightParenthesis: )
-  staticElement: self::@class::C::@constructor::named
+  staticElement: <thisLibrary>::<definingUnit>::@class::C::@constructor::named
 ''');
   }
 
@@ -93,10 +93,10 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: self::@class::C::@constructor::new::@parameter::a
+        parameter: <thisLibrary>::<definingUnit>::@class::C::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
-  staticElement: self::@class::C::@constructor::new
+  staticElement: <thisLibrary>::<definingUnit>::@class::C::@constructor::new
 ''');
   }
 
