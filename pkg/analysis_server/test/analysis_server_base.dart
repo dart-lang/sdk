@@ -13,6 +13,7 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -84,6 +85,14 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
 }
 
 abstract class ContextResolutionTest with ResourceProviderMixin {
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  MemoryByteStore _byteStore = _sharedByteStore;
+
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final LegacyAnalysisServer server;
@@ -184,6 +193,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
       dartFixPromptManager: dartFixPromptManager,
+      providedByteStore: _byteStore,
     );
 
     server.pluginManager = pluginManager;
@@ -299,6 +309,12 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     var offset = content.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
+  }
+
+  /// Call this method if the test needs to use the empty byte store, without
+  /// any information cached.
+  void useEmptyByteStore() {
+    _byteStore = MemoryByteStore();
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
