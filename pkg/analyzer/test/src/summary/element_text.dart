@@ -85,6 +85,8 @@ class _ElementWriter {
         _elementPrinter = elementPrinter;
 
   void writeLibraryElement(LibraryElementImpl e) {
+    expect(e.enclosingElement, isNull);
+
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
       var name = e.name;
@@ -341,6 +343,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -449,6 +452,13 @@ class _ElementWriter {
     }
   }
 
+  void _writeEnclosingElement(ElementImpl e) {
+    _elementPrinter.writeNamedElement(
+      'enclosingElement',
+      e.enclosingElement,
+    );
+  }
+
   void _writeExportedReferences(LibraryElementImpl e) {
     var exportedReferences = e.exportedReferences.toList();
     exportedReferences.sortBy((e) => e.reference.toString());
@@ -465,7 +475,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeExportElement(LibraryExportElement e) {
+  void _writeExportElement(LibraryExportElementImpl e) {
     e.location;
 
     _sink.writeIndentedLine(() {
@@ -473,6 +483,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeEnclosingElement(e);
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
@@ -496,6 +507,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -569,6 +581,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -584,7 +597,7 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeImportElement(LibraryImportElement e) {
+  void _writeImportElement(LibraryImportElementImpl e) {
     e.location;
 
     _sink.writeIndentedLine(() {
@@ -594,12 +607,13 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeEnclosingElement(e);
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
   }
 
-  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
+  void _writeImportElementPrefix(ImportElementPrefixImpl? prefix) {
     if (prefix != null) {
       _sink.writeIf(prefix is DeferredImportElementPrefix, ' deferred');
       _sink.write(' as ');
@@ -649,6 +663,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -745,6 +760,7 @@ class _ElementWriter {
         return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
       }).toList();
       _writeElements('imports', imports, _writeImportElement);
+      _writeElements('prefixes', e.prefixes, _writePrefixElement);
     }
 
     _writeElements('exports', e.libraryExports, _writeExportElement);
@@ -1047,6 +1063,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -1199,6 +1216,17 @@ class _ElementWriter {
     });
   }
 
+  void _writePrefixElement(PrefixElementImpl e) {
+    _sink.writeIndentedLine(() {
+      _writeName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeReference(e);
+      _writeEnclosingElement(e);
+    });
+  }
+
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
     e as PropertyAccessorElementImpl;
 
@@ -1252,6 +1280,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -1321,6 +1350,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeReference(e);
+      _writeEnclosingElement(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -1495,6 +1525,7 @@ class _ElementWriter {
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
     _writeReference(e);
+    _writeEnclosingElement(e);
 
     if (configuration.withImports) {
       var imports = e.libraryImports.where((import) {
