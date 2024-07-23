@@ -1,3 +1,6 @@
+# 4.2.5
+- Fixed DevTools URI not including a trailing '/' before the query parameters, which could prevent DevTools from loading properly.
+
 # 4.2.4+1
 - Added missing type to `Event` in `postEvent`.
 - [DAP] Instaces with both fields and getters of the same name will no longer show duplicates in `variables` responses.
