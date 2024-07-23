@@ -10,6 +10,13 @@
 
 [#56065]: https://github.com/dart-lang/sdk/issues/56065
 
+### Libraries
+
+#### `dart:js_interop`
+
+- Added constructors for `JSArrayBuffer`, `JSDataView`, and concrete typed array
+  types e.g. `JSInt8Array`.
+
 ## 3.5.0
 
 ### Language
