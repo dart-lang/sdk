@@ -29,7 +29,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element: self::@mixin::M
+      element: <thisLibrary>::<definingUnit>::@mixin::M
       type: M
 ''');
   }
@@ -47,7 +47,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element: self::@mixin::M
+      element: <thisLibrary>::<definingUnit>::@mixin::M
       type: M
 ''');
   }
@@ -144,7 +144,7 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: self::@mixin::M::@field::f
+        declaredElement: <thisLibrary>::<definingUnit>::@mixin::M::@field::f
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -162,7 +162,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::@class::int
+    element: dart:core::<definingUnit>::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -172,7 +172,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: self::@mixin::M::@getter::foo
+  declaredElement: <thisLibrary>::<definingUnit>::@mixin::M::@getter::foo
     type: int Function()
 ''');
   }
@@ -192,11 +192,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
     NamedType
       name: B
-      element: self::@class::B
+      element: <thisLibrary>::<definingUnit>::@class::B
       type: B
 ''');
   }
@@ -277,7 +277,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: self::@mixin::M::@method::foo
+  declaredElement: <thisLibrary>::<definingUnit>::@mixin::M::@method::foo
     type: void Function()
 ''');
   }
@@ -300,7 +300,7 @@ mixin M<T> on C<T> {}
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
-    staticElement: self::@function::g::@parameter::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::g::@parameter::f
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -328,11 +328,11 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element: self::@class::A
+      element: <thisLibrary>::<definingUnit>::@class::A
       type: A
     NamedType
       name: B
-      element: self::@class::B
+      element: <thisLibrary>::<definingUnit>::@class::B
       type: B
 ''');
   }
@@ -358,17 +358,17 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
       name: _
-      declaredElement: self::@mixin::M::@setter::foo::@parameter::_
+      declaredElement: <thisLibrary>::<definingUnit>::@mixin::M::@setter::foo::@parameter::_
         type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: self::@mixin::M::@setter::foo
+  declaredElement: <thisLibrary>::<definingUnit>::@mixin::M::@setter::foo
     type: void Function(int)
 ''');
   }
@@ -417,14 +417,14 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: self::@class::A::@method::foo
+    staticElement: <thisLibrary>::<definingUnit>::@class::A::@method::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 42
-        parameter: self::@class::A::@method::foo::@parameter::x
+        parameter: <thisLibrary>::<definingUnit>::@class::A::@method::foo::@parameter::x
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -463,11 +463,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@class::A::@setter::foo::@parameter::_
+    parameter: <thisLibrary>::<definingUnit>::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@class::A::@setter::foo
+  writeElement: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   writeType: int
   staticElement: <null>
   staticType: int

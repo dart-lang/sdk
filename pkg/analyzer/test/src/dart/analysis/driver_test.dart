@@ -858,7 +858,7 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::@getter::B
+      staticElement: package:test/b.dart::<definingUnit>::@getter::B
       staticType: int
 [status] idle
 ''');
@@ -884,7 +884,7 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::@getter::B
+      staticElement: package:test/b.dart::<definingUnit>::@getter::B
       staticType: double
 [status] idle
 ''');
@@ -3803,8 +3803,8 @@ void bar() {}
   flags: isLibrary
   enclosing: package:test/a.dart
   selectedElements
-    package:test/a.dart::@function::foo
-    package:test/a.dart::@function::bar
+    package:test/a.dart::<definingUnit>::@function::foo
+    package:test/a.dart::<definingUnit>::@function::bar
 [status] idle
 ''');
   }

@@ -43,13 +43,13 @@ FunctionExpressionInvocation
           parameter: <null>
           staticType: int
       rightParenthesis: )
-    element: self::@extension::E
+    element: <thisLibrary>::<definingUnit>::@extension::E
     extendedType: int
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticElement: self::@extension::E::@method::call
+  staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::call
   staticInvokeType: void Function()
   staticType: void
 ''');
@@ -108,13 +108,13 @@ MethodInvocation
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: self::@extension::E
+    element: <thisLibrary>::<definingUnit>::@extension::E
     extendedType: String
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: empty
-    staticElement: self::@extension::E::@method::empty
+    staticElement: <thisLibrary>::<definingUnit>::@extension::E::@method::empty
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (

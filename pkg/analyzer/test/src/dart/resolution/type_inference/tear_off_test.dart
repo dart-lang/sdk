@@ -154,7 +154,7 @@ void test() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -162,7 +162,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@function::f::@parameter::x
+          base: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

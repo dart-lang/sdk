@@ -37,9 +37,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <thisLibrary>::@prefix::a
       name: A
-      element: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::<definingUnit>::@class::A
       type: A
 ''');
   }
@@ -67,11 +67,11 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <thisLibrary>::@prefix::a
       name: B
-      element: package:test/lib1.dart::@typeAlias::B
+      element: package:test/lib1.dart::<definingUnit>::@typeAlias::B
       type: A
-        alias: package:test/lib1.dart::@typeAlias::B
+        alias: package:test/lib1.dart::<definingUnit>::@typeAlias::B
 ''');
   }
 
@@ -99,9 +99,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <thisLibrary>::@prefix::a
       name: A
-      element: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::<definingUnit>::@class::A
       type: A
 ''');
   }
@@ -127,9 +127,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <thisLibrary>::@prefix::a
       name: A
-      element: package:test/a.dart::@class::A
+      element: package:test/a.dart::<definingUnit>::@class::A
       type: A
 ''');
   }
@@ -155,9 +155,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: self::@prefix::a
+        element: <thisLibrary>::@prefix::a
       name: A
-      element: package:test/a.dart::@extensionType::A
+      element: package:test/a.dart::<definingUnit>::@extensionType::A
       type: A
 ''');
   }
@@ -179,9 +179,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: self::@prefix::math
+        element: <thisLibrary>::@prefix::math
       name: Random
-      element: dart:math::@class::Random
+      element: dart:math::<definingUnit>::@class::Random
       type: Random
 ''');
   }

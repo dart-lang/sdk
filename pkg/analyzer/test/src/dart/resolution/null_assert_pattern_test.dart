@@ -89,7 +89,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: self::@function::f::@parameter::x
+    staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
     staticType: int?
   patternTypeSchema: _
 ''');

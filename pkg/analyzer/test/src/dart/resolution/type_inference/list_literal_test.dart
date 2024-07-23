@@ -83,7 +83,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: f
-    staticElement: self::@function::f
+    staticElement: <thisLibrary>::<definingUnit>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -91,7 +91,7 @@ MethodInvocation
       NullLiteral
         literal: null
         parameter: ParameterMember
-          base: self::@function::f::@parameter::t
+          base: <thisLibrary>::<definingUnit>::@function::f::@parameter::t
           substitution: {T: Iterable<int>?}
         staticType: Null
     rightParenthesis: )

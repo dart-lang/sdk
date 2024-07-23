@@ -182,21 +182,21 @@ class ElementPrinter {
     var parent = reference.parent!;
     if (parent.parent == null) {
       var libraryUriStr = reference.name;
+
+      // Very often we have just one library.
       if (libraryUriStr == _selfUriStr) {
-        return 'self';
+        return '<thisLibrary>';
       }
 
-      // TODO(scheglov): Make it precise again, after Windows.
-      if (libraryUriStr.startsWith('file:')) {
-        return libraryUriStr.substring(libraryUriStr.lastIndexOf('/') + 1);
-      }
-
-      return libraryUriStr;
+      return _toPosixUriStr(libraryUriStr);
     }
 
-    // Ignore the unit, skip to the library.
+    // Very often we only have the defining unit.
     if (parent.name == '@unit') {
-      return _referenceToString(parent.parent!);
+      var libraryRef = parent.parent!;
+      if (reference.name == libraryRef.name) {
+        return '${_referenceToString(libraryRef)}::<definingUnit>';
+      }
     }
 
     var name = reference.name;
@@ -215,6 +215,14 @@ class ElementPrinter {
       return '${entry.key.name}: ${_typeStr(entry.value)}';
     }).join(', ');
     return '{$entriesStr}';
+  }
+
+  String _toPosixUriStr(String uriStr) {
+    // TODO(scheglov): Make it precise again, after Windows.
+    if (uriStr.startsWith('file:')) {
+      return uriStr.substring(uriStr.lastIndexOf('/') + 1);
+    }
+    return uriStr;
   }
 
   String _typeStr(DartType type) {

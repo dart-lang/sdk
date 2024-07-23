@@ -47,7 +47,7 @@ BinaryExpression
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: self::@extension::E
+    element: <thisLibrary>::<definingUnit>::@extension::E
     extendedType: String
     staticType: null
   operator: +

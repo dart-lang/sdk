@@ -306,7 +306,7 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element: dart:core::@class::int
+      element: dart:core::<definingUnit>::@class::int
       type: int
 ''');
   }

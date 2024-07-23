@@ -34,7 +34,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::@class::num
+          element: dart:core::<definingUnit>::@class::num
           type: num
         name: a
         declaredElement: isFinal a@24
@@ -110,9 +110,9 @@ PatternVariableDeclarationStatement
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: self::@class::A
+          element: <thisLibrary>::<definingUnit>::@class::A
           type: A
-        staticElement: self::@class::A::@constructor::new
+        staticElement: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -139,7 +139,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::@class::num
+          element: dart:core::<definingUnit>::@class::num
           type: num
         name: a
         declaredElement: a@22
@@ -176,7 +176,7 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::@class::int
+          element: dart:core::<definingUnit>::@class::int
           type: int
         name: a
         declaredElement: a@22
@@ -188,7 +188,7 @@ PatternVariableDeclarationStatement
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: self::@function::g
+        staticElement: <thisLibrary>::<definingUnit>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -268,7 +268,7 @@ PatternVariableDeclarationStatement
     equals: =
     expression: SimpleIdentifier
       token: x
-      staticElement: self::@function::f::@parameter::x
+      staticElement: <thisLibrary>::<definingUnit>::@function::f::@parameter::x
       staticType: (int, String)
     patternTypeSchema: (_, _)
   semicolon: ;
@@ -306,7 +306,7 @@ PatternVariableDeclarationStatement
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: self::@function::g
+        staticElement: <thisLibrary>::<definingUnit>::@function::g
         staticType: T Function<T>(T)
       argumentList: ArgumentList
         leftParenthesis: (

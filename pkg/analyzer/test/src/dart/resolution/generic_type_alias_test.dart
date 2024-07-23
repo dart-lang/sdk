@@ -253,13 +253,13 @@ NamedType
     arguments
       NamedType
         name: int
-        element: dart:core::@class::int
+        element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
   question: ?
-  element: self::@typeAlias::G
+  element: <thisLibrary>::<definingUnit>::@typeAlias::G
   type: int Function(double)?
-    alias: self::@typeAlias::G
+    alias: <thisLibrary>::<definingUnit>::@typeAlias::G
       typeArguments
         int
 ''');

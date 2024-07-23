@@ -39,7 +39,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: self::@augmentation::package:test/b.dart
+  element: <thisLibrary>::@augmentation::package:test/b.dart
 ''');
   }
 
@@ -58,7 +58,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: self
+  element: <thisLibrary>
 ''');
   }
 
@@ -79,7 +79,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: self::@augmentation::package:test/test.dart
+  element: <thisLibrary>::@augmentation::package:test/test.dart
 ''');
   }
 
@@ -100,7 +100,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: self
+  element: <thisLibrary>
 ''');
   }
 
@@ -123,7 +123,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: self
+  element: <thisLibrary>
 ''');
   }
 
@@ -146,7 +146,7 @@ LibraryAugmentationDirective
   uri: SimpleStringLiteral
     literal: 'a.dart'
   semicolon: ;
-  element: self
+  element: <thisLibrary>
 ''');
   }
 
@@ -176,7 +176,7 @@ LibraryAugmentationDirective
     staticType: String
     stringValue: null
   semicolon: ;
-  element: self
+  element: <thisLibrary>
 ''');
   }
 }
@@ -226,9 +226,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: self::@augmentation::package:test/b.dart::@prefix::math
+    element: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::math
   name: Random
-  element: dart:math::@class::Random
+  element: dart:math::<definingUnit>::@class::Random
   type: Random
 ''');
     }
@@ -257,9 +257,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: self::@prefix::math
+    element: <thisLibrary>::@prefix::math
   name: Random
-  element: dart:math::@class::Random
+  element: dart:math::<definingUnit>::@class::Random
   type: Random
 ''');
     }
@@ -306,7 +306,7 @@ A bar() => throw 0;
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: self::@augmentation::package:test/b.dart::@class::A
+  element: <thisLibrary>::@augmentation::package:test/b.dart::@class::A
   type: A
 ''');
     }
@@ -320,7 +320,7 @@ NamedType
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: self::@augmentation::package:test/b.dart::@class::A
+  element: <thisLibrary>::@augmentation::package:test/b.dart::@class::A
   type: A
 ''');
     }
@@ -347,7 +347,7 @@ A bar() => throw 0;
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: self::@class::A
+  element: <thisLibrary>::<definingUnit>::@class::A
   type: A
 ''');
     }
@@ -361,7 +361,7 @@ NamedType
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: self::@class::A
+  element: <thisLibrary>::<definingUnit>::@class::A
   type: A
 ''');
     }
