@@ -10,6 +10,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/messages.dart';
+import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
@@ -161,9 +162,10 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalVariableBuilder variable in typeParameters!) {
-            Variance variance =
-                computeTypeVariableBuilderVariance(variable, typeBuilder)
-                    .variance!;
+            Variance variance = computeTypeVariableBuilderVariance(
+                    variable, typeBuilder,
+                    sourceLoader: libraryBuilder.loader)
+                .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage =

@@ -27,6 +27,7 @@ import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
 import '../util/helpers.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_loader.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
@@ -253,7 +254,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
         thisType = cyclicTypeAliasMarker;
-        // Cyclic type alias. The error is reported elsewhere.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "SourceTypeAliasBuilder.buildThisType",
+            expectedPhase: CompilationPhaseForProblemReporting.outline));
         return const InvalidType();
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
@@ -301,7 +304,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "SourceTypeAliasBuilder.buildAliasedTypeArguments: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)

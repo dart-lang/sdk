@@ -1158,7 +1158,8 @@ class SourceCompilationUnitImpl
           for (NominalVariableBuilder typeParameter
               in declaration.typeVariables!) {
             typeParameter.variance = computeTypeVariableBuilderVariance(
-                    typeParameter, declaration.type)
+                    typeParameter, declaration.type,
+                    sourceLoader: libraryBuilder.loader)
                 .variance!;
             ++count;
           }

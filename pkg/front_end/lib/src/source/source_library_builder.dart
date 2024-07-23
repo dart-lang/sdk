@@ -30,6 +30,7 @@ import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
 import '../base/import.dart' show Import;
 import '../base/messages.dart';
+import '../base/name_space.dart';
 import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
@@ -85,7 +86,8 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_loader.dart' show SourceLoader;
+import 'source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
@@ -1540,7 +1542,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               setDeclaredNullability(next, Nullability.undetermined);
               if (isDirectDependency) {
                 // Coverage-ignore-block(suite): Not run.
-                // The dependency error is reported elsewhere.
+                assert(loader.assertProblemReportedElsewhere(
+                    "SourceLibraryBuilder.processPendingNullabilities: "
+                    "Cyclic dependency via TypeParameterType is detected while "
+                    "processing pending nullabilities.",
+                    expectedPhase:
+                        CompilationPhaseForProblemReporting.outline));
                 setBoundAndDefaultType(
                     current, const InvalidType(), const InvalidType());
               }
@@ -1574,7 +1581,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (getDeclaredNullability(next) == marker) {
               setDeclaredNullability(next, Nullability.undetermined);
               if (isDirectDependency) {
-                // The dependency error is reported elsewhere.
+                assert(loader.assertProblemReportedElsewhere(
+                    "SourceLibraryBuilder.processPendingNullabilities: "
+                    "Cyclic dependency via StructuralParameterType is detected "
+                    "while processing pending nullabilities.",
+                    expectedPhase:
+                        CompilationPhaseForProblemReporting.outline));
                 setBoundAndDefaultType(
                     current, const InvalidType(), const InvalidType());
               }
@@ -1988,8 +2000,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Class? klass = node.target.enclosingClass;
     List<TypeParameter> parameters = node.target.function.typeParameters;
     List<DartType> arguments = node.arguments.types;
-    // The following error is to be reported elsewhere.
-    if (parameters.length != arguments.length) return;
+    if (parameters.length != arguments.length) {
+      assert(loader.assertProblemReportedElsewhere(
+          "SourceLibraryBuilder.checkBoundsInStaticInvocation: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
+      return;
+    }
 
     final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
@@ -2056,8 +2073,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
-    // The error is to be reported elsewhere.
-    if (methodParameters.length != arguments.types.length) return;
+    if (methodParameters.length != arguments.types.length) {
+      assert(loader.assertProblemReportedElsewhere(
+          "SourceLibraryBuilder.checkBoundsInMethodInvocation: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
+      return;
+    }
     List<TypeParameter> methodTypeParametersOfInstantiated =
         getFreshTypeParameters(methodParameters).freshTypeParameters;
     for (TypeParameter typeParameter in methodTypeParametersOfInstantiated) {
@@ -2089,8 +2111,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int offset) {
     if (arguments.types.isEmpty) return;
 
-    // The error is to be reported elsewhere.
-    if (functionType.typeParameters.length != arguments.types.length) return;
+    if (functionType.typeParameters.length != arguments.types.length) {
+      assert(loader.assertProblemReportedElsewhere(
+          "SourceLibraryBuilder.checkBoundsInFunctionInvocation: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
+      return;
+    }
     final DartType bottomType = const NeverType.nonNullable();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         getFreshTypeParametersFromStructuralParameters(
@@ -2118,8 +2145,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {required bool inferred}) {
     if (typeArguments.isEmpty) return;
 
-    // The error is to be reported elsewhere.
     if (functionType.typeParameters.length != typeArguments.length) {
+      assert(loader.assertProblemReportedElsewhere(
+          "SourceLibraryBuilder.checkBoundsInInstantiation: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return;
     }
     final DartType bottomType = const NeverType.nonNullable();

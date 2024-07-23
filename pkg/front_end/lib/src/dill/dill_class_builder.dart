@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
 import '../base/modifier.dart' show abstractMask, namedMixinApplicationMask;
+import '../base/name_space.dart';
 import '../base/problems.dart' show unimplemented;
 import '../base/scope.dart';
 import '../builder/builder.dart';

@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';

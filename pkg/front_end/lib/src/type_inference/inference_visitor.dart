@@ -51,6 +51,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_loader.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';
@@ -1717,7 +1718,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             dispatchBody: () {});
     patternVariableDeclaration.matchedValueType = result.elementType;
     if (result.patternForInExpressionIsNotIterableError != null) {
-      // The error is reported elsewhere.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "InferenceVisitorImpl._handlePatternForIn: "
+          "can't infer expression in a for-in pattern.",
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
     }
 
     assert(checkStack(node, stackBase, [

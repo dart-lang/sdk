@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: annotate_overrides
-
 library fasta.scope;
 
 import 'package:kernel/ast.dart';
@@ -12,7 +10,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
@@ -30,6 +27,7 @@ import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'messages.dart';
+import 'name_space.dart';
 import 'uri_offset.dart';
 
 enum ScopeKind {
@@ -116,41 +114,125 @@ abstract class LookupScope {
   Builder? lookupSetter(String name, int charOffset, Uri fileUri);
 }
 
+/// Returns the correct value of [builder] found as a lookup of [name].
+///
+/// This ensures that an [AmbiguousBuilder] is return of the found builder is
+/// a duplicate.
+Builder? normalizeLookup(Builder? builder,
+    {required String name,
+    required int charOffset,
+    required Uri fileUri,
+    required String classNameOrDebugName}) {
+  if (builder == null) return null;
+  if (builder.next != null) {
+    return new AmbiguousBuilder(
+        name.isEmpty
+            ?
+            // Coverage-ignore(suite): Not run.
+            classNameOrDebugName
+            : name,
+        builder,
+        charOffset,
+        fileUri);
+  } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+    // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
+    return null;
+  } else {
+    return builder;
+  }
+}
+
+/// Returns the correct value of [builder] found as a lookup of [name] where
+/// [builder] is found as a setable in search of a getable or as a getable in
+/// search of a setable.
+///
+/// This ensures that an [AccessErrorBuilder] is returned if a non-problem
+/// builder was found.
+Builder? normalizeCrossLookup(Builder? builder,
+    {required String name, required int charOffset, required Uri fileUri}) {
+  if (builder != null && !builder.hasProblem) {
+    return new AccessErrorBuilder(name, builder, charOffset, fileUri);
+  }
+  return builder;
+}
+
 mixin LookupScopeMixin implements LookupScope {
   String get classNameOrDebugName;
 
   Builder? lookupIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder> map) {
-    Builder? builder = map[name];
-    if (builder == null) return null;
-    if (builder.next != null) {
-      return new AmbiguousBuilder(
-          name.isEmpty
-              ?
-              // Coverage-ignore(suite): Not run.
-              classNameOrDebugName
-              : name,
-          builder,
-          charOffset,
-          fileUri);
-    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
-      return null;
-    } else {
-      return builder;
-    }
+      String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
+    return normalizeLookup(getables[name],
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName);
   }
 
-  Builder? lookupSetterIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder>? map) {
+  Builder? lookupSetterIn(String name, int charOffset, Uri fileUri,
+      Map<String, Builder>? getables) {
     Builder? builder;
-    if (map != null) {
-      builder = lookupIn(name, charOffset, fileUri, map);
-      if (builder != null && !builder.hasProblem) {
-        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-      }
+    if (getables != null) {
+      builder = lookupIn(name, charOffset, fileUri, getables);
+      builder = normalizeCrossLookup(builder,
+          name: name, charOffset: charOffset, fileUri: fileUri);
     }
     return builder;
+  }
+}
+
+/// A [LookupScope] based directly on a [NameSpace].
+class NameSpaceLookupScope implements LookupScope {
+  final NameSpace _nameSpace;
+
+  @override
+  final ScopeKind kind;
+
+  final String classNameOrDebugName;
+
+  NameSpaceLookupScope(this._nameSpace, this.kind, this.classNameOrDebugName);
+
+  @override
+  Builder? lookup(String name, int charOffset, Uri fileUri) {
+    Builder? builder = normalizeLookup(
+        _nameSpace.lookupLocalMember(name, setter: false),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName);
+    if (builder != null) {
+      return builder;
+    }
+    return normalizeCrossLookup(
+        normalizeLookup(_nameSpace.lookupLocalMember(name, setter: true),
+            name: name,
+            charOffset: charOffset,
+            fileUri: fileUri,
+            classNameOrDebugName: classNameOrDebugName),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri);
+  }
+
+  @override
+  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+    Builder? builder = normalizeLookup(
+        _nameSpace.lookupLocalMember(name, setter: true),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName);
+    if (builder != null) {
+      return builder;
+    }
+    return normalizeCrossLookup(
+        normalizeLookup(_nameSpace.lookupLocalMember(name, setter: false),
+            name: name,
+            charOffset: charOffset,
+            fileUri: fileUri,
+            classNameOrDebugName: classNameOrDebugName),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri);
   }
 }
 
@@ -243,62 +325,6 @@ class MutableScope {
   String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local?.keys})";
 }
 
-abstract class NameSpace {
-  void addLocalMember(String name, Builder member, {required bool setter});
-
-  Builder? lookupLocalMember(String name, {required bool setter});
-
-  void forEachLocalMember(void Function(String name, Builder member) f);
-
-  void forEachLocalSetter(void Function(String name, MemberBuilder member) f);
-
-  void forEachLocalExtension(void Function(ExtensionBuilder member) f);
-
-  Iterable<Builder> get localMembers;
-
-  /// Returns an iterator of all members and setters mapped in this name space,
-  /// including duplicate members mapped to the same name.
-  Iterator<Builder> get unfilteredIterator;
-
-  /// Returns an iterator of all members and setters mapped in this name space,
-  /// including duplicate members mapped to the same name.
-  ///
-  /// Compared to [unfilteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  NameIterator get unfilteredNameIterator;
-
-  /// Returns a filtered iterator of members and setters mapped in this name
-  /// space.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
-  Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
-
-  /// Returns a filtered iterator of members and setters mapped in this name
-  /// space.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
-  ///
-  /// Compared to [filteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  NameIterator<T> filteredNameIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations});
-}
-
 class Scope extends MutableScope
     implements ParentScope, LookupScope, NameSpace {
   /// Indicates whether an attempt to declare new names in this scope should
@@ -349,6 +375,7 @@ class Scope extends MutableScope
   ///
   /// The iterator does _not_ include the members and setters mapped in the
   /// [parent] scope.
+  @override
   Iterator<Builder> get unfilteredIterator {
     return new ScopeIterator(this);
   }
@@ -361,6 +388,7 @@ class Scope extends MutableScope
   ///
   /// Compared to [unfilteredIterator] this iterator also gives access to the
   /// name that the builders are mapped to.
+  @override
   NameIterator get unfilteredNameIterator {
     return new ScopeNameIterator(this);
   }
@@ -373,6 +401,7 @@ class Scope extends MutableScope
   /// declared member is included. If [includeAugmentations] is `true`, both
   /// original and augmenting/patching members are included, otherwise, only
   /// original members are included.
+  @override
   Iterator<T> filteredIterator<T extends Builder>(
       {Builder? parent,
       required bool includeDuplicates,
@@ -394,6 +423,7 @@ class Scope extends MutableScope
   ///
   /// Compared to [filteredIterator] this iterator also gives access to the
   /// name that the builders are mapped to.
+  @override
   NameIterator<T> filteredNameIterator<T extends Builder>(
       {Builder? parent,
       required bool includeDuplicates,
@@ -417,150 +447,6 @@ class Scope extends MutableScope
     _extensions?.forEach((v) {
       print("  $v");
     });
-  }
-
-  /// Patch up the scope, using the two replacement maps to replace builders in
-  /// scope. The replacement maps from old LibraryBuilder to map, mapping
-  /// from name to new (replacement) builder.
-  void patchUpScope(Map<LibraryBuilder, Map<String, Builder>> replacementMap,
-      Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
-    // In the following we refer to non-setters as 'getters' for brevity.
-    //
-    // We have to replace all getters and setters in [_locals] and [_setters]
-    // with the corresponding getters and setters in [replacementMap]
-    // and [replacementMapSetters].
-    //
-    // Since field builders can be replaced by getter and setter builders and
-    // vice versa when going from source to dill builder and back, we might not
-    // have a 1-to-1 relationship between the existing and replacing builders.
-    //
-    // For this reason we start by collecting the names of all getters/setters
-    // that need (some) replacement. Afterwards we go through these names
-    // handling both getters and setters at the same time.
-    Set<String> replacedNames = {};
-    _local?.forEach((String name, Builder builder) {
-      if (replacementMap.containsKey(builder.parent)) {
-        replacedNames.add(name);
-      }
-    });
-    _setters?.forEach((String name, Builder builder) {
-      if (replacementMapSetters.containsKey(builder.parent)) {
-        replacedNames.add(name);
-      }
-    });
-    if (replacedNames.isNotEmpty) {
-      for (String name in replacedNames) {
-        // We start be collecting the relation between an existing getter/setter
-        // and the getter/setter that will replace it. This information is used
-        // below to handle all the different cases that can occur.
-        Builder? existingGetter = _local?[name];
-        LibraryBuilder? replacementLibraryBuilderFromGetter;
-        Builder? replacementGetterFromGetter;
-        Builder? replacementSetterFromGetter;
-        if (existingGetter != null &&
-            replacementMap.containsKey(existingGetter.parent)) {
-          replacementLibraryBuilderFromGetter =
-              existingGetter.parent as LibraryBuilder;
-          replacementGetterFromGetter =
-              replacementMap[replacementLibraryBuilderFromGetter]![name];
-          replacementSetterFromGetter =
-              replacementMapSetters[replacementLibraryBuilderFromGetter]![name];
-        }
-        Builder? existingSetter = _setters?[name];
-        LibraryBuilder? replacementLibraryBuilderFromSetter;
-        Builder? replacementGetterFromSetter;
-        Builder? replacementSetterFromSetter;
-        if (existingSetter != null &&
-            replacementMap.containsKey(existingSetter.parent)) {
-          replacementLibraryBuilderFromSetter =
-              existingSetter.parent as LibraryBuilder;
-          replacementGetterFromSetter =
-              replacementMap[replacementLibraryBuilderFromSetter]![name];
-          replacementSetterFromSetter =
-              replacementMapSetters[replacementLibraryBuilderFromSetter]![name];
-        }
-
-        if (existingGetter == null) {
-          // Coverage-ignore-block(suite): Not run.
-          // No existing getter.
-          if (replacementGetterFromSetter != null) {
-            // We might have had one implicitly from the setter. Use it here,
-            // if so. (This is currently not possible, but added to match the
-            // case for setters below.)
-            (_local ??= {})[name] = replacementGetterFromSetter;
-          }
-        } else if (existingGetter.parent ==
-            replacementLibraryBuilderFromGetter) {
-          // The existing getter should be replaced.
-          if (replacementGetterFromGetter != null) {
-            // With a new getter.
-            (_local ??= // Coverage-ignore(suite): Not run.
-                {})[name] = replacementGetterFromGetter;
-          } else {
-            // Coverage-ignore-block(suite): Not run.
-            // With `null`, i.e. removed. This means that the getter is
-            // implicitly available through the setter. (This is currently not
-            // possible, but handled here to match the case for setters below).
-            _local?.remove(name);
-          }
-        } else {
-          // Leave the getter in - it wasn't replaced.
-        }
-        if (existingSetter == null) {
-          // No existing setter.
-          if (replacementSetterFromGetter != null) {
-            // We might have had one implicitly from the getter. Use it here,
-            // if so.
-            (_setters ??= // Coverage-ignore(suite): Not run.
-                {})[name] = replacementSetterFromGetter as MemberBuilder;
-          }
-        } else if (existingSetter.parent ==
-            replacementLibraryBuilderFromSetter) {
-          // The existing setter should be replaced.
-          if (replacementSetterFromSetter != null) {
-            // With a new setter.
-            (_setters ??= // Coverage-ignore(suite): Not run.
-                {})[name] = replacementSetterFromSetter as MemberBuilder;
-          } else {
-            // With `null`, i.e. removed. This means that the setter is
-            // implicitly available through the getter. This happens when the
-            // getter is a field builder for an assignable field.
-            _setters?.remove(name);
-          }
-        } else {
-          // Leave the setter in - it wasn't replaced.
-        }
-      }
-    }
-    if (_extensions != null) {
-      // Coverage-ignore-block(suite): Not run.
-      bool needsPatching = false;
-      for (ExtensionBuilder extensionBuilder in _extensions!) {
-        if (replacementMap.containsKey(extensionBuilder.parent)) {
-          needsPatching = true;
-          break;
-        }
-      }
-      if (needsPatching) {
-        Set<ExtensionBuilder> extensionsReplacement =
-            new Set<ExtensionBuilder>();
-        for (ExtensionBuilder extensionBuilder in _extensions!) {
-          if (replacementMap.containsKey(extensionBuilder.parent)) {
-            assert(replacementMap[extensionBuilder.parent]![
-                    extensionBuilder.name] !=
-                null);
-            extensionsReplacement.add(
-                replacementMap[extensionBuilder.parent]![extensionBuilder.name]
-                    as ExtensionBuilder);
-            break;
-          } else {
-            extensionsReplacement.add(extensionBuilder);
-          }
-        }
-        _extensions!.clear();
-        extensionsReplacement.addAll(extensionsReplacement);
-      }
-    }
   }
 
   // Coverage-ignore(suite): Not run.
@@ -684,10 +570,12 @@ class Scope extends MutableScope
     return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
 
+  @override
   Builder? lookupLocalMember(String name, {required bool setter}) {
     return setter ? (_setters?[name]) : (_local?[name]);
   }
 
+  @override
   void addLocalMember(String name, Builder member, {required bool setter}) {
     if (setter) {
       (_setters ??= // Coverage-ignore(suite): Not run.
@@ -697,21 +585,26 @@ class Scope extends MutableScope
     }
   }
 
+  @override
   void forEachLocalMember(void Function(String name, Builder member) f) {
     _local?.forEach(f);
   }
 
+  @override
   void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     _setters?.forEach(f);
   }
 
+  @override
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
     _extensions?.forEach(f);
   }
 
+  @override
   Iterable<Builder> get localMembers => _local?.values ?? const {};
 
   /// Adds [builder] to the extensions in this scope.
+  @override
   void addExtension(ExtensionBuilder builder) {
     _extensions ??= <ExtensionBuilder>{};
     _extensions!.add(builder);
@@ -722,37 +615,6 @@ class Scope extends MutableScope
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _extensions?.forEach(f);
     _parent?.forEachExtension(f);
-  }
-
-  void merge(
-      Scope scope,
-      Builder computeAmbiguousDeclaration(
-          String name, Builder existing, Builder member)) {
-    Map<String, Builder> map = const {};
-
-    void mergeMember(String name, Builder member) {
-      Builder? existing = map[name];
-      if (existing != null) {
-        if (existing != member) {
-          member = computeAmbiguousDeclaration(name, existing, member);
-        }
-      }
-      map[name] = member;
-    }
-
-    if (scope._local != null) {
-      map = _local ??= // Coverage-ignore(suite): Not run.
-          {};
-      scope._local?.forEach(mergeMember);
-    }
-    if (scope._setters != null) {
-      map = _setters ??= // Coverage-ignore(suite): Not run.
-          {};
-      scope._setters?.forEach(mergeMember);
-    }
-    if (scope._extensions != null) {
-      (_extensions ??= {}).addAll(scope._extensions!);
-    }
   }
 
   String get debugString {
@@ -1310,6 +1172,13 @@ class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
   Iterator<String>? setterNames;
 
   String? _name;
+
+  ScopeNameIterator.fromIterators(Map<String, Builder>? getables,
+      Map<String, Builder>? setables, Iterator<Builder>? extensions)
+      : localNames = getables?.keys.iterator,
+        setterNames = setables?.keys.iterator,
+        super.fromIterators(
+            getables?.values.iterator, setables?.values.iterator, extensions);
 
   ScopeNameIterator(Scope scope)
       : localNames = scope._local?.keys.iterator,

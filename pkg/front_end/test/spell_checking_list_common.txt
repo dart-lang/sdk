@@ -2509,6 +2509,7 @@ recognized
 recognizes
 recommend
 recommendations
+recommended
 recomputation
 recomputes
 record
@@ -2919,6 +2920,7 @@ specify
 specifying
 speed
 speedup
+spending
 split
 splits
 splitter

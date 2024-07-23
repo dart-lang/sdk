@@ -145,7 +145,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/incremental_compiler.dart": (
-    hitCount: 862,
+    hitCount: 860,
     missCount: 0,
   ),
   // 100.0%.
@@ -163,10 +163,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 25,
     missCount: 0,
   ),
-  // 90.29126213592234%.
+  // 93.20388349514563%.
   "package:front_end/src/base/local_scope.dart": (
-    hitCount: 93,
-    missCount: 10,
+    hitCount: 96,
+    missCount: 7,
   ),
   // 100.0%.
   "package:front_end/src/base/messages.dart": (
@@ -177,6 +177,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   "package:front_end/src/base/modifier.dart": (
     hitCount: 29,
     missCount: 0,
+  ),
+  // 73.52941176470588%.
+  "package:front_end/src/base/name_space.dart": (
+    hitCount: 100,
+    missCount: 36,
   ),
   // 100.0%.
   "package:front_end/src/base/operator.dart": (
@@ -193,10 +198,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 246,
     missCount: 0,
   ),
-  // 96.57282741738065%.
+  // 96.95431472081218%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 789,
-    missCount: 28,
+    hitCount: 764,
+    missCount: 24,
   ),
   // 100.0%.
   "package:front_end/src/base/ticker.dart": (
@@ -305,7 +310,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/library_builder.dart": (
-    hitCount: 63,
+    hitCount: 61,
     missCount: 0,
   ),
   // 100.0%.
@@ -360,7 +365,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/prefix_builder.dart": (
-    hitCount: 46,
+    hitCount: 49,
     missCount: 0,
   ),
   // 100.0%.
@@ -435,7 +440,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_library_builder.dart": (
-    hitCount: 338,
+    hitCount: 341,
     missCount: 0,
   ),
   // 100.0%.
@@ -500,7 +505,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/constant_evaluator.dart": (
-    hitCount: 3697,
+    hitCount: 3700,
     missCount: 0,
   ),
   // 100.0%.
@@ -598,19 +603,19 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 43,
     missCount: 0,
   ),
-  // 100.0%.
+  // 92.85714285714286%.
   "package:front_end/src/kernel/kernel_constants.dart": (
-    hitCount: 10,
-    missCount: 0,
+    hitCount: 13,
+    missCount: 1,
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_helper.dart": (
     hitCount: 285,
     missCount: 0,
   ),
-  // 99.90662931839402%.
+  // 99.90503323836657%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 1070,
+    hitCount: 1052,
     missCount: 1,
   ),
   // 100.0%.
@@ -673,14 +678,14 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 16,
     missCount: 0,
   ),
-  // 100.0%.
+  // 88.88888888888889%.
   "package:front_end/src/kernel/try_constant_evaluator.dart": (
     hitCount: 16,
-    missCount: 0,
+    missCount: 2,
   ),
   // 100.0%.
   "package:front_end/src/kernel/type_algorithms.dart": (
-    hitCount: 922,
+    hitCount: 924,
     missCount: 0,
   ),
   // 100.0%.
@@ -778,25 +783,25 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 1209,
     missCount: 0,
   ),
-  // 100.0%.
+  // 98.13664596273291%.
   "package:front_end/src/source/source_builder_mixins.dart": (
     hitCount: 158,
-    missCount: 0,
+    missCount: 3,
   ),
-  // 100.0%.
+  // 99.75369458128078%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1213,
-    missCount: 0,
+    hitCount: 1215,
+    missCount: 3,
   ),
-  // 99.46949602122017%.
+  // 99.47089947089947%.
   "package:front_end/src/source/source_compilation_unit.dart": (
-    hitCount: 750,
+    hitCount: 752,
     missCount: 4,
   ),
-  // 100.0%.
+  // 98.31460674157303%.
   "package:front_end/src/source/source_constructor_builder.dart": (
-    hitCount: 858,
-    missCount: 0,
+    hitCount: 875,
+    missCount: 15,
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
@@ -811,12 +816,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/source/source_extension_type_declaration_builder.dart":
       (
-    hitCount: 426,
+    hitCount: 428,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_factory_builder.dart": (
-    hitCount: 570,
+    hitCount: 576,
     missCount: 0,
   ),
   // 100.0%.
@@ -829,15 +834,15 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 296,
     missCount: 0,
   ),
-  // 100.0%.
+  // 99.85855728429985%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1406,
-    missCount: 0,
+    hitCount: 1412,
+    missCount: 2,
   ),
-  // 100.0%.
+  // 99.89264626945786%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1829,
-    missCount: 0,
+    hitCount: 1861,
+    missCount: 2,
   ),
   // 100.0%.
   "package:front_end/src/source/source_member_builder.dart": (
@@ -849,10 +854,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 520,
     missCount: 0,
   ),
-  // 100.0%.
+  // 99.10714285714286%.
   "package:front_end/src/source/source_type_alias_builder.dart": (
-    hitCount: 330,
-    missCount: 0,
+    hitCount: 333,
+    missCount: 3,
   ),
   // 100.0%.
   "package:front_end/src/source/stack_listener_impl.dart": (
@@ -896,7 +901,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 7798,
+    hitCount: 7801,
     missCount: 0,
   ),
   // 100.0%.
@@ -921,7 +926,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/shared_type_analyzer.dart": (
-    hitCount: 98,
+    hitCount: 102,
     missCount: 0,
   ),
   // 100.0%.
