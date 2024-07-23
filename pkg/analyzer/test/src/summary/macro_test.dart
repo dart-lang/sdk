@@ -127,6 +127,8 @@ library
   imports
     package:test/order.dart
   definingUnit
+    libraryImports
+      package:test/order.dart
     classes
       class A1 @70
         macroDiagnostics
@@ -266,6 +268,8 @@ library
   imports
     package:test/order.dart
   definingUnit
+    libraryImports
+      package:test/order.dart
     classes
       class A1 @64
         macroDiagnostics
@@ -404,6 +408,8 @@ library
   imports
     package:test/order.dart
   definingUnit
+    libraryImports
+      package:test/order.dart
     classes
       class A1 @65
         macroDiagnostics
@@ -484,6 +490,8 @@ library
   imports
     package:test/order.dart
   definingUnit
+    libraryImports
+      package:test/order.dart
     classes
       class A1 @65
         macroDiagnostics
@@ -972,6 +980,8 @@ library
   imports
     package:test/arguments_text.dart
   definingUnit
+    libraryImports
+      package:test/arguments_text.dart
     classes
       class A @76
         macroDiagnostics
@@ -2806,6 +2816,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @37
         reference: self::@class::A
@@ -2842,6 +2854,8 @@ augment class B {
         package:test/a.dart as prefix0 @75
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class B @115
             reference: self::@augmentation::package:test/test.macro.dart::@class::B
@@ -2921,6 +2935,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @66
         reference: self::@class::A
@@ -2987,6 +3003,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @65
         reference: self::@class::A
@@ -3040,6 +3058,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @59
         reference: self::@class::A
@@ -3092,6 +3112,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @62
         reference: self::@class::A
@@ -3156,6 +3178,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @67
         reference: self::@class::A
@@ -3212,6 +3236,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @73
         reference: self::@class::A
@@ -3265,6 +3291,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @67
         reference: self::@class::A
@@ -3341,6 +3369,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3399,6 +3429,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3458,6 +3490,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3520,6 +3554,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3582,6 +3618,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3647,6 +3685,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3709,6 +3749,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3769,6 +3811,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3816,6 +3860,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -3880,6 +3926,8 @@ const x = prefix0.a;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           static const x @91
             type: int
@@ -3936,6 +3984,8 @@ const x = prefix0.a + prefix0.b;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           static const x @91
             type: int
@@ -4017,6 +4067,8 @@ const x = prefix0.a, y = prefix0.a;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           static const x @104
             metadata
@@ -4128,6 +4180,8 @@ const x = prefix0.A<void>;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           static const x @91
             type: Type
@@ -4194,6 +4248,8 @@ class C {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class C @104
             metadata
@@ -4259,6 +4315,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -4327,6 +4385,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -4398,6 +4458,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -4493,6 +4555,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -4563,6 +4627,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -4630,6 +4696,8 @@ augment class B {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class B @99
             augmentationTarget: self::@class::B
@@ -4701,6 +4769,8 @@ void foo() {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         functions
           foo @103
             metadata
@@ -4758,6 +4828,8 @@ void foo([x = prefix0.a]) {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         functions
           foo @90
             parameters
@@ -4817,6 +4889,8 @@ int get foo => 0;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           synthetic static foo @-1
             type: int
@@ -4882,6 +4956,8 @@ set foo(int _) {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           synthetic static foo @-1
             type: int
@@ -4945,6 +5021,8 @@ set foo(@prefix0.a x) {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           synthetic static foo @-1
             type: dynamic
@@ -5010,6 +5088,8 @@ final foo = 0;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           static final foo @104
             metadata
@@ -5076,6 +5156,8 @@ final foo = 0, bar = 1;
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         topLevelVariables
           static final foo @104
             metadata
@@ -5168,6 +5250,8 @@ class C {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class C @115
             metadata
@@ -5244,6 +5328,8 @@ class C {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class C @110
             metadata
@@ -5312,6 +5398,8 @@ class C {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class C @119
             metadata
@@ -5395,6 +5483,9 @@ void foo(prefix0.X x1, prefix1.X x2) {}
         package:test/a.dart as prefix0 @75
         package:test/b.dart as prefix1 @116
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
+          package:test/b.dart as prefix1 @116
         functions
           foo @131
             parameters
@@ -5440,6 +5531,8 @@ void foo(prefix0.X x) {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         functions
           foo @90
             parameters
@@ -5481,6 +5574,9 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
+      package:test/a.dart
     classes
       class B @71
         reference: self::@class::B
@@ -5527,6 +5623,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @64
         reference: self::@class::A
@@ -5575,6 +5673,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @64
         reference: self::@class::A
@@ -5648,6 +5748,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @42
         reference: self::@class::A
@@ -5674,6 +5776,8 @@ augment class A {
         package:test/a.dart as prefix0 @75
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class A @99
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -5717,6 +5821,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @36
         reference: self::@class::A
@@ -5748,6 +5854,9 @@ augment class A {
         dart:core as prefix1 @106
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/a.dart as prefix0 @75
+          dart:core as prefix1 @106
         classes
           augment class A @130
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -5808,6 +5917,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @37
         reference: self::@class::A
@@ -5838,6 +5949,9 @@ augment class A {
         dart:core as prefix1 @106
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/a.dart as prefix0 @75
+          dart:core as prefix1 @106
         classes
           augment class A @130
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -5888,6 +6002,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @37
         reference: self::@class::A
@@ -5916,6 +6032,9 @@ augment class A {
         dart:core as prefix1 @106
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/a.dart as prefix0 @75
+          dart:core as prefix1 @106
         classes
           augment class A @130
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -5957,6 +6076,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @37
         reference: self::@class::A
@@ -5987,6 +6108,9 @@ augment class A {
         dart:core as prefix1 @106
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/a.dart as prefix0 @75
+          dart:core as prefix1 @106
         classes
           augment class A @130
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -6170,6 +6294,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @78
 ''');
@@ -6194,6 +6320,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @44
         methods
@@ -6219,6 +6347,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @76
 ''');
@@ -6244,6 +6374,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class A @56
   augmentationImports
@@ -6294,6 +6426,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class A @35
         macroDiagnostics
@@ -6337,6 +6471,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       f @59
         returnType: void
@@ -6370,6 +6506,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
   macroDiagnostics
     InvalidMacroTargetDiagnostic
       annotationIndex: 0
@@ -6408,6 +6546,9 @@ library
     package:test/diagnostic.dart
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
+      package:test/a.dart
     classes
       class X @84
         macroDiagnostics
@@ -6449,6 +6590,9 @@ library
     package:test/diagnostic.dart
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
+      package:test/a.dart
     classes
       class X @82
         macroDiagnostics
@@ -6484,6 +6628,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @62
         macroDiagnostics
@@ -6522,6 +6668,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         methods
@@ -6563,6 +6711,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @80
         typeParameters
@@ -6603,6 +6753,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         constructors
@@ -6641,6 +6793,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         fields
@@ -6684,6 +6838,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @79
         typeParameters
@@ -6723,6 +6879,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         methods
@@ -6760,6 +6918,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     mixins
       mixin A @62
         macroDiagnostics
@@ -6798,6 +6958,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     mixins
       mixin A @80
         typeParameters
@@ -6838,6 +7000,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     typeAliases
       A @82
         typeParameters
@@ -6877,6 +7041,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @56
         macroDiagnostics
@@ -6915,6 +7081,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @78
         macroDiagnostics
@@ -6954,6 +7122,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         fields
@@ -6998,6 +7168,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @93
         parameters
@@ -7045,6 +7217,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @98
         parameters
@@ -7090,6 +7264,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @76
         returnType: int
@@ -7129,6 +7305,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @144
         returnType: int Function(bool, {int b, String c})
@@ -7170,6 +7348,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @139
         returnType: int Function(int, String)
@@ -7211,6 +7391,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @103
         returnType: int Function()
@@ -7250,6 +7432,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @88
         returnType: void Function()
@@ -7290,6 +7474,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         fields
@@ -7334,6 +7520,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @98
         parameters
@@ -7377,6 +7565,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @72
         returnType: dynamic
@@ -7417,6 +7607,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         methods
@@ -7457,6 +7649,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     topLevelVariables
       static final foo @80
         type: int
@@ -7499,6 +7693,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @86
         returnType: (int, String)
@@ -7539,6 +7735,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     typeAliases
       A @35
         aliasedType: List<int>
@@ -7583,6 +7781,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         methods
@@ -7632,6 +7832,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         methods
@@ -7673,6 +7875,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     functions
       foo @114
         returnType: Map<int, String>
@@ -7716,6 +7920,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         fields
@@ -7765,6 +7971,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         fields
@@ -7811,6 +8019,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     typeAliases
       A @81
         aliasedType: List<int>
@@ -7850,6 +8060,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @62
         macroDiagnostics
@@ -7898,6 +8110,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @61
         macroDiagnostics
@@ -7931,6 +8145,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @60
         macroDiagnostics
@@ -7964,6 +8180,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @63
         macroDiagnostics
@@ -7997,6 +8215,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @68
         macroDiagnostics
@@ -8038,6 +8258,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         constructors
@@ -8083,6 +8305,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         fields
@@ -8138,6 +8362,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @33
         methods
@@ -8182,6 +8408,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @67
         macroDiagnostics
@@ -8228,6 +8456,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @55
         macroDiagnostics
@@ -8267,6 +8497,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @55
         macroDiagnostics
@@ -8297,6 +8529,8 @@ library
   imports
     package:test/diagnostic.dart
   definingUnit
+    libraryImports
+      package:test/diagnostic.dart
     classes
       class A @61
         macroDiagnostics
@@ -8382,6 +8616,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
       class B @125
@@ -8403,6 +8639,8 @@ augment class B extends prefix0.A {
       imports
         package:test/test.dart as prefix0 @78
       definingUnit
+        libraryImports
+          package:test/test.dart as prefix0 @78
         classes
           class C @94
           augment class B @113
@@ -8433,6 +8671,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8518,6 +8758,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8554,6 +8796,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8592,6 +8836,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8628,6 +8874,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8664,6 +8912,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8700,6 +8950,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8738,6 +8990,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8776,6 +9030,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8814,6 +9070,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8852,6 +9110,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8893,6 +9153,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8945,6 +9207,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -8983,6 +9247,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -9021,6 +9287,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -9070,6 +9338,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -9108,6 +9378,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -9146,6 +9418,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -9184,6 +9458,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @29
         methods
@@ -9247,6 +9523,8 @@ library
     package:test/auto_to_string.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/auto_to_string.dart
     classes
       class A @53
         reference: self::@class::A
@@ -9300,6 +9578,8 @@ A {
         dart:core as prefix0 @65
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          dart:core as prefix0 @65
         classes
           augment class A @89
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -9340,6 +9620,8 @@ library
     package:test/json_serializable.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/json_serializable.dart
     classes
       class A @60
         reference: self::@class::A
@@ -9400,6 +9682,9 @@ json['bar'] = this.bar;
         dart:core as prefix1 @122
       definingUnit
         reference: self::@augmentation::package:test/test.macro.dart
+        libraryImports
+          package:test/json_serializable.dart as prefix0 @91
+          dart:core as prefix1 @122
         classes
           augment class A @146
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -9499,6 +9784,9 @@ library
     package:test/append.dart
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
+      package:test/a.dart
     classes
       class X @80
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
@@ -9575,6 +9863,9 @@ library
     package:test/append.dart
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
+      package:test/a.dart
     classes
       class X @101
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
@@ -9596,6 +9887,8 @@ augment class X {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           augment class X @99
             augmentationTarget: self::@class::X
@@ -14498,6 +14791,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @67
         reference: self::@class::A
@@ -14532,6 +14827,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @73
         constructors
@@ -14566,6 +14863,8 @@ library
   imports
     package:test/append.dart as prefix @24
   definingUnit
+    libraryImports
+      package:test/append.dart as prefix @24
     classes
       class A @84
         constructors
@@ -14600,6 +14899,8 @@ library
   imports
     package:test/append.dart as prefix @24
   definingUnit
+    libraryImports
+      package:test/append.dart as prefix @24
     classes
       class A @90
         constructors
@@ -14641,6 +14942,8 @@ library
     package:test/append.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
     classes
       class A @61
         reference: self::@class::A
@@ -14833,6 +15136,8 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/a.dart
     classes
       class A @35
         reference: self::@class::A
@@ -14901,6 +15206,8 @@ library
   imports
     package:test/b.dart
   definingUnit
+    libraryImports
+      package:test/b.dart
     classes
       class X @35
   augmentationImports
@@ -14918,6 +15225,8 @@ class MyClass {
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class MyClass @91
             methods
@@ -15274,6 +15583,8 @@ library
   imports
     package:test/a.dart
   definingUnit
+    libraryImports
+      package:test/a.dart
     classes
       class X @37
   augmentationImports
@@ -15293,6 +15604,8 @@ class B {}
       imports
         package:test/a.dart as prefix0 @75
       definingUnit
+        libraryImports
+          package:test/a.dart as prefix0 @75
         classes
           class A @112
           class B @124
@@ -15489,6 +15802,9 @@ library
     package:test/a.dart
   definingUnit
     reference: self
+    libraryImports
+      package:test/append.dart
+      package:test/a.dart
     classes
       class B @78
         reference: self::@class::B
@@ -16201,6 +16517,8 @@ library
   imports
     package:test/append.dart
   definingUnit
+    libraryImports
+      package:test/append.dart
     classes
       class A @74
   augmentationImports
