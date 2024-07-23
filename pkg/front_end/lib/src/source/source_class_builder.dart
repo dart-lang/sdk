@@ -51,6 +51,7 @@ import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
+import 'source_loader.dart';
 import 'source_member_builder.dart';
 
 Class initializeClass(
@@ -506,7 +507,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "SourceClassBuilder.buildAliasedTypeArguments: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
@@ -994,9 +998,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
       NominalVariableBuilder typeVariableBuilder = typeVariables![i];
-      Variance variance =
-          computeTypeVariableBuilderVariance(typeVariableBuilder, supertype)
-              .variance!;
+      Variance variance = computeTypeVariableBuilderVariance(
+              typeVariableBuilder, supertype,
+              sourceLoader: libraryBuilder.loader)
+          .variance!;
       if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
         if (typeVariables![i].parameter.isLegacyCovariant) {
           message = templateInvalidTypeVariableInSupertype.withArguments(

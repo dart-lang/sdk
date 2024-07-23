@@ -24,6 +24,7 @@ import '../util/helpers.dart';
 import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
+import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 
@@ -263,7 +264,10 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
     }
 
     if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "SourceDeclarationBuilderMixin.buildAliasedTypeArguments: "
+          "the numbers of type parameters and type arguments don't match.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)

@@ -41,7 +41,8 @@ import 'redirecting_factory_body.dart';
 import 'source_class_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
+import 'source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
@@ -539,8 +540,10 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           target,
           target.function!.computeFunctionType(Nullability.nonNullable));
       if (typeArguments == null) {
-        // Assume that the error is reported elsewhere, use 'dynamic' for
-        // recovery.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "RedirectingFactoryTarget.buildOutlineExpressions",
+            expectedPhase: CompilationPhaseForProblemReporting.outline));
+        // Use 'dynamic' for recovery.
         typeArguments = new List<DartType>.filled(
             declarationBuilder.typeVariablesCount, const DynamicType(),
             growable: true);
@@ -828,8 +831,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
     }
 
-    // Redirection to generative enum constructors is forbidden and is reported
-    // as an error elsewhere.
     Builder? redirectionTargetParent = redirectionTarget.target?.parent;
     bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
         ? redirectionTargetParent.isEnum
@@ -850,6 +851,12 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             noLength,
             redirectionTarget.fileUri);
       }
+    } else {
+      // Redirection to generative enum constructors is forbidden.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "RedirectingFactoryBuilder._checkRedirectingFactory: "
+          "Redirection to generative enum constructor.",
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
     }
   }
 

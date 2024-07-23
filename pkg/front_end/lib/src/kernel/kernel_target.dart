@@ -65,7 +65,8 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../source/source_loader.dart' show SourceLoader;
+import '../source/source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'constant_evaluator.dart' as constants
@@ -663,8 +664,8 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installAllComponentProblems);
-      installAllComponentProblems(loader.allComponentProblems);
-      loader.allComponentProblems.clear();
+      loader.installAllProblemsIntoComponent(component!,
+          currentPhase: CompilationPhaseForProblemReporting.outline);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -791,7 +792,8 @@ class KernelTarget {
       benchmarker
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
-      installAllComponentProblems(loader.allComponentProblems);
+      loader.installAllProblemsIntoComponent(component!,
+          currentPhase: CompilationPhaseForProblemReporting.bodyBuilding);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -811,17 +813,6 @@ class KernelTarget {
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
-  }
-
-  void installAllComponentProblems(
-      List<FormattedMessage> allComponentProblems) {
-    if (allComponentProblems.isNotEmpty) {
-      component!.problemsAsJson ??= <String>[];
-    }
-    for (int i = 0; i < allComponentProblems.length; i++) {
-      FormattedMessage formattedMessage = allComponentProblems[i];
-      component!.problemsAsJson!.add(formattedMessage.toJsonString());
-    }
   }
 
   /// Creates a component by combining [libraries] with the libraries of

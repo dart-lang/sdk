@@ -54,7 +54,8 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
+import 'source_loader.dart'
+    show CompilationPhaseForProblemReporting, SourceLoader;
 import 'source_member_builder.dart';
 
 abstract class SourceConstructorBuilder
@@ -598,15 +599,24 @@ class DeclaredSourceConstructorBuilder
         if (declaration is ClassBuilder) {
           superclassBuilder = declaration;
         } else {
-          // The error in this case should be reported elsewhere.
+          assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+              "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+              "Unaliased 'declaration' isn't a ClassBuilder.",
+              expectedPhase: CompilationPhaseForProblemReporting.outline));
           return null;
         }
       } else {
-        // The error in this case should be reported elsewhere.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+            "'declaration' isn't a ClassBuilder or a TypeAliasBuilder.",
+            expectedPhase: CompilationPhaseForProblemReporting.outline));
         return null;
       }
     } else {
-      // The error in this case should be reported elsewhere.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+          "'supertype' isn't a NamedTypeBuilder.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
       return null;
     }
 
@@ -620,7 +630,10 @@ class DeclaredSourceConstructorBuilder
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
-        // The error in this case should be reported elsewhere.
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+            "Can't find the implied unnamed constructor in the superclass.",
+            expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
         return null;
       }
     }
@@ -628,7 +641,16 @@ class DeclaredSourceConstructorBuilder
     MemberBuilder? constructorBuilder =
         superclassBuilder.findConstructorOrFactory(superTarget.name.text,
             charOffset, libraryBuilder.fileUri, libraryBuilder);
-    return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
+    if (constructorBuilder is ConstructorBuilder) {
+      return constructorBuilder;
+    } else {
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+          "Can't find a constructor with name '${superTarget.name.text}' in "
+          "the superclass.",
+          expectedPhase: CompilationPhaseForProblemReporting.outline));
+      return null;
+    }
   }
 
   final bool _hasSuperInitializingFormals;
@@ -692,8 +714,11 @@ class DeclaredSourceConstructorBuilder
       superTarget = superTargetBuilder.invokeTarget;
       superConstructorFunction = superTargetBuilder.function;
     } else {
-      // The error in this case should be reported elsewhere. Here we perform a
-      // simple recovery.
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "DeclaredSourceConstructorBuilder.finalizeSuperInitializingFormals: "
+          "Can't compute super target.",
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+      // Perform a simple recovery.
       return performRecoveryForErroneousCase();
     }
 
@@ -753,7 +778,13 @@ class DeclaredSourceConstructorBuilder
               (positionalSuperParameters ??= <int?>[]).add(null);
             }
           } else {
-            // The error is reported elsewhere.
+            assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+                "DeclaredSourceConstructorBuilder"
+                ".finalizeSuperInitializingFormals: "
+                "Super initializer count is greater than the count of "
+                "positional formals in the super constructor.",
+                expectedPhase:
+                    CompilationPhaseForProblemReporting.bodyBuilding));
           }
         } else {
           if (namedSuperFormalHasInitializer[formal.name] != null) {
@@ -840,11 +871,25 @@ class DeclaredSourceConstructorBuilder
   @override
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    ConstructorBuilder? superTargetBuilder =
-        _computeSuperTargetBuilder(constructor.initializers);
-    if (superTargetBuilder is SourceConstructorBuilder) {
-      superTargetBuilder
-          .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+    if (beginInitializers != null && constructor.initializers.isNotEmpty) {
+      // If the initializers aren't built yet, we can't compute the super
+      // target. The synthetic initializers should be excluded, since they can
+      // be built separately from formal field initializers.
+      bool allInitializersAreSynthetic = true;
+      for (Initializer initializer in constructor.initializers) {
+        if (!initializer.isSynthetic) {
+          allInitializersAreSynthetic = false;
+          break;
+        }
+      }
+      if (!allInitializersAreSynthetic) {
+        ConstructorBuilder? superTargetBuilder =
+            _computeSuperTargetBuilder(constructor.initializers);
+        if (superTargetBuilder is SourceConstructorBuilder) {
+          superTargetBuilder
+              .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
+        }
+      }
     }
 
     delayedDefaultValueCloners.addAll(_delayedDefaultValueCloners);

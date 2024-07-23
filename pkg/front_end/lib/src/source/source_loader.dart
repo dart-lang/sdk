@@ -234,12 +234,62 @@ class SourceLoader extends Loader {
   /// The macro declarations that are currently being compiled.
   Set<ClassBuilder> _macroDeclarations = {};
 
+  final List<String> _expectedOutlineFutureProblems = [];
+  final List<String> _expectedBodyBuildingFutureProblems = [];
+
   SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting = retainDataForTesting
             ?
             // Coverage-ignore(suite): Not run.
             new SourceLoaderDataForTesting()
             : null;
+
+  void installAllProblemsIntoComponent(Component component,
+      {required CompilationPhaseForProblemReporting currentPhase}) {
+    List<String> expectedFutureProblemsForCurrentPhase = switch (currentPhase) {
+      CompilationPhaseForProblemReporting.outline =>
+        _expectedOutlineFutureProblems,
+      CompilationPhaseForProblemReporting.bodyBuilding =>
+        _expectedBodyBuildingFutureProblems
+    };
+    assert(
+        expectedFutureProblemsForCurrentPhase.isEmpty || hasSeenError,
+        "Expected problems to be reported, but there were none.\n"
+        "Current compilation phase: ${currentPhase}\n"
+        "Expected at these locations:\n"
+        "  * ${expectedFutureProblemsForCurrentPhase.join("\n  * ")}");
+    if (allComponentProblems.isNotEmpty) {
+      component.problemsAsJson ??= <String>[];
+    }
+    for (int i = 0; i < allComponentProblems.length; i++) {
+      FormattedMessage formattedMessage = allComponentProblems[i];
+      component.problemsAsJson!.add(formattedMessage.toJsonString());
+    }
+    allComponentProblems.clear();
+  }
+
+  /// Assert that a compile-time error was reported during [expectedPhase] of
+  /// compilation.
+  ///
+  /// The parameters [location] and [originalStackTrace] are supposed to help to
+  /// locate the place where the expectation was declared.
+  ///
+  /// To avoid spending resources on stack trace computations, it is recommended
+  /// to wrap the calls to [assertProblemReportedElsewhere] into `assert`s.
+  bool assertProblemReportedElsewhere(String location,
+      {required CompilationPhaseForProblemReporting expectedPhase}) {
+    if (hasSeenError) return true;
+    List<String> expectedFutureProblemsForCurrentPhase =
+        switch (expectedPhase) {
+      CompilationPhaseForProblemReporting.outline =>
+        _expectedOutlineFutureProblems,
+      CompilationPhaseForProblemReporting.bodyBuilding =>
+        _expectedBodyBuildingFutureProblems
+    };
+    expectedFutureProblemsForCurrentPhase
+        .add("${location}\n${StackTrace.current}\n");
+    return true;
+  }
 
   bool containsLoadedLibraryBuilder(Uri importUri) =>
       lookupLoadedLibraryBuilder(importUri) != null;
@@ -3525,4 +3575,21 @@ class _SuperMemberCache {
     }
     return null;
   }
+}
+
+/// This enum is used to mark the expected compilation phase for a compile-time
+/// error to be reported.
+enum CompilationPhaseForProblemReporting {
+  /// The outline building phase.
+  ///
+  /// The outline building phase includes outline expressions, such as default
+  /// values of parameters, annotations, and initializers of top-level constant
+  /// fields.
+  outline,
+
+  /// The body building phase.
+  ///
+  /// The body building phase includes initializers of non-constant fields,
+  /// bodies of method, getters, setters, constructors, etc.
+  bodyBuilding,
 }

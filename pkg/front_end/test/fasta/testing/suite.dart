@@ -38,6 +38,7 @@ import 'package:front_end/src/base/incremental_compiler.dart'
     show AdvancedInvalidationResult, IncrementalCompiler;
 import 'package:front_end/src/base/messages.dart' show LocatedMessage;
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
+import 'package:front_end/src/base/problems.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/base/uri_translator.dart' show UriTranslator;
@@ -598,6 +599,14 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
   int tries = 0;
   int success = 0;
   List<String> output = [];
+
+  @override
+  bool get supportsTrackingReportedErrors => false;
+
+  @override
+  bool get hasSeenError {
+    return unsupported("StressConstantEvaluatorVisitor.hasSeenError", -1, null);
+  }
 
   StressConstantEvaluatorVisitor(
       Target target,
