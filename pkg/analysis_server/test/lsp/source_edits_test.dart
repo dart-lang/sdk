@@ -252,6 +252,32 @@ Delete 3:1-3:2
     await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
+  /// Empty collections that are unwrapped produce different tokens. This should
+  /// be handled and not result in a full document edit.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5169
+  Future<void> test_minimalEdits_emptyCollection() async {
+    const startContent = '''
+var a = <String>[
+];
+var b = '';
+''';
+    const endContent = '''
+var a = <String>[];
+var b = '';
+''';
+    // Expect the newline to be deleted.
+    const expectedEdits = r'''
+Delete 1:18-2:1
+''';
+
+    await _assertMinimalEdits(
+      startContent,
+      endContent,
+      expectedEdits,
+    );
+  }
+
   Future<void> test_minimalEdits_whitespace() async {
     const startContent = '''
 void   f(){}
