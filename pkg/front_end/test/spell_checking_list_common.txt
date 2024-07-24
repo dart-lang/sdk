@@ -2813,6 +2813,7 @@ shadowing
 shake
 shaken
 shape
+shapes
 shard
 shards
 share
