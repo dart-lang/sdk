@@ -434,7 +434,7 @@ class SourceLoader extends Loader {
         packageLanguageVersion: packageLanguageVersion,
         loader: this,
         origin: origin,
-        referencesFromIndex: referencesFromIndex,
+        indexedLibrary: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&

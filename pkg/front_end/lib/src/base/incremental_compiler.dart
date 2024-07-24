@@ -2026,7 +2026,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        scope: debugLibrary.scope.createNestedScope(
+        importScope: debugLibrary.scope.createNestedScope(
             debugName: "expression", kind: ScopeKind.library),
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
