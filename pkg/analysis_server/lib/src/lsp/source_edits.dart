@@ -154,6 +154,23 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
     var formattedOffset = 0;
     var edits = <TextEdit>[];
 
+    /// Generates fallback results for if we are unable to minimize edits
+    /// because the token streams differ in a way that we don't expect. This may
+    /// indicate a bug in the formatter, or a bug in our assumptions about what
+    /// tokens may change between formatted/unformatted (such as brackets - see
+    /// https://github.com/Dart-Code/Dart-Code/issues/5169).
+    ErrorOr<List<TextEdit>> generateFallback() {
+      if (rangeStart == null && rangeEnd == null) {
+        // If this was a full document format, we can fall back to a single edit
+        // for the whole document.
+        return success(generateFullEdit(lineInfo, unformatted, formatted));
+      } else {
+        // If we were a range format, we are unable to reduce the edits to that
+        // range so we should format nothing.
+        return success([]);
+      }
+    }
+
     /// Helper for comparing whitespace and appending an edit.
     void addEditFor(
       int unformattedStart,
@@ -315,10 +332,10 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       }
 
       if (unformattedToken.lexeme != formattedToken.lexeme) {
-        // If the token lexemes do not match, there is a difference in the parsed
-        // token streams (this should not ordinarily happen) so fall back to a
-        // full edit.
-        return success(generateFullEdit(lineInfo, unformatted, formatted));
+        // If the token lexemes do not match, there is a difference in the
+        // parsed token streams (this should not ordinarily happen) so use the
+        // fallback.
+        return generateFallback();
       }
 
       // Add edits for the computed ranges.
@@ -337,9 +354,9 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
     }
 
     // If we got here and either of the streams still have tokens, something
-    // did not match so fall back to a full edit.
+    // did not match so use the fallback.
     if (unformattedHasMore || formattedHasMore) {
-      return success(generateFullEdit(lineInfo, unformatted, formatted));
+      return generateFallback();
     }
 
     // Finally, handle any whitespace that was after the last token.
