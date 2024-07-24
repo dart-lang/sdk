@@ -371,10 +371,14 @@ class Thread : public ThreadState {
   void AssertEmptyStackInvariants();
   void AssertEmptyThreadInvariants();
 
-  // Makes the current thread enter 'isolate'.
-  static void EnterIsolate(Isolate* isolate);
-  // Makes the current thread exit its isolate.
-  static void ExitIsolate(bool isolate_shutdown = false);
+  // Makes the current thread enter 'isolate'. If 'loop_unpause', consider this
+  // as increasing the number of active mutators even if there is no exit frame.
+  static void EnterIsolate(Isolate* isolate, bool loop_unpause = false);
+  // Makes the current thread exit its isolate. If 'loop_pause', consider this a
+  // as decreasing the number of activie mutators even if there is no exit
+  // frame.
+  static void ExitIsolate(bool isolate_shutdown = false,
+                          bool loop_pause = false);
 
   static bool EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                         TaskKind kind,
