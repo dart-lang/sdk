@@ -1070,7 +1070,11 @@ class LibraryBuilder with MacroApplicationsContainer {
     definingUnit.libraryExports = kind.libraryExports.map((state) {
       return _buildExport(state);
     }).toFixedList();
-    container.libraryExports = definingUnit.libraryExports;
+
+    // TODO(scheglov): Remove when only parts have exports.
+    container.libraryExports = kind.libraryExports.map((state) {
+      return _buildExport(state);
+    }).toFixedList();
 
     definingUnit.libraryImports = kind.libraryImports.map((state) {
       return _buildImport(
@@ -1078,7 +1082,14 @@ class LibraryBuilder with MacroApplicationsContainer {
         state: state,
       );
     }).toFixedList();
-    container.libraryImports = definingUnit.libraryImports;
+
+    // TODO(scheglov): Remove when only parts have imports.
+    container.libraryImports = kind.libraryImports.map((state) {
+      return _buildImport(
+        container: container,
+        state: state,
+      );
+    }).toFixedList();
 
     container.augmentationImports = kind.augmentationImports.map((state) {
       return _buildAugmentationImport(

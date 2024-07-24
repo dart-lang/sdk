@@ -4752,7 +4752,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   static List<PrefixElementImpl> buildPrefixesFromImports(
       List<LibraryImportElementImpl> imports) {
-    var prefixes = HashSet<PrefixElementImpl>();
+    var prefixes = <PrefixElementImpl>{};
     for (var element in imports) {
       var prefix = element.prefix?.element;
       if (prefix != null) {

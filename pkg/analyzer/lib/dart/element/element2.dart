@@ -21,7 +21,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 abstract class BindPatternVariableElement2 implements PatternVariableElement2 {}
@@ -82,7 +81,7 @@ abstract class ConstructorFragment implements ExecutableFragment {
   int? get periodOffset;
 }
 
-abstract class Element2 implements AnalysisTarget {
+abstract class Element2 {
   Element2? get baseElement;
 
   List<Element2> get children2;

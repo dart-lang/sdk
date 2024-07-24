@@ -62,9 +62,9 @@ class FixProcessor {
   /// parsed results.
   static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {};
 
-  /// A list of generators that are used to create correction producers that
+  /// A set of generators that are used to create correction producers that
   /// produce corrections that ignore diagnostics locally.
-  static final List<ProducerGenerator> ignoreProducerGenerators = [];
+  static final Set<ProducerGenerator> ignoreProducerGenerators = {};
 
   final DartFixContext _fixContext;
 

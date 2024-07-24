@@ -2009,6 +2009,9 @@ Future<List<Fix>> computeFixes(DartFixContext context) async {
 /// Registers each mapping of diagnostic -> list-of-producers with
 /// [FixProcessor].
 void registerBuiltInProducers() {
+  // This function can be called many times during test runs so these statements
+  // should not result in duplicate producers (i.e. they should only add to maps
+  // or sets or otherwise ensure producers that already exist are not added).
   FixProcessor.lintMultiProducerMap.addAll(_builtInLintMultiProducers);
   FixProcessor.lintProducerMap.addAll(_builtInLintProducers);
   FixProcessor.nonLintMultiProducerMap.addAll(_builtInNonLintMultiProducers);

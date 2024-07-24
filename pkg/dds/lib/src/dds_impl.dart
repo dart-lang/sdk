@@ -456,7 +456,9 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           (e) => e.isNotEmpty,
         ),
         'devtools',
-        '', // Include trailing slash
+        // Includes a trailing slash by adding an empty string to the end of the
+        // path segments list.
+        '',
       ],
       query: 'uri=$wsUri',
     );
