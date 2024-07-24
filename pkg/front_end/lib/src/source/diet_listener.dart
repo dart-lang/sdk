@@ -69,7 +69,7 @@ class DietListener extends StackListenerImpl {
 
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentDeclaration].
-  Scope memberScope;
+  LookupScope memberScope;
 
   @override
   final Uri uri;

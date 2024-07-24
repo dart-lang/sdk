@@ -182,6 +182,8 @@ mixin LookupScopeMixin implements LookupScope {
 
 /// A [LookupScope] based directly on a [NameSpace].
 class NameSpaceLookupScope implements LookupScope {
+  final LookupScope? _parent;
+
   final NameSpace _nameSpace;
 
   @override
@@ -189,7 +191,9 @@ class NameSpaceLookupScope implements LookupScope {
 
   final String classNameOrDebugName;
 
-  NameSpaceLookupScope(this._nameSpace, this.kind, this.classNameOrDebugName);
+  NameSpaceLookupScope(this._nameSpace, this.kind, this.classNameOrDebugName,
+      {LookupScope? parent})
+      : this._parent = parent;
 
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri) {
@@ -202,7 +206,7 @@ class NameSpaceLookupScope implements LookupScope {
     if (builder != null) {
       return builder;
     }
-    return normalizeCrossLookup(
+    builder = normalizeCrossLookup(
         normalizeLookup(_nameSpace.lookupLocalMember(name, setter: true),
             name: name,
             charOffset: charOffset,
@@ -211,6 +215,10 @@ class NameSpaceLookupScope implements LookupScope {
         name: name,
         charOffset: charOffset,
         fileUri: fileUri);
+    if (builder != null) {
+      return builder;
+    }
+    return _parent?.lookup(name, charOffset, fileUri);
   }
 
   @override
@@ -224,7 +232,7 @@ class NameSpaceLookupScope implements LookupScope {
     if (builder != null) {
       return builder;
     }
-    return normalizeCrossLookup(
+    builder = normalizeCrossLookup(
         normalizeLookup(_nameSpace.lookupLocalMember(name, setter: false),
             name: name,
             charOffset: charOffset,
@@ -233,6 +241,10 @@ class NameSpaceLookupScope implements LookupScope {
         name: name,
         charOffset: charOffset,
         fileUri: fileUri);
+    if (builder != null) {
+      return builder;
+    }
+    return _parent?.lookupSetter(name, charOffset, fileUri);
   }
 }
 
@@ -260,6 +272,96 @@ class TypeParameterScope with LookupScopeMixin {
 
   @override
   String get classNameOrDebugName => "type parameter";
+
+  static LookupScope fromList(
+      LookupScope parent, List<TypeVariableBuilderBase>? typeVariableBuilders) {
+    if (typeVariableBuilders == null) return parent;
+    Map<String, Builder> map = {};
+    for (TypeVariableBuilderBase typeVariableBuilder in typeVariableBuilders) {
+      // TODO(johnniwinther,kallentu): Why are structural variables treated
+      // differently from nominal variable here but not for instance in
+      // `BodyBuilder.enterStructuralVariablesScope`?
+      if (typeVariableBuilder is NominalVariableBuilder &&
+          typeVariableBuilder.isWildcard) {
+        continue;
+      }
+      map[typeVariableBuilder.name] = typeVariableBuilder;
+    }
+    return new TypeParameterScope(parent, map);
+  }
+}
+
+class FixedLookupScope implements LookupScope {
+  final LookupScope? _parent;
+  @override
+  final ScopeKind kind;
+  final String classNameOrDebugName;
+  final Map<String, Builder>? _getables;
+  final Map<String, Builder>? _setables;
+
+  FixedLookupScope(this.kind, this.classNameOrDebugName,
+      {Map<String, Builder>? getables,
+      Map<String, Builder>? setables,
+      LookupScope? parent})
+      : this._getables = getables,
+        this._setables = setables,
+        this._parent = parent;
+
+  @override
+  Builder? lookup(String name, int charOffset, Uri fileUri) {
+    Builder? builder = null;
+    if (_getables != null) {
+      builder = normalizeLookup(_getables[name],
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName);
+      if (builder != null) {
+        return builder;
+      }
+    }
+    if (_setables != null) {
+      builder = normalizeLookup(_setables[name],
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName);
+      builder = normalizeCrossLookup(builder,
+          name: name, charOffset: charOffset, fileUri: fileUri);
+      if (builder != null) {
+        return builder;
+      }
+    }
+    return _parent?.lookup(name, charOffset, fileUri);
+  }
+
+  @override
+  Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
+    Builder? builder = null;
+    if (_setables != null) {
+      builder = normalizeLookup(_setables[name],
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName);
+      if (builder != null) {
+        return builder;
+      }
+    }
+    if (_getables != null) {
+      builder = normalizeLookup(_getables[name],
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName);
+      builder = normalizeCrossLookup(builder,
+          name: name, charOffset: charOffset, fileUri: fileUri);
+      if (builder != null) {
+        return builder;
+      }
+    }
+    return _parent?.lookupSetter(name, charOffset, fileUri);
+  }
 }
 
 abstract class ParentScope {
