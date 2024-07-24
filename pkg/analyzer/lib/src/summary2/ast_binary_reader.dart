@@ -124,6 +124,8 @@ class AstBinaryReader {
         return _readMethodInvocation();
       case Tag.NamedExpression:
         return _readNamedExpression();
+      case Tag.NullAwareElement:
+        return _readNullAwareElement();
       case Tag.NullLiteral:
         return _readNullLiteral();
       case Tag.InstanceCreationExpression:
@@ -876,11 +878,17 @@ class AstBinaryReader {
   }
 
   MapLiteralEntry _readMapLiteralEntry() {
+    var keyFlags = _readByte();
     var key = readNode() as ExpressionImpl;
+    var valueFlags = _readByte();
     var value = readNode() as ExpressionImpl;
     return MapLiteralEntryImpl(
+      keyQuestion:
+          AstBinaryFlags.hasQuestion(keyFlags) ? Tokens.question() : null,
       key: key,
       separator: Tokens.colon(),
+      valueQuestion:
+          AstBinaryFlags.hasQuestion(valueFlags) ? Tokens.question() : null,
       value: value,
     );
   }
@@ -951,6 +959,11 @@ class AstBinaryReader {
   List<T> _readNodeList<T>() {
     var length = _reader.readUInt30();
     return List.generate(length, (_) => readNode() as T);
+  }
+
+  NullAwareElement _readNullAwareElement() {
+    var value = readNode() as ExpressionImpl;
+    return NullAwareElementImpl(question: Tokens.question(), value: value);
   }
 
   NullLiteral _readNullLiteral() {
