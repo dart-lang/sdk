@@ -180,6 +180,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         NodeList,
         NormalFormalParameter,
         NullAssertPattern,
+        NullAwareElement,
         NullCheckPattern,
         NullLiteral,
         NullShortableExpression,

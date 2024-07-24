@@ -560,6 +560,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitNullAssertPattern(NullAssertPattern node) => visitDartPattern(node);
 
   @override
+  R? visitNullAwareElement(NullAwareElement node) =>
+      visitCollectionElement(node);
+
+  @override
   R? visitNullCheckPattern(NullCheckPattern node) => visitDartPattern(node);
 
   @override
@@ -1472,6 +1476,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitNullAwareElement(NullAwareElement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitNullCheckPattern(NullCheckPattern node) {
     node.visitChildren(this);
     return null;
@@ -2210,6 +2220,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitNullAssertPattern(NullAssertPattern node) => null;
 
   @override
+  R? visitNullAwareElement(NullAwareElement node) => null;
+
+  @override
   R? visitNullCheckPattern(NullCheckPattern node) => null;
 
   @override
@@ -2769,6 +2782,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => _throw(node);
+
+  @override
+  R? visitNullAwareElement(NullAwareElement node) => _throw(node);
 
   @override
   R? visitNullCheckPattern(NullCheckPattern node) => _throw(node);
@@ -3881,6 +3897,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitNullAwareElement(NullAwareElement node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNullAwareElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitNullCheckPattern(NullCheckPattern node) {
     stopwatch.start();
     T? result = _baseVisitor.visitNullCheckPattern(node);
@@ -4771,6 +4795,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => visitNode(node);
+
+  @override
+  R? visitNullAwareElement(NullAwareElement node) => visitNode(node);
 
   @override
   R? visitNullCheckPattern(NullCheckPattern node) => visitNode(node);

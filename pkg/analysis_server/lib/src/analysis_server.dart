@@ -137,6 +137,9 @@ abstract class AnalysisServer {
   /// The [SearchEngine] for this server.
   late final SearchEngine searchEngine;
 
+  /// The optional [ByteStore] to use as [byteStore].
+  final ByteStore? providedByteStore;
+
   late ByteStore byteStore;
 
   late FileContentCache fileContentCache;
@@ -253,6 +256,7 @@ abstract class AnalysisServer {
     this.requestStatistics,
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
+    this.providedByteStore,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']),
@@ -491,6 +495,10 @@ abstract class AnalysisServer {
     const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
     const memoryCacheSize = 128 * M;
+
+    if (providedByteStore case var providedByteStore?) {
+      return providedByteStore;
+    }
 
     if (resourceProvider is OverlayResourceProvider) {
       resourceProvider = resourceProvider.baseProvider;
