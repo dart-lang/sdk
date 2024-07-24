@@ -5021,7 +5021,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   static List<PrefixElementImpl> buildPrefixesFromImports(
       List<LibraryImportElementImpl> imports) {
-    var prefixes = HashSet<PrefixElementImpl>();
+    var prefixes = <PrefixElementImpl>{};
     for (var import in imports) {
       var prefix = import.prefix;
       if (prefix != null) {

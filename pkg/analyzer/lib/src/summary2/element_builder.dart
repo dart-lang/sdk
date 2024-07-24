@@ -1397,7 +1397,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     PropertyInducingElementImpl property;
     if (enclosingElement is CompilationUnitElement) {
-      var reference = enclosingRef.getChild('@variable').getChild(name);
+      var reference = enclosingRef.getChild('@topLevelVariable').getChild(name);
       var existing = reference.element;
       if (existing is TopLevelVariableElementImpl && canUseExisting(existing)) {
         property = existing;
@@ -1812,8 +1812,9 @@ class _EnclosingContext {
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
     _topLevelVariables.add(element);
-    var containerName =
-        element.isAugmentation ? '@variableAugmentation' : '@variable';
+    var containerName = element.isAugmentation
+        ? '@topLevelVariableAugmentation'
+        : '@topLevelVariable';
     return _addReference(containerName, name, element);
   }
 

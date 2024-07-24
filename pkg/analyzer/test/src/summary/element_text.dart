@@ -59,7 +59,6 @@ class ElementTextConfiguration {
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
-  bool withReferences = false;
   bool withReturnType = true;
   bool withSyntheticDartCoreImport = false;
 
@@ -1368,10 +1367,6 @@ class _ElementWriter {
   }
 
   void _writeReference(ElementImpl e) {
-    if (!configuration.withReferences) {
-      return;
-    }
-
     if (e.reference case var reference?) {
       _sink.writeIndentedLine(() {
         _sink.write('reference: ');

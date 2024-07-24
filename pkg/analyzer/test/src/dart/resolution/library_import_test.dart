@@ -471,7 +471,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <thisLibrary>::<definingUnit>::@variable::a
+            declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::a
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -571,7 +571,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <thisLibrary>::<definingUnit>::@variable::a
+            declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::a
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -793,7 +793,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <thisLibrary>::<definingUnit>::@variable::a
+            declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::a
       semicolon: ;
       declaredElement: <null>
 ''');

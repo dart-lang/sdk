@@ -1867,7 +1867,7 @@ class LibraryReader {
     var variables = <TopLevelVariableElementImpl>[];
     _readTopLevelVariables(unitElement, unitReference, accessors, variables);
     _readPropertyAccessors(unitElement, unitElement, unitReference, accessors,
-        variables, '@variable');
+        variables, '@topLevelVariable');
     unitElement.accessors = accessors.toFixedList();
     unitElement.topLevelVariables = variables.toFixedList();
     return unitElement;

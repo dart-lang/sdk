@@ -40,7 +40,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@variable::a
+  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::a
 ''');
   }
 
@@ -1737,7 +1737,7 @@ Annotation
 
     _assertAnnotationValueText(node, '''
 int 42
-  variable: package:test/a.dart::<definingUnit>::@variable::foo
+  variable: package:test/a.dart::<definingUnit>::@topLevelVariable::foo
 ''');
   }
 
@@ -2586,7 +2586,7 @@ Annotation
     var element = node.elementAnnotation!;
     _assertElementAnnotationValueText(element, r'''
 int 42
-  variable: <thisLibrary>::<definingUnit>::@variable::foo
+  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::foo
 ''');
   }
 
