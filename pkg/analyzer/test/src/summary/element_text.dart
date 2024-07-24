@@ -474,22 +474,6 @@ class _ElementWriter {
     }
   }
 
-  void _writeExportElement(LibraryExportElementImpl e) {
-    e.location;
-
-    _sink.writeIndentedLine(() {
-      _writeDirectiveUri(e.uri);
-    });
-
-    _sink.withIndent(() {
-      _writeEnclosingElement(e);
-      _writeMetadata(e);
-      _writeNamespaceCombinators(e.combinators);
-    });
-
-    _assertNonSyntheticElementSelf(e);
-  }
-
   void _writeExportNamespace(LibraryElement e) {
     var map = e.exportNamespace.definedNames;
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
@@ -594,22 +578,6 @@ class _ElementWriter {
     });
 
     _assertNonSyntheticElementSelf(e);
-  }
-
-  void _writeImportElement(LibraryImportElementImpl e) {
-    e.location;
-
-    _sink.writeIndentedLine(() {
-      _writeDirectiveUri(e.uri);
-      _sink.writeIf(e.isSynthetic, ' synthetic');
-      _writeImportElementPrefix(e.prefix);
-    });
-
-    _sink.withIndent(() {
-      _writeEnclosingElement(e);
-      _writeMetadata(e);
-      _writeNamespaceCombinators(e.combinators);
-    });
   }
 
   void _writeImportElementPrefix(ImportElementPrefixImpl? prefix) {
@@ -738,6 +706,40 @@ class _ElementWriter {
     }
   }
 
+  void _writeLibraryExportElement(LibraryExportElementImpl e) {
+    e.location;
+
+    _sink.writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
+
+    _sink.withIndent(() {
+      _writeReference(e);
+      _writeEnclosingElement(e);
+      _writeMetadata(e);
+      _writeNamespaceCombinators(e.combinators);
+    });
+
+    _assertNonSyntheticElementSelf(e);
+  }
+
+  void _writeLibraryImportElement(LibraryImportElementImpl e) {
+    e.location;
+
+    _sink.writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+      _sink.writeIf(e.isSynthetic, ' synthetic');
+      _writeImportElementPrefix(e.prefix);
+    });
+
+    _sink.withIndent(() {
+      _writeReference(e);
+      _writeEnclosingElement(e);
+      _writeMetadata(e);
+      _writeNamespaceCombinators(e.combinators);
+    });
+  }
+
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
     _writeReference(e);
 
@@ -758,11 +760,19 @@ class _ElementWriter {
       var imports = e.libraryImports.where((import) {
         return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
       }).toList();
-      _writeElements('imports', imports, _writeImportElement);
+      _writeElements(
+        'libraryImports',
+        imports,
+        _writeLibraryImportElement,
+      );
       _writeElements('prefixes', e.prefixes, _writePrefixElement);
     }
 
-    _writeElements('exports', e.libraryExports, _writeExportElement);
+    _writeElements(
+      'libraryExports',
+      e.libraryExports,
+      _writeLibraryExportElement,
+    );
 
     if (configuration.filter(e.definingCompilationUnit)) {
       _sink.writelnWithIndent('definingUnit');
@@ -1526,9 +1536,10 @@ class _ElementWriter {
       var imports = e.libraryImports.where((import) {
         return configuration.withSyntheticDartCoreImport || !import.isSynthetic;
       }).toList();
-      _writeElements('libraryImports', imports, _writeImportElement);
+      _writeElements('libraryImports', imports, _writeLibraryImportElement);
     }
-    _writeElements('libraryExports', e.libraryExports, _writeExportElement);
+    _writeElements(
+        'libraryExports', e.libraryExports, _writeLibraryExportElement);
     _writeElements('partIncludes', e.parts, _writePartElement);
 
     _writeElements('classes', e.classes, _writeInterfaceElement);

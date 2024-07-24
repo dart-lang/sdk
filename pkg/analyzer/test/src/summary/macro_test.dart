@@ -125,7 +125,7 @@ class A3 {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -277,7 +277,7 @@ class A3 {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -428,7 +428,7 @@ class A3 {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -521,7 +521,7 @@ class A3 {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -644,7 +644,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -675,7 +675,7 @@ class X {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -708,7 +708,7 @@ class X {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -737,7 +737,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -768,7 +768,7 @@ class X2 {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -825,7 +825,7 @@ class X {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -856,7 +856,7 @@ mixin X {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -887,7 +887,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -918,7 +918,7 @@ mixin X {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -951,7 +951,7 @@ mixin X {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -980,7 +980,7 @@ mixin X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -1011,7 +1011,7 @@ mixin X2 {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/order.dart
       enclosingElement: <thisLibrary>
   augmentationImports
@@ -1058,7 +1058,7 @@ class MacroArgumentsTest extends MacroElementsBaseTest {
       expected: r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/arguments_text.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -2897,7 +2897,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -2939,7 +2939,7 @@ augment class B {
   void bar() {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3029,7 +3029,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3104,7 +3104,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3164,7 +3164,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3224,7 +3224,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3298,7 +3298,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3363,7 +3363,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3424,7 +3424,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -3497,7 +3497,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3515,7 +3515,7 @@ augment class B {
   B([x = prefix0.a]);
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3573,7 +3573,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3591,7 +3591,7 @@ augment class B {
   void foo([x = prefix0.a]) {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3650,7 +3650,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3668,7 +3668,7 @@ augment class B {
   void foo([@prefix0.a x]) {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3730,7 +3730,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3748,7 +3748,7 @@ augment class B {
   void foo(@prefix0.a x) {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3810,7 +3810,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3828,7 +3828,7 @@ augment class B {
   set foo(@prefix0.a x) {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3895,7 +3895,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3913,7 +3913,7 @@ augment class B {
   static const x = prefix0.a;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -3977,7 +3977,7 @@ class B {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -3995,7 +3995,7 @@ augment class B {
   final x = prefix0.a;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4057,7 +4057,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4075,7 +4075,7 @@ augment class B {
   final x = prefix0.a;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4124,7 +4124,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4142,7 +4142,7 @@ augment class B {
   static const x = prefix0.A<void>;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4210,7 +4210,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4226,7 +4226,7 @@ import 'package:test/a.dart' as prefix0;
 
 const x = prefix0.a;
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4284,7 +4284,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4300,7 +4300,7 @@ import 'package:test/a.dart' as prefix0;
 
 const x = prefix0.a + prefix0.b;
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4381,7 +4381,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4399,7 +4399,7 @@ import 'package:test/a.dart' as prefix0;
 const x = prefix0.a, y = prefix0.a;
 
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4516,7 +4516,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4532,7 +4532,7 @@ import 'package:test/a.dart' as prefix0;
 
 const x = prefix0.A<void>;
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4599,7 +4599,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4616,7 +4616,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A()
 class C {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4678,7 +4678,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4697,7 +4697,7 @@ augment class B {
   B.named();
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4764,7 +4764,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4783,7 +4783,7 @@ augment class B {
   final int foo = 0;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4855,7 +4855,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4874,7 +4874,7 @@ augment class B {
   final int foo = 0, bar = 1;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -4974,7 +4974,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -4993,7 +4993,7 @@ augment class B {
   int get foo => 0;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5064,7 +5064,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5083,7 +5083,7 @@ augment class B {
   void foo() {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5149,7 +5149,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5168,7 +5168,7 @@ augment class B {
   set foo(int _) {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5242,7 +5242,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5259,7 +5259,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A()
 void foo() {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5316,7 +5316,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5332,7 +5332,7 @@ import 'package:test/a.dart' as prefix0;
 
 void foo([x = prefix0.a]) {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5390,7 +5390,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5407,7 +5407,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A()
 int get foo => 0;
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5473,7 +5473,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5490,7 +5490,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A()
 set foo(int _) {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5555,7 +5555,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5571,7 +5571,7 @@ import 'package:test/a.dart' as prefix0;
 
 set foo(@prefix0.a x) {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5637,7 +5637,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5654,7 +5654,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A()
 final foo = 0;
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5721,7 +5721,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5738,7 +5738,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A()
 final foo = 0, bar = 1;
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5835,7 +5835,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5852,7 +5852,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A(prefix0.foo)
 class C {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -5927,7 +5927,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -5944,7 +5944,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A.named()
 class C {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -6011,7 +6011,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -6028,7 +6028,7 @@ import 'package:test/a.dart' as prefix0;
 @prefix0.A(prefix0.X<void>)
 class C {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -6108,7 +6108,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -6127,7 +6127,7 @@ import 'package:test/b.dart' as prefix1;
 
 void foo(prefix0.X x1, prefix1.X x2) {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         package:test/b.dart as prefix1 @116
@@ -6179,7 +6179,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -6195,7 +6195,7 @@ import 'package:test/a.dart' as prefix0;
 
 void foo(prefix0.X x) {}
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -6245,7 +6245,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -6302,7 +6302,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6357,7 +6357,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6437,7 +6437,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6469,7 +6469,7 @@ augment class A {
   augment A.named() { print(42); }
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -6523,7 +6523,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6559,7 +6559,7 @@ augment class A {
   augment prefix1.int foo = 42;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         dart:core as prefix1 @106
@@ -6639,7 +6639,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6674,7 +6674,7 @@ augment class A {
   augment prefix1.int get foo => 42;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         dart:core as prefix1 @106
@@ -6743,7 +6743,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6776,7 +6776,7 @@ augment class A {
   augment prefix1.int foo() => 42;
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         dart:core as prefix1 @106
@@ -6835,7 +6835,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -6870,7 +6870,7 @@ augment class A {
   augment void set foo(prefix1.int value, ) { print(42); }
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         dart:core as prefix1 @106
@@ -7075,7 +7075,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7108,7 +7108,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7144,7 +7144,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7178,7 +7178,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7242,7 +7242,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7294,7 +7294,7 @@ void f() {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7336,7 +7336,7 @@ import 'diagnostic.dart';
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7380,7 +7380,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -7433,7 +7433,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -7481,7 +7481,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7528,7 +7528,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7580,7 +7580,7 @@ class A<T, U, V> {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7629,7 +7629,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7678,7 +7678,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7734,7 +7734,7 @@ void foo<T>() {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7782,7 +7782,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7830,7 +7830,7 @@ mixin A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7877,7 +7877,7 @@ mixin A<T> {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7926,7 +7926,7 @@ typedef A<T> = List<T>;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -7973,7 +7973,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8022,7 +8022,7 @@ class A extends Object {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8070,7 +8070,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8127,7 +8127,7 @@ void foo(int a, {String? b, bool? c}) {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8185,7 +8185,7 @@ void foo(int a, String b) {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8239,7 +8239,7 @@ int foo() => 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8287,7 +8287,7 @@ int Function(bool a, {int b, String c}) foo() => throw 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8337,7 +8337,7 @@ int Function(int a, String b) foo() => throw 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8387,7 +8387,7 @@ int Function() foo() => throw 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8435,7 +8435,7 @@ void Function() foo() => throw 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8484,7 +8484,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8541,7 +8541,7 @@ void foo(a) {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8593,7 +8593,7 @@ foo() => throw 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8642,7 +8642,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8693,7 +8693,7 @@ final foo = 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8746,7 +8746,7 @@ import 'diagnostic.dart';
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8795,7 +8795,7 @@ A foo() => throw 0;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8849,7 +8849,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8909,7 +8909,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8961,7 +8961,7 @@ Map<int, String> foo() {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9013,7 +9013,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9075,7 +9075,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9134,7 +9134,7 @@ typedef A = List<int>;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9181,7 +9181,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9242,7 +9242,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9284,7 +9284,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9326,7 +9326,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9368,7 +9368,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9418,7 +9418,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9474,7 +9474,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9544,7 +9544,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9599,7 +9599,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9654,7 +9654,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9702,7 +9702,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9741,7 +9741,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/diagnostic.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9851,7 +9851,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -9883,7 +9883,7 @@ class C {}
 augment class B extends prefix0.A {
 }
 ---
-      imports
+      libraryImports
         package:test/test.dart as prefix0 @78
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -9928,7 +9928,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10024,7 +10024,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10071,7 +10071,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10125,7 +10125,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10172,7 +10172,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10219,7 +10219,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10266,7 +10266,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10315,7 +10315,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10364,7 +10364,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10413,7 +10413,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10462,7 +10462,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10514,7 +10514,7 @@ enum B {v}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10587,7 +10587,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10636,7 +10636,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10685,7 +10685,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10752,7 +10752,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10801,7 +10801,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10850,7 +10850,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10899,7 +10899,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -10970,7 +10970,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/auto_to_string.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -11033,7 +11033,7 @@ A {
   }
 }
 ---
-      imports
+      libraryImports
         dart:core as prefix0 @65
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -11083,7 +11083,7 @@ class A {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/json_serializable.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -11152,7 +11152,7 @@ json['bar'] = this.bar;
   }
 }
 ---
-      imports
+      libraryImports
         package:test/json_serializable.dart as prefix0 @91
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         dart:core as prefix1 @122
@@ -11273,7 +11273,7 @@ class X {}
     var expectedLibraryText = r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -11368,7 +11368,7 @@ class X {}
     var expectedLibraryText = r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -11402,7 +11402,7 @@ augment class X {
   prefix0.A foo() {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -16316,7 +16316,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -16360,7 +16360,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -16412,7 +16412,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart as prefix @24
       enclosingElement: <thisLibrary>
   prefixes
@@ -16468,7 +16468,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart as prefix @24
       enclosingElement: <thisLibrary>
   prefixes
@@ -16528,7 +16528,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -16727,7 +16727,7 @@ class A {}
       checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -16805,7 +16805,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/b.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -16831,7 +16831,7 @@ class MyClass {
   void foo(prefix0.A _) {}
 }
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -17202,7 +17202,7 @@ class X {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -17230,7 +17230,7 @@ class A {}
 class B {}
 
 ---
-      imports
+      libraryImports
         package:test/a.dart as prefix0 @75
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       prefixes
@@ -17437,7 +17437,7 @@ class B {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
     package:test/a.dart
@@ -18163,7 +18163,7 @@ class A {}
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/append.dart
       enclosingElement: <thisLibrary>
   definingUnit
