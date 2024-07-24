@@ -43,6 +43,51 @@ main() {
       ]);
     });
 
+    test('allows dart.log events to be enabled/disabled live', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(debuggerPauseProgram);
+
+      // Collect all logs.
+      final loggedEvaluateInFrameRequests = client
+          .events('dart.log')
+          .map((event) => event.body as Map<String, Object?>)
+          .map((body) => body['message'] as String)
+          .where((message) => message.contains('"method":"evaluateInFrame"'))
+          .toList();
+
+      // Run the program until it pauses.
+      client.start(
+        file: testFile,
+        launch: () => client.launch(testFile.path, sendLogsToClient: false),
+      );
+      final stoppedEvent = await client.expectStop('step');
+      final frameId = await client.getTopFrameId(stoppedEvent.threadId!);
+
+      // Perform evaluations before, during and after logging should be enabled.
+      await client.evaluate('1+1', frameId: frameId);
+      await client.custom('updateSendLogsToClient', {'enabled': true});
+      await client.evaluate('2+2', frameId: frameId);
+      await client.custom('updateSendLogsToClient', {'enabled': false});
+      await client.evaluate('3+3', frameId: frameId);
+
+      // Terminate the app.
+      await Future.wait([
+        client.terminate(),
+        client.event('terminated'),
+      ]);
+      print(await loggedEvaluateInFrameRequests);
+
+      // Verify that the middle evaluation was logged but the others were not.
+      expect(
+        await loggedEvaluateInFrameRequests,
+        allOf([
+          isNot(contains(contains('1+1'))),
+          contains(contains('2+2')),
+          isNot(contains(contains('3+3'))),
+        ]),
+      );
+    });
+
     test('prints messages from dart:developer log()', () async {
       final testFile = dap.createTestFile(r'''
 import 'dart:developer';

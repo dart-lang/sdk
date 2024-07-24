@@ -415,7 +415,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
 
-  late final sendLogsToClient = args.sendLogsToClient ?? false;
+  /// Whether verbose internal logs (such as VM Service traffic) should be sent
+  /// to the client in `dart.log` events.
+  bool get sendLogsToClient => _sendLogsToClient;
+  var _sendLogsToClient = false;
 
   /// Whether or not the DAP is terminating.
   ///
@@ -974,6 +977,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       case 'updateDebugOptions':
         if (args != null) {
           await _updateDebugOptions(args.args);
+        }
+        sendResponse(_noResult);
+        break;
+
+      // Used to enable/disable sending logs to the client. This can also be
+      // enabled in launch args, but this allows selective logging to produce
+      // more targeted log files (used by Dart-Code's "Capture Debugging Logs"
+      // command).
+      case 'updateSendLogsToClient':
+        if (args != null) {
+          await _updateSendLogsToClient(args.args);
         }
         sendResponse(_noResult);
         break;
@@ -2695,6 +2709,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Performs some setup that is common to both [launchRequest] and
   /// [attachRequest].
   Future<void> _prepareForLaunchOrAttach(bool? noDebug) async {
+    _sendLogsToClient = args.sendLogsToClient ?? false;
+
     // Don't start launching until configurationDone.
     if (!_configurationDoneCompleter.isCompleted) {
       logger?.call('Waiting for configurationDone request...');
@@ -2764,6 +2780,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           args['debugExternalPackageLibraries'] as bool;
     }
     await isolateManager.applyDebugOptions();
+  }
+
+  /// Configures whether verbose logs should be sent to the client in `dart.log`
+  /// events.
+  Future<void> _updateSendLogsToClient(Map<String, Object?> args) async {
+    if (args.containsKey('enabled')) {
+      _sendLogsToClient = args['enabled'] as bool;
+    }
   }
 
   /// A wrapper around the same name function from package:vm_service that
