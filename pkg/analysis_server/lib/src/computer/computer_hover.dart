@@ -293,11 +293,14 @@ class DartUnitHoverComputer {
 
     // Look for documentation comments of overridden members
     var overridden = findOverriddenElements(element);
-    for (var candidate in [
+    var candidates = [
       element,
       ...overridden.superElements,
-      ...overridden.interfaceElements
-    ]) {
+      ...overridden.interfaceElements,
+      if (element case PropertyAccessorElement(variable2: var variable?))
+        variable
+    ];
+    for (var candidate in candidates) {
       if (candidate.documentationComment != null) {
         documentedElement = candidate;
         break;
