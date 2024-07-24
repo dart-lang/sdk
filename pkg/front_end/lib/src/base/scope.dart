@@ -376,6 +376,7 @@ class Scope extends MutableScope
   /// The iterator does _not_ include the members and setters mapped in the
   /// [parent] scope.
   @override
+  @deprecated
   Iterator<Builder> get unfilteredIterator {
     return new ScopeIterator(this);
   }
@@ -389,6 +390,7 @@ class Scope extends MutableScope
   /// Compared to [unfilteredIterator] this iterator also gives access to the
   /// name that the builders are mapped to.
   @override
+  @deprecated
   NameIterator get unfilteredNameIterator {
     return new ScopeNameIterator(this);
   }
@@ -402,6 +404,7 @@ class Scope extends MutableScope
   /// original and augmenting/patching members are included, otherwise, only
   /// original members are included.
   @override
+  @deprecated
   Iterator<T> filteredIterator<T extends Builder>(
       {Builder? parent,
       required bool includeDuplicates,
@@ -424,6 +427,7 @@ class Scope extends MutableScope
   /// Compared to [filteredIterator] this iterator also gives access to the
   /// name that the builders are mapped to.
   @override
+  @deprecated
   NameIterator<T> filteredNameIterator<T extends Builder>(
       {Builder? parent,
       required bool includeDuplicates,
@@ -571,11 +575,13 @@ class Scope extends MutableScope
   }
 
   @override
+  @deprecated
   Builder? lookupLocalMember(String name, {required bool setter}) {
     return setter ? (_setters?[name]) : (_local?[name]);
   }
 
   @override
+  @deprecated
   void addLocalMember(String name, Builder member, {required bool setter}) {
     if (setter) {
       (_setters ??= // Coverage-ignore(suite): Not run.
@@ -586,25 +592,30 @@ class Scope extends MutableScope
   }
 
   @override
+  @deprecated
   void forEachLocalMember(void Function(String name, Builder member) f) {
     _local?.forEach(f);
   }
 
   @override
+  @deprecated
   void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     _setters?.forEach(f);
   }
 
   @override
+  @deprecated
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
     _extensions?.forEach(f);
   }
 
   @override
+  @deprecated
   Iterable<Builder> get localMembers => _local?.values ?? const {};
 
   /// Adds [builder] to the extensions in this scope.
   @override
+  @deprecated
   void addExtension(ExtensionBuilder builder) {
     _extensions ??= <ExtensionBuilder>{};
     _extensions!.add(builder);
@@ -764,9 +775,9 @@ abstract class LazyScope extends Scope {
 }
 
 /// Computes a builder for the import/export collision between [declaration] and
-/// [other] and adds it to [scope].
+/// [other] and adds it to [nameSpace].
 Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
-    Scope scope, String name, Builder declaration, Builder other,
+    NameSpace nameSpace, String name, Builder declaration, Builder other,
     {required UriOffset uriOffset,
     bool isExport = false,
     bool isImport = false}) {
@@ -787,7 +798,7 @@ Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
   Builder? preferred;
   Uri? uri;
   Uri? otherUri;
-  if (scope.lookupLocalMember(name, setter: false) == declaration) {
+  if (nameSpace.lookupLocalMember(name, setter: false) == declaration) {
     preferred = declaration;
   } else {
     uri = computeLibraryUri(declaration);
@@ -813,7 +824,7 @@ Builder computeAmbiguousDeclarationForScope(ProblemReporting problemReporting,
       // Coverage-ignore-block(suite): Not run.
       // Handles the case where the same prefix is used for different
       // imports.
-      declaration.mergeScopes(other, problemReporting, scope,
+      declaration.mergeScopes(other, problemReporting, nameSpace,
           uriOffset: uriOffset, isImport: isImport, isExport: isExport);
       return declaration;
     }
@@ -1420,10 +1431,10 @@ extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
 
 abstract class MergedScope<T extends Builder> {
   final T _origin;
-  final Scope _originScope;
-  Map<T, Scope> _augmentationScopes = {};
+  final NameSpace _originNameSpace;
+  Map<T, NameSpace> _augmentationNameSpaces = {};
 
-  MergedScope(this._origin, this._originScope);
+  MergedScope(this._origin, this._originNameSpace);
 
   SourceLibraryBuilder get originLibrary;
 
@@ -1519,100 +1530,105 @@ abstract class MergedScope<T extends Builder> {
               noLength,
               newBuilder.fileUri);
         }
-        _originScope.addLocalMember(name, newBuilder, setter: setter);
+        _originNameSpace.addLocalMember(name, newBuilder, setter: setter);
         if (newBuilder is ExtensionBuilder) {
-          _originScope.addExtension(newBuilder);
+          _originNameSpace.addExtension(newBuilder);
         }
-        for (Scope augmentationScope in _augmentationScopes.values) {
-          _addBuilderToAugmentationScope(augmentationScope, name, newBuilder,
+        for (NameSpace augmentationNameSpace
+            in _augmentationNameSpaces.values) {
+          _addBuilderToAugmentationNameSpace(
+              augmentationNameSpace, name, newBuilder,
               setter: setter);
         }
       }
     }
   }
 
-  void _addBuilderToAugmentationScope(
-      Scope augmentationScope, String name, Builder member,
+  void _addBuilderToAugmentationNameSpace(
+      NameSpace augmentationNameSpace, String name, Builder member,
       {required bool setter}) {
     Builder? augmentationMember =
-        augmentationScope.lookupLocalMember(name, setter: setter);
+        augmentationNameSpace.lookupLocalMember(name, setter: setter);
     if (augmentationMember == null) {
-      augmentationScope.addLocalMember(name, member, setter: setter);
+      augmentationNameSpace.addLocalMember(name, member, setter: setter);
       if (member is ExtensionBuilder) {
-        augmentationScope.addExtension(member);
+        augmentationNameSpace.addExtension(member);
       }
     }
   }
 
-  void _addAugmentationScope(T parentBuilder, Scope scope,
-      {required bool inPatchLibrary}) {
+  void _addAugmentationScope(T parentBuilder, NameSpace nameSpace,
+      {required Map<String, List<Builder>>? augmentations,
+      required Map<String, List<Builder>>? setterAugmentations,
+      required bool inPatchLibrary}) {
     // TODO(johnniwinther): Use `scope.filteredNameIterator` instead of
     // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
 
     // Include all augmentation scope members to the origin scope.
-    scope.forEachLocalMember((String name, Builder member) {
+    nameSpace.forEachLocalMember((String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
         member = member.next!;
       }
       _addBuilderToMergedScope(
-          name, member, _originScope.lookupLocalMember(name, setter: false),
+          name, member, _originNameSpace.lookupLocalMember(name, setter: false),
           setter: false, inPatchLibrary: inPatchLibrary);
     });
-    Map<String, List<Builder>>? augmentations = scope.augmentations;
     if (augmentations != null) {
       for (String augmentedName in augmentations.keys) {
         for (Builder augmentation in augmentations[augmentedName]!) {
           _addBuilderToMergedScope(augmentedName, augmentation,
-              _originScope.lookupLocalMember(augmentedName, setter: false),
+              _originNameSpace.lookupLocalMember(augmentedName, setter: false),
               setter: false, inPatchLibrary: inPatchLibrary);
         }
       }
     }
-    scope.forEachLocalSetter((String name, Builder member) {
+    nameSpace.forEachLocalSetter((String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
         member = member.next!;
       }
       _addBuilderToMergedScope(
-          name, member, _originScope.lookupLocalMember(name, setter: true),
+          name, member, _originNameSpace.lookupLocalMember(name, setter: true),
           setter: true, inPatchLibrary: inPatchLibrary);
     });
-    Map<String, List<Builder>>? setterAugmentations = scope.setterAugmentations;
     if (setterAugmentations != null) {
       for (String augmentedName in setterAugmentations.keys) {
         for (Builder augmentation in setterAugmentations[augmentedName]!) {
           _addBuilderToMergedScope(augmentedName, augmentation,
-              _originScope.lookupLocalMember(augmentedName, setter: true),
+              _originNameSpace.lookupLocalMember(augmentedName, setter: true),
               setter: true, inPatchLibrary: inPatchLibrary);
         }
       }
     }
-    scope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+    nameSpace.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
-        _originScope.addExtension(extensionBuilder);
-        for (Scope augmentationScope in _augmentationScopes.values) {
-          augmentationScope.addExtension(extensionBuilder);
+        _originNameSpace.addExtension(extensionBuilder);
+        for (NameSpace augmentationNameSpace
+            in _augmentationNameSpaces.values) {
+          augmentationNameSpace.addExtension(extensionBuilder);
         }
       }
     });
 
     // Include all origin scope members in the augmentation scope.
-    _originScope.forEachLocalMember((String name, Builder originMember) {
-      _addBuilderToAugmentationScope(scope, name, originMember, setter: false);
+    _originNameSpace.forEachLocalMember((String name, Builder originMember) {
+      _addBuilderToAugmentationNameSpace(nameSpace, name, originMember,
+          setter: false);
     });
-    _originScope.forEachLocalSetter((String name, Builder originMember) {
-      _addBuilderToAugmentationScope(scope, name, originMember, setter: true);
+    _originNameSpace.forEachLocalSetter((String name, Builder originMember) {
+      _addBuilderToAugmentationNameSpace(nameSpace, name, originMember,
+          setter: true);
     });
-    _originScope.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+    _originNameSpace.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
-        scope.addExtension(extensionBuilder);
+        nameSpace.addExtension(extensionBuilder);
       }
     });
 
-    _augmentationScopes[parentBuilder] = scope;
+    _augmentationNameSpaces[parentBuilder] = nameSpace;
   }
 
   bool _allowInjectedPublicMember(Builder newBuilder);
@@ -1626,6 +1642,8 @@ class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
 
   void addAugmentationScope(SourceLibraryBuilder builder) {
     _addAugmentationScope(builder, builder.scope,
+        augmentations: builder.scope.augmentations,
+        setterAugmentations: builder.scope.setterAugmentations,
         inPatchLibrary: builder.isPatchLibrary);
   }
 
@@ -1736,6 +1754,8 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   //  members.
   void addAugmentationScope(SourceClassBuilder builder) {
     _addAugmentationScope(builder, builder.scope,
+        augmentations: builder.scope.augmentations,
+        setterAugmentations: builder.scope.setterAugmentations,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
     _addAugmentationConstructorScope(builder.constructorScope,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);

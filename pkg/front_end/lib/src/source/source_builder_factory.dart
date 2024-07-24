@@ -34,6 +34,7 @@ import '../base/modifier.dart'
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
+import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
@@ -508,6 +509,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     Scope typeParameterScope = scope.withTypeVariables(typeVariables);
+    Scope enumScope = new Scope(
+        kind: ScopeKind.declaration,
+        local: members,
+        setters: setters,
+        parent: typeParameterScope,
+        debugName: "enum $name",
+        isModifiable: false);
+    NameSpace enumNameSpace = enumScope;
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -538,13 +547,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charEndOffset,
         referencesFromIndexedClass,
         typeParameterScope,
-        new Scope(
-            kind: ScopeKind.declaration,
-            local: members,
-            setters: setters,
-            parent: typeParameterScope,
-            debugName: "enum $name",
-            isModifiable: false),
+        enumScope,
+        enumNameSpace,
         new ConstructorScope(name, constructors),
         loader.coreLibrary);
     _constructorReferences.clear();

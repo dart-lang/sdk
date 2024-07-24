@@ -90,15 +90,15 @@ class PrefixBuilder extends BuilderImpl {
   // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
 
-  void mergeScopes(
-      PrefixBuilder other, ProblemReporting problemReporting, Scope scope,
+  void mergeScopes(PrefixBuilder other, ProblemReporting problemReporting,
+      NameSpace nameSpace,
       {required UriOffset uriOffset,
       bool isImport = false,
       bool isExport = false}) {
     return _exportNameSpace.merge(other._exportNameSpace,
         (String name, Builder existing, Builder member) {
       return computeAmbiguousDeclarationForScope(
-          problemReporting, scope, name, existing, member,
+          problemReporting, nameSpace, name, existing, member,
           uriOffset: uriOffset, isExport: isExport, isImport: isImport);
     });
   }

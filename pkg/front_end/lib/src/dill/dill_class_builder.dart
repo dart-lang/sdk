@@ -22,7 +22,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 
 mixin DillClassMemberAccessMixin implements ClassMemberAccess {
-  Scope get scope;
+  NameSpace get nameSpace;
   ConstructorScope get constructorScope;
 
   @override
@@ -38,13 +38,13 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      scope.filteredIterator<T>(
+      nameSpace.filteredIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      scope.filteredNameIterator<T>(
+      nameSpace.filteredNameIterator<T>(
           includeAugmentations: true, includeDuplicates: false);
 }
 

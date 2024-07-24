@@ -388,7 +388,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Scope get scope => _scope;
 
   @override
-  Scope get nameSpace => _scope;
+  NameSpace get nameSpace => _scope;
 
   @override
   NameSpace get exportScope => _exportScope;
@@ -2734,7 +2734,7 @@ class SourceLibraryBuilderMemberIterator<T extends Builder>
   SourceLibraryBuilderMemberIterator._(
       SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = libraryBuilder.scope.filteredIterator<T>(
+      : _iterator = libraryBuilder.nameSpace.filteredIterator<T>(
             parent: libraryBuilder,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -2749,7 +2749,7 @@ class SourceLibraryBuilderMemberIterator<T extends Builder>
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       SourceLibraryBuilder augmentationLibraryBuilder =
           augmentationBuilders!.current;
-      _iterator = augmentationLibraryBuilder.scope.filteredIterator<T>(
+      _iterator = augmentationLibraryBuilder.nameSpace.filteredIterator<T>(
           parent: augmentationLibraryBuilder,
           includeDuplicates: includeDuplicates,
           includeAugmentations: false);
