@@ -157,6 +157,21 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
 
   /// Creates a JavaScript `Array` of size [length] with no elements.
   external JSArray.withLength(int length);
+
+  /// The length in elements of this `Array`.
+  external int get length;
+
+  /// Sets the length in elements of this `Array`.
+  ///
+  /// Setting it smaller than the current length truncates this `Array`, and
+  /// setting it larger adds empty slots, which requires [T] to be nullable.
+  external set length(int newLength);
+
+  /// The value at [position] in this `Array`.
+  external T operator [](int position);
+
+  /// Sets the [value] at [position] in this `Array`.
+  external void operator []=(int position, T value);
 }
 
 /// A JavaScript `Promise` or a promise-like object.
