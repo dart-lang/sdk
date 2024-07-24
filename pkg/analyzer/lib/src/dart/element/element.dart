@@ -15,6 +15,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -1997,8 +1998,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 }
 
-/// A base class for concrete implementations of an [Element].
-abstract class ElementImpl implements Element {
+/// A base class for concrete implementations of an [Element] or [Element2].
+abstract class ElementImpl implements Element, Element2 {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
@@ -2061,7 +2062,13 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  Element2? get baseElement => this;
+
+  @override
   List<Element> get children => const [];
+
+  @override
+  List<Element2> get children2 => children.cast<Element2>();
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -2095,6 +2102,16 @@ abstract class ElementImpl implements Element {
   /// Set the enclosing element of this element to the given [element].
   set enclosingElement(Element? element) {
     _enclosingElement = element as ElementImpl?;
+  }
+
+  @override
+  Element2? get enclosingElement2 {
+    var candidate = _enclosingElement;
+    if (candidate is CompilationUnitElementImpl ||
+        candidate is AugmentableElement) {
+      throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
+    }
+    return candidate as Element2?;
   }
 
   /// Return the enclosing unit element (which might be the same as `this`), or
@@ -2475,6 +2492,9 @@ abstract class ElementImpl implements Element {
   LibraryElementImpl? get library => thisOrAncestorOfType();
 
   @override
+  LibraryElement2? get library2 => thisOrAncestorOfType2();
+
+  @override
   Source? get librarySource => library?.source;
 
   @override
@@ -2513,6 +2533,9 @@ abstract class ElementImpl implements Element {
 
   @override
   Element get nonSynthetic => this;
+
+  @override
+  Element2 get nonSynthetic2 => this;
 
   @override
   AnalysisSession? get session {
@@ -2565,6 +2588,19 @@ abstract class ElementImpl implements Element {
     builder.writeAbstractElement(this);
   }
 
+  @override
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    var builder = ElementDisplayStringBuilder(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+    appendTo(builder);
+    return builder.toString();
+  }
+
   /// Set this element as the enclosing element for given [element].
   void encloseElement(ElementImpl element) {
     element.enclosingElement = this;
@@ -2610,6 +2646,14 @@ abstract class ElementImpl implements Element {
     return true;
   }
 
+  @override
+  bool isAccessibleIn2(LibraryElement2 library) {
+    if (Identifier.isPrivateName(name!)) {
+      return library == library2;
+    }
+    return true;
+  }
+
   void resetMetadataFlags() {
     _metadataFlags = 0;
   }
@@ -2638,10 +2682,32 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  E? thisOrAncestorMatching2<E extends Element2>(
+    bool Function(Element2) predicate,
+  ) {
+    Element2? element = this;
+    while (element != null && !predicate(element)) {
+      element = element.enclosingElement2;
+    }
+    return element as E?;
+  }
+
+  @override
   E? thisOrAncestorOfType<E extends Element>() {
     Element element = this;
     while (element is! E) {
       var ancestor = element.enclosingElement;
+      if (ancestor == null) return null;
+      element = ancestor;
+    }
+    return element;
+  }
+
+  @override
+  E? thisOrAncestorOfType2<E extends Element2>() {
+    Element2 element = this;
+    while (element is! E) {
+      var ancestor = element.enclosingElement2;
       if (ancestor == null) return null;
       element = ancestor;
     }
