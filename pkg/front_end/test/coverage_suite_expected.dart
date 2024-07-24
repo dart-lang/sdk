@@ -198,10 +198,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 246,
     missCount: 0,
   ),
-  // 96.95431472081218%.
+  // 93.18181818181817%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 764,
-    missCount: 24,
+    hitCount: 779,
+    missCount: 57,
   ),
   // 100.0%.
   "package:front_end/src/base/ticker.dart": (
@@ -834,9 +834,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 296,
     missCount: 0,
   ),
-  // 99.85855728429985%.
+  // 99.85835694050992%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1412,
+    hitCount: 1410,
     missCount: 2,
   ),
   // 99.89264626945786%.
@@ -866,7 +866,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 172,
+    hitCount: 176,
     missCount: 0,
   ),
   // 100.0%.
@@ -901,13 +901,13 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 7801,
+    hitCount: 7825,
     missCount: 0,
   ),
-  // 100.0%.
+  // 99.87525987525989%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
-    hitCount: 2401,
-    missCount: 0,
+    hitCount: 2402,
+    missCount: 3,
   ),
   // 100.0%.
   "package:front_end/src/type_inference/matching_cache.dart": (
@@ -919,10 +919,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 519,
     missCount: 0,
   ),
-  // 100.0%.
+  // 92.11409395973155%.
   "package:front_end/src/type_inference/object_access_target.dart": (
-    hitCount: 486,
-    missCount: 0,
+    hitCount: 549,
+    missCount: 47,
   ),
   // 100.0%.
   "package:front_end/src/type_inference/shared_type_analyzer.dart": (
@@ -951,7 +951,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/type_inferrer.dart": (
-    hitCount: 87,
+    hitCount: 88,
     missCount: 0,
   ),
   // 100.0%.

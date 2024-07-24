@@ -227,7 +227,16 @@ const simpleMultiBreakpointProgram = '''
   }
 ''';
 
-/// A program that immediately pauses with debugger() and then has 5 print
+/// A program that immediately pauses with `debugger()`.
+const debuggerPauseProgram = '''
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    debugger();
+  }
+''';
+
+/// A program that immediately pauses with `debugger()` and then has 5 print
 /// statements.
 ///
 /// Used for verifying breaking and stepping behaviour.

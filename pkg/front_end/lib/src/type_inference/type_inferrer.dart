@@ -17,6 +17,7 @@ import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
+import 'object_access_target.dart';
 import 'type_inference_engine.dart';
 import 'type_schema.dart' show UnknownType;
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
@@ -229,7 +230,11 @@ class TypeInferrerImpl implements TypeInferrer {
           ..fileOffset = fileOffset;
 
     InvocationInferenceResult result = visitor.inferInvocation(
-        visitor, typeContext, fileOffset, targetType, targetInvocationArguments,
+        visitor,
+        typeContext,
+        fileOffset,
+        new InvocationTargetFunctionType(targetType),
+        targetInvocationArguments,
         staticTarget: target);
     visitor.checkCleanState();
     DartType resultType = result.inferredType;

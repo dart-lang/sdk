@@ -98,16 +98,6 @@ extension JSAnyToExternRef on JSAny? {
 // and `null`.
 bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
-// Extensions for [JSArray] and [JSObject].
-// TODO(joshualitt): These should be shared across backends and exposed to
-// users.
-extension JSArrayExtension on JSArray {
-  external JSAny? pop();
-  external JSAny? operator [](JSNumber index);
-  external void operator []=(JSNumber index, JSAny? value);
-  external JSNumber get length;
-}
-
 class JSArrayIteratorAdapter<T> implements Iterator<T> {
   final JSArray array;
   int index = -1;
@@ -117,7 +107,7 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
   @override
   bool moveNext() {
     index++;
-    int length = array.length.toDartInt;
+    int length = array.length;
     if (index > length) {
       throw 'Iterator out of bounds';
     }
@@ -125,7 +115,7 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
   }
 
   @override
-  T get current => dartifyRaw(array[index.toJS].toExternRef) as T;
+  T get current => dartifyRaw(array[index].toExternRef) as T;
 }
 
 /// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
@@ -140,7 +130,7 @@ class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T>
   Iterator<T> get iterator => JSArrayIteratorAdapter<T>(array);
 
   @override
-  int get length => array.length.toDartInt;
+  int get length => array.length;
 }
 
 // Convert to double to avoid converting to [BigInt] in the case of int64.
@@ -534,7 +524,7 @@ JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
   int length = list.length;
   JSArray<T> result = JSArray<T>.withLength(length);
   for (int i = 0; i < length; i++) {
-    result[i.toJS] = list[i];
+    result[i] = list[i];
   }
   return result;
 }

@@ -289,7 +289,7 @@ augment num foo = augmented;
     assertResolvedNodeText(node, r'''
 AugmentedExpression
   augmentedKeyword: augmented
-  element: <thisLibrary>::<definingUnit>::@variable::foo
+  element: <thisLibrary>::<definingUnit>::@topLevelVariable::foo
   staticType: int
 ''');
   }

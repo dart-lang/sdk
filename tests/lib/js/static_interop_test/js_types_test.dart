@@ -205,6 +205,16 @@ void syncTests() {
   // Should not box a non Dart-object.
   Expect.throws(() => edo.toJSBox);
 
+  // [JSArray] constructors and members.
+  arrN = JSArray<JSNumber>();
+  expect(arrN.length, 0);
+  arrN = JSArray<JSNumber>.withLength(4);
+  expect(arrN.length, 4);
+  arrN.length = 1;
+  expect(arrN.length, 1);
+  arrN[0] = 1.toJS;
+  expect(arrN[0].toDartInt, 1);
+
   // [JSArray] <-> [List<JSAny?>]
   final list = <JSAny?>[1.0.toJS, 'foo'.toJS];
   arr = list.toJS;

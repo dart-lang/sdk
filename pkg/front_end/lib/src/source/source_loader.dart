@@ -434,7 +434,7 @@ class SourceLoader extends Loader {
         packageLanguageVersion: packageLanguageVersion,
         loader: this,
         origin: origin,
-        referencesFromIndex: referencesFromIndex,
+        indexedLibrary: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.library.isUnsupported ??
             importUri.isScheme('dart') &&
@@ -1344,17 +1344,22 @@ severity: $severity
             parent = builder;
             dietListener
               ..currentDeclaration = builder
-              ..memberScope = builder.scope.copyWithParent(
-                  dietListener.memberScope
-                      .withTypeVariables(builder.typeVariables),
-                  "debugExpression in class $enclosingClassOrExtension");
+              ..memberScope = new NameSpaceLookupScope(
+                  builder.nameSpace,
+                  ScopeKind.declaration,
+                  "debugExpression in class $enclosingClassOrExtension",
+                  parent: TypeParameterScope.fromList(
+                      dietListener.memberScope, builder.typeVariables));
           case ExtensionBuilder():
             parent = builder;
             dietListener
               ..currentDeclaration = builder
-              ..memberScope = builder.scope.copyWithParent(
-                  dietListener.memberScope,
-                  "debugExpression in extension $enclosingClassOrExtension");
+              ..memberScope = new NameSpaceLookupScope(
+                  builder.nameSpace,
+                  ScopeKind.declaration,
+                  "debugExpression in extension $enclosingClassOrExtension",
+                  // TODO(johnniwinther): Shouldn't type variables be in scope?
+                  parent: dietListener.memberScope);
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():

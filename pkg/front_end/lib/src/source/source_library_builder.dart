@@ -185,64 +185,86 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
-  SourceLibraryBuilder.internal(
-      SourceLoader loader,
-      Uri importUri,
-      Uri fileUri,
+  factory SourceLibraryBuilder(
+      {required Uri importUri,
+      required Uri fileUri,
       Uri? packageUri,
-      Uri originImportUri,
-      LanguageVersion packageLanguageVersion,
-      Scope? scope,
+      required Uri originImportUri,
+      required LanguageVersion packageLanguageVersion,
+      required SourceLoader loader,
       SourceLibraryBuilder? origin,
-      Library library,
+      Scope? importScope,
+      Library? target,
       LibraryBuilder? nameOrigin,
-      IndexedLibrary? referencesFromIndex,
-      {bool? referenceIsPartOwner,
+      IndexedLibrary? indexedLibrary,
+      bool? referenceIsPartOwner,
       required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
-      Map<String, Builder>? omittedTypes})
-      : this.fromScopes(
-            loader,
-            importUri,
-            fileUri,
-            packageUri,
-            originImportUri,
-            packageLanguageVersion,
-            new TypeParameterScopeBuilder.library(),
-            scope ?? new Scope.top(kind: ScopeKind.library),
-            origin,
-            library,
-            nameOrigin,
-            referencesFromIndex,
-            isUnsupported: isUnsupported,
-            isAugmentation: isAugmentation,
-            isPatch: isPatch,
-            omittedTypes: omittedTypes);
+      Map<String, Builder>? omittedTypes}) {
+    Library library = target ??
+        (origin?.library ??
+            new Library(importUri,
+                fileUri: fileUri,
+                reference: referenceIsPartOwner == true
+                    ? null
+                    : indexedLibrary?.library.reference)
+          ..setLanguageVersion(packageLanguageVersion.version));
+    TypeParameterScopeBuilder libraryTypeParameterScopeBuilder =
+        new TypeParameterScopeBuilder.library();
+    importScope ??= new Scope.top(kind: ScopeKind.library);
+    LibraryName libraryName = new LibraryName(library.reference);
+    Scope scope = libraryTypeParameterScopeBuilder.toScope(importScope,
+        omittedTypeDeclarationBuilders: omittedTypes);
+    NameSpace exportScope =
+        origin?.exportScope ?? new Scope.top(kind: ScopeKind.library);
+    return new SourceLibraryBuilder._(
+        loader: loader,
+        importUri: importUri,
+        fileUri: fileUri,
+        packageUri: packageUri,
+        originImportUri: originImportUri,
+        packageLanguageVersion: packageLanguageVersion,
+        libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
+        importScope: importScope,
+        scope: scope,
+        exportScope: exportScope,
+        origin: origin,
+        library: library,
+        libraryName: libraryName,
+        nameOrigin: nameOrigin,
+        indexedLibrary: indexedLibrary,
+        isUnsupported: isUnsupported,
+        isAugmentation: isAugmentation,
+        isPatch: isPatch,
+        omittedTypes: omittedTypes);
+  }
 
-  SourceLibraryBuilder.fromScopes(
-      this.loader,
-      this.importUri,
-      this.fileUri,
-      this._packageUri,
-      Uri originImportUri,
-      LanguageVersion packageLanguageVersion,
-      TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
-      Scope importScope,
-      SourceLibraryBuilder? origin,
-      this.library,
-      this._nameOrigin,
-      IndexedLibrary? indexedLibrary,
-      {required bool isUnsupported,
+  SourceLibraryBuilder._(
+      {required this.loader,
+      required this.importUri,
+      required this.fileUri,
+      required Uri? packageUri,
+      required Uri originImportUri,
+      required LanguageVersion packageLanguageVersion,
+      required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
+      required Scope importScope,
+      required Scope scope,
+      required NameSpace exportScope,
+      required SourceLibraryBuilder? origin,
+      required this.library,
+      required this.libraryName,
+      required LibraryBuilder? nameOrigin,
+      required IndexedLibrary? indexedLibrary,
+      required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
-      Map<String, Builder>? omittedTypes})
-      : _immediateOrigin = origin,
-        libraryName = new LibraryName(library.reference),
-        _scope = libraryTypeParameterScopeBuilder.toScope(importScope,
-            omittedTypeDeclarationBuilders: omittedTypes),
-        _exportScope =
-            origin?.exportScope ?? new Scope.top(kind: ScopeKind.library),
+      required Map<String, Builder>? omittedTypes})
+      : _packageUri = packageUri,
+        _immediateOrigin = origin,
+        _nameOrigin = nameOrigin,
+        _scope = scope,
+        _exportScope = exportScope,
         super(fileUri) {
     assert(
         _packageUri == null ||
@@ -342,53 +364,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return message;
   }
 
-  SourceLibraryBuilder(
-      {required Uri importUri,
-      required Uri fileUri,
-      Uri? packageUri,
-      required Uri originImportUri,
-      required LanguageVersion packageLanguageVersion,
-      required SourceLoader loader,
-      SourceLibraryBuilder? origin,
-      Scope? scope,
-      Library? target,
-      LibraryBuilder? nameOrigin,
-      IndexedLibrary? referencesFromIndex,
-      bool? referenceIsPartOwner,
-      required bool isUnsupported,
-      required bool isAugmentation,
-      required bool isPatch,
-      Map<String, Builder>? omittedTypes})
-      : this.internal(
-            loader,
-            importUri,
-            fileUri,
-            packageUri,
-            originImportUri,
-            packageLanguageVersion,
-            scope,
-            origin,
-            target ??
-                (origin?.library ??
-                    new Library(importUri,
-                        fileUri: fileUri,
-                        reference: referenceIsPartOwner == true
-                            ? null
-                            : referencesFromIndex?.library.reference)
-                  ..setLanguageVersion(packageLanguageVersion.version)),
-            nameOrigin,
-            referencesFromIndex,
-            referenceIsPartOwner: referenceIsPartOwner,
-            isUnsupported: isUnsupported,
-            isAugmentation: isAugmentation,
-            isPatch: isPatch,
-            omittedTypes: omittedTypes);
-
   @override
   Scope get scope => _scope;
 
   @override
-  Scope get nameSpace => _scope;
+  NameSpace get nameSpace => _scope;
 
   @override
   NameSpace get exportScope => _exportScope;
@@ -471,7 +451,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         origin: this,
         isAugmentation: true,
         isPatch: false,
-        referencesFromIndex: indexedLibrary,
+        indexedLibrary: indexedLibrary,
         omittedTypes: omittedTypeDeclarationBuilders);
     addAugmentationLibrary(augmentationLibrary);
     loader.registerUnparsedLibrarySource(
@@ -2734,7 +2714,7 @@ class SourceLibraryBuilderMemberIterator<T extends Builder>
   SourceLibraryBuilderMemberIterator._(
       SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
       {required this.includeDuplicates})
-      : _iterator = libraryBuilder.scope.filteredIterator<T>(
+      : _iterator = libraryBuilder.nameSpace.filteredIterator<T>(
             parent: libraryBuilder,
             includeDuplicates: includeDuplicates,
             includeAugmentations: false);
@@ -2749,7 +2729,7 @@ class SourceLibraryBuilderMemberIterator<T extends Builder>
     if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
       SourceLibraryBuilder augmentationLibraryBuilder =
           augmentationBuilders!.current;
-      _iterator = augmentationLibraryBuilder.scope.filteredIterator<T>(
+      _iterator = augmentationLibraryBuilder.nameSpace.filteredIterator<T>(
           parent: augmentationLibraryBuilder,
           includeDuplicates: includeDuplicates,
           includeAugmentations: false);

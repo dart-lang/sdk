@@ -16,6 +16,7 @@
 
 - Added constructors for `JSArrayBuffer`, `JSDataView`, and concrete typed array
   types e.g. `JSInt8Array`.
+- Added `length` and `[]`/`[]=` operators to `JSArray`.
 
 ## 3.5.0
 

@@ -899,9 +899,9 @@ Random v2;
 
     var element = findElement.importFind('dart:math').class_('Random');
     await assertElementReferencesText(element, r'''
-self::@variable::v1
+self::@topLevelVariable::v1
   20 2:1 |Random| REFERENCE
-self::@variable::v2
+self::@topLevelVariable::v2
   31 3:1 |Random| REFERENCE
 ''');
   }
@@ -929,7 +929,7 @@ self::@class::B2
   75 6:21 |A| REFERENCE
 self::@class::B3
   109 7:30 |A| REFERENCE
-self::@variable::v2
+self::@topLevelVariable::v2
   119 8:6 |A| REFERENCE
 ''');
   }
@@ -1687,7 +1687,7 @@ var x = [
 ''');
     var element = findElement.localVar('v');
     await assertElementReferencesText(element, r'''
-self::@variable::x
+self::@topLevelVariable::x
   30 2:21 |v| READ
 ''');
   }
@@ -2197,7 +2197,7 @@ main() {
 ''');
     var element = findElement.prefix('ppp');
     await assertElementReferencesText(element, r'''
-self::@unit::package:test/my_part.dart::@variable::c
+self::@unit::package:test/my_part.dart::@topLevelVariable::c
   16 2:1 |ppp| REFERENCE
 self::@function::main
   76 5:3 |ppp| REFERENCE
@@ -2259,7 +2259,7 @@ main() {
 self::@function::main
   76 5:3 |ppp| REFERENCE
   92 6:3 |ppp| REFERENCE
-self::@unit::package:aaa/my_part.dart::@variable::c
+self::@unit::package:aaa/my_part.dart::@topLevelVariable::c
   16 2:1 |ppp| REFERENCE
 ''');
   }
@@ -2284,11 +2284,11 @@ _C v;
 ''');
     var element = findElement.class_('_C');
     await assertElementReferencesText(element, r'''
-self::@unit::package:test/part1.dart::@variable::v1
+self::@unit::package:test/part1.dart::@topLevelVariable::v1
   13 1:14 |_C| REFERENCE
-self::@unit::package:test/part2.dart::@variable::v2
+self::@unit::package:test/part2.dart::@topLevelVariable::v2
   13 1:14 |_C| REFERENCE
-self::@variable::v
+self::@topLevelVariable::v
   82 6:1 |_C| REFERENCE
 ''');
   }
@@ -2319,11 +2319,11 @@ _C v1;
 
     var element = findElement.partFind('package:test/part1.dart').class_('_C');
     await assertElementReferencesText(element, r'''
-self::@unit::package:test/part1.dart::@variable::v1
+self::@unit::package:test/part1.dart::@topLevelVariable::v1
   25 3:1 |_C| REFERENCE
-self::@unit::package:test/part2.dart::@variable::v2
+self::@unit::package:test/part2.dart::@topLevelVariable::v2
   13 1:14 |_C| REFERENCE
-self::@variable::v
+self::@topLevelVariable::v
   51 4:1 |_C| REFERENCE
 ''');
   }
@@ -2358,11 +2358,11 @@ _C v;
 
     var element = findElement.class_('_C');
     await assertElementReferencesText(element, r'''
-self::@variable::v
+self::@topLevelVariable::v
   63 5:1 |_C| REFERENCE
-self::@unit::package:aaa/part1.dart::@variable::v1
+self::@unit::package:aaa/part1.dart::@topLevelVariable::v1
   13 1:14 |_C| REFERENCE
-self::@unit::package:aaa/part2.dart::@variable::v2
+self::@unit::package:aaa/part2.dart::@topLevelVariable::v2
   13 1:14 |_C| REFERENCE
 ''');
   }
@@ -2715,7 +2715,7 @@ var f = switch (0) {
 ''');
     var element = findNode.bindPatternVariableElement('int v');
     await assertElementReferencesText(element, r'''
-self::@variable::f
+self::@topLevelVariable::f
   34 2:14 |v| READ
   43 2:23 |v| READ
   52 2:32 |v| WRITE

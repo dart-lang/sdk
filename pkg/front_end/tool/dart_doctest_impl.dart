@@ -823,7 +823,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       loader: loader,
       // TODO(jensj): Should probably set up scopes the same was as it's done
       // (now) for expression compilation.
-      scope: libraryBuilder.scope
+      importScope: libraryBuilder.scope
           .createNestedScope(debugName: "dartdoctest", kind: ScopeKind.library),
       nameOrigin: libraryBuilder,
       isUnsupported: false,

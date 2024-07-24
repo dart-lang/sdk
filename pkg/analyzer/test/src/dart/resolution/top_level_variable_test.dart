@@ -80,7 +80,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 
@@ -145,7 +145,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 

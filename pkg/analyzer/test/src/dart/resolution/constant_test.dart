@@ -130,7 +130,7 @@ C<double Function(int)>
       alias: package:test/a.dart::<definingUnit>::@typeAlias::F
         typeArguments
           double
-  variable: <thisLibrary>::<definingUnit>::@variable::v
+  variable: <thisLibrary>::<definingUnit>::@topLevelVariable::v
 ''');
   }
 

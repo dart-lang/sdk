@@ -24,29 +24,14 @@ String quoteStringForRegExp(String string) =>
 @js.JS('Object.keys')
 external JSArray objectKeys(JSObject o);
 
-// TODO(srujzs): Convert these to extension types and have `JSNativeMatch`
-// subtype `JSArray`.
-@js.JS()
-@js.staticInterop
-class JSNativeMatch {
-  // This constructor exists just to avoid the `no unnamed constructor` error.
-  external factory JSNativeMatch();
-}
-
-extension JSNativeMatchExtension on JSNativeMatch {
+extension type JSNativeMatch._(JSArray _) implements JSArray {
   external JSString get input;
   external JSNumber get index;
   external JSObject? get groups;
-  external JSNumber get length;
   external JSAny? pop();
-  external JSAny? operator [](JSNumber index);
 }
 
-@js.JS()
-@js.staticInterop
-class JSNativeRegExp {}
-
-extension JSNativeRegExpExtension on JSNativeRegExp {
+extension type JSNativeRegExp._(JSObject _) implements JSObject {
   external JSNativeMatch? exec(JSString string);
   external JSBoolean test(JSString string);
   external JSString get flags;
@@ -185,19 +170,19 @@ class _MatchImplementation implements RegExpMatch {
 
   int get start => _match.index.toDartInt;
 
-  int get end => (start + (_match[0.toJS].toString()).length);
+  int get end => (start + (_match[0].toString()).length);
 
   String? group(int index) {
-    // index < 0 || index >= _match.length.toDartInt
-    if (index.geU(_match.length.toDartInt)) {
+    // index < 0 || index >= _match.length
+    if (index.geU(_match.length)) {
       throw RangeError("Index $index is out of range ${_match.length}");
     }
-    return _match[index.toJS]?.toString();
+    return _match[index]?.toString();
   }
 
   String? operator [](int index) => group(index);
 
-  int get groupCount => _match.length.toDartInt - 1;
+  int get groupCount => _match.length - 1;
 
   List<String?> groups(List<int> groups) {
     List<String?> out = [];
@@ -325,7 +310,7 @@ int regExpCaptureCount(JSSyntaxRegExp regexp) {
   final match = nativeAnchoredRegExp.exec(''.toJS)!;
   // The native-anchored regexp always have one capture more than the original,
   // and always matches the empty string.
-  return match.length.toDartInt - 2;
+  return match.length - 2;
 }
 
 /// Find the first match of [regExp] in [string] at or after [start].

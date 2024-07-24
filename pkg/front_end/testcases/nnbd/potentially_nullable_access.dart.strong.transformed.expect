@@ -493,12 +493,12 @@ static field () → core::int topLevelMethodTearOff = invalid-expression "pkg/fr
 Try accessing using ?. instead.
 var topLevelMethodTearOff = nullableClass.method;
                                           ^^^^^^" in self::nullableClass.{self::Class::method}{<nullable>}.{() → core::int};
-static field dynamic topLevelFunctionImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:47:52: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+static field invalid-type topLevelFunctionImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:47:52: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
  - 'Function' is from 'dart:core'.
 Try calling using ?.call instead.
 var topLevelFunctionImplicitCall = nullableFunction();
                                                    ^" in self::nullableFunction{<nullable>}.();
-static field dynamic topLevelFunctionExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:48:53: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+static field invalid-type topLevelFunctionExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:48:53: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
  - 'Function' is from 'dart:core'.
 Try calling using ?. instead.
 var topLevelFunctionExplicitCall = nullableFunction.call();
@@ -700,12 +700,12 @@ Try calling using ?. instead.
 Try accessing using ?. instead.
   var localMethodTearOff = nullableClass.method;
                                          ^^^^^^" in self::nullableClass.{self::Class::method}{<nullable>}.{() → core::int};
-  dynamic localFunctionImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:86:51: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+  invalid-type localFunctionImplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:86:51: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
  - 'Function' is from 'dart:core'.
 Try calling using ?.call instead.
   var localFunctionImplicitCall = nullableFunction();
                                                   ^" in self::nullableFunction{<nullable>}.();
-  dynamic localFunctionExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:87:52: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+  invalid-type localFunctionExplicitCall = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:87:52: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
  - 'Function' is from 'dart:core'.
 Try calling using ?. instead.
   var localFunctionExplicitCall = nullableFunction.call();

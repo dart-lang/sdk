@@ -66,7 +66,7 @@ class SourceCompilationUnitImpl
 
   late final BuilderFactoryResult _builderFactoryResult;
 
-  final Scope importScope;
+  final NameSpace importScope;
 
   LibraryFeatures? _libraryFeatures;
 

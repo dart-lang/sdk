@@ -1113,9 +1113,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
     FunctionType functionType =
         node.target.function.computeThisFunctionType(Nullability.nonNullable);
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, functionType, node.arguments as ArgumentsImpl,
-        isConst: node.isConst, staticTarget: node.target);
+    InvocationInferenceResult result = inferInvocation(
+        this,
+        typeContext,
+        node.fileOffset,
+        new InvocationTargetFunctionType(functionType),
+        node.arguments as ArgumentsImpl,
+        isConst: node.isConst,
+        staticTarget: node.target);
     SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
       library.checkBoundsInConstructorInvocation(
@@ -1138,8 +1143,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType calleeType =
         node.target.function.computeFunctionType(Nullability.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
+    InvocationInferenceResult result = inferInvocation(
+        this,
+        typeContext,
+        node.fileOffset,
+        new InvocationTargetFunctionType(calleeType),
+        node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     StaticInvocation replacement =
         new StaticInvocation(node.target, node.arguments);
@@ -1392,9 +1401,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType functionType =
         node.target.function.computeThisFunctionType(Nullability.nonNullable);
 
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, functionType, node.arguments as ArgumentsImpl,
-        isConst: node.isConst, staticTarget: node.target);
+    InvocationInferenceResult result = inferInvocation(
+        this,
+        typeContext,
+        node.fileOffset,
+        new InvocationTargetFunctionType(functionType),
+        node.arguments as ArgumentsImpl,
+        isConst: node.isConst,
+        staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     SourceLibraryBuilder library = libraryBuilder;
@@ -1453,9 +1467,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType calleeType =
         _computeAliasedConstructorFunctionType(node.target, typedef);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
-        isConst: node.isConst, staticTarget: node.target);
+    InvocationInferenceResult result = inferInvocation(
+        this,
+        typeContext,
+        node.fileOffset,
+        new InvocationTargetFunctionType(calleeType),
+        node.arguments as ArgumentsImpl,
+        isConst: node.isConst,
+        staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
 
@@ -1515,9 +1534,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType calleeType =
         _computeAliasedFactoryFunctionType(node.target, typedef);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
-        isConst: node.isConst, staticTarget: node.target);
+    InvocationInferenceResult result = inferInvocation(
+        this,
+        typeContext,
+        node.fileOffset,
+        new InvocationTargetFunctionType(calleeType),
+        node.arguments as ArgumentsImpl,
+        isConst: node.isConst,
+        staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     return new ExpressionInferenceResult(
@@ -5013,8 +5037,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           member.function.computeFunctionType(Nullability.nonNullable);
       TypeArgumentsInfo typeArgumentsInfo =
           getTypeArgumentsInfo(node.arguments);
-      InvocationInferenceResult result = inferInvocation(this, typeContext,
-          node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
+      InvocationInferenceResult result = inferInvocation(
+          this,
+          typeContext,
+          node.fileOffset,
+          new InvocationTargetFunctionType(calleeType),
+          node.arguments as ArgumentsImpl,
           staticTarget: node.target);
       StaticInvocation invocation =
           new StaticInvocation(member, node.arguments);
@@ -6274,7 +6302,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             templateArgumentTypeNotAssignableNullabilityNullType);
     right = rightResult.expression;
 
-    FunctionType functionType = equalsTarget.getFunctionType(this);
+    FunctionType functionType =
+        equalsTarget.getFunctionType(this).equalsFunctionType;
     equals = new EqualsCall(left, right,
         functionType: functionType,
         interfaceTarget: equalsTarget.classMember as Procedure)
@@ -8037,7 +8066,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         this,
         const UnknownType(),
         node.fileOffset,
-        functionType,
+        new InvocationTargetFunctionType(functionType),
         node.arguments as ArgumentsImpl,
         skipTypeArgumentInference: true,
         staticTarget: node.target);
@@ -8072,7 +8101,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         this,
         const UnknownType(),
         node.fileOffset,
-        functionType,
+        new InvocationTargetFunctionType(functionType),
         node.arguments as ArgumentsImpl,
         skipTypeArgumentInference: true,
         staticTarget: node.target);
@@ -8281,8 +8310,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType calleeType =
         node.target.function.computeFunctionType(Nullability.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    InvocationInferenceResult result = inferInvocation(this, typeContext,
-        node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
+    InvocationInferenceResult result = inferInvocation(
+        this,
+        typeContext,
+        node.fileOffset,
+        new InvocationTargetFunctionType(calleeType),
+        node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     libraryBuilder.checkBoundsInStaticInvocation(
         node, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
@@ -8330,7 +8363,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         this,
         const UnknownType(),
         node.fileOffset,
-        functionType,
+        new InvocationTargetFunctionType(functionType),
         node.arguments as ArgumentsImpl,
         skipTypeArgumentInference: true,
         staticTarget: node.target);
@@ -9214,7 +9247,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.arguments != null) {
       FunctionType calleeType =
           new FunctionType([], inferredType, Nullability.nonNullable);
-      inferInvocation(this, typeContext, node.fileOffset, calleeType,
+      inferInvocation(
+          this,
+          typeContext,
+          node.fileOffset,
+          new InvocationTargetFunctionType(calleeType),
           node.arguments! as ArgumentsImpl);
     }
     return new ExpressionInferenceResult(inferredType, node);
@@ -10184,7 +10221,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         equalsInvokeTarget.isNever);
 
     node.equalsTarget = equalsInvokeTarget.classMember as Procedure;
-    node.equalsType = equalsInvokeTarget.getFunctionType(this);
+    node.equalsType =
+        equalsInvokeTarget.getFunctionType(this).equalsFunctionType;
 
     assert(checkStack(node, stackBase, [
       /* expression = */ ValueKinds.Expression,
@@ -10479,7 +10517,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(sublistInvokeTarget.isInstanceMember);
 
     node.sublistTarget = sublistInvokeTarget.classMember as Procedure;
-    node.sublistType = sublistInvokeTarget.getFunctionType(this);
+    node.sublistType =
+        sublistInvokeTarget.getFunctionType(this).sublistFunctionType;
 
     ObjectAccessTarget minusTarget = findInterfaceMember(
         lengthType, minusName, node.fileOffset,
@@ -10489,7 +10528,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.minusTarget = minusTarget.classMember as Procedure;
     node.minusType = replaceReturnType(
-        minusTarget.getFunctionType(this),
+        minusTarget.getFunctionType(this).minusFunctionType,
         typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
             lengthType, coreTypes.intNonNullableRawType));
 
@@ -10499,7 +10538,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(indexGetTarget.isInstanceMember);
 
     node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType = indexGetTarget.getFunctionType(this);
+    node.indexGetType =
+        indexGetTarget.getFunctionType(this).indexGetFunctionType;
 
     for (Pattern pattern in node.patterns) {
       if (pattern is RestPattern) {
@@ -10516,7 +10556,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.lengthCheckTarget =
           greaterThanOrEqualTarget.classMember as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget.getFunctionType(this);
+      node.lengthCheckType = greaterThanOrEqualTarget
+          .getFunctionType(this)
+          .greaterThanOrEqualsFunctionType;
     } else if (node.patterns.isEmpty) {
       ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
           lengthType, lessThanOrEqualsName, node.fileOffset,
@@ -10527,7 +10569,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.lengthCheckTarget =
           lessThanOrEqualsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType = lessThanOrEqualsInvokeTarget.getFunctionType(this);
+      node.lengthCheckType = lessThanOrEqualsInvokeTarget
+          .getFunctionType(this)
+          .lessThanOrEqualsFunctionType;
     } else {
       ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
           lengthType, equalsName, node.fileOffset,
@@ -10537,7 +10581,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           equalsInvokeTarget.isObjectMember);
 
       node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType = equalsInvokeTarget.getFunctionType(this);
+      node.lengthCheckType =
+          equalsInvokeTarget.getFunctionType(this).equalsFunctionType;
     }
 
     pushRewrite(replacement ?? node);
@@ -10815,7 +10860,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             invokeTarget.isObjectMember ||
             invokeTarget.isNever);
 
-        node.functionType = invokeTarget.getFunctionType(this);
+        node.functionType =
+            invokeTarget.getFunctionType(this).equalsFunctionType;
         node.accessKind = RelationalAccessKind.Instance;
         node.target = invokeTarget.classMember as Procedure;
         break;
@@ -10825,7 +10871,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case RelationalPatternKind.greaterThanEqual:
         switch (invokeTarget.kind) {
           case ObjectAccessTargetKind.instanceMember:
-            node.functionType = invokeTarget.getFunctionType(this);
+            node.functionType =
+                invokeTarget.getFunctionType(this).lessThanOrEqualsFunctionType;
             node.target = invokeTarget.classMember as Procedure;
             node.accessKind = RelationalAccessKind.Instance;
             break;
@@ -10856,7 +10903,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 node.fileOffset, helper.uri);
           case ObjectAccessTargetKind.extensionMember:
           case ObjectAccessTargetKind.extensionTypeMember:
-            node.functionType = invokeTarget.getFunctionType(this);
+            node.functionType =
+                invokeTarget.getFunctionType(this).relationalFunctionType;
             node.typeArguments = invokeTarget.receiverTypeArguments;
             node.target = invokeTarget.member as Procedure;
             node.accessKind = RelationalAccessKind.Static;
@@ -10941,7 +10989,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(containsKeyTarget.isInstanceMember);
 
     node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
-    node.containsKeyType = containsKeyTarget.getFunctionType(this);
+    node.containsKeyType =
+        containsKeyTarget.getFunctionType(this).containsKeyFunctionType;
 
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
         lookupType, indexGetName, node.fileOffset,
@@ -10949,7 +10998,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(indexGetTarget.isInstanceMember);
 
     node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType = indexGetTarget.getFunctionType(this);
+    node.indexGetType =
+        indexGetTarget.getFunctionType(this).indexGetFunctionType;
 
     assert(checkStack(node, stackBase, [
       /* entries = */ ...repeatedKind(

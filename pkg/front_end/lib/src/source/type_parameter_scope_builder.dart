@@ -342,7 +342,7 @@ class TypeParameterScopeBuilder {
         map[builder.name] = builder;
       }
     }
-    Scope? scope;
+    LookupScope? lookupScope;
     for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
       TypeName typeName = namedTypeBuilder.typeName;
       String? qualifier = typeName.qualifier;
@@ -372,8 +372,8 @@ class TypeParameterScopeBuilder {
                 message.withLocation(
                     namedTypeBuilder.fileUri!, nameOffset, nameLength)));
       } else {
-        scope ??= toScope(null).withTypeVariables(typeVariables);
-        namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
+        lookupScope ??= toLookupScope(typeVariables);
+        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
             namedTypeBuilder.fileUri!, problemReporting);
       }
     }
@@ -392,7 +392,7 @@ class TypeParameterScopeBuilder {
         map[builder.name] = builder;
       }
     }
-    Scope? scope;
+    LookupScope? lookupScope;
     for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
       TypeName typeName = namedTypeBuilder.typeName;
       String? qualifier = typeName.qualifier;
@@ -424,12 +424,20 @@ class TypeParameterScopeBuilder {
                 message.withLocation(
                     namedTypeBuilder.fileUri!, nameOffset, nameLength)));
       } else {
-        scope ??= toScope(null).withStructuralVariables(typeVariables);
-        namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
+        lookupScope ??= toLookupScope(typeVariables);
+        namedTypeBuilder.resolveIn(lookupScope, namedTypeBuilder.charOffset!,
             namedTypeBuilder.fileUri!, problemReporting);
       }
     }
     unresolvedNamedTypes.clear();
+  }
+
+  LookupScope toLookupScope(
+      List<TypeVariableBuilderBase>? typeVariableBuilders) {
+    LookupScope lookupScope = new FixedLookupScope(
+        ScopeKind.typeParameters, name,
+        getables: members, setables: setters);
+    return TypeParameterScope.fromList(lookupScope, typeVariableBuilders);
   }
 
   Scope toScope(Scope? parent,

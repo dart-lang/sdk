@@ -15,6 +15,7 @@ import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart';
 import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
+import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -140,6 +141,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       IndexedClass? referencesFromIndexed,
       LookupScope typeParameterScope,
       Scope memberScope,
+      NameSpace memberNameSpace,
       ConstructorScope constructorScope,
       LibraryBuilder coreLibrary) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
@@ -236,7 +238,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     Builder? customValuesDeclaration =
-        memberScope.lookupLocalMember("values", setter: false);
+        memberNameSpace.lookupLocalMember("values", setter: false);
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
       while (customValuesDeclaration?.next != null) {
@@ -254,7 +256,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration = memberScope
+      Builder? customIndexDeclaration = memberNameSpace
           .lookupLocalMember(restrictedInstanceMemberName, setter: false);
       if (customIndexDeclaration is MemberBuilder &&
           !customIndexDeclaration.isAbstract) {
@@ -412,10 +414,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
     String className = name;
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
-    memberScope.forEachLocalMember((name, member) {
+    memberNameSpace.forEachLocalMember((name, member) {
       members[name] = member as MemberBuilder;
     });
-    memberScope.forEachLocalSetter((name, member) {
+    memberNameSpace.forEachLocalSetter((name, member) {
       setters[name] = member;
     });
 

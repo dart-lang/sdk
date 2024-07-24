@@ -914,7 +914,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 
@@ -940,7 +940,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 
@@ -964,7 +964,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 
@@ -988,7 +988,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 
@@ -1013,7 +1013,7 @@ VariableDeclaration
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
-  declaredElement: <thisLibrary>::<definingUnit>::@variable::x
+  declaredElement: <thisLibrary>::<definingUnit>::@topLevelVariable::x
 ''');
   }
 
