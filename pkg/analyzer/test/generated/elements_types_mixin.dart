@@ -340,12 +340,6 @@ mixin ElementsTypesMixin {
     var uri = Uri.parse(uriStr);
     var source = _MockSource(uri);
 
-    var definingUnit = CompilationUnitElementImpl(
-      source: source,
-      librarySource: source,
-      lineInfo: LineInfo([0]),
-    );
-
     var library = LibraryElementImpl(
       analysisContext,
       analysisSession,
@@ -354,6 +348,13 @@ mixin ElementsTypesMixin {
       0,
       FeatureSet.latestLanguageVersion(),
     );
+
+    var definingUnit = CompilationUnitElementImpl(
+      library: library,
+      source: source,
+      lineInfo: LineInfo([0]),
+    );
+
     library.definingCompilationUnit = definingUnit;
     library.typeProvider = typeSystem.typeProvider;
     library.typeSystem = typeSystem;

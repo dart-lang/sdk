@@ -726,13 +726,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   LineInfo lineInfo;
 
-  /// The source of the library containing this compilation unit.
-  ///
-  /// This is the same as the source of the containing [LibraryElement],
-  /// except that it does not require the containing [LibraryElement] to be
-  /// computed.
   @override
-  final Source librarySource;
+  final LibraryElementImpl library;
+
+  // TODO(scheglov): Remove after removing [LibraryAugmentationElementImpl].
+  late final LibraryOrAugmentationElementImpl libraryOrAugmentationElement;
 
   /// The libraries exported by this unit.
   List<LibraryExportElementImpl> _libraryExports =
@@ -781,8 +779,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
   CompilationUnitElementImpl({
+    required this.library,
     required this.source,
-    required this.librarySource,
     required this.lineInfo,
   }) : super(null, -1);
 
@@ -829,7 +827,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   LibraryOrAugmentationElement get enclosingElement =>
-      super.enclosingElement as LibraryOrAugmentationElement;
+      libraryOrAugmentationElement;
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -939,6 +937,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  Source get librarySource => library.source;
+
+  @override
   List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
@@ -965,6 +966,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       part.enclosingElement = this;
       var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
+        uri.unit.libraryOrAugmentationElement = libraryOrAugmentationElement;
         uri.unit.enclosingElement = this;
       }
     }
@@ -4582,6 +4584,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       part.enclosingElement = this;
       var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
+        uri.unit.libraryOrAugmentationElement = this;
         uri.unit.enclosingElement = this;
       }
     }
@@ -5009,9 +5012,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   /// Set the compilation unit that defines this library to the given
   ///  compilation[unit].
-  set definingCompilationUnit(CompilationUnitElement unit) {
-    assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
-    (unit as CompilationUnitElementImpl).enclosingElement = this;
+  set definingCompilationUnit(CompilationUnitElementImpl unit) {
+    unit.libraryOrAugmentationElement = this;
+    unit.enclosingElement = this;
     _definingCompilationUnit = unit;
   }
 
