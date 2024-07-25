@@ -486,7 +486,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           isClassMember || isExtensionMember || isExtensionTypeMember
               ? parent as DeclarationBuilder
               : null;
-      Scope parentScope =
+      LookupScope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
         MetadataBuilder.buildAnnotations(

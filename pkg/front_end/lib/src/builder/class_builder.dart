@@ -215,9 +215,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = isSetter
-        ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
-        : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
+    Builder? declaration = normalizeLookup(
+        getable: nameSpace.lookupLocalMember(name, setter: false),
+        setable: nameSpace.lookupLocalMember(name, setter: true),
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: this.name,
+        isSetter: isSetter,
+        forStaticAccess: true);
     if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,

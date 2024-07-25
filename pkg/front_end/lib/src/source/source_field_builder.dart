@@ -15,7 +15,7 @@ import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 import '../base/problems.dart' show internalProblem;
-import '../base/scope.dart' show Scope;
+import '../base/scope.dart' show LookupScope;
 import '../builder/declaration_builders.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
@@ -478,7 +478,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
                 isClassMember &&
                 classBuilder!.declaresConstConstructor)) &&
         _constInitializerToken != null) {
-      Scope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
+      LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               libraryBuilder,

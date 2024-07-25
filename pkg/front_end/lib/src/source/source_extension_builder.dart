@@ -33,8 +33,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
-  @override
-  final Scope scope;
+  final Scope _scope;
 
   @override
   final ConstructorScope constructorScope;
@@ -57,13 +56,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.typeParameters,
       this.onType,
       this.typeParameterScope,
-      this.scope,
+      Scope scope,
       SourceLibraryBuilder parent,
       int startOffset,
       int nameOffset,
       int endOffset,
       Extension? referenceFrom)
-      : _extension = new Extension(
+      : _scope = scope,
+        _extension = new Extension(
             name: extensionName.name,
             fileUri: parent.fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
@@ -77,7 +77,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  NameSpace get nameSpace => scope;
+  LookupScope get scope => _scope;
+
+  @override
+  NameSpace get nameSpace => _scope;
 
   @override
   SourceLibraryBuilder get libraryBuilder =>

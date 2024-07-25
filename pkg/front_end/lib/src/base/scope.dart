@@ -114,15 +114,70 @@ abstract class LookupScope {
   Builder? lookupSetter(String name, int charOffset, Uri fileUri);
 }
 
+/// Returns the correct value of the [getable] and [setable] found as a lookup
+/// of [name].
+///
+/// If [isSetter] is `true`, the lookup intends to find a setable. Otherwise it
+/// intends to find a getable.
+///
+/// This ensures that an [AmbiguousBuilder] is returned if the found builder is
+/// a duplicate.
+///
+/// If [forStaticAccess] is `true`, `null` is returned if the found builder is
+/// an instance member.
+Builder? normalizeLookup(
+    {required Builder? getable,
+    required Builder? setable,
+    required String name,
+    required int charOffset,
+    required Uri fileUri,
+    required String classNameOrDebugName,
+    required bool isSetter,
+    bool forStaticAccess = false}) {
+  Builder? thisBuilder;
+  Builder? otherBuilder;
+  if (isSetter) {
+    thisBuilder = setable;
+    otherBuilder = getable;
+  } else {
+    thisBuilder = getable;
+    otherBuilder = setable;
+  }
+  Builder? builder = _normalizeBuilderLookup(thisBuilder,
+      name: name,
+      charOffset: charOffset,
+      fileUri: fileUri,
+      classNameOrDebugName: classNameOrDebugName,
+      forStaticAccess: forStaticAccess);
+  if (builder != null) {
+    return builder;
+  }
+  builder = _normalizeCrossLookup(
+      _normalizeBuilderLookup(otherBuilder,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          forStaticAccess: forStaticAccess),
+      name: name,
+      charOffset: charOffset,
+      fileUri: fileUri);
+  return builder;
+}
+
 /// Returns the correct value of [builder] found as a lookup of [name].
 ///
-/// This ensures that an [AmbiguousBuilder] is return of the found builder is
+/// This ensures that an [AmbiguousBuilder] is returned if the found builder is
 /// a duplicate.
-Builder? normalizeLookup(Builder? builder,
+///
+/// If [forStaticAccess] is `true`, `null` is returned if the found builder is
+/// an instance member.
+Builder? _normalizeBuilderLookup(Builder? builder,
     {required String name,
     required int charOffset,
     required Uri fileUri,
-    required String classNameOrDebugName}) {
+    required String classNameOrDebugName,
+    required bool forStaticAccess}) {
   if (builder == null) return null;
   if (builder.next != null) {
     return new AmbiguousBuilder(
@@ -134,6 +189,8 @@ Builder? normalizeLookup(Builder? builder,
         builder,
         charOffset,
         fileUri);
+  } else if (forStaticAccess && builder.isDeclarationInstanceMember) {
+    return null;
   } else if (builder is MemberBuilder && builder.isConflictingSetter) {
     // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
     return null;
@@ -148,7 +205,7 @@ Builder? normalizeLookup(Builder? builder,
 ///
 /// This ensures that an [AccessErrorBuilder] is returned if a non-problem
 /// builder was found.
-Builder? normalizeCrossLookup(Builder? builder,
+Builder? _normalizeCrossLookup(Builder? builder,
     {required String name, required int charOffset, required Uri fileUri}) {
   if (builder != null && !builder.hasProblem) {
     return new AccessErrorBuilder(name, builder, charOffset, fileUri);
@@ -161,22 +218,26 @@ mixin LookupScopeMixin implements LookupScope {
 
   Builder? lookupIn(
       String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
-    return normalizeLookup(getables[name],
+    return normalizeLookup(
+        getable: getables[name],
+        setable: null,
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName);
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: false);
   }
 
   Builder? lookupSetterIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder>? getables) {
-    Builder? builder;
-    if (getables != null) {
-      builder = lookupIn(name, charOffset, fileUri, getables);
-      builder = normalizeCrossLookup(builder,
-          name: name, charOffset: charOffset, fileUri: fileUri);
-    }
-    return builder;
+    return normalizeLookup(
+        getable: getables?[name],
+        setable: null,
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: true);
   }
 }
 
@@ -198,53 +259,27 @@ class NameSpaceLookupScope implements LookupScope {
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        _nameSpace.lookupLocalMember(name, setter: false),
+        getable: _nameSpace.lookupLocalMember(name, setter: false),
+        setable: _nameSpace.lookupLocalMember(name, setter: true),
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName);
-    if (builder != null) {
-      return builder;
-    }
-    builder = normalizeCrossLookup(
-        normalizeLookup(_nameSpace.lookupLocalMember(name, setter: true),
-            name: name,
-            charOffset: charOffset,
-            fileUri: fileUri,
-            classNameOrDebugName: classNameOrDebugName),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri);
-    if (builder != null) {
-      return builder;
-    }
-    return _parent?.lookup(name, charOffset, fileUri);
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: false);
+    return builder ?? _parent?.lookup(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
     Builder? builder = normalizeLookup(
-        _nameSpace.lookupLocalMember(name, setter: true),
+        getable: _nameSpace.lookupLocalMember(name, setter: false),
+        setable: _nameSpace.lookupLocalMember(name, setter: true),
         name: name,
         charOffset: charOffset,
         fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName);
-    if (builder != null) {
-      return builder;
-    }
-    builder = normalizeCrossLookup(
-        normalizeLookup(_nameSpace.lookupLocalMember(name, setter: false),
-            name: name,
-            charOffset: charOffset,
-            fileUri: fileUri,
-            classNameOrDebugName: classNameOrDebugName),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri);
-    if (builder != null) {
-      return builder;
-    }
-    return _parent?.lookupSetter(name, charOffset, fileUri);
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: true);
+    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
 }
 
@@ -309,58 +344,28 @@ class FixedLookupScope implements LookupScope {
 
   @override
   Builder? lookup(String name, int charOffset, Uri fileUri) {
-    Builder? builder = null;
-    if (_getables != null) {
-      builder = normalizeLookup(_getables[name],
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName);
-      if (builder != null) {
-        return builder;
-      }
-    }
-    if (_setables != null) {
-      builder = normalizeLookup(_setables[name],
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName);
-      builder = normalizeCrossLookup(builder,
-          name: name, charOffset: charOffset, fileUri: fileUri);
-      if (builder != null) {
-        return builder;
-      }
-    }
-    return _parent?.lookup(name, charOffset, fileUri);
+    Builder? builder = normalizeLookup(
+        getable: _getables?[name],
+        setable: _setables?[name],
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: false);
+    return builder ?? _parent?.lookup(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetter(String name, int charOffset, Uri fileUri) {
-    Builder? builder = null;
-    if (_setables != null) {
-      builder = normalizeLookup(_setables[name],
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName);
-      if (builder != null) {
-        return builder;
-      }
-    }
-    if (_getables != null) {
-      builder = normalizeLookup(_getables[name],
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName);
-      builder = normalizeCrossLookup(builder,
-          name: name, charOffset: charOffset, fileUri: fileUri);
-      if (builder != null) {
-        return builder;
-      }
-    }
-    return _parent?.lookupSetter(name, charOffset, fileUri);
+    Builder? builder = normalizeLookup(
+        getable: _getables?[name],
+        setable: _setables?[name],
+        name: name,
+        charOffset: charOffset,
+        fileUri: fileUri,
+        classNameOrDebugName: classNameOrDebugName,
+        isSetter: true);
+    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
 }
 
@@ -1762,7 +1767,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
 
   MergedClassMemberScope(SourceClassBuilder origin)
       : _originConstructorScope = origin.constructorScope,
-        super(origin, origin.scope);
+        super(origin, origin.nameSpace);
 
   @override
   SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
@@ -1855,9 +1860,9 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   // TODO(johnniwinther): Check for conflicts between constructors and class
   //  members.
   void addAugmentationScope(SourceClassBuilder builder) {
-    _addAugmentationScope(builder, builder.scope,
-        augmentations: builder.scope.augmentations,
-        setterAugmentations: builder.scope.setterAugmentations,
+    _addAugmentationScope(builder, builder.nameSpace,
+        augmentations: builder.augmentations,
+        setterAugmentations: builder.setterAugmentations,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
     _addAugmentationConstructorScope(builder.constructorScope,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);

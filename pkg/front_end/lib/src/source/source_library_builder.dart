@@ -100,6 +100,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final Scope _scope;
 
+  final NameSpace _nameSpace;
+
   final NameSpace _exportScope;
 
   @override
@@ -228,6 +230,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
         importScope: importScope,
         scope: scope,
+        nameSpace: scope,
         exportScope: exportScope,
         origin: origin,
         library: library,
@@ -248,8 +251,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
-      required Scope importScope,
+      required NameSpace importScope,
       required Scope scope,
+      required NameSpace nameSpace,
       required NameSpace exportScope,
       required SourceLibraryBuilder? origin,
       required this.library,
@@ -264,6 +268,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
         _scope = scope,
+        _nameSpace = nameSpace,
         _exportScope = exportScope,
         super(fileUri) {
     assert(
@@ -368,7 +373,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Scope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _scope;
+  NameSpace get nameSpace => _nameSpace;
 
   @override
   NameSpace get exportScope => _exportScope;

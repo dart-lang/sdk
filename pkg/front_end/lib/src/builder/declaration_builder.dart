@@ -5,7 +5,7 @@
 part of 'declaration_builders.dart';
 
 abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
-  Scope get scope;
+  LookupScope get scope;
 
   NameSpace get nameSpace;
 
