@@ -508,15 +508,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
-    Scope enumScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: typeParameterScope,
-        debugName: "enum $name",
-        isModifiable: false);
-    NameSpace enumNameSpace = enumScope;
+    LookupScope typeParameterScope =
+        TypeParameterScope.fromList(scope, typeVariables);
+    NameSpace enumNameSpace =
+        new NameSpaceImpl(getables: members, setables: setters);
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -547,7 +542,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charEndOffset,
         referencesFromIndexedClass,
         typeParameterScope,
-        enumScope,
         enumNameSpace,
         new ConstructorScope(name, constructors),
         loader.coreLibrary);
@@ -670,14 +664,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
-    Scope classScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: typeParameterScope,
-        debugName: "class $className",
-        isModifiable: false);
+    LookupScope typeParameterScope =
+        TypeParameterScope.fromList(scope, typeVariables);
+    NameSpace classNameSpace =
+        new NameSpaceImpl(getables: members, setables: setters);
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
@@ -712,7 +702,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // here.
         null,
         typeParameterScope,
-        classScope,
+        classNameSpace,
         constructorScope,
         _parent,
         new List<ConstructorReferenceBuilder>.of(_constructorReferences),
@@ -1070,7 +1060,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               indexedLibrary!.lookupIndexedClass(fullname);
         }
 
-        Scope typeParameterScope = scope.withTypeVariables(typeVariables);
+        LookupScope typeParameterScope =
+            TypeParameterScope.fromList(scope, typeVariables);
+        NameSpace nameSpace = new NameSpaceImpl();
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
@@ -1086,13 +1078,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                     : null,
             null, // No `on` clause types.
             typeParameterScope,
-            new Scope(
-                kind: ScopeKind.declaration,
-                local: <String, MemberBuilder>{},
-                setters: <String, MemberBuilder>{},
-                parent: typeParameterScope,
-                debugName: "mixin $fullname ",
-                isModifiable: false),
+            nameSpace,
             new ConstructorScope(fullname, <String, MemberBuilder>{}),
             _parent,
             <ConstructorReferenceBuilder>[],
@@ -1164,14 +1150,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
-    Scope classScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: typeParameterScope,
-        debugName: "extension $name",
-        isModifiable: false);
+    LookupScope typeParameterScope =
+        TypeParameterScope.fromList(scope, typeVariables);
+    NameSpace extensionNameSpace =
+        new NameSpaceImpl(getables: members, setables: setters);
 
     Extension? referenceFrom;
     ExtensionName extensionName = declaration.extensionName!;
@@ -1186,7 +1168,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeVariables,
         type,
         typeParameterScope,
-        classScope,
+        extensionNameSpace,
         _parent,
         startOffset,
         nameOffset,
@@ -1252,14 +1234,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    Scope typeParameterScope = scope.withTypeVariables(typeVariables);
-    Scope memberScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: typeParameterScope,
-        debugName: "extension type $name",
-        isModifiable: false);
+    LookupScope typeParameterScope =
+        TypeParameterScope.fromList(scope, typeVariables);
+    NameSpace extensionTypeNameSpace =
+        new NameSpaceImpl(getables: members, setables: setters);
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
@@ -1288,7 +1266,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             typeVariables,
             interfaces,
             typeParameterScope,
-            memberScope,
+            extensionTypeNameSpace,
             constructorScope,
             _parent,
             new List<ConstructorReferenceBuilder>.of(_constructorReferences),

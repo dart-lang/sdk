@@ -56,7 +56,9 @@ class SourceExtensionTypeDeclarationBuilder
 
   MergedClassMemberScope? _mergedScope;
 
-  final Scope _scope;
+  final LookupScope _scope;
+
+  final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -81,7 +83,7 @@ class SourceExtensionTypeDeclarationBuilder
       this.typeParameters,
       this.interfaceBuilders,
       this.typeParameterScope,
-      Scope scope,
+      NameSpace nameSpace,
       this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
@@ -90,7 +92,10 @@ class SourceExtensionTypeDeclarationBuilder
       int endOffset,
       this.indexedContainer,
       this.representationFieldBuilder)
-      : _scope = scope,
+      : _nameSpace = nameSpace,
+        _scope = new NameSpaceLookupScope(
+            nameSpace, ScopeKind.declaration, "extension type $name",
+            parent: typeParameterScope),
         _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
@@ -104,7 +109,7 @@ class SourceExtensionTypeDeclarationBuilder
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _scope;
+  NameSpace get nameSpace => _nameSpace;
 
   @override
   SourceLibraryBuilder get libraryBuilder =>

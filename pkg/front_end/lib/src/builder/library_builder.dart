@@ -467,7 +467,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     } else {
       if (existing != null) {
         Builder result = computeAmbiguousDeclarationForScope(
-            this, scope, name, existing, member,
+            this, nameSpace, name, existing, member,
             uriOffset: uriOffset, isExport: true);
         exportScope.addLocalMember(name, result, setter: member.isSetter);
         return result != existing;
@@ -489,7 +489,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
           -1,
           null);
     }
-    Builder? cls = (bypassLibraryPrivacy ? scope : exportScope)
+    Builder? cls = (bypassLibraryPrivacy ? nameSpace : exportScope)
         .lookupLocalMember(className, setter: false);
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
