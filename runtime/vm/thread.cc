@@ -368,13 +368,14 @@ bool Thread::HasActiveState() {
   return false;
 }
 
-void Thread::EnterIsolate(Isolate* isolate) {
+void Thread::EnterIsolate(Isolate* isolate, bool loop_unpause) {
   const bool is_resumable = isolate->mutator_thread() != nullptr;
 
   // To let VM's thread pool (if we run on it) know that this thread is
   // occupying a mutator again (decreases its max size).
   const bool is_nested_reenter =
-      (is_resumable && isolate->mutator_thread()->top_exit_frame_info() != 0);
+      is_resumable &&
+      (isolate->mutator_thread()->top_exit_frame_info() != 0 || loop_unpause);
 
   auto group = isolate->group();
   if (!(is_nested_reenter && isolate->mutator_thread()->OwnsSafepoint())) {
@@ -409,12 +410,17 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ResumeDartMutatorThreadInternal(thread);
 }
 
-static bool ShouldSuspend(bool isolate_shutdown, Thread* thread) {
+static bool ShouldSuspend(bool isolate_shutdown,
+                          bool loop_pause,
+                          Thread* thread) {
   // Must destroy thread.
   if (isolate_shutdown) return false;
 
   // Must retain thread.
   if (thread->HasActiveState() || thread->OwnsSafepoint()) return true;
+
+  // Prefer retain thread.
+  if (loop_pause) return true;
 
   // Could do either. When there are few isolates suspend to avoid work
   // entering and leaving. When there are many isolate, destroy the thread to
@@ -425,7 +431,7 @@ static bool ShouldSuspend(bool isolate_shutdown, Thread* thread) {
          kMaxSuspendedThreads;
 }
 
-void Thread::ExitIsolate(bool isolate_shutdown) {
+void Thread::ExitIsolate(bool isolate_shutdown, bool loop_pause) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   ASSERT(thread->IsDartMutatorThread());
@@ -451,8 +457,10 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   // makes entering/exiting quite fast as it mainly boils down to safepoint
   // transitions. Though any operation that walks over all active threads will
   // see this thread as well (e.g. safepoint operations).
-  const bool is_nested_exit = thread->top_exit_frame_info() != 0;
-  if (ShouldSuspend(isolate_shutdown, thread)) {
+  const bool is_nested_exit =
+      (thread->top_exit_frame_info() != 0) || loop_pause;
+  const bool owns_safepoint = thread->OwnsSafepoint();
+  if (ShouldSuspend(isolate_shutdown, loop_pause, thread)) {
     const auto tag =
         isolate->is_runnable() ? VMTag::kIdleTagId : VMTag::kLoadWaitTagId;
     SuspendDartMutatorThreadInternal(thread, tag);
@@ -473,7 +481,7 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   // To let VM's thread pool (if we run on it) know that this thread is
   // occupying a mutator again (decreases its max size).
   ASSERT(!(isolate_shutdown && is_nested_exit));
-  if (!(is_nested_exit && thread->OwnsSafepoint())) {
+  if (!(is_nested_exit && owns_safepoint)) {
     group->DecreaseMutatorCount(isolate, is_nested_exit);
   }
 }

@@ -961,7 +961,7 @@ var uFuture = () async => await fFuture();
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     dart:async
       enclosingElement: <thisLibrary>
   definingUnit
@@ -1786,7 +1786,7 @@ var x = new C().f;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -1890,7 +1890,7 @@ var x = new C().f;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -1933,7 +1933,7 @@ var x = new C().f;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -2037,7 +2037,7 @@ var x = new C().f;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
   definingUnit
@@ -2464,7 +2464,7 @@ var v_async_returnFuture = () async => vFuture;
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     dart:async
       enclosingElement: <thisLibrary>
   definingUnit
@@ -8791,7 +8791,7 @@ class A2 extends A1 {
     checkElementText(library, r'''
 library
   reference: <thisLibrary>
-  imports
+  libraryImports
     package:test/other.dart
       enclosingElement: <thisLibrary>
   definingUnit

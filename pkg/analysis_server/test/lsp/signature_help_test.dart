@@ -189,6 +189,30 @@ augment class Foo {
     );
   }
 
+  Future<void> test_callableClass() async {
+    var content = '''
+class Foo {
+  /// Does foo.
+  int call(String s, int i) {
+    var foo = Foo();
+    return foo(^);
+  }
+}
+''';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+    );
+  }
+
   Future<void> test_dartDocMacro() async {
     setSignatureHelpContentFormat(null);
 
@@ -355,6 +379,50 @@ foo(String s, int i) {
     // We say we prefer PlainText as a client, but since we only really
     // support Markdown and the client supports it, we expect the server
     // to provide Markdown.
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+    );
+  }
+
+  Future<void> test_functionExpression_local() async {
+    var content = '''
+
+void f() {
+  var foo = (String s, int i) => s;
+  foo(^);
+}
+''';
+    var expectedLabel = 'foo(String s, int i)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      null, // expectedDoc, not dartDocs on local vars.
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+    );
+  }
+
+  Future<void> test_functionExpression_topLevel() async {
+    var content = '''
+/// Does foo.
+var foo = (String s, int i) => s;
+
+void f() {
+  foo(^);
+}
+''';
+    var expectedLabel = 'foo(String s, int i)';
+    var expectedDoc = 'Does foo.';
 
     await _expectSignature(
       content,
