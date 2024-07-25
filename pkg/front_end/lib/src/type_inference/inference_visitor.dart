@@ -42,6 +42,7 @@ import '../kernel/collections.dart'
         ForMapEntry,
         IfElement,
         IfMapEntry,
+        NullAwareElement,
         SpreadElement,
         SpreadMapEntry,
         convertToElement;
@@ -2389,6 +2390,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(element.elementType!, replacement);
   }
 
+  ExpressionInferenceResult _inferNullAwareElement(
+      NullAwareElement element,
+      DartType inferredTypeArgument,
+      Map<TreeNode, DartType> inferredSpreadTypes,
+      Map<Expression, DartType> inferredConditionTypes) {
+    // TODO(cstefantsova): Implement type inference for null-aware elements.
+    return new ExpressionInferenceResult(const DynamicType(), element);
+  }
+
   ExpressionInferenceResult _inferIfElement(
       IfElement element,
       DartType inferredTypeArgument,
@@ -2678,6 +2688,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (element is SpreadElement) {
       return _inferSpreadElement(element, inferredTypeArgument,
           inferredSpreadTypes, inferredConditionTypes);
+    } else if (element is NullAwareElement) {
+      return _inferNullAwareElement(element, inferredTypeArgument,
+          inferredSpreadTypes, inferredConditionTypes);
     } else if (element is IfElement) {
       return _inferIfElement(element, inferredTypeArgument, inferredSpreadTypes,
           inferredConditionTypes);
@@ -2731,6 +2744,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             item.expression);
         item.expression = expression..parent = item;
       }
+    } else if (item is NullAwareElement) {
+      checkElement(item.expression, item, typeArgument, inferredSpreadTypes,
+          inferredConditionTypes);
     } else if (item is IfElement) {
       checkElement(item.then, item, typeArgument, inferredSpreadTypes,
           inferredConditionTypes);
@@ -2974,6 +2990,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required bool isSet}) {
     if (element is SpreadElement) {
       _translateSpreadElement(element, receiverType, elementType, result, body,
+          isSet: isSet);
+    } else if (element is NullAwareElement) {
+      _translateNullAwareElement(
+          element, receiverType, elementType, result, body,
           isSet: isSet);
     } else if (element is IfElement) {
       _translateIfElement(element, receiverType, elementType, result, body,
@@ -3242,6 +3262,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       body.add(statement);
     }
+  }
+
+  void _translateNullAwareElement(
+      NullAwareElement element,
+      InterfaceType receiverType,
+      DartType elementType,
+      VariableDeclaration result,
+      List<Statement> body,
+      {required bool isSet}) {
+    // The code below lowers null-aware elements into series of statements. For
+    // example, the null-aware element in the literal `<String>[?expr]` will be
+    // lowered into the following:
+    //
+    //   String? #temp = expr as String?;
+    //   if (#temp != null) {
+    //     #t.add(#temp{String});
+    //   }
+    //
+    // In that example `#t` is the collection literal being generated, and
+    // `#temp{String}` represents the promotion of the variable `#temp` to the
+    // non-nullable type `String`.
+    //
+    // TODO(cstefantsova): Verify the static type of [element.expression] is
+    // checked by the type inference by now, and add an assert and remove the
+    // cast if that's so.
+
+    Expression value = element.expression;
+    DartType nullableElementType =
+        elementType.withDeclaredNullability(Nullability.nullable);
+    VariableDeclaration temp = _createVariable(
+        _createImplicitAs(
+            element.expression.fileOffset, value, nullableElementType),
+        nullableElementType);
+    body.add(temp);
+
+    Statement statement = _createIf(
+        temp.fileOffset,
+        _createEqualsNull(_createVariableGet(temp), notEquals: true),
+        _createExpressionStatement(_createAdd(
+            _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+            receiverType,
+            _createNullCheckedVariableGet(temp),
+            isSet: isSet)));
+    body.add(statement);
   }
 
   Expression _translateListLiteral(ListLiteral node) {
@@ -3690,6 +3754,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         } else {
           parts.add(spreadExpression);
         }
+      } else if (element is NullAwareElement) {
+        if (currentPart != null) {
+          parts.add(makeLiteral(node.fileOffset, currentPart));
+          currentPart = null;
+        }
+        VariableDeclaration temp = _createVariable(element.expression,
+            elementType.withDeclaredNullability(Nullability.nullable));
+        parts.add(_createNullAwareGuard(element.fileOffset, temp,
+            makeLiteral(element.fileOffset, []), iterableType,
+            nullCheckedValue: makeLiteral(
+                element.fileOffset, [_createNullCheckedVariableGet(temp)])));
       } else if (element is IfElement) {
         // Coverage-ignore-block(suite): Not run.
         if (currentPart != null) {
@@ -4003,14 +4078,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   Let _createNullAwareGuard(int fileOffset, VariableDeclaration variable,
-      Expression defaultValue, DartType type) {
+      Expression defaultValue, DartType type,
+      {Expression? nullCheckedValue}) {
     return new Let(
         variable,
         _createConditionalExpression(
             fileOffset,
             _createEqualsNull(_createVariableGet(variable)),
             defaultValue,
-            _createNullCheckedVariableGet(variable),
+            nullCheckedValue ?? _createNullCheckedVariableGet(variable),
             type))
       ..fileOffset = fileOffset;
   }

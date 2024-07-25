@@ -74,6 +74,14 @@ class NameSpaceImpl implements NameSpace {
   Map<String, MemberBuilder>? _setables;
   Set<ExtensionBuilder>? _extensions;
 
+  NameSpaceImpl(
+      {Map<String, Builder>? getables,
+      Map<String, MemberBuilder>? setables,
+      Set<ExtensionBuilder>? extensions})
+      : _getables = getables,
+        _setables = setables,
+        _extensions = extensions;
+
   @override
   void addLocalMember(String name, Builder member, {required bool setter}) {
     if (setter) {

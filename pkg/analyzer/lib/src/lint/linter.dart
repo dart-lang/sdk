@@ -37,61 +37,6 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
-abstract final class Category {
-  /// A category of rules that help to minimize binary size.
-  static const String binarySize = 'binary size';
-
-  /// A category of rules that encourage brevity in the source code.
-  static const String brevity = 'brevity';
-
-  /// A category of rules that help to maintain documentation comments.
-  static const String documentationCommentMaintenance =
-      'documentation comment maintenance';
-
-  /// A category of rules that align with the Effective Dart style guide.
-  static const String effectiveDart = 'effective dart';
-
-  /// A category representing possible coding errors.
-  // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
-  // back to this one).
-  static const String errors = 'errors';
-
-  /// A category of rules that protect against error-prone code.
-  static const String errorProne = 'error-prone';
-
-  /// A category of rules that help to write Flutter code.
-  static const String flutter = 'flutter';
-
-  /// A category of rules that promote language feature usage.
-  static const String languageFeatureUsage = 'language feature usage';
-
-  /// A category of rules that protect against possibly memory-leaking code.
-  static const String memoryLeaks = 'memory leaks';
-
-  /// A category of rules that protect against non-performant code.
-  static const String nonPerformant = 'non-performant';
-
-  /// A category representing Pub-related rules.
-  static const String pub = 'pub';
-
-  /// A category of rules that promote a healthy public interface.
-  static const String publicInterface = 'public interface';
-
-  /// A category representing matters of style, largely derived from Effective
-  /// Dart.
-  static const String style = 'style';
-
-  /// A category of rules that protect against code that probably doesn't do
-  /// what you think it does, or that shouldn't be used as it is.
-  static const String unintentional = 'unintentional';
-
-  /// A category of rules that protect against unused code.
-  static const String unusedCode = 'unused code';
-
-  /// A category of rules that help to write code deployed to the web.
-  static const String web = 'web';
-}
-
 /// The result of attempting to evaluate an expression as a constant.
 final class LinterConstantEvaluationResult {
   /// The value of the expression, or `null` if has [errors].
@@ -379,6 +324,61 @@ abstract class LintRule {
     );
     reporter.reportError(error);
   }
+}
+
+abstract final class LintRuleCategory {
+  /// A category of rules that help to minimize binary size.
+  static const String binarySize = 'binary size';
+
+  /// A category of rules that encourage brevity in the source code.
+  static const String brevity = 'brevity';
+
+  /// A category of rules that help to maintain documentation comments.
+  static const String documentationCommentMaintenance =
+      'documentation comment maintenance';
+
+  /// A category of rules that align with the Effective Dart style guide.
+  static const String effectiveDart = 'effective dart';
+
+  /// A category representing possible coding errors.
+  // TODO(srawlins): Hopefully deprecate this (or just rename `error_prone`
+  // back to this one).
+  static const String errors = 'errors';
+
+  /// A category of rules that protect against error-prone code.
+  static const String errorProne = 'error-prone';
+
+  /// A category of rules that help to write Flutter code.
+  static const String flutter = 'flutter';
+
+  /// A category of rules that promote language feature usage.
+  static const String languageFeatureUsage = 'language feature usage';
+
+  /// A category of rules that protect against possibly memory-leaking code.
+  static const String memoryLeaks = 'memory leaks';
+
+  /// A category of rules that protect against non-performant code.
+  static const String nonPerformant = 'non-performant';
+
+  /// A category representing Pub-related rules.
+  static const String pub = 'pub';
+
+  /// A category of rules that promote a healthy public interface.
+  static const String publicInterface = 'public interface';
+
+  /// A category representing matters of style, largely derived from Effective
+  /// Dart.
+  static const String style = 'style';
+
+  /// A category of rules that protect against code that probably doesn't do
+  /// what you think it does, or that shouldn't be used as it is.
+  static const String unintentional = 'unintentional';
+
+  /// A category of rules that protect against unused code.
+  static const String unusedCode = 'unused code';
+
+  /// A category of rules that help to write code deployed to the web.
+  static const String web = 'web';
 }
 
 /// Provides access to information needed by lint rules that is not available

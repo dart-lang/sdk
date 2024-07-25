@@ -56,7 +56,11 @@ class AvoidWebLibrariesInFlutter extends LintRule {
             name: 'avoid_web_libraries_in_flutter',
             description: _desc,
             details: _details,
-            categories: {Category.errorProne, Category.flutter, Category.web});
+            categories: {
+              LintRuleCategory.errorProne,
+              LintRuleCategory.flutter,
+              LintRuleCategory.web
+            });
 
   @override
   LintCode get lintCode => code;

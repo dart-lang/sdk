@@ -43,7 +43,7 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
             name: 'missing_whitespace_between_adjacent_strings',
             description: _desc,
             details: _details,
-            categories: {Category.errorProne});
+            categories: {LintRuleCategory.errorProne});
 
   @override
   LintCode get lintCode => code;

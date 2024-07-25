@@ -51,7 +51,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
             // TODO(srawlins): This rule has nothing to do with style. It is to
             // reduce runtime memory usage. But we don't have a Category for
             // that yet.
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

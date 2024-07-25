@@ -157,7 +157,7 @@ class TestRule extends LintRule {
           name: 'test_rule',
           description: '',
           details: '... tl;dr ...',
-          categories: {Category.errors},
+          categories: {LintRuleCategory.errors},
         );
 
   @override

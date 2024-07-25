@@ -127,7 +127,7 @@ class IterableContainsUnrelatedType extends LintRule {
           name: 'iterable_contains_unrelated_type',
           description: _desc,
           details: _details,
-          categories: {Category.errors},
+          categories: {LintRuleCategory.errors},
           state: State.removed(since: dart3_3),
         );
 

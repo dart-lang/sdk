@@ -76,7 +76,10 @@ class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
             name: 'avoid_equals_and_hash_code_on_mutable_classes',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
   LintCode get lintCode => code;

@@ -84,7 +84,7 @@ class OmitObviousLocalVariableTypes extends LintRule {
             description: _desc,
             details: _details,
             state: State.experimental(),
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];

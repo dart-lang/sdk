@@ -43,7 +43,7 @@ class SortUnnamedConstructorsFirst extends LintRule {
             name: 'sort_unnamed_constructors_first',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

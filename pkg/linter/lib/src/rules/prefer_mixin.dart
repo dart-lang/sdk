@@ -41,7 +41,10 @@ class PreferMixin extends LintRule {
             name: 'prefer_mixin',
             description: _desc,
             details: _details,
-            categories: {Category.languageFeatureUsage, Category.style});
+            categories: {
+              LintRuleCategory.languageFeatureUsage,
+              LintRuleCategory.style
+            });
 
   @override
   LintCode get lintCode => code;

@@ -53,7 +53,7 @@ class PreferContains extends LintRule {
             name: 'prefer_contains',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<LintCode> get lintCodes => [alwaysFalse, alwaysTrue, useContains];

@@ -42,7 +42,7 @@ class UnnecessaryNullInIfNullOperators extends LintRule {
             name: 'unnecessary_null_in_if_null_operators',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

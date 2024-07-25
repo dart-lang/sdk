@@ -45,7 +45,7 @@ class PreferIsNotEmpty extends LintRule {
             name: 'prefer_is_not_empty',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

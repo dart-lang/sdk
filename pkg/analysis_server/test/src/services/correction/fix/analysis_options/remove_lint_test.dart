@@ -25,7 +25,7 @@ class DeprecatedRule extends LintRule {
           name: 'deprecated_rule',
           description: '',
           details: '...',
-          categories: {Category.errors},
+          categories: {LintRuleCategory.errors},
           state: State.deprecated(since: dart2_12),
         );
 
@@ -42,7 +42,7 @@ class RemovedRule extends LintRule {
             name: 'removed_rule',
             description: '',
             details: '...',
-            categories: {Category.errors},
+            categories: {LintRuleCategory.errors},
             state: State.removed());
 
   @override

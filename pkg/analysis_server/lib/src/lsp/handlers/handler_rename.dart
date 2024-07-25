@@ -127,18 +127,10 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
     var pos = params.position;
     var textDocument = params.textDocument;
     var path = pathOfDoc(params.textDocument);
-    // If the client provided us a version doc identifier, we'll use it to ensure
-    // we're not computing a rename for an old document. If not, we'll just assume
-    // the version the server had at the time of receiving the request is valid
-    // and then use it to verify the document hadn't changed again before we
-    // send the edits.
-    var docIdentifier = path.mapResultSync((path) => success(
-        textDocument is OptionalVersionedTextDocumentIdentifier
-            ? textDocument
-            : textDocument is VersionedTextDocumentIdentifier
-                ? OptionalVersionedTextDocumentIdentifier(
-                    uri: textDocument.uri, version: textDocument.version)
-                : server.getVersionedDocumentIdentifier(path)));
+    // Capture the document version so we can verify it hasn't changed after
+    // we've computed the rename.
+    var docIdentifier = path.mapResultSync(
+        (path) => success(extractDocumentVersion(textDocument, path)));
 
     var unit = await path.mapResult(requireResolvedUnit);
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));

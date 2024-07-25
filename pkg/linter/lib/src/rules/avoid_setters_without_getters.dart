@@ -54,7 +54,7 @@ class AvoidSettersWithoutGetters extends LintRule {
             name: 'avoid_setters_without_getters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

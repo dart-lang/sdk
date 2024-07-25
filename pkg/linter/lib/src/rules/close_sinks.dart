@@ -75,7 +75,10 @@ class CloseSinks extends LintRule {
             name: 'close_sinks',
             description: _desc,
             details: _details,
-            categories: {Category.errorProne, Category.memoryLeaks});
+            categories: {
+              LintRuleCategory.errorProne,
+              LintRuleCategory.memoryLeaks
+            });
 
   @override
   LintCode get lintCode => code;

@@ -58,7 +58,7 @@ class AvoidVoidAsync extends LintRule {
             name: 'avoid_void_async',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

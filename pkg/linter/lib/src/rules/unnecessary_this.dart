@@ -60,9 +60,9 @@ class UnnecessaryThis extends LintRule {
             description: _desc,
             details: _details,
             categories: {
-              Category.brevity,
-              Category.effectiveDart,
-              Category.style,
+              LintRuleCategory.brevity,
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style,
             });
 
   @override

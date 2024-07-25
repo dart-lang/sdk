@@ -63,7 +63,7 @@ class PackagePrefixedLibraryNames extends LintRule {
             name: 'package_prefixed_library_names',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

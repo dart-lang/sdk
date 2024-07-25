@@ -51,7 +51,7 @@ class AvoidDoubleAndIntChecks extends LintRule {
             name: 'avoid_double_and_int_checks',
             description: _desc,
             details: _details,
-            categories: {Category.errorProne, Category.web});
+            categories: {LintRuleCategory.errorProne, LintRuleCategory.web});
 
   @override
   LintCode get lintCode => code;

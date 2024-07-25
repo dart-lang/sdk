@@ -56,7 +56,10 @@ class UnnecessaryFinal extends LintRule {
             name: 'unnecessary_final',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
   List<String> get incompatibleRules =>

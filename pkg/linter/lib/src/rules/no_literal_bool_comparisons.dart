@@ -50,7 +50,7 @@ class NoLiteralBoolComparisons extends LintRule {
           name: 'no_literal_bool_comparisons',
           description: _desc,
           details: _details,
-          categories: {Category.effectiveDart, Category.style},
+          categories: {LintRuleCategory.effectiveDart, LintRuleCategory.style},
         );
 
   @override

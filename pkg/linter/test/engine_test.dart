@@ -66,7 +66,7 @@ class MockLintRule extends LintRule {
   MockLintRule(this.nodeVisitor)
       : super(
             name: 'MockLint',
-            categories: {Category.style},
+            categories: {LintRuleCategory.style},
             description: 'Desc',
             details: 'And so on...');
 

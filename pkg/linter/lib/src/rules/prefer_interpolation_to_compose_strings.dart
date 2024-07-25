@@ -42,7 +42,7 @@ class PreferInterpolationToComposeStrings extends LintRule {
             name: 'prefer_interpolation_to_compose_strings',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

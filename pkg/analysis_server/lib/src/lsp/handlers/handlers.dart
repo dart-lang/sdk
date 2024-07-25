@@ -264,6 +264,22 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 mixin LspHandlerHelperMixin {
   LspAnalysisServer get server;
 
+  /// Extracts the current document version from [textDocument] if available,
+  /// or uses the version that the server has via
+  /// [LspAnalysisServer.getVersionedDocumentIdentifier].
+  OptionalVersionedTextDocumentIdentifier extractDocumentVersion(
+    TextDocumentIdentifier textDocument,
+    String path,
+  ) {
+    return switch (textDocument) {
+      OptionalVersionedTextDocumentIdentifier() => textDocument,
+      VersionedTextDocumentIdentifier() =>
+        OptionalVersionedTextDocumentIdentifier(
+            uri: textDocument.uri, version: textDocument.version),
+      _ => server.getVersionedDocumentIdentifier(path),
+    };
+  }
+
   bool fileHasBeenModified(String path, int? clientVersion) {
     var serverDocumentVersion = server.getDocumentVersion(path);
     return clientVersion != null && clientVersion != serverDocumentVersion;

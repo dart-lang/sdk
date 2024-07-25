@@ -27,7 +27,7 @@ class AvoidReturningNullForFuture extends LintRule {
             description: _desc,
             details: _details,
             state: State.removed(since: dart3_3),
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errors});
 
   @override
   LintCode get lintCode => code;

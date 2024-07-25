@@ -59,7 +59,7 @@ class AvoidRenamingMethodParameters extends LintRule {
             name: 'avoid_renaming_method_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.documentationCommentMaintenance});
+            categories: {LintRuleCategory.documentationCommentMaintenance});
 
   @override
   LintCode get lintCode => code;

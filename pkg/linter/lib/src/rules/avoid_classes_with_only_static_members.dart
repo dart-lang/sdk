@@ -57,9 +57,9 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule {
             description: _desc,
             details: _details,
             categories: {
-              Category.effectiveDart,
-              Category.languageFeatureUsage,
-              Category.style,
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.languageFeatureUsage,
+              LintRuleCategory.style,
             });
 
   @override

@@ -7302,10 +7302,9 @@ class BodyBuilder extends StackListenerImpl
           nullAwareElement.offset,
           noLength);
     }
-    pop(); // Expression.
-    push(forest.createSpreadElement(offsetForToken(nullAwareElement),
-        forest.createNullLiteral(offsetForToken(nullAwareElement)),
-        isNullAware: true));
+    Expression expression = popForValue(); // Expression.
+    push(forest.createNullAwareElement(
+        offsetForToken(nullAwareElement), expression));
   }
 
   @override

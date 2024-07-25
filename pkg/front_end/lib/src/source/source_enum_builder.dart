@@ -91,7 +91,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       TypeBuilder supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       LookupScope typeParameterScope,
-      Scope memberScope,
+      NameSpace nameSpace,
       ConstructorScope constructors,
       Class cls,
       this.elementBuilders,
@@ -116,7 +116,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             interfaceBuilders,
             /* onTypes = */ null,
             typeParameterScope,
-            memberScope,
+            nameSpace,
             constructors,
             parent,
             constructorReferences,
@@ -140,8 +140,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
       LookupScope typeParameterScope,
-      Scope memberScope,
-      NameSpace memberNameSpace,
+      NameSpace enumNameSpace,
       ConstructorScope constructorScope,
       LibraryBuilder coreLibrary) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
@@ -238,7 +237,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     Builder? customValuesDeclaration =
-        memberNameSpace.lookupLocalMember("values", setter: false);
+        enumNameSpace.lookupLocalMember("values", setter: false);
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
       while (customValuesDeclaration?.next != null) {
@@ -256,7 +255,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration = memberNameSpace
+      Builder? customIndexDeclaration = enumNameSpace
           .lookupLocalMember(restrictedInstanceMemberName, setter: false);
       if (customIndexDeclaration is MemberBuilder &&
           !customIndexDeclaration.isAbstract) {
@@ -414,10 +413,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
     String className = name;
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
-    memberNameSpace.forEachLocalMember((name, member) {
+    enumNameSpace.forEachLocalMember((name, member) {
       members[name] = member as MemberBuilder;
     });
-    memberNameSpace.forEachLocalSetter((name, member) {
+    enumNameSpace.forEachLocalSetter((name, member) {
       setters[name] = member;
     });
 
@@ -508,14 +507,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
         supertypeBuilder,
         interfaceBuilders,
         typeParameterScope,
-        new Scope(
-            kind: ScopeKind.declaration,
-            local: members,
-            setters: setters,
-            // TODO(johnniwinther): Why is the parent not the [memberScope]?
-            parent: memberScope.parent,
-            debugName: "enum $name",
-            isModifiable: false),
+        // We create a new name space to include the synthesized members.
+        // TODO(johnniwinther): Could we add the new members directly to the
+        // name space?
+        new NameSpaceImpl(getables: members, setables: setters),
         constructorScope..addLocalMembers(constructors),
         cls,
         elementBuilders,

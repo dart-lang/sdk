@@ -57,7 +57,7 @@ class PreferFinalLocals extends LintRule {
             name: 'prefer_final_locals',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<String> get incompatibleRules => const ['unnecessary_final'];

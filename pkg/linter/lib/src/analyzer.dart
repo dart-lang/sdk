@@ -22,7 +22,7 @@ export 'package:analyzer/src/lint/linter.dart'
         dart2_12,
         dart3,
         dart3_3,
-        Category,
+        LintRuleCategory,
         LintFilter,
         LintRule,
         LinterContext,

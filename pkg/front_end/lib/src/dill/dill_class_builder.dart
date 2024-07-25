@@ -53,7 +53,9 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
-  final Scope _scope;
+  late final LookupScope _scope;
+
+  final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -65,23 +67,21 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, DillLibraryBuilder parent)
-      : _scope = new Scope(
-            kind: ScopeKind.declaration,
-            local: <String, MemberBuilder>{},
-            setters: <String, MemberBuilder>{},
-            parent: parent.scope,
-            debugName: "class ${cls.name}",
-            isModifiable: false),
+      : _nameSpace = new NameSpaceImpl(),
         constructorScope =
             new ConstructorScope(cls.name, <String, MemberBuilder>{}),
         super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
-            parent, cls.fileOffset);
+            parent, cls.fileOffset) {
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "class ${cls.name}",
+        parent: parent.scope);
+  }
 
   @override
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _scope;
+  NameSpace get nameSpace => _nameSpace;
 
   @override
   bool get isEnum => cls.isEnum;

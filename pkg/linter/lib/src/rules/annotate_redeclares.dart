@@ -57,7 +57,7 @@ class AnnotateRedeclares extends LintRule {
             name: 'annotate_redeclares',
             description: _desc,
             details: _details,
-            categories: {Category.style},
+            categories: {LintRuleCategory.style},
             state: State.experimental());
 
   @override

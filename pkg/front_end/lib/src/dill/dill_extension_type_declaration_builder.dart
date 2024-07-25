@@ -20,7 +20,9 @@ class DillExtensionTypeDeclarationBuilder
     with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  final Scope _scope;
+  late final LookupScope _scope;
+
+  final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -33,23 +35,18 @@ class DillExtensionTypeDeclarationBuilder
 
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, DillLibraryBuilder parent)
-      : _scope = new Scope(
-            kind: ScopeKind.declaration,
-            local: <String, MemberBuilder>{},
-            setters: <String, MemberBuilder>{},
-            parent: parent.scope,
-            debugName: "extension type ${_extensionTypeDeclaration.name}",
-            isModifiable: false),
+      : _nameSpace = new NameSpaceImpl(),
         constructorScope = new ConstructorScope(
             _extensionTypeDeclaration.name, <String, MemberBuilder>{}),
         super(
-            /*metadata builders*/
-            null,
-            /* modifiers*/
-            0,
+            /*metadata builders*/ null,
+            /* modifiers*/ 0,
             _extensionTypeDeclaration.name,
             parent,
             _extensionTypeDeclaration.fileOffset) {
+    _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.declaration,
+        "extension type ${_extensionTypeDeclaration.name}",
+        parent: parent.scope);
     for (Procedure procedure in _extensionTypeDeclaration.procedures) {
       String name = procedure.name.text;
       switch (procedure.kind) {
@@ -155,7 +152,7 @@ class DillExtensionTypeDeclarationBuilder
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _scope;
+  NameSpace get nameSpace => _nameSpace;
 
   @override
   DartType get declaredRepresentationType =>

@@ -59,7 +59,10 @@ class TypeAnnotatePublicApis extends LintRule {
             name: 'type_annotate_public_apis',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.publicInterface});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.publicInterface
+            });
 
   @override
   LintCode get lintCode => code;

@@ -37,7 +37,7 @@ class AvoidPrivateTypedefFunctions extends LintRule {
             name: 'avoid_private_typedef_functions',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

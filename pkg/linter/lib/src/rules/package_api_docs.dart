@@ -67,7 +67,10 @@ class PackageApiDocs extends LintRule {
             name: 'package_api_docs',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.publicInterface});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.publicInterface
+            });
 
   @override
   LintCode get lintCode => code;

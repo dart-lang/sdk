@@ -61,7 +61,7 @@ class ImplicitReopen extends LintRule {
             description: _desc,
             details: _details,
             state: State.experimental(),
-            categories: {Category.errorProne});
+            categories: {LintRuleCategory.errorProne});
 
   @override
   LintCode get lintCode => code;

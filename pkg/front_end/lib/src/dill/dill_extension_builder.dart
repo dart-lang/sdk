@@ -8,7 +8,6 @@ import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
@@ -19,7 +18,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   final Extension extension;
 
-  final Scope _scope;
+  late final LookupScope _scope;
+
+  final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -28,16 +29,13 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
-      : _scope = new Scope(
-            kind: ScopeKind.declaration,
-            local: <String, MemberBuilder>{},
-            setters: <String, MemberBuilder>{},
-            parent: parent.scope,
-            debugName: "extension ${extension.name}",
-            isModifiable: false),
+      : _nameSpace = new NameSpaceImpl(),
         constructorScope = new ConstructorScope(extension.name, const {}),
         super(/* metadata = */ null, 0, extension.name, parent,
             extension.fileOffset) {
+    _scope = new NameSpaceLookupScope(
+        _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
+        parent: parent.scope);
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
@@ -94,7 +92,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _scope;
+  NameSpace get nameSpace => _nameSpace;
 
   @override
   List<NominalVariableBuilder>? get typeParameters {

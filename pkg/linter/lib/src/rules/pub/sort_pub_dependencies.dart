@@ -27,7 +27,7 @@ class SortPubDependencies extends LintRule {
             name: 'sort_pub_dependencies',
             description: _desc,
             details: _details,
-            categories: {Category.pub});
+            categories: {LintRuleCategory.pub});
 
   @override
   LintCode get lintCode => code;

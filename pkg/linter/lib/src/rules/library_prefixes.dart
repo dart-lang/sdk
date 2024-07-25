@@ -48,7 +48,7 @@ class LibraryPrefixes extends LintRule {
             name: 'library_prefixes',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;
