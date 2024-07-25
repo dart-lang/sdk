@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:linter/src/rules/omit_local_variable_types.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -928,15 +928,13 @@ linter:
     - omit_local_variable_types
 ''');
 
-    var rule = Registry.ruleRegistry.getRule('omit_local_variable_types')!;
-
     await assertErrorsInCode(r'''
 main() {
   int a = 0;
   a;
 }
 ''', [
-      error(rule.lintCode, 11, 3),
+      error(OmitLocalVariableTypes.code, 11, 3),
     ]);
   }
 

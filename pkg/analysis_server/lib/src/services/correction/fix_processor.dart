@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
@@ -28,8 +27,8 @@ class FixProcessor {
   /// Cached results of [canBulkFix].
   static final Map<ErrorCode, bool> _bulkFixableErrorCodes = {};
 
-  static final Map<String, List<MultiProducerGenerator>> lintMultiProducerMap =
-      {};
+  static final Map<LintCode, List<MultiProducerGenerator>>
+      lintMultiProducerMap = {};
 
   /// A map from the names of lint rules to a list of the generators that are
   /// used to create correction producers.
@@ -60,7 +59,7 @@ class FixProcessor {
 
   /// A map from error codes to a list of fix generators that work with only
   /// parsed results.
-  static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {};
+  static final Map<LintCode, List<ProducerGenerator>> parseLintProducerMap = {};
 
   /// A set of generators that are used to create correction producers that
   /// produce corrections that ignore diagnostics locally.
@@ -130,9 +129,8 @@ class FixProcessor {
     List<ProducerGenerator>? generators;
     List<MultiProducerGenerator>? multiGenerators;
     if (errorCode is LintCode) {
-      var uniqueLintName = errorCode.uniqueLintName;
       generators = lintProducerMap[errorCode];
-      multiGenerators = lintMultiProducerMap[uniqueLintName];
+      multiGenerators = lintMultiProducerMap[errorCode];
     } else {
       generators = nonLintProducerMap[errorCode];
       multiGenerators = nonLintMultiProducerMap[errorCode];
@@ -177,7 +175,7 @@ class FixProcessor {
           return true;
         }
 
-        return FixProcessor.lintMultiProducerMap.containsKey(errorCode.name);
+        return FixProcessor.lintMultiProducerMap.containsKey(errorCode);
       }
 
       var producers = FixProcessor.nonLintProducerMap[errorCode];
