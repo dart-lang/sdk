@@ -19,6 +19,7 @@ import 'collections.dart'
         ForMapEntry,
         IfElement,
         IfMapEntry,
+        NullAwareElement,
         SpreadElement;
 
 import 'internal_ast.dart';
@@ -214,6 +215,10 @@ class Forest {
       {required bool isNullAware}) {
     return new SpreadElement(expression, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
+  }
+
+  Expression createNullAwareElement(int fileOffset, Expression expression) {
+    return new NullAwareElement(expression)..fileOffset = fileOffset;
   }
 
   Expression createIfElement(

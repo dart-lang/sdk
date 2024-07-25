@@ -1859,6 +1859,7 @@ lowercase
 lowered
 lowering
 lowerings
+lowers
 lowest
 machine
 made

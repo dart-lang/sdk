@@ -113,6 +113,46 @@ class SpreadElement extends AuxiliaryExpression with ControlFlowElement {
   }
 }
 
+class NullAwareElement extends AuxiliaryExpression with ControlFlowElement {
+  Expression expression;
+
+  NullAwareElement(this.expression);
+
+  @override
+  MapLiteralEntry? toMapLiteralEntry(
+      void Function(TreeNode from, TreeNode to) onConvertElement) {
+    return unsupported("toMapLiteralEntry", fileOffset, getFileUri(this));
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('?');
+    printer.writeExpression(expression);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    expression = v.transform(expression);
+    expression.parent = this;
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    expression = v.transform(expression);
+    expression.parent = this;
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  @override
+  String toString() {
+    return "NullAwareElement(${toStringInternal()})";
+  }
+}
+
 /// An 'if' element in a list or set literal.
 class IfElement extends AuxiliaryExpression with ControlFlowElement {
   Expression condition;
@@ -835,6 +875,7 @@ Expression convertToElement(
 
 bool isConvertibleToMapEntry(Expression element) {
   if (element is SpreadElement) return true;
+  if (element is NullAwareElement) return false;
   if (element is IfElement) {
     return isConvertibleToMapEntry(element.then) &&
         (element.otherwise == null ||

@@ -1,0 +1,16 @@
+Verifier test1 = const Verifier.test1();
+
+Verifier test2 = const Verifier.test2();
+
+class Verifier {
+  const Verifier.test1() : assert(identical(literal1, const <int>[5]));
+  const Verifier.test2() : assert(identical(literal2, const <String>{}));
+}
+
+const List<int> literal1 = <int>[?expr1];
+
+const Set<String> literal2 = <String>{?expr2};
+
+const String? expr2 = null;
+
+const int? expr1 = 5;
