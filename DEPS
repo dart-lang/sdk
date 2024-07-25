@@ -159,7 +159,7 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "f6b5d36485f6f067ac0f5a7193006ebe82ee6113",
   "logging_rev": "8752902b75a476d2c7b64dcf01aaaee885f35c4c",
-  "markdown_rev": "62424376d0b5fe35a2957b3caed4b75db010ba82",
+  "markdown_rev": "f6eaea38146d8901756418c4e7123eb7bd77249e",
   "matcher_rev": "d6d573d0f8d65b36550ce62aad3ce6b5e987b642",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "11fec7d6df509a4efd554051cc27e3bf82df9c96",
@@ -182,7 +182,7 @@ vars = {
   "sync_http_rev": "ab8377eba79baff3d77e8c75d502efc2b85a9342",
   "tar_rev": "d33204cb623b87bfe9cfc92ca37d9469feba126b",
   "term_glyph_rev": "38a158f55006cf30942c928171ea601ee5e0308f",
-  "test_rev": "2c2ac49de0e9d6ea9744c6e7990d5730806410c0",
+  "test_rev": "d0dc83372a65dffe164242213639a40d5bb7a9bb",
   "test_descriptor_rev": "90743bc16bc00526a1b9a64f813614be9b2479d9",
   "test_process_rev": "6223572ca16d7585d5f08d9281de6a5734e45150",
   "test_reflective_loader_rev": "6e648863b39aab8d0204e769d25805eea9db0ac4",
