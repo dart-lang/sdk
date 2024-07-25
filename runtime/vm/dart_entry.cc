@@ -85,8 +85,8 @@ extern "C" typedef uword /*ObjectPtr*/ (*invokestub)(
 // Private helper for converting types and switching between Simulator
 // and CPU invocations.
 static ObjectPtr InvokeDartCode(uword entry_point,
-                                const Array& arguments,
                                 const Array& arguments_descriptor,
+                                const Array& arguments,
                                 Thread* thread) {
   DartEntryScope dart_entry_scope(thread);
 
@@ -132,13 +132,15 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 
   ASSERT(function.HasCode());
 
+  // Note: InvokeFunction takes Arguments then ArgumentsDescriptor,
+  // where as InvokeDartCode takes ArgumentsDescriptor then Arguments.
   return InvokeDartCode(
 #if defined(DART_PRECOMPILED_RUNTIME)
       function.entry_point(),
 #else
       static_cast<uword>(function.CurrentCode()),
 #endif
-      arguments, arguments_descriptor, thread);
+      arguments_descriptor, arguments, thread);
 }
 
 #if defined(TESTING)
