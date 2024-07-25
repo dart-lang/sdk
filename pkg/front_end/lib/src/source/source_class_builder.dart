@@ -92,8 +92,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
-  @override
-  final Scope scope;
+  final Scope _scope;
 
   @override
   final ConstructorScope constructorScope;
@@ -174,7 +173,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       this.typeParameterScope,
-      this.scope,
+      Scope scope,
       this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
@@ -192,7 +191,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : actualCls = initializeClass(cls, typeVariables, name, parent,
+      : _scope = scope,
+        actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
@@ -201,7 +201,17 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  NameSpace get nameSpace => scope;
+  LookupScope get scope => _scope;
+
+  @override
+  NameSpace get nameSpace => _scope;
+
+  // TODO(johnniwinther): Remove this.
+  Map<String, List<Builder>>? get augmentations => _scope.augmentations;
+
+  // TODO(johnniwinther): Remove this.
+  Map<String, List<Builder>>? get setterAugmentations =>
+      _scope.setterAugmentations;
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ?

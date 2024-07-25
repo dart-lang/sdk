@@ -19,8 +19,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   final Extension extension;
 
-  @override
-  final Scope scope;
+  final Scope _scope;
 
   @override
   final ConstructorScope constructorScope;
@@ -29,7 +28,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
-      : scope = new Scope(
+      : _scope = new Scope(
             kind: ScopeKind.declaration,
             local: <String, MemberBuilder>{},
             setters: <String, MemberBuilder>{},
@@ -92,7 +91,10 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  NameSpace get nameSpace => scope;
+  LookupScope get scope => _scope;
+
+  @override
+  NameSpace get nameSpace => _scope;
 
   @override
   List<NominalVariableBuilder>? get typeParameters {

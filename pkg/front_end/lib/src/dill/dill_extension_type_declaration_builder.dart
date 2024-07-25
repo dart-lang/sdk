@@ -20,8 +20,7 @@ class DillExtensionTypeDeclarationBuilder
     with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  @override
-  final Scope scope;
+  final Scope _scope;
 
   @override
   final ConstructorScope constructorScope;
@@ -34,7 +33,7 @@ class DillExtensionTypeDeclarationBuilder
 
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, DillLibraryBuilder parent)
-      : scope = new Scope(
+      : _scope = new Scope(
             kind: ScopeKind.declaration,
             local: <String, MemberBuilder>{},
             setters: <String, MemberBuilder>{},
@@ -153,7 +152,10 @@ class DillExtensionTypeDeclarationBuilder
   DillLibraryBuilder get libraryBuilder => parent as DillLibraryBuilder;
 
   @override
-  NameSpace get nameSpace => scope;
+  LookupScope get scope => _scope;
+
+  @override
+  NameSpace get nameSpace => _scope;
 
   @override
   DartType get declaredRepresentationType =>

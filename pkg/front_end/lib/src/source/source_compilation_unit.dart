@@ -66,7 +66,7 @@ class SourceCompilationUnitImpl
 
   late final BuilderFactoryResult _builderFactoryResult;
 
-  final NameSpace importScope;
+  final NameSpace _importScope;
 
   LibraryFeatures? _libraryFeatures;
 
@@ -92,7 +92,7 @@ class SourceCompilationUnitImpl
       required this.indexedLibrary,
       required LibraryName libraryName,
       Map<String, Builder>? omittedTypeDeclarationBuilders,
-      required this.importScope,
+      required NameSpace importScope,
       required this.forAugmentationLibrary,
       required this.forPatchLibrary,
       required this.isAugmenting,
@@ -100,7 +100,8 @@ class SourceCompilationUnitImpl
       required this.loader})
       : _libraryName = libraryName,
         _languageVersion = packageLanguageVersion,
-        _packageUri = packageUri {
+        _packageUri = packageUri,
+        _importScope = importScope {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         compilationUnit: this,
@@ -746,10 +747,10 @@ class SourceCompilationUnitImpl
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
     Builder? existing =
-        importScope.lookupLocalMember(name, setter: member.isSetter);
+        _importScope.lookupLocalMember(name, setter: member.isSetter);
     if (existing != null) {
       if (existing != member) {
-        importScope.addLocalMember(
+        _importScope.addLocalMember(
             name,
             computeAmbiguousDeclarationForScope(
                 this, _scope, name, existing, member,
@@ -758,10 +759,10 @@ class SourceCompilationUnitImpl
             setter: member.isSetter);
       }
     } else {
-      importScope.addLocalMember(name, member, setter: member.isSetter);
+      _importScope.addLocalMember(name, member, setter: member.isSetter);
     }
     if (member.isExtension) {
-      importScope.addExtension(member as ExtensionBuilder);
+      _importScope.addExtension(member as ExtensionBuilder);
     }
   }
 
