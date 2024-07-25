@@ -173,6 +173,13 @@ class DirectivesOrdering extends LintRule {
       'directives_ordering', "Place 'package:' {0}s before relative {0}s.",
       correctionMessage: 'Try sorting the directives.');
 
+  static const allCodes = [
+    DirectivesOrdering.dartDirectiveGoFirst,
+    DirectivesOrdering.directiveSectionOrderedAlphabetically,
+    DirectivesOrdering.exportDirectiveAfterImportDirectives,
+    DirectivesOrdering.packageDirectiveBeforeRelative,
+  ];
+
   DirectivesOrdering()
       : super(
             name: 'directives_ordering',

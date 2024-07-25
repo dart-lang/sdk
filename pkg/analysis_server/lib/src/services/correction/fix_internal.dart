@@ -240,7 +240,6 @@ import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
@@ -283,9 +282,11 @@ import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/cascade_invocations.dart';
 import 'package:linter/src/rules/cast_nullable_to_non_nullable.dart';
 import 'package:linter/src/rules/combinators_ordering.dart';
+import 'package:linter/src/rules/comment_references.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/curly_braces_in_flow_control_structures.dart';
 import 'package:linter/src/rules/dangling_library_doc_comments.dart';
+import 'package:linter/src/rules/deprecated_member_use_from_same_package.dart';
 import 'package:linter/src/rules/diagnostic_describe_all_properties.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:linter/src/rules/discarded_futures.dart';
@@ -390,14 +391,14 @@ import 'package:linter/src/rules/use_string_in_part_of_directives.dart';
 import 'package:linter/src/rules/use_super_parameters.dart';
 
 final _builtInLintMultiProducers = {
-  LintNames.deprecated_member_use_from_same_package: [
-    DataDriven.new,
-  ],
-  LintNames.deprecated_member_use_from_same_package_with_message: [
-    DataDriven.new,
-  ],
-  LintNames.comment_references: [
+  CommentReferences.code: [
     ImportLibrary.forType,
+  ],
+  DeprecatedMemberUseFromSamePackage.code: [
+    DataDriven.new,
+  ],
+  DeprecatedMemberUseFromSamePackage.codeWithMessage: [
+    DataDriven.new,
   ],
 };
 
@@ -1978,23 +1979,23 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
 };
 
-final _builtInParseLintProducers = <String, List<ProducerGenerator>>{
-  LintNames.prefer_generic_function_type_aliases: [
+final _builtInParseLintProducers = <LintCode, List<ProducerGenerator>>{
+  PreferGenericFunctionTypeAliases.code: [
     ConvertToGenericFunctionSyntax.new,
   ],
-  LintNames.slash_for_doc_comments: [
+  SlashForDocComments.code: [
     ConvertDocumentationIntoLine.new,
   ],
-  LintNames.unnecessary_const: [
+  UnnecessaryConst.code: [
     RemoveUnnecessaryConst.new,
   ],
-  LintNames.unnecessary_new: [
+  UnnecessaryNew.code: [
     RemoveUnnecessaryNew.new,
   ],
-  LintNames.unnecessary_string_escapes: [
+  UnnecessaryStringEscapes.code: [
     RemoveUnnecessaryStringEscape.new,
   ],
-  LintNames.use_function_type_syntax_for_parameters: [
+  UseFunctionTypeSyntaxForParameters.code: [
     ConvertToGenericFunctionSyntax.new,
   ],
 };

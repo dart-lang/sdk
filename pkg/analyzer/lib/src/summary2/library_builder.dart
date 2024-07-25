@@ -586,8 +586,8 @@ class LibraryBuilder with MacroApplicationsContainer {
     var unitNode = importedFileParsed.unit;
 
     var unitElement = CompilationUnitElementImpl(
+      library: element,
       source: importedFile.source,
-      librarySource: importedFile.source,
       lineInfo: unitNode.lineInfo,
     );
     unitElement.setCodeRange(0, unitNode.length);
@@ -973,9 +973,8 @@ class LibraryBuilder with MacroApplicationsContainer {
         var unitNode = parsedResult.unit;
 
         var unitElement = CompilationUnitElementImpl(
+          library: element,
           source: importedFile.source,
-          // TODO(scheglov): Remove this parameter.
-          librarySource: importedFile.source,
           lineInfo: unitNode.lineInfo,
         );
         unitNode.declaredElement = unitElement;
@@ -1344,8 +1343,8 @@ class LibraryBuilder with MacroApplicationsContainer {
     var linkingUnits = <LinkingUnit>[];
     {
       var unitElement = CompilationUnitElementImpl(
+        library: libraryElement,
         source: libraryFile.source,
-        librarySource: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
       );
       libraryUnitNode.declaredElement = unitElement;
@@ -1378,8 +1377,8 @@ class LibraryBuilder with MacroApplicationsContainer {
             performance: OperationPerformanceImpl('<root>'),
           );
           var unitElement = CompilationUnitElementImpl(
+            library: libraryElement,
             source: partFile.source,
-            librarySource: libraryFile.source,
             lineInfo: partUnitNode.lineInfo,
           );
           partUnitNode.declaredElement = unitElement;

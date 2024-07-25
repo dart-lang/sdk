@@ -16,6 +16,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/rules/diagnostic_describe_all_properties.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   AddDiagnosticPropertyReference({required super.context});
@@ -337,8 +338,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Returns a list of all the [AnalysisError]'s of type
-  /// [LintNames.diagnostic_describe_all_properties] fpr the given [declaration].
+  /// Returns a list of all the [AnalysisError]s of type
+  /// [DiagnosticDescribeAllProperties.code] fpr the given [declaration].
   List<AnalysisError> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
     var propertyErrors = <AnalysisError>[];
     var startOffset = declaration.offset;
@@ -346,7 +347,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     for (var error in unitResult.errors) {
       var errorCode = error.errorCode;
       if (errorCode.type == ErrorType.LINT &&
-          errorCode.name == LintNames.diagnostic_describe_all_properties &&
+          errorCode == DiagnosticDescribeAllProperties.code &&
           error.offset > startOffset &&
           error.offset < endOffset) {
         propertyErrors.add(error);

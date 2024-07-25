@@ -190,9 +190,8 @@ extension on ErrorCode {
   bool get hasFix {
     var self = this;
     if (self is LintCode) {
-      var lintName = self.name;
       return FixProcessor.lintProducerMap.containsKey(self) ||
-          FixProcessor.lintMultiProducerMap.containsKey(lintName);
+          FixProcessor.lintMultiProducerMap.containsKey(self);
     }
     return FixProcessor.nonLintProducerMap.containsKey(self) ||
         FixProcessor.nonLintMultiProducerMap.containsKey(self) ||

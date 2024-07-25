@@ -51,6 +51,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:yaml/yaml.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
@@ -65,7 +66,7 @@ import 'package:yaml/yaml.dart';
 class BulkFixProcessor {
   /// A list of lint codes that can be run on parsed code. These lints will all
   /// be run when the `--syntactic-fixes` flag is specified.
-  static const List<String> syntacticLintCodes = [
+  static const List<String> _syntacticLintCodes = [
     LintNames.prefer_generic_function_type_aliases,
     LintNames.slash_for_doc_comments,
     LintNames.unnecessary_const,
@@ -568,7 +569,7 @@ class BulkFixProcessor {
     var unit = currentUnit.unit;
     var nodeRegistry = NodeLintRegistry(false);
     var context = LinterContextWithParsedResults(allUnits, currentUnit);
-    var lintRules = syntacticLintCodes
+    var lintRules = _syntacticLintCodes
         .map((name) => Registry.ruleRegistry.getRule(name))
         .nonNulls;
     for (var lintRule in lintRules) {
@@ -673,8 +674,7 @@ class BulkFixProcessor {
     for (var error in _filterErrors(analysisOptions, unit.errors)) {
       var errorCode = error.errorCode;
       if (errorCode is LintCode) {
-        var lintName = errorCode.name;
-        if (lintName == LintNames.directives_ordering) {
+        if (DirectivesOrdering.allCodes.contains(errorCode)) {
           directivesOrderingError = error;
           break;
         }
@@ -746,7 +746,7 @@ class BulkFixProcessor {
         if (isCancelled) {
           return;
         }
-        var multiGenerators = FixProcessor.lintMultiProducerMap[codeName];
+        var multiGenerators = FixProcessor.lintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator(context: context);
@@ -798,7 +798,7 @@ class BulkFixProcessor {
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
-        var generators = FixProcessor.parseLintProducerMap[codeName] ?? [];
+        var generators = FixProcessor.parseLintProducerMap[errorCode] ?? [];
         await _bulkApply(generators, codeName, context, parsedOnly: true);
         if (isCancelled) {
           return;
@@ -854,14 +854,14 @@ class BulkFixProcessor {
   }
 
   Future<void> _generateFix(CorrectionProducerContext context,
-      CorrectionProducer producer, String code) async {
+      CorrectionProducer producer, String codeName) async {
     int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     var oldHash = computeChangeHash();
     await _applyProducer(producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.path, code.toLowerCase());
+      changeMap.add(context.path, codeName.toLowerCase());
     }
   }
 
@@ -887,8 +887,7 @@ class BulkFixProcessor {
     if (errorCode == WarningCode.DUPLICATE_IMPORT ||
         errorCode == HintCode.UNNECESSARY_IMPORT ||
         errorCode == WarningCode.UNUSED_IMPORT ||
-        (errorCode is LintCode &&
-            errorCode.name == LintNames.directives_ordering)) {
+        (DirectivesOrdering.allCodes.contains(errorCode))) {
       return true;
     }
 

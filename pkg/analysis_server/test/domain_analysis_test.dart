@@ -163,7 +163,7 @@ AnalysisErrors
 analyzer:
   error:
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // Both files were analyzed.
@@ -207,7 +207,7 @@ AnalysisErrors
 ''');
 
     newFile('$testPackageRootPath/AndroidManifest.xml', '<manifest/>');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // No touch-screen.
@@ -242,7 +242,7 @@ AnalysisErrors
     _createFilesWithErrors([
       '$testPackageLibPath/a.dart',
     ]);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We created a.dart, so it should be analyzed.
@@ -281,7 +281,7 @@ AnalysisErrors
     newFile(aPath, r'''
 class A {}
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // 'a.dart' is in a dot-folder, so excluded from analysis.
@@ -327,7 +327,7 @@ AnalysisErrors
     newFile(aPath, r'''
 class A {}
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We excluded 'a.dart' from analysis, no errors notification for it.
@@ -362,7 +362,7 @@ AnalysisErrors
 
     // Create it, will be analyzed.
     newFile(path, '0: 1');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // And it has errors.
@@ -401,7 +401,7 @@ AnalysisErrors
 
     // Create it, will be analyzed.
     newFile(path, '0: 1');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // And it has errors.
@@ -452,7 +452,7 @@ AnalysisErrors
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We rebuilt analysis contexts.
@@ -506,7 +506,7 @@ AnalysisErrors
 name: sample
 dependencies: true
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We rebuilt analysis contexts.
@@ -552,7 +552,7 @@ AnalysisErrors
 
     // Add an unrelated file, no analysis.
     newFile(unrelatedPath, 'anything');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // No analysis.
@@ -601,7 +601,7 @@ analyzer:
     - lib/c.dart
 ''');
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // Analysis contexts were rebuilt.
@@ -661,7 +661,7 @@ AnalysisErrors
 
     // Update the file, so analyze it.
     newFile(path, '<manifest/>');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // An error was reported.
@@ -709,7 +709,7 @@ AnalysisErrors
 
     // Update a.dart so that b.dart has no error.
     newFile(aPath, 'class A {}');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // The update of a.dart fixed the error in b.dart
@@ -737,7 +737,7 @@ void f(A a) {}
 ''');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // 'a.dart' is in a dot-folder, so excluded from analysis.
@@ -757,7 +757,7 @@ AnalysisErrors
     newFile(aPath, r'''
 class A {}
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // 'a.dart' is in a dot-folder, so excluded from analysis.
@@ -789,7 +789,7 @@ void f(A a) {}
 ''');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We excluded 'a.dart' from analysis, no errors notification for it.
@@ -809,7 +809,7 @@ AnalysisErrors
     newFile(aPath, r'''
 class A {}
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We changed a.dart, to have `A`, so no errors.
@@ -852,7 +852,7 @@ AnalysisErrors
 version: 1
 transforms: []
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // No errors in `foo.yaml` anymore.
@@ -900,7 +900,7 @@ AnalysisErrors
 version: 1
 transforms: []
 ''');
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // No errors in `fix_data.yaml` anymore.
@@ -1002,7 +1002,7 @@ AnalysisErrors
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We have `A` in 'package:aaa/a.dart', so no errors.
@@ -1057,7 +1057,7 @@ AnalysisErrors
     // Delete the options file.
     deleteFile(optionsPath);
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // Errors for a.dart were flushed, a.dart and b.dart analyzed.
@@ -1113,7 +1113,7 @@ AnalysisErrors
 
     // Delete the file.
     deleteFile(path);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
 
     // We received a flush notification.
     assertNotificationsText(r'''
@@ -1155,7 +1155,7 @@ AnalysisErrors
         aPath: AddContentOverlay('error2'),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
@@ -1165,14 +1165,14 @@ AnalysisErrors
 
     // Delete the file, we have the overlay, so no notifications.
     deleteFile(aPath);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 ''');
 
     // Re-creating the file, we have the overlay, so no notifications.
     _createFilesWithErrors([aPath]);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 ''');
@@ -1183,7 +1183,7 @@ AnalysisErrors
         aPath: RemoveContentOverlay(),
       }).toRequest('1', clientUriConverter: server.uriConverter),
     );
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
@@ -1193,7 +1193,7 @@ AnalysisErrors
 
     // Delete the file, errors are now gone.
     deleteFile(aPath);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisFlush
@@ -1223,7 +1223,7 @@ AnalysisErrors
 ''');
 
     deleteFile(aPath);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We deleted a.dart, its errors should be flushed.
@@ -1253,7 +1253,7 @@ void f(A a) {}
 ''');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We excluded 'a.dart' from analysis, no errors notification for it.
@@ -1271,7 +1271,7 @@ AnalysisErrors
 ''');
 
     deleteFile(aPath);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We deleted a.dart, so `A` cannot be resolved.
@@ -1312,7 +1312,7 @@ AnalysisErrors
 
     // Delete the file.
     deleteFile(path);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
 
     // We received a flush notification.
     assertNotificationsText(r'''
@@ -1414,7 +1414,7 @@ AnalysisErrors
         aPath: AddContentOverlay('error2'),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
@@ -1424,7 +1424,7 @@ AnalysisErrors
 
     // Delete file, has the overlay, no notifications.
     deleteFile(aPath);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 ''');
@@ -1436,7 +1436,7 @@ AnalysisErrors
         aPath: RemoveContentOverlay(),
       }).toRequest('1', clientUriConverter: server.uriConverter),
     );
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
     assertNotificationsText(r'''
 AnalysisErrors
@@ -2089,7 +2089,7 @@ AnalysisErrors
   /// Repeat a few times, eventually there will be no work to do.
   Future<void> _waitAnalysisComplete() async {
     for (var i = 0; i < 128; i++) {
-      await pumpEventQueue();
+      await pumpEventQueue(times: 5000);
       await server.onAnalysisComplete;
     }
   }

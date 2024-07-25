@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
 
 class RemoveComparison extends ResolvedCorrectionProducer {
   @override
@@ -35,7 +35,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
 
-  /// Return `true` if the condition will always return `false`.
+  /// Whether the condition will always return `false`.
   bool get _conditionIsFalse {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
@@ -43,13 +43,13 @@ class RemoveComparison extends ResolvedCorrectionProducer {
         errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
   }
 
-  /// Return `true` if the condition will always return `true`.
+  /// Whether the condition will always return `true`.
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as AnalysisError).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE ||
-        errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
+        errorCode == AvoidNullChecksInEqualityOperators.code;
   }
 
   @override

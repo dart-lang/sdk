@@ -100,7 +100,18 @@ class _ElementWriter {
 
       _writeLibraryOrAugmentationElement(e);
 
+      for (var part in e.parts) {
+        if (part.uri case DirectiveUriWithUnitImpl uri) {
+          expect(uri.unit.libraryOrAugmentationElement, same(e));
+        }
+      }
+
       _writeElements('parts', e.parts, _writePartElement);
+
+      // All fragments have this library.
+      for (var unit in e.units) {
+        expect(unit.library, same(e));
+      }
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -774,10 +785,12 @@ class _ElementWriter {
       _writeLibraryExportElement,
     );
 
-    if (configuration.filter(e.definingCompilationUnit)) {
+    var definingUnit = e.definingCompilationUnit;
+    expect(definingUnit.libraryOrAugmentationElement, same(e));
+    if (configuration.filter(definingUnit)) {
       _sink.writelnWithIndent('definingUnit');
       _sink.withIndent(() {
-        _writeUnitElement(e.definingCompilationUnit);
+        _writeUnitElement(definingUnit);
       });
     }
 
