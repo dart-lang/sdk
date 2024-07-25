@@ -594,6 +594,38 @@ final (Type:(int, {String a})) noComma3 = (1, a: '');
     await _expectHints(content, expected);
   }
 
+  /// During initialization the server asks the client for configuration.
+  /// Verify that if we send an inlay hint request before the client responds
+  /// to that, we do not fail to respond due to a deadlock.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/56311
+  Future<void> test_requestBeforeInitializationConfigurationComplete() async {
+    var initializedComplete = Completer<void>();
+    var configResponse = Completer<Map<String, Object?>>();
+
+    // Initialize server (and wait for initialized), but don't respond to
+    // the config request yet.
+    unawaited(provideConfig(() async {
+      await initialize();
+      initializedComplete.complete();
+    }, configResponse.future));
+    await initializedComplete.future;
+
+    // Send a request for inlay hints (which will stall because server isn't
+    // ready until we've replied to config).
+    unawaited(openFile(mainFileUri, ''));
+    var hintsFuture = getInlayHints(
+      mainFileUri,
+      startOfDocRange,
+    );
+    await pumpEventQueue(times: 5000);
+
+    // Finally, respond to config and ensure inlay hints completes because
+    // the server completed initialization.
+    configResponse.complete({});
+    expect(await hintsFuture, isEmpty);
+  }
+
   Future<void> test_setter() async {
     var content = '''
 set f(int i) {}
