@@ -59,7 +59,7 @@ class NoopPrimitiveOperations extends LintRule {
           name: 'noop_primitive_operations',
           description: _desc,
           details: _details,
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
         );
 
   @override

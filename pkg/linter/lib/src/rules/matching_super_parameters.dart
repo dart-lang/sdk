@@ -71,7 +71,7 @@ class MatchingSuperParameters extends LintRule {
             name: 'matching_super_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

@@ -65,7 +65,10 @@ class AvoidCatchesWithoutOnClauses extends LintRule {
             name: 'avoid_catches_without_on_clauses',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
   LintCode get lintCode => code;

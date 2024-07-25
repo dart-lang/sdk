@@ -47,7 +47,7 @@ class AwaitOnlyFutures extends LintRule {
             name: 'await_only_futures',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

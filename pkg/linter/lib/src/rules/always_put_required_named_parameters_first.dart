@@ -48,7 +48,7 @@ class AlwaysPutRequiredNamedParametersFirst extends LintRule {
             name: 'always_put_required_named_parameters_first',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

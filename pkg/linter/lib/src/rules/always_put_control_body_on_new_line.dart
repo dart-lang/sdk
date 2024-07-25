@@ -60,7 +60,7 @@ class AlwaysPutControlBodyOnNewLine extends LintRule {
             name: 'always_put_control_body_on_new_line',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

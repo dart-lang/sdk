@@ -36,7 +36,7 @@ class UseFunctionTypeSyntaxForParameters extends LintRule {
             name: 'use_function_type_syntax_for_parameters',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   bool get canUseParsedResult => true;

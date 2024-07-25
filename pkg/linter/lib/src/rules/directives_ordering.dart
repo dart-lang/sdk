@@ -185,7 +185,7 @@ class DirectivesOrdering extends LintRule {
             name: 'directives_ordering',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   List<LintCode> get lintCodes => const [

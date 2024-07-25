@@ -60,7 +60,10 @@ class UnnecessaryGettersSetters extends LintRule {
             name: 'unnecessary_getters_setters',
             description: _desc,
             details: _details,
-            categories: {Category.effectiveDart, Category.style});
+            categories: {
+              LintRuleCategory.effectiveDart,
+              LintRuleCategory.style
+            });
 
   @override
   LintCode get lintCode => code;

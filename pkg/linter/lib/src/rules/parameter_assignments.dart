@@ -101,7 +101,7 @@ class ParameterAssignments extends LintRule {
             name: 'parameter_assignments',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

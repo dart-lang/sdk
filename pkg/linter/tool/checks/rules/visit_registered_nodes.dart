@@ -74,7 +74,7 @@ class VisitRegisteredNodes extends LintRule {
             name: 'visit_registered_nodes',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errors});
 
   @override
   LintCode get lintCode => code;

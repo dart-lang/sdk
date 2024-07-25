@@ -43,7 +43,7 @@ class UnnecessaryLambdas extends LintRule {
             name: 'unnecessary_lambdas',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

@@ -58,7 +58,7 @@ class UnsafeHtml extends LintRule {
             name: 'unsafe_html',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errors});
 
   @override
   List<LintCode> get lintCodes => [

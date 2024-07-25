@@ -40,7 +40,7 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
             name: 'unnecessary_nullable_for_final_variable_declarations',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

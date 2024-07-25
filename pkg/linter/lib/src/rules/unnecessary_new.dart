@@ -43,9 +43,9 @@ class UnnecessaryNew extends LintRule {
             description: _desc,
             details: _details,
             categories: {
-              Category.brevity,
-              Category.languageFeatureUsage,
-              Category.style
+              LintRuleCategory.brevity,
+              LintRuleCategory.languageFeatureUsage,
+              LintRuleCategory.style
             });
 
   @override

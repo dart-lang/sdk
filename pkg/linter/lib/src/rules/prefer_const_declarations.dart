@@ -48,7 +48,7 @@ class PreferConstDeclarations extends LintRule {
             name: 'prefer_const_declarations',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

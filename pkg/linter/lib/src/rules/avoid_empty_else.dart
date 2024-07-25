@@ -64,7 +64,10 @@ class AvoidEmptyElse extends LintRule {
             name: 'avoid_empty_else',
             description: _desc,
             details: _details,
-            categories: {Category.brevity, Category.errorProne});
+            categories: {
+              LintRuleCategory.brevity,
+              LintRuleCategory.errorProne
+            });
 
   @override
   LintCode get lintCode => code;

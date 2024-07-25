@@ -49,7 +49,7 @@ class AvoidReturningNull extends LintRule {
             description: _desc,
             details: _details,
             state: State.removed(since: dart3_3),
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

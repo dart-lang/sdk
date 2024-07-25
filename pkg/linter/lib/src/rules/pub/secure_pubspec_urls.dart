@@ -41,7 +41,7 @@ class SecurePubspecUrls extends LintRule {
             name: 'secure_pubspec_urls',
             description: _desc,
             details: _details,
-            categories: {Category.pub});
+            categories: {LintRuleCategory.pub});
 
   @override
   LintCode get lintCode => code;

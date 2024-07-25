@@ -43,7 +43,7 @@ class UnnecessaryConst extends LintRule {
             name: 'unnecessary_const',
             description: _desc,
             details: _details,
-            categories: {Category.brevity, Category.style});
+            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
   bool get canUseParsedResult => true;

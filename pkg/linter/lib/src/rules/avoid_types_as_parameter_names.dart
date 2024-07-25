@@ -40,7 +40,7 @@ class AvoidTypesAsParameterNames extends LintRule {
             name: 'avoid_types_as_parameter_names',
             description: _desc,
             details: _details,
-            categories: {Category.unintentional});
+            categories: {LintRuleCategory.unintentional});
 
   @override
   LintCode get lintCode => code;

@@ -60,7 +60,7 @@ class EmptyCatches extends LintRule {
             name: 'empty_catches',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

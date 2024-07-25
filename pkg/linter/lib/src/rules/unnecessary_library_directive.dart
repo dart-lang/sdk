@@ -49,7 +49,7 @@ class UnnecessaryLibraryDirective extends LintRule {
           name: _name,
           description: _desc,
           details: _details,
-          categories: {Category.brevity},
+          categories: {LintRuleCategory.brevity},
         );
 
   @override

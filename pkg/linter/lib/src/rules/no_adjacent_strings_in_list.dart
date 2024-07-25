@@ -45,7 +45,7 @@ class NoAdjacentStringsInList extends LintRule {
             name: 'no_adjacent_strings_in_list',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

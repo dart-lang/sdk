@@ -127,7 +127,7 @@ class ListRemoveUnrelatedType extends LintRule {
           name: 'list_remove_unrelated_type',
           description: _desc,
           details: _details,
-          categories: {Category.errors},
+          categories: {LintRuleCategory.errors},
           state: State.removed(since: dart3_3),
         );
 

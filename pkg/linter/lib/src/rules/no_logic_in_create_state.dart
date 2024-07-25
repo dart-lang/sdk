@@ -69,7 +69,7 @@ class NoLogicInCreateState extends LintRule {
             name: 'no_logic_in_create_state',
             description: _desc,
             details: _details,
-            categories: {Category.errors, Category.flutter});
+            categories: {LintRuleCategory.errors, LintRuleCategory.flutter});
 
   @override
   LintCode get lintCode => code;

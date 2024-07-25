@@ -39,7 +39,7 @@ class NoSoloTests extends LintRule {
             name: 'no_solo_tests',
             description: _desc,
             details: _details,
-            categories: {Category.errors});
+            categories: {LintRuleCategory.errors});
 
   @override
   LintCode get lintCode => code;

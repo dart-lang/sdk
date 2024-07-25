@@ -261,9 +261,10 @@ import 'analyzer.dart';
   var imports = <String>[];
   for (var name in names) {
     var rule = Registry.ruleRegistry.getRule(name);
-    var pathPrefix = rule != null && rule.categories.contains(Category.pub)
-        ? path.join('rules', 'pub')
-        : 'rules';
+    var pathPrefix =
+        rule != null && rule.categories.contains(LintRuleCategory.pub)
+            ? path.join('rules', 'pub')
+            : 'rules';
     imports.add("import '$pathPrefix/$name.dart';");
   }
 

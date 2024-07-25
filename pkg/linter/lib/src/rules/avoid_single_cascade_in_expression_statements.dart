@@ -37,7 +37,7 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
             name: 'avoid_single_cascade_in_expression_statements',
             description: _desc,
             details: _details,
-            categories: {Category.brevity, Category.style});
+            categories: {LintRuleCategory.brevity, LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

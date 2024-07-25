@@ -57,7 +57,7 @@ class PreferFinalInForEach extends LintRule {
             name: 'prefer_final_in_for_each',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

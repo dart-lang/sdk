@@ -263,7 +263,7 @@ class InternalRule extends LintRule {
   InternalRule()
       : super(
           name: 'internal_lint',
-          categories: {Category.style},
+          categories: {LintRuleCategory.style},
           state: State.internal(),
           description: '',
           details: '',

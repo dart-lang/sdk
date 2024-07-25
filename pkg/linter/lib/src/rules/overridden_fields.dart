@@ -110,7 +110,7 @@ class OverriddenFields extends LintRule {
             name: 'overridden_fields',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

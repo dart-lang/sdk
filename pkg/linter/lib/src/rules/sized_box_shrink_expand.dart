@@ -71,7 +71,7 @@ class SizedBoxShrinkExpand extends LintRule {
             name: 'sized_box_shrink_expand',
             description: 'Use SizedBox shrink and expand named constructors.',
             details: _details,
-            categories: {Category.flutter, Category.style});
+            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

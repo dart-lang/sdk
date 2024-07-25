@@ -43,7 +43,7 @@ class AvoidUnusedConstructorParameters extends LintRule {
             details: _details,
             // TODO(srawlins): This isn't even just about unintentional syntax;
             // unused parameters can represent code bloat.
-            categories: {Category.unintentional});
+            categories: {LintRuleCategory.unintentional});
 
   @override
   LintCode get lintCode => code;

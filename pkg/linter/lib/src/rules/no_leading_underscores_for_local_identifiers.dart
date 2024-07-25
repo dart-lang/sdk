@@ -62,7 +62,7 @@ class NoLeadingUnderscoresForLocalIdentifiers extends LintRule {
             name: 'no_leading_underscores_for_local_identifiers',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

@@ -39,7 +39,7 @@ class PreferAdjacentStringConcatenation extends LintRule {
             name: 'prefer_adjacent_string_concatenation',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

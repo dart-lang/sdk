@@ -51,7 +51,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
             name: 'prefer_const_constructors_in_immutables',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

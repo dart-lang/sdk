@@ -92,7 +92,7 @@ class SortChildPropertiesLast extends LintRule {
             name: 'sort_child_properties_last',
             description: _desc,
             details: _details,
-            categories: {Category.flutter, Category.style});
+            categories: {LintRuleCategory.flutter, LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;

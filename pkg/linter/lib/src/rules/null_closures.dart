@@ -214,7 +214,7 @@ class NullClosures extends LintRule {
             name: 'null_closures',
             description: _desc,
             details: _details,
-            categories: {Category.errorProne});
+            categories: {LintRuleCategory.errorProne});
 
   @override
   LintCode get lintCode => code;

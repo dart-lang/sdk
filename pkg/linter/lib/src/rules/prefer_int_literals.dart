@@ -43,7 +43,7 @@ class PreferIntLiterals extends LintRule {
             name: 'prefer_int_literals',
             description: _desc,
             details: _details,
-            categories: {Category.style});
+            categories: {LintRuleCategory.style});
 
   @override
   LintCode get lintCode => code;
