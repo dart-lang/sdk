@@ -128,11 +128,9 @@ abstract final class AnnotatedNode implements AstNode {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
-  CommentImpl? _comment;
-
-  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
-
+sealed class AnnotatedNodeImpl extends AstNodeImpl
+    with _AnnotatedNodeMixin
+    implements AnnotatedNode {
   /// Initializes a newly created annotated node.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
@@ -140,9 +138,8 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   AnnotatedNodeImpl({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
-  }) : _comment = comment {
-    _becomeParentOf(_comment);
-    _metadata._initialize(this, metadata);
+  }) {
+    _initializeCommentAndAnnotations(comment, metadata);
   }
 
   @override
@@ -164,25 +161,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   }
 
   @override
-  CommentImpl? get documentationComment => _comment;
-
-  set documentationComment(CommentImpl? comment) {
-    _comment = _becomeParentOf(comment);
-  }
-
-  @override
-  NodeListImpl<AnnotationImpl> get metadata => _metadata;
-
-  @override
-  List<AstNode> get sortedCommentAndAnnotations {
-    var comment = _comment;
-    return <AstNode>[
-      if (comment != null) comment,
-      ..._metadata,
-    ]..sort(AstNode.LEXICAL_ORDER);
-  }
-
-  @override
   ChildEntities get _childEntities {
     return ChildEntities()
       ..addNode('documentationComment', documentationComment)
@@ -191,28 +169,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    if (_commentIsBeforeAnnotations()) {
-      _comment?.accept(visitor);
-      _metadata.accept(visitor);
-    } else {
-      List<AstNode> children = sortedCommentAndAnnotations;
-      int length = children.length;
-      for (int i = 0; i < length; i++) {
-        children[i].accept(visitor);
-      }
-    }
-  }
-
-  /// Returns `true` if there are no annotations before the comment.
-  ///
-  /// Note that a result of `true` doesn't imply that there's a comment, nor
-  /// that there are annotations associated with this node.
-  bool _commentIsBeforeAnnotations() {
-    if (_comment == null || _metadata.isEmpty) {
-      return true;
-    }
-    Annotation firstAnnotation = _metadata[0];
-    return _comment!.offset < firstAnnotation.offset;
+    _visitCommentAndAnnotations(visitor);
   }
 }
 
@@ -6948,26 +6905,17 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (keyword case var keyword?) {
-      return keyword;
-    } else if (type case var type?) {
-      return type.beginToken;
-    }
-    return thisKeyword;
-  }
-
-  @override
   Token get endToken {
     return question ?? _parameters?.endToken ?? name;
   }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ??
+      covariantKeyword ??
+      keyword ??
+      type?.beginToken ??
+      thisKeyword;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -8659,22 +8607,11 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (returnType case var returnType?) {
-      return returnType.beginToken;
-    }
-    return name;
-  }
+  Token get endToken => question ?? _parameters.endToken;
 
   @override
-  Token get endToken => question ?? _parameters.endToken;
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ?? covariantKeyword ?? returnType?.beginToken ?? name;
 
   @override
   bool get isConst => false;
@@ -12671,11 +12608,8 @@ sealed class NormalFormalParameter implements FormalParameter {
 }
 
 sealed class NormalFormalParameterImpl extends FormalParameterImpl
+    with _AnnotatedNodeMixin
     implements NormalFormalParameter {
-  CommentImpl? _comment;
-
-  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
-
   @override
   final Token? covariantKeyword;
 
@@ -12695,17 +12629,13 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
     required this.covariantKeyword,
     required this.requiredKeyword,
     required this.name,
-  }) : _comment = comment {
-    _becomeParentOf(_comment);
-    _metadata._initialize(this, metadata);
+  }) {
+    _initializeCommentAndAnnotations(comment, metadata);
   }
 
   @override
-  CommentImpl? get documentationComment => _comment;
-
-  set documentationComment(CommentImpl? comment) {
-    _comment = _becomeParentOf(comment);
-  }
+  Token get beginToken =>
+      metadata.beginToken ?? firstTokenAfterCommentAndMetadata;
 
   @override
   ParameterKind get kind {
@@ -12714,18 +12644,6 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
       return parent.kind;
     }
     return ParameterKind.REQUIRED;
-  }
-
-  @override
-  NodeListImpl<AnnotationImpl> get metadata => _metadata;
-
-  @override
-  List<AstNode> get sortedCommentAndAnnotations {
-    var comment = _comment;
-    return <AstNode>[
-      if (comment != null) comment,
-      ..._metadata,
-    ]..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override
@@ -12743,25 +12661,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
     // Note that subclasses are responsible for visiting the identifier because
     // they often need to visit other nodes before visiting the identifier.
     //
-    if (_commentIsBeforeAnnotations()) {
-      _comment?.accept(visitor);
-      _metadata.accept(visitor);
-    } else {
-      List<AstNode> children = sortedCommentAndAnnotations;
-      int length = children.length;
-      for (int i = 0; i < length; i++) {
-        children[i].accept(visitor);
-      }
-    }
-  }
-
-  /// Returns `true` if the comment is lexically before any annotations.
-  bool _commentIsBeforeAnnotations() {
-    if (_comment == null || _metadata.isEmpty) {
-      return true;
-    }
-    Annotation firstAnnotation = _metadata[0];
-    return _comment!.offset < firstAnnotation.offset;
+    _visitCommentAndAnnotations(visitor);
   }
 }
 
@@ -15480,24 +15380,15 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (keyword case var keyword?) {
-      return keyword;
-    } else if (type case var type?) {
-      return type.beginToken;
-    }
-    return name!;
-  }
+  Token get endToken => name ?? type!.endToken;
 
   @override
-  Token get endToken => name ?? type!.endToken;
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ??
+      covariantKeyword ??
+      keyword ??
+      type?.beginToken ??
+      name!;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -16482,26 +16373,17 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  Token get beginToken {
-    var metadata = this.metadata;
-    if (metadata.isNotEmpty) {
-      return metadata.beginToken!;
-    } else if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    } else if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    } else if (keyword case var keyword?) {
-      return keyword;
-    } else if (type case var type?) {
-      return type.beginToken;
-    }
-    return superKeyword;
-  }
-
-  @override
   Token get endToken {
     return question ?? _parameters?.endToken ?? name;
   }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata =>
+      requiredKeyword ??
+      covariantKeyword ??
+      keyword ??
+      type?.beginToken ??
+      superKeyword;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
@@ -18647,6 +18529,74 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+}
+
+/// Mixin implementing shared functionality for AST nodes that can have optional
+/// annotations and an optional documentation comment.
+///
+/// Most node kinds that use this mixin also implement [AnnotatedNode], but a
+/// few do not. TODO(paulberry): fix this.
+base mixin _AnnotatedNodeMixin on AstNodeImpl {
+  CommentImpl? _comment;
+
+  final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
+
+  CommentImpl? get documentationComment => _comment;
+
+  set documentationComment(CommentImpl? comment) {
+    _comment = _becomeParentOf(comment);
+  }
+
+  /// The first token following the comment and metadata.
+  Token get firstTokenAfterCommentAndMetadata;
+
+  NodeListImpl<AnnotationImpl> get metadata => _metadata;
+
+  List<AstNode> get sortedCommentAndAnnotations {
+    var comment = _comment;
+    return <AstNode>[
+      if (comment != null) comment,
+      ..._metadata,
+    ]..sort(AstNode.LEXICAL_ORDER);
+  }
+
+  /// Returns `true` if there are no annotations before the comment.
+  ///
+  /// Note that a result of `true` doesn't imply that there's a comment, nor
+  /// that there are annotations associated with this node.
+  bool _commentIsBeforeAnnotations() {
+    if (_comment == null || _metadata.isEmpty) {
+      return true;
+    }
+    Annotation firstAnnotation = _metadata[0];
+    return _comment!.offset < firstAnnotation.offset;
+  }
+
+  /// Initializes the comment and metadata pointed to by this node.
+  ///
+  /// Intended to be called from the constructor.
+  void _initializeCommentAndAnnotations(
+      CommentImpl? comment, List<AnnotationImpl>? metadata) {
+    _comment = _becomeParentOf(comment);
+    _metadata._initialize(this, metadata);
+  }
+
+  /// Visits the AST nodes associated with [documentationComment] and
+  /// [metadata] (if any).
+  ///
+  /// Intended to be called from the [AstNode.visitChildren] method.
+  void _visitCommentAndAnnotations(AstVisitor<dynamic> visitor) {
+    if (_commentIsBeforeAnnotations()) {
+      _comment?.accept(visitor);
+      _metadata.accept(visitor);
+    } else {
+      List<AstNode> children = sortedCommentAndAnnotations;
+      int length = children.length;
+      for (int i = 0; i < length; i++) {
+        children[i].accept(visitor);
+      }
+    }
   }
 }
 
