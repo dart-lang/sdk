@@ -177,8 +177,9 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       int unformattedStart,
       int unformattedEnd,
       int formattedStart,
-      int formattedEnd,
-    ) {
+      int formattedEnd, {
+      bool allowNonWhitespaceDifferences = false,
+    }) {
       var unformattedWhitespace =
           unformatted.substring(unformattedStart, unformattedEnd);
       var formattedWhitespace =
@@ -274,8 +275,9 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       // it's likely the token offsets used were incorrect. In this case it's
       // better to not modify the code than potentially remove something
       // important.
-      if (!_isWhitespaceAndCommas(oldText) ||
-          !_isWhitespaceAndCommas(newText)) {
+      if (!allowNonWhitespaceDifferences &&
+          (!_isWhitespaceAndCommas(oldText) ||
+              !_isWhitespaceAndCommas(newText))) {
         return;
       }
 
@@ -309,6 +311,7 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       var unformattedEnd = unformattedToken.offset;
       var formattedStart = formattedOffset;
       var formattedEnd = formattedToken.offset;
+      var allowNonWhitespaceDifferences = false;
 
       /// Helper to advance the formatted stream by one token if it is not at
       /// the end.
@@ -357,6 +360,17 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
             advanceFormatted(); // simple token (open+close)
           }
         }
+      } else if ((unformattedToken.type == TokenType.SINGLE_LINE_COMMENT ||
+              unformattedToken.type == TokenType.MULTI_LINE_COMMENT) &&
+          unformattedToken.type == formattedToken.type) {
+        // The formatter may remove trailing whitespace from comments which
+        // are part of the lexeme (and not between tokens), so if the content is
+        // different, allow the whole comments to be replaced.
+        if (unformattedToken.lexeme != formattedToken.lexeme) {
+          advanceUnformatted();
+          advanceFormatted();
+          allowNonWhitespaceDifferences = true;
+        }
       }
 
       if (unformattedToken.lexeme != formattedToken.lexeme) {
@@ -368,7 +382,12 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
 
       // Add edits for the computed ranges.
       addEditFor(
-          unformattedStart, unformattedEnd, formattedStart, formattedEnd);
+        unformattedStart,
+        unformattedEnd,
+        formattedStart,
+        formattedEnd,
+        allowNonWhitespaceDifferences: allowNonWhitespaceDifferences,
+      );
 
       // And move the pointers along to after these tokens.
       unformattedOffset = unformattedToken.end;

@@ -252,6 +252,70 @@ Delete 3:1-3:2
     await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
+  /// The formatter removes trailing whitespace from comments which results in
+  /// differences in the comment token lexemes. This should
+  /// be handled and not result in a full document edit.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5200
+  Future<void> test_minimalEdits_comment_multiLine_trailingWhitespace() async {
+    // The initial content has a trailing space on the end of the comment.
+    const startContent = r'''
+/**
+ * line with trailing whitespace 
+ * line with trailing whitespace 
+ */
+int? a;
+''';
+    // We expect the trailing spaces to be removed.
+    const endContent = r'''
+/**
+ * line with trailing whitespace
+ * line with trailing whitespace
+ */
+int? a;
+''';
+
+    // Expect the edit to replace the entire comment, minus the common
+    // prefix/suffix. That is, it will replace from the end of the first line
+    // of the comment (consuming the trailing whitespace) up up until the
+    // trailing space of the second line.
+    // We do not support minimizing the edits within the comment itself, because
+    // we only diff tokens and not the string contents.
+    const expectedEdits = r'''
+Replace 2:33-3:34 with "\n * line with trailing whitespace"
+''';
+
+    await _assertMinimalEdits(
+      startContent,
+      endContent,
+      expectedEdits,
+    );
+  }
+
+  /// The formatter removes trailing whitespace from comments which results in
+  /// differences in the comment token lexemes. This should
+  /// be handled and not result in a full document edit.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5200
+  Future<void> test_minimalEdits_comment_singleLine_trailingWhitespace() async {
+    // The initial content has a trailing space on the end of the comment.
+    const startContent = 'const a = 1; // a \nconst b = 2;';
+    // We expect the trailing space will be removed.
+    const endContent = 'const a = 1; // a\nconst b = 2;';
+
+    // Expect the edit to be only the deletion of that one character, not a
+    // full edit (or full replacement of the comment).
+    const expectedEdits = r'''
+Delete 1:18-1:19
+''';
+
+    await _assertMinimalEdits(
+      startContent,
+      endContent,
+      expectedEdits,
+    );
+  }
+
   /// Empty collections that are unwrapped produce different tokens. This should
   /// be handled and not result in a full document edit.
   ///
