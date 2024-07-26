@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../builder/builder.dart';
+import '../builder/declaration_builders.dart';
 import '../kernel/body_builder.dart' show JumpTarget;
 import 'scope.dart';
 
@@ -116,6 +117,11 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   }
 
   void recordUse(String name, int charOffset) {}
+
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _parent?.forEachExtension(f);
+  }
 }
 
 final class LocalScopeImpl extends BaseLocalScope
@@ -342,6 +348,11 @@ final class EnclosingLocalScope extends BaseLocalScope
   @override
   Builder? lookupSetter(String name, int charOffset, Uri uri) {
     return _scope.lookupSetter(name, charOffset, uri);
+  }
+
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _scope.forEachExtension(f);
   }
 
   @override

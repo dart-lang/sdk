@@ -151,15 +151,14 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
-  Iterator<Builder> get unfilteredIterator => new ScopeIterator.fromIterators(
+  Iterator<Builder> get unfilteredIterator => new ScopeIterator(
       _getables?.values.iterator,
       _setables?.values.iterator,
       _extensions?.iterator);
 
   @override
   NameIterator<Builder> get unfilteredNameIterator =>
-      new ScopeNameIterator.fromIterators(
-          _getables, _setables, _extensions?.iterator);
+      new ScopeNameIterator(_getables, _setables, _extensions?.iterator);
 }
 
 abstract class LazyNameSpace extends NameSpaceImpl {
@@ -182,6 +181,17 @@ abstract class LazyNameSpace extends NameSpaceImpl {
   Set<ExtensionBuilder>? get _extensions {
     ensureNameSpace();
     return super._extensions;
+  }
+}
+
+class DillLibraryNameSpace extends LazyNameSpace {
+  final DillLibraryBuilder _libraryBuilder;
+
+  DillLibraryNameSpace(this._libraryBuilder);
+
+  @override
+  void ensureNameSpace() {
+    _libraryBuilder.ensureLoaded();
   }
 }
 

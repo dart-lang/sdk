@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../base/messages.dart';
+import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -440,28 +441,9 @@ class TypeParameterScopeBuilder {
     return TypeParameterScope.fromList(lookupScope, typeVariableBuilders);
   }
 
-  Scope toScope(Scope? parent,
-      {Map<String, Builder>? omittedTypeDeclarationBuilders}) {
-    // Coverage-ignore(suite): Not run.
-    if (omittedTypeDeclarationBuilders != null &&
-        omittedTypeDeclarationBuilders.isNotEmpty) {
-      parent = new Scope(
-          kind: ScopeKind.typeParameters,
-          local: omittedTypeDeclarationBuilders,
-          parent: parent,
-          debugName: 'omitted-types',
-          isModifiable: false);
-    }
-    return new Scope(
-        kind: ScopeKind.typeParameters,
-        local: members ?? const {},
-        setters: setters,
-        extensions: extensions,
-        parent: parent,
-        debugName: name,
-        isModifiable: false,
-        augmentations: augmentations,
-        setterAugmentations: setterAugmentations);
+  NameSpace toNameSpace() {
+    return new NameSpaceImpl(
+        getables: members, setables: setters, extensions: extensions);
   }
 
   @override

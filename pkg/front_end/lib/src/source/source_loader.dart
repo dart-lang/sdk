@@ -1531,7 +1531,7 @@ severity: $severity
         both.add(exported as SourceLibraryBuilder);
       }
       for (Export export in exported.exporters) {
-        exported.exportScope
+        exported.exportNameSpace
             .filteredNameIterator(
                 includeDuplicates: false, includeAugmentations: false)
             .forEach(export.addToExportScope);
@@ -1542,7 +1542,7 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          NameIterator<Builder> iterator = exported.exportScope
+          NameIterator<Builder> iterator = exported.exportNameSpace
               .filteredNameIterator(
                   includeDuplicates: false, includeAugmentations: false);
           while (iterator.moveNext()) {
@@ -2968,9 +2968,9 @@ severity: $severity
     }
 
     Builder? mainBuilder =
-        libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
+        libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: false);
     mainBuilder ??=
-        libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
+        libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: true);
     if (mainBuilder is MemberBuilder) {
       if (mainBuilder is InvalidTypeDeclarationBuilder) {
         // This is an ambiguous export, skip the check.

@@ -66,7 +66,7 @@ class SourceCompilationUnitImpl
 
   late final BuilderFactoryResult _builderFactoryResult;
 
-  final NameSpace _importScope;
+  final NameSpace _importNameSpace;
 
   LibraryFeatures? _libraryFeatures;
 
@@ -92,7 +92,7 @@ class SourceCompilationUnitImpl
       required this.indexedLibrary,
       required LibraryName libraryName,
       Map<String, Builder>? omittedTypeDeclarationBuilders,
-      required NameSpace importScope,
+      required NameSpace importNameSpace,
       required this.forAugmentationLibrary,
       required this.forPatchLibrary,
       required this.isAugmenting,
@@ -101,7 +101,7 @@ class SourceCompilationUnitImpl
       : _libraryName = libraryName,
         _languageVersion = packageLanguageVersion,
         _packageUri = packageUri,
-        _importScope = importScope {
+        _importNameSpace = importNameSpace {
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
         compilationUnit: this,
@@ -110,6 +110,7 @@ class SourceCompilationUnitImpl
         libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
         problemReporting: this,
         scope: _scope,
+        nameSpace: _nameSpace,
         libraryName: _libraryName,
         indexedLibrary: indexedLibrary,
         omittedTypeDeclarationBuilders: omittedTypeDeclarationBuilders);
@@ -405,7 +406,9 @@ class SourceCompilationUnitImpl
   @override
   Uri? get partOfUri => _builderFactoryResult.partOfUri;
 
-  Scope get _scope => _sourceLibraryBuilder.scope;
+  LookupScope get _scope => _sourceLibraryBuilder.scope;
+
+  NameSpace get _nameSpace => _sourceLibraryBuilder.nameSpace;
 
   @override
   void takeMixinApplications(
@@ -620,7 +623,14 @@ class SourceCompilationUnitImpl
     }
     libraryBuilder.unresolvedNamedTypes.addAll(unresolvedNamedTypes);
     _libraryName.reference = libraryBuilder.libraryName.reference;
-    _scope.becomePartOf(libraryBuilder.scope);
+
+    // TODO(johnniwinther): Avoid these. The compilation unit should not have
+    // a name space and its import scope should be nested within its parent's
+    // import scope.
+    _sourceLibraryBuilder._nameSpace = libraryBuilder.nameSpace;
+    _sourceLibraryBuilder._scope.replaceNameSpaceAndParent(
+        libraryBuilder.nameSpace, libraryBuilder._importScope);
+
     // TODO(ahe): Include metadata from part?
 
     // Recovery: Take on all exporters (i.e. if a library has erroneously
@@ -735,7 +745,7 @@ class SourceCompilationUnitImpl
       import.finalizeImports(this);
     }
     if (!hasCoreImport) {
-      NameIterator<Builder> iterator = loader.coreLibrary.exportScope
+      NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
           .filteredNameIterator(
               includeDuplicates: false, includeAugmentations: false);
       while (iterator.moveNext()) {
@@ -747,22 +757,22 @@ class SourceCompilationUnitImpl
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
     Builder? existing =
-        _importScope.lookupLocalMember(name, setter: member.isSetter);
+        _importNameSpace.lookupLocalMember(name, setter: member.isSetter);
     if (existing != null) {
       if (existing != member) {
-        _importScope.addLocalMember(
+        _importNameSpace.addLocalMember(
             name,
             computeAmbiguousDeclarationForScope(
-                this, _scope, name, existing, member,
+                this, _nameSpace, name, existing, member,
                 uriOffset: new UriOffset(fileUri, charOffset),
                 isImport: isImport),
             setter: member.isSetter);
       }
     } else {
-      _importScope.addLocalMember(name, member, setter: member.isSetter);
+      _importNameSpace.addLocalMember(name, member, setter: member.isSetter);
     }
     if (member.isExtension) {
-      _importScope.addExtension(member as ExtensionBuilder);
+      _importNameSpace.addExtension(member as ExtensionBuilder);
     }
   }
 

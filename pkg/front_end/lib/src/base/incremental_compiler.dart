@@ -101,7 +101,6 @@ import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
-import 'scope.dart' show ScopeKind;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show dartCore, getPartUri;
@@ -685,10 +684,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool isEquivalent = true;
     StringBuffer sb = new StringBuffer();
     sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
-    sourceLibraryBuilder.exportScope
+    sourceLibraryBuilder.exportNameSpace
         .forEachLocalMember((String name, Builder sourceBuilder) {
-      Builder? dillBuilder =
-          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
+      Builder? dillBuilder = dillLibraryBuilder.exportNameSpace
+          .lookupLocalMember(name, setter: false);
       if (dillBuilder == null) {
         if ((name == 'dynamic' || name == 'Never') &&
             sourceLibraryBuilder.importUri == dartCore) {
@@ -701,30 +700,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         isEquivalent = false;
       }
     });
-    dillLibraryBuilder.exportScope
+    dillLibraryBuilder.exportNameSpace
         .forEachLocalMember((String name, Builder dillBuilder) {
-      Builder? sourceBuilder = sourceLibraryBuilder.exportScope
+      Builder? sourceBuilder = sourceLibraryBuilder.exportNameSpace
           .lookupLocalMember(name, setter: false);
       if (sourceBuilder == null) {
         sb.writeln('No source builder for ${name}: $dillBuilder');
         isEquivalent = false;
       }
     });
-    sourceLibraryBuilder.exportScope
+    sourceLibraryBuilder.exportNameSpace
         .forEachLocalSetter((String name, Builder sourceBuilder) {
-      Builder? dillBuilder =
-          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: true);
+      Builder? dillBuilder = dillLibraryBuilder.exportNameSpace
+          .lookupLocalMember(name, setter: true);
       if (dillBuilder == null) {
         sb.writeln('No dill builder for ${name}=: $sourceBuilder');
         isEquivalent = false;
       }
     });
-    dillLibraryBuilder.exportScope
+    dillLibraryBuilder.exportNameSpace
         .forEachLocalSetter((String name, Builder dillBuilder) {
-      Builder? sourceBuilder = sourceLibraryBuilder.exportScope
+      Builder? sourceBuilder = sourceLibraryBuilder.exportNameSpace
           .lookupLocalMember(name, setter: true);
       if (sourceBuilder == null) {
-        sourceBuilder = sourceLibraryBuilder.exportScope
+        sourceBuilder = sourceLibraryBuilder.exportNameSpace
             .lookupLocalMember(name, setter: false);
         if (sourceBuilder is FieldBuilder && sourceBuilder.isAssignable) {
           // Assignable fields can be lowered into a getter and setter.
@@ -2026,8 +2025,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        importScope: debugLibrary.scope.createNestedScope(
-            debugName: "expression", kind: ScopeKind.library),
+        parentScope: debugLibrary.scope,
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
         isAugmentation: false,

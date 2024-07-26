@@ -40,9 +40,11 @@ import '../kernel/collections.dart'
         ForInElement,
         ForInMapEntry,
         ForMapEntry,
+        IfCaseElement,
         IfElement,
         IfMapEntry,
         NullAwareElement,
+        PatternForElement,
         SpreadElement,
         SpreadMapEntry,
         convertToElement;
@@ -2685,24 +2687,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType inferredTypeArgument,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
-    if (element is SpreadElement) {
-      return _inferSpreadElement(element, inferredTypeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
-    } else if (element is NullAwareElement) {
-      return _inferNullAwareElement(element, inferredTypeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
-    } else if (element is IfElement) {
-      return _inferIfElement(element, inferredTypeArgument, inferredSpreadTypes,
-          inferredConditionTypes);
-    } else if (element is IfCaseElement) {
-      return _inferIfCaseElement(element, inferredTypeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
-    } else if (element is ForElement) {
-      return _inferForElement(element, inferredTypeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
-    } else if (element is ForInElement) {
-      return _inferForInElement(element, inferredTypeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
+    if (element is ControlFlowElement) {
+      switch (element) {
+        case SpreadElement():
+          return _inferSpreadElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
+        case NullAwareElement():
+          return _inferNullAwareElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
+        case IfElement():
+          return _inferIfElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
+        case IfCaseElement():
+          return _inferIfCaseElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
+        case ForElement():
+          return _inferForElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
+        case ForInElement():
+          return _inferForInElement(element, inferredTypeArgument,
+              inferredSpreadTypes, inferredConditionTypes);
+      }
     } else {
       ExpressionInferenceResult result =
           inferExpression(element, inferredTypeArgument, isVoidAllowed: true);
@@ -2728,48 +2733,71 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   void checkElement(
-      Expression item,
+      ControlFlowElement item,
       Expression parent,
       DartType typeArgument,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
-    if (item is SpreadElement) {
-      DartType? spreadType = inferredSpreadTypes[item.expression];
-      if (spreadType is DynamicType) {
-        Expression expression = ensureAssignable(
-            coreTypes.iterableRawType(item.isNullAware
-                ? Nullability.nullable
-                : Nullability.nonNullable),
-            spreadType,
-            item.expression);
-        item.expression = expression..parent = item;
-      }
-    } else if (item is NullAwareElement) {
-      checkElement(item.expression, item, typeArgument, inferredSpreadTypes,
-          inferredConditionTypes);
-    } else if (item is IfElement) {
-      checkElement(item.then, item, typeArgument, inferredSpreadTypes,
-          inferredConditionTypes);
-      if (item.otherwise != null) {
-        checkElement(item.otherwise!, item, typeArgument, inferredSpreadTypes,
-            inferredConditionTypes);
-      }
-    } else if (item is ForElement) {
-      if (item.condition != null) {
-        DartType conditionType = inferredConditionTypes[item.condition]!;
-        Expression condition = ensureAssignable(
-            coreTypes.boolRawType(Nullability.nonNullable),
-            conditionType,
-            item.condition!);
-        item.condition = condition..parent = item;
-      }
-      checkElement(item.body, item, typeArgument, inferredSpreadTypes,
-          inferredConditionTypes);
-    } else if (item is ForInElement) {
-      checkElement(item.body, item, typeArgument, inferredSpreadTypes,
-          inferredConditionTypes);
-    } else {
-      // Do nothing.  Assignability checks are done during type inference.
+    switch (item) {
+      case SpreadElement():
+        DartType? spreadType = inferredSpreadTypes[item.expression];
+        if (spreadType is DynamicType) {
+          Expression expression = ensureAssignable(
+              coreTypes.iterableRawType(item.isNullAware
+                  ? Nullability.nullable
+                  : Nullability.nonNullable),
+              spreadType,
+              item.expression);
+          item.expression = expression..parent = item;
+        }
+      case NullAwareElement():
+        Expression itemExpression = item.expression;
+        if (itemExpression is ControlFlowElement) {
+          checkElement(itemExpression, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+      case IfElement():
+        Expression itemThen = item.then;
+        if (itemThen is ControlFlowElement) {
+          checkElement(itemThen, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+        Expression? itemOtherwise = item.otherwise;
+        if (itemOtherwise is ControlFlowElement) {
+          checkElement(itemOtherwise, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+      case IfCaseElement():
+        Expression itemThen = item.then;
+        if (itemThen is ControlFlowElement) {
+          checkElement(itemThen, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+        Expression? itemOtherwise = item.otherwise;
+        if (itemOtherwise is ControlFlowElement) {
+          checkElement(itemOtherwise, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+      case ForElement():
+        if (item.condition != null) {
+          DartType conditionType = inferredConditionTypes[item.condition]!;
+          Expression condition = ensureAssignable(
+              coreTypes.boolRawType(Nullability.nonNullable),
+              conditionType,
+              item.condition!);
+          item.condition = condition..parent = item;
+        }
+        Expression itemBody = item.body;
+        if (itemBody is ControlFlowElement) {
+          checkElement(itemBody, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
+      case ForInElement():
+        Expression itemBody = item.body;
+        if (itemBody is ControlFlowElement) {
+          checkElement(itemBody, item, typeArgument, inferredSpreadTypes,
+              inferredConditionTypes);
+        }
     }
   }
 
@@ -2838,8 +2866,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.typeArgument = inferredTypeArgument;
     }
     for (int i = 0; i < node.expressions.length; i++) {
-      checkElement(node.expressions[i], node, node.typeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
+      Expression expression = node.expressions[i];
+      if (expression is ControlFlowElement) {
+        checkElement(expression, node, node.typeArgument, inferredSpreadTypes,
+            inferredConditionTypes);
+      }
     }
     DartType inferredType = new InterfaceType(
         listClass, Nullability.nonNullable, [inferredTypeArgument]);
@@ -2988,31 +3019,38 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void _translateElement(Expression element, InterfaceType receiverType,
       DartType elementType, VariableDeclaration result, List<Statement> body,
       {required bool isSet}) {
-    if (element is SpreadElement) {
-      _translateSpreadElement(element, receiverType, elementType, result, body,
-          isSet: isSet);
-    } else if (element is NullAwareElement) {
-      _translateNullAwareElement(
-          element, receiverType, elementType, result, body,
-          isSet: isSet);
-    } else if (element is IfElement) {
-      _translateIfElement(element, receiverType, elementType, result, body,
-          isSet: isSet);
-    } else if (element is IfCaseElement) {
-      _translateIfCaseElement(element, receiverType, elementType, result, body,
-          isSet: isSet);
-    } else if (element is ForElement) {
-      if (element is PatternForElement) {
-        _translatePatternForElement(
-            element, receiverType, elementType, result, body,
-            isSet: isSet);
-      } else {
-        _translateForElement(element, receiverType, elementType, result, body,
-            isSet: isSet);
+    if (element is ControlFlowElement) {
+      switch (element) {
+        case SpreadElement():
+          _translateSpreadElement(
+              element, receiverType, elementType, result, body,
+              isSet: isSet);
+        case NullAwareElement():
+          _translateNullAwareElement(
+              element, receiverType, elementType, result, body,
+              isSet: isSet);
+        case IfElement():
+          _translateIfElement(element, receiverType, elementType, result, body,
+              isSet: isSet);
+        case IfCaseElement():
+          _translateIfCaseElement(
+              element, receiverType, elementType, result, body,
+              isSet: isSet);
+        case ForElement():
+          if (element is PatternForElement) {
+            _translatePatternForElement(
+                element, receiverType, elementType, result, body,
+                isSet: isSet);
+          } else {
+            _translateForElement(
+                element, receiverType, elementType, result, body,
+                isSet: isSet);
+          }
+        case ForInElement():
+          _translateForInElement(
+              element, receiverType, elementType, result, body,
+              isSet: isSet);
       }
-    } else if (element is ForInElement) {
-      _translateForInElement(element, receiverType, elementType, result, body,
-          isSet: isSet);
     } else {
       _addExpressionElement(element, receiverType, result, body, isSet: isSet);
     }
@@ -3738,51 +3776,58 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (; i < elements.length; ++i) {
       Expression element = elements[i];
-      if (element is SpreadElement) {
-        if (currentPart != null) {
-          parts.add(makeLiteral(node.fileOffset, currentPart));
-          currentPart = null;
+      if (element is ControlFlowElement) {
+        switch (element) {
+          case SpreadElement():
+            if (currentPart != null) {
+              parts.add(makeLiteral(node.fileOffset, currentPart));
+              currentPart = null;
+            }
+            Expression spreadExpression = element.expression;
+            if (element.isNullAware) {
+              VariableDeclaration temp = _createVariable(
+                  spreadExpression,
+                  typeSchemaEnvironment.iterableType(
+                      elementType, Nullability.nullable));
+              parts.add(_createNullAwareGuard(element.fileOffset, temp,
+                  makeLiteral(element.fileOffset, []), iterableType));
+            } else {
+              parts.add(spreadExpression);
+            }
+          case NullAwareElement():
+            if (currentPart != null) {
+              parts.add(makeLiteral(node.fileOffset, currentPart));
+              currentPart = null;
+            }
+            VariableDeclaration temp = _createVariable(element.expression,
+                elementType.withDeclaredNullability(Nullability.nullable));
+            parts.add(_createNullAwareGuard(element.fileOffset, temp,
+                makeLiteral(element.fileOffset, []), iterableType,
+                nullCheckedValue: makeLiteral(element.fileOffset,
+                    [_createNullCheckedVariableGet(temp)])));
+          case IfElement():
+            // Coverage-ignore-block(suite): Not run.
+            if (currentPart != null) {
+              parts.add(makeLiteral(node.fileOffset, currentPart));
+              currentPart = null;
+            }
+            Expression condition = element.condition;
+            Expression then =
+                makeLiteral(element.then.fileOffset, [element.then]);
+            Expression otherwise = element.otherwise != null
+                ? makeLiteral(
+                    element.otherwise!.fileOffset, [element.otherwise!])
+                : makeLiteral(element.fileOffset, []);
+            parts.add(_createConditionalExpression(
+                element.fileOffset, condition, then, otherwise, iterableType));
+          case IfCaseElement():
+          case ForElement():
+          case ForInElement():
+            // Coverage-ignore-block(suite): Not run.
+            // Rejected earlier.
+            problems.unhandled("${element.runtimeType}",
+                "_translateConstListOrSet", element.fileOffset, helper.uri);
         }
-        Expression spreadExpression = element.expression;
-        if (element.isNullAware) {
-          VariableDeclaration temp = _createVariable(
-              spreadExpression,
-              typeSchemaEnvironment.iterableType(
-                  elementType, Nullability.nullable));
-          parts.add(_createNullAwareGuard(element.fileOffset, temp,
-              makeLiteral(element.fileOffset, []), iterableType));
-        } else {
-          parts.add(spreadExpression);
-        }
-      } else if (element is NullAwareElement) {
-        if (currentPart != null) {
-          parts.add(makeLiteral(node.fileOffset, currentPart));
-          currentPart = null;
-        }
-        VariableDeclaration temp = _createVariable(element.expression,
-            elementType.withDeclaredNullability(Nullability.nullable));
-        parts.add(_createNullAwareGuard(element.fileOffset, temp,
-            makeLiteral(element.fileOffset, []), iterableType,
-            nullCheckedValue: makeLiteral(
-                element.fileOffset, [_createNullCheckedVariableGet(temp)])));
-      } else if (element is IfElement) {
-        // Coverage-ignore-block(suite): Not run.
-        if (currentPart != null) {
-          parts.add(makeLiteral(node.fileOffset, currentPart));
-          currentPart = null;
-        }
-        Expression condition = element.condition;
-        Expression then = makeLiteral(element.then.fileOffset, [element.then]);
-        Expression otherwise = element.otherwise != null
-            ? makeLiteral(element.otherwise!.fileOffset, [element.otherwise!])
-            : makeLiteral(element.fileOffset, []);
-        parts.add(_createConditionalExpression(
-            element.fileOffset, condition, then, otherwise, iterableType));
-      } else if (element is ForElement || element is ForInElement) {
-        // Coverage-ignore-block(suite): Not run.
-        // Rejected earlier.
-        problems.unhandled("${element.runtimeType}", "_translateConstListOrSet",
-            element.fileOffset, helper.uri);
       } else {
         currentPart ??= <Expression>[];
         currentPart.add(element);
@@ -4999,12 +5044,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             typeArgument: inferredTypeArgument, isConst: node.isConst)
           ..fileOffset = node.fileOffset;
         for (int i = 0; i < setLiteral.expressions.length; i++) {
-          checkElement(
-              setLiteral.expressions[i],
-              setLiteral,
-              setLiteral.typeArgument,
-              inferredSpreadTypes,
-              inferredConditionTypes);
+          Expression element = setLiteral.expressions[i];
+          if (element is ControlFlowElement) {
+            checkElement(element, setLiteral, setLiteral.typeArgument,
+                inferredSpreadTypes, inferredConditionTypes);
+          }
         }
 
         Expression result = _translateSetLiteral(setLiteral);
@@ -8288,8 +8332,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.typeArgument = inferredTypeArgument;
     }
     for (int i = 0; i < node.expressions.length; i++) {
-      checkElement(node.expressions[i], node, node.typeArgument,
-          inferredSpreadTypes, inferredConditionTypes);
+      Expression element = node.expressions[i];
+      if (element is ControlFlowElement) {
+        checkElement(element, node, node.typeArgument, inferredSpreadTypes,
+            inferredConditionTypes);
+      }
     }
     DartType inferredType = new InterfaceType(
         setClass, Nullability.nonNullable, [inferredTypeArgument]);

@@ -82,7 +82,7 @@ class Import {
         prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    NameIterator<Builder> iterator = importedLibraryBuilder!.exportScope
+    NameIterator<Builder> iterator = importedLibraryBuilder!.exportNameSpace
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {

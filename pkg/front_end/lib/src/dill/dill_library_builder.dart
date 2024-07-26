@@ -33,19 +33,6 @@ import 'dill_loader.dart' show DillLoader;
 import 'dill_member_builder.dart';
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
-class LazyLibraryScope extends LazyScope {
-  final DillLibraryBuilder libraryBuilder;
-
-  LazyLibraryScope.top(this.libraryBuilder)
-      : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
-            isModifiable: false, kind: ScopeKind.library);
-
-  @override
-  void ensureScope() {
-    libraryBuilder.ensureLoaded();
-  }
-}
-
 class DillCompilationUnitImpl extends DillCompilationUnit {
   final DillLibraryBuilder _dillLibraryBuilder;
 
@@ -116,7 +103,9 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
-  late final LazyLibraryScope _scope;
+  late final LookupScope _scope;
+
+  late final DillLibraryNameSpace _nameSpace;
 
   late final DillExportNameSpace _exportScope;
 
@@ -144,18 +133,19 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool isBuiltAndMarked = false;
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
-    _scope = new LazyLibraryScope.top(this);
+    _nameSpace = new DillLibraryNameSpace(this);
+    _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.library, 'top');
     _exportScope = new DillExportNameSpace(this);
   }
 
   @override
-  Scope get scope => _scope;
+  LookupScope get scope => _scope;
 
   @override
-  NameSpace get nameSpace => _scope;
+  NameSpace get nameSpace => _nameSpace;
 
   @override
-  NameSpace get exportScope => _exportScope;
+  NameSpace get exportNameSpace => _exportScope;
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
@@ -360,10 +350,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     }
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
-        exportScope.addLocalMember(name, declaration as MemberBuilder,
+        exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
             setter: true);
       } else {
-        exportScope.addLocalMember(name, declaration, setter: false);
+        exportNameSpace.addLocalMember(name, declaration, setter: false);
       }
     }
     return declaration;
@@ -396,13 +386,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(
             name == 'dynamic', // Coverage-ignore(suite): Not run.
             "Unexpected export name for 'dynamic': '$name'");
-        declaration = loader.coreLibrary.exportScope
+        declaration = loader.coreLibrary.exportNameSpace
             .lookupLocalMember(name, setter: false)!;
       } else if (messageText == exportNeverSentinel) {
         assert(
             name == 'Never', // Coverage-ignore(suite): Not run.
             "Unexpected export name for 'Never': '$name'");
-        declaration = loader.coreLibrary.exportScope
+        declaration = loader.coreLibrary.exportNameSpace
             .lookupLocalMember(name, setter: false)!;
       } else {
         Message message = templateUnspecified.withArguments(messageText);
@@ -412,7 +402,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         declaration =
             new InvalidTypeDeclarationBuilder(name, message.withoutLocation());
       }
-      exportScope.addLocalMember(name, declaration, setter: false);
+      exportNameSpace.addLocalMember(name, declaration, setter: false);
     });
 
     Map<Reference, Builder>? sourceBuildersMap =
@@ -434,10 +424,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         }
 
         if (declaration.isSetter) {
-          exportScope.addLocalMember(name, declaration as MemberBuilder,
+          exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
               setter: true);
         } else {
-          exportScope.addLocalMember(name, declaration, setter: false);
+          exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       } else {
         Uri libraryUri;
@@ -474,13 +464,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         }
         if (isSetter) {
           declaration =
-              library.exportScope.lookupLocalMember(name, setter: true)!;
-          exportScope.addLocalMember(name, declaration as MemberBuilder,
+              library.exportNameSpace.lookupLocalMember(name, setter: true)!;
+          exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
               setter: true);
         } else {
           declaration =
-              library.exportScope.lookupLocalMember(name, setter: false)!;
-          exportScope.addLocalMember(name, declaration, setter: false);
+              library.exportNameSpace.lookupLocalMember(name, setter: false)!;
+          exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       }
 

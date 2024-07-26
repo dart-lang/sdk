@@ -17,9 +17,11 @@ import 'collections.dart'
         ForInElement,
         ForInMapEntry,
         ForMapEntry,
+        IfCaseElement,
         IfElement,
         IfMapEntry,
         NullAwareElement,
+        PatternForElement,
         SpreadElement;
 
 import 'internal_ast.dart';
