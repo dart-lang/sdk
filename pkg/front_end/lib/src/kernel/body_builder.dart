@@ -4944,9 +4944,11 @@ class BodyBuilder extends StackListenerImpl
       for (int i = 0; i < setOrMapEntries.length; ++i) {
         if (setOrMapEntries[i] is MapLiteralEntry) {
           mapEntries[i] = setOrMapEntries[i];
-        } else {
+        } else if (setOrMapEntries[i] is ControlFlowElement) {
           mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this,
               typeInferrer.assignedVariables.reassignInfo);
+        } else {
+          mapEntries[i] = convertToErroneousMapEntry(setOrMapEntries[i], this);
         }
       }
       buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);

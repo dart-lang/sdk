@@ -37,9 +37,9 @@ static method test2(dynamic x, dynamic another) → core::Iterable<dynamic> {
     {
       final synthesized dynamic #0#0 = x;
       if(#0#0 is core::String) {
-        synthesized core::Iterator<invalid-type> :sync-for-iterator = another.{core::Iterable::iterator}{core::Iterator<invalid-type>};
+        synthesized core::Iterator<dynamic> :sync-for-iterator = (another as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{invalid-type};
+          final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
           {
             final dynamic #t14 = #t13 as{TypeError} dynamic;
             #t12.{core::Set::add}{Invariant}(#t14){(dynamic) → core::bool};

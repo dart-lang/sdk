@@ -473,20 +473,20 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 0,
   ),
-  // 99.38483547925608%.
+  // 99.34238741958542%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 6947,
-    missCount: 43,
+    hitCount: 6949,
+    missCount: 46,
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder_context.dart": (
     hitCount: 345,
     missCount: 0,
   ),
-  // 93.31103678929766%.
+  // 90.35087719298247%.
   "package:front_end/src/kernel/collections.dart": (
-    hitCount: 279,
-    missCount: 20,
+    hitCount: 309,
+    missCount: 33,
   ),
   // 100.0%.
   "package:front_end/src/kernel/combined_member_signature.dart": (
@@ -595,7 +595,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/internal_ast.dart": (
-    hitCount: 595,
+    hitCount: 569,
     missCount: 0,
   ),
   // 100.0%.
@@ -899,10 +899,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 166,
     missCount: 0,
   ),
-  // 99.96187571483036%.
+  // 99.52038369304557%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 7866,
-    missCount: 3,
+    hitCount: 7885,
+    missCount: 38,
   ),
   // 99.87525987525989%.
   "package:front_end/src/type_inference/inference_visitor_base.dart": (
