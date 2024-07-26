@@ -252,6 +252,20 @@ Delete 3:1-3:2
     await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
+  Future<void> test_minimalEdits_commaAndSemicolon_remove() async {
+    const startContent = '''
+enum SomeEnum { a, b, c,; }
+''';
+    const endContent = '''
+enum SomeEnum { a, b, c }
+''';
+    const expectedEdits = r'''
+Delete 1:24-1:26
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
   /// The formatter removes trailing whitespace from comments which results in
   /// differences in the comment token lexemes. This should
   /// be handled and not result in a full document edit.
@@ -340,6 +354,28 @@ Delete 1:18-2:1
       endContent,
       expectedEdits,
     );
+  }
+
+  Future<void> test_minimalEdits_semicolon_remove() async {
+    const startContent = '''
+enum SomeEnum {
+  a,
+  b,
+  c;
+}
+''';
+    const endContent = '''
+enum SomeEnum {
+  a,
+  b,
+  c
+}
+''';
+    const expectedEdits = r'''
+Delete 4:4-4:5
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   Future<void> test_minimalEdits_whitespace() async {

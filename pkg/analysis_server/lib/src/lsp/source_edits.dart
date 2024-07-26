@@ -19,8 +19,9 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 
-/// Checks whether a string contains only whitespace and commas.
-final _isWhitespaceAndCommas = RegExp(r'^[\s,]*$').hasMatch;
+/// Checks whether a string contains only characters that are allowed to differ
+/// between unformattedformatted code (such as whitespace, commas, semicolons).
+final _isValidFormatterChange = RegExp(r'^[\s,;]*$').hasMatch;
 
 /// Transforms a sequence of LSP document change events to a sequence of source
 /// edits used by analysis plugins.
@@ -178,7 +179,7 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       int unformattedEnd,
       int formattedStart,
       int formattedEnd, {
-      bool allowNonWhitespaceDifferences = false,
+      bool allowAnyContentDifferences = false,
     }) {
       var unformattedWhitespace =
           unformatted.substring(unformattedStart, unformattedEnd);
@@ -271,13 +272,14 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
         endOffset -= commonSuffixLength;
       }
 
-      // Validate we didn't find more than whitespace or commas. If this occurs,
-      // it's likely the token offsets used were incorrect. In this case it's
-      // better to not modify the code than potentially remove something
-      // important.
-      if (!allowNonWhitespaceDifferences &&
-          (!_isWhitespaceAndCommas(oldText) ||
-              !_isWhitespaceAndCommas(newText))) {
+      // Unless allowing any differences, validate that the replaced and
+      // replacement text only contain characters that we expected the formatter
+      // to have changed. If the change contains other characters, it's likely
+      // the token offsets used were incorrect and it's better to not modify the
+      // code than potentially corrupt it.
+      if (!allowAnyContentDifferences &&
+          (!_isValidFormatterChange(oldText) ||
+              !_isValidFormatterChange(newText))) {
         return;
       }
 
@@ -311,7 +313,7 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
       var unformattedEnd = unformattedToken.offset;
       var formattedStart = formattedOffset;
       var formattedEnd = formattedToken.offset;
-      var allowNonWhitespaceDifferences = false;
+      var allowAnyContentDifferences = false;
 
       /// Helper to advance the formatted stream by one token if it is not at
       /// the end.
@@ -335,41 +337,57 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
         }
       }
 
-      if (formattedToken.type == TokenType.COMMA &&
-          unformattedToken.type != TokenType.COMMA) {
-        // Advance the end of the range over the comma (and subsequent
-        // whitespace) to the next token.
-        advanceFormatted();
-      } else if (unformattedToken.type == TokenType.COMMA &&
-          formattedToken.type != TokenType.COMMA) {
-        // Advance the end of the range over the comma (and subsequent
-        // whitespace) to the next token.
-        advanceUnformatted();
-      } else if (unformattedToken is BeginToken &&
-          unformattedToken.next == unformattedToken.endGroup) {
-        if (unformattedToken.endGroup case var endGroup?) {
-          // The formatter may unwrap empty collections across lines which
-          // will change from two tokens (begin/end) to a single simple token
-          // for the collection. If the next two unformatted tokens are
-          // begin/end and match the formatted token, advance over both.
-          var unformattedLexeme =
-              '${unformattedToken.lexeme}${endGroup.lexeme}';
-          if (unformattedLexeme == formattedToken.lexeme) {
-            advanceUnformatted(); // open token
-            advanceUnformatted(); // close token
-            advanceFormatted(); // simple token (open+close)
-          }
-        }
-      } else if ((unformattedToken.type == TokenType.SINGLE_LINE_COMMENT ||
-              unformattedToken.type == TokenType.MULTI_LINE_COMMENT) &&
-          unformattedToken.type == formattedToken.type) {
-        // The formatter may remove trailing whitespace from comments which
-        // are part of the lexeme (and not between tokens), so if the content is
-        // different, allow the whole comments to be replaced.
-        if (unformattedToken.lexeme != formattedToken.lexeme) {
-          advanceUnformatted();
+      // A set of tokens that the formatter may add or remove, which we will
+      // allow and not abort for.
+      const allowedAddOrRemovedTokens = {
+        TokenType.COMMA,
+        TokenType.SEMICOLON,
+      };
+
+      // We may need to advance multiple times if multiple allowed tokens are
+      // added/removed consecutively.
+      var continueLoop = true;
+      while (continueLoop && unformattedHasMore && formattedHasMore) {
+        continueLoop = false;
+
+        if (allowedAddOrRemovedTokens.contains(formattedToken.type) &&
+            formattedToken.type != unformattedToken.type) {
+          // The formatter added an allowed token, advance over it.
           advanceFormatted();
-          allowNonWhitespaceDifferences = true;
+          continueLoop = true;
+        } else if (allowedAddOrRemovedTokens.contains(unformattedToken.type) &&
+            formattedToken.type != unformattedToken.type) {
+          // The formatter removed an allowed token, advance over it.
+          advanceUnformatted();
+          continueLoop = true;
+        } else if (unformattedToken is BeginToken &&
+            unformattedToken.next == unformattedToken.endGroup) {
+          if (unformattedToken.endGroup case var endGroup?) {
+            // The formatter may unwrap empty collections across lines which
+            // will change from two tokens (begin/end) to a single simple token
+            // for the collection. If the next two unformatted tokens are
+            // begin/end and match the formatted token, advance over both.
+            var unformattedLexeme =
+                '${unformattedToken.lexeme}${endGroup.lexeme}';
+            if (unformattedLexeme == formattedToken.lexeme) {
+              advanceUnformatted(); // open token
+              advanceUnformatted(); // close token
+              advanceFormatted(); // simple token (open+close)
+              continueLoop = true;
+            }
+          }
+        } else if ((unformattedToken.type == TokenType.SINGLE_LINE_COMMENT ||
+                unformattedToken.type == TokenType.MULTI_LINE_COMMENT) &&
+            unformattedToken.type == formattedToken.type) {
+          // The formatter may remove trailing whitespace from comments which
+          // are part of the lexeme (and not between tokens), so if the content is
+          // different, allow the whole comments to be replaced.
+          if (unformattedToken.lexeme != formattedToken.lexeme) {
+            advanceUnformatted();
+            advanceFormatted();
+            allowAnyContentDifferences = true;
+            continueLoop = true;
+          }
         }
       }
 
@@ -386,7 +404,7 @@ ErrorOr<List<TextEdit>> generateMinimalEdits(
         unformattedEnd,
         formattedStart,
         formattedEnd,
-        allowNonWhitespaceDifferences: allowNonWhitespaceDifferences,
+        allowAnyContentDifferences: allowAnyContentDifferences,
       );
 
       // And move the pointers along to after these tokens.
