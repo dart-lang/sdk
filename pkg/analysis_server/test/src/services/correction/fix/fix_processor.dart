@@ -107,10 +107,9 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var processor =
         BulkFixProcessor(TestInstrumentationService(), await workspace);
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
-    var edits = <SourceEdit>[];
-    for (var fix in fixes) {
-      edits.addAll(fix.edits);
-    }
+    var edits = [
+      for (var fix in fixes) ...fix.edits,
+    ];
     var result = SourceEdit.applySequence(original, edits);
     expect(result, expected);
   }

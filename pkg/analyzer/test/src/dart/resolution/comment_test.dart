@@ -368,6 +368,37 @@ CommentReference
 ''');
   }
 
+  test_docImport_class_instanceMethod() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+class A {
+  void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+/// @docImport 'foo.dart';
+library;
+
+/// [A.foo]
+void f() {}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('A.foo]'), r'''
+CommentReference
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: package:test/foo.dart::<definingUnit>::@class::A::@method::foo
+      staticType: null
+    staticElement: package:test/foo.dart::<definingUnit>::@class::A::@method::foo
+    staticType: null
+''');
+  }
+
   test_docImport_class_staticGetter() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {
