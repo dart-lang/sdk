@@ -396,19 +396,50 @@ abstract class FormalParameterElement
 abstract class FormalParameterFragment
     implements PromotableFragment, _Annotatable {}
 
+/// A fragment that wholly or partially defines an element.
+///
+/// When an element is defined by one or more fragments, those fragments form an
+/// augmentation chain. This is represented in the element model as a
+/// doubly-linked list.
+///
+/// In valid code the first fragment is the base declaration and all of the
+/// other fragments are augmentations. This can be violated in the element model
+/// in the case of invalid code, such as when an augmentation is declared even
+/// though there is no base declaration.
 abstract class Fragment {
-  List<Fragment> get children;
+  /// The children of this fragment.
+  ///
+  /// There is no guarantee of the order in which the children will be returned.
+  /// For example, they are not guaranteed to be in lexical order.
+  List<Fragment> get children3;
 
+  /// The element composed from this fragment and possibly other fragments.
   Element2 get element;
 
+  /// The fragment that either physically or logically encloses this fragment.
+  ///
+  /// Returns `null` if this fragment is the root fragment of a library because
+  /// there are no fragments above the root fragment of a library.
   Fragment? get enclosingFragment;
 
+  /// The library fragment that contains this fragment.
+  ///
+  /// This will be the fragment itself if it is a library fragment.
   LibraryFragment get libraryFragment;
 
+  /// The offset of the name in this fragment.
+  ///
+  /// Returns `null` if the fragment has no name.
   int? get nameOffset;
 
+  /// The next fragment in the augmentation chain.
+  ///
+  /// Returns `null` if this is the last fragment in the chain.
   Fragment? get nextFragment;
 
+  /// The previous fragment in the augmentation chain.
+  ///
+  /// Returns `null` if this is the first fragment in the chain.
   Fragment? get previousFragment;
 }
 
@@ -519,56 +550,133 @@ abstract class LabelElement2 implements Element2 {
   LibraryElement2 get library2;
 }
 
+/// A library.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement2 implements Element2, _Annotatable, _Fragmented {
-  List<ExtensionElement2> get accessibleExtensions;
+  /// The extension elements accessible within this library.
+  List<ExtensionElement2> get accessibleExtensions2;
 
+  /// The classes defined in this library.
+  ///
+  /// There is no guarantee of the order in which the classes will be returned.
+  /// For example, they are not guaranteed to be in lexical order.
   List<ClassElement2> get classes;
 
-  TopLevelFunctionElement? get entryPoint;
+  /// The entry point for this library.
+  ///
+  /// Returns `null` if this library doesn't have an entry point.
+  ///
+  /// The entry point is defined to be a zero, one, or two argument top-level
+  /// function whose name is `main`.
+  TopLevelFunctionElement? get entryPoint2;
 
+  /// The enums defined in this library.
+  ///
+  /// There is no guarantee of the order in which the enums will be returned.
+  /// For example, they are not guaranteed to be in lexical order.
   List<EnumElement2> get enums;
 
+  /// The libraries that are exported from this library.
+  ///
+  /// There is no guarantee of the order in which the libraries will be
+  /// returned. For example, they are not guaranteed to be in lexical order.
   List<LibraryElement2> get exportedLibraries2;
 
+  /// The export [Namespace] of this library.
   Namespace get exportNamespace;
 
+  /// The extensions defined in this library.
+  ///
+  /// There is no guarantee of the order in which the extensions will be
+  /// returned. For example, they are not guaranteed to be in lexical order.
   List<ExtensionElement2> get extensions;
 
+  /// The extension types defined in this library.
+  ///
+  /// There is no guarantee of the order in which the extension types will be
+  /// returned. For example, they are not guaranteed to be in lexical order.
   List<ExtensionTypeElement2> get extensionTypes;
 
+  /// The set of features available to this library.
+  ///
+  /// Determined by the combination of the language version for the enclosing
+  /// package, enabled experiments, and the presence of a `// @dart` language
+  /// version override comment at the top of the files that make up the library.
   FeatureSet get featureSet;
 
+  @override
+  LibraryFragment get firstFragment;
+
+  /// The functions defined in this library.
+  ///
+  /// There is no guarantee of the order in which the functions will be
+  /// returned. For example, they are not guaranteed to be in lexical order.
   List<TopLevelFunctionElement> get functions;
 
+  /// The getters defined in this library.
+  ///
+  /// There is no guarantee of the order in which the getters will be returned.
+  /// For example, they are not guaranteed to be in lexical order.
   List<GetterElement> get getters;
 
+  /// The identifier that uniquely identifies this element among the children
+  /// of this element's parent.
   String get identifier;
 
+  /// Whether the library is the `dart:async` library.
   bool get isDartAsync;
 
+  /// Whether the library is the `dart:core` library.
   bool get isDartCore;
 
+  /// Whether the library is part of the SDK.
   bool get isInSdk;
 
+  /// The language version for this library.
   LibraryLanguageVersion get languageVersion;
 
   @override
   LibraryElement2 get library2;
 
-  TopLevelFunctionElement get loadLibraryFunction;
+  /// The element representing the synthetic function `loadLibrary`.
+  ///
+  /// Technically the function is implicitly defined for this library only if
+  /// the library is imported using a deferred import, but the element is always
+  /// defined for performance reasons.
+  TopLevelFunctionElement get loadLibraryFunction2;
 
+  /// The mixins defined in this library.
+  ///
+  /// There is no guarantee of the order in which the mixins will be returned.
+  /// For example, they are not guaranteed to be in lexical order.
   List<MixinElement2> get mixins;
 
+  /// The public [Namespace] of this library.
   Namespace get publicNamespace;
 
+  /// The setters defined in this library.
+  ///
+  /// There is no guarantee of the order in which the setters will be returned.
+  /// For example, they are not guaranteed to be in lexical order.
   List<SetterElement> get setters;
 
+  /// The top level variables defined in this library.
+  ///
+  /// There is no guarantee of the order in which the top level variables will
+  /// be returned. For example, they are not guaranteed to be in lexical order.
   List<TopLevelVariableElement2> get topLevelVariables;
 
+  /// The type aliases defined in this library.
+  ///
+  /// There is no guarantee of the order in which the type aliases will be
+  /// returned. For example, they are not guaranteed to be in lexical order.
   List<TypeAliasElement2> get typeAliases;
 
+  /// The [TypeProvider] that is used in this library.
   TypeProvider get typeProvider;
 
+  /// The [TypeSystem] that is used in this library.
   TypeSystem get typeSystem;
 }
 
@@ -582,37 +690,63 @@ abstract class LibraryExport {
   DirectiveUri get uri;
 }
 
+/// The portion of a [LibraryElement2] coming from a single compilation unit.
 abstract class LibraryFragment implements Fragment, _Annotatable {
+  /// The fragments of the classes declared in this fragment.
   List<ClassFragment> get classes2;
 
+  @override
+  LibraryFragment? get enclosingFragment;
+
+  /// The fragments of the enums declared in this fragment.
   List<EnumFragment> get enums2;
 
+  /// The fragments of the extensions declared in this fragment.
   List<ExtensionFragment> get extensions2;
 
+  /// The fragments of the extension types declared in this fragment.
   List<ExtensionTypeFragment> get extensionTypes2;
 
+  /// The fragments of the top-level functions declared in this fragment.
   List<TopLevelFunctionFragment> get functions2;
 
+  /// The fragments of the top-level getters declared in this fragment.
   List<GetterFragment> get getters;
 
-  List<LibraryExport> get libraryExports;
+  /// The libraries exported by this unit.
+  List<LibraryExport> get libraryExports2;
 
-  List<LibraryImport> get libraryImports;
+  /// The libraries imported by this unit.
+  List<LibraryImport> get libraryImports2;
 
+  /// The [LineInfo] for the fragment.
   LineInfo get lineInfo;
 
+  /// The fragments of the mixins declared in this fragment.
   List<MixinFragment> get mixins2;
 
+  /// The parts included by this unit.
   List<PartInclude> get partIncludes;
 
+  /// The prefixes used by [libraryImports].
+  ///
+  /// Each prefix can be used in more than one `import` directive.
   List<PrefixElement2> get prefixes;
 
+  /// The scope used to resolve names within the fragment.
+  ///
+  /// It includes all of the elements that are declared in the library, and all
+  /// of the elements imported into this fragment or parent fragments.
   Scope get scope;
 
+  /// The fragments of the top-level setters declared in this fragment.
   List<SetterFragment> get setters;
 
+  /// The fragments of the top-level variables declared in this compilation
+  /// unit.
   List<TopLevelVariableFragment> get topLevelVariables2;
 
+  /// The fragments of the type aliases declared in this fragment.
   List<TypeAliasFragment> get typeAliases2;
 }
 

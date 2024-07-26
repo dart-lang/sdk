@@ -716,9 +716,10 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   }
 }
 
-/// A concrete implementation of a [CompilationUnitElement].
+/// A concrete implementation of a [CompilationUnitElement] or
+/// [LibraryFragment].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements CompilationUnitElement {
+    implements CompilationUnitElement, LibraryFragment {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;
@@ -813,6 +814,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       ];
 
   @override
+  List<Fragment> get children3 => children.cast<Fragment>();
+
+  @override
   List<ClassElementImpl> get classes {
     return _classes;
   }
@@ -826,8 +830,17 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<ClassFragment> get classes2 => classes.cast<ClassFragment>();
+
+  @override
+  LibraryElement2 get element => enclosingElement as LibraryElement2;
+
+  @override
   LibraryOrAugmentationElement get enclosingElement =>
       libraryOrAugmentationElement;
+
+  @override
+  LibraryFragment? get enclosingFragment => null;
 
   @override
   CompilationUnitElementImpl get enclosingUnit {
@@ -848,6 +861,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<EnumFragment> get enums2 => enums.cast<EnumFragment>();
+
+  @override
   List<ExtensionElementImpl> get extensions {
     return _extensions;
   }
@@ -862,6 +878,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<ExtensionFragment> get extensions2 =>
+      extensions.cast<ExtensionFragment>();
+
+  @override
   List<ExtensionTypeElementImpl> get extensionTypes {
     return _extensionTypes;
   }
@@ -872,6 +892,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
     _extensionTypes = elements;
   }
+
+  @override
+  List<ExtensionTypeFragment> get extensionTypes2 =>
+      extensionTypes.cast<ExtensionTypeFragment>();
 
   @override
   List<FunctionElementImpl> get functions {
@@ -886,6 +910,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
     _functions = functions;
   }
+
+  @override
+  List<TopLevelFunctionFragment> get functions2 =>
+      functions.cast<TopLevelFunctionFragment>();
+
+  @override
+  List<GetterFragment> get getters => accessors
+      .where((element) => element.isGetter)
+      .cast<GetterFragment>()
+      .toList();
 
   @override
   int get hashCode => source.hashCode;
@@ -909,9 +943,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _libraryExports = exports;
   }
 
+  @override
+  List<LibraryExport> get libraryExports2 =>
+      libraryExports.cast<LibraryExport>();
+
   List<LibraryExportElementImpl> get libraryExports_unresolved {
     return _libraryExports;
   }
+
+  @override
+  LibraryFragment get libraryFragment => this;
 
   @override
   List<PrefixElementImpl> get libraryImportPrefixes {
@@ -931,6 +972,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _libraryImports = imports;
     _libraryImportPrefixes = null;
   }
+
+  @override
+  List<LibraryImport> get libraryImports2 =>
+      libraryImports.cast<LibraryImport>();
 
   List<LibraryImportElementImpl> get libraryImports_unresolved {
     return _libraryImports;
@@ -959,6 +1004,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<MixinFragment> get mixins2 => mixins.cast<MixinFragment>();
+
+  @override
+  Fragment? get nextFragment => throw UnsupportedError('Not yet implemented');
+
+  @override
+  List<PartInclude> get partIncludes =>
+      libraryImportPrefixes.cast<PartInclude>();
+
+  @override
   List<PartElementImpl> get parts => _parts;
 
   set parts(List<PartElementImpl> parts) {
@@ -974,7 +1029,24 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<PrefixElement2> get prefixes =>
+      libraryImportPrefixes.cast<PrefixElement2>();
+
+  @override
+  Fragment? get previousFragment =>
+      throw UnsupportedError('Not yet implemented');
+
+  @override
+  Scope get scope => enclosingElement.scope;
+
+  @override
   AnalysisSession get session => enclosingElement.session;
+
+  @override
+  List<SetterFragment> get setters => accessors
+      .where((element) => element.isSetter)
+      .cast<SetterFragment>()
+      .toList();
 
   @override
   List<TopLevelVariableElementImpl> get topLevelVariables {
@@ -991,6 +1063,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  List<TopLevelVariableFragment> get topLevelVariables2 =>
+      topLevelVariables.cast<TopLevelVariableFragment>();
+
+  @override
   List<TypeAliasElementImpl> get typeAliases {
     return _typeAliases;
   }
@@ -1002,6 +1078,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
     _typeAliases = typeAliases;
   }
+
+  @override
+  List<TypeAliasFragment> get typeAliases2 =>
+      typeAliases.cast<TypeAliasFragment>();
 
   @override
   bool operator ==(Object other) =>
@@ -4296,10 +4376,10 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   }
 }
 
-/// A concrete implementation of a [LibraryElement].
+/// A concrete implementation of a [LibraryElement] or [LibraryElement2].
 class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     with _HasLibraryMixin, MacroTargetElement
-    implements LibraryElement {
+    implements LibraryElement, LibraryElement2 {
   /// The analysis context in which this library is defined.
   @override
   final AnalysisContext context;
@@ -4375,6 +4455,13 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<ExtensionElement> get accessibleExtensions => scope.extensions;
 
   @override
+  List<ExtensionElement2> get accessibleExtensions2 {
+    return scope.extensions
+        .map((element) => element.augmentation as ExtensionElement2)
+        .toList();
+  }
+
+  @override
   List<AugmentationImportElementImpl> get augmentationImports {
     _readLinkedData();
     return super.augmentationImports;
@@ -4399,6 +4486,16 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       ];
 
   @override
+  List<ClassElement2> get classes {
+    var declarations = <ClassElement2>{};
+    for (var unit in units) {
+      declarations.addAll(
+          unit._classes.map((element) => element.augmented as ClassElement2));
+    }
+    return declarations.toList();
+  }
+
+  @override
   CompilationUnitElementImpl get enclosingUnit {
     return _definingCompilationUnit;
   }
@@ -4414,6 +4511,20 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
+  TopLevelFunctionElement? get entryPoint2 =>
+      entryPoint as TopLevelFunctionElement?;
+
+  @override
+  List<EnumElement2> get enums {
+    var declarations = <EnumElement2>{};
+    for (var unit in units) {
+      declarations.addAll(
+          unit._classes.map((element) => element.augmented as EnumElement2));
+    }
+    return declarations.toList();
+  }
+
+  @override
   List<LibraryElementImpl> get exportedLibraries {
     return libraryExports
         .map((import) => import.exportedLibrary)
@@ -4423,6 +4534,10 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
+  List<LibraryElement2> get exportedLibraries2 =>
+      exportedLibraries.cast<LibraryElement2>();
+
+  @override
   Namespace get exportNamespace {
     linkedData?.read(this);
     return _exportNamespace ??= Namespace({});
@@ -4430,6 +4545,26 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   set exportNamespace(Namespace exportNamespace) {
     _exportNamespace = exportNamespace;
+  }
+
+  @override
+  List<ExtensionElement2> get extensions {
+    var declarations = <ExtensionElement2>{};
+    for (var unit in units) {
+      declarations.addAll(unit._extensions
+          .map((element) => element.augmented as ExtensionElement2));
+    }
+    return declarations.toList();
+  }
+
+  @override
+  List<ExtensionTypeElement2> get extensionTypes {
+    var declarations = <ExtensionTypeElement2>{};
+    for (var unit in units) {
+      declarations.addAll(unit._extensionTypes
+          .map((element) => element.augmented as ExtensionTypeElement2));
+    }
+    return declarations.toList();
   }
 
   /// Information about why non-promotable private fields in the library are not
@@ -4462,6 +4597,30 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   set fieldNameNonPromotabilityInfo(
       Map<String, FieldNameNonPromotabilityInfo>? value) {
     _fieldNameNonPromotabilityInfo = value;
+  }
+
+  @override
+  LibraryFragment get firstFragment =>
+      definingCompilationUnit as LibraryFragment;
+
+  @override
+  List<TopLevelFunctionElement> get functions {
+    var declarations = <TopLevelFunctionElement>{};
+    for (var unit in units) {
+      declarations.addAll(unit._functions.cast<TopLevelFunctionElement>());
+    }
+    return declarations.toList();
+  }
+
+  @override
+  List<GetterElement> get getters {
+    var declarations = <GetterElement>{};
+    for (var unit in units) {
+      declarations.addAll(unit._accessors
+          .where((element) => element.isGetter)
+          .cast<GetterElement>());
+    }
+    return declarations.toList();
   }
 
   bool get hasPartOfDirective {
@@ -4551,6 +4710,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   LibraryElementImpl get library => this;
 
   @override
+  LibraryElement2 get library2 => this;
+
+  @override
   List<LibraryExportElementImpl> get libraryExports {
     _readLinkedData();
     return _libraryExports;
@@ -4568,9 +4730,23 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
+  TopLevelFunctionElement get loadLibraryFunction2 =>
+      loadLibraryFunction as TopLevelFunctionElement;
+
+  @override
   List<ElementAnnotationImpl> get metadata {
     _readLinkedData();
     return super.metadata;
+  }
+
+  @override
+  List<MixinElement2> get mixins {
+    var declarations = <MixinElement2>{};
+    for (var unit in units) {
+      declarations.addAll(
+          unit._mixins.map((element) => element.augmented as MixinElement2));
+    }
+    return declarations.toList();
   }
 
   @override
@@ -4606,6 +4782,17 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
+  List<SetterElement> get setters {
+    var declarations = <SetterElement>{};
+    for (var unit in units) {
+      declarations.addAll(unit._accessors
+          .where((element) => element.isSetter)
+          .cast<SetterElement>());
+    }
+    return declarations.toList();
+  }
+
+  @override
   Source get source {
     return _definingCompilationUnit.source;
   }
@@ -4623,6 +4810,25 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       yield* unit.topLevelVariables;
       yield* unit.typeAliases;
     }
+  }
+
+  @override
+  List<TopLevelVariableElement2> get topLevelVariables {
+    var declarations = <TopLevelVariableElement2>{};
+    for (var unit in units) {
+      declarations.addAll(unit._variables.cast<TopLevelVariableElement2>());
+    }
+    return declarations.toList();
+  }
+
+  @override
+  List<TypeAliasElement2> get typeAliases {
+    var declarations = <TypeAliasElement2>{};
+    for (var unit in units) {
+      declarations.addAll(unit._mixins
+          .map((element) => element.augmented as TypeAliasElement2));
+    }
+    return declarations.toList();
   }
 
   @override
