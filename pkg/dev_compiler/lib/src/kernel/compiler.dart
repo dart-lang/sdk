@@ -2321,9 +2321,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var name = _propertyName(param.name!);
         var paramType = superMethodType.namedParameters
             .firstWhere((n) => n.name == param.name);
-        body.add(js.statement('if (# in #) #;', [
-          name,
-          _namedArgumentTemp,
+        body.add(js.statement('if (#) #;', [
+          _namedArgumentProbe(name),
           _emitCast(
               js_ast.PropertyAccess(_namedArgumentTemp, name), paramType.type)
         ]));
@@ -3823,27 +3822,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Parameters will be passed using their real names, not the (possibly
       // renamed) local variable.
       var jsParam = _emitVariableDef(p);
-      var paramName = js.string(p.name!, "'");
+      var paramName = _propertyName(p.name!);
       var defaultValue = _defaultParamValue(p);
-      if (defaultValue != null) {
-        // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
-        body.add(js.statement('let # = # && # in # ? #.# : #;', [
-          jsParam,
-          _namedArgumentTemp,
-          paramName,
-          _namedArgumentTemp,
-          _namedArgumentTemp,
-          paramName,
-          defaultValue,
-        ]));
-      } else {
-        body.add(js.statement('let # = # && #.#;', [
-          jsParam,
-          _namedArgumentTemp,
-          _namedArgumentTemp,
-          paramName,
-        ]));
-      }
+      body.add(js.statement('let # = # && # ? #.# : #;', [
+        jsParam,
+        _namedArgumentTemp,
+        _namedArgumentProbe(paramName),
+        _namedArgumentTemp,
+        paramName,
+        defaultValue,
+      ]));
+
       if (_checkParameters) {
         initParameter(p, jsParam);
       }
@@ -3878,15 +3867,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js.statement('if (# == null) #;', [param, call]);
   }
 
-  js_ast.Expression? _defaultParamValue(VariableDeclaration p) {
-    if (p.annotations.any(isUndefinedAnnotation)) {
-      return null;
-    } else if (p.initializer != null) {
+  js_ast.Expression _defaultParamValue(VariableDeclaration p) {
+    if (p.initializer != null) {
       return _visitExpression(p.initializer!);
     } else {
       return js_ast.LiteralNull();
     }
   }
+
+  /// Returns a test for the existence of [propertyName] in the named argument
+  /// package.
+  js_ast.Expression _namedArgumentProbe(js_ast.LiteralString propertyName) =>
+      // If the name collides with the names in the native JavaScript object
+      // prototype then use a slower but more direct test to avoid
+      // accidentally finding a value up the prototype chain.
+      js_ast.objectProperties.contains(propertyName.valueWithoutQuotes)
+          ? _runtimeCall('hOP.call(#, #)', [_namedArgumentTemp, propertyName])
+          : js.call('# in #', [propertyName, _namedArgumentTemp]);
 
   void _emitCovarianceBoundsCheck(
       List< /* TypeParameter | StructuralParameter */ Object> typeFormals,

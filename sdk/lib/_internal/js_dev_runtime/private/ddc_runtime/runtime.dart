@@ -195,6 +195,13 @@ void trackProfile(bool flag) {
 
 final JsSymbol = JS('', 'Symbol');
 
+/// An alias for the .hasOwnProperty function.
+///
+/// Used to test for the presence of properties packaged in a native JavaScript
+/// Object when the property name matches one of the names on the native
+/// JavaScript Object prototype.
+final hOP = JS('!', '#.Object.prototype.hasOwnProperty', global_);
+
 /// The prototype used for all Dart libraries.
 ///
 /// This makes it easy to identify Dart library objects, and also improves
