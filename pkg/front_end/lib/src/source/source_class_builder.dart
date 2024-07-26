@@ -211,12 +211,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   NameSpace get nameSpace => _nameSpace;
 
-  // TODO(johnniwinther): Remove this.
-  Map<String, List<Builder>>? get augmentations => null;
-
-  // TODO(johnniwinther): Remove this.
-  Map<String, List<Builder>>? get setterAugmentations => null;
-
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
       ?
       // Coverage-ignore(suite): Not run.

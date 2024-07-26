@@ -14,7 +14,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
-import '../kernel/body_builder.dart' show JumpTarget;
+//import '../kernel/body_builder.dart' show JumpTarget;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
@@ -112,6 +112,8 @@ abstract class LookupScope {
   ScopeKind get kind;
   Builder? lookup(String name, int charOffset, Uri fileUri);
   Builder? lookupSetter(String name, int charOffset, Uri fileUri);
+  // TODO(johnniwinther): Should this be moved to an outer scope interface?
+  void forEachExtension(void Function(ExtensionBuilder) f);
 }
 
 /// Returns the correct value of the [getable] and [setable] found as a lookup
@@ -281,6 +283,35 @@ class NameSpaceLookupScope implements LookupScope {
         isSetter: true);
     return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
+
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _nameSpace.forEachLocalExtension(f);
+    _parent?.forEachExtension(f);
+  }
+}
+
+// TODO(johnniwinther): Avoid this.
+class MutableNameSpaceLookupScope extends NameSpaceLookupScope {
+  MutableNameSpaceLookupScope(
+      super.nameSpace, super.kind, super.classNameOrDebugName,
+      {required super.parent});
+
+  NameSpace? _replacedNamedSpace;
+  LookupScope? _replacedParent;
+
+  /// This scope becomes equivalent to [scope]. This is used for parts to
+  /// become part of their library's scope.
+  void replaceNameSpaceAndParent(NameSpace nameSpace, LookupScope parent) {
+    _replacedNamedSpace = nameSpace;
+    _replacedParent = parent;
+  }
+
+  @override
+  LookupScope? get _parent => _replacedParent ?? super._parent;
+
+  @override
+  NameSpace get _nameSpace => _replacedNamedSpace ?? super._nameSpace;
 }
 
 class TypeParameterScope with LookupScopeMixin {
@@ -323,6 +354,11 @@ class TypeParameterScope with LookupScopeMixin {
       map[typeVariableBuilder.name] = typeVariableBuilder;
     }
     return new TypeParameterScope(parent, map);
+  }
+
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _parent.forEachExtension(f);
   }
 }
 
@@ -367,396 +403,10 @@ class FixedLookupScope implements LookupScope {
         isSetter: true);
     return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
   }
-}
 
-abstract class ParentScope {
-  ParentScope? get parent;
-  void forEachExtension(void Function(ExtensionBuilder) f);
-  Builder? lookup(String name, int charOffset, Uri fileUri);
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri);
-  int writeOn(StringSink sink);
-}
-
-class MutableScope {
-  /// Names declared in this scope.
-  Map<String, Builder>? _local;
-
-  /// Setters declared in this scope.
-  Map<String, MemberBuilder>? _setters;
-
-  /// The extensions declared in this scope.
-  ///
-  /// This includes all available extensions even if the extensions are not
-  /// accessible by name because of duplicate imports.
-  ///
-  /// For instance:
-  ///
-  ///   lib1.dart:
-  ///     extension Extension on String {
-  ///       method1() {}
-  ///       staticMethod1() {}
-  ///     }
-  ///   lib2.dart:
-  ///     extension Extension on String {
-  ///       method2() {}
-  ///       staticMethod2() {}
-  ///     }
-  ///   main.dart:
-  ///     import 'lib1.dart';
-  ///     import 'lib2.dart';
-  ///
-  ///     main() {
-  ///       'foo'.method1(); // This method is available.
-  ///       'foo'.method2(); // This method is available.
-  ///       // These methods are not available because Extension is ambiguous:
-  ///       Extension.staticMethod1();
-  ///       Extension.staticMethod2();
-  ///     }
-  ///
-  Set<ExtensionBuilder>? _extensions;
-
-  /// The scope that this scope is nested within, or `null` if this is the top
-  /// level scope.
-  ParentScope? _parent;
-
-  final String classNameOrDebugName;
-
-  final ScopeKind kind;
-
-  MutableScope(this.kind, this._local, this._setters, this._extensions,
-      this._parent, this.classNameOrDebugName);
-
-  ParentScope? get parent => _parent;
-
-  @override
-  String toString() => "Scope(${kind}, $classNameOrDebugName, ${_local?.keys})";
-}
-
-class Scope extends MutableScope
-    implements ParentScope, LookupScope, NameSpace {
-  /// Indicates whether an attempt to declare new names in this scope should
-  /// succeed.
-  final bool isModifiable;
-
-  Map<String, JumpTarget>? labels;
-
-  Map<String, JumpTarget>? forwardDeclaredLabels;
-
-  Map<String, List<Builder>>? augmentations;
-
-  Map<String, List<Builder>>? setterAugmentations;
-
-  Scope(
-      {required ScopeKind kind,
-      Map<String, Builder>? local,
-      Map<String, MemberBuilder>? setters,
-      Set<ExtensionBuilder>? extensions,
-      ParentScope? parent,
-      this.augmentations,
-      this.setterAugmentations,
-      required String debugName,
-      this.isModifiable = true})
-      : super(kind, local, setters, extensions, parent, debugName);
-
-  Scope.top({required ScopeKind kind, bool isModifiable = false})
-      : this(
-            kind: kind,
-            local: <String, Builder>{},
-            setters: <String, MemberBuilder>{},
-            debugName: "top",
-            isModifiable: isModifiable);
-
-  Scope.nested(Scope parent, String debugName,
-      {bool isModifiable = true,
-      required ScopeKind kind,
-      Map<String, Builder>? local})
-      : this(
-            kind: kind,
-            parent: parent,
-            debugName: debugName,
-            isModifiable: isModifiable,
-            local: local);
-
-  /// Returns an iterator of all members and setters mapped in this scope,
-  /// including duplicate members mapped to the same name.
-  ///
-  /// The iterator does _not_ include the members and setters mapped in the
-  /// [parent] scope.
-  @override
-  @deprecated
-  Iterator<Builder> get unfilteredIterator {
-    return new ScopeIterator(this);
-  }
-
-  /// Returns an iterator of all members and setters mapped in this scope,
-  /// including duplicate members mapped to the same name.
-  ///
-  /// The iterator does _not_ include the members and setters mapped in the
-  /// [parent] scope.
-  ///
-  /// Compared to [unfilteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  @override
-  @deprecated
-  NameIterator get unfilteredNameIterator {
-    return new ScopeNameIterator(this);
-  }
-
-  /// Returns a filtered iterator of members and setters mapped in this scope.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
-  @override
-  @deprecated
-  Iterator<T> filteredIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
-    return new FilteredIterator<T>(unfilteredIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
-  }
-
-  /// Returns a filtered iterator of members and setters mapped in this scope.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included. If [includeAugmentations] is `true`, both
-  /// original and augmenting/patching members are included, otherwise, only
-  /// original members are included.
-  ///
-  /// Compared to [filteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  @override
-  @deprecated
-  NameIterator<T> filteredNameIterator<T extends Builder>(
-      {Builder? parent,
-      required bool includeDuplicates,
-      required bool includeAugmentations}) {
-    return new FilteredNameIterator<T>(unfilteredNameIterator,
-        parent: parent,
-        includeDuplicates: includeDuplicates,
-        includeAugmentations: includeAugmentations);
-  }
-
-  void debug() {
-    print("Locals:");
-    _local?.forEach((key, value) {
-      print("  $key: $value (${identityHashCode(value)}) (${value.parent})");
-    });
-    print("Setters:");
-    _setters?.forEach((key, value) {
-      print("  $key: $value (${identityHashCode(value)}) (${value.parent})");
-    });
-    print("Extensions:");
-    _extensions?.forEach((v) {
-      print("  $v");
-    });
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Scope copyWithParent(Scope parent, String debugName) {
-    return new Scope(
-        kind: kind,
-        local: super._local,
-        setters: super._setters,
-        extensions: _extensions,
-        parent: parent,
-        debugName: debugName,
-        isModifiable: isModifiable);
-  }
-
-  /// This scope becomes equivalent to [scope]. This is used for parts to
-  /// become part of their library's scope.
-  void becomePartOf(Scope scope) {
-    assert(_parent!.parent == null);
-    assert(scope._parent!.parent == null);
-    super._local = scope._local;
-    super._setters = scope._setters;
-    super._parent = scope._parent;
-    super._extensions = scope._extensions;
-  }
-
-  Scope createNestedScope(
-      {required String debugName,
-      bool isModifiable = true,
-      required ScopeKind kind,
-      Map<String, Builder>? local}) {
-    return new Scope.nested(this, debugName,
-        isModifiable: isModifiable, kind: kind, local: local);
-  }
-
-  Scope withTypeVariables(List<NominalVariableBuilder>? typeVariables) {
-    if (typeVariables == null) return this;
-    Scope newScope = new Scope.nested(this, "type variables",
-        isModifiable: false, kind: ScopeKind.typeParameters);
-    for (NominalVariableBuilder t in typeVariables) {
-      if (t.isWildcard) continue;
-      (newScope._local ??= {})[t.name] = t;
-    }
-    return newScope;
-  }
-
-  Scope withStructuralVariables(
-      List<StructuralVariableBuilder>? typeVariables) {
-    if (typeVariables == null) return this;
-    Scope newScope = new Scope.nested(this, "type variables",
-        isModifiable: false, kind: ScopeKind.typeParameters);
-    for (StructuralVariableBuilder t in typeVariables) {
-      (newScope._local ??= {})[t.name] = t;
-    }
-    return newScope;
-  }
-
-  Builder? lookupIn(String name, int charOffset, Uri fileUri,
-      Map<String, Builder> map, bool isInstanceScope) {
-    Builder? builder = map[name];
-    if (builder == null) return null;
-    if (builder.next != null) {
-      return new AmbiguousBuilder(
-          name.isEmpty
-              ?
-              // Coverage-ignore(suite): Not run.
-              classNameOrDebugName
-              : name,
-          builder,
-          charOffset,
-          fileUri);
-    } else if (!isInstanceScope && builder.isDeclarationInstanceMember) {
-      return null;
-    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
-      return null;
-    } else {
-      return builder;
-    }
-  }
-
-  /// Lookup a member with [name] in the scope.
-  @override
-  Builder? lookup(String name, int charOffset, Uri fileUri,
-      {bool isInstanceScope = true}) {
-    Builder? builder;
-    if (_local != null) {
-      builder = lookupIn(name, charOffset, fileUri, _local!, isInstanceScope);
-      if (builder != null) return builder;
-    }
-    if (_setters != null) {
-      builder = lookupIn(name, charOffset, fileUri, _setters!, isInstanceScope);
-      if (builder != null && !builder.hasProblem) {
-        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-      }
-      if (!isInstanceScope) {
-        // For static lookup, do not search the parent scope.
-        return builder;
-      }
-    }
-    return builder ?? _parent?.lookup(name, charOffset, fileUri);
-  }
-
-  @override
-  Builder? lookupSetter(String name, int charOffset, Uri fileUri,
-      {bool isInstanceScope = true}) {
-    Builder? builder;
-    if (_setters != null) {
-      builder = lookupIn(name, charOffset, fileUri, _setters!, isInstanceScope);
-      if (builder != null) return builder;
-    }
-    if (_local != null) {
-      builder = lookupIn(name, charOffset, fileUri, _local!, isInstanceScope);
-      if (builder != null && !builder.hasProblem) {
-        return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-      }
-      if (!isInstanceScope) {
-        // For static lookup, do not search the parent scope.
-        return builder;
-      }
-    }
-    return builder ?? _parent?.lookupSetter(name, charOffset, fileUri);
-  }
-
-  @override
-  @deprecated
-  Builder? lookupLocalMember(String name, {required bool setter}) {
-    return setter ? (_setters?[name]) : (_local?[name]);
-  }
-
-  @override
-  @deprecated
-  void addLocalMember(String name, Builder member, {required bool setter}) {
-    if (setter) {
-      (_setters ??= // Coverage-ignore(suite): Not run.
-          {})[name] = member as MemberBuilder;
-    } else {
-      (_local ??= {})[name] = member;
-    }
-  }
-
-  @override
-  @deprecated
-  void forEachLocalMember(void Function(String name, Builder member) f) {
-    _local?.forEach(f);
-  }
-
-  @override
-  @deprecated
-  void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
-    _setters?.forEach(f);
-  }
-
-  @override
-  @deprecated
-  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
-    _extensions?.forEach(f);
-  }
-
-  @override
-  @deprecated
-  Iterable<Builder> get localMembers => _local?.values ?? const {};
-
-  /// Adds [builder] to the extensions in this scope.
-  @override
-  @deprecated
-  void addExtension(ExtensionBuilder builder) {
-    _extensions ??= <ExtensionBuilder>{};
-    _extensions!.add(builder);
-  }
-
-  /// Calls [f] for each extension in this scope and parent scopes.
   @override
   void forEachExtension(void Function(ExtensionBuilder) f) {
-    _extensions?.forEach(f);
     _parent?.forEachExtension(f);
-  }
-
-  String get debugString {
-    StringBuffer buffer = new StringBuffer();
-    int nestingLevel = writeOn(buffer);
-    for (int i = nestingLevel; i >= 0; i--) {
-      buffer.writeln("${'  ' * i}}");
-    }
-    return "$buffer";
-  }
-
-  // Coverage-ignore(suite): Not run.
-  @override
-  int writeOn(StringSink sink) {
-    int nestingLevel = (_parent?.writeOn(sink) ?? -1) + 1;
-    String indent = "  " * nestingLevel;
-    sink.writeln("$indent{");
-    _local?.forEach((String name, Builder member) {
-      sink.writeln("$indent  $name");
-    });
-    _setters?.forEach((String name, Builder member) {
-      sink.writeln("$indent  $name=");
-    });
-    return nestingLevel;
   }
 }
 
@@ -845,40 +495,6 @@ class ConstructorScope {
 
   @override
   String toString() => "ConstructorScope($className, ${_local.keys})";
-}
-
-abstract class LazyScope extends Scope {
-  LazyScope(Map<String, Builder> local, Map<String, MemberBuilder> setters,
-      Scope? parent, String debugName,
-      {bool isModifiable = true, required ScopeKind kind})
-      : super(
-            kind: kind,
-            local: local,
-            setters: setters,
-            parent: parent,
-            debugName: debugName,
-            isModifiable: isModifiable);
-
-  /// Override this method to lazily populate the scope before access.
-  void ensureScope();
-
-  @override
-  Map<String, Builder>? get _local {
-    ensureScope();
-    return super._local;
-  }
-
-  @override
-  Map<String, MemberBuilder>? get _setters {
-    ensureScope();
-    return super._setters;
-  }
-
-  @override
-  Set<ExtensionBuilder>? get _extensions {
-    ensureScope();
-    return super._extensions;
-  }
 }
 
 /// Computes a builder for the import/export collision between [declaration] and
@@ -1229,11 +845,7 @@ class ScopeIterator implements Iterator<Builder> {
 
   Builder? _current;
 
-  ScopeIterator.fromIterators(this.local, this.setters, this.extensions);
-
-  ScopeIterator(Scope scope)
-      : this.fromIterators(scope._local?.values.iterator,
-            scope._setters?.values.iterator, scope._extensions?.iterator);
+  ScopeIterator(this.local, this.setters, this.extensions);
 
   @override
   bool moveNext() {
@@ -1291,17 +903,11 @@ class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
 
   String? _name;
 
-  ScopeNameIterator.fromIterators(Map<String, Builder>? getables,
+  ScopeNameIterator(Map<String, Builder>? getables,
       Map<String, Builder>? setables, Iterator<Builder>? extensions)
       : localNames = getables?.keys.iterator,
         setterNames = setables?.keys.iterator,
-        super.fromIterators(
-            getables?.values.iterator, setables?.values.iterator, extensions);
-
-  ScopeNameIterator(Scope scope)
-      : localNames = scope._local?.keys.iterator,
-        setterNames = scope._setters?.keys.iterator,
-        super(scope);
+        super(getables?.values.iterator, setables?.values.iterator, extensions);
 
   @override
   bool moveNext() {
@@ -1742,15 +1348,16 @@ abstract class MergedScope<T extends Builder> {
 }
 
 class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
-  MergedLibraryScope(SourceLibraryBuilder origin) : super(origin, origin.scope);
+  MergedLibraryScope(SourceLibraryBuilder origin)
+      : super(origin, origin.nameSpace);
 
   @override
   SourceLibraryBuilder get originLibrary => _origin;
 
   void addAugmentationScope(SourceLibraryBuilder builder) {
-    _addAugmentationScope(builder, builder.scope,
-        augmentations: builder.scope.augmentations,
-        setterAugmentations: builder.scope.setterAugmentations,
+    _addAugmentationScope(builder, builder.nameSpace,
+        augmentations: builder.augmentations,
+        setterAugmentations: builder.setterAugmentations,
         inPatchLibrary: builder.isPatchLibrary);
   }
 
@@ -1861,8 +1468,8 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   //  members.
   void addAugmentationScope(SourceClassBuilder builder) {
     _addAugmentationScope(builder, builder.nameSpace,
-        augmentations: builder.augmentations,
-        setterAugmentations: builder.setterAugmentations,
+        augmentations: null,
+        setterAugmentations: null,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);
     _addAugmentationConstructorScope(builder.constructorScope,
         inPatchLibrary: builder.libraryBuilder.isPatchLibrary);

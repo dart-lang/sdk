@@ -98,11 +98,13 @@ part 'source_compilation_unit.dart';
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   late final SourceCompilationUnit compilationUnit;
 
-  final Scope _scope;
+  final LookupScope _importScope;
 
-  final NameSpace _nameSpace;
+  final MutableNameSpaceLookupScope _scope;
 
-  final NameSpace _exportScope;
+  NameSpace _nameSpace;
+
+  final NameSpace _exportNameSpace;
 
   @override
   final SourceLoader loader;
@@ -187,6 +189,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
+  // TODO(johnniwinther): Remove this.
+  final Map<String, List<Builder>>? augmentations;
+
+  // TODO(johnniwinther): Remove this.
+  final Map<String, List<Builder>>? setterAugmentations;
+
   factory SourceLibraryBuilder(
       {required Uri importUri,
       required Uri fileUri,
@@ -195,7 +203,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required LanguageVersion packageLanguageVersion,
       required SourceLoader loader,
       SourceLibraryBuilder? origin,
-      Scope? importScope,
+      LookupScope? parentScope,
       Library? target,
       LibraryBuilder? nameOrigin,
       IndexedLibrary? indexedLibrary,
@@ -212,14 +220,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ? null
                     : indexedLibrary?.library.reference)
           ..setLanguageVersion(packageLanguageVersion.version));
+    LibraryName libraryName = new LibraryName(library.reference);
     TypeParameterScopeBuilder libraryTypeParameterScopeBuilder =
         new TypeParameterScopeBuilder.library();
-    importScope ??= new Scope.top(kind: ScopeKind.library);
-    LibraryName libraryName = new LibraryName(library.reference);
-    Scope scope = libraryTypeParameterScopeBuilder.toScope(importScope,
-        omittedTypeDeclarationBuilders: omittedTypes);
-    NameSpace exportScope =
-        origin?.exportScope ?? new Scope.top(kind: ScopeKind.library);
+    NameSpace? importNameSpace = new NameSpaceImpl();
+    LookupScope importScope = new NameSpaceLookupScope(
+        importNameSpace, ScopeKind.library, 'top',
+        parent: parentScope);
+    importScope = new FixedLookupScope(
+        ScopeKind.typeParameters, 'omitted-types',
+        getables: omittedTypes, parent: importScope);
+    NameSpace libraryNameSpace = libraryTypeParameterScopeBuilder.toNameSpace();
+    MutableNameSpaceLookupScope scope = new MutableNameSpaceLookupScope(
+        libraryNameSpace,
+        ScopeKind.typeParameters,
+        libraryTypeParameterScopeBuilder.name,
+        parent: importScope);
+    NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
         loader: loader,
         importUri: importUri,
@@ -228,10 +245,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
         libraryTypeParameterScopeBuilder: libraryTypeParameterScopeBuilder,
+        importNameSpace: importNameSpace,
         importScope: importScope,
         scope: scope,
-        nameSpace: scope,
-        exportScope: exportScope,
+        libraryNameSpace: libraryNameSpace,
+        exportNameSpace: exportNameSpace,
         origin: origin,
         library: library,
         libraryName: libraryName,
@@ -240,7 +258,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isUnsupported: isUnsupported,
         isAugmentation: isAugmentation,
         isPatch: isPatch,
-        omittedTypes: omittedTypes);
+        omittedTypes: omittedTypes,
+        augmentations: libraryTypeParameterScopeBuilder.augmentations,
+        setterAugmentations:
+            libraryTypeParameterScopeBuilder.setterAugmentations);
   }
 
   SourceLibraryBuilder._(
@@ -251,10 +272,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
-      required NameSpace importScope,
-      required Scope scope,
-      required NameSpace nameSpace,
-      required NameSpace exportScope,
+      required NameSpace importNameSpace,
+      required LookupScope importScope,
+      required MutableNameSpaceLookupScope scope,
+      required NameSpace libraryNameSpace,
+      required NameSpace exportNameSpace,
       required SourceLibraryBuilder? origin,
       required this.library,
       required this.libraryName,
@@ -263,13 +285,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required bool isUnsupported,
       required bool isAugmentation,
       required bool isPatch,
-      required Map<String, Builder>? omittedTypes})
+      required Map<String, Builder>? omittedTypes,
+      required this.augmentations,
+      required this.setterAugmentations})
       : _packageUri = packageUri,
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
+        _importScope = importScope,
         _scope = scope,
-        _nameSpace = nameSpace,
-        _exportScope = exportScope,
+        _nameSpace = libraryNameSpace,
+        _exportNameSpace = exportNameSpace,
         super(fileUri) {
     assert(
         _packageUri == null ||
@@ -294,7 +319,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         indexedLibrary: indexedLibrary,
         libraryName: libraryName,
         omittedTypeDeclarationBuilders: omittedTypes,
-        importScope: importScope,
+        importNameSpace: importNameSpace,
         forAugmentationLibrary: isAugmentation,
         forPatchLibrary: isPatch,
         isAugmenting: origin != null,
@@ -370,13 +395,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  Scope get scope => _scope;
+  LookupScope get scope => _scope;
 
   @override
   NameSpace get nameSpace => _nameSpace;
 
   @override
-  NameSpace get exportScope => _exportScope;
+  NameSpace get exportNameSpace => _exportNameSpace;
 
   Iterable<SourceCompilationUnit> get parts => _parts;
 
@@ -596,7 +621,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.buildOutlineNode(library);
     }*/
 
-    checkMemberConflicts(this, scope,
+    checkMemberConflicts(this, nameSpace,
         checkForInstanceVsStaticConflict: false,
         checkForMethodVsSetterConflict: true);
 
@@ -660,7 +685,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.addImportsToScope();
     }*/
 
-    NameIterator<Builder> iterator = exportScope.filteredNameIterator(
+    NameIterator<Builder> iterator = exportNameSpace.filteredNameIterator(
         includeDuplicates: false, includeAugmentations: false);
     while (iterator.moveNext()) {
       String name = iterator.name;

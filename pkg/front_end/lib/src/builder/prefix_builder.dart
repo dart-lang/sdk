@@ -75,7 +75,7 @@ class PrefixBuilder extends BuilderImpl {
     if (existing != null) {
       // Coverage-ignore-block(suite): Not run.
       result = computeAmbiguousDeclarationForScope(
-          parent, parent.scope, name, existing, member,
+          parent, parent.nameSpace, name, existing, member,
           uriOffset: new UriOffset(fileUri, charOffset), isExport: true);
     } else {
       result = member;

@@ -259,11 +259,11 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
-  Scope get scope;
+  LookupScope get scope;
 
   NameSpace get nameSpace;
 
-  NameSpace get exportScope;
+  NameSpace get exportNameSpace;
 
   List<Export> get exporters;
 
@@ -461,7 +461,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     Builder? existing =
-        exportScope.lookupLocalMember(name, setter: member.isSetter);
+        exportNameSpace.lookupLocalMember(name, setter: member.isSetter);
     if (existing == member) {
       return false;
     } else {
@@ -469,10 +469,10 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
         Builder result = computeAmbiguousDeclarationForScope(
             this, nameSpace, name, existing, member,
             uriOffset: uriOffset, isExport: true);
-        exportScope.addLocalMember(name, result, setter: member.isSetter);
+        exportNameSpace.addLocalMember(name, result, setter: member.isSetter);
         return result != existing;
       } else {
-        exportScope.addLocalMember(name, member, setter: member.isSetter);
+        exportNameSpace.addLocalMember(name, member, setter: member.isSetter);
         return true;
       }
     }
@@ -489,7 +489,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
           -1,
           null);
     }
-    Builder? cls = (bypassLibraryPrivacy ? nameSpace : exportScope)
+    Builder? cls = (bypassLibraryPrivacy ? nameSpace : exportNameSpace)
         .lookupLocalMember(className, setter: false);
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.

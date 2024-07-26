@@ -136,7 +136,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   final LibraryName libraryName;
 
-  final Scope scope;
+  final LookupScope _scope;
+
+  final NameSpace _nameSpace;
 
   BuilderFactoryImpl(
       {required SourceCompilationUnit compilationUnit,
@@ -144,7 +146,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required SourceLibraryBuilder parent,
       required TypeParameterScopeBuilder libraryTypeParameterScopeBuilder,
       required ProblemReporting problemReporting,
-      required Scope scope,
+      required LookupScope scope,
+      required NameSpace nameSpace,
       required LibraryName libraryName,
       required IndexedLibrary? indexedLibrary,
       required Map<String, Builder>? omittedTypeDeclarationBuilders})
@@ -154,7 +157,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         currentTypeParameterScopeBuilder = libraryTypeParameterScopeBuilder,
         _problemReporting = problemReporting,
         _parent = parent,
-        scope = scope,
+        _scope = scope,
+        _nameSpace = nameSpace,
         libraryName = libraryName,
         indexedLibrary = indexedLibrary,
         _omittedTypeDeclarationBuilders = omittedTypeDeclarationBuilders;
@@ -509,7 +513,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
-        TypeParameterScope.fromList(scope, typeVariables);
+        TypeParameterScope.fromList(_scope, typeVariables);
     NameSpace enumNameSpace =
         new NameSpaceImpl(getables: members, setables: setters);
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
@@ -665,7 +669,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
-        TypeParameterScope.fromList(scope, typeVariables);
+        TypeParameterScope.fromList(_scope, typeVariables);
     NameSpace classNameSpace =
         new NameSpaceImpl(getables: members, setables: setters);
 
@@ -1061,7 +1065,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         }
 
         LookupScope typeParameterScope =
-            TypeParameterScope.fromList(scope, typeVariables);
+            TypeParameterScope.fromList(_scope, typeVariables);
         NameSpace nameSpace = new NameSpaceImpl();
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
@@ -1151,7 +1155,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
-        TypeParameterScope.fromList(scope, typeVariables);
+        TypeParameterScope.fromList(_scope, typeVariables);
     NameSpace extensionNameSpace =
         new NameSpaceImpl(getables: members, setables: setters);
 
@@ -1235,7 +1239,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     Map<String, MemberBuilder> setters = declaration.setters!;
 
     LookupScope typeParameterScope =
-        TypeParameterScope.fromList(scope, typeVariables);
+        TypeParameterScope.fromList(_scope, typeVariables);
     NameSpace extensionTypeNameSpace =
         new NameSpaceImpl(getables: members, setables: setters);
     ConstructorScope constructorScope =
@@ -2364,7 +2368,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                       _compilationUnit.fileUri, other!.charOffset, noLength)
             ]);
       }
-      existing.mergeScopes(declaration, _problemReporting, scope,
+      existing.mergeScopes(declaration, _problemReporting, _nameSpace,
           uriOffset: new UriOffset(_compilationUnit.fileUri, charOffset));
       return existing;
     } else if (_isDuplicatedDeclaration(existing, declaration)) {

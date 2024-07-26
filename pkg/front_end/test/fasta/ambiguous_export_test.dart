@@ -31,7 +31,7 @@ Future<void> main() async {
       target.loader.buildOutline(builder);
       builder.markAsReadyToFinalizeExports();
       var mainExport =
-          builder.exportScope.lookupLocalMember("main", setter: false);
+          builder.exportNameSpace.lookupLocalMember("main", setter: false);
       Expect.isTrue(mainExport is InvalidTypeDeclarationBuilder);
     });
   });

@@ -862,7 +862,7 @@ class KernelTarget {
     if (firstRoot != null) {
       // TODO(sigmund): do only for full program
       Builder? declaration =
-          firstRoot.exportScope.lookupLocalMember("main", setter: false);
+          firstRoot.exportNameSpace.lookupLocalMember("main", setter: false);
       if (declaration is AmbiguousBuilder) {
         // Coverage-ignore-block(suite): Not run.
         AmbiguousBuilder problem = declaration;
