@@ -448,11 +448,11 @@ validateFunctionToJSArgs(f, List args) {
   return null;
 }
 
-dcall(f, args, [@undefined named]) => _checkAndCall(
+dcall(f, args, [named]) => _checkAndCall(
     f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
 
-dgcall(f, typeArgs, args, [@undefined named]) => _checkAndCall(f, null,
-    JS('', 'void 0'), typeArgs, args, named, JS('', "f.name || 'call'"));
+dgcall(f, typeArgs, args, [named]) => _checkAndCall(f, null, JS('', 'void 0'),
+    typeArgs, args, named, JS('', "f.name || 'call'"));
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.
@@ -514,16 +514,16 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
   return _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName);
 }
 
-dsend(obj, method, args, [@undefined named]) =>
+dsend(obj, method, args, [named]) =>
     callMethod(obj, method, null, args, named, method);
 
-dgsend(obj, typeArgs, method, args, [@undefined named]) =>
+dgsend(obj, typeArgs, method, args, [named]) =>
     callMethod(obj, method, typeArgs, args, named, method);
 
-dsendRepl(obj, method, args, [@undefined named]) =>
+dsendRepl(obj, method, args, [named]) =>
     callMethod(obj, replNameLookup(obj, method), null, args, named, method);
 
-dgsendRepl(obj, typeArgs, method, args, [@undefined named]) =>
+dgsendRepl(obj, typeArgs, method, args, [named]) =>
     callMethod(obj, replNameLookup(obj, method), typeArgs, args, named, method);
 
 dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
