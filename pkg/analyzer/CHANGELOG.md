@@ -1,3 +1,6 @@
+## 6.9.0
+* `NormalFormalParameter` now implements `AnnotatedNode`.
+
 ## 6.8.0
 * Add `AnalysisContextCollection.dispose()`. It must be invoked at the end.
 * Deprecated `ContextLocator` and `ContextBuilder`.

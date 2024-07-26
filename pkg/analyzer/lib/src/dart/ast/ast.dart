@@ -128,9 +128,7 @@ abstract final class AnnotatedNode implements AstNode {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-sealed class AnnotatedNodeImpl extends AstNodeImpl
-    with _AnnotatedNodeMixin
-    implements AnnotatedNode {
+sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
   /// Initializes a newly created annotated node.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
@@ -12597,15 +12595,7 @@ final class NodeListImpl<E extends AstNode>
 ///        [FunctionTypedFormalParameter]
 ///      | [FieldFormalParameter]
 ///      | [SimpleFormalParameter]
-sealed class NormalFormalParameter implements FormalParameter {
-  /// The documentation comment associated with this parameter, or `null` if
-  /// this parameter doesn't have a documentation comment associated with it.
-  Comment? get documentationComment;
-
-  /// A list containing the comment and annotations associated with this
-  /// parameter, sorted in lexical order.
-  List<AstNode> get sortedCommentAndAnnotations;
-}
+sealed class NormalFormalParameter implements FormalParameter, AnnotatedNode {}
 
 sealed class NormalFormalParameterImpl extends FormalParameterImpl
     with _AnnotatedNodeMixin
@@ -18534,14 +18524,12 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
 /// Mixin implementing shared functionality for AST nodes that can have optional
 /// annotations and an optional documentation comment.
-///
-/// Most node kinds that use this mixin also implement [AnnotatedNode], but a
-/// few do not. TODO(paulberry): fix this.
-base mixin _AnnotatedNodeMixin on AstNodeImpl {
+base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   CommentImpl? _comment;
 
   final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
 
+  @override
   CommentImpl? get documentationComment => _comment;
 
   set documentationComment(CommentImpl? comment) {
@@ -18549,10 +18537,13 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl {
   }
 
   /// The first token following the comment and metadata.
+  @override
   Token get firstTokenAfterCommentAndMetadata;
 
+  @override
   NodeListImpl<AnnotationImpl> get metadata => _metadata;
 
+  @override
   List<AstNode> get sortedCommentAndAnnotations {
     var comment = _comment;
     return <AstNode>[
