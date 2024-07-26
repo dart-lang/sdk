@@ -24,6 +24,7 @@ import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
 import("../configs.gni")
 import("../lib/async_sources.gni")
+import("../lib/concurrent_sources.gni")
 import("../lib/convert_sources.gni")
 import("../lib/core_sources.gni")
 import("../lib/developer_sources.gni")
@@ -222,11 +223,12 @@ library_for_all_configs("libdart_lib") {
     extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
   }
   include_dirs = [ ".." ]
-  allsources = async_runtime_cc_files + core_runtime_cc_files +
-               developer_runtime_cc_files + isolate_runtime_cc_files +
+  allsources = async_runtime_cc_files + concurrent_runtime_cc_files +
+               core_runtime_cc_files + developer_runtime_cc_files +
+               ffi_runtime_cc_files + isolate_runtime_cc_files +
                math_runtime_cc_files + mirrors_runtime_cc_files +
-               typed_data_runtime_cc_files + vmservice_runtime_cc_files +
-               ffi_runtime_cc_files
+               typed_data_runtime_cc_files + vmservice_runtime_cc_files
+
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
 }

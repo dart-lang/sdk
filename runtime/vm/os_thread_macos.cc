@@ -338,6 +338,35 @@ void Mutex::Unlock() {
   ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 }
 
+ConditionVariable::ConditionVariable() {
+  int result = pthread_cond_init(data_.cond(), nullptr);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+ConditionVariable::~ConditionVariable() {
+  int result = pthread_cond_destroy(data_.cond());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+void ConditionVariable::Wait(Mutex* mutex) {
+#if defined(DEBUG)
+  ThreadId saved_owner = mutex->InvalidateOwner();
+#endif
+
+  int result = pthread_cond_wait(data_.cond(), mutex->data_.mutex());
+  VALIDATE_PTHREAD_RESULT(result);
+
+#if defined(DEBUG)
+  mutex->SetCurrentThreadAsOwner();
+  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
+#endif
+}
+
+void ConditionVariable::Notify() {
+  int result = pthread_cond_signal(data_.cond());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
 Monitor::Monitor() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);

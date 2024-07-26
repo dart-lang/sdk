@@ -50,9 +50,25 @@ class MutexData {
   absl::Mutex mutex_;
 
   friend class Mutex;
+  friend class ConditionVariable;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
+};
+
+class ConditionVariableData {
+ private:
+  ConditionVariableData() : cond_() {}
+  ~ConditionVariableData() {}
+
+  absl::CondVar* cond() { return &cond_; }
+
+  absl::CondVar cond_;
+
+  friend class ConditionVariable;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ConditionVariableData);
 };
 
 class MonitorData {

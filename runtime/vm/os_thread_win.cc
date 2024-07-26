@@ -278,6 +278,29 @@ void Mutex::Unlock() {
   ReleaseSRWLockExclusive(&data_.lock_);
 }
 
+ConditionVariable::ConditionVariable() {
+  InitializeConditionVariable(&data_.cond_);
+}
+
+ConditionVariable::~ConditionVariable() {}
+
+void ConditionVariable::Wait(Mutex* mutex) {
+#if defined(DEBUG)
+  ThreadId saved_owner = mutex->InvalidateOwner();
+#endif
+
+  SleepConditionVariableSRW(&data_.cond_, &mutex->data_.lock_, INFINITE, 0);
+
+#if defined(DEBUG)
+  mutex->SetCurrentThreadAsOwner();
+  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
+#endif
+}
+
+void ConditionVariable::Notify() {
+  WakeConditionVariable(&data_.cond_);
+}
+
 Monitor::Monitor() {
   InitializeSRWLock(&data_.lock_);
   InitializeConditionVariable(&data_.cond_);

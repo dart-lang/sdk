@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch;
+import "dart:ffi" show Handle, Void, Native;
 import "dart:nativewrappers" show NativeFieldWrapperClass1;
 
 @patch
@@ -18,15 +19,15 @@ base class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
     _initialize();
   }
 
-  @pragma("vm:external-name", "Mutex_Initialize")
+  @Native<Void Function(Handle)>(symbol: "Mutex_Initialize")
   external void _initialize();
 
   @patch
-  @pragma("vm:external-name", "Mutex_Lock")
+  @Native<Void Function(Handle)>(symbol: "Mutex_Lock")
   external void _lock();
 
   @patch
-  @pragma("vm:external-name", "Mutex_Unlock")
+  @Native<Void Function(Handle)>(symbol: "Mutex_Unlock")
   external void _unlock();
 
   R runLocked<R>(R Function() action) {
@@ -55,14 +56,14 @@ base class _ConditionVariableImpl extends NativeFieldWrapperClass1
     _initialize();
   }
 
-  @pragma("vm:external-name", "ConditionVariable_Initialize")
+  @Native<Void Function(Handle)>(symbol: "ConditionVariable_Initialize")
   external void _initialize();
 
   @patch
-  @pragma("vm:external-name", "ConditionVariable_Wait")
+  @Native<Void Function(Handle, Handle)>(symbol: "ConditionVariable_Wait")
   external void wait(Mutex mutex);
 
   @patch
-  @pragma("vm:external-name", "ConditionVariable_Notify")
+  @Native<Void Function(Handle)>(symbol: "ConditionVariable_Notify")
   external void notify();
 }

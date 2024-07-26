@@ -14,7 +14,6 @@ import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
 import("builtin_sources.gni")
 import("cli_sources.gni")
-import("concurrent_impl_sources.gni")
 import("io_impl_sources.gni")
 import("io_sources.gni")
 import("native_assets_impl_sources.gni")
@@ -136,37 +135,11 @@ build_native_assets_api("native_assets_api_product") {
   ]
 }
 
-template("build_concurrent_api") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  source_set(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
-    deps = []
-    include_dirs = [ ".." ]
-    sources = concurrent_api_sources
-    sources += [
-      "concurrent_natives.cc",
-      "concurrent_natives.h",
-    ]
-  }
+# TODO(aam): Remove once https://dart-review.googlesource.com/c/sdk/+/377541
+# rolls into flutter engine.
+source_set("concurrent_api") {
 }
-
-build_concurrent_api("concurrent_api") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_os_config",
-    "..:dart_arch_config",
-  ]
-}
-
-build_concurrent_api("concurrent_api_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_os_config",
-    "..:dart_arch_config",
-  ]
+source_set("concurrent_api_product") {
 }
 
 static_library("crashpad") {
@@ -881,12 +854,6 @@ template("dart_executable") {
       deps += [ ":standalone_dart_io" ]
     }
 
-    if (use_product_mode) {
-      deps += [ ":concurrent_api_product" ]
-    } else {
-      deps += [ ":concurrent_api" ]
-    }
-
     configs += [ ":export_api_symbols" ]
 
     ldflags = extra_ldflags
@@ -1133,7 +1100,6 @@ executable("run_vm_tests") {
   }
 
   deps = [
-    ":concurrent_api",
     ":crashpad",
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",

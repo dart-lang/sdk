@@ -47,9 +47,23 @@ class MutexData {
   SRWLOCK lock_;
 
   friend class Mutex;
+  friend class ConditionVariable;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
+};
+
+class ConditionVariableData {
+ private:
+  ConditionVariableData() {}
+  ~ConditionVariableData() {}
+
+  CONDITION_VARIABLE cond_;
+
+  friend class ConditionVariable;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ConditionVariableData);
 };
 
 class MonitorData {
