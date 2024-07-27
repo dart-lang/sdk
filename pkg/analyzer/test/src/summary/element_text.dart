@@ -467,6 +467,24 @@ class _ElementWriter {
       'enclosingElement',
       e.enclosingElement,
     );
+
+    switch (e) {
+      case CompilationUnitElementImpl():
+        if (identical(e.library.definingCompilationUnit, e)) {
+          expect(e.enclosingElement3, isNull);
+        } else {
+          expect(
+            e.enclosingElement3,
+            TypeMatcher<CompilationUnitElementImpl>(),
+          );
+          _elementPrinter.writeNamedElement(
+            'enclosingElement3',
+            e.enclosingElement3,
+          );
+        }
+      default:
+        expect(e.enclosingElement3, same(e.enclosingElement));
+    }
   }
 
   void _writeExportedReferences(LibraryElementImpl e) {

@@ -86,6 +86,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @36
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
@@ -161,6 +162,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -225,6 +227,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -291,6 +294,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -355,6 +359,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -440,6 +445,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a1.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @97
             reference: <thisLibrary>::@augmentation::package:test/a1.dart::@classAugmentation::A
@@ -452,6 +458,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a11.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
             classes
               augment class A @41
                 reference: <thisLibrary>::@augmentation::package:test/a11.dart::@classAugmentation::A
@@ -463,6 +470,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a12.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
             classes
               augment class A @41
                 reference: <thisLibrary>::@augmentation::package:test/a12.dart::@classAugmentation::A
@@ -474,6 +482,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a2.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @97
             reference: <thisLibrary>::@augmentation::package:test/a2.dart::@classAugmentation::A
@@ -486,6 +495,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a21.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
             classes
               augment class A @41
                 reference: <thisLibrary>::@augmentation::package:test/a21.dart::@classAugmentation::A
@@ -497,6 +507,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a22.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
             classes
               augment class A @41
                 reference: <thisLibrary>::@augmentation::package:test/a22.dart::@classAugmentation::A
@@ -542,6 +553,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
@@ -627,6 +639,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -653,6 +666,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               augment class A @40
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -724,6 +738,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -788,6 +803,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -845,6 +861,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -912,6 +929,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -960,6 +978,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1012,6 +1031,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1072,6 +1092,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1119,6 +1140,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1173,6 +1195,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1234,6 +1257,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1301,6 +1325,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1369,6 +1394,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1456,6 +1482,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1551,6 +1578,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1571,6 +1599,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -1667,6 +1696,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1686,6 +1716,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -1782,6 +1813,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1804,6 +1836,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -1880,6 +1913,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -1974,6 +2008,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2050,6 +2085,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2139,6 +2175,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2204,6 +2241,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2284,6 +2322,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2373,6 +2412,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2487,6 +2527,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2569,6 +2610,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2640,6 +2682,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2702,6 +2745,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2767,6 +2811,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2845,6 +2890,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2921,6 +2967,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3010,6 +3057,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3106,6 +3154,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3201,6 +3250,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3221,6 +3271,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -3311,6 +3362,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3387,6 +3439,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3478,6 +3531,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3498,6 +3552,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -3550,6 +3605,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3614,6 +3670,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3688,6 +3745,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3709,6 +3767,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               augment class A @40
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -3778,6 +3837,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3852,6 +3912,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3920,6 +3981,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -3998,6 +4060,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4067,6 +4130,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4139,6 +4203,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4200,6 +4265,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4252,6 +4318,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4325,6 +4392,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4387,6 +4455,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4457,6 +4526,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
@@ -4538,6 +4608,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4557,6 +4628,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               augment class A @40
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -4623,6 +4695,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4691,6 +4764,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4757,6 +4831,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4850,6 +4925,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -4875,6 +4951,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -4941,6 +5018,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5019,6 +5097,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5087,6 +5166,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5169,6 +5249,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5265,6 +5346,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5320,6 +5402,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5418,6 +5501,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5478,6 +5562,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -5490,6 +5575,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -5544,6 +5630,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -5556,6 +5643,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -5614,6 +5702,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5633,6 +5722,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -5690,6 +5780,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5745,6 +5836,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -5813,6 +5905,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
@@ -5889,6 +5982,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -5962,6 +6056,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -6041,6 +6136,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
@@ -6108,6 +6204,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6160,6 +6257,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment abstract class A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6203,6 +6301,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment base class A @48
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6246,6 +6345,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment final class A @49
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6289,6 +6389,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment interface class A @53
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6332,6 +6433,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment macro class A @49
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6375,6 +6477,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment mixin class A @49
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6418,6 +6521,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment abstract sealed class A @50
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6540,6 +6644,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6605,6 +6710,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::B
@@ -6676,6 +6782,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class C @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::C
@@ -6687,6 +6794,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class C @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::C
@@ -6742,6 +6850,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -6925,6 +7034,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @60
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
@@ -6939,6 +7049,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               class B @32
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
@@ -6991,6 +7102,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
@@ -7041,6 +7153,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
@@ -7085,6 +7198,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
@@ -7130,6 +7244,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           notSimplyBounded class C @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::C
@@ -7165,6 +7280,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           notSimplyBounded class C @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::C
@@ -7212,6 +7328,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7276,6 +7393,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7332,6 +7450,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -7365,6 +7484,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7419,6 +7539,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7481,6 +7602,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7546,6 +7668,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7621,6 +7744,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7685,6 +7809,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7726,6 +7851,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7781,6 +7907,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7833,6 +7960,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           f @31
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
@@ -7877,6 +8005,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:async
             enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
@@ -7890,6 +8019,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:collection
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7934,6 +8064,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:async
             enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
@@ -7947,6 +8078,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:collection
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -7985,6 +8117,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
@@ -8039,6 +8172,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           f @31
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@function::f
@@ -14702,6 +14836,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         static final a @19
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::a
@@ -21367,6 +21502,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         static final f @19
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::f
@@ -38138,6 +38274,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -38208,6 +38345,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/d.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
@@ -38221,6 +38359,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/e.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
@@ -38282,6 +38421,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -38338,6 +38478,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -38387,6 +38528,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -38441,6 +38583,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @60
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
@@ -38455,6 +38598,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               class B @32
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
@@ -38518,6 +38662,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/c.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
@@ -38530,6 +38675,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/d.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/c.dart
             libraryExports
               package:test/b.dart
                 enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
@@ -38565,6 +38711,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           static a @33
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariable::a
@@ -38613,6 +38760,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           static const a @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariable::a
@@ -38913,6 +39061,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       functions
         main @16
           reference: <thisLibrary>::@unit::package:test/a.dart::@function::main
@@ -45302,6 +45451,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
@@ -45353,17 +45503,20 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
     package:test/c.dart
       reference: <thisLibrary>::@augmentation::package:test/c.dart
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/c.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
 
     var import_0 = library.augmentationImports[0];
@@ -45870,9 +46023,11 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       reference: <thisLibrary>::@unit::package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45921,6 +46076,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       classes
         class B @22
           reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
@@ -45959,6 +46115,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       classes
         class B @27
           reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
@@ -46488,6 +46645,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
@@ -46535,6 +46693,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46570,6 +46729,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:math
             enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
@@ -46600,6 +46760,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
       augmentationImports
         package:test/a.dart
           metadata
@@ -46614,6 +46775,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/b.dart
 ''');
   }
 
@@ -46649,6 +46811,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:math
             enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
@@ -46683,6 +46846,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -49975,6 +50139,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -51492,6 +51657,7 @@ library
           element: <thisLibrary>::<definingUnit>::@getter::foo
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       metadata
         Annotation
@@ -51503,6 +51669,7 @@ library
           element: <thisLibrary>::<definingUnit>::@getter::foo
       reference: <thisLibrary>::@unit::package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -51803,6 +51970,7 @@ library
           element: <thisLibrary>::<definingUnit>::@getter::a
       reference: <thisLibrary>::@unit::package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -59282,6 +59450,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       classes
         class C @17
           reference: <thisLibrary>::@unit::package:test/a.dart::@class::C
@@ -59429,6 +59598,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         static c @13
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::c
@@ -59500,6 +59670,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       classes
         class C @17
           reference: <thisLibrary>::@unit::package:test/a.dart::@class::C
@@ -59567,6 +59738,7 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@unit::package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         static c @13
           reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::c
@@ -59636,6 +59808,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       classes
         class C @17
           reference: <thisLibrary>::@unit::package:test/a.dart::@class::C
@@ -64554,6 +64727,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         synthetic static x @-1
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::x
@@ -64605,6 +64779,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         synthetic static x @-1
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::x
@@ -64636,6 +64811,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         synthetic static x @-1
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::x
@@ -64649,6 +64825,7 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@unit::package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         synthetic static x @-1
           reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::x
@@ -65065,6 +65242,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         static final a @19
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::a
@@ -65150,6 +65328,7 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@unit::package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         synthetic static x @-1
           reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::x
@@ -65166,6 +65345,7 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@unit::package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       topLevelVariables
         synthetic static x @-1
           reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::x
@@ -65461,6 +65641,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           enum A @35
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
@@ -65619,6 +65800,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a1.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @96
             reference: <thisLibrary>::@augmentation::package:test/a1.dart::@enumAugmentation::A
@@ -65631,6 +65813,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a11.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
             enums
               augment enum A @40
                 reference: <thisLibrary>::@augmentation::package:test/a11.dart::@enumAugmentation::A
@@ -65642,6 +65825,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a12.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
             enums
               augment enum A @40
                 reference: <thisLibrary>::@augmentation::package:test/a12.dart::@enumAugmentation::A
@@ -65653,6 +65837,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a2.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @96
             reference: <thisLibrary>::@augmentation::package:test/a2.dart::@enumAugmentation::A
@@ -65665,6 +65850,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a21.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
             enums
               augment enum A @40
                 reference: <thisLibrary>::@augmentation::package:test/a21.dart::@enumAugmentation::A
@@ -65676,6 +65862,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a22.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
             enums
               augment enum A @40
                 reference: <thisLibrary>::@augmentation::package:test/a22.dart::@enumAugmentation::A
@@ -65723,6 +65910,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
@@ -65837,6 +66025,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @67
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -65882,6 +66071,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             enums
               augment enum A @39
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -66000,6 +66190,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -66155,6 +66346,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -66193,6 +66385,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -66334,6 +66527,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -66552,6 +66746,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -66723,6 +66918,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -66836,6 +67032,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -66918,6 +67115,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67001,6 +67199,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67091,6 +67290,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67169,6 +67369,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67253,6 +67454,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67340,6 +67542,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67433,6 +67636,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67552,6 +67756,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67671,6 +67876,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67691,6 +67897,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -67811,6 +68018,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67830,6 +68038,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -67950,6 +68159,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -67972,6 +68182,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -68083,6 +68294,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68210,6 +68422,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68326,6 +68539,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68438,6 +68652,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68563,6 +68778,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68663,6 +68879,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68762,6 +68979,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68875,6 +69093,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -68999,6 +69218,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69119,6 +69339,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69238,6 +69459,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69258,6 +69480,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -69383,6 +69606,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69494,6 +69718,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69620,6 +69845,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69640,6 +69866,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -69730,6 +69957,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -69826,6 +70054,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @67
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -69933,6 +70162,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @92
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -69955,6 +70185,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               class I3 @64
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
@@ -70057,6 +70288,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @75
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -70164,6 +70396,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @79
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -70267,6 +70500,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -70371,6 +70605,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -70474,6 +70709,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -70566,6 +70802,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -70666,6 +70903,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
@@ -70777,6 +71015,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @67
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -70796,6 +71035,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             enums
               augment enum A @39
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -70892,6 +71132,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -70990,6 +71231,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71086,6 +71328,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71195,6 +71438,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71220,6 +71464,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -71340,6 +71585,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71460,6 +71706,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71558,6 +71805,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71691,6 +71939,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71769,6 +72018,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -71779,6 +72029,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -71856,6 +72107,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -71866,6 +72118,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -71954,6 +72207,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -71973,6 +72227,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
@@ -72086,6 +72341,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -72192,6 +72448,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -72293,6 +72550,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum B @42
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
@@ -72399,6 +72657,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -72502,6 +72761,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -72594,6 +72854,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
@@ -72659,6 +72920,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @72
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -72671,6 +72933,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensions
               augment A @44
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -72715,6 +72978,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @72
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -72736,6 +73000,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensions
               augment A @44
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -72815,6 +73080,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -72905,6 +73171,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -72925,6 +73192,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -73016,6 +73284,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73035,6 +73304,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -73126,6 +73396,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73148,6 +73419,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -73230,6 +73502,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73302,6 +73575,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73386,6 +73660,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73474,6 +73749,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73558,6 +73834,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73649,6 +73926,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73739,6 +74017,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73759,6 +74038,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -73844,6 +74124,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73922,6 +74203,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -73942,6 +74224,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -74000,6 +74283,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74061,6 +74345,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74125,6 +74410,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @72
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74144,6 +74430,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensions
               augment A @44
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -74205,6 +74492,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74268,6 +74556,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74335,6 +74624,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74410,6 +74700,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74501,6 +74792,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74595,6 +74887,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
@@ -74652,6 +74945,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -74662,6 +74956,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -74710,6 +75005,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -74720,6 +75016,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @48
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
@@ -74807,6 +75104,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -74819,6 +75117,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensionTypes
               augment A @49
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -74863,6 +75162,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -74910,6 +75210,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensionTypes
               augment A @49
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -74982,6 +75283,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75060,6 +75362,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75141,6 +75444,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75245,6 +75549,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75361,6 +75666,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75381,6 +75687,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -75498,6 +75805,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75517,6 +75825,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -75634,6 +75943,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75656,6 +75966,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -75764,6 +76075,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75862,6 +76174,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -75972,6 +76285,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76086,6 +76400,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76196,6 +76511,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76313,6 +76629,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76429,6 +76746,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76449,6 +76767,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -76560,6 +76879,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76664,6 +76984,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76684,6 +77005,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -76770,6 +77092,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76891,6 +77214,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -76929,6 +77253,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensionTypes
               augment A @49
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -77053,6 +77378,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77182,6 +77508,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77292,6 +77619,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77379,6 +77707,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77469,6 +77798,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77488,6 +77818,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             extensionTypes
               augment A @49
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -77575,6 +77906,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77664,6 +77996,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77757,6 +78090,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77858,6 +78192,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -77975,6 +78310,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -78095,6 +78431,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
@@ -78164,6 +78501,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -78174,6 +78512,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -78238,6 +78577,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -78248,6 +78588,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @53
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
@@ -79934,6 +80275,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a1.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @96
             reference: <thisLibrary>::@augmentation::package:test/a1.dart::@functionAugmentation::foo
@@ -79947,6 +80289,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a11.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
             functions
               augment foo @40
                 reference: <thisLibrary>::@augmentation::package:test/a11.dart::@functionAugmentation::foo
@@ -79959,6 +80302,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a12.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
             functions
               augment foo @40
                 reference: <thisLibrary>::@augmentation::package:test/a12.dart::@functionAugmentation::foo
@@ -79971,6 +80315,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a2.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @96
             reference: <thisLibrary>::@augmentation::package:test/a2.dart::@functionAugmentation::foo
@@ -79984,6 +80329,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a21.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
             functions
               augment foo @40
                 reference: <thisLibrary>::@augmentation::package:test/a21.dart::@functionAugmentation::foo
@@ -79996,6 +80342,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/a22.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
             functions
               augment foo @40
                 reference: <thisLibrary>::@augmentation::package:test/a22.dart::@functionAugmentation::foo
@@ -80038,6 +80385,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
@@ -80077,6 +80425,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @42
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
@@ -80114,6 +80463,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           foo @34
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@function::foo
@@ -80167,6 +80517,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
@@ -80214,6 +80565,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
@@ -80266,6 +80618,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
@@ -80306,6 +80659,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
@@ -80353,6 +80707,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
@@ -80409,6 +80764,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
@@ -80449,6 +80805,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
@@ -80505,6 +80862,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
@@ -80572,6 +80930,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
@@ -80623,6 +80982,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
@@ -80681,6 +81041,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
@@ -80724,6 +81085,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
@@ -80783,6 +81145,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
@@ -80853,6 +81216,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
@@ -81009,6 +81373,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81021,6 +81386,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             mixins
               augment mixin A @40
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -81066,6 +81432,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
@@ -81149,6 +81516,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81173,6 +81541,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             mixins
               augment mixin A @40
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -81255,6 +81624,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81348,6 +81718,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81368,6 +81739,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -81462,6 +81834,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81481,6 +81854,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -81575,6 +81949,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81597,6 +81972,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -81682,6 +82058,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81757,6 +82134,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81844,6 +82222,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -81956,6 +82335,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82049,6 +82429,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82136,6 +82517,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82230,6 +82612,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82323,6 +82706,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82343,6 +82727,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -82431,6 +82816,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82512,6 +82898,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82532,6 +82919,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -82596,6 +82984,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -82670,6 +83059,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @93
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -82692,6 +83082,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               class I3 @65
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
@@ -82755,6 +83146,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82819,6 +83211,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82886,6 +83279,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -82905,6 +83299,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             mixins
               augment mixin A @40
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -82969,6 +83364,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -83035,6 +83431,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -83105,6 +83502,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -83183,6 +83581,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -83277,6 +83676,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -83374,6 +83774,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -83437,6 +83838,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B2 @60
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B2
@@ -83507,6 +83909,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @85
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -83529,6 +83932,7 @@ library
           definingUnit
             reference: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
             classes
               class I3 @57
                 reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
@@ -83579,6 +83983,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @59
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
@@ -83644,6 +84049,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @68
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
@@ -83707,6 +84113,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -83717,6 +84124,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
@@ -83767,6 +84175,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -83781,6 +84190,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
@@ -83840,6 +84250,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin B @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
@@ -83914,6 +84325,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -83981,6 +84393,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
@@ -84056,6 +84469,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin B @43
             reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
@@ -84106,6 +84520,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment base mixin A @48
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -84223,6 +84638,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
@@ -84285,6 +84701,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static A @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::A
@@ -84351,6 +84768,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
@@ -84426,6 +84844,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
@@ -84504,6 +84923,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
@@ -84591,6 +85011,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
@@ -84665,6 +85086,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static const foo @47
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
@@ -84737,6 +85159,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
@@ -84773,6 +85196,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
@@ -84814,6 +85238,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
@@ -84845,6 +85270,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
@@ -84890,6 +85316,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
@@ -84927,6 +85354,7 @@ library
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
             reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A

@@ -2949,6 +2949,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3074,6 +3075,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3135,6 +3137,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3195,6 +3198,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3258,6 +3262,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3331,6 +3336,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3394,6 +3400,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3457,6 +3464,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -3525,6 +3533,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3601,6 +3610,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3678,6 +3688,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3758,6 +3769,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3838,6 +3850,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3923,6 +3936,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4005,6 +4019,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4085,6 +4100,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4152,6 +4168,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4236,6 +4253,7 @@ const x = prefix0.a;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4310,6 +4328,7 @@ const x = prefix0.a + prefix0.b;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4409,6 +4428,7 @@ const x = prefix0.a, y = prefix0.a;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4542,6 +4562,7 @@ const x = prefix0.A<void>;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4626,6 +4647,7 @@ class C {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4707,6 +4729,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4793,6 +4816,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -4884,6 +4908,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5003,6 +5028,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5093,6 +5119,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5178,6 +5205,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5269,6 +5297,7 @@ void foo() {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5342,6 +5371,7 @@ void foo([x = prefix0.a]) {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5417,6 +5447,7 @@ int get foo => 0;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5500,6 +5531,7 @@ set foo(int _) {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5581,6 +5613,7 @@ set foo(@prefix0.a x) {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5664,6 +5697,7 @@ final foo = 0;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5748,6 +5782,7 @@ final foo = 0, bar = 1;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5862,6 +5897,7 @@ class C {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -5954,6 +5990,7 @@ class C {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6038,6 +6075,7 @@ class C {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6142,6 +6180,7 @@ void foo(prefix0.X x1, prefix1.X x2) {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6205,6 +6244,7 @@ void foo(prefix0.X x) {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6278,6 +6318,7 @@ augment class B {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
@@ -6327,6 +6368,7 @@ void foo() {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           foo @48
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
@@ -6382,6 +6424,7 @@ final x = 42;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           static final x @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
@@ -6479,6 +6522,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6574,6 +6618,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6689,6 +6734,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6791,6 +6837,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6885,6 +6932,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -7203,6 +7251,7 @@ class B {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
@@ -9893,6 +9942,7 @@ augment class B extends prefix0.A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/test.dart as prefix0 @78
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -10101,6 +10151,7 @@ extension B on int {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           B @53
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@extension::B
@@ -10722,6 +10773,7 @@ augment class A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
@@ -11043,6 +11095,7 @@ A {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:core as prefix0 @65
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -11167,6 +11220,7 @@ json['bar'] = this.bar;
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/json_serializable.dart as prefix0 @91
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -11308,6 +11362,7 @@ augment class X {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class X @57
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
@@ -11412,6 +11467,7 @@ augment class X {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -16341,6 +16397,7 @@ class MyClass {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
@@ -16389,6 +16446,7 @@ class MyClass {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
@@ -16445,6 +16503,7 @@ class MyClass {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
@@ -16501,6 +16560,7 @@ class MyClass {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
@@ -16553,6 +16613,7 @@ class B {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
@@ -16752,6 +16813,7 @@ class MyClass {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
@@ -16841,6 +16903,7 @@ class MyClass {
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -17240,6 +17303,7 @@ class B {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
             enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -17466,6 +17530,7 @@ class X {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class X @49
             reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::X
@@ -18188,6 +18253,7 @@ class B {}
       definingUnit
         reference: <thisLibrary>::@augmentation::package:other/other.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:other/other.macro.dart
+        enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @51
             reference: <thisLibrary>::@augmentation::package:other/other.macro.dart::@class::B
