@@ -150,19 +150,6 @@ void Mutex::Unlock() {
   data_.mutex()->Unlock();
 }
 
-ConditionVariable::ConditionVariable() {}
-
-ConditionVariable::~ConditionVariable() {}
-
-ABSL_NO_THREAD_SAFETY_ANALYSIS
-void ConditionVariable::Wait(Mutex* mutex) {
-  data_.cond()->Wait(mutex->data_.mutex());
-}
-
-void ConditionVariable::Notify() {
-  data_.cond()->Signal();
-}
-
 Monitor::Monitor() : data_() {}
 
 Monitor::~Monitor() {}

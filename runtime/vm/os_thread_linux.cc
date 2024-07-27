@@ -370,6 +370,45 @@ void Mutex::Unlock() {
   ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 }
 
+ConditionVariable::ConditionVariable() {
+  pthread_condattr_t cond_attr;
+  int result = pthread_condattr_init(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_cond_init(data_.cond(), &cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_destroy(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+ConditionVariable::~ConditionVariable() {
+  int result = pthread_cond_destroy(data_.cond());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+void ConditionVariable::Wait(Mutex* mutex) {
+#if defined(DEBUG)
+  ThreadId saved_owner = mutex->InvalidateOwner();
+#endif
+
+  int result = pthread_cond_wait(data_.cond(), mutex->data_.mutex());
+  VALIDATE_PTHREAD_RESULT(result);
+
+#if defined(DEBUG)
+  mutex->SetCurrentThreadAsOwner();
+  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
+#endif
+}
+
+void ConditionVariable::Notify() {
+  int result = pthread_cond_signal(data_.cond());
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
 Monitor::Monitor() {
   pthread_mutexattr_t mutex_attr;
   int result = pthread_mutexattr_init(&mutex_attr);

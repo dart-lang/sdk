@@ -374,6 +374,27 @@ void Mutex::Unlock() {
   data_.mutex()->Unlock();
 }
 
+ConditionVariable::ConditionVariable() {}
+
+ConditionVariable::~ConditionVariable() {}
+
+void ConditionVariable::Wait(Mutex* mutex) {
+#if defined(DEBUG)
+  ThreadId saved_owner = mutex->InvalidateOwner();
+#endif
+
+  data_.cond()->Wait(mutex->data_.mutex());
+
+#if defined(DEBUG)
+  mutex->SetCurrentThreadAsOwner();
+  ASSERT(OSThread::GetCurrentThreadId() == saved_owner);
+#endif
+}
+
+void ConditionVariable::Notify() {
+  data_.cond()->Signal();
+}
+
 Monitor::Monitor() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.

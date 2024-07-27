@@ -42,12 +42,15 @@ class Mutex {
   explicit Mutex(NOT_IN_PRODUCT(const char* name = "anonymous mutex"));
   ~Mutex();
 
+  ThreadId InvalidateOwner();
+  void SetCurrentThreadAsOwner();
   bool IsOwnedByCurrentThread() const;
 
- private:
   void Lock();
-  bool TryLock();  // Returns false if lock is busy and locking failed.
   void Unlock();
+
+ private:
+  bool TryLock();  // Returns false if lock is busy and locking failed.
 
   MutexData data_;
   NOT_IN_PRODUCT(const char* name_);
@@ -55,6 +58,7 @@ class Mutex {
   ThreadId owner_;
 #endif  // defined(DEBUG)
 
+  friend class ConditionVariable;
   friend class MallocLocker;
   friend class MutexLocker;
   friend class SafepointMutexLocker;
@@ -64,6 +68,20 @@ class Mutex {
   friend class PageSpace;
   friend void Dart_TestMutex();
   DISALLOW_COPY_AND_ASSIGN(Mutex);
+};
+
+class ConditionVariable {
+ public:
+  ConditionVariable();
+  ~ConditionVariable();
+
+  void Wait(Mutex* mutex);
+  void Notify();
+
+ private:
+  Mutex* mutex_;
+  ConditionVariableData data_;
+  DISALLOW_COPY_AND_ASSIGN(ConditionVariable);
 };
 
 class BaseThread {
@@ -405,6 +423,24 @@ inline bool Mutex::IsOwnedByCurrentThread() const {
 #else
   UNREACHABLE();
   return false;
+#endif
+}
+
+inline ThreadId Mutex::InvalidateOwner() {
+#if defined(DEBUG)
+  ThreadId saved_owner = owner_;
+  owner_ = OSThread::kInvalidThreadId;
+  return saved_owner;
+#else
+  UNREACHABLE();
+#endif
+}
+
+inline void Mutex::SetCurrentThreadAsOwner() {
+#if defined(DEBUG)
+  owner_ = OSThread::GetCurrentThreadId();
+#else
+  UNREACHABLE();
 #endif
 }
 

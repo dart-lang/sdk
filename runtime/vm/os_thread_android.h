@@ -49,9 +49,25 @@ class MutexData {
   pthread_mutex_t mutex_;
 
   friend class Mutex;
+  friend class ConditionVariable;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
+};
+
+class ConditionVariableData {
+ private:
+  ConditionVariableData() {}
+  ~ConditionVariableData() {}
+
+  pthread_cond_t* cond() { return &cond_; }
+
+  pthread_cond_t cond_;
+
+  friend class ConditionVariable;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(ConditionVariableData);
 };
 
 class MonitorData {

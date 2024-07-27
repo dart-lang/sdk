@@ -13,7 +13,6 @@
 #include "platform/assert.h"
 
 #include "bin/builtin.h"
-#include "bin/concurrent_natives.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/io_natives.h"
@@ -25,8 +24,7 @@ namespace bin {
 // Lists the native functions implementing basic functionality in
 // standalone dart, such as printing, file I/O, and platform information.
 // Advanced I/O classes like sockets and process management are implemented
-// using functions listed in io_natives.cc and synchronization primitives -
-// in concurrent_natives.cc.
+// using functions listed in io_natives.cc.
 #define BUILTIN_NATIVE_LIST(V) V(Builtin_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
@@ -65,10 +63,6 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
   }
   Dart_NativeFunction result =
       IONativeLookup(name, argument_count, auto_setup_scope);
-  if (result != nullptr) {
-    return result;
-  }
-  result = ConcurrentNativeLookup(name, argument_count, auto_setup_scope);
   if (result == nullptr) {
     result = Builtin_DummyNative;
   }
