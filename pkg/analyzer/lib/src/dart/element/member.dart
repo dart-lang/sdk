@@ -577,6 +577,9 @@ abstract class Member implements Element {
   Element? get enclosingElement => _declaration.enclosingElement;
 
   @override
+  Element? get enclosingElement3 => _declaration.enclosingElement3;
+
+  @override
   bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
 
   @override
@@ -739,8 +742,19 @@ abstract class Member implements Element {
   }
 
   @override
+  E? thisOrAncestorMatching3<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    return declaration.thisOrAncestorMatching3(predicate);
+  }
+
+  @override
   E? thisOrAncestorOfType<E extends Element>() =>
       declaration.thisOrAncestorOfType<E>();
+
+  @override
+  E? thisOrAncestorOfType3<E extends Element>() =>
+      declaration.thisOrAncestorOfType3<E>();
 
   @override
   String toString() {

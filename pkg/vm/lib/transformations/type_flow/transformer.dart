@@ -852,6 +852,8 @@ class TreeShaker {
   }
 
   bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
+  bool isLibraryReferencedFromNativeCode(Library l) =>
+      typeFlowAnalysis.nativeCodeOracle.isLibraryReferencedFromNativeCode(l);
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
@@ -1910,7 +1912,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
 
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
-    if (!shaker.isLibraryUsed(node) && node.importUri.scheme != 'dart') {
+    if (!shaker.isLibraryUsed(node) &&
+        !shaker.isLibraryReferencedFromNativeCode(node) &&
+        node.importUri.scheme != 'dart') {
       return removalSentinel!;
     }
     _additionalDeps.clear();

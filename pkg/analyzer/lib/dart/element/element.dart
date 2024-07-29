@@ -390,6 +390,11 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   @override
   LibraryOrAugmentationElement get enclosingElement;
 
+  /// The [CompilationUnitElement] that uses `part` directive to include this
+  /// element, or `null` if this element is the defining unit of the library.
+  @override
+  CompilationUnitElement? get enclosingElement3;
+
   /// The enums declared in this compilation unit.
   List<EnumElement> get enums;
 
@@ -623,6 +628,16 @@ abstract class Element implements AnalysisTarget {
   /// the top-level elements in the model.
   Element? get enclosingElement;
 
+  /// The element that either physically or logically encloses this element.
+  ///
+  /// For [LibraryElement] returns `null`, because libraries are the top-level
+  /// elements in the model.
+  ///
+  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
+  /// uses `part` directive to include this element, or `null` if this element
+  /// is the defining unit of the library.
+  Element? get enclosingElement3;
+
   /// Whether the element has an annotation of the form `@alwaysThrows`.
   bool get hasAlwaysThrows;
 
@@ -848,8 +863,19 @@ abstract class Element implements AnalysisTarget {
   );
 
   /// Returns either this element or the most immediate ancestor of this element
+  /// for which the [predicate] returns `true`, or `null` if there is no such
+  /// element.
+  E? thisOrAncestorMatching3<E extends Element>(
+    bool Function(Element) predicate,
+  );
+
+  /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
   E? thisOrAncestorOfType<E extends Element>();
+
+  /// Returns either this element or the most immediate ancestor of this element
+  /// that has the given type, or `null` if there is no such element.
+  E? thisOrAncestorOfType3<E extends Element>();
 
   /// Uses the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
@@ -1886,6 +1912,10 @@ abstract class LibraryAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement
     implements LibraryOrAugmentationElement, _ExistingElement {
+  /// Returns `null`, because libraries are the top-level elements in the model.
+  @override
+  Null get enclosingElement3;
+
   /// The entry point for this library, or `null` if this library does
   /// not have an entry point.
   ///

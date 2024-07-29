@@ -674,6 +674,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
         }
         implicitConstructor.parameters = implicitParameters.toFixedList();
       }
+      implicitConstructor.enclosingElement3 = this;
       implicitConstructor.enclosingElement = this;
       // TODO(scheglov): Why do we manually map parameters types above?
       implicitConstructor.superConstructor =
@@ -794,6 +795,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// compilation unit to the given [accessors].
   set accessors(List<PropertyAccessorElementImpl> accessors) {
     for (var accessor in accessors) {
+      accessor.enclosingElement3 = this;
       accessor.enclosingElement = this;
     }
     _accessors = accessors;
@@ -824,6 +826,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Set the classes contained in this compilation unit to [classes].
   set classes(List<ClassElementImpl> classes) {
     for (var class_ in classes) {
+      class_.enclosingElement3 = this;
       class_.enclosingElement = this;
     }
     _classes = classes;
@@ -838,6 +841,21 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   LibraryOrAugmentationElement get enclosingElement =>
       libraryOrAugmentationElement;
+
+  @override
+  CompilationUnitElementImpl? get enclosingElement3 {
+    switch (libraryOrAugmentationElement) {
+      case LibraryElementImpl library:
+        if (identical(library.definingCompilationUnit, this)) {
+          return null;
+        }
+        return library.definingCompilationUnit;
+      default:
+        return (libraryOrAugmentationElement.enclosingElement3
+                as LibraryOrAugmentationElementImpl)
+            .definingCompilationUnit;
+    }
+  }
 
   @override
   LibraryFragment? get enclosingFragment => null;
@@ -855,6 +873,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Set the enums contained in this compilation unit to the given [enums].
   set enums(List<EnumElementImpl> enums) {
     for (var element in enums) {
+      element.enclosingElement3 = this;
       element.enclosingElement = this;
     }
     _enums = enums;
@@ -872,6 +891,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// [extensions].
   set extensions(List<ExtensionElementImpl> extensions) {
     for (var extension in extensions) {
+      extension.enclosingElement3 = this;
       extension.enclosingElement = this;
     }
     _extensions = extensions;
@@ -888,6 +908,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   set extensionTypes(List<ExtensionTypeElementImpl> elements) {
     for (var element in elements) {
+      element.enclosingElement3 = this;
       element.enclosingElement = this;
     }
     _extensionTypes = elements;
@@ -906,6 +927,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   ///  given[functions].
   set functions(List<FunctionElementImpl> functions) {
     for (var function in functions) {
+      function.enclosingElement3 = this;
       function.enclosingElement = this;
     }
     _functions = functions;
@@ -938,6 +960,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   set libraryExports(List<LibraryExportElementImpl> exports) {
     for (var exportElement in exports) {
+      exportElement.enclosingElement3 = this;
       exportElement.enclosingElement = this;
     }
     _libraryExports = exports;
@@ -967,6 +990,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   set libraryImports(List<LibraryImportElementImpl> imports) {
     for (var importElement in imports) {
+      importElement.enclosingElement3 = this;
       importElement.enclosingElement = this;
     }
     _libraryImports = imports;
@@ -998,6 +1022,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Set the mixins contained in this compilation unit to the given [mixins].
   set mixins(List<MixinElementImpl> mixins) {
     for (var mixin_ in mixins) {
+      mixin_.enclosingElement3 = this;
       mixin_.enclosingElement = this;
     }
     _mixins = mixins;
@@ -1018,10 +1043,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   set parts(List<PartElementImpl> parts) {
     for (var part in parts) {
+      part.enclosingElement3 = this;
       part.enclosingElement = this;
       var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
         uri.unit.libraryOrAugmentationElement = libraryOrAugmentationElement;
+        uri.unit.enclosingElement3 = this;
         uri.unit.enclosingElement = this;
       }
     }
@@ -1057,6 +1084,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   ///  given[variables].
   set topLevelVariables(List<TopLevelVariableElementImpl> variables) {
     for (var variable in variables) {
+      variable.enclosingElement3 = this;
       variable.enclosingElement = this;
     }
     _variables = variables;
@@ -1074,6 +1102,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Set the type aliases contained in this compilation unit to [typeAliases].
   set typeAliases(List<TypeAliasElementImpl> typeAliases) {
     for (var typeAlias in typeAliases) {
+      typeAlias.enclosingElement3 = this;
       typeAlias.enclosingElement = this;
     }
     _typeAliases = typeAliases;
@@ -2103,6 +2132,10 @@ abstract class ElementImpl implements Element, Element2 {
   /// root of the element structure.
   ElementImpl? _enclosingElement;
 
+  /// The enclosing element of this element, or `null` if this element is at the
+  /// root of the element structure.
+  ElementImpl? _enclosingElement3;
+
   Reference? reference;
 
   /// The name of this element.
@@ -2194,6 +2227,14 @@ abstract class ElementImpl implements Element, Element2 {
       throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
     }
     return candidate as Element2?;
+  }
+
+  @override
+  Element? get enclosingElement3 => _enclosingElement3;
+
+  /// Set the enclosing element of this element to the given [element].
+  set enclosingElement3(Element? element) {
+    _enclosingElement3 = element as ElementImpl?;
   }
 
   /// Return the enclosing unit element (which might be the same as `this`), or
@@ -2685,13 +2726,16 @@ abstract class ElementImpl implements Element, Element2 {
 
   /// Set this element as the enclosing element for given [element].
   void encloseElement(ElementImpl element) {
+    element.enclosingElement3 = this;
     element.enclosingElement = this;
   }
 
   /// Set this element as the enclosing element for given [elements].
   void encloseElements(List<Element> elements) {
     for (Element element in elements) {
-      (element as ElementImpl)._enclosingElement = this;
+      element as ElementImpl;
+      element._enclosingElement3 = this;
+      element._enclosingElement = this;
     }
   }
 
@@ -2775,6 +2819,17 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
+  E? thisOrAncestorMatching3<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    Element? element = this;
+    while (element != null && !predicate(element)) {
+      element = element.enclosingElement3;
+    }
+    return element as E?;
+  }
+
+  @override
   E? thisOrAncestorOfType<E extends Element>() {
     Element element = this;
     while (element is! E) {
@@ -2790,6 +2845,17 @@ abstract class ElementImpl implements Element, Element2 {
     Element2 element = this;
     while (element is! E) {
       var ancestor = element.enclosingElement2;
+      if (ancestor == null) return null;
+      element = ancestor;
+    }
+    return element;
+  }
+
+  @override
+  E? thisOrAncestorOfType3<E extends Element>() {
+    Element element = this;
+    while (element is! E) {
+      var ancestor = element.enclosingElement3;
       if (ancestor == null) return null;
       element = ancestor;
     }
@@ -3137,7 +3203,8 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// [parameters].
   set parameters(List<ParameterElement> parameters) {
     for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
+      (parameter as ParameterElementImpl).enclosingElement3 = this;
+      parameter.enclosingElement = this;
     }
     _parameters = parameters;
   }
@@ -3590,7 +3657,8 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   /// [parameters].
   set parameters(List<ParameterElement> parameters) {
     for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
+      (parameter as ParameterElementImpl).enclosingElement3 = this;
+      parameter.enclosingElement = this;
     }
     _parameters = parameters;
   }
@@ -3697,6 +3765,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   set accessors(List<PropertyAccessorElementImpl> accessors) {
     for (var accessor in accessors) {
+      accessor.enclosingElement3 = this;
       accessor.enclosingElement = this;
     }
     _accessors = accessors;
@@ -3725,6 +3794,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   set fields(List<FieldElementImpl> fields) {
     for (var field in fields) {
+      field.enclosingElement3 = this;
       field.enclosingElement = this;
     }
     _fields = fields;
@@ -3748,6 +3818,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   set methods(List<MethodElementImpl> methods) {
     for (var method in methods) {
+      method.enclosingElement3 = this;
       method.enclosingElement = this;
     }
     _methods = methods;
@@ -3835,6 +3906,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   set constructors(List<ConstructorElementImpl> constructors) {
     for (var constructor in constructors) {
+      constructor.enclosingElement3 = this;
       constructor.enclosingElement = this;
     }
     _constructors = constructors;
@@ -4496,6 +4568,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   @override
+  Null get enclosingElement3 => null;
+
+  @override
   CompilationUnitElementImpl get enclosingUnit {
     return _definingCompilationUnit;
   }
@@ -4757,10 +4832,12 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   set parts(List<PartElementImpl> parts) {
     for (var part in parts) {
+      part.enclosingElement3 = this;
       part.enclosingElement = this;
       var uri = part.uri;
       if (uri is DirectiveUriWithUnitImpl) {
         uri.unit.libraryOrAugmentationElement = this;
+        uri.unit.enclosingElement3 = this;
         uri.unit.enclosingElement = this;
       }
     }
@@ -4862,6 +4939,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     _loadLibraryFunction =
         FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1)
           ..enclosingElement = library
+          ..enclosingElement3 = library
           ..isSynthetic = true
           ..returnType = typeProvider.futureDynamicType;
   }
@@ -5197,7 +5275,9 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
 
   set augmentationImports(List<AugmentationImportElementImpl> imports) {
     for (var importElement in imports) {
+      importElement.enclosingElement3 = this;
       importElement.enclosingElement = this;
+      importElement.importedAugmentation?.enclosingElement3 = this;
       importElement.importedAugmentation?.enclosingElement = this;
     }
     _augmentationImports = imports;
@@ -5253,6 +5333,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   /// the given list of [exports].
   set libraryExports(List<LibraryExportElementImpl> exports) {
     for (var exportElement in exports) {
+      exportElement.enclosingElement3 = this;
       exportElement.enclosingElement = this;
     }
     _libraryExports = exports;
@@ -5265,6 +5346,7 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   /// the given list of [imports].
   set libraryImports(List<LibraryImportElementImpl> imports) {
     for (var importElement in imports) {
+      importElement.enclosingElement3 = this;
       importElement.enclosingElement = this;
     }
     _libraryImports = imports;
@@ -5977,6 +6059,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Element? get enclosingElement => null;
 
   @override
+  Element? get enclosingElement3 => null;
+
+  @override
   bool get hasAlwaysThrows => false;
 
   @override
@@ -6146,7 +6231,17 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
+  E? thisOrAncestorMatching3<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    return null;
+  }
+
+  @override
   E? thisOrAncestorOfType<E extends Element>() => null;
+
+  @override
+  E? thisOrAncestorOfType3<E extends Element>() => null;
 
   @override
   String toString() {
@@ -6494,7 +6589,8 @@ class ParameterElementImpl extends VariableElementImpl
   /// [parameters].
   set parameters(List<ParameterElement> parameters) {
     for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
+      (parameter as ParameterElementImpl).enclosingElement3 = this;
+      parameter.enclosingElement = this;
     }
     _parameters = parameters;
   }
@@ -6508,7 +6604,8 @@ class ParameterElementImpl extends VariableElementImpl
   /// [typeParameters].
   set typeParameters(List<TypeParameterElement> typeParameters) {
     for (TypeParameterElement parameter in typeParameters) {
-      (parameter as TypeParameterElementImpl).enclosingElement = this;
+      (parameter as TypeParameterElementImpl).enclosingElement3 = this;
+      parameter.enclosingElement = this;
     }
     _typeParameters = typeParameters;
   }
@@ -6535,6 +6632,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
           nameOffset: -1,
           parameterKind: ParameterKind.REQUIRED,
         ) {
+    enclosingElement3 = setter;
     enclosingElement = setter;
     isSynthetic = true;
   }
@@ -7288,6 +7386,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   set aliasedElement(ElementImpl? aliasedElement) {
     _aliasedElement = aliasedElement;
+    aliasedElement?.enclosingElement3 = this;
     aliasedElement?.enclosingElement = this;
   }
 
@@ -7639,7 +7738,8 @@ mixin TypeParameterizedElementMixin on ElementImpl
 
   set typeParameters(List<TypeParameterElement> typeParameters) {
     for (var typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+      (typeParameter as TypeParameterElementImpl).enclosingElement3 = this;
+      typeParameter.enclosingElement = this;
     }
     _typeParameters = typeParameters;
   }

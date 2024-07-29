@@ -67,9 +67,13 @@ class NativeAssetsSynthesizer {
       fileUri: _dummyFileUri,
       annotations: [
         ConstantExpression(InstanceConstant(pragmaClass.reference, [], {
+          pragmaName.fieldReference: StringConstant('vm:entry-point'),
+          pragmaOptions.fieldReference: NullConstant(),
+        })),
+        ConstantExpression(InstanceConstant(pragmaClass.reference, [], {
           pragmaName.fieldReference: StringConstant('vm:ffi:native-assets'),
           pragmaOptions.fieldReference: nativeAssetsConstant,
-        }))
+        })),
       ],
     );
   }
