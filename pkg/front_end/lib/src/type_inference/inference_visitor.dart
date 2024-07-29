@@ -19,6 +19,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/src/non_null.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
@@ -2397,8 +2398,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       DartType inferredTypeArgument,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
-    // TODO(cstefantsova): Implement type inference for null-aware elements.
-    return new ExpressionInferenceResult(const DynamicType(), element);
+    // TODO(cstefantsova): Ensure the flow analysis is properly invoked when it
+    // supports null-aware elements.
+
+    ExpressionInferenceResult expressionResult = inferElement(
+        element.expression,
+        inferredTypeArgument.withDeclaredNullability(Nullability.nullable),
+        inferredSpreadTypes,
+        inferredConditionTypes);
+    element.expression = expressionResult.expression..parent = element;
+
+    return new ExpressionInferenceResult(
+        computeNonNull(expressionResult.inferredType), element);
   }
 
   ExpressionInferenceResult _inferIfElement(
@@ -3313,7 +3324,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // example, the null-aware element in the literal `<String>[?expr]` will be
     // lowered into the following:
     //
-    //   String? #temp = expr as String?;
+    //   String? #temp = expr;
     //   if (#temp != null) {
     //     #t.add(#temp{String});
     //   }
@@ -3322,17 +3333,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // `#temp{String}` represents the promotion of the variable `#temp` to the
     // non-nullable type `String`.
     //
-    // TODO(cstefantsova): Verify the static type of [element.expression] is
-    // checked by the type inference by now, and add an assert and remove the
-    // cast if that's so.
+    // Note that the type inference ensures that the static type of `expr` is a
+    // subtype of `String?`, and by that point we don't need to insert another
+    // cast to ensure it.
 
     Expression value = element.expression;
     DartType nullableElementType =
         elementType.withDeclaredNullability(Nullability.nullable);
-    VariableDeclaration temp = _createVariable(
-        _createImplicitAs(
-            element.expression.fileOffset, value, nullableElementType),
-        nullableElementType);
+    VariableDeclaration temp = _createVariable(value, nullableElementType);
     body.add(temp);
 
     Statement statement = _createIf(
