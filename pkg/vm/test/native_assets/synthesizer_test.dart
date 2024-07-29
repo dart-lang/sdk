@@ -29,20 +29,24 @@ native-assets:
       mode: NonNullableByDefaultCompiledMode.Strong,
     );
     final libraryToString = kernelLibraryToString(component.libraries.single);
-    final expectedKernel = '''@#C9
+    final expectedKernel = '''@#C3
+@#C12
 library;
 import self as self;
 
 constants  {
-  #C1 = "vm:ffi:native-assets"
-  #C2 = "linux_x64"
-  #C3 = "package:foo/foo.dart"
-  #C4 = "absolute"
-  #C5 = "/path/to/libfoo.so"
-  #C6 = <dynamic>[#C4, #C5]
-  #C7 = <dynamic, dynamic>{#C3:#C6}
-  #C8 = <dynamic, dynamic>{#C2:#C7}
-  #C9 = #lib1::pragma {name:#C1, options:#C8}
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = #lib1::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:native-assets"
+  #C5 = "linux_x64"
+  #C6 = "package:foo/foo.dart"
+  #C7 = "absolute"
+  #C8 = "/path/to/libfoo.so"
+  #C9 = <dynamic>[#C7, #C8]
+  #C10 = <dynamic, dynamic>{#C6:#C9}
+  #C11 = <dynamic, dynamic>{#C5:#C10}
+  #C12 = #lib1::pragma {name:#C4, options:#C11}
 }
 ''';
     expect(libraryToString, equals(expectedKernel));

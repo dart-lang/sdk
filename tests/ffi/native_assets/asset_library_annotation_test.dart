@@ -53,6 +53,7 @@ Future<void> selfInvokes() async {
     runtime: Runtime.jit,
     arguments: [runTestsArg],
     nativeAssetsYaml: nativeAssetsYaml,
+    protobufAwareTreeshaking: true,
   );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
