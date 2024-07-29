@@ -139,7 +139,8 @@
         "/testcases/unified_collections/",
         "/testcases/unscheduled_experiments/",
         "/testcases/variance/",
-        "/testcases/wildcard_variables/"
+        "/testcases/wildcard_variables/",
+	"/testcases/null_aware_elements/"
       ]
     },
     {

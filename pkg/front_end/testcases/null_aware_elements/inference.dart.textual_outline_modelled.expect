@@ -1,0 +1,3 @@
+test1(int? x) {}
+
+test2(dynamic x) {}

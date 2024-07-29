@@ -225,13 +225,6 @@ class ErrorType implements Comparable<ErrorType> {
       const ErrorType('STATIC_WARNING', 4, ErrorSeverity.WARNING);
 
   /**
-   * Many, but not all, static warnings relate to types, in which case they are
-   * known as static type warnings.
-   */
-  static const ErrorType STATIC_TYPE_WARNING =
-      const ErrorType('STATIC_TYPE_WARNING', 5, ErrorSeverity.WARNING);
-
-  /**
    * Syntactic errors are errors produced as a result of input that does not
    * conform to the grammar.
    */
@@ -250,7 +243,6 @@ class ErrorType implements Comparable<ErrorType> {
     COMPILE_TIME_ERROR,
     CHECKED_MODE_COMPILE_TIME_ERROR,
     STATIC_WARNING,
-    STATIC_TYPE_WARNING,
     SYNTACTIC_ERROR,
     LINT,
   ];

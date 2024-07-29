@@ -2,69 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server/src/services/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
-/// A function that can be executed to create a multi-correction producer.
-typedef MultiProducerGenerator = MultiCorrectionProducer Function(
-    {required CorrectionProducerContext context});
-
-/// A function that can be executed to create a correction producer.
-typedef ProducerGenerator = CorrectionProducer<ParsedUnitResult> Function(
-    {required CorrectionProducerContext context});
-
 /// The computer for Dart fixes.
 class FixProcessor {
-  /// Cached results of [canBulkFix].
-  static final Map<ErrorCode, bool> _bulkFixableErrorCodes = {};
-
-  static final Map<LintCode, List<MultiProducerGenerator>>
-      lintMultiProducerMap = {};
-
-  /// A map from the names of lint rules to a list of the generators that are
-  /// used to create correction producers.
-  ///
-  /// The generators are then used to build fixes for those diagnostics. The
-  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
-  ///
-  /// The keys of the map are the unique names of the lint codes without the
-  /// 'LintCode.' prefix. Generally the unique name is the same as the name of
-  /// the lint, so most of the keys are constants defined by [LintNames]. But
-  /// when a lint produces multiple codes, each with a different unique name,
-  /// the unique name must be used here.
-  static final Map<LintCode, List<ProducerGenerator>> lintProducerMap = {};
-
-  /// A map from error codes to a list of generators used to create multiple
-  /// correction producers used to build fixes for those diagnostics.
-  ///
-  /// The generators used for lint rules are in the [lintMultiProducerMap].
-  static final Map<ErrorCode, List<MultiProducerGenerator>>
-      nonLintMultiProducerMap = {};
-
-  /// A map from error codes to a list of the generators that are used to create
-  /// correction producers.
-  ///
-  /// The generators are then used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintProducerMap].
-  static final Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {};
-
-  /// A map from error codes to a list of fix generators that work with only
-  /// parsed results.
-  static final Map<LintCode, List<ProducerGenerator>> parseLintProducerMap = {};
-
-  /// A set of generators that are used to create correction producers that
-  /// produce corrections that ignore diagnostics locally.
-  static final Set<ProducerGenerator> ignoreProducerGenerators = {};
-
   final DartFixContext _fixContext;
 
   final List<Fix> fixes = <Fix>[];
@@ -129,11 +78,12 @@ class FixProcessor {
     List<ProducerGenerator>? generators;
     List<MultiProducerGenerator>? multiGenerators;
     if (errorCode is LintCode) {
-      generators = lintProducerMap[errorCode];
-      multiGenerators = lintMultiProducerMap[errorCode];
+      generators = registeredFixGenerators.lintProducers[errorCode];
+      multiGenerators = registeredFixGenerators.lintMultiProducers[errorCode];
     } else {
-      generators = nonLintProducerMap[errorCode];
-      multiGenerators = nonLintMultiProducerMap[errorCode];
+      generators = registeredFixGenerators.nonLintProducers[errorCode];
+      multiGenerators =
+          registeredFixGenerators.nonLintMultiProducers[errorCode];
     }
 
     if (generators != null) {
@@ -153,59 +103,9 @@ class FixProcessor {
     if (errorCode is LintCode ||
         errorCode is HintCode ||
         errorCode is WarningCode) {
-      for (var generator in ignoreProducerGenerators) {
+      for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
         await compute(generator(context: context));
       }
     }
-  }
-
-  /// Returns whether [errorCode] is an error that can be fixed in bulk.
-  static bool canBulkFix(ErrorCode errorCode) {
-    bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
-      return generators != null &&
-          generators.any((generator) =>
-              generator(context: StubCorrectionProducerContext.instance)
-                  .canBeAppliedAcrossFiles);
-    }
-
-    return _bulkFixableErrorCodes.putIfAbsent(errorCode, () {
-      if (errorCode is LintCode) {
-        var producers = FixProcessor.lintProducerMap[errorCode];
-        if (hasBulkFixProducers(producers)) {
-          return true;
-        }
-
-        return FixProcessor.lintMultiProducerMap.containsKey(errorCode);
-      }
-
-      var producers = FixProcessor.nonLintProducerMap[errorCode];
-      if (hasBulkFixProducers(producers)) {
-        return true;
-      }
-
-      // We can't do detailed checks on multi-producers because the set of
-      // producers may vary depending on the resolved unit (we must configure
-      // them before we can determine the producers).
-      return FixProcessor.nonLintMultiProducerMap.containsKey(errorCode) ||
-          BulkFixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
-    });
-  }
-
-  /// Associates the given correction producer [generator] with the lint with
-  /// the given [lintCode].
-  static void registerFixForLint(
-      LintCode lintCode, ProducerGenerator generator) {
-    lintProducerMap.putIfAbsent(lintCode, () => []).add(generator);
-  }
-}
-
-extension LintCodeExtension on LintCode {
-  static const _lintCodePrefixLength = 'LintCode.'.length;
-
-  String get uniqueLintName {
-    if (uniqueName.startsWith('LintCode.')) {
-      return uniqueName.substring(_lintCodePrefixLength);
-    }
-    return uniqueName;
   }
 }

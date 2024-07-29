@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix_generators.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:test/test.dart';
@@ -30,12 +30,12 @@ class FixProcessorMapTest {
   }
 
   void test_lintProducerMap() {
-    _assertMap(
-        FixProcessor.lintProducerMap, lintsAllowedToHaveMultipleBulkFixes);
+    _assertMap(registeredFixGenerators.lintProducers,
+        lintsAllowedToHaveMultipleBulkFixes);
   }
 
   void test_nonLintProducerMap() {
-    _assertMap(FixProcessor.nonLintProducerMap);
+    _assertMap(registeredFixGenerators.nonLintProducers);
   }
 
   void test_registerFixForLint() {
@@ -44,11 +44,12 @@ class FixProcessorMapTest {
         MockCorrectionProducer();
 
     var lintCode = LintCode('test_rule', 'Test rule.');
-    expect(FixProcessor.lintProducerMap[lintCode], null);
-    FixProcessor.registerFixForLint(lintCode, generator);
-    expect(FixProcessor.lintProducerMap[lintCode], contains(generator));
+    expect(registeredFixGenerators.lintProducers[lintCode], null);
+    registeredFixGenerators.registerFixForLint(lintCode, generator);
+    expect(
+        registeredFixGenerators.lintProducers[lintCode], contains(generator));
     // Restore the map to it's original state so as to not impact other tests.
-    FixProcessor.lintProducerMap.remove(lintCode);
+    registeredFixGenerators.lintProducers.remove(lintCode);
   }
 
   void _assertMap(Map<ErrorCode, List<ProducerGenerator>> producerMap,
