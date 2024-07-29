@@ -645,9 +645,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -680,9 +680,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -717,9 +717,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -752,9 +752,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -787,9 +787,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
   staticType: void Function()
 ''');
   }
@@ -976,9 +976,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo
     staticType: int
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -1011,9 +1011,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo
     staticType: int
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -1046,9 +1046,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo
   staticType: void Function()
 ''');
   }

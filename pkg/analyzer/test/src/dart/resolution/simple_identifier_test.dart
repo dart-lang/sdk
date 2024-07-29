@@ -36,7 +36,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
   staticType: void Function()
 ''');
   }
@@ -62,7 +62,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -94,11 +94,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo::@parameter::_
+    parameter: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
+  writeElement: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -126,7 +126,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -394,7 +394,7 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -675,7 +675,7 @@ mixin A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }

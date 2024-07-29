@@ -306,7 +306,7 @@ A bar() => throw 0;
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::@augmentation::package:test/b.dart::@class::A
+  element: <thisLibrary>::@unit::package:test/b.dart::@class::A
   type: A
 ''');
     }
@@ -320,7 +320,7 @@ NamedType
       assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element: <thisLibrary>::@augmentation::package:test/b.dart::@class::A
+  element: <thisLibrary>::@unit::package:test/b.dart::@class::A
   type: A
 ''');
     }

@@ -3889,7 +3889,7 @@ class A {}
   flags: isAugmentation isMacroAugmentation
   enclosing: package:test/a.dart::@augmentation::package:test/a.macro.dart
   selectedElements
-    package:test/a.dart::@augmentation::package:test/a.macro.dart::@class::B
+    package:test/a.dart::@unit::package:test/a.macro.dart::@class::B
 [status] idle
 ''');
   }

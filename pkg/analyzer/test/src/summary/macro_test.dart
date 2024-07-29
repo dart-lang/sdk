@@ -2947,16 +2947,16 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class B @115
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -2976,19 +2976,19 @@ augment class B {
                   leftParenthesis: ( @106
                   rightParenthesis: ) @107
                 element: package:test/a.dart::<definingUnit>::@class::AddMethodFoo::@constructor::new
-            augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
             augmented
               methods
-                <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
-                <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::bar
+                <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           augment class B @135
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
             methods
               foo @172
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @141
@@ -3010,8 +3010,8 @@ augment class B {
                     element: package:test/a.dart::<definingUnit>::@class::AddMethodBar::@constructor::new
                 returnType: void
               bar @188
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: void
 ''');
   }
@@ -3043,7 +3043,7 @@ library
       class A @66
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         fields
           final f @82
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
@@ -3058,7 +3058,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::f
           constructors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::f
   augmentationImports
@@ -3073,18 +3073,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @65
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 periodOffset: 64
                 nameEnd: 70
                 parameters
@@ -3119,10 +3119,10 @@ library
       class A @65
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3135,18 +3135,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @65
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 periodOffset: 64
                 nameEnd: 70
                 parameters
@@ -3180,10 +3180,10 @@ library
       class A @59
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3196,18 +3196,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               @63
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional a @69
                     type: int
@@ -3241,13 +3241,13 @@ library
       class A @62
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3260,28 +3260,28 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               foo @67
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
               synthetic set foo= @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional _foo @-1
                     type: int
@@ -3316,12 +3316,12 @@ library
       class A @67
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3334,23 +3334,23 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
             accessors
               get foo @71
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -3382,10 +3382,10 @@ library
       class A @73
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3398,18 +3398,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               foo @67
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional a @78
                     type: double
@@ -3444,12 +3444,12 @@ library
       class A @67
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -3462,23 +3462,23 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
             accessors
               set foo= @67
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional a @75
                     type: int
@@ -3531,21 +3531,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             constructors
               @105
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 parameters
                   optionalPositional default x @108
                     type: dynamic
@@ -3608,21 +3608,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @110
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 parameters
                   optionalPositional default x @115
                     type: dynamic
@@ -3686,21 +3686,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @110
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 parameters
                   optionalPositional default x @126
                     type: dynamic
@@ -3767,21 +3767,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @110
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 parameters
                   requiredPositional x @125
                     type: dynamic
@@ -3848,26 +3848,26 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: dynamic
             accessors
               set foo= @109
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 parameters
                   requiredPositional x @124
                     type: dynamic
@@ -3934,21 +3934,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               static const x @118
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: int
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -3966,8 +3966,8 @@ augment class B {
                     staticType: int
             accessors
               synthetic static get x @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: int
 ''');
   }
@@ -4017,21 +4017,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final x @111
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: int
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -4049,8 +4049,8 @@ augment class B {
                     staticType: int
             accessors
               synthetic get x @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: int
 ''');
   }
@@ -4098,27 +4098,27 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final x @111
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: int
                 shouldUseTypeForInitializerInference: false
             accessors
               synthetic get x @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: int
 ''');
   }
@@ -4166,21 +4166,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               static const x @118
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: Type
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -4204,8 +4204,8 @@ augment class B {
                     staticType: Type
             accessors
               synthetic static get x @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::x
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::x
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: Type
 ''');
   }
@@ -4251,16 +4251,16 @@ const x = prefix0.a;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           static const x @91
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -4278,8 +4278,8 @@ const x = prefix0.a;
                 staticType: int
         accessors
           synthetic static get x @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
 ''');
   }
@@ -4326,16 +4326,16 @@ const x = prefix0.a + prefix0.b;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           static const x @91
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -4370,8 +4370,8 @@ const x = prefix0.a + prefix0.b;
                 staticType: int
         accessors
           synthetic static get x @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
 ''');
   }
@@ -4426,16 +4426,16 @@ const x = prefix0.a, y = prefix0.a;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           static const x @104
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -4471,8 +4471,8 @@ const x = prefix0.a, y = prefix0.a;
                 staticElement: package:test/a.dart::<definingUnit>::@getter::a
                 staticType: int
           static const y @119
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::y
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::y
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -4509,12 +4509,12 @@ const x = prefix0.a, y = prefix0.a;
                 staticType: int
         accessors
           synthetic static get x @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
           synthetic static get y @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::y
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::y
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
 ''');
   }
@@ -4560,16 +4560,16 @@ const x = prefix0.A<void>;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           static const x @91
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: Type
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -4593,8 +4593,8 @@ const x = prefix0.A<void>;
                 staticType: Type
         accessors
           synthetic static get x @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: Type
 ''');
   }
@@ -4645,16 +4645,16 @@ class C {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class C @104
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -4727,21 +4727,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             constructors
               named @122
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -4814,21 +4814,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final foo @130
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -4852,8 +4852,8 @@ augment class B {
                 shouldUseTypeForInitializerInference: true
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: int
 ''');
   }
@@ -4906,21 +4906,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               final foo @130
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -4943,8 +4943,8 @@ augment class B {
                 type: int
                 shouldUseTypeForInitializerInference: true
               final bar @139
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -4968,12 +4968,12 @@ augment class B {
                 shouldUseTypeForInitializerInference: true
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: int
               synthetic get bar @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 returnType: int
 ''');
   }
@@ -5026,26 +5026,26 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: int
             accessors
               get foo @128
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -5117,21 +5117,21 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @125
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -5203,26 +5203,26 @@ augment class B {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class B @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 type: int
             accessors
               set foo= @124
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B::@setter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
                 metadata
                   Annotation
                     atSign: @ @105
@@ -5295,16 +5295,16 @@ void foo() {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         functions
           foo @103
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5369,16 +5369,16 @@ void foo([x = prefix0.a]) {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         functions
           foo @90
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             parameters
               optionalPositional default x @95
                 type: dynamic
@@ -5445,21 +5445,21 @@ int get foo => 0;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           synthetic static foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: int
         accessors
           static get foo @106
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5529,21 +5529,21 @@ set foo(int _) {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           synthetic static foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: int
         accessors
           static set foo= @102
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5611,21 +5611,21 @@ set foo(@prefix0.a x) {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           synthetic static foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: dynamic
         accessors
           static set foo= @89
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             parameters
               requiredPositional x @104
                 type: dynamic
@@ -5695,16 +5695,16 @@ final foo = 0;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           static final foo @104
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5728,8 +5728,8 @@ final foo = 0;
             shouldUseTypeForInitializerInference: false
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
 ''');
   }
@@ -5780,16 +5780,16 @@ final foo = 0, bar = 1;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         topLevelVariables
           static final foo @104
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5812,8 +5812,8 @@ final foo = 0, bar = 1;
             type: int
             shouldUseTypeForInitializerInference: false
           static final bar @113
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::bar
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::bar
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5837,12 +5837,12 @@ final foo = 0, bar = 1;
             shouldUseTypeForInitializerInference: false
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
           synthetic static get bar @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::bar
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::bar
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
 ''');
   }
@@ -5895,16 +5895,16 @@ class C {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class C @115
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -5988,16 +5988,16 @@ class C {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class C @110
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -6073,16 +6073,16 @@ class C {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class C @119
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             metadata
               Annotation
                 atSign: @ @85
@@ -6178,18 +6178,18 @@ void foo(prefix0.X x1, prefix1.X x2) {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix1
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           package:test/b.dart as prefix1 @116
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         functions
           foo @131
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             parameters
               requiredPositional x1 @145
                 type: X
@@ -6242,16 +6242,16 @@ void foo(prefix0.X x) {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         functions
           foo @90
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             parameters
               requiredPositional x @104
                 type: X
@@ -6302,7 +6302,7 @@ library
       class B @71
         reference: <thisLibrary>::<definingUnit>::@class::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
         augmented
   augmentationImports
     package:test/test.macro.dart
@@ -6316,13 +6316,13 @@ augment class B {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
 ''');
   }
@@ -6366,20 +6366,20 @@ augment library 'package:test/test.dart';
 void foo() {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           foo @48
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: void
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
     declared <thisLibrary>::<definingUnit>::@class::A
+    declared <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
   exportNamespace
     A: <thisLibrary>::<definingUnit>::@class::A
-    foo: <thisLibrary>::@augmentation::package:test/test.macro.dart::@function::foo
+    foo: <thisLibrary>::@unit::package:test/test.macro.dart::@function::foo
 ''');
   }
 
@@ -6422,30 +6422,30 @@ augment library 'package:test/test.dart';
 final x = 42;
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           static final x @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@topLevelVariable::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@topLevelVariable::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             type: int
             shouldUseTypeForInitializerInference: false
             id: variable_0
             getter: getter_0
         accessors
           synthetic static get x @-1
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             returnType: int
             id: getter_0
             variable: variable_0
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
     declared <thisLibrary>::<definingUnit>::@class::A
+    declared <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
   exportNamespace
     A: <thisLibrary>::<definingUnit>::@class::A
-    x: <thisLibrary>::@augmentation::package:test/test.macro.dart::@accessor::x
+    x: <thisLibrary>::@unit::package:test/test.macro.dart::@accessor::x
 ''');
   }
 }
@@ -6493,10 +6493,10 @@ library
       class A @42
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6520,30 +6520,30 @@ augment class A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @139
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 periodOffset: 138
                 nameEnd: 144
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
               augment named @160
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 periodOffset: 159
                 nameEnd: 165
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
 ''');
   }
 
@@ -6580,13 +6580,13 @@ library
       class A @36
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6616,45 +6616,45 @@ augment class A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix1
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           dart:core as prefix1 @106
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @130
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               foo @174
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
                 id: field_0
                 getter: getter_0
                 setter: setter_0
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               augment foo @201
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
                 id: getter_0
                 variable: field_0
               synthetic set foo= @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional _foo @-1
                     type: int
@@ -6697,12 +6697,12 @@ library
       class A @37
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6732,41 +6732,41 @@ augment class A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix1
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           dart:core as prefix1 @106
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @130
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
                 id: field_0
                 getter: getter_0
             accessors
               external get foo @188
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
                 id: getter_0
                 variable: field_0
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
               augment get foo @219
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
 ''');
   }
 
@@ -6802,10 +6802,10 @@ library
       class A @37
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6835,30 +6835,30 @@ augment class A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix1
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           dart:core as prefix1 @106
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @130
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               external foo @184
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
               augment foo @213
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: int
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
   }
 
@@ -6895,12 +6895,12 @@ library
       class A @37
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -6930,47 +6930,47 @@ augment class A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix1
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           dart:core as prefix1 @106
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @130
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 type: int
                 id: field_0
                 setter: setter_0
             accessors
               external set foo= @181
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional value @197
                     type: int
                 returnType: void
                 id: setter_0
                 variable: field_0
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
               augment set foo= @224
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 parameters
                   requiredPositional value @240
                     type: int
                 returnType: void
                 id: setter_1
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
 ''');
   }
 }
@@ -7249,13 +7249,13 @@ augment library 'package:test/test.dart';
 class B {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
 ''');
   }
 
@@ -9916,7 +9916,7 @@ library
       class B @125
         reference: <thisLibrary>::<definingUnit>::@class::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
         supertype: A
         augmented
   augmentationImports
@@ -9940,19 +9940,19 @@ augment class B extends prefix0.A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/test.dart as prefix0 @78
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class C @94
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           augment class B @113
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
 ''');
   }
@@ -10149,13 +10149,13 @@ augment library 'package:test/test.dart';
 extension B on int {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           B @53
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@extension::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@extension::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             extendedType: int
 ''');
   }
@@ -10749,16 +10749,16 @@ library
       class A @29
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         methods
           foo @82
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -10771,18 +10771,18 @@ augment class A {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @76
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
 ''');
@@ -11035,7 +11035,7 @@ library
       class A @53
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         fields
           final foo @69
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -11062,7 +11062,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::bar
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -11093,28 +11093,28 @@ A {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:core as prefix0 @65
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @89
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               abstract toString @130
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: String
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
               augment toString @167
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toString
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: String
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toString
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::toString
 ''');
   }
 
@@ -11149,7 +11149,7 @@ library
       class A @60
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
         fields
           final foo @76
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -11173,12 +11173,12 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@field::bar
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::bar
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -11218,49 +11218,49 @@ json['bar'] = this.bar;
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix1
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/json_serializable.dart as prefix0 @91
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           dart:core as prefix1 @122
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class A @146
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               external fromJson @185
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 periodOffset: 184
                 nameEnd: 193
                 parameters
                   requiredPositional json @239
                     type: Map<String, Object?>
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
               augment fromJson @344
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::fromJson
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 periodOffset: 343
                 nameEnd: 352
                 parameters
                   requiredPositional json @398
                     type: Map<String, Object?>
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@constructor::fromJson
             methods
               external toJson @322
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: Map<String, Object?>
-                augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+                augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
               augment toJson @555
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::toJson
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A
                 returnType: Map<String, Object?>
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
+                augmentationTarget: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
 ''');
   }
 
@@ -11344,10 +11344,10 @@ library
       class X @80
         reference: <thisLibrary>::<definingUnit>::@class::X
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X::@method::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -11360,18 +11360,18 @@ augment class X {
 }
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class X @57
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::X
             methods
               foo @68
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X
                 returnType: void
 ''';
 
@@ -11440,10 +11440,10 @@ library
       class X @101
         reference: <thisLibrary>::<definingUnit>::@class::X
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+        augmentation: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+            <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X::@method::foo
   augmentationImports
     package:test/test.macro.dart
       reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
@@ -11465,21 +11465,21 @@ augment class X {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           augment class X @99
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::X
             methods
               foo @115
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@classAugmentation::X
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@classAugmentation::X
                 returnType: A
 ''';
 
@@ -16395,13 +16395,13 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
 ''');
   }
 
@@ -16444,17 +16444,17 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -16501,17 +16501,17 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -16558,17 +16558,17 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
 ''');
   }
 
@@ -16611,19 +16611,19 @@ augment library 'package:test/test.dart';
 class B {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
     declared <thisLibrary>::<definingUnit>::@class::A
+    declared <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
   exportNamespace
     A: <thisLibrary>::<definingUnit>::@class::A
-    B: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
+    B: <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
 ''');
   }
 
@@ -16811,13 +16811,13 @@ augment library 'package:test/test.dart';
 class MyClass {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class MyClass @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
 ''');
     }
   }
@@ -16901,20 +16901,20 @@ class MyClass {
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class MyClass @91
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
             methods
               foo @108
-                reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::MyClass
+                reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart::@class::MyClass
                 parameters
                   requiredPositional _ @122
                     type: A
@@ -17301,19 +17301,19 @@ class B {}
           reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@prefix::prefix0
           enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix0 @75
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
         classes
           class A @112
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
           class B @124
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
 ''');
 
     analyzerStatePrinterConfiguration.filesToPrintContent.add(
@@ -17528,13 +17528,13 @@ augment library 'package:test/test.dart';
 class X {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/test.macro.dart
+        reference: <thisLibrary>::@unit::package:test/test.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class X @49
-            reference: <thisLibrary>::@augmentation::package:test/test.macro.dart::@class::X
-            enclosingElement: <thisLibrary>::@augmentation::package:test/test.macro.dart
+            reference: <thisLibrary>::@unit::package:test/test.macro.dart::@class::X
+            enclosingElement: <thisLibrary>::@unit::package:test/test.macro.dart
 ''');
   }
 
@@ -18251,13 +18251,13 @@ augment library 'package:other/other.dart';
 class B {}
 ---
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:other/other.macro.dart
+        reference: <thisLibrary>::@unit::package:other/other.macro.dart
         enclosingElement: <thisLibrary>::@augmentation::package:other/other.macro.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @51
-            reference: <thisLibrary>::@augmentation::package:other/other.macro.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:other/other.macro.dart
+            reference: <thisLibrary>::@unit::package:other/other.macro.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:other/other.macro.dart
 ''');
   }
 }

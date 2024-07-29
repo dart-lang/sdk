@@ -593,7 +593,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     unitElement.setCodeRange(0, unitNode.length);
 
     var unitReference =
-        reference.getChild('@augmentation').getChild(importedFile.uriStr);
+        reference.getChild('@unit').getChild(importedFile.uriStr);
     _bindReference(unitReference, unitElement);
 
     var augmentation = LibraryAugmentationElementImpl(
@@ -601,7 +601,8 @@ class LibraryBuilder with MacroApplicationsContainer {
       nameOffset: importedAugmentation.unlinked.libraryKeywordOffset,
     );
     augmentation.definingCompilationUnit = unitElement;
-    augmentation.reference = unitReference;
+    augmentation.reference =
+        reference.getChild('@augmentation').getChild(importedFile.uriStr);
 
     var informativeBytes = importedFile.unlinked2.informativeBytes;
     augmentation.macroGenerated = MacroGeneratedAugmentationLibrary(
@@ -981,7 +982,7 @@ class LibraryBuilder with MacroApplicationsContainer {
         unitElement.setCodeRange(0, unitNode.length);
 
         var unitReference =
-            reference.getChild('@augmentation').getChild(importedFile.uriStr);
+            reference.getChild('@unit').getChild(importedFile.uriStr);
         _bindReference(unitReference, unitElement);
 
         var augmentation = LibraryAugmentationElementImpl(
@@ -989,7 +990,8 @@ class LibraryBuilder with MacroApplicationsContainer {
           nameOffset: importedAugmentation.unlinked.augmentKeywordOffset,
         );
         augmentation.definingCompilationUnit = unitElement;
-        augmentation.reference = unitElement.reference!;
+        augmentation.reference =
+            reference.getChild('@augmentation').getChild(importedFile.uriStr);
 
         units.add(
           DefiningLinkingUnit(

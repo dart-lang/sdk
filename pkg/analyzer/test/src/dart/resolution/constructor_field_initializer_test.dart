@@ -42,7 +42,7 @@ augment class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: _foo
-    staticElement: <thisLibrary>::@augmentation::package:test/test.dart::@classAugmentation::A::@field::_foo
+    staticElement: <thisLibrary>::@unit::package:test/test.dart::@classAugmentation::A::@field::_foo
     staticType: null
   equals: =
   expression: IntegerLiteral

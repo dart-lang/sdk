@@ -780,7 +780,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    reference: root::package:test/test.dart::@augmentation::package:test/a.dart
+    reference: root::package:test/test.dart::@unit::package:test/a.dart
     library: root::package:test/test.dart
     classes: A, B
 ''');
