@@ -187,7 +187,6 @@ enum BenchmarkPhases {
   outline_buildMacroDeclarationsForPhase2,
   outline_buildClassHierarchyMembers,
   outline_computeHierarchy,
-  outline_computeShowHideElements,
   outline_installTypedefTearOffs,
   outline_performTopLevelInference,
   outline_checkOverrides,

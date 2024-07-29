@@ -52,7 +52,6 @@ import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
-import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/macro/macro.dart';
@@ -2287,18 +2286,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-  }
-
-  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.computeShowHideElements(membersBuilder);
-      }
-    }
-
-    compilationUnit.computeShowHideElements(membersBuilder);
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {

@@ -2648,13 +2648,6 @@ severity: $severity
     ticker.logMs("Computed class hierarchy");
   }
 
-  void computeShowHideElements() {
-    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
-      libraryBuilder.computeShowHideElements(membersBuilder);
-    }
-    ticker.logMs("Computed show and hide elements");
-  }
-
   /// Creates an [InterfaceType] for the `dart:core` type by the given [name].
   ///
   /// This method can be called before [coreTypes] has been computed and only

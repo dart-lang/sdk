@@ -26,7 +26,6 @@ import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
-import '../kernel/hierarchy/members_builder.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
 import '../source/source_class_builder.dart';
@@ -240,8 +239,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// The variance property of type parameters on typedefs is computed from the
   /// use of the parameters in the right-hand side of the typedef definition.
   int computeVariances();
-
-  void computeShowHideElements(ClassMembersBuilder membersBuilder);
 
   /// Adds all unbound nominal variables to [nominalVariables] and unbound
   /// structural variables to [structuralVariables], mapping them to

@@ -594,11 +594,6 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_computeShowHideElements);
-      loader.computeShowHideElements();
-
-      benchmarker
-          // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       List<DelayedDefaultValueCloner>?
           typedefTearOffsDelayedDefaultValueCloners =
