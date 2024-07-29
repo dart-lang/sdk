@@ -2372,11 +2372,11 @@ void Range::Add(const Range* left_range,
   ASSERT(result_min != nullptr);
   ASSERT(result_max != nullptr);
 
-  RangeBoundary left_min = Definition::IsArrayLength(left_defn)
+  RangeBoundary left_min = Definition::IsLengthLoad(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->min();
 
-  RangeBoundary left_max = Definition::IsArrayLength(left_defn)
+  RangeBoundary left_max = Definition::IsLengthLoad(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->max();
 
@@ -2417,11 +2417,11 @@ void Range::Sub(const Range* left_range,
   ASSERT(result_min != nullptr);
   ASSERT(result_max != nullptr);
 
-  RangeBoundary left_min = Definition::IsArrayLength(left_defn)
+  RangeBoundary left_min = Definition::IsLengthLoad(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->min();
 
-  RangeBoundary left_max = Definition::IsArrayLength(left_defn)
+  RangeBoundary left_max = Definition::IsLengthLoad(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->max();
 

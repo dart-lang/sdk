@@ -582,11 +582,11 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   }
 }
 
-bool Definition::IsArrayLength(Definition* def) {
+bool Definition::IsLengthLoad(Definition* def) {
   if (def != nullptr) {
     if (auto load = def->OriginalDefinitionIgnoreBoxingAndConstraints()
                         ->AsLoadField()) {
-      return load->IsImmutableLengthLoad();
+      return load->slot().IsLengthSlot();
     }
   }
   return false;
