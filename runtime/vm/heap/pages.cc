@@ -54,7 +54,7 @@ static constexpr intptr_t kConservativeInitialMarkSpeed = 20;
 
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : heap_(heap),
-      num_freelists_(Utils::Maximum(FLAG_scavenger_tasks, 1) + 1),
+      num_freelists_(Scavenger::NumDataFreelists() + 1),
       freelists_(new FreeList[num_freelists_]),
       pages_lock_(),
       max_capacity_in_words_(max_capacity_in_words),
@@ -1378,7 +1378,8 @@ void PageSpace::Sweep(bool exclusive) {
   GCSweeper sweeper;
 
   intptr_t shard = 0;
-  const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
+  const intptr_t num_shards = heap_->new_space()->NumScavengeWorkers();
+  ASSERT(num_shards < num_freelists_);
   if (exclusive) {
     for (intptr_t i = 0; i < num_shards; i++) {
       DataFreeList(i)->mutex()->Lock();
