@@ -1919,14 +1919,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (isOptional &&
           formal.variable!.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
-        // Wildcard optional parameters can't be used so we allow having no
-        // initializer.
-        if (libraryFeatures.wildcardVariables.isEnabled &&
-            formal.isWildcard &&
-            !formal.isSuperInitializingFormal &&
-            !formal.isInitializingFormal) {
-          continue;
-        }
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
                 formal.name, formal.variable!.type),
