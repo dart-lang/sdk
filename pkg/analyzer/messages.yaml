@@ -21128,42 +21128,6 @@ HintCode:
       Reported when the macro uses `Builder.report()` with `Severity.info`.
       Parameters:
       0: the message
-  UNNECESSARY_CAST:
-    problemMessage: Unnecessary cast.
-    correctionMessage: Try removing the cast.
-    deprecatedMessage: Use 'WarningCode.UNNECESSARY_CAST' instead.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the value being cast is already
-      known to be of the type that it's being cast to.
-
-      #### Example
-
-      The following code produces this diagnostic because `n` is already known to
-      be an `int` as a result of the `is` test:
-
-      ```dart
-      void f(num n) {
-        if (n is int) {
-          ([!n as int!]).isEven;
-        }
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary cast:
-
-      ```dart
-      void f(num n) {
-        if (n is int) {
-          n.isEven;
-        }
-      }
-      ```
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
@@ -21258,79 +21222,6 @@ HintCode:
         }
       }
       ```
-  UNUSED_ELEMENT:
-    problemMessage: "The declaration '{0}' isn't referenced."
-    correctionMessage: "Try removing the declaration of '{0}'."
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT' instead.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name that is declared but not referenced
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a private declaration isn't
-      referenced in the library that contains the declaration. The following
-      kinds of declarations are analyzed:
-      - Private top-level declarations and all of their members
-      - Private members of public declarations
-      - Optional parameters of private functions for which a value is never
-        passed
-
-      Not all references to an element will mark it as "used":
-      - Assigning a value to a top-level variable (with a standard `=`
-        assignment, or a null-aware `??=` assignment) does not count as using
-        it.
-      - Referring to an element in a doc comment reference does not count as
-        using it.
-      - Referring to a class, mixin, or enum on the right side of an `is`
-        expression does not count as using it.
-
-      #### Example
-
-      Assuming that no code in the library references `_C`, the following code
-      produces this diagnostic:
-
-      ```dart
-      class [!_C!] {}
-      ```
-
-      Assuming that no code in the library passes a value for `y` in any
-      invocation of `_m`, the following code produces this diagnostic:
-
-      ```dart
-      class C {
-        void _m(int x, [int? [!y!]]) {}
-
-        void n() => _m(0);
-      }
-      ```
-
-      #### Common fixes
-
-      If the declaration isn't needed, then remove it:
-
-      ```dart
-      class C {
-        void _m(int x) {}
-
-        void n() => _m(0);
-      }
-      ```
-
-      If the declaration is intended to be used, then add the code to use it.
-  UNUSED_ELEMENT_PARAMETER:
-    sharedName: UNUSED_ELEMENT
-    problemMessage: "A value for optional parameter '{0}' isn't ever given."
-    correctionMessage: Try removing the unused parameter.
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the parameter that is declared but not used
-  UNUSED_LOCAL_VARIABLE:
-    aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
-    comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
@@ -26867,8 +26758,40 @@ WarningCode:
       Parameters:
       0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
-    aliasFor: HintCode.UNNECESSARY_CAST
-    comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].
+    problemMessage: Unnecessary cast.
+    correctionMessage: Try removing the cast.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value being cast is already
+      known to be of the type that it's being cast to.
+
+      #### Example
+
+      The following code produces this diagnostic because `n` is already known to
+      be an `int` as a result of the `is` test:
+
+      ```dart
+      void f(num n) {
+        if (n is int) {
+          ([!n as int!]).isEven;
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary cast:
+
+      ```dart
+      void f(num n) {
+        if (n is int) {
+          n.isEven;
+        }
+      }
+      ```
   UNNECESSARY_CAST_PATTERN:
     problemMessage: Unnecessary cast pattern.
     correctionMessage: Try removing the cast pattern.
@@ -27294,11 +27217,73 @@ WarningCode:
       }
       ```
   UNUSED_ELEMENT:
-    aliasFor: HintCode.UNUSED_ELEMENT
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT].
+    problemMessage: "The declaration '{0}' isn't referenced."
+    correctionMessage: "Try removing the declaration of '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name that is declared but not referenced
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a private declaration isn't
+      referenced in the library that contains the declaration. The following
+      kinds of declarations are analyzed:
+      - Private top-level declarations and all of their members
+      - Private members of public declarations
+      - Optional parameters of private functions for which a value is never
+        passed
+
+      Not all references to an element will mark it as "used":
+      - Assigning a value to a top-level variable (with a standard `=`
+        assignment, or a null-aware `??=` assignment) does not count as using
+        it.
+      - Referring to an element in a doc comment reference does not count as
+        using it.
+      - Referring to a class, mixin, or enum on the right side of an `is`
+        expression does not count as using it.
+
+      #### Example
+
+      Assuming that no code in the library references `_C`, the following code
+      produces this diagnostic:
+
+      ```dart
+      class [!_C!] {}
+      ```
+
+      Assuming that no code in the library passes a value for `y` in any
+      invocation of `_m`, the following code produces this diagnostic:
+
+      ```dart
+      class C {
+        void _m(int x, [int? [!y!]]) {}
+
+        void n() => _m(0);
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration isn't needed, then remove it:
+
+      ```dart
+      class C {
+        void _m(int x) {}
+
+        void n() => _m(0);
+      }
+      ```
+
+      If the declaration is intended to be used, then add the code to use it.
   UNUSED_ELEMENT_PARAMETER:
-    aliasFor: HintCode.UNUSED_ELEMENT_PARAMETER
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
+    sharedName: UNUSED_ELEMENT
+    problemMessage: "A value for optional parameter '{0}' isn't ever given."
+    correctionMessage: Try removing the unused parameter.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the parameter that is declared but not used
   UNUSED_FIELD:
     problemMessage: "The value of the field '{0}' isn't used."
     correctionMessage: Try removing the field, or using it.

@@ -182,7 +182,7 @@ main() {
   var /*@type=B*/ v = topLevel += 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 152, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 152, 1),
     ]);
     _assertTypeAnnotations();
   }

@@ -264,7 +264,8 @@ linter:
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
     await drive('data/linter_project/pubspec.yaml',
         options: 'data/linter_project/$analysisOptionsYaml');
-    expect(bulletToDash(outSink), contains('lint - Dependencies not sorted alphabetically.'));
+    expect(bulletToDash(outSink),
+        contains('lint - Dependencies not sorted alphabetically.'));
   }
 
   YamlMap _parseOptions(String src) =>
@@ -427,7 +428,7 @@ class OptionsTest extends BaseTest {
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: HintCode.UNUSED_LOCAL_VARIABLE,
+      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],

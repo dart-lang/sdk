@@ -61,7 +61,7 @@ main() {
   f v = null;
 }''', [
       error(CompileTimeErrorCode.NOT_A_TYPE, 18, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 20, 1),
     ]);
   }
 }

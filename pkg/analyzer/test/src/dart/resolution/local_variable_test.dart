@@ -59,7 +59,7 @@ void f() {
   int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
     ]);
 
     var x = findElement.localVar('x');
@@ -75,7 +75,7 @@ void f() {
   const int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
 
     var x = findElement.localVar('x');
@@ -91,7 +91,7 @@ void f() {
   final int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
 
     var x = findElement.localVar('x');
@@ -108,7 +108,7 @@ void f() {
     int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
 
     var x = findElement.localVar('x');
@@ -124,7 +124,7 @@ void f() {
   late int x = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
 
     var x = findElement.localVar('x');

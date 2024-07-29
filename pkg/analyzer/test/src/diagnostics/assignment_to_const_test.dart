@@ -45,7 +45,7 @@ f() {
   const x = 0;
   x = 1;
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
     ]);
   }
@@ -68,7 +68,7 @@ f() {
   const x = 0;
   x += 1;
 }''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
     ]);
   }

@@ -7841,7 +7841,7 @@ main() {
   bool v = foo(0);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
     ]);
 
     var node = findNode.methodInvocation('foo(0)');

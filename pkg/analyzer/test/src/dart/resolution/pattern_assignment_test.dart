@@ -349,7 +349,7 @@ void f(a, y) {
       // The reference doesn't resolve so the errors include
       // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
       error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
     ]);
   }
@@ -364,7 +364,7 @@ void f(a, y) {
 }
 ''', [
       error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
     ]);
   }
 

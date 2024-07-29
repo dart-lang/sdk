@@ -240,7 +240,7 @@ void f(Record r) {}
 f() { C c; }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 8, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 8, 1),
     ]);
   }
 }

@@ -134,7 +134,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: HintCode.UNUSED_LOCAL_VARIABLE,
+      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],

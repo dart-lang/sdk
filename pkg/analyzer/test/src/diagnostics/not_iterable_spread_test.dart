@@ -71,7 +71,7 @@ var v = [...a];
 var a = 0;
 var v = [for (var i in []) ...a];
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
       error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 41, 1),
     ]);
   }

@@ -21,7 +21,7 @@ void f(List<(int,)> x) {
   for (var (a,) in x) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
   }
 
@@ -49,7 +49,7 @@ void f() {
   for (var (a,) = (0,);;) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
     ]);
   }
 
@@ -77,8 +77,8 @@ void f(Object? x) {
   if (x case int a || [int a]) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
   }
 
@@ -98,7 +98,7 @@ void f(Object? x) {
   if (x case int a) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
   }
 
@@ -288,7 +288,7 @@ void f() {
   var (a,) = (0,);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
   }
 
@@ -337,7 +337,7 @@ Object? f(Object? x) {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
     ]);
   }
 
@@ -372,7 +372,7 @@ void f(Object? x) {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
     ]);
   }
 
@@ -408,8 +408,8 @@ void f(Object? x) {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
   }
 
@@ -435,7 +435,7 @@ void f(Object? x) {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
   }
 
@@ -466,7 +466,7 @@ void f(Object? x) {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
     ]);
   }
 
@@ -492,7 +492,7 @@ void f(Object? x) {
   };
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 79, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 79, 1),
     ]);
   }
 
@@ -515,7 +515,7 @@ main() {
   v = 2;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 
@@ -528,7 +528,7 @@ class A {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
     ]);
   }
 
@@ -560,7 +560,7 @@ main() {
   v += 2;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 
@@ -571,7 +571,7 @@ main() {
   v++;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 
@@ -582,7 +582,7 @@ main() {
   ++v;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
   }
 

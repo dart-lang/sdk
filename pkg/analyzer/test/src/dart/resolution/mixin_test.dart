@@ -292,7 +292,7 @@ class C<T> {}
 
 mixin M<T> on C<T> {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
 
     var node = findNode.functionExpressionInvocation('f()');

@@ -2960,7 +2960,7 @@ void f(({T Function<T>(T) f1, String f2}) r) {
   int Function(int) v = r.f1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
     ]);
 
     var node = findNode.functionReference(r'.f1;');
@@ -2989,7 +2989,7 @@ void f((T Function<T>(T), String) r) {
   int Function(int) v = r.$1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
 
     var node = findNode.functionReference(r'.$1;');

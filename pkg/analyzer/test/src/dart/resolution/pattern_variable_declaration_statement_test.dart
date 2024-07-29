@@ -89,7 +89,7 @@ void f() {
 
 class A {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
     ]);
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -164,7 +164,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -238,8 +238,8 @@ void f((int, String) x) {
   var (a, b) = x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''

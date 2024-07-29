@@ -68,7 +68,7 @@ main() {
 }
 print(x) {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
   }
 

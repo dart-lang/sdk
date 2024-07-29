@@ -811,7 +811,7 @@ void main() {
   var x = const <C<int> Function(int)>[Direct.new];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1),
     ]);
   }
 

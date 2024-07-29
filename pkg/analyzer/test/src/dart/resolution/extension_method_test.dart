@@ -287,7 +287,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 38, 1),
     ]);
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -317,7 +317,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''

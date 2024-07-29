@@ -2391,8 +2391,8 @@ void f() {
   var a = 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 30, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 30, 1,
           contextMessages: [message(testFile, 17, 1)]),
     ]);
@@ -2429,10 +2429,10 @@ void f() {
   var (a) = 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1,
           contextMessages: [message(testFile, 17, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 31, 1),
     ]);
   }
 
@@ -2464,10 +2464,10 @@ void f() {
   var a = 0;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 32, 1,
           contextMessages: [message(testFile, 18, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
   }
 
@@ -2478,10 +2478,10 @@ void f() {
   var (a) = 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 33, 1,
           contextMessages: [message(testFile, 18, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
   }
 
@@ -2537,7 +2537,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1,
           contextMessages: [message(testFile, 17, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
   }
 
@@ -2848,10 +2848,10 @@ void f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 64, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 77, 1,
           contextMessages: [message(testFile, 64, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 77, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 77, 1),
     ]);
   }
 
@@ -2865,10 +2865,10 @@ void f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 1,
           contextMessages: [message(testFile, 49, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
   }
 
@@ -2912,10 +2912,10 @@ void f() {
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 61, 1,
           contextMessages: [message(testFile, 48, 1)]),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
   }
 
