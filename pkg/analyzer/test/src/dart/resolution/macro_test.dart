@@ -1168,7 +1168,7 @@ ResolvedLibraryResult #0
           ExpressionStatement
             expression: SimpleIdentifier
               token: x
-              staticElement: package:test/test.dart::@augmentation::package:test/test.macro.dart::@accessor::x
+              staticElement: package:test/test.dart::@unit::package:test/test.macro.dart::@accessor::x
               staticType: int
             semicolon: ;
         rightBracket: }

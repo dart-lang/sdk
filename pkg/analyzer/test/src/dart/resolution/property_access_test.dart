@@ -235,7 +235,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
   staticType: int
 ''');
@@ -270,7 +270,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -305,7 +305,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');
@@ -958,7 +958,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
   staticType: int
 ''');
@@ -996,7 +996,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -1256,7 +1256,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -1304,11 +1304,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@setter::foo::@parameter::_
+    parameter: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@setter::foo
+  writeElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@setter::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -1351,7 +1351,7 @@ PropertyAccess
   propertyName: SimpleIdentifier
     token: foo
     staticElement: PropertyAccessorMember
-      base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@getter::foo
+      base: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@getter::foo
       augmentationSubstitution: {U2: U1}
       substitution: {U1: int}
     staticType: int
@@ -1745,7 +1745,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
     staticType: int
   staticType: int
 ''');
@@ -1783,7 +1783,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo
     staticType: int
   staticType: int
 ''');

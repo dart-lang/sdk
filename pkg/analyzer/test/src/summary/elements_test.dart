@@ -84,37 +84,37 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @36
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
             methods
               foo @47
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
                 returnType: void
             augmented
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
-                <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@method::foo
+                <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::bar
+                <thisLibrary>::@unit::package:test/a.dart::@class::A::@method::foo
           augment class A @73
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@class::A
             methods
               bar @84
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
 ''');
   }
@@ -144,34 +144,34 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           const @43
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               static const foo @66
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 constantInitializer
@@ -180,8 +180,8 @@ library
                     staticType: int
             accessors
               synthetic static get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -209,34 +209,34 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               static const foo @66
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 constantInitializer
@@ -245,8 +245,8 @@ library
                     staticType: int
             accessors
               synthetic static get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -276,34 +276,34 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           const @43
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               final foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 constantInitializer
@@ -312,8 +312,8 @@ library
                     staticType: int
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -341,40 +341,40 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               final foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -431,7 +431,7 @@ library
       class A @58
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a1.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a1.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -443,76 +443,76 @@ library
     package:test/a1.dart
       reference: <thisLibrary>::@augmentation::package:test/a1.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a1.dart
+        reference: <thisLibrary>::@unit::package:test/a1.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @97
-            reference: <thisLibrary>::@augmentation::package:test/a1.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
+            reference: <thisLibrary>::@unit::package:test/a1.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a1.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a11.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/a11.dart::@classAugmentation::A
       augmentationImports
         package:test/a11.dart
           reference: <thisLibrary>::@augmentation::package:test/a11.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a11.dart
+            reference: <thisLibrary>::@unit::package:test/a11.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a1.dart
             classes
               augment class A @41
-                reference: <thisLibrary>::@augmentation::package:test/a11.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a1.dart::@classAugmentation::A
-                augmentation: <thisLibrary>::@augmentation::package:test/a12.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a11.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a11.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a1.dart::@classAugmentation::A
+                augmentation: <thisLibrary>::@unit::package:test/a12.dart::@classAugmentation::A
         package:test/a12.dart
           reference: <thisLibrary>::@augmentation::package:test/a12.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a12.dart
+            reference: <thisLibrary>::@unit::package:test/a12.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a1.dart
             classes
               augment class A @41
-                reference: <thisLibrary>::@augmentation::package:test/a12.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a11.dart::@classAugmentation::A
-                augmentation: <thisLibrary>::@augmentation::package:test/a2.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a12.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a12.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a11.dart::@classAugmentation::A
+                augmentation: <thisLibrary>::@unit::package:test/a2.dart::@classAugmentation::A
     package:test/a2.dart
       reference: <thisLibrary>::@augmentation::package:test/a2.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a2.dart
+        reference: <thisLibrary>::@unit::package:test/a2.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @97
-            reference: <thisLibrary>::@augmentation::package:test/a2.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a12.dart::@classAugmentation::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a21.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a2.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a2.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a12.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/a21.dart::@classAugmentation::A
       augmentationImports
         package:test/a21.dart
           reference: <thisLibrary>::@augmentation::package:test/a21.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a21.dart
+            reference: <thisLibrary>::@unit::package:test/a21.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a2.dart
             classes
               augment class A @41
-                reference: <thisLibrary>::@augmentation::package:test/a21.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a2.dart::@classAugmentation::A
-                augmentation: <thisLibrary>::@augmentation::package:test/a22.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a21.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a21.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a2.dart::@classAugmentation::A
+                augmentation: <thisLibrary>::@unit::package:test/a22.dart::@classAugmentation::A
         package:test/a22.dart
           reference: <thisLibrary>::@augmentation::package:test/a22.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a22.dart
+            reference: <thisLibrary>::@unit::package:test/a22.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a2.dart
             classes
               augment class A @41
-                reference: <thisLibrary>::@augmentation::package:test/a22.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a21.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a22.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a22.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a21.dart::@classAugmentation::A
   exportedReferences
     declared <thisLibrary>::<definingUnit>::@class::A
   exportNamespace
@@ -551,49 +551,49 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
             methods
               foo1 @55
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
                 returnType: void
           class A @74
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
             methods
               foo2 @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@method::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@method::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
                 returnType: void
             augmented
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@method::foo2
-                <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
+                <thisLibrary>::@unit::package:test/a.dart::@class::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
           augment class A @112
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@class::A
             methods
               foo3 @123
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
                 returnType: void
 ''');
   }
@@ -637,45 +637,45 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             methods
               foo1 @79
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
             augmented
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo1
-                <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo1
+                <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               augment class A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 methods
                   foo2 @51
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@method::foo2
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@method::foo2
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                     returnType: void
 ''');
   }
@@ -705,7 +705,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -728,7 +728,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
@@ -736,18 +736,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               augment foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 62
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
@@ -779,7 +779,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -794,25 +794,25 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               augment foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 62
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
@@ -844,7 +844,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         methods
           foo @42
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
@@ -852,25 +852,25 @@ library
             returnType: void
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
           methods
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               augment foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 62
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@method::foo
@@ -902,7 +902,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -920,25 +920,25 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               augment foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 62
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
@@ -968,26 +968,26 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @51
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 50
                 nameEnd: 56
 ''');
@@ -1019,31 +1019,31 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         augmented
           constructors
             ConstructorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @55
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 54
                 nameEnd: 60
                 parameters
@@ -1077,7 +1077,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           @37
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1085,23 +1085,23 @@ library
         augmented
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @51
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 50
                 nameEnd: 56
 ''');
@@ -1130,26 +1130,26 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               @49
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
 ''');
   }
 
@@ -1178,7 +1178,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           named @39
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
@@ -1187,24 +1187,24 @@ library
             nameEnd: 44
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
             <thisLibrary>::<definingUnit>::@class::A::@constructor::named
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               @49
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
 ''');
   }
 
@@ -1233,7 +1233,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           final f @47
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
@@ -1248,25 +1248,25 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::f
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::f
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               named @51
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 50
                 nameEnd: 56
                 parameters
@@ -1301,7 +1301,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           final f @47
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::f
@@ -1316,25 +1316,25 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::f
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::f
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               const named @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 56
                 nameEnd: 62
                 constantInitializers
@@ -1376,7 +1376,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           foo @39
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
@@ -1385,25 +1385,25 @@ library
             nameEnd: 42
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_0
@@ -1437,7 +1437,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -1447,7 +1447,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1470,7 +1470,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -1480,18 +1480,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -1533,7 +1533,7 @@ library
       class A @56
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @66
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -1543,7 +1543,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1566,7 +1566,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -1576,43 +1576,43 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@field::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
@@ -1650,7 +1650,7 @@ library
       class A @56
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @66
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -1660,7 +1660,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1672,7 +1672,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -1684,29 +1684,29 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
@@ -1714,18 +1714,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -1767,7 +1767,7 @@ library
       class A @56
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @66
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -1777,7 +1777,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1798,32 +1798,32 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -1834,18 +1834,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -1879,7 +1879,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           static const foo @54
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -1890,7 +1890,7 @@ library
               IntegerLiteral
                 literal: 0 @60
                 staticType: int
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1902,7 +1902,7 @@ library
             returnType: int
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -1911,18 +1911,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment static const foo @75
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 constantInitializer
@@ -1963,7 +1963,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -1973,7 +1973,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -1996,7 +1996,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -2006,18 +2006,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment foo @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -2051,7 +2051,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           final foo @47
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -2062,7 +2062,7 @@ library
               IntegerLiteral
                 literal: 0 @53
                 staticType: int
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           const @64
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2074,7 +2074,7 @@ library
             returnType: int
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -2083,18 +2083,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 constantInitializer
@@ -2142,7 +2142,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -2150,7 +2150,7 @@ library
             type: int
             id: field_0
             getter: getter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2164,7 +2164,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -2173,18 +2173,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -2218,7 +2218,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2230,7 +2230,7 @@ library
             returnType: void
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
@@ -2239,18 +2239,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_0
@@ -2286,7 +2286,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -2294,7 +2294,7 @@ library
             type: int
             id: field_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2311,7 +2311,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
@@ -2320,18 +2320,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -2365,7 +2365,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo1 @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -2398,30 +2398,30 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo1
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               foo2 @53
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -2429,14 +2429,14 @@ library
                 setter: setter_1
             accessors
               synthetic get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_1
               synthetic set foo2= @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _foo2 @-1
                     type: int
@@ -2475,7 +2475,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo1 @44
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -2508,7 +2508,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2516,44 +2516,44 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo1
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               foo2 @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: T2
                 id: field_1
                 getter: getter_1
                 setter: setter_1
             accessors
               synthetic get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: T2
                 id: getter_1
                 variable: field_1
               synthetic set foo2= @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _foo2 @-1
                     type: T2
@@ -2588,7 +2588,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           @37
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2596,35 +2596,35 @@ library
             parameters
               requiredPositional final this.foo @44
                 type: int
-                field: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+                field: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               final foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -2654,7 +2654,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           const @43
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2663,7 +2663,7 @@ library
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: foo @49
-                  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+                  staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
                   staticType: null
                 equals: = @53
                 expression: IntegerLiteral
@@ -2671,32 +2671,32 @@ library
                   staticType: int
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               final foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
 ''');
   }
@@ -2727,7 +2727,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           foo @39
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
@@ -2738,23 +2738,23 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_0
                 variable: <null>
@@ -2788,7 +2788,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -2802,25 +2802,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           methods
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_0
                 variable: <null>
@@ -2854,7 +2854,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -2882,24 +2882,24 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_0
                 variable: <null>
@@ -2933,7 +2933,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -2955,35 +2955,35 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 id: field_1
                 getter: getter_1
             accessors
               get foo2 @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_1
@@ -3019,7 +3019,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -3042,41 +3042,41 @@ library
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: T2
                 id: field_1
                 getter: getter_1
             accessors
               abstract get foo2 @60
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: T2
                 id: getter_1
                 variable: field_1
@@ -3109,7 +3109,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -3130,7 +3130,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -3146,24 +3146,24 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
@@ -3205,7 +3205,7 @@ library
       class A @56
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @66
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -3226,7 +3226,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -3242,49 +3242,49 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -3315,7 +3315,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -3340,7 +3340,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
             reference: <thisLibrary>::<definingUnit>::@class::A::@getter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -3354,24 +3354,24 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo1 @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
@@ -3406,7 +3406,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -3425,42 +3425,42 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
         augmented
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
               augment get foo @93
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
 ''');
   }
 
@@ -3498,7 +3498,7 @@ library
       class A @56
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -3517,55 +3517,55 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -3595,26 +3595,26 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         augmented
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: int
                 id: getter_0
                 variable: <null>
@@ -3644,7 +3644,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -3668,23 +3668,23 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             interfaces
               I2
           class I2 @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
 ''');
   }
 
@@ -3718,7 +3718,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -3743,45 +3743,45 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             interfaces
               I2
           class I2 @93
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               augment class A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 interfaces
                   I3
               class I3 @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+                reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
                 constructors
                   synthetic @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@class::I3
 ''');
   }
 
@@ -3811,7 +3811,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -3835,13 +3835,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
@@ -3849,15 +3849,15 @@ library
             interfaces
               I2<T2>
           class I2 @76
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @79
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
 ''');
   }
 
@@ -3887,7 +3887,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -3910,13 +3910,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
@@ -3926,15 +3926,15 @@ library
             interfaces
               I2<T2>
           class I2 @80
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @83
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
 ''');
   }
 
@@ -3963,7 +3963,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           foo @39
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
@@ -3974,23 +3974,23 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
 ''');
@@ -4021,7 +4021,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -4053,23 +4053,23 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
 ''');
@@ -4100,7 +4100,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -4123,23 +4123,23 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
 ''');
@@ -4170,7 +4170,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -4196,23 +4196,23 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
 ''');
@@ -4243,7 +4243,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4257,24 +4257,24 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::bar
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               bar @54
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
 ''');
   }
@@ -4302,7 +4302,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4311,23 +4311,23 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               foo @54
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   optionalPositional default x @63
                     type: int
@@ -4365,7 +4365,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4375,7 +4375,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo1
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
           foo2 @59
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -4384,24 +4384,24 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
             <thisLibrary>::<definingUnit>::@class::A::@method::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo1 @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo1
 ''');
@@ -4433,7 +4433,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4443,36 +4443,36 @@ library
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
         augmented
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
               augment foo @86
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
 ''');
   }
 
@@ -4504,7 +4504,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4514,42 +4514,42 @@ library
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
         augmented
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
           augment class A @87
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
             methods
               augment foo @106
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
 ''');
   }
 
@@ -4586,7 +4586,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4596,50 +4596,50 @@ library
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
         augmented
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             methods
               augment foo @87
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               augment class A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 methods
                   augment foo @59
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                     returnType: void
-                    augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                    augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -4671,7 +4671,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4686,28 +4686,28 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::bar
               augmentationSubstitution: {T2: T}
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               bar @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: T2
 ''');
   }
@@ -4740,7 +4740,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -4750,33 +4750,33 @@ library
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: T
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
         augmented
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: T2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
 ''');
@@ -4805,7 +4805,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         supertype: Object
         mixins
           M1
@@ -4829,20 +4829,20 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             mixins
               M2
         mixins
           mixin M2 @62
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixin::M2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixin::M2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             superclassConstraints
               Object
 ''');
@@ -4892,7 +4892,7 @@ library
         typeParameters
           covariant T1 @72
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         supertype: B<T1>
         mixins
           M1<T1>
@@ -4923,24 +4923,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             mixins
               M2<T2>
         mixins
           mixin M2 @66
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixin::M2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixin::M2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant U2 @69
                 defaultType: dynamic
@@ -4949,23 +4949,23 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             typeParameters
               covariant T3 @45
                 defaultType: dynamic
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             mixins
               M3<T3>
         mixins
           mixin M3 @66
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixin::M3
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixin::M3
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             typeParameters
               covariant U3 @69
                 defaultType: dynamic
@@ -5000,7 +5000,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           foo @39
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
@@ -5011,23 +5011,23 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -5064,7 +5064,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -5090,23 +5090,23 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -5143,7 +5143,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -5157,25 +5157,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
           methods
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -5212,7 +5212,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -5237,35 +5237,35 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 type: int
                 id: field_1
                 setter: setter_1
             accessors
               set foo2= @53
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @62
                     type: int
@@ -5301,7 +5301,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -5331,7 +5331,7 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@class::A::@field::foo
@@ -5339,23 +5339,23 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -5392,26 +5392,26 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         augmented
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -5448,7 +5448,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@field::foo1
@@ -5476,7 +5476,7 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
             reference: <thisLibrary>::<definingUnit>::@class::A::@setter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -5493,24 +5493,24 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             accessors
               augment set foo1= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 parameters
                   requiredPositional _ @70
                     type: int
@@ -5560,26 +5560,26 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A
             superclassConstraints
               Object
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A
             superclassConstraints
               Object
@@ -5618,7 +5618,7 @@ library
       class A @57
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -5628,26 +5628,26 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A
             superclassConstraints
               Object
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -5685,56 +5685,56 @@ library
       class A @56
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           named @64
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             periodOffset: 63
             nameEnd: 69
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
             constructors
               augment named @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 64
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
             constructors
               augment named @59
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 64
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
 ''');
   }
 
@@ -5763,33 +5763,33 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           named @39
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             periodOffset: 38
             nameEnd: 44
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               augment named @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 periodOffset: 58
                 nameEnd: 64
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
@@ -5821,31 +5821,31 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           @37
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
         augmented
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+            <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             constructors
               augment @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
 ''');
   }
@@ -5887,7 +5887,7 @@ library
       class B @49
         reference: <thisLibrary>::<definingUnit>::@class::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
         supertype: A
         constructors
           synthetic @-1
@@ -5898,23 +5898,23 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@class::B::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B::@method::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               foo @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
                 parameters
                   requiredPositional a @53
                     type: String
@@ -5953,7 +5953,7 @@ library
       class B @32
         reference: <thisLibrary>::<definingUnit>::@class::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
@@ -5980,16 +5980,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         classes
           augment class B @60
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             interfaces
               A
@@ -6027,7 +6027,7 @@ library
       class B @32
         reference: <thisLibrary>::<definingUnit>::@class::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::B::@constructor::new
@@ -6054,16 +6054,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         classes
           augment class B @60
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             mixins
               A
@@ -6109,7 +6109,7 @@ library
       class B @49
         reference: <thisLibrary>::<definingUnit>::@class::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
         supertype: A
         constructors
           synthetic @-1
@@ -6124,28 +6124,28 @@ library
               requiredPositional a @69
                 type: String
             returnType: int
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
         augmented
           constructors
             <thisLibrary>::<definingUnit>::@class::B::@constructor::new
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
   augmentationImports
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::B
             methods
               augment foo @57
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
                 parameters
                   requiredPositional a @61
                     type: String
@@ -6181,13 +6181,13 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         methods
           foo @42
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
           bar @58
             reference: <thisLibrary>::<definingUnit>::@class::A::@method::bar
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
@@ -6196,27 +6196,27 @@ library
           methods
             <thisLibrary>::<definingUnit>::@class::A::@method::bar
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
             methods
               augment foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@method::foo
 ''');
@@ -6243,7 +6243,7 @@ library
       abstract class A @40
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6255,13 +6255,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment abstract class A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6287,7 +6287,7 @@ library
       base class A @36
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6299,13 +6299,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment base class A @48
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6331,7 +6331,7 @@ library
       final class A @37
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6343,13 +6343,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment final class A @49
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6375,7 +6375,7 @@ library
       interface class A @41
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6387,13 +6387,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment interface class A @53
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6419,7 +6419,7 @@ library
       macro class A @37
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6431,13 +6431,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment macro class A @49
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6463,7 +6463,7 @@ library
       mixin class A @37
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6475,13 +6475,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment mixin class A @49
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6507,7 +6507,7 @@ library
       abstract sealed class A @38
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6519,13 +6519,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment abstract sealed class A @50
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
 ''');
   }
@@ -6630,7 +6630,7 @@ library
           covariant T @33
             bound: A<dynamic>
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6642,13 +6642,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @45
                 bound: A<dynamic>
@@ -6692,7 +6692,7 @@ library
         typeParameters
           covariant T1 @47
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::B
         supertype: A<T1>
         constructors
           synthetic @-1
@@ -6708,13 +6708,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class B @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
@@ -6766,7 +6766,7 @@ library
       class C @78
         reference: <thisLibrary>::<definingUnit>::@class::C
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::C
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::C
         supertype: A
         constructors
           synthetic @-1
@@ -6780,26 +6780,26 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class C @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::C
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::C
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::C
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::C
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class C @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::C
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::C
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::C
 ''');
   }
 
@@ -6829,7 +6829,7 @@ library
           covariant T @33
             bound: B
             defaultType: B
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -6848,13 +6848,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @45
                 bound: B
@@ -7032,32 +7032,32 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @60
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               class B @32
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+                reference: <thisLibrary>::@unit::package:test/b.dart::@class::B
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
                 constructors
                   synthetic @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::B::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@class::B::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@class::B
 ''');
   }
 
@@ -7100,18 +7100,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             supertype: A<int>
             constructors
               @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::B::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::B
                 superConstructor: ConstructorMember
                   base: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
                   substitution: {T: int}
@@ -7151,18 +7151,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             supertype: A
             constructors
               @51
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::B::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::B
                 superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
 ''');
   }
@@ -7196,18 +7196,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             supertype: A
             constructors
               @51
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::B::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::B
                 superConstructor: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
 ''');
   }
@@ -7242,21 +7242,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           notSimplyBounded class C @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @37
                 bound: dynamic
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::C::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::C
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::C::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::C
 ''');
   }
 
@@ -7278,21 +7278,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           notSimplyBounded class C @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::C
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::C
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @37
                 bound: C<dynamic>
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::C::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::C
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::C::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::C
 ''');
   }
 
@@ -7326,19 +7326,19 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @51
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             parameters
               optionalNamed default x @58
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f::@parameter::x
+                reference: <thisLibrary>::@unit::package:test/b.dart::@function::f::@parameter::x
                 type: int
                 constantInitializer
                   PrefixedIdentifier
@@ -7391,19 +7391,19 @@ library
           reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @61
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             parameters
               optionalNamed default x @68
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f::@parameter::x
+                reference: <thisLibrary>::@unit::package:test/b.dart::@function::f::@parameter::x
                 type: int
                 constantInitializer
                   PropertyAccess
@@ -7448,7 +7448,7 @@ library
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       documentationComment: /// My documentation.
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
@@ -7482,16 +7482,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const b @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@topLevelVariable::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -7501,8 +7501,8 @@ library
                 staticType: int
         accessors
           synthetic static get b @-1
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@getter::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@getter::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: int
 ''');
   }
@@ -7537,16 +7537,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const b @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@topLevelVariable::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -7564,8 +7564,8 @@ library
                 staticType: int
         accessors
           synthetic static get b @-1
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@getter::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@getter::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: int
 ''');
   }
@@ -7600,16 +7600,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const a @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@topLevelVariable::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::a
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             type: A
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -7626,8 +7626,8 @@ library
                 staticType: A
         accessors
           synthetic static get a @-1
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@getter::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@getter::a
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: A
 ''');
   }
@@ -7666,16 +7666,16 @@ library
           reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const b @62
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@topLevelVariable::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -7700,8 +7700,8 @@ library
                 staticType: int
         accessors
           synthetic static get b @-1
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@getter::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@getter::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: int
 ''');
   }
@@ -7742,16 +7742,16 @@ library
           reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @74
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             metadata
               Annotation
                 atSign: @ @57
@@ -7807,16 +7807,16 @@ library
           reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @65
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: A
 ''');
   }
@@ -7849,22 +7849,22 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static final b @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@topLevelVariable::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
           synthetic static get b @-1
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@getter::b
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@getter::b
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: int
 ''');
   }
@@ -7905,16 +7905,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @48
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: A
 ''');
   }
@@ -7958,13 +7958,13 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           f @31
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             returnType: InvalidType
 ''');
   }
@@ -8003,12 +8003,12 @@ library
         dart:async
           enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:async
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryExports
@@ -8017,14 +8017,14 @@ library
         dart:math
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:collection
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
           dart:math
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
 ''');
   }
 
@@ -8062,12 +8062,12 @@ library
         dart:async
           enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:async
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
@@ -8076,14 +8076,14 @@ library
         dart:math
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:collection
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
           dart:math
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
 ''');
   }
 
@@ -8115,21 +8115,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
         functions
           f @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: A
 ''');
   }
@@ -8170,13 +8170,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           f @31
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@function::f
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@function::f
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: A
 ''');
   }
@@ -38260,7 +38260,7 @@ library
       class A @31
         reference: <thisLibrary>::<definingUnit>::@class::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
             reference: <thisLibrary>::<definingUnit>::@class::A::@constructor::new
@@ -38272,27 +38272,27 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::A
           class B @54
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::B::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::B
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+    declared <thisLibrary>::@unit::package:test/a.dart::@class::B
     declared <thisLibrary>::<definingUnit>::@class::A
   exportNamespace
     A: <thisLibrary>::<definingUnit>::@class::A
-    B: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+    B: <thisLibrary>::@unit::package:test/a.dart::@class::B
 ''');
   }
 
@@ -38343,12 +38343,12 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/d.dart
+        reference: <thisLibrary>::@unit::package:test/d.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/d.dart
     package:test/e.dart
       reference: <thisLibrary>::@augmentation::package:test/e.dart
       libraryExports
@@ -38357,14 +38357,14 @@ library
         package:test/c.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/e.dart
+        reference: <thisLibrary>::@unit::package:test/e.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/b.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/e.dart
           package:test/c.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/e.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<definingUnit>::@class::A
     exported[(2, 0)] package:test/b.dart::<definingUnit>::@class::B1
@@ -38419,12 +38419,12 @@ library
           combinators
             hide: A2, A4
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             combinators
               hide: A2, A4
   exportedReferences
@@ -38476,12 +38476,12 @@ library
           combinators
             show: A1, A3
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             combinators
               show: A1, A3
   exportedReferences
@@ -38516,7 +38516,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -38526,25 +38526,25 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
           mixin B @54
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixin::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixin::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             superclassConstraints
               Object
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@mixin::B
+    declared <thisLibrary>::@unit::package:test/a.dart::@mixin::B
     declared <thisLibrary>::<definingUnit>::@mixin::A
   exportNamespace
     A: <thisLibrary>::<definingUnit>::@mixin::A
-    B: <thisLibrary>::@augmentation::package:test/a.dart::@mixin::B
+    B: <thisLibrary>::@unit::package:test/a.dart::@mixin::B
 ''');
   }
 
@@ -38581,39 +38581,39 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @60
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               class B @32
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+                reference: <thisLibrary>::@unit::package:test/b.dart::@class::B
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
                 constructors
                   synthetic @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::B::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@class::B::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@class::B
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-    declared <thisLibrary>::@augmentation::package:test/b.dart::@class::B
+    declared <thisLibrary>::@unit::package:test/a.dart::@class::A
+    declared <thisLibrary>::@unit::package:test/b.dart::@class::B
     declared <thisLibrary>::<definingUnit>::@class::C
   exportNamespace
-    A: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-    B: <thisLibrary>::@augmentation::package:test/b.dart::@class::B
+    A: <thisLibrary>::@unit::package:test/a.dart::@class::A
+    B: <thisLibrary>::@unit::package:test/b.dart::@class::B
     C: <thisLibrary>::<definingUnit>::@class::C
 ''');
   }
@@ -38660,12 +38660,12 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/c.dart
+        reference: <thisLibrary>::@unit::package:test/c.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/c.dart
       augmentationImports
         package:test/d.dart
           reference: <thisLibrary>::@augmentation::package:test/d.dart
@@ -38673,12 +38673,12 @@ library
             package:test/b.dart
               enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/d.dart
+            reference: <thisLibrary>::@unit::package:test/d.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/c.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/c.dart
             libraryExports
               package:test/b.dart
-                enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
+                enclosingElement: <thisLibrary>::@unit::package:test/d.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<definingUnit>::@class::A
     exported[(2, 0)] package:test/b.dart::<definingUnit>::@class::B
@@ -38709,33 +38709,33 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           static a @33
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariable::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::a
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
         accessors
           synthetic static get a @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::a
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
           synthetic static set a= @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setter::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setter::a
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _a @-1
                 type: int
             returnType: void
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::a
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@setter::a
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::a
+    declared <thisLibrary>::@unit::package:test/a.dart::@setter::a
   exportNamespace
-    a: <thisLibrary>::@augmentation::package:test/a.dart::@getter::a
-    a=: <thisLibrary>::@augmentation::package:test/a.dart::@setter::a
+    a: <thisLibrary>::@unit::package:test/a.dart::@getter::a
+    a=: <thisLibrary>::@unit::package:test/a.dart::@setter::a
 ''');
   }
 
@@ -38758,13 +38758,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           static const a @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariable::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariable::a
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -38773,13 +38773,13 @@ library
                 staticType: int
         accessors
           synthetic static get a @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::a
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::a
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::a
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::a
   exportNamespace
-    a: <thisLibrary>::@augmentation::package:test/a.dart::@getter::a
+    a: <thisLibrary>::@unit::package:test/a.dart::@getter::a
 ''');
   }
 
@@ -45449,17 +45449,17 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
 ''');
 
     var import_0 = library.augmentationImports[0];
@@ -45501,20 +45501,20 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
     package:test/c.dart
       reference: <thisLibrary>::@augmentation::package:test/c.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/c.dart
+        reference: <thisLibrary>::@unit::package:test/c.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
@@ -46643,13 +46643,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             metadata
               Annotation
                 atSign: @ @29
@@ -46660,8 +46660,8 @@ library
                 element: dart:core::<definingUnit>::@getter::deprecated
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
 ''');
   }
 
@@ -46691,7 +46691,7 @@ library
             staticType: null
           element: dart:core::<definingUnit>::@getter::deprecated
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
@@ -46727,12 +46727,12 @@ library
                 staticType: null
               element: dart:core::<definingUnit>::@getter::deprecated
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:math
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
 ''');
   }
 
@@ -46758,7 +46758,7 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
       augmentationImports
@@ -46773,9 +46773,9 @@ library
               element: dart:core::<definingUnit>::@getter::deprecated
           reference: <thisLibrary>::@augmentation::package:test/a.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
 ''');
   }
 
@@ -46809,12 +46809,12 @@ library
                 staticType: null
               element: dart:core::<definingUnit>::@getter::deprecated
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:math
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
 ''');
   }
 
@@ -46844,7 +46844,7 @@ library
             staticType: null
           element: dart:core::<definingUnit>::@getter::deprecated
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
@@ -50137,7 +50137,7 @@ library
           element: dart:core::<definingUnit>::@getter::deprecated
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
@@ -65639,65 +65639,65 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           enum A @35
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             supertype: Enum
             fields
               static const enumConstant v @41
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::v
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::v
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 type: A
                 shouldUseTypeForInitializerInference: false
               synthetic static const values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 type: List<A>
             constructors
               synthetic const @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
             accessors
               synthetic static get v @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::v
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::v
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 returnType: A
               synthetic static get values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 returnType: List<A>
             methods
               foo @51
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 returnType: void
             augmented
               fields
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::v
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::values
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::v
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::values
               constants
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::v
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::v
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@constructor::new
               accessors
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::v
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::values
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::v
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::values
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@method::foo
+                <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::bar
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@method::foo
           augment enum A @76
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enum::A
             methods
               bar @88
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
 ''');
   }
@@ -65758,7 +65758,7 @@ library
       enum A @57
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a1.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a1.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @63
@@ -65798,76 +65798,76 @@ library
     package:test/a1.dart
       reference: <thisLibrary>::@augmentation::package:test/a1.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a1.dart
+        reference: <thisLibrary>::@unit::package:test/a1.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @96
-            reference: <thisLibrary>::@augmentation::package:test/a1.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
+            reference: <thisLibrary>::@unit::package:test/a1.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a1.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a11.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/a11.dart::@enumAugmentation::A
       augmentationImports
         package:test/a11.dart
           reference: <thisLibrary>::@augmentation::package:test/a11.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a11.dart
+            reference: <thisLibrary>::@unit::package:test/a11.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a1.dart
             enums
               augment enum A @40
-                reference: <thisLibrary>::@augmentation::package:test/a11.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a1.dart::@enumAugmentation::A
-                augmentation: <thisLibrary>::@augmentation::package:test/a12.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a11.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a11.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a1.dart::@enumAugmentation::A
+                augmentation: <thisLibrary>::@unit::package:test/a12.dart::@enumAugmentation::A
         package:test/a12.dart
           reference: <thisLibrary>::@augmentation::package:test/a12.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a12.dart
+            reference: <thisLibrary>::@unit::package:test/a12.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a1.dart
             enums
               augment enum A @40
-                reference: <thisLibrary>::@augmentation::package:test/a12.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a11.dart::@enumAugmentation::A
-                augmentation: <thisLibrary>::@augmentation::package:test/a2.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a12.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a12.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a11.dart::@enumAugmentation::A
+                augmentation: <thisLibrary>::@unit::package:test/a2.dart::@enumAugmentation::A
     package:test/a2.dart
       reference: <thisLibrary>::@augmentation::package:test/a2.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a2.dart
+        reference: <thisLibrary>::@unit::package:test/a2.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @96
-            reference: <thisLibrary>::@augmentation::package:test/a2.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a12.dart::@enumAugmentation::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a21.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a2.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a2.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a12.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/a21.dart::@enumAugmentation::A
       augmentationImports
         package:test/a21.dart
           reference: <thisLibrary>::@augmentation::package:test/a21.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a21.dart
+            reference: <thisLibrary>::@unit::package:test/a21.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a2.dart
             enums
               augment enum A @40
-                reference: <thisLibrary>::@augmentation::package:test/a21.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a2.dart::@enumAugmentation::A
-                augmentation: <thisLibrary>::@augmentation::package:test/a22.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a21.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a21.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a2.dart::@enumAugmentation::A
+                augmentation: <thisLibrary>::@unit::package:test/a22.dart::@enumAugmentation::A
         package:test/a22.dart
           reference: <thisLibrary>::@augmentation::package:test/a22.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a22.dart
+            reference: <thisLibrary>::@unit::package:test/a22.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a2.dart
             enums
               augment enum A @40
-                reference: <thisLibrary>::@augmentation::package:test/a22.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a21.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a22.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/a22.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a21.dart::@enumAugmentation::A
   exportedReferences
     declared <thisLibrary>::<definingUnit>::@enum::A
   exportNamespace
@@ -65908,87 +65908,87 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             fields
               synthetic static const values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
                 type: List<A>
             constructors
               synthetic const @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
             accessors
               synthetic static get values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
                 returnType: List<A>
             methods
               foo1 @55
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
                 returnType: void
           enum A @73
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1
             supertype: Enum
             fields
               static const enumConstant v @79
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::v
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::v
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 type: A
                 shouldUseTypeForInitializerInference: false
               synthetic static const values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 type: List<A>
             constructors
               synthetic const @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
             accessors
               synthetic static get v @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::v
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::v
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 returnType: A
               synthetic static get values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 returnType: List<A>
             methods
               foo2 @89
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@method::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enum::A::@method::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enum::A
                 returnType: void
             augmented
               fields
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::v
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::values
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::v
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::values
               constants
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@field::v
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@field::v
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@constructor::new
               accessors
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::v
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@getter::values
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::v
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@getter::values
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@enum::A::@method::foo2
-                <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
+                <thisLibrary>::@unit::package:test/a.dart::@enum::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
           augment enum A @115
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enum::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enum::A
             methods
               foo3 @127
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1
                 returnType: void
 ''');
   }
@@ -66023,18 +66023,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @67
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             fields
               synthetic static const values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: List<A>
                 constantInitializer
                   ListLiteral
@@ -66043,44 +66043,44 @@ library
                     staticType: List<A>
             constructors
               synthetic const @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             accessors
               synthetic static get values @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::values
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::values
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: List<A>
             methods
               foo1 @79
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
             augmented
               fields
-                <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::values
+                <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::values
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::new
               accessors
-                <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::values
+                <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::values
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::foo1
-                <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::foo1
+                <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             enums
               augment enum A @39
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 methods
                   foo2 @51
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@method::foo2
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@method::foo2
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                     returnType: void
 ''');
   }
@@ -66111,7 +66111,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v1 @36
@@ -66147,7 +66147,7 @@ library
                     staticType: A
                   SimpleIdentifier
                     token: v2 @-1
-                    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                    staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
                     staticType: A
                 rightBracket: ] @0
                 staticType: List<A>
@@ -66173,33 +66173,33 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               static const enumConstant v2 @48
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66218,8 +66218,8 @@ library
                 getter: getter_2
             accessors
               synthetic static get v2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: A
                 id: getter_2
                 variable: field_2
@@ -66260,7 +66260,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v1 @61
@@ -66296,11 +66296,11 @@ library
                     staticType: A
                   SimpleIdentifier
                     token: v2 @-1
-                    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                    staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
                     staticType: A
                   SimpleIdentifier
                     token: v3 @-1
-                    staticElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getter::v3
+                    staticElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getter::v3
                     staticType: A
                 rightBracket: ] @0
                 staticType: List<A>
@@ -66326,37 +66326,37 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@field::v3
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@field::v3
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@field::v3
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@field::v3
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getter::v3
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getter::v3
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             fields
               static const enumConstant v2 @48
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66375,26 +66375,26 @@ library
                 getter: getter_2
             accessors
               synthetic static get v2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: A
                 id: getter_2
                 variable: field_2
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             fields
               static const enumConstant v3 @48
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@field::v3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@field::v3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66413,8 +66413,8 @@ library
                 getter: getter_3
             accessors
               synthetic static get v3 @-1
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getter::v3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getter::v3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 returnType: A
                 id: getter_3
                 variable: field_3
@@ -66448,7 +66448,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v1 @36
@@ -66484,7 +66484,7 @@ library
                     staticType: A
                   SimpleIdentifier
                     token: v2 @-1
-                    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                    staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
                     staticType: A
                 rightBracket: ] @0
                 staticType: List<A>
@@ -66510,33 +66510,33 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               static const enumConstant v2 @48
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66553,10 +66553,10 @@ library
                     staticType: A
                 id: field_2
                 getter: getter_2
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               augment static const enumConstant v2 @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66572,11 +66572,11 @@ library
                       rightParenthesis: ) @0
                     staticType: A
                 id: field_3
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::v2
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::v2
             accessors
               synthetic static get v2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: A
                 id: getter_2
                 variable: field_2
@@ -66609,7 +66609,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v1 @36
@@ -66650,7 +66650,7 @@ library
                 staticType: A
             id: field_1
             getter: getter_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
           static const enumConstant v3 @44
             reference: <thisLibrary>::<definingUnit>::@enum::A::@field::v3
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
@@ -66726,12 +66726,12 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
             <thisLibrary>::<definingUnit>::@enum::A::@field::v3
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
             <thisLibrary>::<definingUnit>::@enum::A::@field::v3
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -66744,18 +66744,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment static const enumConstant v2 @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66802,7 +66802,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v1 @36
@@ -66828,7 +66828,7 @@ library
                 staticType: A
             id: field_0
             getter: getter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
           static const enumConstant v2 @43
             reference: <thisLibrary>::<definingUnit>::@enum::A::@field::v2
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
@@ -66900,11 +66900,11 @@ library
             variable: field_2
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
             <thisLibrary>::<definingUnit>::@enum::A::@field::v2
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
             <thisLibrary>::<definingUnit>::@enum::A::@field::v2
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -66916,18 +66916,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment static const enumConstant v1 @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 constantInitializer
@@ -66979,7 +66979,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -66987,7 +66987,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             type: A
             shouldUseTypeForInitializerInference: false
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
           static const enumConstant v2 @39
             reference: <thisLibrary>::<definingUnit>::@enum::A::@field::v2
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
@@ -67013,13 +67013,13 @@ library
         augmented
           fields
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
               augmentationSubstitution: {T: InvalidType}
             <thisLibrary>::<definingUnit>::@enum::A::@field::v2
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
               augmentationSubstitution: {T: InvalidType}
             <thisLibrary>::<definingUnit>::@enum::A::@field::v2
           accessors
@@ -67030,21 +67030,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment static const enumConstant v @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: A
                 shouldUseTypeForInitializerInference: false
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@field::v
@@ -67077,7 +67077,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67105,7 +67105,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -67113,18 +67113,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const named @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 56
                 nameEnd: 62
 ''');
@@ -67159,7 +67159,7 @@ library
         typeParameters
           covariant T1 @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @40
@@ -67188,7 +67188,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
             ConstructorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
               augmentationSubstitution: {T2: T1}
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -67197,21 +67197,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const named @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 60
                 nameEnd: 66
                 parameters
@@ -67247,7 +67247,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67280,7 +67280,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -67288,18 +67288,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const named @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 56
                 nameEnd: 62
 ''');
@@ -67331,7 +67331,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67359,7 +67359,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -67367,18 +67367,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const @55
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
 ''');
   }
 
@@ -67409,7 +67409,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67443,7 +67443,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::new
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -67452,18 +67452,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const @55
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
 ''');
   }
 
@@ -67494,7 +67494,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67531,7 +67531,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::f
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -67540,18 +67540,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const named @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 56
                 nameEnd: 62
                 parameters
@@ -67588,7 +67588,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67625,7 +67625,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::f
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -67634,18 +67634,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               const named @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 56
                 nameEnd: 62
                 constantInitializers
@@ -67690,7 +67690,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -67713,7 +67713,7 @@ library
             shouldUseTypeForInitializerInference: true
             id: field_2
             getter: getter_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -67739,7 +67739,7 @@ library
             variable: field_2
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -67754,18 +67754,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
@@ -67810,7 +67810,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @61
@@ -67833,7 +67833,7 @@ library
             shouldUseTypeForInitializerInference: true
             id: field_2
             getter: getter_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -67859,7 +67859,7 @@ library
             variable: field_2
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -67874,43 +67874,43 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@field::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_4
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
@@ -67951,7 +67951,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @61
@@ -67974,7 +67974,7 @@ library
             shouldUseTypeForInitializerInference: true
             id: field_2
             getter: getter_2
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -67998,10 +67998,10 @@ library
             returnType: int
             id: getter_2
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68009,26 +68009,26 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_2
@@ -68036,18 +68036,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
@@ -68092,7 +68092,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @61
@@ -68115,7 +68115,7 @@ library
             shouldUseTypeForInitializerInference: true
             id: field_2
             getter: getter_2
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -68141,7 +68141,7 @@ library
             variable: field_2
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68150,26 +68150,26 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -68180,18 +68180,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
@@ -68228,7 +68228,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -68251,7 +68251,7 @@ library
             shouldUseTypeForInitializerInference: true
             id: field_2
             getter: getter_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -68277,7 +68277,7 @@ library
             variable: field_2
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68292,18 +68292,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment final foo @70
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_3
@@ -68341,7 +68341,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -68385,7 +68385,7 @@ library
                 token: _notSerializableExpression @-1
                 staticElement: <null>
                 staticType: null
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -68405,7 +68405,7 @@ library
             returnType: int Function()
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68420,18 +68420,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment final foo @78
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int Function()
                 shouldUseTypeForInitializerInference: true
                 constantInitializer
@@ -68474,7 +68474,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -68496,7 +68496,7 @@ library
             type: int
             id: field_2
             getter: getter_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
         constructors
           synthetic const @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
@@ -68522,7 +68522,7 @@ library
             variable: field_2
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68537,18 +68537,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               augment final foo @67
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
@@ -68585,7 +68585,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -68634,7 +68634,7 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68643,33 +68643,33 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               final foo2 @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
                 getter: getter_3
             accessors
               synthetic get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_3
@@ -68708,7 +68708,7 @@ library
         typeParameters
           covariant T1 @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @40
@@ -68757,7 +68757,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
@@ -68768,7 +68768,7 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -68776,28 +68776,28 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               final foo2 @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: T2
                 id: field_3
                 getter: getter_3
             accessors
               synthetic get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: T2
                 id: getter_3
                 variable: field_3
@@ -68831,7 +68831,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -68850,7 +68850,7 @@ library
             parameters
               requiredPositional final this.foo @57
                 type: int
-                field: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+                field: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo
         accessors
           synthetic static get v @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -68862,7 +68862,7 @@ library
             returnType: List<A>
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68870,30 +68870,30 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               final foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
 ''');
   }
@@ -68925,7 +68925,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -68945,7 +68945,7 @@ library
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: foo @53
-                  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+                  staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo
                   staticType: null
                 equals: = @57
                 expression: IntegerLiteral
@@ -68962,7 +68962,7 @@ library
             returnType: List<A>
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -68970,30 +68970,30 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               final foo @59
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
             accessors
               synthetic get foo @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
 ''');
   }
@@ -69027,7 +69027,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -69075,7 +69075,7 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -69084,32 +69084,32 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
                 id: field_3
                 getter: getter_3
             accessors
               get foo2 @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_3
@@ -69148,7 +69148,7 @@ library
         typeParameters
           covariant T1 @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @40
@@ -69197,7 +69197,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
@@ -69208,7 +69208,7 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -69216,28 +69216,28 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: T2
                 id: field_3
                 getter: getter_3
             accessors
               abstract get foo2 @60
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: T2
                 id: getter_3
                 variable: field_3
@@ -69273,7 +69273,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -69319,7 +69319,7 @@ library
             returnType: int
             id: getter_2
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo
@@ -69330,25 +69330,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_2
@@ -69393,7 +69393,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @61
@@ -69439,7 +69439,7 @@ library
             returnType: int
             id: getter_2
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo
@@ -69450,50 +69450,50 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_4
                 variable: field_2
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -69527,7 +69527,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -69578,7 +69578,7 @@ library
             returnType: int
             id: getter_2
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
           get foo2 @70
             reference: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
@@ -69596,7 +69596,7 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -69604,18 +69604,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment get foo1 @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_4
                 variable: field_2
@@ -69653,7 +69653,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -69698,7 +69698,7 @@ library
             returnType: int
             id: getter_2
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo
@@ -69709,37 +69709,37 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
               augment get foo @93
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_4
                 variable: field_2
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo::@def::0
 ''');
   }
 
@@ -69780,7 +69780,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @61
@@ -69825,7 +69825,7 @@ library
             returnType: int
             id: getter_2
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo
@@ -69836,50 +69836,50 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_4
                 variable: field_2
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -69912,7 +69912,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -69948,25 +69948,25 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: <null>
@@ -70007,7 +70007,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         interfaces
           I1
@@ -70052,21 +70052,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @67
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             interfaces
               I2
@@ -70114,7 +70114,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         interfaces
           I1
@@ -70160,45 +70160,45 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @92
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         enums
           augment enum A @67
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             interfaces
               I2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               class I3 @64
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+                reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
                 constructors
                   synthetic @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@class::I3
             enums
               augment enum A @39
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 interfaces
                   I3
 ''');
@@ -70241,7 +70241,7 @@ library
         typeParameters
           covariant T @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         interfaces
           I1
@@ -70286,24 +70286,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @75
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @78
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
@@ -70350,7 +70350,7 @@ library
         typeParameters
           covariant T @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         interfaces
           I1
@@ -70394,24 +70394,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @79
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @82
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
@@ -70450,7 +70450,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -70492,24 +70492,24 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::bar
             <thisLibrary>::<definingUnit>::@enum::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             methods
               bar @54
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
 ''');
   }
@@ -70539,7 +70539,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -70598,23 +70598,23 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             methods
               foo @54
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 parameters
                   optionalPositional default x @63
                     type: int
@@ -70654,7 +70654,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -70684,7 +70684,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@enum::A::@method::foo1
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
           foo2 @63
             reference: <thisLibrary>::<definingUnit>::@enum::A::@method::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
@@ -70701,24 +70701,24 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
             <thisLibrary>::<definingUnit>::@enum::A::@method::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             methods
               augment foo1 @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@method::foo1
 ''');
@@ -70752,7 +70752,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -70782,7 +70782,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
@@ -70795,31 +70795,31 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
               augment foo @86
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::0
 ''');
   }
 
@@ -70853,7 +70853,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -70883,7 +70883,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
@@ -70896,37 +70896,37 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1
             methods
               augment foo @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
           augment enum A @86
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0
             methods
               augment foo @106
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::1
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::0::@methodAugmentation::foo
 ''');
   }
 
@@ -70965,7 +70965,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -70995,7 +70995,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
@@ -71008,45 +71008,45 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @67
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             methods
               augment foo @87
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             enums
               augment enum A @39
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 methods
                   augment foo @59
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                     returnType: void
-                    augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+                    augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -71080,7 +71080,7 @@ library
         typeParameters
           covariant T @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @39
@@ -71123,28 +71123,28 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::bar
               augmentationSubstitution: {T2: T}
             <thisLibrary>::<definingUnit>::@enum::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             methods
               bar @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: T2
 ''');
   }
@@ -71179,7 +71179,7 @@ library
         typeParameters
           covariant T @32
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @39
@@ -71209,7 +71209,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             returnType: T
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
@@ -71223,27 +71223,27 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             methods
               augment foo @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 returnType: T2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@method::foo
 ''');
@@ -71275,7 +71275,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         mixins
           M1
@@ -71326,20 +71326,20 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             mixins
               M2
         mixins
           mixin M2 @61
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixin::M2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixin::M2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             superclassConstraints
               Object
 ''');
@@ -71381,7 +71381,7 @@ library
         typeParameters
           covariant T1 @57
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         mixins
           M1<T1>
@@ -71436,24 +71436,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @44
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             mixins
               M2<T2>
         mixins
           mixin M2 @65
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixin::M2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixin::M2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant U2 @68
                 defaultType: dynamic
@@ -71462,23 +71462,23 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             typeParameters
               covariant T3 @44
                 defaultType: dynamic
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             mixins
               M3<T3>
         mixins
           mixin M3 @65
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixin::M3
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixin::M3
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             typeParameters
               covariant U3 @68
                 defaultType: dynamic
@@ -71516,7 +71516,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -71567,7 +71567,7 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@enum::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
             <thisLibrary>::<definingUnit>::@enum::A::@field::values
           constants
@@ -71576,32 +71576,32 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setter::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 type: int
                 id: field_3
                 setter: setter_1
             accessors
               set foo2= @53
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 parameters
                   requiredPositional _ @62
                     type: int
@@ -71640,7 +71640,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -71697,25 +71697,25 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -71754,7 +71754,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -71796,25 +71796,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -71854,7 +71854,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -71908,7 +71908,7 @@ library
             returnType: void
             id: setter_0
             variable: field_2
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
           set foo2= @66
             reference: <thisLibrary>::<definingUnit>::@enum::A::@setter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
@@ -71929,7 +71929,7 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@enum::A::@setter::foo2
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -71937,18 +71937,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             accessors
               augment set foo1= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@setterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 parameters
                   requiredPositional _ @70
                     type: int
@@ -72016,24 +72016,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@enum::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@enum::A
 ''');
   }
@@ -72071,7 +72071,7 @@ library
       enum A @56
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @59
@@ -72105,24 +72105,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@enum::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
 ''');
   }
@@ -72162,7 +72162,7 @@ library
       enum A @55
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @61
@@ -72180,7 +72180,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             periodOffset: 81
             nameEnd: 87
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
         accessors
           synthetic static get v @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -72197,7 +72197,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -72205,41 +72205,41 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
             constructors
               augment const named @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 64
                 nameEnd: 70
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@constructor::named
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
             constructors
               augment const named @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A
                 periodOffset: 64
                 nameEnd: 70
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
 ''');
   }
 
@@ -72269,7 +72269,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -72287,9 +72287,9 @@ library
                   period: . @0
                   name: SimpleIdentifier
                     token: named @-1
-                    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                    staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
                     staticType: null
-                  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                  staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -72314,7 +72314,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
             periodOffset: 56
             nameEnd: 62
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
         accessors
           synthetic static get v @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -72331,7 +72331,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -72339,18 +72339,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               augment const named @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 periodOffset: 64
                 nameEnd: 70
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@constructor::named
@@ -72383,7 +72383,7 @@ library
       enum A @30
         reference: <thisLibrary>::<definingUnit>::@enum::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @36
@@ -72398,7 +72398,7 @@ library
                     name: A @-1
                     element: <thisLibrary>::<definingUnit>::@enum::A
                     type: A
-                  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+                  staticElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -72421,7 +72421,7 @@ library
           const @47
             reference: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
             enclosingElement: <thisLibrary>::<definingUnit>::@enum::A
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
         accessors
           synthetic static get v @-1
             reference: <thisLibrary>::<definingUnit>::@enum::A::@getter::v
@@ -72438,7 +72438,7 @@ library
           constants
             <thisLibrary>::<definingUnit>::@enum::A::@field::v
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+            <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
           accessors
             <thisLibrary>::<definingUnit>::@enum::A::@getter::v
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
@@ -72446,18 +72446,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A
             constructors
               augment const @63
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@constructorAugmentation::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@constructor::new
 ''');
   }
@@ -72502,7 +72502,7 @@ library
       enum B @48
         reference: <thisLibrary>::<definingUnit>::@enum::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
         supertype: Enum
         interfaces
           A
@@ -72543,23 +72543,23 @@ library
             <thisLibrary>::<definingUnit>::@enum::B::@getter::v
             <thisLibrary>::<definingUnit>::@enum::B::@getter::values
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B::@method::foo
+            <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum B @42
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::B
             methods
               foo @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
                 parameters
                   requiredPositional a @53
                     type: String
@@ -72600,7 +72600,7 @@ library
       enum B @31
         reference: <thisLibrary>::<definingUnit>::@enum::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
         supertype: Enum
         fields
           static const enumConstant v @37
@@ -72655,16 +72655,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         enums
           augment enum B @59
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::B
             interfaces
               A
@@ -72704,7 +72704,7 @@ library
       enum B @31
         reference: <thisLibrary>::<definingUnit>::@enum::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
         supertype: Enum
         fields
           static const enumConstant v @37
@@ -72759,16 +72759,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         enums
           augment enum B @59
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@enumAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@enum::B
             mixins
               A
@@ -72812,7 +72812,7 @@ library
           covariant T @32
             bound: B
             defaultType: B
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
         supertype: Enum
         fields
           static const enumConstant v @49
@@ -72852,13 +72852,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         enums
           augment enum A @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@enumAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @44
                 bound: B
@@ -72912,33 +72912,33 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         augmented
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @72
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensions
               augment A @44
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
   exportedReferences
     declared <thisLibrary>::<definingUnit>::@extension::A
   exportNamespace
@@ -72976,40 +72976,40 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @72
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             extendedType: InvalidType
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             methods
               foo1 @83
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: void
             augmented
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::foo1
-                <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@method::foo1
+                <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensions
               augment A @44
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 methods
                   foo2 @55
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@method::foo2
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@method::foo2
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                     returnType: void
 ''');
   }
@@ -73041,7 +73041,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @59
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73051,7 +73051,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic static get foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
@@ -73070,7 +73070,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
@@ -73078,18 +73078,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               augment static foo @72
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -73132,7 +73132,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @84
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73142,7 +73142,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic static get foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
@@ -73161,7 +73161,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
@@ -73169,43 +73169,43 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             fields
               augment static foo @72
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
             fields
               augment static foo @72
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
@@ -73244,7 +73244,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @84
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73254,7 +73254,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic static get foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
@@ -73262,7 +73262,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           synthetic static set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
@@ -73274,27 +73274,27 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             accessors
               augment static get foo @76
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
@@ -73302,18 +73302,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
             fields
               augment static foo @72
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -73356,7 +73356,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @84
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73366,7 +73366,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic static get foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
@@ -73383,30 +73383,30 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             accessors
               augment static set foo= @72
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 parameters
                   requiredPositional _ @80
                     type: int
@@ -73417,18 +73417,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
             fields
               augment static foo @72
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -73463,7 +73463,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @59
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73473,7 +73473,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic static get foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
@@ -73492,7 +73492,7 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
@@ -73500,18 +73500,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               augment static foo @75
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -73548,7 +73548,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic static foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73556,7 +73556,7 @@ library
             type: int
             id: field_0
             getter: getter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
         accessors
           static get foo @63
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
@@ -73566,25 +73566,25 @@ library
             variable: field_0
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               augment static foo @72
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -73619,7 +73619,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo1 @59
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
@@ -73648,28 +73648,28 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo1
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               static foo2 @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -73677,14 +73677,14 @@ library
                 setter: setter_1
             accessors
               synthetic static get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_1
               synthetic static set foo2= @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 parameters
                   requiredPositional _foo2 @-1
                     type: int
@@ -73721,7 +73721,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
@@ -73739,33 +73739,33 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: int
                 id: field_1
                 getter: getter_1
             accessors
               get foo2 @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_1
@@ -73802,7 +73802,7 @@ library
           covariant T1 @37
             defaultType: dynamic
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
@@ -73821,39 +73821,39 @@ library
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @49
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: T2
                 id: field_1
                 getter: getter_1
             accessors
               abstract get foo2 @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: T2
                 id: getter_1
                 variable: field_1
@@ -73887,7 +73887,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @59
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73904,7 +73904,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           synthetic static set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
@@ -73918,24 +73918,24 @@ library
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             accessors
               augment static get foo @76
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
@@ -73978,7 +73978,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @84
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -73995,7 +73995,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           synthetic static set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
@@ -74009,49 +74009,49 @@ library
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             accessors
               augment static get foo @76
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
             accessors
               augment static get foo @76
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -74083,7 +74083,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
@@ -74104,7 +74104,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
           get foo2 @77
             reference: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
@@ -74116,24 +74116,24 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo2
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             accessors
               augment get foo1 @69
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
@@ -74176,7 +74176,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic foo @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -74191,53 +74191,53 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             accessors
               augment get foo @69
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
             accessors
               augment get foo @69
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -74267,7 +74267,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         methods
           foo @53
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
@@ -74275,24 +74275,24 @@ library
             returnType: void
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::bar
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@method::bar
             <thisLibrary>::<definingUnit>::@extension::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             methods
               bar @58
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: void
 ''');
   }
@@ -74324,37 +74324,37 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         methods
           foo1 @53
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo1
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
           foo2 @70
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
             returnType: void
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
             <thisLibrary>::<definingUnit>::@extension::A::@method::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             methods
               augment foo1 @66
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@method::foo1
 ''');
@@ -74394,54 +74394,54 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         methods
           foo @53
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
         augmented
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @72
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
             methods
               augment foo @91
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensions
               augment A @44
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 methods
                   augment foo @63
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
                     returnType: void
-                    augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+                    augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -74474,7 +74474,7 @@ library
           covariant T @37
             defaultType: dynamic
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         methods
           foo @53
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
@@ -74483,28 +74483,28 @@ library
         augmented
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::bar
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@method::bar
               augmentationSubstitution: {T2: T}
             <thisLibrary>::<definingUnit>::@extension::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @49
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             methods
               bar @60
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: T2
 ''');
   }
@@ -74538,37 +74538,37 @@ library
           covariant T @37
             defaultType: dynamic
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         methods
           foo @53
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
             returnType: T
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
         augmented
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @49
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             methods
               augment foo @68
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: T2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
 ''');
@@ -74601,13 +74601,13 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         methods
           foo @53
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
           bar @69
             reference: <thisLibrary>::<definingUnit>::@extension::A::@method::bar
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
@@ -74616,27 +74616,27 @@ library
           methods
             <thisLibrary>::<definingUnit>::@extension::A::@method::bar
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @49
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             methods
               augment foo @69
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@method::foo
 ''');
@@ -74669,7 +74669,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
@@ -74690,33 +74690,33 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 type: int
                 id: field_1
                 setter: setter_1
             accessors
               set foo2= @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 parameters
                   requiredPositional _ @66
                     type: int
@@ -74753,7 +74753,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           static foo @59
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
@@ -74779,29 +74779,29 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo
           accessors
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             accessors
               augment static set foo= @72
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 parameters
                   requiredPositional _ @80
                     type: int
@@ -74840,7 +74840,7 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
         fields
           synthetic foo1 @-1
             reference: <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
@@ -74864,7 +74864,7 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
           set foo2= @73
             reference: <thisLibrary>::<definingUnit>::@extension::A::@setter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@extension::A
@@ -74879,24 +74879,24 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo1
             <thisLibrary>::<definingUnit>::@extension::A::@field::foo2
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
             accessors
               augment set foo1= @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A
                 parameters
                   requiredPositional _ @74
                     type: int
@@ -74943,24 +74943,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extension::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extension::A
 ''');
   }
@@ -74997,30 +74997,30 @@ library
         reference: <thisLibrary>::<definingUnit>::@extension::A
         enclosingElement: <thisLibrary>::<definingUnit>
         extendedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
         augmented
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extension::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensions
           augment A @48
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A
 ''');
   }
@@ -75069,7 +75069,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75102,27 +75102,27 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensionTypes
               augment A @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
   exportedReferences
     declared <thisLibrary>::<definingUnit>::@extensionType::A
   exportNamespace
@@ -75160,66 +75160,66 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            representation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
-            primaryConstructor: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            representation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
+            primaryConstructor: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
             typeErasure: int
             fields
               final it @83
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
             constructors
               augment @77
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 parameters
                   requiredPositional final this.it @83
                     type: int
-                    field: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
+                    field: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
             accessors
               synthetic get it @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
             methods
               foo1 @96
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: void
             augmented
               fields
-                <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
+                <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::it
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
+                <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructorAugmentation::new
               accessors
-                <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
+                <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
-                <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
+                <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensionTypes
               augment A @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 methods
                   foo2 @68
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                     returnType: void
 ''');
   }
@@ -75247,7 +75247,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75274,25 +75274,25 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             constructors
               named @68
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 periodOffset: 67
                 nameEnd: 73
 ''');
@@ -75324,7 +75324,7 @@ library
         typeParameters
           covariant T1 @42
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75352,7 +75352,7 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
             ConstructorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
               augmentationSubstitution: {T2: T1}
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
@@ -75360,21 +75360,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @54
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             constructors
               named @72
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::named
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 periodOffset: 71
                 nameEnd: 77
                 parameters
@@ -75406,7 +75406,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named
         typeErasure: int
@@ -75434,7 +75434,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::named
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
@@ -75442,18 +75442,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             constructors
               @66
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
 ''');
   }
 
@@ -75483,7 +75483,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75502,7 +75502,7 @@ library
             id: field_1
             getter: getter_1
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
         constructors
           @40
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -75535,7 +75535,7 @@ library
             variable: field_1
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -75547,18 +75547,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               augment static foo @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
@@ -75600,7 +75600,7 @@ library
       A @65
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75619,7 +75619,7 @@ library
             id: field_1
             getter: getter_1
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
         constructors
           @65
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -75652,7 +75652,7 @@ library
             variable: field_1
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -75664,43 +75664,43 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             fields
               augment static foo @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
             fields
               augment static foo @85
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_3
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
@@ -75738,7 +75738,7 @@ library
       A @65
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75757,7 +75757,7 @@ library
             id: field_1
             getter: getter_1
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
         constructors
           @65
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -75779,7 +75779,7 @@ library
             returnType: int
             id: getter_1
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           synthetic static set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -75791,31 +75791,31 @@ library
             variable: field_1
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             accessors
               augment static get foo @89
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_1
@@ -75823,18 +75823,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
             fields
               augment static foo @85
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
@@ -75876,7 +75876,7 @@ library
       A @65
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -75895,7 +75895,7 @@ library
             id: field_1
             getter: getter_1
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
         constructors
           @65
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -75926,34 +75926,34 @@ library
             returnType: void
             id: setter_0
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             accessors
               augment static set foo= @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 parameters
                   requiredPositional _ @93
                     type: int
@@ -75964,18 +75964,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
             fields
               augment static foo @85
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
@@ -76009,7 +76009,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76028,7 +76028,7 @@ library
             id: field_1
             getter: getter_1
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
         constructors
           @40
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -76061,7 +76061,7 @@ library
             variable: field_1
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -76073,18 +76073,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               augment static foo @88
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_2
@@ -76120,7 +76120,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76137,7 +76137,7 @@ library
             type: int
             id: field_1
             getter: getter_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
         constructors
           @40
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -76161,7 +76161,7 @@ library
             variable: field_1
         augmented
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
@@ -76172,18 +76172,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               augment static foo @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
@@ -76217,7 +76217,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76269,32 +76269,32 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo1
             <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               static foo2 @77
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
@@ -76302,14 +76302,14 @@ library
                 setter: setter_1
             accessors
               synthetic static get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_2
               synthetic static set foo2= @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 parameters
                   requiredPositional _foo2 @-1
                     type: int
@@ -76345,7 +76345,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76386,37 +76386,37 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
                 id: field_2
                 getter: getter_2
             accessors
               get foo2 @74
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_2
@@ -76452,7 +76452,7 @@ library
         typeParameters
           covariant T1 @42
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76494,7 +76494,7 @@ library
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
@@ -76502,35 +76502,35 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @54
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: T2
                 id: field_2
                 getter: getter_2
             accessors
               abstract get foo2 @77
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: T2
                 id: getter_2
                 variable: field_2
@@ -76563,7 +76563,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76603,7 +76603,7 @@ library
             returnType: int
             id: getter_1
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           synthetic static set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -76620,25 +76620,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             accessors
               augment static get foo @89
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_1
@@ -76680,7 +76680,7 @@ library
       A @65
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76720,7 +76720,7 @@ library
             returnType: int
             id: getter_1
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
           synthetic static set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -76737,50 +76737,50 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             accessors
               augment static get foo @89
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
             accessors
               augment static get foo @89
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_1
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -76811,7 +76811,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76855,7 +76855,7 @@ library
             returnType: int
             id: getter_1
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
           get foo2 @83
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -76870,25 +76870,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             accessors
               augment get foo1 @82
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_1
@@ -76930,7 +76930,7 @@ library
       A @65
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -76968,7 +76968,7 @@ library
             returnType: int
             id: getter_1
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo
@@ -76976,49 +76976,49 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             accessors
               augment get foo @82
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
             accessors
               augment get foo @82
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                 returnType: int
                 id: getter_3
                 variable: field_1
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -77046,7 +77046,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77090,31 +77090,31 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             interfaces
               I2
           I2 @94
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            representation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-            primaryConstructor: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            representation: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
             typeErasure: int
             fields
               final it @101
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 type: int
             accessors
               synthetic get it @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@getter::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@getter::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 returnType: int
 ''');
   }
@@ -77149,7 +77149,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77212,78 +77212,78 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             interfaces
               I2
           I2 @119
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            representation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-            primaryConstructor: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            representation: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
             typeErasure: int
             fields
               final it @126
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 type: int
             constructors
               @119
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 parameters
                   requiredPositional final this.it @126
                     type: int
-                    field: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+                    field: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
             accessors
               synthetic get it @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@getter::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@getter::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 returnType: int
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensionTypes
               augment A @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 interfaces
                   I3
               I3 @91
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                representation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3::@field::it
-                primaryConstructor: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3::@constructor::new
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                representation: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3::@field::it
+                primaryConstructor: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3::@constructor::new
                 typeErasure: int
                 fields
                   final it @98
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3::@field::it
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3::@field::it
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3
                     type: int
                 constructors
                   @91
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3
                     parameters
                       requiredPositional final this.it @98
                         type: int
-                        field: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3::@field::it
+                        field: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3::@field::it
                 accessors
                   synthetic get it @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3::@getter::it
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionType::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3::@getter::it
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionType::I3
                     returnType: int
 ''');
   }
@@ -77314,7 +77314,7 @@ library
         typeParameters
           covariant T @42
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77376,13 +77376,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @54
                 defaultType: dynamic
@@ -77390,31 +77390,31 @@ library
             interfaces
               I2<T2>
           I2 @102
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @105
                 defaultType: dynamic
-            representation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-            primaryConstructor: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            representation: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
             typeErasure: int
             fields
               final it @112
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 type: int
             constructors
               @102
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 parameters
                   requiredPositional final this.it @112
                     type: int
-                    field: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+                    field: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
             accessors
               synthetic get it @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@getter::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@getter::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 returnType: int
 ''');
   }
@@ -77445,7 +77445,7 @@ library
         typeParameters
           covariant T @42
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77506,13 +77506,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @54
                 defaultType: dynamic
@@ -77522,31 +77522,31 @@ library
             interfaces
               I2<T2>
           I2 @106
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @109
                 defaultType: dynamic
-            representation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-            primaryConstructor: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
+            representation: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+            primaryConstructor: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
             typeErasure: int
             fields
               final it @116
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 type: int
             constructors
               @106
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 parameters
                   requiredPositional final this.it @116
                     type: int
-                    field: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@field::it
+                    field: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@field::it
             accessors
               synthetic get it @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2::@getter::it
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionType::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2::@getter::it
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionType::I2
                 returnType: int
 ''');
   }
@@ -77576,7 +77576,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77611,24 +77611,24 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             methods
               bar @71
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: void
 ''');
   }
@@ -77659,7 +77659,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77686,7 +77686,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo1
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
           foo2 @76
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -77699,24 +77699,24 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             methods
               augment foo1 @79
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo1
 ''');
@@ -77755,7 +77755,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77782,7 +77782,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
@@ -77791,45 +77791,45 @@ library
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @77
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
             methods
               augment foo @104
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             extensionTypes
               augment A @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 methods
                   augment foo @76
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
                     returnType: void
-                    augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+                    augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -77861,7 +77861,7 @@ library
         typeParameters
           covariant T @42
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77897,28 +77897,28 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
               augmentationSubstitution: {T2: T}
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @54
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             methods
               bar @73
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: T2
 ''');
   }
@@ -77951,7 +77951,7 @@ library
         typeParameters
           covariant T @42
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -77978,7 +77978,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
             returnType: T
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
@@ -77988,27 +77988,27 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @54
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             methods
               augment foo @81
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: T2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
 ''');
@@ -78040,7 +78040,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -78067,7 +78067,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
           bar @75
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@method::bar
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -78082,27 +78082,27 @@ library
           methods
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::bar
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @54
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             methods
               augment foo @82
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
 ''');
@@ -78134,7 +78134,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -78178,37 +78178,37 @@ library
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 type: int
                 id: field_2
                 setter: setter_1
             accessors
               set foo2= @70
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 parameters
                   requiredPositional _ @79
                     type: int
@@ -78244,7 +78244,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -78293,7 +78293,7 @@ library
             returnType: void
             id: setter_0
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
         augmented
           fields
             <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo
@@ -78302,24 +78302,24 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             accessors
               augment static set foo= @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 parameters
                   requiredPositional _ @93
                     type: int
@@ -78357,7 +78357,7 @@ library
       A @40
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -78404,7 +78404,7 @@ library
             returnType: void
             id: setter_0
             variable: field_1
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
           set foo2= @79
             reference: <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -78422,25 +78422,25 @@ library
           constructors
             <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo2
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @52
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
             accessors
               augment set foo1= @78
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionTypeAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@extensionTypeAugmentation::A
                 parameters
                   requiredPositional _ @87
                     type: int
@@ -78499,24 +78499,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extensionType::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
@@ -78552,7 +78552,7 @@ library
       A @66
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
         representation: <thisLibrary>::<definingUnit>::@extensionType::A::@field::it
         primaryConstructor: <thisLibrary>::<definingUnit>::@extensionType::A::@constructor::new
         typeErasure: int
@@ -78575,24 +78575,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extensionType::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         extensionTypes
           augment A @53
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@extensionTypeAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A
 ''');
   }
@@ -80268,87 +80268,87 @@ library
         reference: <thisLibrary>::<definingUnit>::@function::foo
         enclosingElement: <thisLibrary>::<definingUnit>
         returnType: void
-        augmentation: <thisLibrary>::@augmentation::package:test/a1.dart::@functionAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a1.dart::@functionAugmentation::foo
   augmentationImports
     package:test/a1.dart
       reference: <thisLibrary>::@augmentation::package:test/a1.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a1.dart
+        reference: <thisLibrary>::@unit::package:test/a1.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @96
-            reference: <thisLibrary>::@augmentation::package:test/a1.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
+            reference: <thisLibrary>::@unit::package:test/a1.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a1.dart
             returnType: void
             augmentationTarget: <thisLibrary>::<definingUnit>::@function::foo
-            augmentation: <thisLibrary>::@augmentation::package:test/a11.dart::@functionAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a11.dart::@functionAugmentation::foo
       augmentationImports
         package:test/a11.dart
           reference: <thisLibrary>::@augmentation::package:test/a11.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a11.dart
+            reference: <thisLibrary>::@unit::package:test/a11.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a1.dart
             functions
               augment foo @40
-                reference: <thisLibrary>::@augmentation::package:test/a11.dart::@functionAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a11.dart
+                reference: <thisLibrary>::@unit::package:test/a11.dart::@functionAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a11.dart
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a1.dart::@functionAugmentation::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a12.dart::@functionAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a1.dart::@functionAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/a12.dart::@functionAugmentation::foo
         package:test/a12.dart
           reference: <thisLibrary>::@augmentation::package:test/a12.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a12.dart
+            reference: <thisLibrary>::@unit::package:test/a12.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a1.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a1.dart
             functions
               augment foo @40
-                reference: <thisLibrary>::@augmentation::package:test/a12.dart::@functionAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a12.dart
+                reference: <thisLibrary>::@unit::package:test/a12.dart::@functionAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a12.dart
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a11.dart::@functionAugmentation::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a2.dart::@functionAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a11.dart::@functionAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/a2.dart::@functionAugmentation::foo
     package:test/a2.dart
       reference: <thisLibrary>::@augmentation::package:test/a2.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a2.dart
+        reference: <thisLibrary>::@unit::package:test/a2.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @96
-            reference: <thisLibrary>::@augmentation::package:test/a2.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
+            reference: <thisLibrary>::@unit::package:test/a2.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a2.dart
             returnType: void
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a12.dart::@functionAugmentation::foo
-            augmentation: <thisLibrary>::@augmentation::package:test/a21.dart::@functionAugmentation::foo
+            augmentationTarget: <thisLibrary>::@unit::package:test/a12.dart::@functionAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a21.dart::@functionAugmentation::foo
       augmentationImports
         package:test/a21.dart
           reference: <thisLibrary>::@augmentation::package:test/a21.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a21.dart
+            reference: <thisLibrary>::@unit::package:test/a21.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a2.dart
             functions
               augment foo @40
-                reference: <thisLibrary>::@augmentation::package:test/a21.dart::@functionAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a21.dart
+                reference: <thisLibrary>::@unit::package:test/a21.dart::@functionAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a21.dart
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a2.dart::@functionAugmentation::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/a22.dart::@functionAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a2.dart::@functionAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/a22.dart::@functionAugmentation::foo
         package:test/a22.dart
           reference: <thisLibrary>::@augmentation::package:test/a22.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/a22.dart
+            reference: <thisLibrary>::@unit::package:test/a22.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a2.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a2.dart
             functions
               augment foo @40
-                reference: <thisLibrary>::@augmentation::package:test/a22.dart::@functionAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a22.dart
+                reference: <thisLibrary>::@unit::package:test/a22.dart::@functionAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a22.dart
                 returnType: void
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a21.dart::@functionAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a21.dart::@functionAugmentation::foo
 ''');
   }
 
@@ -80383,13 +80383,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::foo
 ''');
@@ -80418,18 +80418,18 @@ library
         reference: <thisLibrary>::<definingUnit>::@function::foo
         enclosingElement: <thisLibrary>::<definingUnit>
         returnType: void
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @42
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
             augmentationTarget: <thisLibrary>::<definingUnit>::@function::foo
   exportedReferences
@@ -80461,24 +80461,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           foo @34
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@function::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@function::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
           augment foo @56
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@function::foo
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@function::foo
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@function::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@function::foo
   exportNamespace
-    foo: <thisLibrary>::@augmentation::package:test/a.dart::@function::foo
+    foo: <thisLibrary>::@unit::package:test/a.dart::@function::foo
 ''');
   }
 
@@ -80515,13 +80515,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@getter::foo
 ''');
@@ -80563,13 +80563,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@setter::foo
 ''');
@@ -80616,13 +80616,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         functions
           augment foo @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@functionAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: void
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@getter::foo
 ''');
@@ -80657,13 +80657,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: <null>
@@ -80705,13 +80705,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: <null>
@@ -80757,18 +80757,18 @@ library
         returnType: int
         id: getter_0
         variable: variable_0
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_1
             variable: variable_0
@@ -80803,13 +80803,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: <null>
@@ -80860,13 +80860,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: <null>
@@ -80914,7 +80914,7 @@ library
         returnType: int
         id: getter_0
         variable: variable_0
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
       synthetic static set foo= @-1
         reference: <thisLibrary>::<definingUnit>::@setter::foo
         enclosingElement: <thisLibrary>::<definingUnit>
@@ -80928,13 +80928,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static get foo @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_1
             variable: variable_0
@@ -80980,13 +80980,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _ @49
                 type: int
@@ -81039,13 +81039,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _ @49
                 type: int
@@ -81083,13 +81083,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _ @49
                 type: int
@@ -81138,18 +81138,18 @@ library
         returnType: void
         id: setter_0
         variable: variable_0
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _ @49
                 type: int
@@ -81209,18 +81209,18 @@ library
         returnType: void
         id: setter_0
         variable: variable_0
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         accessors
           augment static set foo= @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setterAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _ @49
                 type: int
@@ -81361,7 +81361,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -81371,27 +81371,27 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             mixins
               augment mixin A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
   exportedReferences
     declared <thisLibrary>::<definingUnit>::@mixin::A
   exportNamespace
@@ -81430,49 +81430,49 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
             methods
               foo1 @55
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::0
                 returnType: void
           class A @74
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
             methods
               foo2 @85
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@method::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::A::@method::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
                 returnType: void
             augmented
               constructors
-                <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@constructor::new
+                <thisLibrary>::@unit::package:test/a.dart::@class::A::@constructor::new
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@class::A::@method::foo2
-                <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
+                <thisLibrary>::@unit::package:test/a.dart::@class::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
           augment class A @112
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@class::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@class::A
             methods
               foo3 @123
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1
                 returnType: void
 ''');
   }
@@ -81514,43 +81514,43 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             superclassConstraints
               Object
             methods
               foo1 @79
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: void
             augmented
               superclassConstraints
                 Object
               methods
-                <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo1
-                <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@method::foo2
+                <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+                <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             mixins
               augment mixin A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 methods
                   foo2 @51
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@method::foo2
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@method::foo2
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                     returnType: void
 ''');
   }
@@ -81581,7 +81581,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -81593,7 +81593,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
@@ -81614,7 +81614,7 @@ library
           superclassConstraints
             Object
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
@@ -81622,18 +81622,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -81675,7 +81675,7 @@ library
       mixin A @56
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -81687,7 +81687,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
@@ -81708,7 +81708,7 @@ library
           superclassConstraints
             Object
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
@@ -81716,43 +81716,43 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@field::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_2
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
 ''');
   }
 
@@ -81790,7 +81790,7 @@ library
       mixin A @56
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -81802,7 +81802,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
@@ -81810,7 +81810,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -81824,27 +81824,27 @@ library
           superclassConstraints
             Object
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
@@ -81852,18 +81852,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -81905,7 +81905,7 @@ library
       mixin A @56
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -81917,7 +81917,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
@@ -81934,32 +81934,32 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
           superclassConstraints
             Object
           fields
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -81970,18 +81970,18 @@ library
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -82015,7 +82015,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82027,7 +82027,7 @@ library
             id: field_0
             getter: getter_0
             setter: setter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
@@ -82048,7 +82048,7 @@ library
           superclassConstraints
             Object
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
@@ -82056,18 +82056,18 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               augment foo @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -82103,7 +82103,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82113,7 +82113,7 @@ library
             type: int
             id: field_0
             getter: getter_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           get foo @45
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
@@ -82125,25 +82125,25 @@ library
           superclassConstraints
             Object
           fields
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               augment foo @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -82177,7 +82177,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82210,28 +82210,28 @@ library
             Object
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               foo2 @53
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
@@ -82239,14 +82239,14 @@ library
                 setter: setter_1
             accessors
               synthetic get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_1
               synthetic set foo2= @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 parameters
                   requiredPositional _foo2 @-1
                     type: int
@@ -82285,7 +82285,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82318,50 +82318,50 @@ library
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               foo2 @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: T2
                 id: field_1
                 getter: getter_1
                 setter: setter_1
             accessors
               synthetic get foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: T2
                 id: getter_1
                 variable: field_1
               synthetic set foo2= @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 parameters
                   requiredPositional _foo2 @-1
                     type: T2
@@ -82397,7 +82397,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82419,33 +82419,33 @@ library
             Object
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: int
                 id: field_1
                 getter: getter_1
             accessors
               get foo2 @57
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_1
@@ -82481,7 +82481,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82504,39 +82504,39 @@ library
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
             FieldMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               augmentationSubstitution: {T2: T1}
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo1
             PropertyAccessorMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: T2
                 id: field_1
                 getter: getter_1
             accessors
               abstract get foo2 @60
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: T2
                 id: getter_1
                 variable: field_1
@@ -82569,7 +82569,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82588,7 +82588,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -82604,24 +82604,24 @@ library
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
@@ -82663,7 +82663,7 @@ library
       mixin A @56
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82682,7 +82682,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -82698,49 +82698,49 @@ library
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -82771,7 +82771,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82794,7 +82794,7 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -82808,24 +82808,24 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo2
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             accessors
               augment get foo1 @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
@@ -82867,7 +82867,7 @@ library
       mixin A @56
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -82884,55 +82884,55 @@ library
             returnType: int
             id: getter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
         augmented
           superclassConstraints
             Object
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo
           accessors
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_1
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                 returnType: int
                 id: getter_2
                 variable: field_0
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -82967,7 +82967,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         interfaces
@@ -82982,21 +82982,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             interfaces
               I2
@@ -83041,7 +83041,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         interfaces
@@ -83057,45 +83057,45 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @93
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         mixins
           augment mixin A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             interfaces
               I2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               class I3 @65
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+                reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
                 constructors
                   synthetic @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@class::I3
             mixins
               augment mixin A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 interfaces
                   I3
 ''');
@@ -83126,7 +83126,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -83138,24 +83138,24 @@ library
           superclassConstraints
             Object
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::bar
             <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             methods
               bar @54
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: void
 ''');
   }
@@ -83186,7 +83186,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -83194,7 +83194,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo1
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
           foo2 @59
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -83203,24 +83203,24 @@ library
           superclassConstraints
             Object
           methods
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@method::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             methods
               augment foo1 @62
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo1
 ''');
@@ -83259,7 +83259,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -83267,50 +83267,50 @@ library
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
         augmented
           superclassConstraints
             Object
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             methods
               augment foo @87
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
-                augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
+                augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             mixins
               augment mixin A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 methods
                   augment foo @59
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
                     returnType: void
-                    augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+                    augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -83342,7 +83342,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -83355,28 +83355,28 @@ library
             Object
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::bar
               augmentationSubstitution: {T2: T}
             <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             methods
               bar @56
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::bar
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: T2
 ''');
   }
@@ -83409,7 +83409,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -83417,33 +83417,33 @@ library
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
             returnType: T
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
         augmented
           superclassConstraints
             Object
           methods
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             methods
               augment foo @64
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: T2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
 ''');
@@ -83475,7 +83475,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -83483,7 +83483,7 @@ library
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
             returnType: void
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
           bar @58
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@method::bar
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -83494,27 +83494,27 @@ library
           methods
             <thisLibrary>::<definingUnit>::@mixin::A::@method::bar
             MethodMember
-              base: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+              base: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @45
                 defaultType: dynamic
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             methods
               augment foo @65
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 returnType: void
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
 ''');
@@ -83546,7 +83546,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -83571,33 +83571,33 @@ library
             Object
           fields
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo1
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             fields
               synthetic foo2 @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@field::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 type: int
                 id: field_1
                 setter: setter_1
             accessors
               set foo2= @53
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 parameters
                   requiredPositional _ @62
                     type: int
@@ -83633,7 +83633,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -83661,7 +83661,7 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
           superclassConstraints
             Object
@@ -83669,23 +83669,23 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo
           accessors
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             accessors
               augment set foo= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 parameters
                   requiredPositional _ @69
                     type: int
@@ -83723,7 +83723,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -83749,7 +83749,7 @@ library
             returnType: void
             id: setter_0
             variable: field_0
-            augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
+            augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
             reference: <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo2
             enclosingElement: <thisLibrary>::<definingUnit>::@mixin::A
@@ -83766,24 +83766,24 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@field::foo2
           accessors
-            <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
+            <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             accessors
               augment set foo1= @61
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 parameters
                   requiredPositional _ @70
                     type: int
@@ -83825,7 +83825,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           B1
         augmented
@@ -83836,21 +83836,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B2 @60
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::B2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::B2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::B2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::B2
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             superclassConstraints
               B2
@@ -83895,7 +83895,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           I1
         augmented
@@ -83907,45 +83907,45 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @85
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         mixins
           augment mixin A @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
             superclassConstraints
               I2
       augmentationImports
         package:test/b.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
-            reference: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-            enclosingElement3: <thisLibrary>::@augmentation::package:test/a.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
             classes
               class I3 @57
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+                reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
                 constructors
                   synthetic @-1
-                    reference: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3::@constructor::new
-                    enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@class::I3
+                    reference: <thisLibrary>::@unit::package:test/b.dart::@class::I3::@constructor::new
+                    enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@class::I3
             mixins
               augment mixin A @40
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
-                augmentationTarget: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+                augmentationTarget: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
                 superclassConstraints
                   I3
 ''');
@@ -83973,7 +83973,7 @@ library
       mixin A @31
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         augmented
           superclassConstraints
             B
@@ -83981,21 +83981,21 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class B @59
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::B
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::B::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::B
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::B::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::B
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
             superclassConstraints
               B
@@ -84036,7 +84036,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           I1
         augmented
@@ -84047,24 +84047,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           class I2 @68
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant E @71
                 defaultType: dynamic
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@class::I2
+                reference: <thisLibrary>::@unit::package:test/a.dart::@class::I2::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
@@ -84111,24 +84111,24 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@mixin::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@mixin::A
 ''');
   }
@@ -84163,7 +84163,7 @@ library
       mixin A @57
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -84173,28 +84173,28 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         classes
           augment class A @44
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@mixin::A
             constructors
               synthetic @-1
-                reference: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
-                enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A
+                reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
+                enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @44
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
 ''');
   }
@@ -84236,30 +84236,30 @@ library
       mixin B @49
         reference: <thisLibrary>::<definingUnit>::@mixin::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           A
         augmented
           superclassConstraints
             A
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B::@method::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin B @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::B
             methods
               foo @49
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B::@method::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@method::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
                 parameters
                   requiredPositional a @53
                     type: String
@@ -84298,7 +84298,7 @@ library
       mixin B @32
         reference: <thisLibrary>::<definingUnit>::@mixin::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           Object
         methods
@@ -84323,16 +84323,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         mixins
           augment mixin B @60
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::B
             interfaces
               A
@@ -84370,7 +84370,7 @@ library
       mixin B @32
         reference: <thisLibrary>::<definingUnit>::@mixin::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
         methods
           foo @38
             reference: <thisLibrary>::<definingUnit>::@mixin::B::@method::foo
@@ -84391,16 +84391,16 @@ library
         package:test/a.dart
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
         mixins
           augment mixin B @60
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::B
             superclassConstraints
               A
@@ -84446,7 +84446,7 @@ library
       mixin B @49
         reference: <thisLibrary>::<definingUnit>::@mixin::B
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
+        augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           A
         methods
@@ -84457,28 +84457,28 @@ library
               requiredPositional a @64
                 type: String
             returnType: int
-            augmentation: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
+            augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
         augmented
           superclassConstraints
             A
           methods
-            <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
+            <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
   augmentationImports
     package:test/b.dart
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/b.dart
+        reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin B @43
-            reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
-            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
+            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::B
             methods
               augment foo @57
-                reference: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
-                enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart::@mixinAugmentation::B
+                reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
+                enclosingElement: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
                 parameters
                   requiredPositional a @61
                     type: String
@@ -84508,7 +84508,7 @@ library
       base mixin A @36
         reference: <thisLibrary>::<definingUnit>::@mixin::A
         enclosingElement: <thisLibrary>::<definingUnit>
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -84518,13 +84518,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment base mixin A @48
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A
 ''');
   }
@@ -84626,7 +84626,7 @@ library
           covariant T @33
             bound: A<dynamic>
             defaultType: dynamic
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -84636,13 +84636,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         mixins
           augment mixin A @43
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             typeParameters
               covariant T @45
                 bound: A<dynamic>
@@ -84699,13 +84699,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static A @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
             id: variable_0
@@ -84714,14 +84714,14 @@ library
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A
         accessors
           synthetic static get A @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: variable_0
           synthetic static set A= @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setter::A
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setter::A
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _A @-1
                 type: int
@@ -84729,11 +84729,11 @@ library
             id: setter_0
             variable: variable_0
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::A
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@setter::A
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::A
+    declared <thisLibrary>::@unit::package:test/a.dart::@setter::A
   exportNamespace
-    A: <thisLibrary>::@augmentation::package:test/a.dart::@getter::A
-    A=: <thisLibrary>::@augmentation::package:test/a.dart::@setter::A
+    A: <thisLibrary>::@unit::package:test/a.dart::@getter::A
+    A=: <thisLibrary>::@unit::package:test/a.dart::@setter::A
 ''');
   }
 
@@ -84766,13 +84766,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
             id: variable_0
@@ -84781,14 +84781,14 @@ library
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@function::foo
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: variable_0
           synthetic static set foo= @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _foo @-1
                 type: int
@@ -84796,11 +84796,11 @@ library
             id: setter_0
             variable: variable_0
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@setter::foo
   exportNamespace
-    foo: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    foo=: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    foo: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    foo=: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
 ''');
   }
 
@@ -84842,13 +84842,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
             id: variable_1
@@ -84857,14 +84857,14 @@ library
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@getter::foo
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_1
             variable: variable_1
           synthetic static set foo= @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _foo @-1
                 type: int
@@ -84872,11 +84872,11 @@ library
             id: setter_0
             variable: variable_1
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@setter::foo
   exportNamespace
-    foo: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    foo=: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    foo: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    foo=: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
 ''');
   }
 
@@ -84921,13 +84921,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
             id: variable_1
@@ -84936,14 +84936,14 @@ library
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@setter::foo
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_0
             variable: variable_1
           synthetic static set foo= @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _foo @-1
                 type: int
@@ -84951,11 +84951,11 @@ library
             id: setter_1
             variable: variable_1
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@setter::foo
   exportNamespace
-    foo: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    foo=: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    foo: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    foo=: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
 ''');
   }
 
@@ -84988,7 +84988,7 @@ library
         id: variable_0
         getter: getter_0
         setter: setter_0
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
     accessors
       synthetic static get foo @-1
         reference: <thisLibrary>::<definingUnit>::@getter::foo
@@ -85009,13 +85009,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static foo @41
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
             id: variable_1
@@ -85024,14 +85024,14 @@ library
             augmentationTarget: <thisLibrary>::<definingUnit>::@topLevelVariable::foo
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
             id: getter_1
             variable: variable_1
           synthetic static set foo= @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             parameters
               requiredPositional _foo @-1
                 type: int
@@ -85039,11 +85039,11 @@ library
             id: setter_1
             variable: variable_1
   exportedReferences
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    declared <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    declared <thisLibrary>::@unit::package:test/a.dart::@setter::foo
   exportNamespace
-    foo: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-    foo=: <thisLibrary>::@augmentation::package:test/a.dart::@setter::foo
+    foo: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+    foo=: <thisLibrary>::@unit::package:test/a.dart::@setter::foo
 ''');
   }
 
@@ -85074,7 +85074,7 @@ library
           IntegerLiteral
             literal: 0 @41
             staticType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
     accessors
       synthetic static get foo @-1
         reference: <thisLibrary>::<definingUnit>::@getter::foo
@@ -85084,13 +85084,13 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         topLevelVariables
           augment static const foo @47
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@topLevelVariableAugmentation::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@topLevelVariableAugmentation::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             type: int
             shouldUseTypeForInitializerInference: true
             constantInitializer
@@ -85109,8 +85109,8 @@ library
             augmentationTarget: <thisLibrary>::<definingUnit>::@topLevelVariable::foo
         accessors
           synthetic static get foo @-1
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@getter::foo
-            enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+            reference: <thisLibrary>::@unit::package:test/a.dart::@getter::foo
+            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             returnType: int
 ''');
   }
@@ -85157,12 +85157,12 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@class::A
 ''');
@@ -85194,12 +85194,12 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@function::A
 ''');
@@ -85236,12 +85236,12 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@getter::A
 ''');
@@ -85268,12 +85268,12 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
   exportedReferences
   exportNamespace
@@ -85314,12 +85314,12 @@ library
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@setter::A
 ''');
@@ -85347,17 +85347,17 @@ library
       A @33
         reference: <thisLibrary>::<definingUnit>::@typeAlias::A
         aliasedType: int
-        augmentation: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+        augmentation: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
   augmentationImports
     package:test/a.dart
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
-        reference: <thisLibrary>::@augmentation::package:test/a.dart
+        reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         typeAliases
           augment A @45
-            reference: <thisLibrary>::@augmentation::package:test/a.dart::@typeAliasAugmentation::A
+            reference: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
             aliasedType: int
             augmentationTarget: <thisLibrary>::<definingUnit>::@typeAlias::A
   exportedReferences

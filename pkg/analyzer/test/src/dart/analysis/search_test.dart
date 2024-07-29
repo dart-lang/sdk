@@ -1763,7 +1763,7 @@ class B {
     await assertElementReferencesText(element, r'''
 self::@class::B::@method::foo
   97 7:16 |A| REFERENCE
-self::@augmentation::package:test/test.macro.dart::@function::f
+self::@unit::package:test/test.macro.dart::@function::f
   54 3:12 |A| REFERENCE
 ''');
   }

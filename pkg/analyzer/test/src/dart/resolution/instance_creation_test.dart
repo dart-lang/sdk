@@ -149,12 +149,12 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+        base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
         augmentationSubstitution: {T2: T}
         substitution: {T: dynamic}
       staticType: null
     staticElement: ConstructorMember
-      base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
   argumentList: ArgumentList
@@ -163,7 +163,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
+          base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -201,7 +201,7 @@ InstanceCreationExpression
       element: <thisLibrary>::<definingUnit>::@class::A
       type: A<int>
     staticElement: ConstructorMember
-      base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+      base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
   argumentList: ArgumentList
@@ -210,7 +210,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
+          base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -408,9 +408,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+      staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
       staticType: null
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -447,9 +447,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
       staticType: null
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -485,7 +485,7 @@ InstanceCreationExpression
       name: A
       element: <thisLibrary>::<definingUnit>::@class::A
       type: A
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -521,7 +521,7 @@ InstanceCreationExpression
       name: A
       element: <thisLibrary>::<definingUnit>::@class::A
       type: A
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -1281,12 +1281,12 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+        base: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::named
         augmentationSubstitution: {T2: T}
         substitution: {T: dynamic}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+      base: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
   argumentList: ArgumentList
@@ -1295,7 +1295,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named::@parameter::value
+          base: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1342,7 +1342,7 @@ InstanceCreationExpression
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A<int>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::new
+      base: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::new
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
   argumentList: ArgumentList
@@ -1351,7 +1351,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::new::@parameter::value
+          base: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::new::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1444,9 +1444,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+      staticElement: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::named
       staticType: null
-    staticElement: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::named
+    staticElement: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -1491,7 +1491,7 @@ InstanceCreationExpression
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
-    staticElement: package:test/a.dart::@augmentation::package:test/b.dart::@classAugmentation::A::@constructor::new
+    staticElement: package:test/a.dart::@unit::package:test/b.dart::@classAugmentation::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -1879,12 +1879,12 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: named
       staticElement: ConstructorMember
-        base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+        base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
         augmentationSubstitution: {T2: T}
         substitution: {T: dynamic}
       staticType: null
     staticElement: ConstructorMember
-      base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
   argumentList: ArgumentList
@@ -1893,7 +1893,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
+          base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -1933,7 +1933,7 @@ InstanceCreationExpression
       element: <thisLibrary>::<definingUnit>::@typeAlias::X
       type: A<int>
     staticElement: ConstructorMember
-      base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+      base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
       augmentationSubstitution: {T2: T}
       substitution: {T: int}
   argumentList: ArgumentList
@@ -1942,7 +1942,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
+          base: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new::@parameter::value
           augmentationSubstitution: {T2: T}
           substitution: {T: int}
         staticType: int
@@ -2239,9 +2239,9 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+      staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
       staticType: null
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -2279,7 +2279,7 @@ InstanceCreationExpression
       name: X
       element: <thisLibrary>::<definingUnit>::@typeAlias::X
       type: A
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

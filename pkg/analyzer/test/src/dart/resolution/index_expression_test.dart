@@ -439,10 +439,10 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    parameter: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]::@parameter::index
+    parameter: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
-  staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]
+  staticElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@method::[]
   staticType: bool
 ''');
   }
@@ -959,7 +959,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 1
-      parameter: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::index
+      parameter: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -967,11 +967,11 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 2.3
-    parameter: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
+    parameter: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@method::[]=::@parameter::value
     staticType: double
   readElement: <null>
   readType: null
-  writeElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::[]=
+  writeElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@method::[]=
   writeType: num
   staticElement: <null>
   staticType: double

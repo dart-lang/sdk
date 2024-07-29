@@ -52,7 +52,6 @@ import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
-import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/macro/macro.dart';
@@ -1919,14 +1918,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (isOptional &&
           formal.variable!.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
-        // Wildcard optional parameters can't be used so we allow having no
-        // initializer.
-        if (libraryFeatures.wildcardVariables.isEnabled &&
-            formal.isWildcard &&
-            !formal.isSuperInitializingFormal &&
-            !formal.isInitializingFormal) {
-          continue;
-        }
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(
                 formal.name, formal.variable!.type),
@@ -2295,18 +2286,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-  }
-
-  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        this.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        augmentationLibrary.computeShowHideElements(membersBuilder);
-      }
-    }
-
-    compilationUnit.computeShowHideElements(membersBuilder);
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {

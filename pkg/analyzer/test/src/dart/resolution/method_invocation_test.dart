@@ -1419,7 +1419,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1458,7 +1458,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1493,7 +1493,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1528,7 +1528,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1563,7 +1563,7 @@ class A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3263,7 +3263,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3301,7 +3301,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4297,7 +4297,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4335,7 +4335,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4676,7 +4676,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4714,7 +4714,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4782,7 +4782,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@extensionAugmentation::E::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::E::@method::foo
     staticType: InvalidType Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6372,7 +6372,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6407,7 +6407,7 @@ mixin A {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+    staticElement: <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (

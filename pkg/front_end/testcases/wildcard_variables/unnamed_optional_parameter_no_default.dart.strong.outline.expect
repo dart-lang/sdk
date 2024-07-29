@@ -1,8 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method foo([wildcard core::int _]) → void
-  ;
-static method main() → void
-  ;

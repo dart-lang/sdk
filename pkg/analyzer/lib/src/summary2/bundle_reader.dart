@@ -756,7 +756,6 @@ class LibraryReader {
     libraryElement.definingCompilationUnit = _readUnitElement(
       libraryElement: libraryElement,
       unitSource: librarySource,
-      unitContainerRef: _reference.getChild('@unit'),
     );
 
     libraryElement.parts = _reader.readTypedList(() {
@@ -814,7 +813,6 @@ class LibraryReader {
     var definingUnit = _readUnitElement(
       libraryElement: libraryElement,
       unitSource: unitSource,
-      unitContainerRef: _reference.getChild('@augmentation'),
     );
 
     var augmentation = LibraryAugmentationElementImpl(
@@ -822,7 +820,8 @@ class LibraryReader {
       nameOffset: -1, // TODO(scheglov): implement, test
     );
     augmentation.definingCompilationUnit = definingUnit;
-    augmentation.reference = definingUnit.reference!;
+    augmentation.reference =
+        _reference.getChild('@augmentation').getChild('${unitSource.uri}');
     augmentation.macroGenerated = macroGenerated;
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1012,7 +1011,6 @@ class LibraryReader {
         var unitElement = _readUnitElement(
           libraryElement: libraryElement,
           unitSource: parent.source,
-          unitContainerRef: _reference.getChild('@unit'),
         );
         return DirectiveUriWithUnitImpl(
           relativeUriString: parent.relativeUriString,
@@ -1839,7 +1837,6 @@ class LibraryReader {
   CompilationUnitElementImpl _readUnitElement({
     required LibraryElementImpl libraryElement,
     required Source unitSource,
-    required Reference unitContainerRef,
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
@@ -1849,7 +1846,8 @@ class LibraryReader {
       lineInfo: LineInfo([0]),
     );
 
-    var unitReference = unitContainerRef.getChild('${unitSource.uri}');
+    var unitReference =
+        _reference.getChild('@unit').getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(

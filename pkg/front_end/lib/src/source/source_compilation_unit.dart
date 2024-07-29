@@ -1182,27 +1182,6 @@ class SourceCompilationUnitImpl
   }
 
   @override
-  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
-    for (ExtensionBuilder _extensionBuilder
-        in _builderFactoryResult.extensions) {
-      ExtensionBuilder extensionBuilder = _extensionBuilder;
-      if (extensionBuilder is! SourceExtensionBuilder) continue;
-      DartType onType = extensionBuilder.extension.onType;
-      if (onType is InterfaceType) {
-        // TODO(cstefantsova): Handle private names.
-        List<Supertype> supertypes = membersBuilder.hierarchyBuilder
-            .getNodeFromClass(onType.classNode)
-            .superclasses;
-        Map<String, Supertype> supertypesByName = <String, Supertype>{};
-        for (Supertype supertype in supertypes) {
-          // TODO(cstefantsova): Should only non-generic supertypes be allowed?
-          supertypesByName[supertype.classNode.name] = supertype;
-        }
-      }
-    }
-  }
-
-  @override
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length) {
     return _sourceLibraryBuilder.reportFeatureNotEnabled(
