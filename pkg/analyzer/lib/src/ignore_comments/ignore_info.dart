@@ -56,8 +56,15 @@ class IgnoredDiagnosticType implements IgnoredElement {
       : type = type.toLowerCase();
 
   @override
-  bool matches(ErrorCode errorCode) =>
-      type == errorCode.type.name.toLowerCase();
+  bool matches(ErrorCode errorCode) {
+    return switch (errorCode.type) {
+      ErrorType.HINT => type == 'hint',
+      ErrorType.LINT => type == 'lint',
+      ErrorType.STATIC_WARNING => type == 'warning',
+      // Only errors with one of the above types can be ignored via the type.
+      _ => false,
+    };
+  }
 }
 
 sealed class IgnoredElement {
@@ -70,23 +77,23 @@ sealed class IgnoredElement {
 class IgnoreInfo {
   /// A regular expression for matching 'ignore' comments.
   ///
-  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
   static final RegExp ignoreMatcher = RegExp(r'//+[ ]*ignore:');
 
   /// A regular expression for matching 'ignore_for_file' comments.
   ///
-  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
   static final RegExp ignoreForFileMatcher = RegExp(r'//[ ]*ignore_for_file:');
 
   /// A regular expression for matching 'ignore' comments in a .yaml file.
   ///
-  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
   static final RegExp _yamlIgnoreMatcher =
       RegExp(r'^(?<before>.*)#+[ ]*ignore:(?<ignored>.*)', multiLine: true);
 
   /// A regular expression for matching 'ignore_for_file' comments.
   ///
-  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  /// Resulting codes may be in a list (e.g. 'error_code_1,error_code2').
   static final RegExp _yamlIgnoreForFileMatcher =
       RegExp(r'#[ ]*ignore_for_file:(?<ignored>.*)');
 
