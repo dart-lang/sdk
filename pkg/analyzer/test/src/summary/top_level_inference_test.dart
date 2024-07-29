@@ -964,12 +964,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static uValue @80
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::uValue
@@ -1789,12 +1791,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -1893,12 +1897,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -1936,12 +1942,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -2040,12 +2048,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -2467,12 +2477,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static vFuture @25
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vFuture
@@ -8794,12 +8806,14 @@ library
   libraryImports
     package:test/other.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/other.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class A1 @27
         reference: <thisLibrary>::<definingUnit>::@class::A1

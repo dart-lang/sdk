@@ -82,6 +82,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -158,6 +159,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -223,6 +225,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -290,6 +293,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -355,6 +359,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -441,6 +446,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a1.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a1.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a1.dart
@@ -454,6 +460,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/a11.dart::@classAugmentation::A
       augmentationImports
         package:test/a11.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
           reference: <thisLibrary>::@augmentation::package:test/a11.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a11.dart
@@ -466,6 +473,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a1.dart::@classAugmentation::A
                 augmentation: <thisLibrary>::@unit::package:test/a12.dart::@classAugmentation::A
         package:test/a12.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
           reference: <thisLibrary>::@augmentation::package:test/a12.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a12.dart
@@ -478,6 +486,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a11.dart::@classAugmentation::A
                 augmentation: <thisLibrary>::@unit::package:test/a2.dart::@classAugmentation::A
     package:test/a2.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a2.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a2.dart
@@ -491,6 +500,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/a21.dart::@classAugmentation::A
       augmentationImports
         package:test/a21.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
           reference: <thisLibrary>::@augmentation::package:test/a21.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a21.dart
@@ -503,6 +513,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a2.dart::@classAugmentation::A
                 augmentation: <thisLibrary>::@unit::package:test/a22.dart::@classAugmentation::A
         package:test/a22.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
           reference: <thisLibrary>::@augmentation::package:test/a22.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a22.dart
@@ -549,6 +560,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -635,6 +647,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::B
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -662,6 +675,7 @@ library
                 <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -734,6 +748,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -799,6 +814,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -857,6 +873,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -925,6 +942,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -974,6 +992,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1027,6 +1046,7 @@ library
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1088,6 +1108,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1136,6 +1157,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1191,6 +1213,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::named
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1253,6 +1276,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::f
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1321,6 +1345,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::f
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1390,6 +1415,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1478,6 +1504,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1574,6 +1601,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1595,6 +1623,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@field::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -1692,6 +1721,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1712,6 +1742,7 @@ library
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -1809,6 +1840,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -1832,6 +1864,7 @@ library
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@setter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -1909,6 +1942,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2004,6 +2038,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2081,6 +2116,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2171,6 +2207,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2237,6 +2274,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2318,6 +2356,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2408,6 +2447,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2523,6 +2563,7 @@ library
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2606,6 +2647,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2678,6 +2720,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2741,6 +2784,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2807,6 +2851,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2886,6 +2931,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -2963,6 +3009,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3053,6 +3100,7 @@ library
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3150,6 +3198,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3246,6 +3295,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3267,6 +3317,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -3358,6 +3409,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@getter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3435,6 +3487,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3527,6 +3580,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3548,6 +3602,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -3601,6 +3656,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3666,6 +3722,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::I1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3741,6 +3798,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::I1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3763,6 +3821,7 @@ library
                 enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::I2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -3833,6 +3892,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::I1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3908,6 +3968,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::I1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -3977,6 +4038,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4056,6 +4118,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4126,6 +4189,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4199,6 +4263,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4261,6 +4326,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4314,6 +4380,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4388,6 +4455,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4451,6 +4519,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4522,6 +4591,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4604,6 +4674,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4624,6 +4695,7 @@ library
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -4691,6 +4763,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4760,6 +4833,7 @@ library
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4827,6 +4901,7 @@ library
           Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4921,6 +4996,7 @@ library
           B<U1>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -4947,6 +5023,7 @@ library
             superclassConstraints
               M1<U2>
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -5014,6 +5091,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5093,6 +5171,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5162,6 +5241,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5245,6 +5325,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5342,6 +5423,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5398,6 +5480,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5497,6 +5580,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5558,6 +5642,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5571,6 +5656,7 @@ library
             superclassConstraints
               Object
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -5626,6 +5712,7 @@ library
         augmented
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5639,6 +5726,7 @@ library
             superclassConstraints
               Object
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -5698,6 +5786,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5718,6 +5807,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@class::A::@constructor::named
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -5776,6 +5866,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5832,6 +5923,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -5877,12 +5969,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @49
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -5901,6 +5995,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -5975,17 +6070,20 @@ library
             <thisLibrary>::<definingUnit>::@class::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         classes
           augment class B @60
             reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
@@ -6049,17 +6147,20 @@ library
             <thisLibrary>::<definingUnit>::@class::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         classes
           augment class B @60
             reference: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B
@@ -6099,12 +6200,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @49
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -6132,6 +6235,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -6200,6 +6304,7 @@ library
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6253,6 +6358,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6297,6 +6403,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6341,6 +6448,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6385,6 +6493,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6429,6 +6538,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6473,6 +6583,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6517,6 +6628,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6640,6 +6752,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6706,6 +6819,7 @@ library
             <thisLibrary>::<definingUnit>::@class::B::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6778,6 +6892,7 @@ library
             <thisLibrary>::<definingUnit>::@class::C::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -6790,6 +6905,7 @@ library
             augmentationTarget: <thisLibrary>::<definingUnit>::@class::C
             augmentation: <thisLibrary>::@unit::package:test/b.dart::@classAugmentation::C
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -6846,6 +6962,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::B
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7030,6 +7147,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::C
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7045,6 +7163,7 @@ library
                 enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -7098,6 +7217,7 @@ library
                 type: T
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7149,6 +7269,7 @@ library
             nameEnd: 44
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7194,6 +7315,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7240,6 +7362,7 @@ library
           returnType: dynamic
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7276,6 +7399,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -7321,17 +7445,20 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @51
             reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
@@ -7382,21 +7509,30 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart as prefix @48
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       prefixes
         prefix @48
-          reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+          reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
+        libraryImportPrefixes
+          prefix @48
+            reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
+            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @61
             reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
@@ -7410,7 +7546,7 @@ library
                     target: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: prefix @72
-                        staticElement: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+                        staticElement: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
                         staticType: null
                       period: . @78
                       identifier: SimpleIdentifier
@@ -7445,6 +7581,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       documentationComment: /// My documentation.
       definingUnit
@@ -7477,17 +7614,20 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const b @52
             reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
@@ -7532,17 +7672,20 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const b @52
             reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
@@ -7595,17 +7738,20 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const a @52
             reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::a
@@ -7657,21 +7803,30 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart as prefix @48
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       prefixes
         prefix @48
-          reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+          reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
+        libraryImportPrefixes
+          prefix @48
+            reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
+            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static const b @62
             reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
@@ -7683,7 +7838,7 @@ library
                 target: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix @66
-                    staticElement: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+                    staticElement: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
                     staticType: null
                   period: . @72
                   identifier: SimpleIdentifier
@@ -7733,21 +7888,30 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart as prefix @48
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       prefixes
         prefix @48
-          reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+          reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
+        libraryImportPrefixes
+          prefix @48
+            reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
+            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @74
             reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
@@ -7758,7 +7922,7 @@ library
                 name: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: prefix @58
-                    staticElement: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+                    staticElement: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
                     staticType: null
                   period: . @64
                   identifier: SimpleIdentifier
@@ -7798,21 +7962,30 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart as prefix @48
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       prefixes
         prefix @48
-          reference: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::prefix
+          reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
           enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart as prefix @48
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
+        libraryImportPrefixes
+          prefix @48
+            reference: <thisLibrary>::@unit::package:test/b.dart::@prefix::prefix
+            enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @65
             reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
@@ -7844,17 +8017,20 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         topLevelVariables
           static final b @52
             reference: <thisLibrary>::@unit::package:test/b.dart::@topLevelVariable::b
@@ -7900,17 +8076,20 @@ library
         returnType: InvalidType
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         functions
           f @48
             reference: <thisLibrary>::@unit::package:test/b.dart::@function::f
@@ -7943,12 +8122,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     functions
       f @44
         reference: <thisLibrary>::<definingUnit>::@function::f
@@ -7956,6 +8137,7 @@ library
         returnType: A
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -7990,41 +8172,51 @@ library
   libraryImports
     dart:io
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:io
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       libraryExports
         dart:async
-          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:async
-            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryExports
         dart:collection
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         dart:math
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:collection
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
           dart:math
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
 ''');
   }
 
@@ -8049,41 +8241,51 @@ library
   libraryImports
     dart:io
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:io
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       libraryImports
         dart:async
-          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:async
-            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         dart:collection
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         dart:math
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:collection
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
           dart:math
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
 ''');
   }
 
@@ -8113,6 +8315,7 @@ library
         returnType: A
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -8168,6 +8371,7 @@ library
         returnType: A
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -11089,12 +11293,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @25
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11132,12 +11338,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @25
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11182,16 +11390,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @32
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11229,16 +11445,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @32
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11504,12 +11728,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @25
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11547,12 +11773,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @25
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11598,12 +11826,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @25
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11641,16 +11871,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @32
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11688,16 +11926,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @32
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -11743,16 +11989,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @32
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -14477,12 +14731,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class A @24
         reference: <thisLibrary>::<definingUnit>::@class::A
@@ -14769,12 +15025,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @23
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -16213,12 +16471,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @27
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -16248,12 +16508,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @27
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -20566,12 +20828,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class alias A @23
         reference: <thisLibrary>::<definingUnit>::@class::A
@@ -20887,12 +21151,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class M @23
         reference: <thisLibrary>::<definingUnit>::@class::M
@@ -20965,12 +21231,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class M @23
         reference: <thisLibrary>::<definingUnit>::@class::M
@@ -25358,12 +25626,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -25434,16 +25704,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -25458,7 +25736,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 typeArguments: TypeArgumentList
                   leftBracket: < @41
@@ -25712,12 +25990,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -25775,16 +26055,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -25799,7 +26087,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 typeArguments: TypeArgumentList
                   leftBracket: < @41
@@ -25943,12 +26231,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -25997,16 +26287,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -26021,7 +26319,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 element: package:test/a.dart::<definingUnit>::@class::C
                 type: C
@@ -26150,16 +26448,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -26174,7 +26480,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 element: package:test/a.dart::<definingUnit>::@class::C
                 type: C
@@ -26208,16 +26514,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -26232,7 +26546,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 element: <null>
                 type: InvalidType
@@ -26418,12 +26732,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -26467,16 +26783,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -26491,7 +26815,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 element: package:test/a.dart::<definingUnit>::@class::C
                 type: C
@@ -26557,16 +26881,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -26581,7 +26913,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @38
                   period: . @39
-                  element: <thisLibrary>::@prefix::p
+                  element: <thisLibrary>::<definingUnit>::@prefix::p
                 name: C @40
                 element: <null>
                 type: InvalidType
@@ -26774,12 +27106,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const v @27
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -26830,16 +27164,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const v @32
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -26852,7 +27194,7 @@ library
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @36
-                  staticElement: <thisLibrary>::@prefix::p
+                  staticElement: <thisLibrary>::<definingUnit>::@prefix::p
                   staticType: null
                 period: . @37
                 identifier: SimpleIdentifier
@@ -26979,12 +27321,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const v @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -27026,16 +27370,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const v @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -27047,7 +27399,7 @@ library
             target: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @32
-                staticElement: <thisLibrary>::@prefix::p
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::p
                 staticType: null
               period: . @33
               identifier: SimpleIdentifier
@@ -28117,12 +28469,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const b @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
@@ -28395,12 +28749,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -28444,16 +28800,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -28465,7 +28829,7 @@ library
             target: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @32
-                staticElement: <thisLibrary>::@prefix::p
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::p
                 staticType: null
               period: . @33
               identifier: SimpleIdentifier
@@ -28562,12 +28926,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -28611,16 +28977,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -28632,7 +29006,7 @@ library
             target: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @32
-                staticElement: <thisLibrary>::@prefix::p
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::p
                 staticType: null
               period: . @33
               identifier: SimpleIdentifier
@@ -28806,12 +29180,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -28845,16 +29221,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -28865,7 +29249,7 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: p @32
-              staticElement: <thisLibrary>::@prefix::p
+              staticElement: <thisLibrary>::<definingUnit>::@prefix::p
               staticType: null
             period: . @33
             identifier: SimpleIdentifier
@@ -28947,12 +29331,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const B @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::B
@@ -28994,16 +29380,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const B @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::B
@@ -29015,7 +29409,7 @@ library
             leftOperand: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @32
-                staticElement: <thisLibrary>::@prefix::p
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::p
                 staticType: null
               period: . @33
               identifier: SimpleIdentifier
@@ -29350,12 +29744,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const vClass @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vClass
@@ -29421,16 +29817,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const vClass @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::vClass
@@ -29441,7 +29845,7 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: p @37
-              staticElement: <thisLibrary>::@prefix::p
+              staticElement: <thisLibrary>::<definingUnit>::@prefix::p
               staticType: null
             period: . @38
             identifier: SimpleIdentifier
@@ -29459,7 +29863,7 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: p @56
-              staticElement: <thisLibrary>::@prefix::p
+              staticElement: <thisLibrary>::<definingUnit>::@prefix::p
               staticType: null
             period: . @57
             identifier: SimpleIdentifier
@@ -29477,7 +29881,7 @@ library
           PrefixedIdentifier
             prefix: SimpleIdentifier
               token: p @88
-              staticElement: <thisLibrary>::@prefix::p
+              staticElement: <thisLibrary>::<definingUnit>::@prefix::p
               staticType: null
             period: . @89
             identifier: SimpleIdentifier
@@ -29628,16 +30032,24 @@ library
   libraryImports
     package:test/foo.dart as p @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @21
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as p @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const V @30
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::V
@@ -29649,7 +30061,7 @@ library
             target: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @34
-                staticElement: <thisLibrary>::@prefix::p
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::p
                 staticType: null
               period: . @35
               identifier: SimpleIdentifier
@@ -31325,12 +31737,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const v @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -31371,16 +31785,24 @@ library
   libraryImports
     package:test/a.dart as p @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @19
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as p @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const v @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -31397,7 +31819,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
-                    element: <thisLibrary>::@prefix::p
+                    element: <thisLibrary>::<definingUnit>::@prefix::p
                   name: C @41
                   element: package:test/a.dart::<definingUnit>::@class::C
                   type: C
@@ -37532,12 +37954,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@class::C
   exportNamespace
@@ -37559,12 +37983,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@class::C
   exportNamespace
@@ -37591,12 +38017,14 @@ library
   libraryExports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/foo.dart::<definingUnit>::@class::A
   exportNamespace
@@ -37626,12 +38054,14 @@ library
   libraryExports
     package:test/foo_io.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/foo_io.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/foo_io.dart::<definingUnit>::@class::A
   exportNamespace
@@ -37661,12 +38091,14 @@ library
   libraryExports
     package:test/foo_html.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/foo_html.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/foo_html.dart::<definingUnit>::@class::A
   exportNamespace
@@ -37693,12 +38125,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class X @23
         reference: <thisLibrary>::<definingUnit>::@class::X
@@ -37726,12 +38160,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@function::f
   exportNamespace
@@ -37748,12 +38184,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -37774,6 +38212,7 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         hide: A, C
   definingUnit
@@ -37781,7 +38220,8 @@ library
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           hide: A, C
   exportedReferences
@@ -37810,6 +38250,7 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         hide: A
         show: C
@@ -37818,7 +38259,8 @@ library
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           hide: A
           show: C
@@ -37857,16 +38299,20 @@ library
   libraryExports
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/c.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/c.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class X @40
         reference: <thisLibrary>::<definingUnit>::@class::X
@@ -37898,12 +38344,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@setter::f
   exportNamespace
@@ -37928,6 +38376,7 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         show: A, C
   definingUnit
@@ -37935,7 +38384,8 @@ library
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           show: A, C
   exportedReferences
@@ -37960,6 +38410,7 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         show: f
   definingUnit
@@ -37967,7 +38418,8 @@ library
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           show: f
   exportedReferences
@@ -37989,12 +38441,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@typeAlias::F
   exportNamespace
@@ -38021,12 +38475,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@getter::x
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@setter::x
@@ -38046,12 +38502,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@getter::x
   exportNamespace
@@ -38069,12 +38527,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<definingUnit>::@getter::x
   exportNamespace
@@ -38104,12 +38564,14 @@ library
   libraryImports
     package:test/bar.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/bar.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @25
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -38148,12 +38610,14 @@ library
   libraryImports
     package:test/bar.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/bar.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @25
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -38192,12 +38656,14 @@ library
   libraryImports
     package:test/bar.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/bar.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @25
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -38224,16 +38690,20 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
   exportedReferences
   exportNamespace
 ''');
@@ -38270,6 +38740,7 @@ library
             <thisLibrary>::<definingUnit>::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -38338,33 +38809,41 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::X
   augmentationImports
     package:test/d.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/d.dart
       libraryExports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/d.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/d.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/d.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/d.dart
     package:test/e.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/e.dart
       libraryExports
         package:test/b.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/e.dart
         package:test/c.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/e.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/e.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/e.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/b.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/e.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/e.dart
           package:test/c.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/e.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/e.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<definingUnit>::@class::A
     exported[(2, 0)] package:test/b.dart::<definingUnit>::@class::B1
@@ -38412,10 +38891,12 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::X
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryExports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
           combinators
             hide: A2, A4
       definingUnit
@@ -38424,7 +38905,8 @@ library
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
             combinators
               hide: A2, A4
   exportedReferences
@@ -38469,10 +38951,12 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::X
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryExports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
           combinators
             show: A1, A3
       definingUnit
@@ -38481,7 +38965,8 @@ library
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
             combinators
               show: A1, A3
   exportedReferences
@@ -38524,6 +39009,7 @@ library
             Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -38579,6 +39065,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::C
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -38594,6 +39081,7 @@ library
                 enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@class::A
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -38655,30 +39143,36 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::X
   augmentationImports
     package:test/c.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/c.dart
       libraryExports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/c.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/c.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/c.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/c.dart
       augmentationImports
         package:test/d.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/c.dart
           reference: <thisLibrary>::@augmentation::package:test/d.dart
           libraryExports
             package:test/b.dart
-              enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
+              enclosingElement: <thisLibrary>
+              enclosingElement3: <thisLibrary>::@unit::package:test/d.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/d.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/d.dart
             enclosingElement3: <thisLibrary>::@unit::package:test/c.dart
             libraryExports
               package:test/b.dart
-                enclosingElement: <thisLibrary>::@unit::package:test/d.dart
+                enclosingElement: <thisLibrary>
+                enclosingElement3: <thisLibrary>::@unit::package:test/d.dart
   exportedReferences
     exported[(1, 0)] package:test/a.dart::<definingUnit>::@class::A
     exported[(2, 0)] package:test/b.dart::<definingUnit>::@class::B
@@ -38707,6 +39201,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -38756,6 +39251,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -38929,12 +39425,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     functions
       f @28 async
         reference: <thisLibrary>::<definingUnit>::@function::f
@@ -38954,12 +39452,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     functions
       f @28 async*
         reference: <thisLibrary>::<definingUnit>::@function::f
@@ -39015,12 +39515,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -39033,6 +39535,7 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         hide: main
   definingUnit
@@ -39040,7 +39543,8 @@ library
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           hide: main
 ''');
@@ -39953,12 +40457,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @35
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -39991,12 +40497,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static const x @27
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -40034,12 +40542,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @52
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -41048,12 +41558,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       synthetic static foo @-1
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::foo
@@ -41448,12 +41960,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @104
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -41490,12 +42004,14 @@ library
   libraryImports
     package:test/foo_io.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo_io.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @104
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -41532,12 +42048,14 @@ library
   libraryImports
     package:test/foo_io.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo_io.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @124
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -41574,12 +42092,14 @@ library
   libraryImports
     package:test/foo_html.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo_html.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @104
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -41616,12 +42136,14 @@ library
   libraryImports
     package:test/foo_html.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo_html.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @124
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -41648,16 +42170,20 @@ library
   libraryImports
     dart:core
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:core
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -41671,12 +42197,14 @@ library
   libraryImports
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -41691,16 +42219,24 @@ library
   libraryImports
     package:test/a.dart deferred as p @28
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @28
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart deferred as p @28
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @28
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -41719,44 +42255,72 @@ library
   libraryImports
     dart:async as i1 @23
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     dart:async as i2 @70
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     dart:async as i3 @117
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     i1 @23
-      reference: <thisLibrary>::@prefix::i1
+      reference: <thisLibrary>::<definingUnit>::@prefix::i1
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     i2 @70
-      reference: <thisLibrary>::@prefix::i2
+      reference: <thisLibrary>::<definingUnit>::@prefix::i2
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     i3 @117
-      reference: <thisLibrary>::@prefix::i3
+      reference: <thisLibrary>::<definingUnit>::@prefix::i3
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   libraryExports
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async as i1 @23
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       dart:async as i2 @70
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       dart:async as i3 @117
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      i1 @23
+        reference: <thisLibrary>::<definingUnit>::@prefix::i1
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+      i2 @70
+        reference: <thisLibrary>::<definingUnit>::@prefix::i2
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+      i3 @117
+        reference: <thisLibrary>::<definingUnit>::@prefix::i3
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     libraryExports
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -41770,6 +42334,7 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         hide: Stream, Completer
   definingUnit
@@ -41777,7 +42342,8 @@ library
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           hide: Stream, Completer
     topLevelVariables
@@ -41829,6 +42395,7 @@ library
   libraryImports
     relativeUri 'ht:'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       metadata
         Annotation
           atSign: @ @0
@@ -41842,7 +42409,16 @@ library
     enclosingElement: <thisLibrary>
     libraryImports
       relativeUri 'ht:'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: foo @1
+              staticElement: <null>
+              staticType: null
+            element: <null>
 ''');
   }
 
@@ -41857,6 +42433,7 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         hide: Stream
         show: Future
@@ -41865,7 +42442,8 @@ library
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           hide: Stream
           show: Future
@@ -41902,16 +42480,24 @@ library
   libraryImports
     package:test/a.dart as a @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     a @19
-      reference: <thisLibrary>::@prefix::a
+      reference: <thisLibrary>::<definingUnit>::@prefix::a
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as a @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      a @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::a
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @26
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -41948,16 +42534,24 @@ library
   libraryImports
     package:test/test.dart as p @22
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     p @22
-      reference: <thisLibrary>::@prefix::p
+      reference: <thisLibrary>::<definingUnit>::@prefix::p
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/test.dart as p @22
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      p @22
+        reference: <thisLibrary>::<definingUnit>::@prefix::p
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @31
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -41990,6 +42584,7 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       combinators
         show: Future, Stream
   definingUnit
@@ -41997,7 +42592,8 @@ library
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
         combinators
           show: Future, Stream
     topLevelVariables
@@ -42065,16 +42661,20 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @36
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -43110,12 +43710,14 @@ library
   libraryImports
     dart:collection
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:collection
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static m @30
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::m
@@ -43308,12 +43910,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -43347,12 +43951,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -43386,12 +43992,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -43425,12 +44033,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -43669,12 +44279,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @23
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -43918,12 +44530,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class B @23
         reference: <thisLibrary>::<definingUnit>::@class::B
@@ -44035,16 +44649,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static a1 @30
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a1
@@ -44294,12 +44916,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @25
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -44332,12 +44956,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @25
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -44370,12 +44996,14 @@ library
   libraryImports
     dart:async
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @25
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -44489,12 +45117,14 @@ library
   libraryImports
     package:test/nullSafe.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/nullSafe.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class X1 @30
         reference: <thisLibrary>::<definingUnit>::@class::X1
@@ -44750,12 +45380,14 @@ library
   libraryImports
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @23
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -45050,16 +45682,24 @@ library
   libraryImports
     package:test/a.dart as a @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     a @19
-      reference: <thisLibrary>::@prefix::a
+      reference: <thisLibrary>::<definingUnit>::@prefix::a
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as a @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      a @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::a
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @39
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -45070,7 +45710,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: a @23
-                staticElement: <thisLibrary>::@prefix::a
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::a
                 staticType: null
               period: . @24
               identifier: SimpleIdentifier
@@ -45109,12 +45749,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @32
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -45155,16 +45797,24 @@ library
   libraryImports
     dart:async as ppp @23
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     ppp @23
-      reference: <thisLibrary>::@prefix::ppp
+      reference: <thisLibrary>::<definingUnit>::@prefix::ppp
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async as ppp @23
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      ppp @23
+        reference: <thisLibrary>::<definingUnit>::@prefix::ppp
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @34
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -45207,16 +45857,20 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     functions
       foo @34
         reference: <thisLibrary>::<definingUnit>::@function::foo
@@ -45250,12 +45904,14 @@ library
   libraryImports
     package:test/c.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/c.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     functions
       foo @17
         reference: <thisLibrary>::<definingUnit>::@function::foo
@@ -45447,6 +46103,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::B
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -45499,6 +46156,7 @@ library
     <thisLibrary>::@augmentation::package:test/c.dart
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -45506,12 +46164,14 @@ library
         enclosingElement3: <thisLibrary>::<definingUnit>
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
             enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
             enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
     package:test/c.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/c.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/c.dart
@@ -45536,6 +46196,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     noRelativeUriString
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45551,6 +46212,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     source 'package:test/test.dart'
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45566,6 +46228,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     relativeUri 'foo:bar'
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45584,6 +46247,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     source 'package:test/a.dart'
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45602,6 +46266,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     source 'package:test/a.dart'
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45617,6 +46282,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     source 'package:test/a.dart'
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45632,6 +46298,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     relativeUriString ':'
+      enclosingElement: <thisLibrary>
 ''');
   }
 
@@ -45682,12 +46349,14 @@ library
   libraryExports
     noRelativeUriString
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       noRelativeUriString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45701,12 +46370,14 @@ library
   libraryExports
     package:test/test.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/test.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45720,12 +46391,14 @@ library
   libraryExports
     relativeUri 'foo:bar'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       relativeUri 'foo:bar'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45739,12 +46412,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45761,12 +46436,14 @@ library
   libraryExports
     source 'package:test/a.dart'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       source 'package:test/a.dart'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45783,12 +46460,14 @@ library
   libraryExports
     source 'package:test/a.dart'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       source 'package:test/a.dart'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45802,12 +46481,14 @@ library
   libraryExports
     relativeUriString ':'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       relativeUriString ':'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45821,12 +46502,14 @@ library
   libraryImports
     noRelativeUriString
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       noRelativeUriString
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45851,12 +46534,14 @@ library
   libraryImports
     dart:core synthetic
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:core synthetic
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45870,12 +46555,14 @@ library
   libraryImports
     package:test/test.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/test.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45889,12 +46576,14 @@ library
   libraryImports
     relativeUri 'foo:bar'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       relativeUri 'foo:bar'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45908,12 +46597,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45930,12 +46621,14 @@ library
   libraryImports
     source 'package:test/a.dart'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       source 'package:test/a.dart'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45952,12 +46645,14 @@ library
   libraryImports
     source 'package:test/a.dart'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       source 'package:test/a.dart'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -45971,12 +46666,14 @@ library
   libraryImports
     relativeUriString ':'
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       relativeUriString ':'
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46477,12 +47174,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46495,12 +47194,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46534,12 +47235,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46569,12 +47272,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46615,12 +47320,14 @@ library
   libraryExports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -46641,6 +47348,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -46681,6 +47389,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       metadata
         Annotation
@@ -46714,10 +47423,12 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       libraryExports
         dart:math
-          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
           metadata
             Annotation
               atSign: @ @29
@@ -46732,7 +47443,16 @@ library
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryExports
           dart:math
-            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::<definingUnit>::@getter::deprecated
+                  staticType: null
+                element: dart:core::<definingUnit>::@getter::deprecated
 ''');
   }
 
@@ -46756,6 +47476,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -46763,6 +47484,7 @@ library
         enclosingElement3: <thisLibrary>::<definingUnit>
       augmentationImports
         package:test/a.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
           metadata
             Annotation
               atSign: @ @29
@@ -46796,10 +47518,12 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       libraryImports
         dart:math
-          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
           metadata
             Annotation
               atSign: @ @29
@@ -46814,7 +47538,16 @@ library
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           dart:math
-            enclosingElement: <thisLibrary>::@unit::package:test/a.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/a.dart
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::<definingUnit>::@getter::deprecated
+                  staticType: null
+                element: dart:core::<definingUnit>::@getter::deprecated
 ''');
   }
 
@@ -46834,6 +47567,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       metadata
         Annotation
@@ -47425,16 +48159,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @48
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -47445,7 +48187,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -47491,16 +48233,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @48
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -47511,7 +48261,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -47561,16 +48311,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @52
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -47581,7 +48339,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -47887,16 +48645,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @42
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -47907,7 +48673,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -47948,16 +48714,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @42
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -47968,7 +48742,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -48011,16 +48785,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @46
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -48031,7 +48813,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -49117,6 +49899,7 @@ library
   libraryExports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       metadata
         Annotation
           atSign: @ @0
@@ -49130,7 +49913,16 @@ library
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: a @1
+              staticElement: <thisLibrary>::<definingUnit>::@getter::a
+              staticType: null
+            element: <thisLibrary>::<definingUnit>::@getter::a
     topLevelVariables
       static const a @28
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
@@ -49837,6 +50629,7 @@ library
   libraryImports
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       metadata
         Annotation
           atSign: @ @0
@@ -49850,7 +50643,16 @@ library
     enclosingElement: <thisLibrary>
     libraryImports
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: a @1
+              staticElement: <thisLibrary>::<definingUnit>::@getter::a
+              staticType: null
+            element: <thisLibrary>::<definingUnit>::@getter::a
     topLevelVariables
       static const a @29
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::a
@@ -49890,6 +50692,7 @@ library
   libraryImports
     dart:math
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
       metadata
         Annotation
           atSign: @ @0
@@ -49905,7 +50708,16 @@ library
     enclosingElement: <thisLibrary>
     libraryImports
       dart:math
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: a @1
+              staticElement: <thisLibrary>::<definingUnit>::@getter::a
+              staticType: null
+            element: <thisLibrary>::<definingUnit>::@getter::a
         combinators
           show: Random
     topLevelVariables
@@ -50127,6 +50939,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       metadata
         Annotation
           atSign: @ @0
@@ -50157,6 +50970,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     source 'dart:math'
+      enclosingElement: <thisLibrary>
       metadata
         Annotation
           atSign: @ @0
@@ -52000,16 +52814,24 @@ library
   libraryImports
     package:test/a.dart as a @19
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     a @19
-      reference: <thisLibrary>::@prefix::a
+      reference: <thisLibrary>::<definingUnit>::@prefix::a
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart as a @19
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      a @19
+        reference: <thisLibrary>::<definingUnit>::@prefix::a
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @33
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -52020,7 +52842,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: a @23
-                staticElement: <thisLibrary>::@prefix::a
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::a
                 staticType: null
               period: . @24
               identifier: SimpleIdentifier
@@ -52890,16 +53712,24 @@ library
   libraryImports
     package:test/foo.dart as foo @21
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @21
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart as foo @21
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @21
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @41
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -52910,7 +53740,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @27
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @30
               identifier: SimpleIdentifier
@@ -54143,12 +54973,14 @@ library
   libraryImports
     package:test/c.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/c.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -54187,12 +55019,14 @@ library
   libraryImports
     package:test/d.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/d.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -54235,12 +55069,14 @@ library
   libraryImports
     package:test/c.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/c.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -54280,16 +55116,20 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @36
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -57920,16 +58760,24 @@ library
   libraryImports
     package:test/a.dart deferred as a @28
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     a @28
-      reference: <thisLibrary>::@prefix::a
+      reference: <thisLibrary>::<definingUnit>::@prefix::a
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart deferred as a @28
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      a @28
+        reference: <thisLibrary>::<definingUnit>::@prefix::a
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static x @35
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -58026,12 +58874,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static y @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::y
@@ -58471,16 +59321,20 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static v @38
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::v
@@ -60132,12 +60986,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60202,12 +61058,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60273,12 +61131,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60344,12 +61204,14 @@ library
   libraryImports
     package:test/a/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60414,12 +61276,14 @@ library
   libraryImports
     package:test/a/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60484,12 +61348,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60555,12 +61421,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c1 @20
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c1
@@ -60607,12 +61475,14 @@ library
   libraryImports
     package:test/a/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @21
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60676,12 +61546,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @19
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -60917,16 +61789,24 @@ library
   libraryImports
     dart:core as core @22
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     core @22
-      reference: <thisLibrary>::@prefix::core
+      reference: <thisLibrary>::<definingUnit>::@prefix::core
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:core as core @22
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      core @22
+        reference: <thisLibrary>::<definingUnit>::@prefix::core
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static c @35
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::c
@@ -64078,16 +64958,24 @@ library
   libraryImports
     dart:async as foo @23
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @23
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async as foo @23
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @23
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @43
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -64098,7 +64986,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @29
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @32
               identifier: SimpleIdentifier
@@ -64167,16 +65055,24 @@ library
   libraryImports
     dart:async as foo @23
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @23
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async as foo @23
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @23
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @49
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -64187,7 +65083,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @29
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @32
               identifier: SimpleIdentifier
@@ -64221,16 +65117,24 @@ library
   libraryImports
     dart:async as foo @23
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @23
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async as foo @23
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @23
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @52
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -64241,7 +65145,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @29
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @32
               identifier: SimpleIdentifier
@@ -64313,16 +65217,24 @@ library
   libraryImports
     dart:async as foo @23
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   prefixes
     foo @23
-      reference: <thisLibrary>::@prefix::foo
+      reference: <thisLibrary>::<definingUnit>::@prefix::foo
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       dart:async as foo @23
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
+    libraryImportPrefixes
+      foo @23
+        reference: <thisLibrary>::<definingUnit>::@prefix::foo
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @45
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -64333,7 +65245,7 @@ library
             name: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: foo @29
-                staticElement: <thisLibrary>::@prefix::foo
+                staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
                 staticType: null
               period: . @32
               identifier: SimpleIdentifier
@@ -64396,16 +65308,20 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     classes
       class C @44
         reference: <thisLibrary>::<definingUnit>::@class::C
@@ -64463,12 +65379,14 @@ library
   libraryExports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryExports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -64484,12 +65402,14 @@ library
   libraryImports
     package:test/foo.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/foo.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
 ''');
   }
 
@@ -65195,12 +66115,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static final b @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::b
@@ -65290,12 +66212,14 @@ library
   libraryImports
     package:test/b.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/b.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     topLevelVariables
       static final x @23
         reference: <thisLibrary>::<definingUnit>::@topLevelVariable::x
@@ -65637,6 +66561,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -65796,6 +66721,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a1.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a1.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a1.dart
@@ -65809,6 +66735,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/a11.dart::@enumAugmentation::A
       augmentationImports
         package:test/a11.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
           reference: <thisLibrary>::@augmentation::package:test/a11.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a11.dart
@@ -65821,6 +66748,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a1.dart::@enumAugmentation::A
                 augmentation: <thisLibrary>::@unit::package:test/a12.dart::@enumAugmentation::A
         package:test/a12.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
           reference: <thisLibrary>::@augmentation::package:test/a12.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a12.dart
@@ -65833,6 +66761,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a11.dart::@enumAugmentation::A
                 augmentation: <thisLibrary>::@unit::package:test/a2.dart::@enumAugmentation::A
     package:test/a2.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a2.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a2.dart
@@ -65846,6 +66775,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/a21.dart::@enumAugmentation::A
       augmentationImports
         package:test/a21.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
           reference: <thisLibrary>::@augmentation::package:test/a21.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a21.dart
@@ -65858,6 +66788,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a2.dart::@enumAugmentation::A
                 augmentation: <thisLibrary>::@unit::package:test/a22.dart::@enumAugmentation::A
         package:test/a22.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
           reference: <thisLibrary>::@augmentation::package:test/a22.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a22.dart
@@ -65906,6 +66837,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -66021,6 +66953,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -66067,6 +67000,7 @@ library
                 <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -66186,6 +67120,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -66342,6 +67277,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -66381,6 +67317,7 @@ library
                 id: getter_2
                 variable: field_2
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -66523,6 +67460,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -66742,6 +67680,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -66914,6 +67853,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67028,6 +67968,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67111,6 +68052,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67195,6 +68137,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67286,6 +68229,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67365,6 +68309,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67450,6 +68395,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67538,6 +68484,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67632,6 +68579,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67752,6 +68700,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67872,6 +68821,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -67893,6 +68843,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@field::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -68014,6 +68965,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68034,6 +68986,7 @@ library
                 variable: field_2
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -68155,6 +69108,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68178,6 +69132,7 @@ library
                 variable: <null>
                 augmentationTargetAny: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -68290,6 +69245,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68418,6 +69374,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68535,6 +69492,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68648,6 +69606,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68774,6 +69733,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68875,6 +69835,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -68975,6 +69936,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69089,6 +70051,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69214,6 +70177,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69335,6 +70299,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69455,6 +70420,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69476,6 +70442,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -69602,6 +70569,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69714,6 +70682,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69841,6 +70810,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -69862,6 +70832,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -69953,6 +70924,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70050,6 +71022,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70158,6 +71131,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70181,6 +71155,7 @@ library
               I2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -70284,6 +71259,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70392,6 +71368,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70496,6 +71473,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70601,6 +71579,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70705,6 +71684,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@method::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70798,6 +71778,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@methodAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -70899,6 +71880,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@enumAugmentation::A::@def::1::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71011,6 +71993,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71031,6 +72014,7 @@ library
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -71128,6 +72112,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71227,6 +72212,7 @@ library
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71324,6 +72310,7 @@ library
           Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71434,6 +72421,7 @@ library
           Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71460,6 +72448,7 @@ library
             superclassConstraints
               M1<U2>
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -71581,6 +72570,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71702,6 +72692,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71801,6 +72792,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -71935,6 +72927,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72014,6 +73007,7 @@ library
             returnType: List<A>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72025,6 +73019,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@enum::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -72103,6 +73098,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72114,6 +73110,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@enum::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -72203,6 +73200,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72223,6 +73221,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@enum::A::@constructor::named
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::A::@constructorAugmentation::named
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -72337,6 +73336,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72444,6 +73444,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72492,12 +73493,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     enums
       enum B @48
         reference: <thisLibrary>::<definingUnit>::@enum::B
@@ -72546,6 +73549,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -72650,17 +73654,20 @@ library
             <thisLibrary>::<definingUnit>::@enum::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         enums
           augment enum B @59
             reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
@@ -72754,17 +73761,20 @@ library
             <thisLibrary>::<definingUnit>::@enum::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         enums
           augment enum B @59
             reference: <thisLibrary>::@unit::package:test/b.dart::@enumAugmentation::B
@@ -72850,6 +73860,7 @@ library
             <thisLibrary>::<definingUnit>::@enum::A::@getter::values
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72916,6 +73927,7 @@ library
         augmented
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72929,6 +73941,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -72974,6 +73987,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -72996,6 +74010,7 @@ library
                 <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -73076,6 +74091,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73167,6 +74183,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73188,6 +74205,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@field::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -73280,6 +74298,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73300,6 +74319,7 @@ library
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -73392,6 +74412,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73415,6 +74436,7 @@ library
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -73498,6 +74520,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73571,6 +74594,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73656,6 +74680,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73745,6 +74770,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73830,6 +74856,7 @@ library
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -73922,6 +74949,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74013,6 +75041,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74034,6 +75063,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -74120,6 +75150,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@getter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74199,6 +75230,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74220,6 +75252,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extension::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -74279,6 +75312,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74341,6 +75375,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@method::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74406,6 +75441,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74426,6 +75462,7 @@ library
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -74488,6 +75525,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74552,6 +75590,7 @@ library
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74620,6 +75659,7 @@ library
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74696,6 +75736,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74788,6 +75829,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74883,6 +75925,7 @@ library
             <thisLibrary>::<definingUnit>::@extension::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74941,6 +75984,7 @@ library
         extendedType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -74952,6 +75996,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extension::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -75001,6 +76046,7 @@ library
         augmented
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75012,6 +76058,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extension::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -75100,6 +76147,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75113,6 +76161,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -75158,6 +76207,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75206,6 +76256,7 @@ library
                 <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -75279,6 +76330,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75358,6 +76410,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75440,6 +76493,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75545,6 +76599,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75662,6 +76717,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75683,6 +76739,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@field::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -75801,6 +76858,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75821,6 +76879,7 @@ library
                 variable: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -75939,6 +76998,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -75962,6 +77022,7 @@ library
                 variable: field_1
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@setter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -76071,6 +77132,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76170,6 +77232,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76281,6 +77344,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76396,6 +77460,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76507,6 +77572,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76625,6 +77691,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76742,6 +77809,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76763,6 +77831,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -76875,6 +77944,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -76980,6 +78050,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77001,6 +78072,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@extensionType::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -77088,6 +78160,7 @@ library
             returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77210,6 +78283,7 @@ library
             returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77249,6 +78323,7 @@ library
                 returnType: int
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -77374,6 +78449,7 @@ library
             returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77504,6 +78580,7 @@ library
             returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77615,6 +78692,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77703,6 +78781,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77794,6 +78873,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77814,6 +78894,7 @@ library
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -77902,6 +78983,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -77992,6 +79074,7 @@ library
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78086,6 +79169,7 @@ library
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78188,6 +79272,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78306,6 +79391,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78427,6 +79513,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78497,6 +79584,7 @@ library
             returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78508,6 +79596,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extensionType::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -78573,6 +79662,7 @@ library
             <thisLibrary>::<definingUnit>::@extensionType::A::@getter::it
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -78584,6 +79674,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@extensionType::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -79105,12 +80196,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     extensionTypes
       A @32
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -79578,12 +80671,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     extensionTypes
       A @37
         reference: <thisLibrary>::<definingUnit>::@extensionType::A
@@ -80271,6 +81366,7 @@ library
         augmentation: <thisLibrary>::@unit::package:test/a1.dart::@functionAugmentation::foo
   augmentationImports
     package:test/a1.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a1.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a1.dart
@@ -80285,6 +81381,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/a11.dart::@functionAugmentation::foo
       augmentationImports
         package:test/a11.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
           reference: <thisLibrary>::@augmentation::package:test/a11.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a11.dart
@@ -80298,6 +81395,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a1.dart::@functionAugmentation::foo
                 augmentation: <thisLibrary>::@unit::package:test/a12.dart::@functionAugmentation::foo
         package:test/a12.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a1.dart
           reference: <thisLibrary>::@augmentation::package:test/a12.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a12.dart
@@ -80311,6 +81409,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a11.dart::@functionAugmentation::foo
                 augmentation: <thisLibrary>::@unit::package:test/a2.dart::@functionAugmentation::foo
     package:test/a2.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a2.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a2.dart
@@ -80325,6 +81424,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/a21.dart::@functionAugmentation::foo
       augmentationImports
         package:test/a21.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
           reference: <thisLibrary>::@augmentation::package:test/a21.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a21.dart
@@ -80338,6 +81438,7 @@ library
                 augmentationTarget: <thisLibrary>::@unit::package:test/a2.dart::@functionAugmentation::foo
                 augmentation: <thisLibrary>::@unit::package:test/a22.dart::@functionAugmentation::foo
         package:test/a22.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a2.dart
           reference: <thisLibrary>::@augmentation::package:test/a22.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/a22.dart
@@ -80381,6 +81482,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80421,6 +81523,7 @@ library
         augmentation: <thisLibrary>::@unit::package:test/a.dart::@functionAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80459,6 +81562,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80513,6 +81617,7 @@ library
         returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80561,6 +81666,7 @@ library
         returnType: void
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80614,6 +81720,7 @@ library
         returnType: void
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80655,6 +81762,7 @@ library
         enclosingElement: <thisLibrary>::<definingUnit>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80703,6 +81811,7 @@ library
         returnType: void
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80760,6 +81869,7 @@ library
         augmentation: <thisLibrary>::@unit::package:test/a.dart::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80801,6 +81911,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80858,6 +81969,7 @@ library
         variable: variable_0
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80926,6 +82038,7 @@ library
         variable: variable_0
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -80978,6 +82091,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81037,6 +82151,7 @@ library
         variable: variable_0
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81081,6 +82196,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81141,6 +82257,7 @@ library
         augmentation: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81212,6 +82329,7 @@ library
         augmentation: <thisLibrary>::@unit::package:test/a.dart::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81369,6 +82487,7 @@ library
             Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81382,6 +82501,7 @@ library
             augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -81428,6 +82548,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81512,6 +82633,7 @@ library
           Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81537,6 +82659,7 @@ library
                 <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@method::foo2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -81620,6 +82743,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81714,6 +82838,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81735,6 +82860,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@field::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -81830,6 +82956,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81850,6 +82977,7 @@ library
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -81945,6 +83073,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -81968,6 +83097,7 @@ library
                 variable: field_0
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -82054,6 +83184,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82130,6 +83261,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82218,6 +83350,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82331,6 +83464,7 @@ library
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82425,6 +83559,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82513,6 +83648,7 @@ library
               augmentationSubstitution: {T2: T1}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82608,6 +83744,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82702,6 +83839,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82723,6 +83861,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -82812,6 +83951,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82894,6 +84034,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -82915,6 +84056,7 @@ library
                 augmentationTarget: <thisLibrary>::<definingUnit>::@mixin::A::@getter::foo
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -82980,6 +84122,7 @@ library
             I2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83055,6 +84198,7 @@ library
             I3
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83078,6 +84222,7 @@ library
               I2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -83142,6 +84287,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83207,6 +84353,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@method::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83275,6 +84422,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83295,6 +84443,7 @@ library
                 augmentation: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -83360,6 +84509,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83427,6 +84577,7 @@ library
               augmentationSubstitution: {T2: T}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83498,6 +84649,7 @@ library
               augmentationSubstitution: {T: InvalidType}
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83577,6 +84729,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83672,6 +84825,7 @@ library
             <thisLibrary>::@unit::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83770,6 +84924,7 @@ library
             <thisLibrary>::<definingUnit>::@mixin::A::@setter::foo2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83834,6 +84989,7 @@ library
             B2
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83905,6 +85061,7 @@ library
             I3
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -83928,6 +85085,7 @@ library
               I2
       augmentationImports
         package:test/b.dart
+          enclosingElement: <thisLibrary>::@augmentation::package:test/a.dart
           reference: <thisLibrary>::@augmentation::package:test/b.dart
           definingUnit
             reference: <thisLibrary>::@unit::package:test/b.dart
@@ -83979,6 +85137,7 @@ library
             B
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84045,6 +85204,7 @@ library
             I2<T>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84109,6 +85269,7 @@ library
           Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84120,6 +85281,7 @@ library
             enclosingElement: <thisLibrary>::@unit::package:test/a.dart
             augmentationTargetAny: <thisLibrary>::<definingUnit>::@mixin::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -84171,6 +85333,7 @@ library
             Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84186,6 +85349,7 @@ library
                 reference: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A::@constructor::new
                 enclosingElement: <thisLibrary>::@unit::package:test/a.dart::@classAugmentation::A
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -84226,12 +85390,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     mixins
       mixin B @49
         reference: <thisLibrary>::<definingUnit>::@mixin::B
@@ -84246,6 +85412,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -84318,17 +85485,20 @@ library
             <thisLibrary>::<definingUnit>::@mixin::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         mixins
           augment mixin B @60
             reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
@@ -84386,17 +85556,20 @@ library
             <thisLibrary>::<definingUnit>::@mixin::B::@method::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       libraryImports
         package:test/a.dart
-          enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
+          enclosingElement: <thisLibrary>
+          enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
         enclosingElement: <thisLibrary>::@augmentation::package:test/b.dart
         enclosingElement3: <thisLibrary>::<definingUnit>
         libraryImports
           package:test/a.dart
-            enclosingElement: <thisLibrary>::@unit::package:test/b.dart
+            enclosingElement: <thisLibrary>
+            enclosingElement3: <thisLibrary>::@unit::package:test/b.dart
         mixins
           augment mixin B @60
             reference: <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B
@@ -84436,12 +85609,14 @@ library
   libraryImports
     package:test/a.dart
       enclosingElement: <thisLibrary>
+      enclosingElement3: <thisLibrary>::<definingUnit>
   definingUnit
     reference: <thisLibrary>::<definingUnit>
     enclosingElement: <thisLibrary>
     libraryImports
       package:test/a.dart
-        enclosingElement: <thisLibrary>::<definingUnit>
+        enclosingElement: <thisLibrary>
+        enclosingElement3: <thisLibrary>::<definingUnit>
     mixins
       mixin B @49
         reference: <thisLibrary>::<definingUnit>::@mixin::B
@@ -84465,6 +85640,7 @@ library
             <thisLibrary>::@unit::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
   augmentationImports
     package:test/b.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/b.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/b.dart
@@ -84516,6 +85692,7 @@ library
             Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84634,6 +85811,7 @@ library
             Object
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84697,6 +85875,7 @@ library
             enclosingElement: <thisLibrary>::<definingUnit>::@class::A
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84764,6 +85943,7 @@ library
         returnType: void
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84840,6 +86020,7 @@ library
         variable: variable_0
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -84919,6 +86100,7 @@ library
         variable: variable_0
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85007,6 +86189,7 @@ library
         variable: variable_0
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85082,6 +86265,7 @@ library
         returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85155,6 +86339,7 @@ library
         enclosingElement: <thisLibrary>::<definingUnit>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85192,6 +86377,7 @@ library
         returnType: void
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85234,6 +86420,7 @@ library
         returnType: int
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85266,6 +86453,7 @@ library
     enclosingElement: <thisLibrary>
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85312,6 +86500,7 @@ library
         returnType: void
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart
@@ -85350,6 +86539,7 @@ library
         augmentation: <thisLibrary>::@unit::package:test/a.dart::@typeAliasAugmentation::A
   augmentationImports
     package:test/a.dart
+      enclosingElement: <thisLibrary>
       reference: <thisLibrary>::@augmentation::package:test/a.dart
       definingUnit
         reference: <thisLibrary>::@unit::package:test/a.dart

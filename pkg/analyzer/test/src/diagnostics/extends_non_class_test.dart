@@ -189,7 +189,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <thisLibrary>::@prefix::p
+      element: <thisLibrary>::<definingUnit>::@prefix::p
     name: A
     element: <null>
     type: InvalidType
@@ -291,7 +291,7 @@ ExtendsClause
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <thisLibrary>::@prefix::p
+      element: <thisLibrary>::<definingUnit>::@prefix::p
     name: A
     element: <null>
     type: InvalidType

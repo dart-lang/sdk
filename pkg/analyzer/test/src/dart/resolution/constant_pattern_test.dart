@@ -181,7 +181,7 @@ ConstantPattern
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -219,7 +219,7 @@ ConstantPattern
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -364,7 +364,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: <thisLibrary>::@prefix::math
+        element: <thisLibrary>::<definingUnit>::@prefix::math
       name: Random
       element: dart:math::<definingUnit>::@class::Random
       type: Random
@@ -394,7 +394,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <thisLibrary>::@prefix::prefix
+        element: <thisLibrary>::<definingUnit>::@prefix::prefix
       name: A
       element: package:test/a.dart::<definingUnit>::@typeAlias::A
       type: int

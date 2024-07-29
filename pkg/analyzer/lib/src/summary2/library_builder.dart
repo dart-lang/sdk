@@ -1069,25 +1069,13 @@ class LibraryBuilder with MacroApplicationsContainer {
     var definingUnit = container.definingCompilationUnit;
 
     definingUnit.libraryExports = kind.libraryExports.map((state) {
-      return _buildExport(state);
-    }).toFixedList();
-
-    // TODO(scheglov): Remove when only parts have exports.
-    container.libraryExports = kind.libraryExports.map((state) {
-      return _buildExport(state);
+      return _buildLibraryExport(state);
     }).toFixedList();
 
     definingUnit.libraryImports = kind.libraryImports.map((state) {
-      return _buildImport(
-        container: container,
-        state: state,
-      );
-    }).toFixedList();
-
-    // TODO(scheglov): Remove when only parts have imports.
-    container.libraryImports = kind.libraryImports.map((state) {
-      return _buildImport(
-        container: container,
+      return _buildLibraryImport(
+        containerLibrary: container,
+        containerUnit: definingUnit,
         state: state,
       );
     }).toFixedList();
@@ -1101,7 +1089,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     }).toFixedList();
   }
 
-  LibraryExportElementImpl _buildExport(LibraryExportState state) {
+  LibraryExportElementImpl _buildLibraryExport(LibraryExportState state) {
     var combinators = _buildCombinators(
       state.unlinked.combinators,
     );
@@ -1169,15 +1157,17 @@ class LibraryBuilder with MacroApplicationsContainer {
     );
   }
 
-  LibraryImportElementImpl _buildImport({
-    required LibraryOrAugmentationElementImpl container,
+  LibraryImportElementImpl _buildLibraryImport({
+    required LibraryOrAugmentationElementImpl containerLibrary,
+    required CompilationUnitElementImpl containerUnit,
     required LibraryImportState state,
   }) {
     var importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
-      var prefix = _buildPrefix(
+      var prefix = _buildLibraryImportPrefix(
         name: unlinked.name,
         nameOffset: unlinked.nameOffset,
-        container: container,
+        containerLibrary: containerLibrary,
+        containerUnit: containerUnit,
       );
       if (unlinked.deferredOffset != null) {
         return DeferredImportElementPrefixImpl(
@@ -1258,13 +1248,14 @@ class LibraryBuilder with MacroApplicationsContainer {
     )..isSynthetic = state.isSyntheticDartCore;
   }
 
-  PrefixElementImpl _buildPrefix({
+  PrefixElementImpl _buildLibraryImportPrefix({
     required String name,
     required int nameOffset,
-    required LibraryOrAugmentationElementImpl container,
+    required LibraryOrAugmentationElementImpl containerLibrary,
+    required CompilationUnitElementImpl containerUnit,
   }) {
     // TODO(scheglov): Make reference required.
-    var containerRef = container.reference!;
+    var containerRef = containerUnit.reference!;
     var reference = containerRef.getChild('@prefix').getChild(name);
     var existing = reference.element;
     if (existing is PrefixElementImpl) {
@@ -1275,7 +1266,8 @@ class LibraryBuilder with MacroApplicationsContainer {
         nameOffset,
         reference: reference,
       );
-      container.encloseElement(result);
+      result.enclosingElement = containerLibrary;
+      result.enclosingElement3 = containerUnit;
       return result;
     }
   }

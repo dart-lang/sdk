@@ -861,7 +861,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -896,7 +896,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -931,7 +931,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -966,7 +966,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1001,7 +1001,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1036,7 +1036,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1071,7 +1071,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1106,7 +1106,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1141,7 +1141,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1176,7 +1176,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1211,7 +1211,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1246,7 +1246,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1281,7 +1281,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1316,7 +1316,7 @@ CommentReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
-        staticElement: <thisLibrary>::@prefix::self
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::self
         staticType: null
       period: .
       identifier: SimpleIdentifier

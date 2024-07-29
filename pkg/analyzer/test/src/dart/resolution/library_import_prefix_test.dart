@@ -30,7 +30,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <thisLibrary>::@prefix::p
+  staticElement: <thisLibrary>::<definingUnit>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -61,7 +61,7 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      staticElement: <thisLibrary>::@prefix::p
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -106,7 +106,7 @@ InstanceCreationExpression
         parameter: ParameterMember
           base: <thisLibrary>::<definingUnit>::@class::C::@constructor::new::@parameter::a
           substitution: {T: dynamic}
-        staticElement: <thisLibrary>::@prefix::p
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>

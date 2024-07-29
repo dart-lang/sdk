@@ -352,7 +352,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: TA
       element: package:test/a.dart::<definingUnit>::@typeAlias::TA
       type: null
@@ -388,7 +388,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: TA
       element: package:test/a.dart::<definingUnit>::@typeAlias::TA
       type: null
@@ -423,7 +423,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: null
@@ -458,7 +458,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: null
@@ -1376,7 +1376,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1423,7 +1423,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1473,7 +1473,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1520,7 +1520,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <thisLibrary>::@prefix::a
+        element: <thisLibrary>::<definingUnit>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <

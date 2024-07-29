@@ -34,7 +34,7 @@ MixinOnClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element: <thisLibrary>::@prefix::math
+        element: <thisLibrary>::<definingUnit>::@prefix::math
       name: Random
       element: dart:math::<definingUnit>::@class::Random
       type: Random

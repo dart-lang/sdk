@@ -1673,7 +1673,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    staticElement: <thisLibrary>::@prefix::p
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2089,7 +2089,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2121,7 +2121,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: <thisLibrary>::@prefix::math
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::math
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2152,7 +2152,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <thisLibrary>::@prefix::foo
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::foo
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2207,7 +2207,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: <thisLibrary>::@prefix::math
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2704,7 +2704,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    staticElement: <thisLibrary>::@prefix::p
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3327,7 +3327,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: <thisLibrary>::@prefix::math
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3359,7 +3359,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    staticElement: <thisLibrary>::@prefix::math
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3699,7 +3699,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3748,7 +3748,7 @@ FunctionExpressionInvocation
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -5101,7 +5101,7 @@ FunctionExpressionInvocation
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        staticElement: <thisLibrary>::@prefix::prefix
+        staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -5151,7 +5151,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      staticElement: <thisLibrary>::@prefix::prefix
+      staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -6695,7 +6695,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: math
-    staticElement: <thisLibrary>::@prefix::math
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::math
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (

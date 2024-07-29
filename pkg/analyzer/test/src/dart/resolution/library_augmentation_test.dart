@@ -226,7 +226,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <thisLibrary>::@augmentation::package:test/b.dart::@prefix::math
+    element: <thisLibrary>::@unit::package:test/b.dart::@prefix::math
   name: Random
   element: dart:math::<definingUnit>::@class::Random
   type: Random
@@ -257,7 +257,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <thisLibrary>::@prefix::math
+    element: <thisLibrary>::<definingUnit>::@prefix::math
   name: Random
   element: dart:math::<definingUnit>::@class::Random
   type: Random

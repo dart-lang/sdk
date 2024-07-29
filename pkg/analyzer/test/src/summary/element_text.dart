@@ -174,13 +174,14 @@ class _ElementWriter {
     _writeLibraryOrAugmentationElement(e);
   }
 
-  void _writeAugmentationImportElement(AugmentationImportElement e) {
+  void _writeAugmentationImportElement(AugmentationImportElementImpl e) {
     var uri = e.uri;
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
 
     _sink.withIndent(() {
+      _writeEnclosingElement(e);
       _writeMetadata(e);
       if (uri is DirectiveUriWithAugmentationImpl) {
         _writeAugmentationElement(uri.augmentation);
@@ -482,6 +483,17 @@ class _ElementWriter {
             e.enclosingElement3,
           );
         }
+      case LibraryImportElementImpl():
+      case LibraryExportElementImpl():
+      case PrefixElementImpl():
+        expect(
+          e.enclosingElement3,
+          TypeMatcher<CompilationUnitElementImpl>(),
+        );
+        _elementPrinter.writeNamedElement(
+          'enclosingElement3',
+          e.enclosingElement3,
+        );
       default:
         expect(e.enclosingElement3, same(e.enclosingElement));
     }
@@ -1569,6 +1581,11 @@ class _ElementWriter {
       }).toList();
       _writeElements('libraryImports', imports, _writeLibraryImportElement);
     }
+    _writeElements(
+      'libraryImportPrefixes',
+      e.libraryImportPrefixes,
+      _writePrefixElement,
+    );
     _writeElements(
         'libraryExports', e.libraryExports, _writeLibraryExportElement);
     _writeElements('partIncludes', e.parts, _writePartElement);

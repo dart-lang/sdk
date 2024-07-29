@@ -121,7 +121,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: myCore
     period: .
-    element: <thisLibrary>::@prefix::myCore
+    element: <thisLibrary>::<definingUnit>::@prefix::myCore
   name: dynamic
   element: dynamic@-1
   type: dynamic
@@ -413,7 +413,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: async
     period: .
-    element: <thisLibrary>::@prefix::async
+    element: <thisLibrary>::<definingUnit>::@prefix::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -443,7 +443,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <thisLibrary>::@prefix::math
+    element: <thisLibrary>::<definingUnit>::@prefix::math
   name: Unresolved
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -475,7 +475,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element: <thisLibrary>::@prefix::math
+    element: <thisLibrary>::<definingUnit>::@prefix::math
   name: A
   element: <null>
   type: InvalidType
@@ -536,7 +536,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: async
     period: .
-    element: <thisLibrary>::@prefix::async
+    element: <thisLibrary>::<definingUnit>::@prefix::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -564,7 +564,7 @@ void f(prefix a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
-  element: <thisLibrary>::@prefix::prefix
+  element: <thisLibrary>::<definingUnit>::@prefix::prefix
   type: InvalidType
 ''');
   }
@@ -590,7 +590,7 @@ NamedType
         element: dart:core::<definingUnit>::@class::int
         type: int
     rightBracket: >
-  element: <thisLibrary>::@prefix::prefix
+  element: <thisLibrary>::<definingUnit>::@prefix::prefix
   type: InvalidType
 ''');
   }

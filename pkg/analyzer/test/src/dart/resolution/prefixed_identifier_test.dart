@@ -117,7 +117,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: p
-    staticElement: <thisLibrary>::@prefix::p
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::p
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -223,7 +223,7 @@ main() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: mycore
-    staticElement: <thisLibrary>::@prefix::mycore
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::mycore
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -451,7 +451,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -481,7 +481,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -511,7 +511,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -541,7 +541,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -573,7 +573,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -603,7 +603,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    staticElement: <thisLibrary>::@prefix::prefix
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -1145,7 +1145,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: p
-    staticElement: <thisLibrary>::@prefix::p
+    staticElement: <thisLibrary>::<definingUnit>::@prefix::p
     staticType: null
   period: .
   identifier: SimpleIdentifier

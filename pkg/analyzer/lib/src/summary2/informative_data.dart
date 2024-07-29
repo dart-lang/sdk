@@ -222,9 +222,6 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    _applyToImports(element.imports_unresolved, info);
-    _applyToExports(element.exports_unresolved, info);
-
     var applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
       (applier) {
@@ -683,9 +680,6 @@ class InformativeDataApplier {
     if (info.docComment.isNotEmpty) {
       element.documentationComment = info.docComment;
     }
-
-    _applyToImports(element.imports_unresolved, info);
-    _applyToExports(element.exports_unresolved, info);
 
     forCorrespondingPairs<PartElement, _InfoPart>(
       element.parts,

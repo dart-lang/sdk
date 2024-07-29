@@ -71,7 +71,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<definingUnit>::@prefix::p
       name: B
       element: package:test/a.dart::<definingUnit>::@class::B
       type: B<num>
@@ -101,7 +101,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<definingUnit>::@prefix::p
       name: B
       element: package:test/a.dart::<definingUnit>::@class::B
       type: B<num>
@@ -163,7 +163,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<definingUnit>::@prefix::p
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -189,7 +189,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::@prefix::p
+        element: package:test/b.dart::<definingUnit>::@prefix::p
       name: A
       element: package:test/a.dart::<definingUnit>::@class::A
       type: A
@@ -222,7 +222,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <thisLibrary>::@prefix::p
+        element: <thisLibrary>::<definingUnit>::@prefix::p
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
