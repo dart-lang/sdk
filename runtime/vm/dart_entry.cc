@@ -82,6 +82,31 @@ extern "C" typedef uword /*ObjectPtr*/ (*invokestub)(
     uword /*ArrayPtr*/ arguments,
     Thread* thread);
 
+// Private helper for converting types and switching between Simulator
+// and CPU invocations.
+static ObjectPtr InvokeDartCode(uword entry_point,
+                                const Array& arguments_descriptor,
+                                const Array& arguments,
+                                Thread* thread) {
+  DartEntryScope dart_entry_scope(thread);
+
+  const uword stub = StubCode::InvokeDartCode().EntryPoint();
+#if defined(USING_SIMULATOR)
+  auto invoke = [&](uword entry_point, uword arguments_descriptor,
+                    uword arguments, Thread* thread) -> uword {
+    return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
+                                      arguments,
+                                      reinterpret_cast<int64_t>(thread));
+  };
+#else
+  auto invoke = reinterpret_cast<invokestub>(stub);
+#endif
+  uword result =
+      invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
+             static_cast<uword>(arguments.ptr()), thread);
+  return static_cast<ObjectPtr>(result);
+}
+
 ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments,
                                     const Array& arguments_descriptor) {
@@ -107,30 +132,15 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 
   ASSERT(function.HasCode());
 
-  DartEntryScope dart_entry_scope(thread);
-
-  const uword stub = StubCode::InvokeDartCode().EntryPoint();
-#if defined(USING_SIMULATOR)
-  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub),
-#if defined(DART_PRECOMPILED_RUNTIME)
-      static_cast<intptr_t>(function.entry_point()),
-#else
-      static_cast<intptr_t>(function.CurrentCode()),
-#endif
-      static_cast<intptr_t>(arguments_descriptor.ptr()),
-      static_cast<intptr_t>(arguments.ptr()),
-      reinterpret_cast<intptr_t>(thread)));
-#else  // USING_SIMULATOR
-  return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
+  // Note: InvokeFunction takes Arguments then ArgumentsDescriptor,
+  // where as InvokeDartCode takes ArgumentsDescriptor then Arguments.
+  return InvokeDartCode(
 #if defined(DART_PRECOMPILED_RUNTIME)
       function.entry_point(),
 #else
       static_cast<uword>(function.CurrentCode()),
 #endif
-      static_cast<uword>(arguments_descriptor.ptr()),
-      static_cast<uword>(arguments.ptr()), thread));
-#endif
+      arguments_descriptor, arguments, thread);
 }
 
 #if defined(TESTING)
@@ -148,34 +158,13 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
 
-  DartEntryScope dart_entry_scope(thread);
-
-  const uword stub = StubCode::InvokeDartCode().EntryPoint();
+  return InvokeDartCode(
 #if defined(DART_PRECOMPILED_RUNTIME)
-#if defined(USING_SIMULATOR)
-  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub), static_cast<intptr_t>(code.EntryPoint()),
-      static_cast<intptr_t>(arguments_descriptor.ptr()),
-      static_cast<intptr_t>(arguments.ptr()),
-      reinterpret_cast<intptr_t>(thread)));
-#else
-  return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
-      code.EntryPoint(), arguments_descriptor.ptr(), arguments.ptr(), thread));
-#endif
+      code.EntryPoint(),
 #else  // defined(DART_PRECOMPILED_RUNTIME)
-#if defined(USING_SIMULATOR)
-  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub), static_cast<intptr_t>(code.ptr()),
-      static_cast<intptr_t>(arguments_descriptor.ptr()),
-      static_cast<intptr_t>(arguments.ptr()),
-      reinterpret_cast<intptr_t>(thread)));
-#else
-  return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
       static_cast<uword>(code.ptr()),
-      static_cast<uword>(arguments_descriptor.ptr()),
-      static_cast<uword>(arguments.ptr()), thread));
 #endif
-#endif
+      arguments_descriptor, arguments, thread);
 }
 #endif  // defined(TESTING)
 
