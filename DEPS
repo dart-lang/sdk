@@ -177,7 +177,7 @@ vars = {
   "source_span_rev": "f81cd4a2df630a97264fb4015fb93944b5b98b11",
   "sse_rev": "af2c5c572a8da6d2f7551b80d75121f2a38a4c79",
   "stack_trace_rev": "090d3d186c085fdb913fe5350c666f8d0bd0f60f",
-  "stream_channel_rev": "28a65331aa2d66a5e953205aa462bcdb1e240a5b",
+  "stream_channel_rev": "c0c5a978b225d2e02be858e98e24455b7f79b1a0",
   "string_scanner_rev": "a40bbbd83f1176bcc0021b336f5841310f91d8cb",
   "sync_http_rev": "ab8377eba79baff3d77e8c75d502efc2b85a9342",
   "tar_rev": "d33204cb623b87bfe9cfc92ca37d9469feba126b",
@@ -196,7 +196,7 @@ vars = {
   "webdriver_rev": "718e4c37d004fceb9856de980782c46bf9576df5",
   "webkit_inspection_protocol_rev": "32fffa53df3f54005c742ddf4f859fb585a6b254",
   "yaml_rev": "a645c3905fc3cc2bbd3def9879ba8dedd26e3aa5",
-  "yaml_edit_rev": "d605cce3946828253a97f4b3de1a43260b6edf3b",
+  "yaml_edit_rev": "5c54d455f272bbb83c948ac420c677371e69ae77",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
