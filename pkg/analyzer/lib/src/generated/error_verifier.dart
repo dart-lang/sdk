@@ -4994,10 +4994,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (!valid) {
       var lexeme = node.literal.lexeme;
-      var extraErrorArgs = [
+      var messageArguments = [
         isNegated ? '-$lexeme' : lexeme,
         if (treatedAsDouble)
           // Suggest the nearest valid double (as a BigInt, for printing).
+          // TODO(srawlins): Insert digit separators at the same positions as
+          // the input. This should be tested code, and a shared impl when we
+          // have an assist that adds digit separators to a number literal.
           BigInt.from(IntegerLiteralImpl.nearestValidDouble(source)).toString(),
       ];
 
@@ -5006,7 +5009,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         treatedAsDouble
             ? CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE
             : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
-        arguments: extraErrorArgs,
+        arguments: messageArguments,
       );
     }
   }
