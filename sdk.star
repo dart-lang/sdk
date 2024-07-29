@@ -72,6 +72,7 @@ dart.try_builder(
     properties = {
         "archs": ["arm", "arm64"],
         "disable_bcid": True,
+        "disable_rbe": True,
     },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
