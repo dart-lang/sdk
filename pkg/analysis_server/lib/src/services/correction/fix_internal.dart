@@ -239,6 +239,7 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
+import 'package:analysis_server/src/services/correction/fix_generators.dart';
 import 'package:analysis_server/src/services/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
@@ -2013,12 +2014,13 @@ void registerBuiltInProducers() {
   // This function can be called many times during test runs so these statements
   // should not result in duplicate producers (i.e. they should only add to maps
   // or sets or otherwise ensure producers that already exist are not added).
-  FixProcessor.lintMultiProducerMap.addAll(_builtInLintMultiProducers);
-  FixProcessor.lintProducerMap.addAll(_builtInLintProducers);
-  FixProcessor.nonLintMultiProducerMap.addAll(_builtInNonLintMultiProducers);
-  FixProcessor.nonLintProducerMap.addAll(_builtInNonLintProducers);
-  FixProcessor.parseLintProducerMap.addAll(_builtInParseLintProducers);
-  FixProcessor.ignoreProducerGenerators.addAll([
+  registeredFixGenerators.lintMultiProducers.addAll(_builtInLintMultiProducers);
+  registeredFixGenerators.lintProducers.addAll(_builtInLintProducers);
+  registeredFixGenerators.nonLintMultiProducers
+      .addAll(_builtInNonLintMultiProducers);
+  registeredFixGenerators.nonLintProducers.addAll(_builtInNonLintProducers);
+  registeredFixGenerators.parseLintProducers.addAll(_builtInParseLintProducers);
+  registeredFixGenerators.ignoreProducerGenerators.addAll([
     IgnoreDiagnosticOnLine.new,
     IgnoreDiagnosticInFile.new,
     IgnoreDiagnosticInAnalysisOptionsFile.new,
@@ -2141,10 +2143,10 @@ class FixInFileProcessor {
 
   List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
     if (errorCode is LintCode) {
-      return FixProcessor.lintProducerMap[errorCode] ?? [];
+      return registeredFixGenerators.lintProducers[errorCode] ?? [];
     } else {
-      // TODO(pq): consider support for multiGenerators
-      return FixProcessor.nonLintProducerMap[errorCode] ?? [];
+      // TODO(pq): consider support for multi-generators.
+      return registeredFixGenerators.nonLintProducers[errorCode] ?? [];
     }
   }
 }
