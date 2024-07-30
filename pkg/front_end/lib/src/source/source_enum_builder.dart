@@ -15,7 +15,6 @@ import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart';
 import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
-import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -32,13 +31,11 @@ import '../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Severity,
-        messageConflictsWithTypeVariableCause,
         messageEnumContainsValuesDeclaration,
         messageEnumNonConstConstructor,
         messageEnumWithNameValues,
         messageNoUnnamedConstructorInObject,
         noLength,
-        templateConflictsWithTypeVariable,
         templateConstructorNotFound,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
@@ -61,6 +58,7 @@ import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_procedure_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
   final List<EnumConstantInfo?>? enumConstantInfos;
@@ -91,7 +89,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       TypeBuilder supertypeBuilder,
       List<TypeBuilder>? interfaceBuilders,
       LookupScope typeParameterScope,
-      NameSpace nameSpace,
+      NameSpaceBuilder nameSpaceBuilder,
       ConstructorScope constructors,
       Class cls,
       this.elementBuilders,
@@ -116,7 +114,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             interfaceBuilders,
             /* onTypes = */ null,
             typeParameterScope,
-            nameSpace,
+            nameSpaceBuilder,
             constructors,
             parent,
             constructorReferences,
@@ -140,7 +138,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
       LookupScope typeParameterScope,
-      NameSpace enumNameSpace,
+      NameSpaceBuilder nameSpaceBuilder,
       ConstructorScope constructorScope,
       LibraryBuilder coreLibrary) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
@@ -178,8 +176,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
             NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
         reference: referencesFromIndexed?.cls.reference,
         fileUri: fileUri);
-    Map<String, MemberBuilder> members = <String, MemberBuilder>{};
-    Map<String, MemberBuilder> setters = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
     NamedTypeBuilder selfType = new NamedTypeBuilderImpl(
@@ -237,7 +233,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     Builder? customValuesDeclaration =
-        enumNameSpace.lookupLocalMember("values", setter: false);
+        nameSpaceBuilder.lookupLocalMember("values", setter: false);
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
       while (customValuesDeclaration?.next != null) {
@@ -255,7 +251,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration = enumNameSpace
+      Builder? customIndexDeclaration = nameSpaceBuilder
           .lookupLocalMember(restrictedInstanceMemberName, setter: false);
       if (customIndexDeclaration is MemberBuilder &&
           !customIndexDeclaration.isAbstract) {
@@ -290,7 +286,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (customValuesDeclaration != null) {
       customValuesDeclaration.next = valuesBuilder;
     } else {
-      members["values"] = valuesBuilder;
+      nameSpaceBuilder.addLocalMember("values", valuesBuilder, setter: false);
     }
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
@@ -409,23 +405,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
             containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
         isSynthetic: true);
-    members["_enumToString"] = toStringBuilder;
+    nameSpaceBuilder.addLocalMember("_enumToString", toStringBuilder,
+        setter: false);
     String className = name;
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
-    enumNameSpace.forEachLocalMember((name, member) {
-      members[name] = member as MemberBuilder;
-    });
-    enumNameSpace.forEachLocalSetter((name, member) {
-      setters[name] = member;
-    });
 
     if (enumConstantInfos != null) {
       for (int i = 0; i < enumConstantInfos.length; i++) {
         EnumConstantInfo enumConstantInfo = enumConstantInfos[i]!;
         List<MetadataBuilder>? metadata = enumConstantInfo.metadata;
         String name = enumConstantInfo.name;
-        MemberBuilder? existing = members[name];
+        MemberBuilder? existing =
+            nameSpaceBuilder.lookupLocalMember(name, setter: false);
         if (existing != null) {
           // The existing declaration is synthetic if it has the same
           // charOffset as the enclosing enum.
@@ -495,7 +487,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fieldSetterReference: setterReference,
             initializerToken: enumConstantInfo.argumentsBeginToken,
             isEnumElement: true);
-        members[name] = fieldBuilder..next = existing;
+        nameSpaceBuilder.addLocalMember(name, fieldBuilder..next = existing,
+            setter: false);
         elementBuilders.add(fieldBuilder);
       }
     }
@@ -507,10 +500,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         supertypeBuilder,
         interfaceBuilders,
         typeParameterScope,
-        // We create a new name space to include the synthesized members.
-        // TODO(johnniwinther): Could we add the new members directly to the
-        // name space?
-        new NameSpaceImpl(getables: members, setables: setters),
+        nameSpaceBuilder,
         constructorScope..addLocalMembers(constructors),
         cls,
         elementBuilders,
@@ -544,24 +534,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          enumBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
     constructorScope
         .filteredIterator(includeDuplicates: false, includeAugmentations: true)
         .forEach(setParent);

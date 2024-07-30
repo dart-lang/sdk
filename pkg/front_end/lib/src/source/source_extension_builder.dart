@@ -23,6 +23,7 @@ import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
@@ -33,9 +34,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   MergedClassMemberScope? _mergedScope;
 
-  final LookupScope _scope;
+  late final LookupScope _scope;
 
-  final NameSpace _nameSpace;
+  late final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -58,17 +59,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.typeParameters,
       this.onType,
       this.typeParameterScope,
-      NameSpace nameSpace,
+      NameSpaceBuilder nameSpaceBuilder,
       SourceLibraryBuilder parent,
       int startOffset,
       int nameOffset,
       int endOffset,
       Extension? referenceFrom)
-      : _nameSpace = nameSpace,
-        _scope = new NameSpaceLookupScope(
-            nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
-            parent: typeParameterScope),
-        _extension = new Extension(
+      : _extension = new Extension(
             name: extensionName.name,
             fileUri: parent.fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
@@ -79,6 +76,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         constructorScope = new ConstructorScope(extensionName.name, const {}),
         super(metadata, modifiers, extensionName.name, parent, nameOffset) {
     extensionName.attachExtension(_extension);
+
+    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
+        parent: typeParameterScope);
   }
 
   @override

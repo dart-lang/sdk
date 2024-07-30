@@ -53,6 +53,7 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
+import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
     Class? cls,
@@ -92,9 +93,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
-  final LookupScope _scope;
+  late final LookupScope _scope;
 
-  final NameSpace _nameSpace;
+  late final NameSpace _nameSpace;
 
   @override
   final ConstructorScope constructorScope;
@@ -175,7 +176,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       this.typeParameterScope,
-      NameSpace nameSpace,
+      NameSpaceBuilder nameSpaceBuilder,
       this.constructorScope,
       SourceLibraryBuilder parent,
       this.constructorReferences,
@@ -193,16 +194,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isFinal = false,
       bool isAugmentation = false,
       this.isMixinClass = false})
-      : _nameSpace = nameSpace,
-        _scope = new NameSpaceLookupScope(
-            nameSpace, ScopeKind.declaration, "class $name",
-            parent: typeParameterScope),
-        actualCls = initializeClass(cls, typeVariables, name, parent,
+      : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
         isAugmentation = isAugmentation,
         super(metadata, modifiers, name, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
+    _nameSpace = nameSpaceBuilder.buildNameSpace(this);
+    _scope = new NameSpaceLookupScope(
+        nameSpace, ScopeKind.declaration, "class $name",
+        parent: typeParameterScope);
   }
 
   @override

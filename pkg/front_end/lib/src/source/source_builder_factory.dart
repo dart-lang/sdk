@@ -510,9 +510,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           ..resolveNamedTypes(typeVariables, _problemReporting);
     Map<String, MemberBuilder> constructors = declaration.constructors!;
 
-    LookupScope typeParameterScope =
-        TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace enumNameSpace = declaration.toNameSpace();
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables,
+            ownerName: name, allowNameConflict: false);
+
+    LookupScope typeParameterScope = typeVariablesByName != null
+        ? new TypeParameterScope(_scope, typeVariablesByName)
+        : _scope;
+    NameSpaceBuilder nameSpaceBuilder =
+        declaration.toNameSpaceBuilder(typeVariablesByName);
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
@@ -543,42 +549,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         charEndOffset,
         referencesFromIndexedClass,
         typeParameterScope,
-        enumNameSpace,
+        nameSpaceBuilder,
         new ConstructorScope(name, constructors),
         loader.coreLibrary);
     _constructorReferences.clear();
 
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables, enumBuilder);
-
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = enumBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          // Coverage-ignore-block(suite): Not run.
-          enumBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    enumNameSpace.forEachLocalMember(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    enumNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
 
@@ -663,9 +638,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, MemberBuilder> constructors = declaration.constructors!;
 
-    LookupScope typeParameterScope =
-        TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace classNameSpace = declaration.toNameSpace();
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables,
+            ownerName: className, allowNameConflict: false);
+
+    LookupScope typeParameterScope = typeVariablesByName != null
+        ? new TypeParameterScope(_scope, typeVariablesByName)
+        : _scope;
+    NameSpaceBuilder nameSpace =
+        declaration.toNameSpaceBuilder(typeVariablesByName);
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
@@ -700,7 +681,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         // here.
         null,
         typeParameterScope,
-        classNameSpace,
+        nameSpace,
         constructorScope,
         _parent,
         new List<ConstructorReferenceBuilder>.of(_constructorReferences),
@@ -718,35 +699,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isMixinClass: isMixinClass);
 
     _constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables, classBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = classBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
 
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          classBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    classNameSpace.forEachLocalMember(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    classNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(className, classBuilder, nameOffset,
         getterReference: _indexedContainer?.reference);
     offsetMap.registerNamedDeclaration(identifier, classBuilder);
@@ -795,7 +748,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass)!;
-    _checkTypeVariables(typeVariables, supertype.declaration);
+    _checkTypeVariables(typeVariables,
+        ownerName: supertype.declaration!.name, allowNameConflict: false);
   }
 
   TypeBuilder? _applyMixins(
@@ -1060,7 +1014,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
         LookupScope typeParameterScope =
             TypeParameterScope.fromList(_scope, typeVariables);
-        NameSpace nameSpace = new NameSpaceImpl();
+        NameSpaceBuilder nameSpaceBuilder = new NameSpaceBuilder.empty();
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
@@ -1076,7 +1030,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                     : null,
             null, // No `on` clause types.
             typeParameterScope,
-            nameSpace,
+            nameSpaceBuilder,
             new ConstructorScope(fullname, <String, MemberBuilder>{}),
             _parent,
             <ConstructorReferenceBuilder>[],
@@ -1144,11 +1098,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
           ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables,
+            ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope =
-        TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace extensionNameSpace = declaration.toNameSpace();
+    LookupScope typeParameterScope = typeVariablesByName != null
+        ? new TypeParameterScope(_scope, typeVariablesByName)
+        : _scope;
+    NameSpaceBuilder extensionNameSpace =
+        declaration.toNameSpaceBuilder(typeVariablesByName);
 
     Extension? referenceFrom;
     ExtensionName extensionName = declaration.extensionName!;
@@ -1170,36 +1128,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endOffset,
         referenceFrom);
     _constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables, extensionBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = extensionBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
 
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          // Coverage-ignore-block(suite): Not run.
-          extensionBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    extensionNameSpace.forEachLocalMember(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    extensionNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
     if (identifier != null) {
@@ -1226,28 +1155,27 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       ..resolveNamedTypes(typeVariables, _problemReporting);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, NominalVariableBuilder>? typeVariablesByName =
+        _checkTypeVariables(typeVariables,
+            ownerName: name, allowNameConflict: false);
 
-    LookupScope typeParameterScope =
-        TypeParameterScope.fromList(_scope, typeVariables);
-    NameSpace extensionTypeNameSpace = declaration.toNameSpace();
+    LookupScope typeParameterScope = typeVariablesByName != null
+        ? new TypeParameterScope(_scope, typeVariablesByName)
+        : _scope;
+    NameSpaceBuilder nameSpaceBuilder =
+        declaration.toNameSpaceBuilder(typeVariablesByName);
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
     IndexedContainer? indexedContainer =
         indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
 
+    List<SourceFieldBuilder>? primaryConstructorFields =
+        declaration.primaryConstructorFields;
     SourceFieldBuilder? representationFieldBuilder;
-    outer:
-    for (Builder? member in extensionTypeNameSpace.localMembers) {
-      while (member != null) {
-        if (!member.isDuplicate &&
-            member is SourceFieldBuilder &&
-            !member.isStatic) {
-          representationFieldBuilder = member;
-          break outer;
-        }
-        member = member.next;
-      }
+    if (primaryConstructorFields != null &&
+        primaryConstructorFields.isNotEmpty) {
+      representationFieldBuilder = primaryConstructorFields.first;
     }
 
     ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
@@ -1258,7 +1186,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             typeVariables,
             interfaces,
             typeParameterScope,
-            extensionTypeNameSpace,
+            nameSpaceBuilder,
             constructorScope,
             _parent,
             new List<ConstructorReferenceBuilder>.of(_constructorReferences),
@@ -1268,36 +1196,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             indexedContainer,
             representationFieldBuilder);
     _constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        _checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = extensionTypeDeclarationBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
 
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          // Coverage-ignore-block(suite): Not run.
-          extensionTypeDeclarationBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    extensionTypeNameSpace.forEachLocalMember(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    extensionTypeNameSpace.forEachLocalSetter(setParentAndCheckConflicts);
     addBuilder(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, identifier.nameOffset,
         getterReference: indexedContainer?.reference);
@@ -1322,7 +1221,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
         metadata, name, typeVariables, type, _parent, charOffset,
         referenceFrom: referenceFrom);
-    _checkTypeVariables(typeVariables, typedefBuilder);
+    _checkTypeVariables(typeVariables,
+        ownerName: name, allowNameConflict: true);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
         .resolveNamedTypes(typeVariables, _problemReporting);
@@ -1392,7 +1292,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required TypeBuilder type,
       required String name,
       required int charOffset}) {
-    _addField(
+    currentTypeParameterScopeBuilder.addPrimaryConstructorField(_addField(
         metadata,
         finalMask,
         /* isTopLevel = */ false,
@@ -1401,7 +1301,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         /* charOffset = */ charOffset,
         /* charEndOffset = */ charOffset,
         /* initializerToken = */ null,
-        /* hasInitializer = */ false);
+        /* hasInitializer = */ false));
   }
 
   SourceFunctionBuilder _addConstructor(
@@ -1482,7 +1382,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           nativeMethodName: nativeMethodName,
           forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
     }
-    _checkTypeVariables(typeVariables, constructorBuilder);
+    _checkTypeVariables(typeVariables,
+        ownerName: constructorBuilder.name, allowNameConflict: true);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
     addBuilder(constructorName, constructorBuilder, charOffset,
         getterReference: constructorReference);
@@ -1813,7 +1714,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         asyncModifier,
         nameScheme,
         nativeMethodName: nativeMethodName);
-    _checkTypeVariables(typeVariables, procedureBuilder);
+    _checkTypeVariables(typeVariables,
+        ownerName: procedureBuilder.name, allowNameConflict: true);
     addBuilder(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
     if (nativeMethodName != null) {
@@ -2171,7 +2073,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   Map<String, NominalVariableBuilder>? _checkTypeVariables(
-      List<NominalVariableBuilder>? typeVariables, Builder? owner) {
+      List<NominalVariableBuilder>? typeVariables,
+      {required String? ownerName,
+      required bool allowNameConflict}) {
     if (typeVariables == null || typeVariables.isEmpty) return null;
     Map<String, NominalVariableBuilder> typeVariablesByName =
         <String, NominalVariableBuilder>{};
@@ -2196,35 +2100,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         }
       } else {
         typeVariablesByName[tv.name] = tv;
-        if (owner is TypeDeclarationBuilder) {
-          // Only classes and extension types and type variables can't have the
-          // same name. See
-          // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
-          // [#54602](https://github.com/dart-lang/sdk/issues/54602).
-          switch (owner) {
-            case ClassBuilder():
-            case ExtensionBuilder():
-            case ExtensionTypeDeclarationBuilder():
-              if (tv.name == owner.name) {
-                _problemReporting.addProblem(
-                    messageTypeVariableSameNameAsEnclosing,
-                    tv.charOffset,
-                    tv.name.length,
-                    _compilationUnit.fileUri);
-              }
-            case TypeAliasBuilder():
-            // Coverage-ignore(suite): Not run.
-            case NominalVariableBuilder():
-            // Coverage-ignore(suite): Not run.
-            case StructuralVariableBuilder():
-            // Coverage-ignore(suite): Not run.
-            case InvalidTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
-            case BuiltinTypeDeclarationBuilder():
-            // Coverage-ignore(suite): Not run.
-            // TODO(johnniwinther): How should we handle this case?
-            case OmittedTypeDeclarationBuilder():
-          }
+        // Only classes and extension types and type variables can't have the
+        // same name. See
+        // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
+        // [#54602](https://github.com/dart-lang/sdk/issues/54602).
+        if (tv.name == ownerName && !allowNameConflict) {
+          _problemReporting.addProblem(messageTypeVariableSameNameAsEnclosing,
+              tv.charOffset, tv.name.length, _compilationUnit.fileUri);
         }
       }
     }
