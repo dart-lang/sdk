@@ -1734,9 +1734,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
             exp is ConstantExpression && exp.constant is NullConstant) {
           // Null already checked, skip
         } else {
-          wrap(exp, switchInfo.nonNullableType);
-          b.local_get(switchValueNonNullableLocal);
-          switchInfo.compare();
+          switchInfo.compare(
+            switchValueNonNullableLocal,
+            () => wrap(exp, switchInfo.nonNullableType),
+          );
           b.br_if(switchLabels[c]!);
         }
       }
@@ -3809,9 +3810,9 @@ class SwitchInfo {
   late final w.ValueType nonNullableType;
 
   /// Generates code that compares value of a `case` expression with the
-  /// `switch` expression's value. Expects `case` and `switch` values to be on
-  /// stack, in that order.
-  late final void Function() compare;
+  /// `switch` expression's value. Calls [pushCaseExpr] once.
+  late final void Function(
+      w.Local switchExprLocal, w.ValueType Function() pushCaseExpr) compare;
 
   /// The `default: ...` case, if exists.
   late final SwitchCase? defaultCase;
@@ -3822,8 +3823,9 @@ class SwitchInfo {
   SwitchInfo(CodeGenerator codeGen, SwitchStatement node) {
     final translator = codeGen.translator;
 
-    final switchExprClass =
-        translator.classForType(codeGen.dartTypeOf(node.expression));
+    final switchExprType = codeGen.dartTypeOf(node.expression);
+
+    final switchExprClass = translator.classForType(switchExprType);
 
     bool check<L extends Expression, C extends Constant>() =>
         node.cases.expand((c) => c.expressions).every((e) =>
@@ -3843,34 +3845,88 @@ class SwitchInfo {
       // default-only switch
       nonNullableType = w.RefType.eq(nullable: false);
       nullableType = w.RefType.eq(nullable: true);
-      compare = () => throw "Comparison in default-only switch";
+      compare = (switchExprLocal, pushCaseExpr) =>
+          throw "Comparison in default-only switch";
+    } else if (switchExprType is DynamicType) {
+      // Object equality switch
+      nonNullableType = translator.topInfo.nonNullableType;
+      nullableType = translator.topInfo.nullableType;
+
+      // Per spec, compare with `<case expr> == <switch expr>`.
+      final Member equalsMember;
+      if (check<BoolLiteral, BoolConstant>()) {
+        equalsMember = translator.boxedBoolEquals;
+      } else if (check<IntLiteral, IntConstant>()) {
+        equalsMember = translator.boxedIntEquals;
+      } else if (check<StringLiteral, StringConstant>()) {
+        equalsMember = translator.options.jsCompatibility
+            ? translator.jsStringEquals
+            : translator.stringEquals;
+      } else {
+        equalsMember = translator.coreTypes.identicalProcedure;
+      }
+
+      final equalsMemberSignature =
+          translator.signatureForDirectCall(equalsMember.reference);
+
+      // Per spec, `==` can't have type, or extra (optional) positional and
+      // named arguments. So we don't have to check `ParamInfo` for it and
+      // add missing optional parameters.
+      assert(equalsMemberSignature.inputs.length == 2);
+
+      compare = (switchExprLocal, pushCaseExpr) {
+        final caseExprType = pushCaseExpr();
+        translator.convertType(
+            codeGen.function, caseExprType, equalsMemberSignature.inputs[0]);
+
+        codeGen.b.local_get(switchExprLocal);
+        translator.convertType(codeGen.function, switchExprLocal.type,
+            equalsMemberSignature.inputs[1]);
+
+        codeGen.call(equalsMember.reference);
+      };
     } else if (check<BoolLiteral, BoolConstant>()) {
       // bool switch
       nonNullableType = w.NumType.i32;
       nullableType =
           translator.classInfo[translator.boxedBoolClass]!.nullableType;
-      compare = () => codeGen.b.i32_eq();
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.b.i32_eq();
+      };
     } else if (check<IntLiteral, IntConstant>()) {
       // int switch
       nonNullableType = w.NumType.i64;
       nullableType =
           translator.classInfo[translator.boxedIntClass]!.nullableType;
-      compare = () => codeGen.b.i64_eq();
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.b.i64_eq();
+      };
     } else if (check<StringLiteral, StringConstant>()) {
       // String switch
       nonNullableType = translator
           .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
       nullableType = translator
           .classInfo[translator.coreTypes.stringClass]!.repr.nullableType;
-      compare = () => codeGen.call(translator.options.jsCompatibility
-          ? translator.jsStringEquals.reference
-          : translator.stringEquals.reference);
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.call(translator.options.jsCompatibility
+            ? translator.jsStringEquals.reference
+            : translator.stringEquals.reference);
+      };
     } else {
-      // Object switch
+      // Object identity switch
       nonNullableType = translator.topInfo.nonNullableType;
       nullableType = translator.topInfo.nullableType;
-      compare =
-          () => codeGen.call(translator.coreTypes.identicalProcedure.reference);
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.call(translator.coreTypes.identicalProcedure.reference);
+      };
     }
 
     // Special cases

@@ -44,6 +44,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart'
     show
@@ -105,7 +106,6 @@ import 'benchmarker.dart' show Benchmarker;
 import 'body_builder_context.dart';
 import 'collections.dart';
 import 'constness.dart' show Constness;
-import 'constructor_tearoff_lowering.dart';
 import 'expression_generator.dart';
 import 'expression_generator_helper.dart';
 import 'forest.dart' show Forest;
@@ -429,6 +429,9 @@ class BodyBuilder extends StackListenerImpl
   JumpTarget? breakTarget;
 
   JumpTarget? continueTarget;
+
+  /// Index for building unique lowered names for wildcard variables.
+  int wildcardVariableIndex = 0;
 
   BodyBuilder(
       {required this.libraryBuilder,
@@ -1924,17 +1927,24 @@ class BodyBuilder extends StackListenerImpl
             : new List<FormalParameterBuilder>.generate(
                 parameters.positionalParameters.length, (int i) {
                 VariableDeclaration formal = parameters.positionalParameters[i];
+                String formalName = formal.name!;
+                bool isWildcard = libraryFeatures.wildcardVariables.isEnabled &&
+                    formalName == '_';
+                if (isWildcard) {
+                  formalName =
+                      createWildcardFormalParameterName(wildcardVariableIndex);
+                  wildcardVariableIndex++;
+                }
                 return new FormalParameterBuilder(
                     FormalParameterKind.requiredPositional,
                     /* modifiers = */ 0,
                     const ImplicitTypeBuilder(),
-                    formal.name!,
+                    formalName,
                     libraryBuilder,
                     formal.fileOffset,
                     fileUri: uri,
                     hasImmediatelyDeclaredInitializer: false,
-                    isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
-                        formal.name! == '_')
+                    isWildcard: isWildcard)
                   ..variable = formal;
               }, growable: false);
     enterLocalScope(new FormalParameters(formals, fileOffset, noLength, uri)
@@ -3950,7 +3960,14 @@ class BodyBuilder extends StackListenerImpl
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     bool isRequired = (currentLocalVariableModifiers & requiredMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
-    VariableDeclaration variable = new VariableDeclarationImpl(identifier.name,
+    String name = identifier.name;
+    bool isWildcard =
+        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+    if (isWildcard) {
+      name = createWildcardVariableName(wildcardVariableIndex);
+      wildcardVariableIndex++;
+    }
+    VariableDeclaration variable = new VariableDeclarationImpl(name,
         forSyntheticToken: identifier.token.isSynthetic,
         initializer: initializer,
         type: currentLocalVariableType,
@@ -3960,8 +3977,7 @@ class BodyBuilder extends StackListenerImpl
         isRequired: isRequired,
         hasDeclaredInitializer: initializer != null,
         isStaticLate: isFinal && initializer == null,
-        isWildcard: identifier.name == '_' &&
-            libraryFeatures.wildcardVariables.isEnabled)
+        isWildcard: isWildcard)
       ..fileOffset = identifier.nameOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer.assignedVariables.declare(variable);
@@ -5647,6 +5663,13 @@ class BodyBuilder extends StackListenerImpl
       }
     } else {
       String parameterName = name?.name ?? '';
+      bool isWildcard =
+          libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
+      if (isWildcard) {
+        parameterName =
+            createWildcardFormalParameterName(wildcardVariableIndex);
+        wildcardVariableIndex++;
+      }
       parameter = new FormalParameterBuilder(
           kind,
           modifiers,
@@ -7427,12 +7450,18 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("FunctionName");
     Identifier name = pop() as Identifier;
     Token nameToken = name.token;
-    VariableDeclaration variable = new VariableDeclarationImpl(name.name,
+    String identifierName = name.name;
+    bool isWildcard =
+        libraryFeatures.wildcardVariables.isEnabled && identifierName == '_';
+    if (isWildcard) {
+      identifierName = createWildcardVariableName(wildcardVariableIndex);
+      wildcardVariableIndex++;
+    }
+    VariableDeclaration variable = new VariableDeclarationImpl(identifierName,
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
         isLocalFunction: true,
-        isWildcard:
-            libraryFeatures.wildcardVariables.isEnabled && name.name == '_')
+        isWildcard: isWildcard)
       ..fileOffset = name.nameOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
@@ -9013,16 +9042,19 @@ class BodyBuilder extends StackListenerImpl
       unhandled("${name.runtimeType}", "beginTypeVariable.name",
           token.charOffset, uri);
     }
+    bool isWildcard =
+        libraryFeatures.wildcardVariables.isEnabled && typeVariableName == '_';
+    if (isWildcard) {
+      typeVariableName = createWildcardTypeVariableName(wildcardVariableIndex);
+      wildcardVariableIndex++;
+    }
     TypeVariableBuilderBase variable = inFunctionType
         ? new StructuralVariableBuilder(
             typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
-            isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
-                typeVariableName == '_')
+            isWildcard: isWildcard)
         : new NominalVariableBuilder(
             typeVariableName, libraryBuilder, typeVariableCharOffset, uri,
-            kind: TypeVariableKind.function,
-            isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
-                typeVariableName == '_');
+            kind: TypeVariableKind.function, isWildcard: isWildcard);
     if (annotations != null) {
       switch (variable) {
         case StructuralVariableBuilder():
@@ -9244,6 +9276,9 @@ class BodyBuilder extends StackListenerImpl
   List<Initializer> buildFieldInitializer(String name, int fieldNameOffset,
       int assignmentOffset, Expression expression,
       {FormalParameterBuilder? formal}) {
+    if (isWildcardLoweredFormalParameter(name)) {
+      name = '_';
+    }
     Builder? builder = _context.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.

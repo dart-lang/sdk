@@ -25,6 +25,7 @@ const kWasmExportPragmaName = "wasm:export";
 const kDynModuleExtendablePragmaName = "dyn-module:extendable";
 const kDynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
 const kDynModuleCallablePragmaName = "dyn-module:callable";
+const kDynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
 const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";
 
 abstract class ParsedPragma {}
@@ -201,6 +202,7 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedEntryPointPragma(
             PragmaEntryPointType.CanBeOverridden);
       case kDynModuleCallablePragmaName:
+      case kDynModuleImplicitlyCallablePragmaName:
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kDynModuleEntryPointPragmaName:
         return const ParsedDynModuleEntryPointPragma();

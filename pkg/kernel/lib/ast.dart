@@ -3711,7 +3711,7 @@ class FunctionNode extends TreeNode {
   /// iterable returned by the function.
   ///
   /// For `async*` functions [emittedValueType] is the type of the element of
-  /// the stream return ed by the function.
+  /// the stream returned by the function.
   ///
   /// For sync functions (those not marked with one of `async`, `sync*`, or
   /// `async*`) the value of [emittedValueType] is null.

@@ -228,6 +228,10 @@ mixin KernelNodes {
       index.getField("dart:collection", "_HashFieldBase", "_deletedKeys");
 
   // dart:core various procedures
+  late final Procedure boxedBoolEquals =
+      index.getProcedure("dart:core", "_BoxedBool", "==");
+  late final Procedure boxedIntEquals =
+      index.getProcedure("dart:_boxed_int", "BoxedInt", "==");
   late final Procedure objectHashCode =
       index.getProcedure("dart:core", "Object", "get:hashCode");
   late final Procedure objectNoSuchMethod =

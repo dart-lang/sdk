@@ -12,6 +12,7 @@ export '../kernel/constructor_tearoff_lowering.dart'
         isConstructorTearOffLowering,
         isTearOffLowering,
         isTypedefTearOffLowering;
+export '../kernel/wildcard_lowering.dart';
 
 // Coverage-ignore(suite): Not run.
 /// Returns `true` if [node] is the field holding the value of a lowered late

@@ -27124,6 +27124,7 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
         Instance::Cast(*pragma).GetField(*reusable_field_handle);
     if ((pragma_name != Symbols::vm_entry_point().ptr()) &&
         (pragma_name != Symbols::dyn_module_callable().ptr()) &&
+        (pragma_name != Symbols::dyn_module_implicitly_callable().ptr()) &&
         (pragma_name != Symbols::dyn_module_extendable().ptr())) {
       continue;
     }

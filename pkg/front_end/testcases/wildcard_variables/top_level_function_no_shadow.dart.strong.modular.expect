@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method _() → void {}
 static method test() → dynamic {
-  function wildcard _(core::int x) → core::int
+  function wildcard _#wc0#var(core::int x) → core::int
     return x;
   core::print(#C1);
 }

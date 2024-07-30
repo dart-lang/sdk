@@ -70,7 +70,7 @@
 
 #### `dart:typed_data`
 
-- **BREAKING CHANGE** [#53785][]: The unmodifiable view classes for typed data
+- **Breaking Change** [#53785][]: The unmodifiable view classes for typed data
   have been removed. These classes were deprecated in Dart 3.4.
 
   To create an unmodifiable view of a typed-data object, use the
@@ -87,8 +87,10 @@
 
 - **Breaking Change** [#55508][]: `importModule` now accepts a `JSAny` instead
   of a `String` to support other JS values as well, like `TrustedScriptURL`s.
+
 - **Breaking Change** [#55267][]: `isTruthy` and `not` now return `JSBoolean`
   instead of `bool` to be consistent with the other operators.
+
 - **Breaking Change** `ExternalDartReference` no longer implements `Object`.
   `ExternalDartReference` now accepts a type parameter `T` with a bound of
   `Object?` to capture the type of the Dart object that is externalized.
@@ -96,12 +98,13 @@
   `ExternalDartReferenceToObject` and `ObjectToExternalDartReference` are now
   extensions on `T` and `ExternalDartReference<T>`, respectively, where `T
   extends Object?`. See [#55342][] and [#55536][] for more details.
-- Fixes some consistency issues with `Function.toJS` across all compilers.
+
+- Fixed some consistency issues with `Function.toJS` across all compilers.
   Specifically, calling `Function.toJS` on the same function gives you a new JS
-  function (see issue [#55515][]), the max number of args that are passed to the
-  JS function is determined by the static type of the Dart function, and extra
-  args are dropped when passed to the JS function in all compilers (see
-  [#48186][]).
+  function (see issue [#55515][]), the maximum number of arguments that are
+  passed to the JS function is determined by the static type of the Dart
+  function, and extra arguments are dropped when passed to the JS function in
+  all compilers (see [#48186][]).
 
 [#55508]: https://github.com/dart-lang/sdk/issues/55508
 [#55267]: https://github.com/dart-lang/sdk/issues/55267

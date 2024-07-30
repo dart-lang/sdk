@@ -19,7 +19,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 static method test() → dynamic async /* emittedValueType= dynamic */ {
-  for (wildcard core::int _ = 0, wildcard core::int _ = 2; ; ) {
+  for (wildcard core::int _#wc0#var = 0, wildcard core::int _#wc1#var = 2; ; ) {
     core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:8:11: Error: Undefined name '_'.
     print(_);
           ^");
@@ -28,7 +28,7 @@ static method test() → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<dynamic> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      wildcard dynamic _ = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      wildcard dynamic _#wc2#var = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
         core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:13:11: Error: Undefined name '_'.
     print(_);
@@ -42,7 +42,7 @@ static method test() → dynamic async /* emittedValueType= dynamic */ {
     synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
-        wildcard dynamic _ = :for-iterator.{asy::_StreamIterator::current}{dynamic};
+        wildcard dynamic _#wc3#var = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
           core::print(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:18:11: Error: Undefined name '_'.
     print(_);

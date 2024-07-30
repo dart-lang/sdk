@@ -43,3 +43,34 @@ Object? sfield9;
 Object? _sfield10;
 void smethod10() {}
 void _smethod11() {}
+
+class _E1 {
+  final int _x;
+  const _E1(this._x);
+}
+
+class _E2 extends _E1 {
+  final int _y;
+  const _E2(super._x, this._y);
+}
+
+class _F {
+  _F();
+  factory _F._foo() = _G._bar;
+}
+
+class _G extends _F {
+  _G._bar();
+}
+
+const const11 = [_E2(1, 2), _F._foo];
+
+abstract class K {
+  void foo();
+}
+
+class _L {
+  void foo() {}
+}
+
+class _M extends _L implements K {}

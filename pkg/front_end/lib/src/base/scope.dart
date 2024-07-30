@@ -344,13 +344,7 @@ class TypeParameterScope with LookupScopeMixin {
     if (typeVariableBuilders == null) return parent;
     Map<String, Builder> map = {};
     for (TypeVariableBuilderBase typeVariableBuilder in typeVariableBuilders) {
-      // TODO(johnniwinther,kallentu): Why are structural variables treated
-      // differently from nominal variable here but not for instance in
-      // `BodyBuilder.enterStructuralVariablesScope`?
-      if (typeVariableBuilder is NominalVariableBuilder &&
-          typeVariableBuilder.isWildcard) {
-        continue;
-      }
+      if (typeVariableBuilder.isWildcard) continue;
       map[typeVariableBuilder.name] = typeVariableBuilder;
     }
     return new TypeParameterScope(parent, map);
