@@ -518,6 +518,7 @@ class ObjectPointerVisitor;
     ":dynamic_assert_assignable_stc_check")                                    \
   V(dyn_module_callable, "dyn-module:callable")                                \
   V(dyn_module_extendable, "dyn-module:extendable")                            \
+  V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(end, "end")                                                                \
   V(executable, "executable")                                                  \
   V(from, "from")                                                              \
