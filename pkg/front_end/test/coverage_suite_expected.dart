@@ -159,14 +159,19 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
+  "package:front_end/src/base/label_scope.dart": (
+    hitCount: 30,
+    missCount: 0,
+  ),
+  // 100.0%.
   "package:front_end/src/base/library_graph.dart": (
     hitCount: 25,
     missCount: 0,
   ),
-  // 88.07339449541286%.
+  // 86.76470588235294%.
   "package:front_end/src/base/local_scope.dart": (
-    hitCount: 96,
-    missCount: 13,
+    hitCount: 59,
+    missCount: 9,
   ),
   // 100.0%.
   "package:front_end/src/base/messages.dart": (
@@ -473,9 +478,9 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 0,
     missCount: 0,
   ),
-  // 99.3421052631579%.
+  // 99.34426229508196%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 6946,
+    hitCount: 6969,
     missCount: 46,
   ),
   // 100.0%.
@@ -984,10 +989,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 20,
     missCount: 0,
   ),
-  // 86.66666666666667%.
+  // 100.0%.
   "package:front_end/src/util/local_stack.dart": (
-    hitCount: 13,
-    missCount: 2,
+    hitCount: 15,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/util/parser_ast.dart": (

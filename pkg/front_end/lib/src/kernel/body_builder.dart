@@ -52,6 +52,7 @@ import '../base/identifiers.dart'
         QualifiedName,
         SimpleIdentifier,
         flattenName;
+import '../base/label_scope.dart';
 import '../base/local_scope.dart';
 import '../base/modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
@@ -351,7 +352,9 @@ class BodyBuilder extends StackListenerImpl
 
   Statement? problemInLoopOrSwitch;
 
-  SwitchScope? switchScope;
+  LocalStack<LabelScope> _labelScopes;
+
+  LocalStack<LabelScope?> _switchScopes = new LocalStack([]);
 
   late _BodyBuilderCloner _cloner = new _BodyBuilderCloner(this);
 
@@ -445,7 +448,8 @@ class BodyBuilder extends StackListenerImpl
         needsImplicitSuperInitializer =
             context.needsImplicitSuperInitializer(coreTypes),
         benchmarker = libraryBuilder.loader.target.benchmarker,
-        _localScopes = new LocalStack([enclosingScope]) {
+        _localScopes = new LocalStack([enclosingScope]),
+        _labelScopes = new LocalStack([new LabelScopeImpl()]) {
     if (formalParameterScope != null) {
       for (Builder builder in formalParameterScope!.localMembers) {
         if (builder is VariableBuilder) {
@@ -495,6 +499,11 @@ class BodyBuilder extends StackListenerImpl
 
   LocalScope get _localScope => _localScopes.current;
 
+  LabelScope get _labelScope => _labelScopes.current;
+
+  LabelScope? get _switchScope =>
+      _switchScopes.hasCurrent ? _switchScopes.current : null;
+
   @override
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
@@ -525,6 +534,7 @@ class BodyBuilder extends StackListenerImpl
 
   void enterLocalScope(LocalScope localScope) {
     _localScopes.push(localScope);
+    _labelScopes.push(new LabelScopeImpl(_labelScope));
     if (_localScope.kind == ScopeKind.functionBody) {
       _inBodyCount++;
     }
@@ -534,6 +544,7 @@ class BodyBuilder extends StackListenerImpl
       {required String debugName, required ScopeKind kind}) {
     _localScopes
         .push(_localScope.createNestedScope(debugName: debugName, kind: kind));
+    _labelScopes.push(new LabelScopeImpl(_labelScope));
     if (kind == ScopeKind.functionBody) {
       _inBodyCount++;
     }
@@ -560,6 +571,7 @@ class BodyBuilder extends StackListenerImpl
     if (_localScope.kind == ScopeKind.functionBody) {
       _inBodyCount--;
     }
+    _labelScopes.pop();
     _localScopes.pop();
   }
 
@@ -823,14 +835,15 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void enterSwitchScope() {
-    push(switchScope ?? NullValues.SwitchScope);
-    switchScope = _localScope.switchScope;
+    _switchScopes.push(_labelScope);
   }
 
   void exitSwitchScope() {
-    SwitchScope? outerSwitchScope = pop() as SwitchScope?;
-    if (switchScope!.unclaimedForwardDeclarations != null) {
-      switchScope!.unclaimedForwardDeclarations!
+    LabelScope switchScope = _switchScope!;
+    LabelScope? outerSwitchScope =
+        _switchScopes.hasPrevious ? _switchScopes.previous : null;
+    if (switchScope.unclaimedForwardDeclarations != null) {
+      switchScope.unclaimedForwardDeclarations!
           .forEach((String name, JumpTarget declaration) {
         if (outerSwitchScope == null) {
           // Coverage-ignore-block(suite): Not run.
@@ -845,7 +858,7 @@ class BodyBuilder extends StackListenerImpl
         }
       });
     }
-    switchScope = outerSwitchScope;
+    _switchScopes.pop();
   }
 
   void wrapVariableInitializerInError(
@@ -7442,8 +7455,7 @@ class BodyBuilder extends StackListenerImpl
     _enterLocalState();
     debugEvent("enterFunction");
     functionNestingLevel++;
-    push(switchScope ?? NullValues.SwitchScope);
-    switchScope = null;
+    _switchScopes.push(null);
     push(inCatchBlock);
     inCatchBlock = false;
     // This is matched by the call to [endNode] in [pushNamedFunction] or
@@ -7451,20 +7463,18 @@ class BodyBuilder extends StackListenerImpl
     typeInferrer.assignedVariables.beginNode();
     assert(checkState(null, [
       /* inCatchBlock */ ValueKinds.Bool,
-      /* switch scope */ ValueKinds.SwitchScopeOrNull,
     ]));
   }
 
   void exitFunction() {
     assert(checkState(null, [
       /* inCatchBlock */ ValueKinds.Bool,
-      /* switch scope */ ValueKinds.SwitchScopeOrNull,
       /* function type variables */ ValueKinds.NominalVariableListOrNull,
     ]));
     debugEvent("exitFunction");
     functionNestingLevel--;
     inCatchBlock = pop() as bool;
-    switchScope = pop() as SwitchScope?;
+    _switchScopes.pop();
     List<NominalVariableBuilder>? typeVariables =
         pop() as List<NominalVariableBuilder>?;
     exitLocalScope();
@@ -7594,7 +7604,6 @@ class BodyBuilder extends StackListenerImpl
       /* async marker */ ValueKinds.AsyncMarker,
       /* formal parameters */ ValueKinds.FormalParameters,
       /* inCatchBlock */ ValueKinds.Bool,
-      /* switch scope */ ValueKinds.SwitchScopeOrNull,
       /* function type variables */ ValueKinds.NominalVariableListOrNull,
     ]));
     Statement body = popNullableStatement() ??
@@ -7990,12 +7999,12 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("beginLabeledStatement");
     List<Label>? labels = const FixedNullableList<Label>()
         .popNonNullable(stack, labelCount, dummyLabel);
-    enterLocalScope(_localScope.createNestedLabelScope());
+    _labelScopes.push(new LabelScopeImpl(_labelScope));
     LabelTarget target =
         new LabelTarget(functionNestingLevel, uri, token.charOffset);
     if (labels != null) {
       for (Label label in labels) {
-        _localScope.declareLabel(label.name, target);
+        _labelScope.declareLabel(label.name, target);
       }
     }
     push(target);
@@ -8006,7 +8015,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("LabeledStatement");
     Statement statement = pop() as Statement;
     LabelTarget target = pop() as LabelTarget;
-    exitLocalScope();
+    _labelScopes.pop();
     // TODO(johnniwinther): Split the handling of breaks and continue.
     if (target.breakTarget.hasUsers || target.continueTarget.hasUsers) {
       if (forest.isVariablesDeclaration(statement)) {
@@ -8271,15 +8280,14 @@ class BodyBuilder extends StackListenerImpl
           debugName: "joint-variables", kind: ScopeKind.jointVariables);
     }
 
-    // ignore: unrelated_type_equality_checks
-    assert(_localScope == switchScope);
+    assert(_labelScope == _switchScope);
 
     if (labels != null) {
       for (Label label in labels) {
         String labelName = label.name;
-        if (switchScope!.hasLocalLabel(labelName)) {
+        if (_labelScope.hasLocalLabel(labelName)) {
           // TODO(ahe): Should validate this is a goto target.
-          if (!switchScope!.claimLabel(labelName)) {
+          if (!_labelScope.claimLabel(labelName)) {
             // Coverage-ignore-block(suite): Not run.
             addProblem(
                 fasta.templateDuplicateLabelInSwitchStatement
@@ -8288,7 +8296,7 @@ class BodyBuilder extends StackListenerImpl
                 labelName.length);
           }
         } else {
-          _localScope.declareLabel(
+          _labelScope.declareLabel(
               labelName, createGotoTarget(beginToken.charOffset));
         }
       }
@@ -8645,7 +8653,6 @@ class BodyBuilder extends StackListenerImpl
       /* cases = */ ValueKinds.SwitchCaseList,
       /* containsPatterns */ ValueKinds.Bool,
       /* break target = */ ValueKinds.BreakTarget,
-      /* switch scope = */ ValueKinds.SwitchScopeOrNull,
       /* expression = */ ValueKinds.Condition,
     ]));
     List<List<Statement>?> labelUsers = pop() as List<List<Statement>?>;
@@ -8834,7 +8841,7 @@ class BodyBuilder extends StackListenerImpl
       SwitchCase current = cases[i] = pop() as SwitchCase;
       if (labels != null) {
         for (Label label in labels) {
-          JumpTarget? target = switchScope!.lookupLabel(label.name);
+          JumpTarget? target = _switchScope!.lookupLabel(label.name);
           if (target != null) {
             (caseLabelUsers[i] ??= <Statement>[]).addAll(target.users);
             target.resolveGotos(forest, current);
@@ -8883,7 +8890,7 @@ class BodyBuilder extends StackListenerImpl
     if (hasTarget) {
       identifier = pop() as Identifier;
       name = identifier.name;
-      target = _localScope.lookupLabel(name);
+      target = _labelScope.lookupLabel(name);
     }
     if (target == null && name == null) {
       push(problemInLoopOrSwitch = buildProblemStatement(
@@ -8939,15 +8946,15 @@ class BodyBuilder extends StackListenerImpl
     if (hasTarget) {
       identifier = pop() as Identifier;
       name = identifier.name;
-      target = _localScope.lookupLabel(identifier.name);
+      target = _labelScope.lookupLabel(identifier.name);
       if (target == null) {
-        if (switchScope == null) {
+        if (_switchScope == null) {
           push(buildProblemStatement(
               fasta.templateLabelNotFound.withArguments(name),
               continueKeyword.next!.charOffset));
           return;
         }
-        switchScope!.forwardDeclareLabel(
+        _switchScope!.forwardDeclareLabel(
             identifier.name, target = createGotoTarget(identifier.nameOffset));
       }
       if (target.isGotoTarget &&
